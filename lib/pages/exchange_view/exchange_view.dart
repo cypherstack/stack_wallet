@@ -10,9 +10,9 @@ import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/trade_card.dart';
@@ -37,7 +37,8 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
         ExchangeDataLoadingService.instance.onLoadingComplete = () {
           WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
             await ExchangeDataLoadingService.instance.setCurrenciesIfEmpty(
-              ref.read(exchangeFormStateProvider),
+              ref.read(efCurrencyPairProvider),
+              ref.read(efRateTypeProvider),
             );
             setState(() {
               _initialCachePopulationUnderway = false;
@@ -53,7 +54,8 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
       ExchangeDataLoadingService.instance.onLoadingComplete = () {
         WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
           await ExchangeDataLoadingService.instance.setCurrenciesIfEmpty(
-            ref.read(exchangeFormStateProvider),
+            ref.read(efCurrencyPairProvider),
+            ref.read(efRateTypeProvider),
           );
           setState(() {
             _initialCachePopulationUnderway = false;

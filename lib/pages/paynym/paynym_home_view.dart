@@ -14,11 +14,11 @@ import 'package:stackwallet/pages/paynym/subwidgets/paynym_followers_list.dart';
 import 'package:stackwallet/pages/paynym/subwidgets/paynym_following_list.dart';
 import 'package:stackwallet/providers/ui/selected_paynym_details_item_Provider.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -275,8 +275,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                       paymentCodeString: ref
                           .watch(myPaynymAccountStateProvider.state)
                           .state!
-                          .codes
-                          .first
+                          .nonSegwitPaymentCode
                           .code,
                     ),
                   ),
@@ -298,8 +297,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                         ref
                             .watch(myPaynymAccountStateProvider.state)
                             .state!
-                            .codes
-                            .first
+                            .nonSegwitPaymentCode
                             .code,
                         12,
                         5),
@@ -330,8 +328,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                                 text: ref
                                     .read(myPaynymAccountStateProvider.state)
                                     .state!
-                                    .codes
-                                    .first
+                                    .nonSegwitPaymentCode
                                     .code,
                               ),
                             );
@@ -376,8 +373,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                                 ref
                                     .read(myPaynymAccountStateProvider.state)
                                     .state!
-                                    .codes
-                                    .first
+                                    .nonSegwitPaymentCode
                                     .code,
                                 sharePositionOrigin: sharePositionOrigin);
                           },
@@ -447,8 +443,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                           paymentCodeString: ref
                               .watch(myPaynymAccountStateProvider.state)
                               .state!
-                              .codes
-                              .first
+                              .nonSegwitPaymentCode
                               .code,
                         ),
                       ),
@@ -473,8 +468,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                                 ref
                                     .watch(myPaynymAccountStateProvider.state)
                                     .state!
-                                    .codes
-                                    .first
+                                    .nonSegwitPaymentCode
                                     .code,
                                 12,
                                 5),
@@ -501,8 +495,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                               text: ref
                                   .read(myPaynymAccountStateProvider.state)
                                   .state!
-                                  .codes
-                                  .first
+                                  .nonSegwitPaymentCode
                                   .code,
                             ),
                           );

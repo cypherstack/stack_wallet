@@ -5,10 +5,9 @@ import 'dart:typed_data';
 
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
 import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/models/contact.dart';
-import 'package:stackwallet/models/contact_address_entry.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
+import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/stack_restoring_ui_state.dart';
 import 'package:stackwallet/models/trade_wallet_lookup.dart';
@@ -266,7 +265,7 @@ abstract class SWB {
       );
 
       AddressBookService addressBookService = AddressBookService();
-      var addresses = await addressBookService.addressBookEntries;
+      var addresses = addressBookService.contacts;
       backupJson['addressBookEntries'] =
           addresses.map((e) => e.toMap()).toList();
 
@@ -799,7 +798,7 @@ abstract class SWB {
 
     // contacts
     final addressBookService = AddressBookService();
-    final allContactIds = addressBookService.contacts.map((e) => e.id);
+    final allContactIds = addressBookService.contacts.map((e) => e.customId);
 
     if (addressBookEntries == null) {
       // if no contacts were present before attempted restore then delete any that
@@ -823,21 +822,20 @@ abstract class SWB {
           List<ContactAddressEntry> addresses = [];
           for (var address in (contact['addresses'] as List<dynamic>)) {
             addresses.add(
-              ContactAddressEntry(
-                coin: Coin.values
-                    .firstWhere((element) => element.name == address['coin']),
-                address: address['address'] as String,
-                label: address['label'] as String,
-              ),
+              ContactAddressEntry()
+                ..coinName = address['coin'] as String
+                ..address = address['address'] as String
+                ..label = address['label'] as String
+                ..other = address['other'] as String?,
             );
           }
           await addressBookService.editContact(
-            Contact(
+            ContactEntry(
               emojiChar: contact['emoji'] as String?,
               name: contact['name'] as String,
               addresses: addresses,
               isFavorite: contact['isFavorite'] as bool,
-              id: contact['id'] as String,
+              customId: contact['id'] as String,
             ),
           );
         } else {
@@ -1026,21 +1024,20 @@ abstract class SWB {
       List<ContactAddressEntry> addresses = [];
       for (var address in (contact['addresses'] as List<dynamic>)) {
         addresses.add(
-          ContactAddressEntry(
-            coin: Coin.values
-                .firstWhere((element) => element.name == address['coin']),
-            address: address['address'] as String,
-            label: address['label'] as String,
-          ),
+          ContactAddressEntry()
+            ..coinName = address['coin'] as String
+            ..address = address['address'] as String
+            ..label = address['label'] as String
+            ..other = address['other'] as String?,
         );
       }
       await addressBookService.addContact(
-        Contact(
+        ContactEntry(
           emojiChar: contact['emoji'] as String?,
           name: contact['name'] as String,
           addresses: addresses,
           isFavorite: contact['isFavorite'] as bool,
-          id: contact['id'] as String,
+          customId: contact['id'] as String,
         ),
       );
     }

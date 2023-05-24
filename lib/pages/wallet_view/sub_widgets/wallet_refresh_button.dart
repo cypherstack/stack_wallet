@@ -7,8 +7,8 @@ import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/animated_widgets/rotating_arrows.dart';
 
@@ -97,58 +97,64 @@ class _RefreshButtonState extends ConsumerState<WalletRefreshButton> {
     final isDesktop = Util.isDesktop;
 
     return SizedBox(
-      height: isDesktop ? 22 : 36,
-      width: isDesktop ? 22 : 36,
-      child: MaterialButton(
-        color: isDesktop
-            ? Theme.of(context).extension<StackColors>()!.buttonBackSecondary
-            : null,
-        splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-        onPressed: () {
-          if (widget.tokenContractAddress == null) {
-            final managerProvider = ref
-                .read(walletsChangeNotifierProvider)
-                .getManagerProvider(widget.walletId);
-            final isRefreshing = ref.read(managerProvider).isRefreshing;
-            if (!isRefreshing) {
-              _spinController.repeat?.call();
-              ref
-                  .read(managerProvider)
-                  .refresh()
-                  .then((_) => _spinController.stop?.call());
-            }
-          } else {
-            if (!ref.read(tokenServiceProvider)!.isRefreshing) {
-              ref.read(tokenServiceProvider)!.refresh();
-            }
-          }
-        },
-        elevation: 0,
-        highlightElevation: 0,
-        hoverElevation: 0,
-        padding: EdgeInsets.zero,
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(
-            Constants.size.circularBorderRadius,
+        height: isDesktop ? 22 : 36,
+        width: isDesktop ? 22 : 36,
+        child: Semantics(
+          label: "Refresh Button. Refreshes The Values In Summary.",
+          excludeSemantics: true,
+          child: MaterialButton(
+            color: isDesktop
+                ? Theme.of(context)
+                    .extension<StackColors>()!
+                    .buttonBackSecondary
+                : null,
+            splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+            onPressed: () {
+              if (widget.tokenContractAddress == null) {
+                final managerProvider = ref
+                    .read(walletsChangeNotifierProvider)
+                    .getManagerProvider(widget.walletId);
+                final isRefreshing = ref.read(managerProvider).isRefreshing;
+                if (!isRefreshing) {
+                  _spinController.repeat?.call();
+                  ref
+                      .read(managerProvider)
+                      .refresh()
+                      .then((_) => _spinController.stop?.call());
+                }
+              } else {
+                if (!ref.read(tokenServiceProvider)!.isRefreshing) {
+                  ref.read(tokenServiceProvider)!.refresh();
+                }
+              }
+            },
+            elevation: 0,
+            highlightElevation: 0,
+            hoverElevation: 0,
+            padding: EdgeInsets.zero,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(
+                Constants.size.circularBorderRadius,
+              ),
+            ),
+            child: RotatingArrows(
+              spinByDefault:
+                  widget.initialSyncStatus == WalletSyncStatus.syncing,
+              width: isDesktop ? 12 : 24,
+              height: isDesktop ? 12 : 24,
+              controller: _spinController,
+              color: widget.overrideIconColor != null
+                  ? widget.overrideIconColor!
+                  : isDesktop
+                      ? Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldDefaultSearchIconRight
+                      : Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFavoriteCard,
+            ),
           ),
-        ),
-        child: RotatingArrows(
-          spinByDefault: widget.initialSyncStatus == WalletSyncStatus.syncing,
-          width: isDesktop ? 12 : 24,
-          height: isDesktop ? 12 : 24,
-          controller: _spinController,
-          color: widget.overrideIconColor != null
-              ? widget.overrideIconColor!
-              : isDesktop
-                  ? Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldDefaultSearchIconRight
-                  : Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFavoriteCard,
-        ),
-      ),
-    );
+        ));
   }
 }

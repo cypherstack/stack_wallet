@@ -89,7 +89,7 @@ class PriceAPI {
       final uri =
           Uri.parse("https://api.coingecko.com/api/v3/coins/markets?vs_currency"
               "=${baseCurrency.toLowerCase()}"
-              "&ids=monero,bitcoin,litecoin,epic-cash,zcoin,dogecoin,"
+              "&ids=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
               "bitcoin-cash,namecoin,wownero,ethereum,particl"
               "&order=market_cap_desc&per_page=50&page=1&sparkline=false");
 

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,10 +14,11 @@ import 'package:stackwallet/pages/wallets_view/wallets_view.dart';
 import 'package:stackwallet/providers/global/notifications_provider.dart';
 import 'package:stackwallet/providers/ui/home_view_index_provider.dart';
 import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/animated_widgets/rotate_icon.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -162,8 +164,14 @@ class _HomeViewState extends ConsumerState<HomeView> {
                 GestureDetector(
                   onTap: _hiddenOptions,
                   child: RotateIcon(
-                    icon: SvgPicture.asset(
-                      Assets.svg.stackIcon(context),
+                    icon: SvgPicture.file(
+                      File(
+                        ref.watch(
+                          themeProvider.select(
+                            (value) => value.assets.stackIcon,
+                          ),
+                        ),
+                      ),
                       width: 24,
                       height: 24,
                     ),
@@ -191,26 +199,44 @@ class _HomeViewState extends ConsumerState<HomeView> {
                 child: AspectRatio(
                   aspectRatio: 1,
                   child: AppBarIconButton(
+                    semanticsLabel:
+                        "Notifications Button. Takes To Notifications Page.",
                     key: const Key("walletsViewAlertsButton"),
                     size: 36,
                     shadows: const [],
                     color: Theme.of(context)
                         .extension<StackColors>()!
                         .backgroundAppBar,
-                    icon: SvgPicture.asset(
-                      ref.watch(notificationsProvider
-                              .select((value) => value.hasUnreadNotifications))
-                          ? Assets.svg.bellNew(context)
-                          : Assets.svg.bell,
-                      width: 20,
-                      height: 20,
-                      color: ref.watch(notificationsProvider
-                              .select((value) => value.hasUnreadNotifications))
-                          ? null
-                          : Theme.of(context)
-                              .extension<StackColors>()!
-                              .topNavIconPrimary,
-                    ),
+                    icon: ref.watch(notificationsProvider
+                            .select((value) => value.hasUnreadNotifications))
+                        ? SvgPicture.file(
+                            File(
+                              ref.watch(
+                                themeProvider.select(
+                                  (value) => value.assets.bellNew,
+                                ),
+                              ),
+                            ),
+                            width: 20,
+                            height: 20,
+                            color: ref.watch(notificationsProvider.select(
+                                    (value) => value.hasUnreadNotifications))
+                                ? null
+                                : Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .topNavIconPrimary,
+                          )
+                        : SvgPicture.asset(
+                            Assets.svg.bell,
+                            width: 20,
+                            height: 20,
+                            color: ref.watch(notificationsProvider.select(
+                                    (value) => value.hasUnreadNotifications))
+                                ? null
+                                : Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .topNavIconPrimary,
+                          ),
                     onPressed: () {
                       // reset unread state
                       ref.refresh(unreadNotificationsStateProvider);
@@ -254,6 +280,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                 child: AspectRatio(
                   aspectRatio: 1,
                   child: AppBarIconButton(
+                    semanticsLabel: "Settings Button. Takes To Settings Page.",
                     key: const Key("walletsViewSettingsButton"),
                     size: 36,
                     shadows: const [],

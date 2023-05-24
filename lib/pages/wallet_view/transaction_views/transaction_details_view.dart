@@ -1,11 +1,13 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/receive_view/addresses/address_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/dialogs/cancelling_transaction_progress_dialog.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/edit_note_view.dart';
@@ -15,6 +17,7 @@ import 'package:stackwallet/providers/global/address_book_service_provider.dart'
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/block_explorers.dart';
@@ -23,7 +26,6 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -112,10 +114,11 @@ class _TransactionDetailsViewState
     super.dispose();
   }
 
-  String whatIsIt(TransactionType type, int height) {
+  String whatIsIt(Transaction tx, int height) {
+    final type = tx.type;
     if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      if (_transaction.subType == TransactionSubType.mint) {
-        if (_transaction.isConfirmed(height, coin.requiredConfirmations)) {
+      if (tx.subType == TransactionSubType.mint) {
+        if (tx.isConfirmed(height, coin.requiredConfirmations)) {
           return "Minted";
         } else {
           return "Minting";
@@ -127,13 +130,13 @@ class _TransactionDetailsViewState
       // if (_transaction.isMinting) {
       //   return "Minting";
       // } else
-      if (_transaction.isConfirmed(height, coin.requiredConfirmations)) {
+      if (tx.isConfirmed(height, coin.requiredConfirmations)) {
         return "Received";
       } else {
         return "Receiving";
       }
     } else if (type == TransactionType.outgoing) {
-      if (_transaction.isConfirmed(height, coin.requiredConfirmations)) {
+      if (tx.isConfirmed(height, coin.requiredConfirmations)) {
         return "Sent";
       } else {
         return "Sending";
@@ -428,7 +431,7 @@ class _TransactionDetailsViewState
                                               _transaction.isCancelled
                                                   ? "Cancelled"
                                                   : whatIsIt(
-                                                      _transaction.type,
+                                                      _transaction,
                                                       currentHeight,
                                                     ),
                                               style:
@@ -545,7 +548,7 @@ class _TransactionDetailsViewState
                                     _transaction.isCancelled
                                         ? "Cancelled"
                                         : whatIsIt(
-                                            _transaction.type,
+                                            _transaction,
                                             currentHeight,
                                           ),
                                     style: isDesktop
@@ -604,17 +607,66 @@ class _TransactionDetailsViewState
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          Text(
-                                            _transaction.type ==
-                                                    TransactionType.outgoing
-                                                ? "Sent to"
-                                                : "Receiving address",
-                                            style: isDesktop
-                                                ? STextStyles
-                                                    .desktopTextExtraExtraSmall(
-                                                        context)
-                                                : STextStyles.itemSubtitle(
-                                                    context),
+                                          ConditionalParent(
+                                            condition: kDebugMode,
+                                            builder: (child) {
+                                              return Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  child,
+                                                  CustomTextButton(
+                                                    text: "Info",
+                                                    onTap: () {
+                                                      if (isDesktop) {
+                                                        showDialog<void>(
+                                                          context: context,
+                                                          builder: (_) =>
+                                                              DesktopDialog(
+                                                            maxHeight:
+                                                                double.infinity,
+                                                            child:
+                                                                AddressDetailsView(
+                                                              addressId:
+                                                                  _transaction
+                                                                      .address
+                                                                      .value!
+                                                                      .id,
+                                                              walletId: widget
+                                                                  .walletId,
+                                                            ),
+                                                          ),
+                                                        );
+                                                      } else {
+                                                        Navigator.of(context)
+                                                            .pushNamed(
+                                                          AddressDetailsView
+                                                              .routeName,
+                                                          arguments: Tuple2(
+                                                            _transaction.address
+                                                                .value!.id,
+                                                            widget.walletId,
+                                                          ),
+                                                        );
+                                                      }
+                                                    },
+                                                  )
+                                                ],
+                                              );
+                                            },
+                                            child: Text(
+                                              _transaction.type ==
+                                                      TransactionType.outgoing
+                                                  ? "Sent to"
+                                                  : "Receiving address",
+                                              style: isDesktop
+                                                  ? STextStyles
+                                                      .desktopTextExtraExtraSmall(
+                                                          context)
+                                                  : STextStyles.itemSubtitle(
+                                                      context),
+                                            ),
                                           ),
                                           const SizedBox(
                                             height: 8,
@@ -1084,6 +1136,46 @@ class _TransactionDetailsViewState
                                     ),
                                     SelectableText(
                                       _transaction.nonce.toString(),
+                                      style: isDesktop
+                                          ? STextStyles
+                                                  .desktopTextExtraExtraSmall(
+                                                      context)
+                                              .copyWith(
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textDark,
+                                            )
+                                          : STextStyles.itemSubtitle12(context),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            if (kDebugMode)
+                              isDesktop
+                                  ? const _Divider()
+                                  : const SizedBox(
+                                      height: 12,
+                                    ),
+                            if (kDebugMode)
+                              RoundedWhiteContainer(
+                                padding: isDesktop
+                                    ? const EdgeInsets.all(16)
+                                    : const EdgeInsets.all(12),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Tx sub type",
+                                      style: isDesktop
+                                          ? STextStyles
+                                              .desktopTextExtraExtraSmall(
+                                                  context)
+                                          : STextStyles.itemSubtitle(context),
+                                    ),
+                                    SelectableText(
+                                      _transaction.subType.toString(),
                                       style: isDesktop
                                           ? STextStyles
                                                   .desktopTextExtraExtraSmall(

@@ -7,11 +7,10 @@ import 'package:stackwallet/providers/global/paynym_api_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -75,7 +74,7 @@ class _PaynymFollowersListState extends ConsumerState<PaynymFollowersList> {
 
             // get payment code
             final pCode = await wallet.getPaymentCode(
-              DerivePathTypeExt.primaryFor(manager.coin),
+              isSegwit: false,
             );
 
             // get account from api

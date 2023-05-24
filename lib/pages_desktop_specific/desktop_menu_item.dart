@@ -1,12 +1,15 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_menu.dart';
 import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
 import 'package:stackwallet/providers/global/notifications_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 
 class DMIController {
   VoidCallback? toggle;
@@ -60,8 +63,8 @@ class DesktopBuyIcon extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return SvgPicture.asset(
-      Assets.svg.buy(context),
+    return SvgPicture.file(
+      File(ref.watch(themeAssetsProvider).buy),
       width: 20,
       height: 20,
       color: DesktopMenuItemId.buy ==
@@ -80,24 +83,36 @@ class DesktopNotificationsIcon extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return SvgPicture.asset(
-      ref.watch(notificationsProvider
-              .select((value) => value.hasUnreadNotifications))
-          ? Assets.svg.bellNew(context)
-          : Assets.svg.bell,
-      width: 20,
-      height: 20,
-      color: ref.watch(notificationsProvider
-              .select((value) => value.hasUnreadNotifications))
-          ? null
-          : DesktopMenuItemId.notifications ==
-                  ref.watch(currentDesktopMenuItemProvider.state).state
-              ? Theme.of(context).extension<StackColors>()!.accentColorDark
-              : Theme.of(context)
-                  .extension<StackColors>()!
-                  .accentColorDark
-                  .withOpacity(0.8),
-    );
+    return ref.watch(notificationsProvider
+            .select((value) => value.hasUnreadNotifications))
+        ? SvgPicture.file(
+            File(
+              ref.watch(
+                themeProvider.select(
+                  (value) => value.assets.bellNew,
+                ),
+              ),
+            ),
+            width: 20,
+            height: 20,
+          )
+        : SvgPicture.asset(
+            Assets.svg.bell,
+            width: 20,
+            height: 20,
+            color: ref.watch(notificationsProvider
+                    .select((value) => value.hasUnreadNotifications))
+                ? null
+                : DesktopMenuItemId.notifications ==
+                        ref.watch(currentDesktopMenuItemProvider.state).state
+                    ? Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark
+                    : Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark
+                        .withOpacity(0.8),
+          );
   }
 }
 

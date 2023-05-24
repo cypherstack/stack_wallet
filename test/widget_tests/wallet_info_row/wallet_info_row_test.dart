@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/models/balance.dart';
+import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
@@ -11,18 +12,20 @@ import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/services/wallets_service.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/theme/light_colors.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/wallet_info_row/sub_widgets/wallet_info_row_balance.dart';
 import 'package:stackwallet/widgets/wallet_info_row/wallet_info_row.dart';
 
+import '../../sample_data/theme_json.dart';
 import 'wallet_info_row_test.mocks.dart';
 
 @GenerateMocks([
   Wallets,
   WalletsService,
+  ThemeService,
   BitcoinWallet
 ], customMocks: [
   MockSpec<NodeService>(returnNullOnMissingStub: true),
@@ -33,7 +36,14 @@ import 'wallet_info_row_test.mocks.dart';
 void main() {
   testWidgets("Test wallet info row displays correctly", (widgetTester) async {
     final wallets = MockWallets();
+    final mockThemeService = MockThemeService();
     final CoinServiceAPI wallet = MockBitcoinWallet();
+    when(mockThemeService.getTheme(themeId: "light")).thenAnswer(
+      (_) => StackTheme.fromJson(
+        json: lightThemeJsonMap,
+        applicationThemesDirectoryPath: "test",
+      ),
+    );
     when(wallet.coin).thenAnswer((_) => Coin.bitcoin);
     when(wallet.walletName).thenAnswer((_) => "some wallet");
     when(wallet.walletId).thenAnswer((_) => "some-wallet-id");
@@ -55,12 +65,16 @@ void main() {
       ProviderScope(
         overrides: [
           walletsChangeNotifierProvider.overrideWithValue(wallets),
+          pThemeService.overrideWithValue(mockThemeService),
         ],
         child: MaterialApp(
           theme: ThemeData(
             extensions: [
               StackColors.fromStackColorTheme(
-                LightColors(),
+                StackTheme.fromJson(
+                  json: lightThemeJsonMap,
+                  applicationThemesDirectoryPath: "test",
+                ),
               ),
             ],
           ),

@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_form.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_all_trades_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/subwidgets/desktop_trade_history.dart';
 import 'package:stackwallet/providers/exchange/exchange_form_state_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
-
-import 'desktop_all_trades_view.dart';
 
 class DesktopExchangeView extends ConsumerStatefulWidget {
   const DesktopExchangeView({Key? key}) : super(key: key);
@@ -38,7 +37,8 @@ class _DesktopExchangeViewState extends ConsumerState<DesktopExchangeView> {
         ExchangeDataLoadingService.instance.onLoadingComplete = () {
           WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
             await ExchangeDataLoadingService.instance.setCurrenciesIfEmpty(
-              ref.read(exchangeFormStateProvider),
+              ref.read(efCurrencyPairProvider),
+              ref.read(efRateTypeProvider),
             );
             setState(() {
               _initialCachePopulationUnderway = false;
@@ -54,7 +54,8 @@ class _DesktopExchangeViewState extends ConsumerState<DesktopExchangeView> {
       ExchangeDataLoadingService.instance.onLoadingComplete = () {
         WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
           await ExchangeDataLoadingService.instance.setCurrenciesIfEmpty(
-            ref.read(exchangeFormStateProvider),
+            ref.read(efCurrencyPairProvider),
+            ref.read(efRateTypeProvider),
           );
           setState(() {
             _initialCachePopulationUnderway = false;
@@ -149,10 +150,14 @@ class _DesktopExchangeViewState extends ConsumerState<DesktopExchangeView> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Expanded(
-                      child: RoundedWhiteContainer(
-                        padding: EdgeInsets.all(24),
-                        child: ExchangeForm(),
+                    Expanded(
+                      child: ListView(
+                        children: const [
+                          RoundedWhiteContainer(
+                            padding: EdgeInsets.all(24),
+                            child: ExchangeForm(),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(

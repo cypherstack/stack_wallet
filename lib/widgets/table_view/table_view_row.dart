@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/widgets/expandable.dart';
 import 'package:stackwallet/widgets/table_view/table_view_cell.dart';
 

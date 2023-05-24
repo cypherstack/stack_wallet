@@ -21,10 +21,8 @@ import 'package:stackwallet/services/mixins/eth_token_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -34,6 +32,7 @@ import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/widgets/crypto_notifications.dart';
 import 'package:tuple/tuple.dart';
 import 'package:web3dart/web3dart.dart' as web3;
 
@@ -351,7 +350,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
           "Attempted to overwrite mnemonic on generate new wallet!");
     }
 
-    final String mnemonic = bip39.generateMnemonic(strength: 256);
+    final String mnemonic = bip39.generateMnemonic(strength: 128);
     await _secureStore.write(key: '${_walletId}_mnemonic', value: mnemonic);
     await _secureStore.write(
       key: '${_walletId}_mnemonicPassphrase',
@@ -713,32 +712,36 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
       final confirmations = tx.getConfirmations(currentChainHeight);
 
       if (tx.type == TransactionType.incoming) {
-        unawaited(NotificationApi.showNotification(
-          title: "Incoming transaction",
-          body: walletName,
-          walletId: walletId,
-          iconAssetName: Assets.svg.iconFor(coin: coin),
-          date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
-          shouldWatchForUpdates: confirmations < MINIMUM_CONFIRMATIONS,
-          coinName: coin.name,
-          txid: tx.txid,
-          confirmations: confirmations,
-          requiredConfirmations: MINIMUM_CONFIRMATIONS,
-        ));
+        CryptoNotificationsEventBus.instance.fire(
+          CryptoNotificationEvent(
+            title: "Incoming transaction",
+            walletId: walletId,
+            date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
+            shouldWatchForUpdates: confirmations < MINIMUM_CONFIRMATIONS,
+            txid: tx.txid,
+            confirmations: confirmations,
+            requiredConfirmations: MINIMUM_CONFIRMATIONS,
+            walletName: walletName,
+            coin: coin,
+          ),
+        );
+
         await txTracker.addNotifiedPending(tx.txid);
       } else if (tx.type == TransactionType.outgoing) {
-        unawaited(NotificationApi.showNotification(
-          title: "Sending transaction",
-          body: walletName,
-          walletId: walletId,
-          iconAssetName: Assets.svg.iconFor(coin: coin),
-          date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
-          shouldWatchForUpdates: confirmations < MINIMUM_CONFIRMATIONS,
-          coinName: coin.name,
-          txid: tx.txid,
-          confirmations: confirmations,
-          requiredConfirmations: MINIMUM_CONFIRMATIONS,
-        ));
+        CryptoNotificationsEventBus.instance.fire(
+          CryptoNotificationEvent(
+            title: "Sending transaction",
+            walletId: walletId,
+            date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
+            shouldWatchForUpdates: confirmations < MINIMUM_CONFIRMATIONS,
+            txid: tx.txid,
+            confirmations: confirmations,
+            requiredConfirmations: MINIMUM_CONFIRMATIONS,
+            walletName: walletName,
+            coin: coin,
+          ),
+        );
+
         await txTracker.addNotifiedPending(tx.txid);
       }
     }
@@ -746,26 +749,34 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
     // notify on confirmed
     for (final tx in unconfirmedTxnsToNotifyConfirmed) {
       if (tx.type == TransactionType.incoming) {
-        unawaited(NotificationApi.showNotification(
-          title: "Incoming transaction confirmed",
-          body: walletName,
-          walletId: walletId,
-          iconAssetName: Assets.svg.iconFor(coin: coin),
-          date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
-          shouldWatchForUpdates: false,
-          coinName: coin.name,
-        ));
+        CryptoNotificationsEventBus.instance.fire(
+          CryptoNotificationEvent(
+            title: "Incoming transaction confirmed",
+            walletId: walletId,
+            date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
+            shouldWatchForUpdates: false,
+            txid: tx.txid,
+            requiredConfirmations: MINIMUM_CONFIRMATIONS,
+            walletName: walletName,
+            coin: coin,
+          ),
+        );
+
         await txTracker.addNotifiedConfirmed(tx.txid);
       } else if (tx.type == TransactionType.outgoing) {
-        unawaited(NotificationApi.showNotification(
-          title: "Outgoing transaction confirmed",
-          body: walletName,
-          walletId: walletId,
-          iconAssetName: Assets.svg.iconFor(coin: coin),
-          date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
-          shouldWatchForUpdates: false,
-          coinName: coin.name,
-        ));
+        CryptoNotificationsEventBus.instance.fire(
+          CryptoNotificationEvent(
+            title: "Outgoing transaction confirmed",
+            walletId: walletId,
+            date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
+            shouldWatchForUpdates: false,
+            txid: tx.txid,
+            requiredConfirmations: MINIMUM_CONFIRMATIONS,
+            walletName: walletName,
+            coin: coin,
+          ),
+        );
+
         await txTracker.addNotifiedConfirmed(tx.txid);
       }
     }

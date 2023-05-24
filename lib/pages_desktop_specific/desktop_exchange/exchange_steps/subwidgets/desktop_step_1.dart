@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_item.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class DesktopStep1 extends ConsumerWidget {
@@ -38,8 +38,7 @@ class DesktopStep1 extends ConsumerWidget {
             children: [
               DesktopStepItem(
                 label: "Swap",
-                value: ref.watch(exchangeFormStateProvider
-                    .select((value) => value.exchange.name)),
+                value: ref.watch(efExchangeProviderNameProvider),
               ),
               Container(
                 height: 1,

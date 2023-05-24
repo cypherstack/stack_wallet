@@ -175,17 +175,6 @@ void main() async {
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
     });
-
-    test("Multisig/P2SH address", () {
-      expect(
-          mainnetWallet?.addressType(
-              address: "3DYuVEmuKWQFxJcF7jDPhwPiXLTiNnyMFb"),
-          DerivePathType.bip49);
-      expect(secureStore.interactions, 0);
-      verifyNoMoreInteractions(client);
-      verifyNoMoreInteractions(cachedClient);
-      verifyNoMoreInteractions(tracker);
-    });
   });
 
   group("validate mainnet bitcoincash addresses", () {

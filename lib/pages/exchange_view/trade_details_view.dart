@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
+import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/exchange_view/edit_trade_note_view.dart';
 import 'package:stackwallet/pages/exchange_view/send_from_view.dart';
@@ -20,6 +22,9 @@ import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dar
 import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
+import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
@@ -27,7 +32,6 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -109,7 +113,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
     super.initState();
   }
 
-  String _fetchIconAssetForStatus(String statusString) {
+  String _fetchIconAssetForStatus(String statusString, IThemeAssets assets) {
     ChangeNowTransactionStatus? status;
     try {
       if (statusString.toLowerCase().startsWith("waiting")) {
@@ -120,10 +124,10 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
       switch (statusString.toLowerCase()) {
         case "funds confirming":
         case "processing payment":
-          return Assets.svg.txExchangePending(context);
+          return assets.txExchangePending;
 
         case "completed":
-          return Assets.svg.txExchange(context);
+          return assets.txExchange;
 
         default:
           status = ChangeNowTransactionStatus.Failed;
@@ -138,11 +142,11 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
       case ChangeNowTransactionStatus.Sending:
       case ChangeNowTransactionStatus.Refunded:
       case ChangeNowTransactionStatus.Verifying:
-        return Assets.svg.txExchangePending(context);
+        return assets.txExchangePending;
       case ChangeNowTransactionStatus.Finished:
-        return Assets.svg.txExchange(context);
+        return assets.txExchange;
       case ChangeNowTransactionStatus.Failed:
-        return Assets.svg.txExchangeFailed(context);
+        return assets.txExchangeFailed;
     }
   }
 
@@ -314,8 +318,13 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       if (isDesktop)
                         Row(
                           children: [
-                            SvgPicture.asset(
-                              _fetchIconAssetForStatus(trade.status),
+                            SvgPicture.file(
+                              File(
+                                _fetchIconAssetForStatus(
+                                  trade.status,
+                                  ref.watch(themeAssetsProvider),
+                                ),
+                              ),
                               width: 32,
                               height: 32,
                             ),
@@ -376,8 +385,13 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                             borderRadius: BorderRadius.circular(32),
                           ),
                           child: Center(
-                            child: SvgPicture.asset(
-                              _fetchIconAssetForStatus(trade.status),
+                            child: SvgPicture.file(
+                              File(
+                                _fetchIconAssetForStatus(
+                                  trade.status,
+                                  ref.watch(themeAssetsProvider),
+                                ),
+                              ),
                               width: 32,
                               height: 32,
                             ),
@@ -1205,6 +1219,13 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           url =
                               "https://majesticbank.sc/track?trx=${trade.tradeId}";
                           break;
+
+                        default:
+                          if (trade.exchangeName
+                              .startsWith(TrocadorExchange.exchangeName)) {
+                            url =
+                                "https://trocador.app/en/checkout/${trade.tradeId}";
+                          }
                       }
                       return ConditionalParent(
                         condition: isDesktop,

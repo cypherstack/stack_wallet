@@ -253,13 +253,17 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
     );
     _credentials = web3dart.EthPrivateKey.fromHex(privateKey);
 
-    _deployedContract = web3dart.DeployedContract(
-      ContractAbiExtensions.fromJsonList(
-        jsonList: tokenContract.abi!,
-        name: tokenContract.name,
-      ),
-      contractAddress,
-    );
+    try {
+      _deployedContract = web3dart.DeployedContract(
+        ContractAbiExtensions.fromJsonList(
+          jsonList: tokenContract.abi!,
+          name: tokenContract.name,
+        ),
+        contractAddress,
+      );
+    } catch (_) {
+      rethrow;
+    }
 
     try {
       _sendFunction = _deployedContract.function('transfer');
@@ -328,13 +332,17 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
       //====================================================================
     }
 
-    _deployedContract = web3dart.DeployedContract(
-      ContractAbiExtensions.fromJsonList(
-        jsonList: tokenContract.abi!,
-        name: tokenContract.name,
-      ),
-      contractAddress,
-    );
+    try {
+      _deployedContract = web3dart.DeployedContract(
+        ContractAbiExtensions.fromJsonList(
+          jsonList: tokenContract.abi!,
+          name: tokenContract.name,
+        ),
+        contractAddress,
+      );
+    } catch (_) {
+      rethrow;
+    }
 
     _sendFunction = _deployedContract.function('transfer');
 

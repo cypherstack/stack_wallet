@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:bech32/bech32.dart';
 import 'package:bip32/bip32.dart' as bip32;
@@ -30,11 +31,9 @@ import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/mixins/xpubable.dart';
 import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
@@ -45,6 +44,7 @@ import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/widgets/crypto_notifications.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 
@@ -71,7 +71,6 @@ String constructDerivePath({
     case 0x80: // bch mainnet wif
       switch (derivePathType) {
         case DerivePathType.bip44:
-        case DerivePathType.bip49:
           coinType = 145; // bch mainnet
           break;
         case DerivePathType.bch44: // bitcoin.com wallet specific
@@ -94,9 +93,6 @@ String constructDerivePath({
     case DerivePathType.bip44:
     case DerivePathType.bch44:
       purpose = 44;
-      break;
-    case DerivePathType.bip49:
-      purpose = 49;
       break;
     default:
       throw Exception("DerivePathType $derivePathType not supported");
@@ -283,10 +279,6 @@ class BitcoinCashWallet extends CoinServiceAPI
         return DerivePathType.bip44;
       }
 
-      if (decodeBase58[0] == _network.scriptHash) {
-        // P2SH
-        return DerivePathType.bip49;
-      }
       throw ArgumentError('Invalid version or Network mismatch');
     } else {
       try {
@@ -377,7 +369,7 @@ class BitcoinCashWallet extends CoinServiceAPI
         level: LogLevel.Info);
   }
 
-  Future<Tuple2<List<isar_models.Address>, DerivePathType>> _checkGaps(
+  Future<Tuple3<List<isar_models.Address>, DerivePathType, int>> _checkGaps(
     int maxNumberOfIndexesToCheck,
     int maxUnusedAddressGap,
     int txCountBatchSize,
@@ -387,6 +379,8 @@ class BitcoinCashWallet extends CoinServiceAPI
   ) async {
     List<isar_models.Address> addressArray = [];
     int gapCounter = 0;
+    int highestIndexWithHistory = 0;
+
     for (int index = 0;
         index < maxNumberOfIndexesToCheck && gapCounter < maxUnusedAddressGap;
         index += txCountBatchSize) {
@@ -416,15 +410,6 @@ class BitcoinCashWallet extends CoinServiceAPI
             addressString = P2PKH(data: data, network: _network).data.address!;
             addrType = isar_models.AddressType.p2pkh;
             addressString = bitbox.Address.toCashAddress(addressString);
-            break;
-          case DerivePathType.bip49:
-            addressString = P2SH(
-                    data: PaymentData(
-                        redeem: P2WPKH(data: data, network: _network).data),
-                    network: _network)
-                .data
-                .address!;
-            addrType = isar_models.AddressType.p2sh;
             break;
           default:
             throw Exception("DerivePathType $type not supported");
@@ -460,6 +445,10 @@ class BitcoinCashWallet extends CoinServiceAPI
         if (count > 0) {
           iterationsAddressArray.add(txCountCallArgs["${_id}_$k"]!);
 
+          // update highest
+          highestIndexWithHistory = index + k;
+
+          // reset counter
           gapCounter = 0;
         }
 
@@ -471,7 +460,7 @@ class BitcoinCashWallet extends CoinServiceAPI
       // cache all the transactions while waiting for the current function to finish.
       unawaited(getTransactionCacheEarly(iterationsAddressArray));
     }
-    return Tuple2(addressArray, type);
+    return Tuple3(addressArray, type, highestIndexWithHistory);
   }
 
   Future<void> getTransactionCacheEarly(List<String> allAddresses) async {
@@ -512,16 +501,15 @@ class BitcoinCashWallet extends CoinServiceAPI
 
     final deriveTypes = [
       DerivePathType.bip44,
-      DerivePathType.bip49,
     ];
 
     if (coin != Coin.bitcoincashTestnet) {
       deriveTypes.add(DerivePathType.bch44);
     }
 
-    final List<Future<Tuple2<List<isar_models.Address>, DerivePathType>>>
+    final List<Future<Tuple3<List<isar_models.Address>, DerivePathType, int>>>
         receiveFutures = [];
-    final List<Future<Tuple2<List<isar_models.Address>, DerivePathType>>>
+    final List<Future<Tuple3<List<isar_models.Address>, DerivePathType, int>>>
         changeFutures = [];
 
     const receiveChain = 0;
@@ -579,6 +567,8 @@ class BitcoinCashWallet extends CoinServiceAPI
       final changeResults = futuresResult[1];
 
       final List<isar_models.Address> addressesToStore = [];
+
+      int highestReceivingIndexWithHistory = 0;
       // If restoring a wallet that never received any funds, then set receivingArray manually
       // If we didn't do this, it'd store an empty array
       for (final tuple in receiveResults) {
@@ -590,10 +580,15 @@ class BitcoinCashWallet extends CoinServiceAPI
           );
           addressesToStore.add(address);
         } else {
+          highestReceivingIndexWithHistory = max(
+            tuple.item3,
+            highestReceivingIndexWithHistory,
+          );
           addressesToStore.addAll(tuple.item1);
         }
       }
 
+      int highestChangeIndexWithHistory = 0;
       // If restoring a wallet that never sent any funds with change, then set changeArray
       // manually. If we didn't do this, it'd store an empty array.
       for (final tuple in changeResults) {
@@ -605,9 +600,21 @@ class BitcoinCashWallet extends CoinServiceAPI
           );
           addressesToStore.add(address);
         } else {
+          highestChangeIndexWithHistory = max(
+            tuple.item3,
+            highestChangeIndexWithHistory,
+          );
           addressesToStore.addAll(tuple.item1);
         }
       }
+
+      // remove extra addresses to help minimize risk of creating a large gap
+      addressesToStore.removeWhere((e) =>
+          e.subType == isar_models.AddressSubType.change &&
+          e.derivationIndex > highestChangeIndexWithHistory);
+      addressesToStore.removeWhere((e) =>
+          e.subType == isar_models.AddressSubType.receiving &&
+          e.derivationIndex > highestReceivingIndexWithHistory);
 
       if (isRescan) {
         await db.updateOrPutAddresses(addressesToStore);
@@ -615,7 +622,10 @@ class BitcoinCashWallet extends CoinServiceAPI
         await db.putAddresses(addressesToStore);
       }
 
-      await _updateUTXOs();
+      await Future.wait([
+        _refreshTransactions(),
+        _updateUTXOs(),
+      ]);
 
       await Future.wait([
         updateCachedId(walletId),
@@ -727,36 +737,36 @@ class BitcoinCashWallet extends CoinServiceAPI
       final confirmations = tx.getConfirmations(currentChainHeight);
 
       if (tx.type == isar_models.TransactionType.incoming) {
-        unawaited(
-          NotificationApi.showNotification(
+        CryptoNotificationsEventBus.instance.fire(
+          CryptoNotificationEvent(
             title: "Incoming transaction",
-            body: walletName,
             walletId: walletId,
-            iconAssetName: Assets.svg.iconFor(coin: coin),
             date: DateTime.now(),
             shouldWatchForUpdates: confirmations < MINIMUM_CONFIRMATIONS,
-            coinName: coin.name,
             txid: tx.txid,
             confirmations: confirmations,
             requiredConfirmations: MINIMUM_CONFIRMATIONS,
+            walletName: walletName,
+            coin: coin,
           ),
         );
+
         await txTracker.addNotifiedPending(tx.txid);
       } else if (tx.type == isar_models.TransactionType.outgoing) {
-        unawaited(
-          NotificationApi.showNotification(
+        CryptoNotificationsEventBus.instance.fire(
+          CryptoNotificationEvent(
             title: "Sending transaction",
-            body: walletName,
             walletId: walletId,
-            iconAssetName: Assets.svg.iconFor(coin: coin),
             date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
             shouldWatchForUpdates: confirmations < MINIMUM_CONFIRMATIONS,
-            coinName: coin.name,
             txid: tx.txid,
             confirmations: confirmations,
             requiredConfirmations: MINIMUM_CONFIRMATIONS,
+            walletName: walletName,
+            coin: coin,
           ),
         );
+
         await txTracker.addNotifiedPending(tx.txid);
       }
     }
@@ -764,31 +774,34 @@ class BitcoinCashWallet extends CoinServiceAPI
     // notify on confirmed
     for (final tx in unconfirmedTxnsToNotifyConfirmed) {
       if (tx.type == isar_models.TransactionType.incoming) {
-        unawaited(
-          NotificationApi.showNotification(
+        CryptoNotificationsEventBus.instance.fire(
+          CryptoNotificationEvent(
             title: "Incoming transaction confirmed",
-            body: walletName,
             walletId: walletId,
-            iconAssetName: Assets.svg.iconFor(coin: coin),
             date: DateTime.now(),
             shouldWatchForUpdates: false,
-            coinName: coin.name,
+            txid: tx.txid,
+            requiredConfirmations: MINIMUM_CONFIRMATIONS,
+            walletName: walletName,
+            coin: coin,
           ),
         );
 
         await txTracker.addNotifiedConfirmed(tx.txid);
       } else if (tx.type == isar_models.TransactionType.outgoing) {
-        unawaited(
-          NotificationApi.showNotification(
+        CryptoNotificationsEventBus.instance.fire(
+          CryptoNotificationEvent(
             title: "Outgoing transaction confirmed",
-            body: walletName,
             walletId: walletId,
-            iconAssetName: Assets.svg.iconFor(coin: coin),
             date: DateTime.now(),
             shouldWatchForUpdates: false,
-            coinName: coin.name,
+            txid: tx.txid,
+            requiredConfirmations: MINIMUM_CONFIRMATIONS,
+            walletName: walletName,
+            coin: coin,
           ),
         );
+
         await txTracker.addNotifiedConfirmed(tx.txid);
       }
     }
@@ -1358,7 +1371,7 @@ class BitcoinCashWallet extends CoinServiceAPI
     }
     await _secureStore.write(
         key: '${_walletId}_mnemonic',
-        value: bip39.generateMnemonic(strength: 256));
+        value: bip39.generateMnemonic(strength: 128));
     await _secureStore.write(key: '${_walletId}_mnemonicPassphrase', value: "");
 
     // Generate and add addresses to relevant arrays
@@ -1366,10 +1379,6 @@ class BitcoinCashWallet extends CoinServiceAPI
       // P2PKH
       _generateAddressForChain(0, 0, DerivePathType.bip44),
       _generateAddressForChain(1, 0, DerivePathType.bip44),
-
-      // P2SH
-      _generateAddressForChain(0, 0, DerivePathType.bip49),
-      _generateAddressForChain(1, 0, DerivePathType.bip49),
     ]);
 
     await db.putAddresses(initialAddresses);
@@ -1377,7 +1386,7 @@ class BitcoinCashWallet extends CoinServiceAPI
     Logging.instance.log("_generateNewWalletFinished", level: LogLevel.Info);
   }
 
-  /// Generates a new internal or external chain address for the wallet using a BIP44 or BIP49 derivation path.
+  /// Generates a new internal or external chain address for the wallet using a BIP44 derivation path.
   /// [chain] - Use 0 for receiving (external), 1 for change (internal). Should not be any other value!
   /// [index] - This can be any integer >= 0
   Future<isar_models.Address> _generateAddressForChain(
@@ -1418,17 +1427,6 @@ class BitcoinCashWallet extends CoinServiceAPI
         addrType = isar_models.AddressType.p2pkh;
         address = bitbox.Address.toCashAddress(address);
         break;
-      case DerivePathType.bip49:
-        address = P2SH(
-                data: PaymentData(
-                    redeem: P2WPKH(data: data, network: _network).data),
-                network: _network)
-            .data
-            .address!;
-        addrType = isar_models.AddressType.p2sh;
-        break;
-      case DerivePathType.bip84:
-        throw UnsupportedError("bip84 not supported by BCH");
       default:
         throw Exception("DerivePathType $derivePathType not supported");
     }
@@ -1471,13 +1469,6 @@ class BitcoinCashWallet extends CoinServiceAPI
         coinType = coin == Coin.bitcoincash ? "0" : "1";
         purpose = "44";
         break;
-      case DerivePathType.bip49:
-        type = isar_models.AddressType.p2sh;
-        coinType = coin == Coin.bitcoincash ? "145" : "1";
-        purpose = "49";
-        break;
-      case DerivePathType.bip84:
-        throw UnsupportedError("bip84 not supported by BCH");
       default:
         throw Exception("DerivePathType $derivePathType not supported");
     }
@@ -1505,9 +1496,6 @@ class BitcoinCashWallet extends CoinServiceAPI
         break;
       case DerivePathType.bch44:
         key = "${walletId}_${chainId}DerivationsBch44P2PKH";
-        break;
-      case DerivePathType.bip49:
-        key = "${walletId}_${chainId}DerivationsP2SH";
         break;
       default:
         throw UnsupportedError(
@@ -1920,8 +1908,6 @@ class BitcoinCashWallet extends CoinServiceAPI
 
     List<Map<String, dynamic>> allTransactions = [];
 
-    final currentHeight = await chainHeight;
-
     for (final txHash in allTxHashes) {
       final storedTx = await db
           .getTransactions(walletId)
@@ -1929,7 +1915,10 @@ class BitcoinCashWallet extends CoinServiceAPI
           .txidEqualTo(txHash["tx_hash"] as String)
           .findFirst();
 
-      if (storedTx == null || storedTx.address.value == null
+      if (storedTx == null ||
+              storedTx.address.value == null ||
+              storedTx.height == null ||
+              (storedTx.height != null && storedTx.height! <= 0)
           // zero conf messes this up
           // !storedTx.isConfirmed(currentHeight, MINIMUM_CONFIRMATIONS)
           ) {
@@ -2687,20 +2676,6 @@ class BitcoinCashWallet extends CoinServiceAPI
                 network: _network,
               ).data;
               redeemScript = null;
-              break;
-
-            case DerivePathType.bip49:
-              final p2wpkh = P2WPKH(
-                data: PaymentData(
-                  pubkey: Format.stringToUint8List(pubKey),
-                ),
-                network: _network,
-              ).data;
-              redeemScript = p2wpkh.output;
-              data = P2SH(
-                data: PaymentData(redeem: p2wpkh),
-                network: _network,
-              ).data;
               break;
 
             default:

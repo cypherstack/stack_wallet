@@ -1,0 +1,64 @@
+name: 🐞 Bug Report
+description: File a new bug report
+title: 'Bug: <title>'
+labels: [Bug]
+body:
+  - type: markdown
+    attributes:
+      value: ':stop_sign: _For support questions, please visit the [Discord](https://discord.gg/mRPZuXx3At), [Telegram](https://t.me/stackwallet) or [Reddit](https://www.reddit.com/r/stackwallet/) instead._'
+  - type: checkboxes
+    attributes:
+      label: 'Is there an existing issue for this?'
+      description: 'Please [search :mag: the issues](https://github.com/cypherstack/stack_wallet/issues) to check if this bug has already been reported.'
+      options:
+      - label: 'I have searched the existing issues'
+        required: true
+  - type: textarea
+    attributes:
+      label: 'Current Behavior'
+      description: 'Describe the problem you are experiencing.  **Please do not paste your logs here.**  Screenshots are welcome.'
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 'Expected Behavior'
+      description: 'Describe what you expect to happen instead.'
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 'Reproduce Steps'
+      description: |
+        Please provide a the _smallest, complete steps_ that Stack Wallet's maintainers can run to reproduce the issue ([read more about what this entails](https://stackoverflow.com/help/minimal-reproducible-example)).  Failing this, any sort of reproduction steps are better than nothing!
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 'Environment'
+      description: 'Please provide the following information about your environment.'
+      value: |
+          - Operating system and version:
+          - Device platform and version:
+          - Real device or emulator/simulator:
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: 'Logs'
+      description: |
+        Create a [Gist](https://gist.github.com) which contains your _full_ Stack Wallet logs and link it here.
+      
+        :warning: _Remember to redact or remove any sensitive information!_
+      placeholder: 'https://gist.github.com/...' 
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: 'Further Information'
+      description: |
+        Links? References? Anything that will give us more context about the issue you are encountering!    
+    validations:
+      required: false
+  - type: markdown
+    attributes:
+      value: ':stop_sign: _For support questions, please visit the [Discord](https://discord.gg/mRPZuXx3At), [Telegram](https://t.me/stackwallet) or [Reddit](https://www.reddit.com/r/stackwallet/) instead._'

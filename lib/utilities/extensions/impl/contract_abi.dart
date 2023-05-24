@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:stackwallet/utilities/logger.dart';
 import 'package:web3dart/web3dart.dart';
 
 extension ContractAbiExtensions on ContractAbi {
@@ -7,50 +8,61 @@ extension ContractAbiExtensions on ContractAbi {
     required String name,
     required String jsonList,
   }) {
-    final List<ContractFunction> functions = [];
-    final List<ContractEvent> events = [];
+    try {
+      final List<ContractFunction> functions = [];
+      final List<ContractEvent> events = [];
 
-    final list = List<Map<String, dynamic>>.from(jsonDecode(jsonList) as List);
+      final list =
+          List<Map<String, dynamic>>.from(jsonDecode(jsonList) as List);
 
-    for (final json in list) {
-      final type = json["type"] as String;
-      final name = json["name"] as String? ?? "";
+      for (final json in list) {
+        final type = json["type"] as String;
+        final name = json["name"] as String? ?? "";
 
-      if (type == "event") {
-        final anonymous = json["anonymous"] as bool? ?? false;
-        final List<EventComponent<dynamic>> components = [];
+        if (type == "event") {
+          final anonymous = json["anonymous"] as bool? ?? false;
+          final List<EventComponent<dynamic>> components = [];
 
-        for (final input in json["inputs"] as List) {
-          components.add(
-            EventComponent(
-              _parseParam(input as Map),
-              input['indexed'] as bool? ?? false,
-            ),
-          );
-        }
+          if (json["inputs"] is List) {
+            for (final input in json["inputs"] as List) {
+              components.add(
+                EventComponent(
+                  _parseParam(input as Map),
+                  input['indexed'] as bool? ?? false,
+                ),
+              );
+            }
+          }
 
-        events.add(ContractEvent(anonymous, name, components));
-      } else {
-        final mutability = _mutabilityNames[json['stateMutability']];
-        final parsedType = _functionTypeNames[json['type']];
-        if (parsedType != null) {
-          final inputs = _parseParams(json['inputs'] as List?);
-          final outputs = _parseParams(json['outputs'] as List?);
+          events.add(ContractEvent(anonymous, name, components));
+        } else {
+          final mutability = _mutabilityNames[json['stateMutability']];
+          final parsedType = _functionTypeNames[json['type']];
+          if (parsedType != null) {
+            final inputs = _parseParams(json['inputs'] as List?);
+            final outputs = _parseParams(json['outputs'] as List?);
 
-          functions.add(
-            ContractFunction(
-              name,
-              inputs,
-              outputs: outputs,
-              type: parsedType,
-              mutability: mutability ?? StateMutability.nonPayable,
-            ),
-          );
+            functions.add(
+              ContractFunction(
+                name,
+                inputs,
+                outputs: outputs,
+                type: parsedType,
+                mutability: mutability ?? StateMutability.nonPayable,
+              ),
+            );
+          }
         }
       }
-    }
 
-    return ContractAbi(name, functions, events);
+      return ContractAbi(name, functions, events);
+    } catch (e, s) {
+      Logging.instance.log(
+        "Failed to parse ABI for $name: $e\n$s",
+        level: LogLevel.Error,
+      );
+      rethrow;
+    }
   }
 
   static const Map<String, ContractFunctionType> _functionTypeNames = {

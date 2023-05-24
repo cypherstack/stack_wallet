@@ -11,11 +11,11 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/services/notifications_api.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
@@ -52,9 +52,8 @@ class _Step3ViewState extends ConsumerState<Step3View> {
 
   @override
   Widget build(BuildContext context) {
-    final supportsRefund = ref.watch(
-            exchangeFormStateProvider.select((value) => value.exchange.name)) !=
-        MajesticBankExchange.exchangeName;
+    final supportsRefund =
+        ref.watch(efExchangeProvider).name != MajesticBankExchange.exchangeName;
 
     return Background(
       child: Scaffold(
@@ -254,8 +253,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
 
                                     final ExchangeResponse<Trade> response =
                                         await ref
-                                            .read(exchangeFormStateProvider)
-                                            .exchange
+                                            .read(efExchangeProvider)
                                             .createTrade(
                                               from: model.sendTicker,
                                               to: model.receiveTicker,
@@ -271,24 +269,26 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                                   ? model.refundAddress!
                                                   : "",
                                               refundExtraId: "",
-                                              rateId: model.rateId,
+                                              estimate: model.estimate,
                                               reversed: model.reversed,
                                             );
 
                                     if (response.value == null) {
                                       if (mounted) {
                                         Navigator.of(context).pop();
-                                      }
 
-                                      unawaited(showDialog<void>(
-                                        context: context,
-                                        barrierDismissible: true,
-                                        builder: (_) => StackDialog(
-                                          title: "Failed to create trade",
-                                          message:
-                                              response.exception?.toString(),
-                                        ),
-                                      ));
+                                        unawaited(
+                                          showDialog<void>(
+                                            context: context,
+                                            barrierDismissible: true,
+                                            builder: (_) => StackDialog(
+                                              title: "Failed to create trade",
+                                              message: response.exception
+                                                  ?.toString(),
+                                            ),
+                                          ),
+                                        );
+                                      }
                                       return;
                                     }
 

@@ -5,8 +5,7 @@ import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view
 import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/create_or_restore_wallet_title.dart';
 import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/create_wallet_button_group.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -82,11 +81,6 @@ class CreateOrRestoreWalletView extends StatelessWidget {
         ),
       );
     } else {
-      final isChans = Theme.of(context).extension<StackColors>()!.themeType ==
-              ThemeType.chan ||
-          Theme.of(context).extension<StackColors>()!.themeType ==
-              ThemeType.darkChans;
-
       return Background(
         child: Scaffold(
           backgroundColor:
@@ -114,10 +108,9 @@ class CreateOrRestoreWalletView extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              if (!isChans)
-                                const Spacer(
-                                  flex: 2,
-                                ),
+                              const Spacer(
+                                flex: 2,
+                              ),
                               CoinImage(
                                 coin: entity.coin,
                                 width: isDesktop

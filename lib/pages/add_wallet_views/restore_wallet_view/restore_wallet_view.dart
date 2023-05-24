@@ -27,6 +27,7 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
@@ -38,7 +39,6 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/form_input_status_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -636,6 +636,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                   child: AspectRatio(
                     aspectRatio: 1,
                     child: AppBarIconButton(
+                      semanticsLabel:
+                          "View QR Code Button. Opens Camera To Scan QR Code For Restoring Wallet.",
                       key: const Key("restoreWalletViewQrCodeButton"),
                       size: 36,
                       shadows: const [],
@@ -662,6 +664,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                   child: AspectRatio(
                     aspectRatio: 1,
                     child: AppBarIconButton(
+                      semanticsLabel:
+                          "Paste Button. Pastes From Clipboard For Restoring Wallet.",
                       key: const Key("restoreWalletPasteButton"),
                       size: 36,
                       shadows: const [],

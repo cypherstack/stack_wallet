@@ -8,11 +8,10 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/coins/manager.dart';
-import 'package:stackwallet/services/mixins/xpubable.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -154,16 +153,16 @@ class _XPubViewState extends ConsumerState<XPubView> {
                       rootNavigator: true,
                     ).pop,
                   ),
-                  AnimatedSize(
-                    duration: const Duration(
-                      milliseconds: 150,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(32, 0, 32, 32),
-                      child: child,
-                    ),
-                  ),
                 ],
+              ),
+              AnimatedSize(
+                duration: const Duration(
+                  milliseconds: 150,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(32, 0, 32, 32),
+                  child: child,
+                ),
               ),
             ],
           ),
@@ -177,7 +176,7 @@ class _XPubViewState extends ConsumerState<XPubView> {
                 child: child,
               ),
               child: FutureBuilder(
-                future: (manager.wallet as XPubAble).xpub,
+                future: manager.xpub,
                 builder: (context, AsyncSnapshot<String> snapshot) {
                   if (snapshot.connectionState == ConnectionState.done &&
                       snapshot.hasData) {

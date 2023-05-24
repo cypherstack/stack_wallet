@@ -4,7 +4,6 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/languages_enum.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
-import 'package:stackwallet/utilities/theme/color_theme.dart';
 import 'package:uuid/uuid.dart';
 
 class Prefs extends ChangeNotifier {
@@ -19,6 +18,7 @@ class Prefs extends ChangeNotifier {
     if (!_initialized) {
       _currency = await _getPreferredCurrency();
       // _exchangeRateType = await _getExchangeRateType();
+      _randomizePIN = await _getRandomizePIN();
       _useBiometrics = await _getUseBiometrics();
       _hasPin = await _getHasPin();
       _language = await _getPreferredLanguage();
@@ -43,9 +43,9 @@ class Prefs extends ChangeNotifier {
       _signupEpoch = await _getSignupEpoch();
       _enableCoinControl = await _getEnableCoinControl();
       _enableSystemBrightness = await _getEnableSystemBrightness();
-      _theme = await _getTheme();
-      _systemBrightnessLightTheme = await _getSystemBrightnessLightTheme();
-      _systemBrightnessDarkTheme = await _getSystemBrightnessDarkTheme();
+      _themeId = await _getThemeId();
+      _systemBrightnessLightThemeId = await _getSystemBrightnessLightThemeId();
+      _systemBrightnessDarkThemeId = await _getSystemBrightnessDarkTheme();
 
       _initialized = true;
     }
@@ -294,6 +294,27 @@ class Prefs extends ChangeNotifier {
   //       throw Exception("Invalid exchange rate type found in prefs!");
   //   }
   // }
+
+  // randomize PIN
+
+  bool _randomizePIN = false;
+
+  bool get randomizePIN => _randomizePIN;
+
+  set randomizePIN(bool randomizePIN) {
+    if (_randomizePIN != randomizePIN) {
+      DB.instance.put<dynamic>(
+          boxName: DB.boxNamePrefs, key: "randomizePIN", value: randomizePIN);
+      _randomizePIN = randomizePIN;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _getRandomizePIN() async {
+    return await DB.instance.get<dynamic>(
+            boxName: DB.boxNamePrefs, key: "randomizePIN") as bool? ??
+        false;
+  }
 
   // use biometrics
 
@@ -698,72 +719,81 @@ class Prefs extends ChangeNotifier {
         false;
   }
 
-  // system brightness light theme name
+  // current theme id
 
-  ThemeType _theme = ThemeType.light;
+  String _themeId = "light";
 
-  ThemeType get theme => _theme;
+  String get themeId => _themeId;
 
-  set theme(ThemeType theme) {
-    if (this.theme != theme) {
+  set themeId(String themeId) {
+    if (this.themeId != themeId) {
       DB.instance.put<dynamic>(
-          boxName: DB.boxNamePrefs, key: "theme", value: theme.name);
-      _theme = theme;
+        boxName: DB.boxNamePrefs,
+        key: "themeId",
+        value: themeId,
+      );
+      _themeId = themeId;
       notifyListeners();
     }
   }
 
-  Future<ThemeType> _getTheme() async {
-    return ThemeTypeExt.fromName(await DB.instance
-            .get<dynamic>(boxName: DB.boxNamePrefs, key: "theme") as String? ??
-        ThemeType.light.name);
-  }
-
-  // system brightness light theme name
-
-  ThemeType _systemBrightnessLightTheme = ThemeType.light;
-
-  ThemeType get systemBrightnessLightTheme => _systemBrightnessLightTheme;
-
-  set systemBrightnessLightTheme(ThemeType systemBrightnessLightTheme) {
-    if (this.systemBrightnessLightTheme != systemBrightnessLightTheme) {
-      DB.instance.put<dynamic>(
+  Future<String> _getThemeId() async {
+    return await DB.instance.get<dynamic>(
           boxName: DB.boxNamePrefs,
-          key: "systemBrightnessLightTheme",
-          value: systemBrightnessLightTheme.name);
-      _systemBrightnessLightTheme = systemBrightnessLightTheme;
-      notifyListeners();
-    }
+          key: "themeId",
+        ) as String? ??
+        "light";
   }
 
-  Future<ThemeType> _getSystemBrightnessLightTheme() async {
-    return ThemeTypeExt.fromName(await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs,
-            key: "systemBrightnessLightTheme") as String? ??
-        ThemeType.light.name);
-  }
+  // current system brightness light theme id
 
-  // system brightness dark theme name
+  String _systemBrightnessLightThemeId = "light";
 
-  ThemeType _systemBrightnessDarkTheme = ThemeType.dark;
+  String get systemBrightnessLightThemeId => _systemBrightnessLightThemeId;
 
-  ThemeType get systemBrightnessDarkTheme => _systemBrightnessDarkTheme;
-
-  set systemBrightnessDarkTheme(ThemeType systemBrightnessDarkTheme) {
-    if (this.systemBrightnessDarkTheme != systemBrightnessDarkTheme) {
+  set systemBrightnessLightThemeId(String systemBrightnessLightThemeId) {
+    if (this.systemBrightnessLightThemeId != systemBrightnessLightThemeId) {
       DB.instance.put<dynamic>(
-          boxName: DB.boxNamePrefs,
-          key: "systemBrightnessDarkTheme",
-          value: systemBrightnessDarkTheme.name);
-      _systemBrightnessDarkTheme = systemBrightnessDarkTheme;
+        boxName: DB.boxNamePrefs,
+        key: "systemBrightnessLightThemeId",
+        value: systemBrightnessLightThemeId,
+      );
+      _systemBrightnessLightThemeId = systemBrightnessLightThemeId;
       notifyListeners();
     }
   }
 
-  Future<ThemeType> _getSystemBrightnessDarkTheme() async {
-    return ThemeTypeExt.fromName(await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs,
-            key: "systemBrightnessDarkTheme") as String? ??
-        ThemeType.dark.name);
+  Future<String> _getSystemBrightnessLightThemeId() async {
+    return await DB.instance.get<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "systemBrightnessLightThemeId",
+        ) as String? ??
+        "light";
+  }
+
+  // current system brightness dark theme id
+
+  String _systemBrightnessDarkThemeId = "dark";
+
+  String get systemBrightnessDarkThemeId => _systemBrightnessDarkThemeId;
+
+  set systemBrightnessDarkThemeId(String systemBrightnessDarkThemeId) {
+    if (this.systemBrightnessDarkThemeId != systemBrightnessDarkThemeId) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "systemBrightnessDarkThemeId",
+        value: systemBrightnessDarkThemeId,
+      );
+      _systemBrightnessDarkThemeId = systemBrightnessDarkThemeId;
+      notifyListeners();
+    }
+  }
+
+  Future<String> _getSystemBrightnessDarkTheme() async {
+    return await DB.instance.get<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "systemBrightnessDarkThemeId",
+        ) as String? ??
+        "dark";
   }
 }

@@ -2,19 +2,18 @@ import 'package:emojis/emoji.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/models/contact.dart';
-import 'package:stackwallet/models/contact_address_entry.dart';
+import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/new_contact_address_entry_form.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/ui/address_book_providers/address_entry_data_provider.dart';
 import 'package:stackwallet/providers/ui/address_book_providers/contact_name_is_not_empty_state_provider.dart';
 import 'package:stackwallet/providers/ui/address_book_providers/valid_contact_state_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/theme/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -28,6 +27,7 @@ import 'package:stackwallet/widgets/emoji_select_sheet.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
+import 'package:uuid/uuid.dart';
 
 class AddAddressBookEntryView extends ConsumerStatefulWidget {
   const AddAddressBookEntryView({
@@ -688,11 +688,12 @@ class _AddAddressBookEntryViewState
                                                           forms[i].id))
                                                   .buildAddressEntry());
                                             }
-                                            Contact contact = Contact(
+                                            ContactEntry contact = ContactEntry(
                                               emojiChar: _selectedEmoji?.char,
                                               name: nameController.text,
                                               addresses: entries,
                                               isFavorite: _isFavorite,
+                                               customId: const Uuid().v1(),
                                             );
 
                                             if (await ref
