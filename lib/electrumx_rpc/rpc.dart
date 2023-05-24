@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-// import 'package:mutex/mutex.dart';
+import 'package:mutex/mutex.dart';
 
 import 'package:stackwallet/utilities/logger.dart';
 
@@ -22,7 +22,7 @@ class JsonRPC {
   Socket? socket;
   StreamSubscription<Uint8List>? _subscription;
 
-  // final m = Mutex();
+  final m = Mutex();
 
   void Function(List<int>)? _onData;
   void Function(Object, StackTrace)? _onError;
@@ -79,15 +79,21 @@ class JsonRPC {
         level: LogLevel.Info,
       );
       // socket?.destroy();
+      m.release();
       // TODO is this all we need?
     }
 
     if (socket != null) {
       // TODO check if the socket is valid, alive, connected, etc
+    } else {
+      Logging.instance.log(
+        "JsonRPC request: opening socket $host:$port",
+        level: LogLevel.Info,
+      );
     }
     // Do we need to check the subscription, too?
 
-    // await m.acquire();
+    await m.acquire();
 
     if (useSSL) {
       socket ??= await SecureSocket.connect(host, port,
@@ -115,11 +121,9 @@ class JsonRPC {
     socket!.write('$jsonRpcRequest\r\n');
 
     Logging.instance.log(
-      "JsonRPC errorHandler: wrote request $jsonRpcRequest to socket ${socket?.address}:${socket?.port}",
+      "JsonRPC request: wrote request $jsonRpcRequest to socket ${socket?.address}:${socket?.port}",
       level: LogLevel.Info,
     );
-
-    // m.release();
 
     return completer.future;
   }
