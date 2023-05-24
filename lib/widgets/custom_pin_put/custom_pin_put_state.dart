@@ -10,7 +10,12 @@ class CustomPinPutState extends State<CustomPinPut>
 
   int get selectedIndex => _controller.value.text.length;
 
-  int pinCount = 0;
+  int _pinCount = 0;
+  int get pinCount => _pinCount;
+  set pinCount(int newCount) {
+    _pinCount = newCount;
+    widget.onPinLengthChanged?.call(newCount);
+  }
 
   @override
   void initState() {
@@ -74,25 +79,22 @@ class CustomPinPutState extends State<CustomPinPut>
               isRandom: widget.isRandom,
               customKey: widget.customKey,
               onNumberKeyPressed: (number) {
-                if (_controller.text.length < widget.fieldsCount) {
-                  _controller.text += number;
-                }
+                _controller.text += number;
+
                 // add a set state and have the counter increment
                 setState(() {
-                  pinCount++;
+                  pinCount = _controller.text.length;
                 });
               },
               onBackPressed: () {
                 final text = _controller.text;
                 if (text.isNotEmpty) {
                   _controller.text = text.substring(0, text.length - 1);
+                  setState(() {
+                    pinCount = _controller.text.length;
+                  });
                 }
                 // decrement counter here
-                setState(() {
-                  if (pinCount != 0) {
-                    pinCount--;
-                  }
-                });
               },
               onSubmitPressed: () {
                 final pin = _controller.value.text;

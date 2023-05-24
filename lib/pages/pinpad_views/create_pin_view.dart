@@ -58,13 +58,12 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
   late SecureStorageInterface _secureStore;
   late Biometrics biometrics;
 
-  late int pinCount;
+  int pinCount = 1;
 
   @override
   initState() {
     _secureStore = ref.read(secureStoreProvider);
     biometrics = widget.biometrics;
-    pinCount = 1;
 
     super.initState();
   }
@@ -150,6 +149,11 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                     submittedFieldDecoration: _pinPutDecoration,
                     selectedFieldDecoration: _pinPutDecoration,
                     followingFieldDecoration: _pinPutDecoration,
+                    onPinLengthChanged: (newLength) {
+                      setState(() {
+                        pinCount = newLength;
+                      });
+                    },
                     onSubmit: (String pin) {
                       if (pin.length < Constants.pinLength) {
                         print("PIN: $pin");
@@ -188,7 +192,7 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                     height: 36,
                   ),
                   CustomPinPut(
-                    fieldsCount: Constants.pinLength,
+                    fieldsCount: pinCount,
                     eachFieldHeight: 12,
                     eachFieldWidth: 12,
                     textStyle: STextStyles.infoSmall(context).copyWith(
