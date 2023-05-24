@@ -52,6 +52,10 @@ class JsonRPC {
       socket?.destroy();
     }
 
+    if (socket != null) {
+      // TODO check if the socket is valid, alive, connected, etc
+    }
+
     if (useSSL) {
       socket ??= await SecureSocket.connect(host, port,
           timeout: connectionTimeout,
