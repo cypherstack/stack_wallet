@@ -36,7 +36,10 @@ class JsonRPC {
               .log("JsonRPC json.decode: $e\n$s", level: LogLevel.Error);
           completer.completeError(e, s);
         } finally {
-          socket?.destroy();
+          Logging.instance
+              .log("JsonRPC dataHandler: not destroying socket ${socket?.address}:${socket?.port}", level: LogLevel.Info);
+          // socket?.destroy();
+          // TODO is this all we need to do?
         }
       }
     }
@@ -45,11 +48,17 @@ class JsonRPC {
       Logging.instance
           .log("JsonRPC errorHandler: $error\n$trace", level: LogLevel.Error);
       completer.completeError(error, trace);
-      socket?.destroy();
+      Logging.instance
+          .log("JsonRPC errorHandler: not destroying socket ${socket?.address}:${socket?.port}", level: LogLevel.Info);
+      // socket?.destroy();
+      // TODO do we need to recreate the socket?
     }
 
     void doneHandler() {
-      socket?.destroy();
+      Logging.instance
+          .log("JsonRPC doneHandler: not destroying socket ${socket?.address}:${socket?.port}", level: LogLevel.Info);
+      // socket?.destroy();
+      // TODO is this all we need?
     }
 
     if (socket != null) {
