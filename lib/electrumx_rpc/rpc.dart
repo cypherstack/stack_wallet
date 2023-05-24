@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+// import 'package:mutex/mutex.dart';
 
 import 'package:stackwallet/utilities/logger.dart';
 
@@ -20,6 +21,8 @@ class JsonRPC {
 
   Socket? socket;
   StreamSubscription<Uint8List>? _subscription;
+
+  // final m = Mutex();
 
   void Function(List<int>)? _onData;
   void Function(Object, StackTrace)? _onError;
@@ -80,7 +83,9 @@ class JsonRPC {
     if (socket != null) {
       // TODO check if the socket is valid, alive, connected, etc
     }
-    // Do we need to check the subscription, too?w
+    // Do we need to check the subscription, too?
+
+    // await m.acquire();
 
     if (useSSL) {
       socket ??= await SecureSocket.connect(host, port,
@@ -106,6 +111,8 @@ class JsonRPC {
     }
 
     socket?.write('$jsonRpcRequest\r\n');
+
+    // m.release();
 
     return completer.future;
   }
