@@ -16,9 +16,9 @@ class JsonRPC {
   final String host;
   final int port;
   final Duration connectionTimeout;
+  Socket? socket;
 
   Future<dynamic> request(String jsonRpcRequest) async {
-    Socket? socket;
     final completer = Completer<dynamic>();
     final List<int> responseData = [];
 
