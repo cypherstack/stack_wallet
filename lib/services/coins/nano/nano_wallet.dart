@@ -32,7 +32,8 @@ import 'package:stackwallet/models/isar/models/isar_models.dart';
 
 const int MINIMUM_CONFIRMATIONS = 1;
 
-class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB, CoinControlInterface {
+class NanoWallet extends CoinServiceAPI
+    with WalletCache, WalletDB, CoinControlInterface {
   NanoWallet({
     required String walletId,
     required String walletName,
@@ -58,7 +59,8 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB, CoinControlI
       );
 
   @override
-  Future<String?> get mnemonicString => _secureStore.read(key: '${_walletId}_mnemonic');
+  Future<String?> get mnemonicString =>
+      _secureStore.read(key: '${_walletId}_mnemonic');
 
   Future<String> getSeedFromMnemonic() async {
     var mnemonic = await mnemonicString;
@@ -74,8 +76,8 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB, CoinControlI
   Future<String> getAddressFromMnemonic() async {
     var mnemonic = await mnemonicString;
     var seed = NanoMnemomics.mnemonicListToSeed(mnemonic!.split(' '));
-    var address =
-        NanoAccounts.createAccount(NanoAccountType.NANO, NanoKeys.createPublicKey(NanoKeys.seedToPrivate(seed, 0)));
+    var address = NanoAccounts.createAccount(NanoAccountType.NANO,
+        NanoKeys.createPublicKey(NanoKeys.seedToPrivate(seed, 0)));
     return address;
   }
 
@@ -130,10 +132,10 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB, CoinControlI
   Balance get balance => _balance ??= getCachedBalance();
   Balance? _balance;
 
-  Future<String?> requestWork(String url, String hash) async {
+  Future<String?> requestWork(String hash) async {
     return http
         .post(
-      Uri.parse(url),
+      Uri.parse("https://rpc.nano.to"),
       headers: {'Content-type': 'application/json'},
       body: json.encode(
         {
@@ -144,7 +146,8 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB, CoinControlI
     )
         .then((http.Response response) {
       if (response.statusCode == 200) {
-        final Map<String, dynamic> decoded = json.decode(response.body) as Map<String, dynamic>;
+        final Map<String, dynamic> decoded =
+            json.decode(response.body) as Map<String, dynamic>;
         if (decoded.containsKey("error")) {
           throw Exception("Received error ${decoded["error"]}");
         }
@@ -157,12 +160,14 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB, CoinControlI
 
   @override
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
-
     try {
+      // our address:
+      final String publicAddress = await getAddressFromMnemonic();
+
       // first get the account balance:
       final balanceBody = jsonEncode({
         "action": "account_balance",
-        "account": await getAddressFromMnemonic(),
+        "account": publicAddress,
       });
       final headers = {
         "Content-Type": "application/json",
@@ -174,7 +179,8 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB, CoinControlI
       );
 
       final balanceData = jsonDecode(balanceResponse.body);
-      final BigInt currentBalance = BigInt.parse(balanceData["balance"].toString());
+      final BigInt currentBalance =
+          BigInt.parse(balanceData["balance"].toString());
       final BigInt txAmount = txData["recipientAmt"].raw as BigInt;
       final BigInt balanceAfterTx = currentBalance - txAmount;
 
@@ -182,7 +188,7 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB, CoinControlI
       final infoBody = jsonEncode({
         "action": "account_info",
         "representative": "true",
-        "account": await getAddressFromMnemonic(),
+        "account": publicAddress,
       });
       final infoResponse = await http.post(
         Uri.parse(getCurrentNode().host),
@@ -190,12 +196,13 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB, CoinControlI
         body: infoBody,
       );
 
-      final String frontier = jsonDecode(infoResponse.body)["frontier"].toString();
-      final String representative = jsonDecode(infoResponse.body)["representative"].toString();
-      // our address:
-      final String publicAddress = await getAddressFromMnemonic();
+      final String frontier =
+          jsonDecode(infoResponse.body)["frontier"].toString();
+      final String representative =
+          jsonDecode(infoResponse.body)["representative"].toString();
       // link = destination address:
-      final String link = NanoAccounts.extractPublicKey(txData["address"].toString());
+      final String link =
+          NanoAccounts.extractPublicKey(txData["address"].toString());
       final String linkAsAccount = txData["address"].toString();
 
       // construct the send block:
@@ -221,7 +228,7 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB, CoinControlI
       final String signature = NanoSignatures.signBlock(hash, privateKey);
 
       // get PoW for the send block:
-      final String? work = await requestWork("https://rpc.nano.to", frontier);
+      final String? work = await requestWork(frontier);
       if (work == null) {
         throw Exception("Failed to get PoW for send block");
       }
@@ -251,7 +258,8 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB, CoinControlI
         body: processBody,
       );
 
-      final Map<String, dynamic> decoded = json.decode(processResponse.body) as Map<String, dynamic>;
+      final Map<String, dynamic> decoded =
+          json.decode(processResponse.body) as Map<String, dynamic>;
       if (decoded.containsKey("error")) {
         throw Exception("Received error ${decoded["error"]}");
       }
@@ -259,7 +267,8 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB, CoinControlI
       // return the hash of the transaction:
       return decoded["hash"].toString();
     } catch (e, s) {
-      Logging.instance.log("Error sending transaction $e - $s", level: LogLevel.Error);
+      Logging.instance
+          .log("Error sending transaction $e - $s", level: LogLevel.Error);
       rethrow;
     }
   }
@@ -290,24 +299,170 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB, CoinControlI
     final headers = {
       "Content-Type": "application/json",
     };
-    final response = await http.post(Uri.parse(getCurrentNode().host), headers: headers, body: body);
+    final response = await http.post(Uri.parse(getCurrentNode().host),
+        headers: headers, body: body);
     final data = jsonDecode(response.body);
     _balance = Balance(
       total: Amount(
-          rawValue: (BigInt.parse(data["balance"].toString()) /*+ BigInt.parse(data["receivable"].toString())*/) ~/
+          rawValue: (BigInt.parse(data["balance"]
+                  .toString()) /*+ BigInt.parse(data["receivable"].toString())*/) ~/
               BigInt.from(10).pow(23),
           fractionDigits: 7),
-      spendable:
-          Amount(rawValue: BigInt.parse(data["balance"].toString()) ~/ BigInt.from(10).pow(23), fractionDigits: 7),
+      spendable: Amount(
+          rawValue: BigInt.parse(data["balance"].toString()) ~/
+              BigInt.from(10).pow(23),
+          fractionDigits: 7),
       blockedTotal: Amount(rawValue: BigInt.parse("0"), fractionDigits: 30),
-      pendingSpendable:
-          Amount(rawValue: BigInt.parse(data["receivable"].toString()) ~/ BigInt.from(10).pow(23), fractionDigits: 7),
+      pendingSpendable: Amount(
+          rawValue: BigInt.parse(data["receivable"].toString()) ~/
+              BigInt.from(10).pow(23),
+          fractionDigits: 7),
     );
     await updateCachedBalance(_balance!);
   }
 
+  Future<void> receiveBlock(
+      String blockHash, String source, String amountRaw) async {
+    // our address:
+    final String publicAddress = await getAddressFromMnemonic();
+
+    // first get the account balance:
+    final balanceBody = jsonEncode({
+      "action": "account_balance",
+      "account": publicAddress,
+    });
+    final headers = {
+      "Content-Type": "application/json",
+    };
+    final balanceResponse = await http.post(
+      Uri.parse(getCurrentNode().host),
+      headers: headers,
+      body: balanceBody,
+    );
+
+    final balanceData = jsonDecode(balanceResponse.body);
+    final BigInt currentBalance =
+        BigInt.parse(balanceData["balance"].toString());
+    final BigInt txAmount = BigInt.parse(amountRaw);
+    final BigInt balanceAfterTx = currentBalance + txAmount;
+
+    // get the account info (we need the frontier and representative):
+    final infoBody = jsonEncode({
+      "action": "account_info",
+      "representative": "true",
+      "account": publicAddress,
+    });
+    final infoResponse = await http.post(
+      Uri.parse(getCurrentNode().host),
+      headers: headers,
+      body: infoBody,
+    );
+
+    final String frontier =
+        jsonDecode(infoResponse.body)["frontier"].toString();
+    final String representative =
+        jsonDecode(infoResponse.body)["representative"].toString();
+
+    // link = destination address:
+    final String link =
+        NanoAccounts.extractPublicKey(source);
+    final String linkAsAccount = source;
+
+    // construct the send block:
+    final Map<String, String> sendBlock = {
+      "type": "state",
+      "account": publicAddress,
+      "previous": frontier,
+      "representative": representative,
+      "balance": balanceAfterTx.toString(),
+      "link": link,
+    };
+
+    // sign the send block:
+    final String hash = NanoBlocks.computeStateHash(
+      NanoAccountType.NANO,
+      sendBlock["account"]!,
+      sendBlock["previous"]!,
+      sendBlock["representative"]!,
+      BigInt.parse(sendBlock["balance"]!),
+      sendBlock["link"]!,
+    );
+    final String privateKey = await getPrivateKeyFromMnemonic();
+    final String signature = NanoSignatures.signBlock(hash, privateKey);
+
+    // construct the receive block:
+    Map<String, String> receiveBlock = {
+      "type": "state",
+      "account": publicAddress,
+      "previous": frontier,
+      "representative": representative,
+      "balance": balanceAfterTx.toString(),
+      "link": link,
+      "link_as_account": linkAsAccount,
+      "signature": signature,
+    };
+
+    // sign the receive block:
+
+    // get PoW for the receive block:
+    final String? work = await requestWork(frontier);
+    if (work == null) {
+      throw Exception("Failed to get PoW for receive block");
+    }
+
+    receiveBlock["work"] = work;
+
+    // process the receive block:
+
+    final Map<String, String> finalReceiveBlock = {
+      "type": "state",
+      "account": publicAddress,
+      "previous": frontier,
+      "representative": representative,
+      "balance": balanceAfterTx.toString(),
+      "link": link,
+      "link_as_account": linkAsAccount,
+      "signature": signature,
+      "work": work,
+    };
+
+    final processBody = jsonEncode({
+      "action": "process",
+      "json_block": "true",
+      "subtype": "receive",
+      "block": finalReceiveBlock,
+    });
+    final processResponse = await http.post(
+      Uri.parse(getCurrentNode().host),
+      headers: headers,
+      body: processBody,
+    );
+
+    final Map<String, dynamic> decoded =
+        json.decode(processResponse.body) as Map<String, dynamic>;
+    if (decoded.containsKey("error")) {
+      throw Exception("Received error ${decoded["error"]}");
+    }
+  }
+
   Future<void> confirmAllReceivable() async {
-    // TODO: Implement this function
+    final receivableResponse = await http.post(Uri.parse(getCurrentNode().host),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "action": "receivable",
+          "account": await getAddressFromMnemonic(),
+          "count": "-1",
+        }));
+
+    final receivableData = await jsonDecode(receivableResponse.body);
+    final blocks = receivableData["blocks"] as Map<String, dynamic>;
+    // confirm all receivable blocks:
+    for (final blockHash in blocks.keys) {
+      final block = blocks[blockHash];
+      final String amountRaw = block["amount"] as String;
+      final String source = block["source"] as String;
+      await receiveBlock(blockHash, source, amountRaw);
+    }
   }
 
   Future<void> updateTransactions() async {
@@ -333,7 +488,9 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB, CoinControlI
         } else if (typeString == "receive") {
           type = TransactionType.incoming;
         }
-        var intAmount = int.parse((BigInt.parse(tx["amount"].toString()) ~/ BigInt.from(10).pow(23)).toString());
+        var intAmount = int.parse(
+            (BigInt.parse(tx["amount"].toString()) ~/ BigInt.from(10).pow(23))
+                .toString());
         var strAmount = jsonEncode({
           "raw": intAmount.toString(),
           "fractionDigits": 7,
@@ -363,7 +520,8 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB, CoinControlI
   }
 
   @override
-  Future<void> fullRescan(int maxUnusedAddressGap, int maxNumberOfIndexesToCheck) async {
+  Future<void> fullRescan(
+      int maxUnusedAddressGap, int maxNumberOfIndexesToCheck) async {
     await _prefs.init();
     await updateBalance();
     await updateTransactions();
@@ -387,7 +545,8 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB, CoinControlI
   @override
   Future<void> initializeNew() async {
     if ((await mnemonicString) != null || (await mnemonicPassphrase) != null) {
-      throw Exception("Attempted to overwrite mnemonic on generate new wallet!");
+      throw Exception(
+          "Attempted to overwrite mnemonic on generate new wallet!");
     }
 
     await _prefs.init();
@@ -404,7 +563,8 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB, CoinControlI
     );
     String privateKey = NanoKeys.seedToPrivate(seed, 0);
     String publicKey = NanoKeys.createPublicKey(privateKey);
-    String publicAddress = NanoAccounts.createAccount(NanoAccountType.NANO, publicKey);
+    String publicAddress =
+        NanoAccounts.createAccount(NanoAccountType.NANO, publicKey);
 
     final address = Address(
       walletId: walletId,
@@ -418,7 +578,8 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB, CoinControlI
 
     await db.putAddress(address);
 
-    await Future.wait([updateCachedId(walletId), updateCachedIsFavorite(false)]);
+    await Future.wait(
+        [updateCachedId(walletId), updateCachedIsFavorite(false)]);
   }
 
   @override
@@ -485,11 +646,13 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB, CoinControlI
       required int maxNumberOfIndexesToCheck,
       required int height}) async {
     try {
-      if ((await mnemonicString) != null || (await this.mnemonicPassphrase) != null) {
+      if ((await mnemonicString) != null ||
+          (await this.mnemonicPassphrase) != null) {
         throw Exception("Attempted to overwrite mnemonic on restore!");
       }
 
-      await _secureStore.write(key: '${_walletId}_mnemonic', value: mnemonic.trim());
+      await _secureStore.write(
+          key: '${_walletId}_mnemonic', value: mnemonic.trim());
       await _secureStore.write(
         key: '${_walletId}_mnemonicPassphrase',
         value: mnemonicPassphrase ?? "",
@@ -498,21 +661,24 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB, CoinControlI
       String seed = NanoMnemomics.mnemonicListToSeed(mnemonic.split(" "));
       String privateKey = NanoKeys.seedToPrivate(seed, 0);
       String publicKey = NanoKeys.createPublicKey(privateKey);
-      String publicAddress = NanoAccounts.createAccount(NanoAccountType.NANO, publicKey);
+      String publicAddress =
+          NanoAccounts.createAccount(NanoAccountType.NANO, publicKey);
 
       final address = Address(
         walletId: walletId,
         value: publicAddress,
         publicKey: [], // TODO: add public key
         derivationIndex: 0,
-        derivationPath: DerivationPath()..value = "0/0", // TODO: Check if this is true
+        derivationPath: DerivationPath()
+          ..value = "0/0", // TODO: Check if this is true
         type: AddressType.unknown,
         subType: AddressSubType.receiving,
       );
 
       await db.putAddress(address);
 
-      await Future.wait([updateCachedId(walletId), updateCachedIsFavorite(false)]);
+      await Future.wait(
+          [updateCachedId(walletId), updateCachedIsFavorite(false)]);
     } catch (e) {
       rethrow;
     }
@@ -530,13 +696,16 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB, CoinControlI
 
   NodeModel getCurrentNode() {
     return _xnoNode ??
-        NodeService(secureStorageInterface: _secureStore).getPrimaryNodeFor(coin: coin) ??
+        NodeService(secureStorageInterface: _secureStore)
+            .getPrimaryNodeFor(coin: coin) ??
         DefaultNodes.getNodeFor(coin);
   }
 
   @override
   Future<bool> testNetworkConnection() {
-    http.get(Uri.parse("${getCurrentNode().host}?action=version")).then((response) {
+    http
+        .get(Uri.parse("${getCurrentNode().host}?action=version"))
+        .then((response) {
       if (response.statusCode == 200) {
         return true;
       }
@@ -545,11 +714,13 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB, CoinControlI
   }
 
   @override
-  Future<List<Transaction>> get transactions => db.getTransactions(walletId).findAll();
+  Future<List<Transaction>> get transactions =>
+      db.getTransactions(walletId).findAll();
 
   @override
   Future<void> updateNode(bool shouldRefresh) async {
-    _xnoNode = NodeService(secureStorageInterface: _secureStore).getPrimaryNodeFor(coin: coin) ??
+    _xnoNode = NodeService(secureStorageInterface: _secureStore)
+            .getPrimaryNodeFor(coin: coin) ??
         DefaultNodes.getNodeFor(coin);
 
     if (shouldRefresh) {
