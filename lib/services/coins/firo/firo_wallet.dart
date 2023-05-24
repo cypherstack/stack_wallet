@@ -4824,9 +4824,10 @@ class FiroWallet extends CoinServiceAPI
   ) async {
     var lelantusEntry = await _getLelantusEntry();
     final balance = availablePrivateBalance().decimal;
-    int spendAmount = (balance * Decimal.fromInt(Constants.satsPerCoin(coin).toInt()))
-        .toBigInt()
-        .toInt();
+    int spendAmount =
+        (balance * Decimal.fromInt(Constants.satsPerCoin(coin).toInt()))
+            .toBigInt()
+            .toInt();
     if (spendAmount == 0 || lelantusEntry.isEmpty) {
       return LelantusFeeData(0, 0, []).fee;
     }

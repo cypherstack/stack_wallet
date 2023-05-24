@@ -25,11 +25,12 @@ abstract class Constants {
   // static bool enableBuy = enableExchange;
   // // true; // true for development,
 
-  static const BigInt _satsPerCoinECash = BigInt.from(100);
+  static final BigInt _satsPerCoinECash = BigInt.from(100);
   static final BigInt _satsPerCoinEthereum = BigInt.from(1000000000000000000);
   static final BigInt _satsPerCoinMonero = BigInt.from(1000000000000);
   static final BigInt _satsPerCoinWownero = BigInt.from(100000000000);
-  static final BigInt _satsPerCoinNano = BigInt.parse("1000000000000000000000000000000");
+  static final BigInt _satsPerCoinNano =
+      BigInt.parse("1000000000000000000000000000000");
   static final BigInt _satsPerCoin = BigInt.from(100000000);
   static const int _decimalPlaces = 8;
   static const int _decimalPlacesNano = 6;

@@ -253,8 +253,8 @@ class ECashWallet extends CoinServiceAPI
   @override
   Future<int> get maxFee async {
     final fee = (await fees).fast as String;
-    final satsFee =
-        Decimal.parse(fee) * Decimal.fromInt(Constants.satsPerCoin(coin));
+    final satsFee = Decimal.parse(fee) *
+        Decimal.fromInt(Constants.satsPerCoin(coin).toInt());
     return satsFee.floor().toBigInt().toInt();
   }
 
