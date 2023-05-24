@@ -80,6 +80,7 @@ class JsonRPC {
     if (socket != null) {
       // TODO check if the socket is valid, alive, connected, etc
     }
+    // Do we need to check the subscription, too?w
 
     if (useSSL) {
       socket ??= await SecureSocket.connect(host, port,
