@@ -12,10 +12,10 @@ class JsonRPC {
     this.useSSL = false,
     this.connectionTimeout = const Duration(seconds: 60),
   });
-  bool useSSL;
-  String host;
-  int port;
-  Duration connectionTimeout;
+  final bool useSSL;
+  final String host;
+  final int port;
+  final Duration connectionTimeout;
 
   Future<dynamic> request(String jsonRpcRequest) async {
     Socket? socket;
