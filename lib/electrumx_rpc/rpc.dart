@@ -53,20 +53,15 @@ class JsonRPC {
     }
 
     if (useSSL) {
-      await SecureSocket.connect(host, port,
+      socket ??= await SecureSocket.connect(host, port,
           timeout: connectionTimeout,
-          onBadCertificate: (_) => true).then((Socket sock) {
-        socket = sock;
-        socket?.listen(dataHandler,
-            onError: errorHandler, onDone: doneHandler, cancelOnError: true);
-      });
+          onBadCertificate: (_) => true);
+      socket!.listen(dataHandler,
+          onError: errorHandler, onDone: doneHandler, cancelOnError: true);
     } else {
-      await Socket.connect(host, port, timeout: connectionTimeout)
-          .then((Socket sock) {
-        socket = sock;
-        socket?.listen(dataHandler,
-            onError: errorHandler, onDone: doneHandler, cancelOnError: true);
-      });
+      socket ??= await Socket.connect(host, port, timeout: connectionTimeout);
+      socket!.listen(dataHandler,
+      onError: errorHandler, onDone: doneHandler, cancelOnError: true);
     }
 
     socket?.write('$jsonRpcRequest\r\n');
