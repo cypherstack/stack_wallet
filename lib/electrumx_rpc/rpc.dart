@@ -112,7 +112,7 @@ class JsonRPC {
       );
     }
 
-    socket?.write('$jsonRpcRequest\r\n');
+    socket!.write('$jsonRpcRequest\r\n');
 
     Logging.instance.log(
       "JsonRPC errorHandler: wrote request $jsonRpcRequest to socket ${socket?.address}:${socket?.port}",
