@@ -1793,25 +1793,16 @@ class LitecoinWallet extends CoinServiceAPI
             coin: coin,
           );
 
-          final storedTx = await db.getTransaction(
-            walletId,
-            jsonUTXO["tx_hash"] as String,
-          );
-
           bool shouldBlock = false;
           String? blockReason;
           String? label;
 
-          if (storedTx?.amountString != null) {
-            final amount = Amount.fromSerializedJsonString(
-              storedTx!.amountString!,
-            );
+          final utxoAmount = jsonUTXO["value"] as int;
 
-            if (amount.raw <= BigInt.from(10000)) {
-              shouldBlock = true;
-              blockReason = "May contain ordinal";
-              label = "Possible ordinal";
-            }
+          if (utxoAmount <= 10000) {
+            shouldBlock = true;
+            blockReason = "May contain ordinal";
+            label = "Possible ordinal";
           }
 
           final vout = jsonUTXO["tx_pos"] as int;
@@ -1832,7 +1823,7 @@ class LitecoinWallet extends CoinServiceAPI
             walletId: walletId,
             txid: txn["txid"] as String,
             vout: vout,
-            value: jsonUTXO["value"] as int,
+            value: utxoAmount,
             name: label ?? "",
             isBlocked: shouldBlock,
             blockedReason: blockReason,
@@ -1847,16 +1838,20 @@ class LitecoinWallet extends CoinServiceAPI
         }
       }
 
-      Logging.instance
-          .log('Outputs fetched: $outputArray', level: LogLevel.Info);
+      Logging.instance.log(
+        'Outputs fetched: $outputArray',
+        level: LogLevel.Info,
+      );
 
       await db.updateUTXOs(walletId, outputArray);
 
       // finally update balance
       await _updateBalance();
     } catch (e, s) {
-      Logging.instance
-          .log("Output fetch unsuccessful: $e\n$s", level: LogLevel.Error);
+      Logging.instance.log(
+        "Output fetch unsuccessful: $e\n$s",
+        level: LogLevel.Error,
+      );
     }
   }
 
