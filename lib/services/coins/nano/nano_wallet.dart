@@ -206,7 +206,7 @@ class NanoWallet extends CoinServiceAPI
       final String linkAsAccount = txData["address"].toString();
 
       // construct the send block:
-      final Map<String, String> sendBlock = {
+      Map<String, String> sendBlock = {
         "type": "state",
         "account": publicAddress,
         "previous": frontier,
@@ -233,24 +233,15 @@ class NanoWallet extends CoinServiceAPI
         throw Exception("Failed to get PoW for send block");
       }
 
-      // process the send block:
-      final Map<String, String> finalSendBlock = {
-        "type": "state",
-        "account": publicAddress,
-        "previous": frontier,
-        "representative": representative,
-        "balance": balanceAfterTx.toString(),
-        "link": link,
-        "link_as_account": linkAsAccount,
-        "signature": signature,
-        "work": work,
-      };
+      sendBlock["link_as_account"] = linkAsAccount;
+      sendBlock["signature"] = signature;
+      sendBlock["work"] = work;
 
       final processBody = jsonEncode({
         "action": "process",
         "json_block": "true",
         "subtype": "send",
-        "block": finalSendBlock,
+        "block": sendBlock,
       });
       final processResponse = await http.post(
         Uri.parse(getCurrentNode().host),
@@ -323,6 +314,9 @@ class NanoWallet extends CoinServiceAPI
 
   Future<void> receiveBlock(
       String blockHash, String source, String amountRaw) async {
+    // TODO: the opening block of an account is a special case
+    bool openBlock = false;
+
     // our address:
     final String publicAddress = await getAddressFromMnemonic();
 
@@ -358,79 +352,62 @@ class NanoWallet extends CoinServiceAPI
       body: infoBody,
     );
 
-    final String frontier =
-        jsonDecode(infoResponse.body)["frontier"].toString();
+    String frontier = jsonDecode(infoResponse.body)["frontier"].toString();
     final String representative =
         jsonDecode(infoResponse.body)["representative"].toString();
 
-    // link = destination address:
-    final String link =
-        NanoAccounts.extractPublicKey(source);
-    final String linkAsAccount = source;
-
-    // construct the send block:
-    final Map<String, String> sendBlock = {
-      "type": "state",
-      "account": publicAddress,
-      "previous": frontier,
-      "representative": representative,
-      "balance": balanceAfterTx.toString(),
-      "link": link,
-    };
-
-    // sign the send block:
-    final String hash = NanoBlocks.computeStateHash(
-      NanoAccountType.NANO,
-      sendBlock["account"]!,
-      sendBlock["previous"]!,
-      sendBlock["representative"]!,
-      BigInt.parse(sendBlock["balance"]!),
-      sendBlock["link"]!,
-    );
-    final String privateKey = await getPrivateKeyFromMnemonic();
-    final String signature = NanoSignatures.signBlock(hash, privateKey);
+    // link = send block hash:
+    final String link = blockHash;
+    // this "linkAsAccount" is meaningless:
+    final String linkAsAccount =
+        NanoAccounts.createAccount(NanoAccountType.NANO, blockHash);
 
     // construct the receive block:
     Map<String, String> receiveBlock = {
       "type": "state",
       "account": publicAddress,
-      "previous": frontier,
+      "previous": openBlock
+          ? "0000000000000000000000000000000000000000000000000000000000000000"
+          : frontier,
       "representative": representative,
       "balance": balanceAfterTx.toString(),
       "link": link,
       "link_as_account": linkAsAccount,
-      "signature": signature,
     };
 
     // sign the receive block:
+    final String hash = NanoBlocks.computeStateHash(
+      NanoAccountType.NANO,
+      receiveBlock["account"]!,
+      receiveBlock["previous"]!,
+      receiveBlock["representative"]!,
+      BigInt.parse(receiveBlock["balance"]!),
+      receiveBlock["link"]!,
+    );
+    final String privateKey = await getPrivateKeyFromMnemonic();
+    final String signature = NanoSignatures.signBlock(hash, privateKey);
 
     // get PoW for the receive block:
-    final String? work = await requestWork(frontier);
+    String? work;
+    if (openBlock) {
+      work = await requestWork(NanoAccounts.extractPublicKey(publicAddress));
+    } else {
+      work = await requestWork(frontier);
+    }
     if (work == null) {
       throw Exception("Failed to get PoW for receive block");
     }
-
+    receiveBlock["link_as_account"] = linkAsAccount;
+    receiveBlock["signature"] = signature;
     receiveBlock["work"] = work;
 
     // process the receive block:
-
-    final Map<String, String> finalReceiveBlock = {
-      "type": "state",
-      "account": publicAddress,
-      "previous": frontier,
-      "representative": representative,
-      "balance": balanceAfterTx.toString(),
-      "link": link,
-      "link_as_account": linkAsAccount,
-      "signature": signature,
-      "work": work,
-    };
 
     final processBody = jsonEncode({
       "action": "process",
       "json_block": "true",
       "subtype": "receive",
-      "block": finalReceiveBlock,
+      "block": receiveBlock,
     });
     final processResponse = await http.post(
       Uri.parse(getCurrentNode().host),
@@ -450,11 +427,15 @@ class NanoWallet extends CoinServiceAPI
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "action": "receivable",
+          "source": "true",
           "account": await getAddressFromMnemonic(),
           "count": "-1",
         }));
 
     final receivableData = await jsonDecode(receivableResponse.body);
+    if (receivableData["blocks"] == "") {
+      return;
+    }
     final blocks = receivableData["blocks"] as Map<String, dynamic>;
     // confirm all receivable blocks:
     for (final blockHash in blocks.keys) {
@@ -462,6 +443,8 @@ class NanoWallet extends CoinServiceAPI
       final String amountRaw = block["amount"] as String;
       final String source = block["source"] as String;
       await receiveBlock(blockHash, source, amountRaw);
+      // a bit of a hack:
+      await Future<void>.delayed(const Duration(seconds: 1));
     }
   }
 
