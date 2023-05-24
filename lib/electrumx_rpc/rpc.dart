@@ -17,9 +17,12 @@ class JsonRPC {
   final String host;
   final int port;
   final Duration connectionTimeout;
-  Socket? socket;
 
+  Socket? socket;
   StreamSubscription<Uint8List>? _subscription;
+
+  void Function(List<int>)? _onData;
+  void Function(Object, StackTrace)? _onError;
 
   Future<dynamic> request(String jsonRpcRequest) async {
     final completer = Completer<dynamic>();
@@ -49,6 +52,8 @@ class JsonRPC {
       }
     }
 
+    _onData = dataHandler;
+
     void errorHandler(Object error, StackTrace trace) {
       Logging.instance
           .log("JsonRPC errorHandler: $error\n$trace", level: LogLevel.Error);
@@ -60,6 +65,8 @@ class JsonRPC {
       // socket?.destroy();
       // TODO do we need to recreate the socket?
     }
+
+    _onError = errorHandler;
 
     void doneHandler() {
       Logging.instance.log(
@@ -78,8 +85,8 @@ class JsonRPC {
       socket ??= await SecureSocket.connect(host, port,
           timeout: connectionTimeout, onBadCertificate: (_) => true);
       _subscription ??= socket!.listen(
-        dataHandler,
-        onError: errorHandler,
+        _onData,
+        onError: _onError,
         onDone: doneHandler,
         cancelOnError: true,
       );
@@ -90,8 +97,8 @@ class JsonRPC {
         timeout: connectionTimeout,
       );
       _subscription ??= socket!.listen(
-        dataHandler,
-        onError: errorHandler,
+        _onData,
+        onError: _onError,
         onDone: doneHandler,
         cancelOnError: true,
       );
