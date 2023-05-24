@@ -333,19 +333,19 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB, CoinControlI
         } else if (typeString == "receive") {
           type = TransactionType.incoming;
         }
-        var intAmount = int.parse((BigInt.parse(tx["amount"].toString()) ~/ BigInt.from(10).pow(23)).toString());
-        var strAmount = jsonEncode({
-          "raw": intAmount.toString(),
-          "fractionDigits": 7,
-        });
+        final amount = Amount(
+          rawValue: BigInt.parse(tx["amount"].toString()),
+          fractionDigits: coin.decimals,
+        );
+
         var transaction = Transaction(
             walletId: walletId,
             txid: tx["hash"].toString(),
             timestamp: int.parse(tx["local_timestamp"].toString()),
             type: type,
             subType: TransactionSubType.none,
-            amount: intAmount,
-            amountString: strAmount,
+            amount: 0,
+            amountString: amount.toJsonString(),
             fee: 0,
             height: int.parse(tx["height"].toString()),
             isCancelled: false,
