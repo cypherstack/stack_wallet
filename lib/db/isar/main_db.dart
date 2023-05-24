@@ -50,7 +50,7 @@ class MainDB {
   }
 
   // contact entries
-  List<ContactEntry> getContactEntries(){
+  List<ContactEntry> getContactEntries() {
     return isar.contactEntrys.where().findAllSync();
   }
 
@@ -66,11 +66,7 @@ class MainDB {
   }
 
   Future<bool> isContactEntryExists({required String id}) async {
-    return isar.contactEntrys
-        .where()
-        .customIdEqualTo(id)
-        .count()
-        .then((value) => value > 0);
+    return isar.contactEntrys.where().customIdEqualTo(id).count().then((value) => value > 0);
   }
 
   ContactEntry? getContactEntry({required String id}) {
@@ -90,14 +86,10 @@ class MainDB {
 
   // tx block explorers
   TransactionBlockExplorer? getTransactionBlockExplorer({required Coin coin}) {
-    return isar.transactionBlockExplorers
-        .where()
-        .tickerEqualTo(coin.ticker)
-        .findFirstSync();
+    return isar.transactionBlockExplorers.where().tickerEqualTo(coin.ticker).findFirstSync();
   }
 
-  Future<int> putTransactionBlockExplorer(
-      TransactionBlockExplorer explorer) async {
+  Future<int> putTransactionBlockExplorer(TransactionBlockExplorer explorer) async {
     try {
       return await isar.writeTxn(() async {
         return await isar.transactionBlockExplorers.put(explorer);
@@ -108,8 +100,7 @@ class MainDB {
   }
 
   // addresses
-  QueryBuilder<Address, Address, QAfterWhereClause> getAddresses(
-          String walletId) =>
+  QueryBuilder<Address, Address, QAfterWhereClause> getAddresses(String walletId) =>
       isar.addresses.where().walletIdEqualTo(walletId);
 
   Future<int> putAddress(Address address) async {
@@ -137,8 +128,7 @@ class MainDB {
       List<int> ids = [];
       await isar.writeTxn(() async {
         for (final address in addresses) {
-          final storedAddress = await isar.addresses
-              .getByValueWalletId(address.value, address.walletId);
+          final storedAddress = await isar.addresses.getByValueWalletId(address.value, address.walletId);
 
           int id;
           if (storedAddress == null) {
@@ -178,14 +168,12 @@ class MainDB {
         return id;
       });
     } catch (e) {
-      throw MainDBException(
-          "failed updateAddress: from=$oldAddress to=$newAddress", e);
+      throw MainDBException("failed updateAddress: from=$oldAddress to=$newAddress", e);
     }
   }
 
   // transactions
-  QueryBuilder<Transaction, Transaction, QAfterWhereClause> getTransactions(
-          String walletId) =>
+  QueryBuilder<Transaction, Transaction, QAfterWhereClause> getTransactions(String walletId) =>
       isar.transactions.where().walletIdEqualTo(walletId);
 
   Future<int> putTransaction(Transaction transaction) async {
@@ -220,8 +208,7 @@ class MainDB {
   }
 
   // utxos
-  QueryBuilder<UTXO, UTXO, QAfterWhereClause> getUTXOs(String walletId) =>
-      isar.utxos.where().walletIdEqualTo(walletId);
+  QueryBuilder<UTXO, UTXO, QAfterWhereClause> getUTXOs(String walletId) => isar.utxos.where().walletIdEqualTo(walletId);
 
   Future<void> putUTXO(UTXO utxo) => isar.writeTxn(() async {
         await isar.utxos.put(utxo);
@@ -236,10 +223,8 @@ class MainDB {
       final set = utxos.toSet();
       for (final utxo in utxos) {
         // check if utxo exists in db and update accordingly
-        final storedUtxo = await isar.utxos
-            .where()
-            .txidWalletIdVoutEqualTo(utxo.txid, utxo.walletId, utxo.vout)
-            .findFirst();
+        final storedUtxo =
+            await isar.utxos.where().txidWalletIdVoutEqualTo(utxo.txid, utxo.walletId, utxo.vout).findFirst();
 
         if (storedUtxo != null) {
           // update
@@ -269,22 +254,18 @@ class MainDB {
   }
 
   // transaction notes
-  QueryBuilder<TransactionNote, TransactionNote, QAfterWhereClause>
-      getTransactionNotes(String walletId) =>
-          isar.transactionNotes.where().walletIdEqualTo(walletId);
+  QueryBuilder<TransactionNote, TransactionNote, QAfterWhereClause> getTransactionNotes(String walletId) =>
+      isar.transactionNotes.where().walletIdEqualTo(walletId);
 
-  Future<void> putTransactionNote(TransactionNote transactionNote) =>
-      isar.writeTxn(() async {
+  Future<void> putTransactionNote(TransactionNote transactionNote) => isar.writeTxn(() async {
         await isar.transactionNotes.put(transactionNote);
       });
 
-  Future<void> putTransactionNotes(List<TransactionNote> transactionNotes) =>
-      isar.writeTxn(() async {
+  Future<void> putTransactionNotes(List<TransactionNote> transactionNotes) => isar.writeTxn(() async {
         await isar.transactionNotes.putAll(transactionNotes);
       });
 
-  Future<TransactionNote?> getTransactionNote(
-      String walletId, String txid) async {
+  Future<TransactionNote?> getTransactionNote(String walletId, String txid) async {
     return isar.transactionNotes.getByTxidWalletId(
       txid,
       walletId,
@@ -295,17 +276,14 @@ class MainDB {
     required Id id,
     bool fireImmediately = false,
   }) {
-    return isar.transactionNotes
-        .watchObject(id, fireImmediately: fireImmediately);
+    return isar.transactionNotes.watchObject(id, fireImmediately: fireImmediately);
   }
 
   // address labels
-  QueryBuilder<AddressLabel, AddressLabel, QAfterWhereClause> getAddressLabels(
-          String walletId) =>
+  QueryBuilder<AddressLabel, AddressLabel, QAfterWhereClause> getAddressLabels(String walletId) =>
       isar.addressLabels.where().walletIdEqualTo(walletId);
 
-  Future<int> putAddressLabel(AddressLabel addressLabel) =>
-      isar.writeTxn(() async {
+  Future<int> putAddressLabel(AddressLabel addressLabel) => isar.writeTxn(() async {
         return await isar.addressLabels.put(addressLabel);
       });
 
@@ -313,13 +291,11 @@ class MainDB {
         return isar.addressLabels.putSync(addressLabel);
       });
 
-  Future<void> putAddressLabels(List<AddressLabel> addressLabels) =>
-      isar.writeTxn(() async {
+  Future<void> putAddressLabels(List<AddressLabel> addressLabels) => isar.writeTxn(() async {
         await isar.addressLabels.putAll(addressLabels);
       });
 
-  Future<AddressLabel?> getAddressLabel(
-      String walletId, String addressString) async {
+  Future<AddressLabel?> getAddressLabel(String walletId, String addressString) async {
     return isar.addressLabels.getByAddressStringWalletId(
       addressString,
       walletId,
@@ -361,31 +337,19 @@ class MainDB {
 
       // transactions
       for (int i = 0; i < transactionCount; i += paginateLimit) {
-        final txnIds = await getTransactions(walletId)
-            .offset(i)
-            .limit(paginateLimit)
-            .idProperty()
-            .findAll();
+        final txnIds = await getTransactions(walletId).offset(i).limit(paginateLimit).idProperty().findAll();
         await isar.transactions.deleteAll(txnIds);
       }
 
       // addresses
       for (int i = 0; i < addressCount; i += paginateLimit) {
-        final addressIds = await getAddresses(walletId)
-            .offset(i)
-            .limit(paginateLimit)
-            .idProperty()
-            .findAll();
+        final addressIds = await getAddresses(walletId).offset(i).limit(paginateLimit).idProperty().findAll();
         await isar.addresses.deleteAll(addressIds);
       }
 
       // utxos
       for (int i = 0; i < utxoCount; i += paginateLimit) {
-        final utxoIds = await getUTXOs(walletId)
-            .offset(i)
-            .limit(paginateLimit)
-            .idProperty()
-            .findAll();
+        final utxoIds = await getUTXOs(walletId).offset(i).limit(paginateLimit).idProperty().findAll();
         await isar.utxos.deleteAll(utxoIds);
       }
     });
@@ -396,11 +360,7 @@ class MainDB {
     await isar.writeTxn(() async {
       const paginateLimit = 50;
       for (int i = 0; i < addressLabelCount; i += paginateLimit) {
-        final labelIds = await getAddressLabels(walletId)
-            .offset(i)
-            .limit(paginateLimit)
-            .idProperty()
-            .findAll();
+        final labelIds = await getAddressLabels(walletId).offset(i).limit(paginateLimit).idProperty().findAll();
         await isar.addressLabels.deleteAll(labelIds);
       }
     });
@@ -411,11 +371,7 @@ class MainDB {
     await isar.writeTxn(() async {
       const paginateLimit = 50;
       for (int i = 0; i < noteCount; i += paginateLimit) {
-        final labelIds = await getTransactionNotes(walletId)
-            .offset(i)
-            .limit(paginateLimit)
-            .idProperty()
-            .findAll();
+        final labelIds = await getTransactionNotes(walletId).offset(i).limit(paginateLimit).idProperty().findAll();
         await isar.transactionNotes.deleteAll(labelIds);
       }
     });
@@ -465,8 +421,7 @@ class MainDB {
 
   // eth contracts
 
-  QueryBuilder<EthContract, EthContract, QWhere> getEthContracts() =>
-      isar.ethContracts.where();
+  QueryBuilder<EthContract, EthContract, QWhere> getEthContracts() => isar.ethContracts.where();
 
   Future<EthContract?> getEthContract(String contractAddress) =>
       isar.ethContracts.where().addressEqualTo(contractAddress).findFirst();
@@ -478,8 +433,7 @@ class MainDB {
         return await isar.ethContracts.put(contract);
       });
 
-  Future<void> putEthContracts(List<EthContract> contracts) =>
-      isar.writeTxn(() async {
+  Future<void> putEthContracts(List<EthContract> contracts) => isar.writeTxn(() async {
         await isar.ethContracts.putAll(contracts);
       });
 }

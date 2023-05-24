@@ -223,7 +223,7 @@ class Transaction {
       txType: json['txType'] as String,
       amount: (Decimal.parse(json["amount"].toString()) *
               Decimal.fromInt(Constants.satsPerCoin(Coin
-                  .firo))) // dirty hack but we need 8 decimal places here to keep consistent data structure
+                  .firo).toInt())) // dirty hack but we need 8 decimal places here to keep consistent data structure
           .toBigInt()
           .toInt(),
       aliens: [],
@@ -231,7 +231,7 @@ class Transaction {
       worthAtBlockTimestamp: json['worthAtBlockTimestamp'] as String? ?? "0",
       fees: (Decimal.parse(json["fees"].toString()) *
               Decimal.fromInt(Constants.satsPerCoin(Coin
-                  .firo))) // dirty hack but we need 8 decimal places here to keep consistent data structure
+                  .firo).toInt())) // dirty hack but we need 8 decimal places here to keep consistent data structure
           .toBigInt()
           .toInt(),
       inputSize: json['inputSize'] as int? ?? 0,
@@ -397,7 +397,7 @@ class Output {
         value: (Decimal.parse(
                     (json["value"] ?? 0).toString()) *
                 Decimal.fromInt(Constants.satsPerCoin(Coin
-                    .firo))) // dirty hack but we need 8 decimal places here to keep consistent data structure
+                    .firo).toInt())) // dirty hack but we need 8 decimal places here to keep consistent data structure
             .toBigInt()
             .toInt(),
       );
@@ -410,7 +410,7 @@ class Output {
           scriptpubkeyAddress: "",
           value: (Decimal.parse(0.toString()) *
                   Decimal.fromInt(Constants.satsPerCoin(Coin
-                      .firo))) // dirty hack but we need 8 decimal places here to keep consistent data structure
+                      .firo).toInt())) // dirty hack but we need 8 decimal places here to keep consistent data structure
               .toBigInt()
               .toInt());
     }

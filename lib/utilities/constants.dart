@@ -25,11 +25,13 @@ abstract class Constants {
   // static bool enableBuy = enableExchange;
   // // true; // true for development,
 
-  static const int _satsPerCoinEthereum = 1000000000000000000;
-  static const int _satsPerCoinMonero = 1000000000000;
-  static const int _satsPerCoinWownero = 100000000000;
-  static const int _satsPerCoin = 100000000;
+  static final BigInt _satsPerCoinEthereum = BigInt.from(1000000000000000000);
+  static final BigInt _satsPerCoinMonero = BigInt.from(1000000000000);
+  static final BigInt _satsPerCoinWownero = BigInt.from(100000000000);
+  static final BigInt _satsPerCoinNano = BigInt.parse("1000000000000000000000000000000");
+  static final BigInt _satsPerCoin = BigInt.from(100000000);
   static const int _decimalPlaces = 8;
+  static const int _decimalPlacesNano = 6;
   static const int _decimalPlacesWownero = 11;
   static const int _decimalPlacesMonero = 12;
   static const int _decimalPlacesEthereum = 18;
@@ -46,7 +48,7 @@ abstract class Constants {
 
   static const int rescanV1 = 1;
 
-  static int satsPerCoin(Coin coin) {
+  static BigInt satsPerCoin(Coin coin) {
     switch (coin) {
       case Coin.bitcoin:
       case Coin.litecoin:
@@ -61,8 +63,10 @@ abstract class Constants {
       case Coin.epicCash:
       case Coin.namecoin:
       case Coin.particl:
-      case Coin.nano: // TODO: Check this: https://nano.org/en/faq#what-are-the-units-of-nano
         return _satsPerCoin;
+
+      case Coin.nano:
+        return _satsPerCoinNano;
 
       case Coin.wownero:
         return _satsPerCoinWownero;
@@ -90,8 +94,10 @@ abstract class Constants {
       case Coin.epicCash:
       case Coin.namecoin:
       case Coin.particl:
-      case Coin.nano:
         return _decimalPlaces;
+
+      case Coin.nano:
+        return _decimalPlacesNano;
 
       case Coin.wownero:
         return _decimalPlacesWownero;
