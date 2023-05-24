@@ -150,6 +150,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
 
     String receivingAddress = widget.receivingAddress;
     if ((widget.coin == Coin.bitcoincash ||
+            widget.coin == Coin.eCash ||
             widget.coin == Coin.bitcoincashTestnet) &&
         receivingAddress.contains(":")) {
       // remove cash addr prefix
@@ -246,6 +247,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
 
     String receivingAddress = widget.receivingAddress;
     if ((widget.coin == Coin.bitcoincash ||
+            widget.coin == Coin.eCash ||
             widget.coin == Coin.bitcoincashTestnet) &&
         receivingAddress.contains(":")) {
       // remove cash addr prefix

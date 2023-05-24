@@ -1033,6 +1033,7 @@ class _TransactionDetailsViewState
                                 final String height;
 
                                 if (widget.coin == Coin.bitcoincash ||
+                                    widget.coin == Coin.eCash ||
                                     widget.coin == Coin.bitcoincashTestnet) {
                                   height =
                                       "${_transaction.height != null && _transaction.height! > 0 ? _transaction.height! : "Pending"}";
