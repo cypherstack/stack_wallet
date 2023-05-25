@@ -1234,15 +1234,13 @@ class BitcoinCashWallet extends CoinServiceAPI
             ))
         .toList();
     final newNode = await getCurrentNode();
-    _cachedElectrumXClient = CachedElectrumX.from(
-      node: newNode,
-      prefs: _prefs,
-      failovers: failovers,
-    );
     _electrumXClient = ElectrumX.from(
       node: newNode,
       prefs: _prefs,
       failovers: failovers,
+    );
+    _cachedElectrumXClient = CachedElectrumX.from(
+      electrumXClient: _electrumXClient,
     );
 
     if (shouldRefresh) {
