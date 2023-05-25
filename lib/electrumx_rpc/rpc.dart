@@ -91,11 +91,11 @@ class JsonRPC {
     final req = _requestQueue.next;
 
     _socket!.write('${req.jsonRequest}\r\n');
-    Logging.instance.log(
-      "JsonRPC request: wrote request ${req.jsonRequest} "
-      "to socket ${_socket?.address}:${_socket?.port}",
-      level: LogLevel.Info,
-    );
+    // Logging.instance.log(
+    //   "JsonRPC request: wrote request ${req.jsonRequest} "
+    //   "to socket ${_socket?.address}:${_socket?.port}",
+    //   level: LogLevel.Info,
+    // );
   }
 
   Future<dynamic> request(String jsonRpcRequest) async {
@@ -120,11 +120,11 @@ class JsonRPC {
     if (_requestQueue.length == 1) {
       _sendNextAvailableRequest();
     } else {
-      Logging.instance.log(
-        "JsonRPC request: queued request $jsonRpcRequest "
-        "to socket ${_socket?.address}:$port",
-        level: LogLevel.Info,
-      );
+      // Logging.instance.log(
+      //   "JsonRPC request: queued request $jsonRpcRequest "
+      //   "to socket ${_socket?.address}:$port",
+      //   level: LogLevel.Info,
+      // );
     }
 
     return req.completer.future;
