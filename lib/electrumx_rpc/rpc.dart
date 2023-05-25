@@ -60,7 +60,6 @@ class JsonRPC {
     // should we also cancel and/or null the subscription?
 
     if (_requestQueue.isNotEmpty) {
-      // TODO iterate over the remaining requests and if they are not isComplete then complete the completer with an error
       Logging.instance.log(
         "JsonRPC doneHandler: queue not empty but connection closed, completing pending requests with errors",
         level: LogLevel.Error,
