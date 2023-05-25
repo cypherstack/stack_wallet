@@ -26,7 +26,6 @@ class JsonRPC {
   void _dataHandler(List<int> data) {
     if (_requestQueue.isEmpty) {
       // probably just return although this case should never actually hit
-      // TODO anything else here?
       return;
     }
 
@@ -52,20 +51,23 @@ class JsonRPC {
   void _doneHandler() {
     Logging.instance.log(
       "JsonRPC doneHandler: "
-      "connection closed to ${_socket?.address}:${_socket?.port}, destroying socket",
+      "connection closed to ${_socket?.address}:$port, destroying socket",
       level: LogLevel.Info,
     );
-    _socket?.destroy();
-    _socket = null; // is this redundant?
-    // should we also cancel and/or null the subscription?
 
     if (_requestQueue.isNotEmpty) {
       Logging.instance.log(
-        "JsonRPC doneHandler: queue not empty but connection closed, completing pending requests with errors",
+        "JsonRPC doneHandler: queue not empty but connection closed, "
+        "completing pending requests with errors",
         level: LogLevel.Error,
       );
-      _errorPendingRequests();
+      _requestQueue.clear(
+        errorMessage: "JsonRPC doneHandler: socket closed "
+            "before request could complete",
+      );
     }
+
+    disconnect();
   }
 
   Future<void> _onReqCompleted(_JsonRPCRequest req) async {
@@ -89,25 +91,6 @@ class JsonRPC {
       "to socket ${_socket?.address}:${_socket?.port}",
       level: LogLevel.Info,
     );
-  }
-
-  void _errorPendingRequests() {
-    if (_requestQueue.isNotEmpty) {
-      final req = _requestQueue.next;
-      if (!(req.isComplete)) {
-        req.completer.completeError('JsonRPC doneHandler: socket closed before request could complete');
-        _requestQueue.remove(req).then((ret) {
-          if (_requestQueue.isNotEmpty) {
-            _errorPendingRequests();
-          }
-        });
-      }
-    } else {
-      Logging.instance.log(
-        "JsonRPC _errorPendingRequests: done completing pending requests with errors",
-        level: LogLevel.Info,
-      );
-    }
   }
 
   Future<dynamic> request(String jsonRpcRequest) async {
@@ -134,7 +117,7 @@ class JsonRPC {
     } else {
       Logging.instance.log(
         "JsonRPC request: queued request $jsonRpcRequest "
-        "to socket ${_socket?.address}:${_socket?.port}",
+        "to socket ${_socket?.address}:$port",
         level: LogLevel.Info,
       );
     }
@@ -142,10 +125,10 @@ class JsonRPC {
     return req.completer.future;
   }
 
-  Future<void> disconnect() async {
-    await _subscription?.cancel();
-    _subscription = null;
+  void disconnect() {
+    _subscription?.cancel().then((_) => _subscription = null);
     _socket?.destroy();
+    _socket = null;
   }
 
   Future<void> connect() async {
@@ -184,6 +167,18 @@ class _JsonRPCRequestQueue {
 
   Future<void> remove(_JsonRPCRequest req) async {
     await _m.protect(() async => _rq.remove(req));
+  }
+
+  Future<void> clear({required String errorMessage}) async {
+    await _m.protect(() async {
+      for (final req in _rq) {
+        if (!req.isComplete) {
+          req.completer.completeError(errorMessage);
+        }
+      }
+
+      _rq.clear();
+    });
   }
 
   bool get isEmpty => _rq.isEmpty;
