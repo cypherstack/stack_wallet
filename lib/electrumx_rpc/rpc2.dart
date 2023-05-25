@@ -62,9 +62,10 @@ class JsonRPC {
     if (_requestQueue.isNotEmpty) {
       // TODO iterate over the remaining requests and if they are not isComplete then complete the completer with an error
       Logging.instance.log(
-        "JsonRPC doneHandler: queue not empty but connection closed",
-        level: LogLevel.Warning,
+        "JsonRPC doneHandler: queue not empty but connection closed, completing pending requests with errors",
+        level: LogLevel.Error,
       );
+      _errorPendingRequests();
     }
   }
 
@@ -89,6 +90,25 @@ class JsonRPC {
       "to socket ${_socket?.address}:${_socket?.port}",
       level: LogLevel.Info,
     );
+  }
+
+  void _errorPendingRequests() {
+    if (_requestQueue.isNotEmpty) {
+      final req = _requestQueue.next;
+      if (!(req.isComplete)) {
+        req.completer.completeError('JsonRPC doneHandler: socket closed before request could complete');
+        _requestQueue.remove(req).then((ret) {
+          if (_requestQueue.isNotEmpty) {
+            _errorPendingRequests();
+          }
+        });
+      }
+    } else {
+      Logging.instance.log(
+        "JsonRPC _errorPendingRequests: done completing pending requests with errors",
+        level: LogLevel.Info,
+      );
+    }
   }
 
   Future<dynamic> request(String jsonRpcRequest) async {
