@@ -67,7 +67,7 @@ class JsonRPC {
   void _sendNextAvailableRequest() {
     if (_requestQueue.isEmpty) {
       // TODO handle properly
-      throw Exception("reeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+      throw Exception("JSON RPC queue empty");
     }
 
     final req = _requestQueue.next;
