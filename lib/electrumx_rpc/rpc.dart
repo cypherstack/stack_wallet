@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:mutex/mutex.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 // hacky fix to receive large jsonrpc responses
@@ -61,17 +60,23 @@ class JsonRPC {
         "completing pending requests with errors",
         level: LogLevel.Error,
       );
-      _requestQueue.clear(
-        errorMessage: "JsonRPC doneHandler: socket closed "
+
+      for (final req in _requestQueue.queue) {
+        if (!req.isComplete) {
+          req.completer.completeError(
+            "JsonRPC doneHandler: socket closed "
             "before request could complete",
-      );
+          );
+        }
+      }
+      _requestQueue.clear();
     }
 
     disconnect();
   }
 
-  Future<void> _onReqCompleted(_JsonRPCRequest req) async {
-    await _requestQueue.remove(req);
+  void _onReqCompleted(_JsonRPCRequest req) {
+    _requestQueue.remove(req);
     if (_requestQueue.isNotEmpty) {
       _sendNextAvailableRequest();
     }
@@ -109,7 +114,7 @@ class JsonRPC {
       completer: Completer<dynamic>(),
     );
 
-    await _requestQueue.add(req);
+    _requestQueue.add(req);
 
     // if this is the only/first request then send it right away
     if (_requestQueue.length == 1) {
@@ -156,35 +161,20 @@ class JsonRPC {
   }
 }
 
-// mutex *may* not be needed as the protected functions are not async
 class _JsonRPCRequestQueue {
-  final _m = Mutex();
   final List<_JsonRPCRequest> _rq = [];
 
-  Future<void> add(_JsonRPCRequest req) async {
-    await _m.protect(() async => _rq.add(req));
-  }
+  void add(_JsonRPCRequest req) => _rq.add(req);
 
-  Future<void> remove(_JsonRPCRequest req) async {
-    await _m.protect(() async => _rq.remove(req));
-  }
+  bool remove(_JsonRPCRequest req) => _rq.remove(req);
 
-  Future<void> clear({required String errorMessage}) async {
-    await _m.protect(() async {
-      for (final req in _rq) {
-        if (!req.isComplete) {
-          req.completer.completeError(errorMessage);
-        }
-      }
-
-      _rq.clear();
-    });
-  }
+  void clear() => _rq.clear();
 
   bool get isEmpty => _rq.isEmpty;
   bool get isNotEmpty => _rq.isNotEmpty;
   int get length => _rq.length;
   _JsonRPCRequest get next => _rq.first;
+  List<_JsonRPCRequest> get queue => _rq.toList(growable: false);
 }
 
 class _JsonRPCRequest {
