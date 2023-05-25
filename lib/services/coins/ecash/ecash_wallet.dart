@@ -47,7 +47,7 @@ import 'package:stackwallet/widgets/crypto_notifications.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 
-const int MINIMUM_CONFIRMATIONS = 1;
+const int MINIMUM_CONFIRMATIONS = 0;
 
 const String GENESIS_HASH_MAINNET =
     "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f";
@@ -361,9 +361,9 @@ class ECashWallet extends CoinServiceAPI
         print("format $format");
       }
 
-      if (_coin == Coin.bitcoincashTestnet) {
-        return true;
-      }
+      // if (_coin == Coin.bitcoincashTestnet) {
+      //   return true;
+      // }
 
       if (format == bitbox.Address.formatCashAddr) {
         return validateCashAddr(address);
@@ -1899,7 +1899,7 @@ class ECashWallet extends CoinServiceAPI
     required List<int> satoshiAmounts,
   }) async {
     final builder = bitbox.Bitbox.transactionBuilder(
-      testnet: coin == Coin.bitcoincashTestnet,
+      testnet: false, //coin == Coin.bitcoincashTestnet,
     );
 
     // retrieve address' utxos from the rest api
