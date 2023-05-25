@@ -70,7 +70,7 @@ final openedFromSWBFileStringStateProvider =
 // runs the MyApp widget and checks for new users, caching the value in the
 // miscellaneous box for later use
 void main() async {
-  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = false;
   if (Platform.isIOS) {
     Util.libraryPath = await getLibraryDirectory();
@@ -179,7 +179,9 @@ void main() async {
   }
 
   monero.onStartup();
-  wownero.onStartup();
+  if (!Platform.isLinux && !Platform.isWindows) {
+    wownero.onStartup();
+  }
 
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
   //     overlays: [SystemUiOverlay.bottom]);

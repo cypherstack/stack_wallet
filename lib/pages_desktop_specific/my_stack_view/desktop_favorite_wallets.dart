@@ -74,7 +74,6 @@ class DesktopFavoriteWallets extends ConsumerWidget {
                           key: Key(walletName),
                           width: cardWidth,
                           height: cardHeight,
-                          managerProvider: managerProvider,
                         );
                       })
                     ],

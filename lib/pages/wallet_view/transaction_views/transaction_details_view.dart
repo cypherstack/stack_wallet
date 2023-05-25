@@ -619,16 +619,37 @@ class _TransactionDetailsViewState
                                                   CustomTextButton(
                                                     text: "Info",
                                                     onTap: () {
-                                                      Navigator.of(context)
-                                                          .pushNamed(
-                                                        AddressDetailsView
-                                                            .routeName,
-                                                        arguments: Tuple2(
-                                                          _transaction.address
-                                                              .value!.id,
-                                                          widget.walletId,
-                                                        ),
-                                                      );
+                                                      if (isDesktop) {
+                                                        showDialog<void>(
+                                                          context: context,
+                                                          builder: (_) =>
+                                                              DesktopDialog(
+                                                            maxHeight:
+                                                                double.infinity,
+                                                            child:
+                                                                AddressDetailsView(
+                                                              addressId:
+                                                                  _transaction
+                                                                      .address
+                                                                      .value!
+                                                                      .id,
+                                                              walletId: widget
+                                                                  .walletId,
+                                                            ),
+                                                          ),
+                                                        );
+                                                      } else {
+                                                        Navigator.of(context)
+                                                            .pushNamed(
+                                                          AddressDetailsView
+                                                              .routeName,
+                                                          arguments: Tuple2(
+                                                            _transaction.address
+                                                                .value!.id,
+                                                            widget.walletId,
+                                                          ),
+                                                        );
+                                                      }
                                                     },
                                                   )
                                                 ],
@@ -1012,6 +1033,7 @@ class _TransactionDetailsViewState
                                 final String height;
 
                                 if (widget.coin == Coin.bitcoincash ||
+                                    widget.coin == Coin.eCash ||
                                     widget.coin == Coin.bitcoincashTestnet) {
                                   height =
                                       "${_transaction.height != null && _transaction.height! > 0 ? _transaction.height! : "Pending"}";
@@ -1115,6 +1137,46 @@ class _TransactionDetailsViewState
                                     ),
                                     SelectableText(
                                       _transaction.nonce.toString(),
+                                      style: isDesktop
+                                          ? STextStyles
+                                                  .desktopTextExtraExtraSmall(
+                                                      context)
+                                              .copyWith(
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textDark,
+                                            )
+                                          : STextStyles.itemSubtitle12(context),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            if (kDebugMode)
+                              isDesktop
+                                  ? const _Divider()
+                                  : const SizedBox(
+                                      height: 12,
+                                    ),
+                            if (kDebugMode)
+                              RoundedWhiteContainer(
+                                padding: isDesktop
+                                    ? const EdgeInsets.all(16)
+                                    : const EdgeInsets.all(12),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Tx sub type",
+                                      style: isDesktop
+                                          ? STextStyles
+                                              .desktopTextExtraExtraSmall(
+                                                  context)
+                                          : STextStyles.itemSubtitle(context),
+                                    ),
+                                    SelectableText(
+                                      _transaction.subType.toString(),
                                       style: isDesktop
                                           ? STextStyles
                                                   .desktopTextExtraExtraSmall(

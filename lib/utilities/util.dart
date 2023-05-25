@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
@@ -49,5 +51,16 @@ abstract class Util {
       );
     }
     return MaterialColor(color.value, swatch);
+  }
+
+  static void printJson(dynamic json) {
+    if (json is Map || json is List) {
+      final spaces = ' ' * 4;
+      final encoder = JsonEncoder.withIndent(spaces);
+      final pretty = encoder.convert(json);
+      log(pretty);
+    } else {
+      log(dynamic.toString());
+    }
   }
 }
