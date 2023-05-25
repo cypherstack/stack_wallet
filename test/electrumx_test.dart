@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
-import 'package:stackwallet/electrumx_rpc/rpc2.dart';
+import 'package:stackwallet/electrumx_rpc/rpc.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 
 import 'electrumx_test.mocks.dart';
