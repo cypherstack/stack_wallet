@@ -140,6 +140,7 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
                           context: context,
                         );
                       } else {
+                        print("PIN: $pin");
                         _pageController.nextPage(
                           duration: const Duration(milliseconds: 300),
                           curve: Curves.linear,
