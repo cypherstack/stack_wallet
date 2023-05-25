@@ -56,6 +56,14 @@ class JsonRPC {
       level: LogLevel.Info,
     );
     _socket?.destroy();
+
+    if (_requestQueue.isNotEmpty) {
+      Logging.instance.log(
+        "JsonRPC doneHandler: sending next request in queue",
+        level: LogLevel.Warning,
+      );
+      _sendNextAvailableRequest();
+    }
   }
 
   Future<void> _onReqCompleted(_JsonRPCRequest req) async {
