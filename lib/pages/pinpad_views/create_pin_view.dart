@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -9,7 +10,6 @@ import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/biometrics.dart';
-import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -155,8 +155,7 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                       });
                     },
                     onSubmit: (String pin) {
-                      if (pin.length < Constants.pinLength) {
-                        print("PIN: $pin");
+                      if (pin.length < 4) {
                         showFloatingFlushBar(
                           type: FlushBarType.warning,
                           message: "PIN not long enough!",

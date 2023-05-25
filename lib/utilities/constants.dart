@@ -37,8 +37,6 @@ abstract class Constants {
   static const int notificationsMax = 0xFFFFFFFF;
   static const Duration networkAliveTimerDuration = Duration(seconds: 10);
 
-  static const int pinLength = 4;
-
   // Enable Logger.print statements
   static const bool disableLogger = false;
 
