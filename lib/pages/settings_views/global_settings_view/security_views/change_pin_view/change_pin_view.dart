@@ -132,7 +132,6 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
                     followingFieldDecoration: _pinPutDecoration,
                     onSubmit: (String pin) {
                       if (pin.length < 4) {
-                        print("PIN: $pin");
                         showFloatingFlushBar(
                           type: FlushBarType.warning,
                           message: "PIN not long enough!",
@@ -140,7 +139,6 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
                           context: context,
                         );
                       } else {
-                        print("PIN: $pin");
                         _pageController.nextPage(
                           duration: const Duration(milliseconds: 300),
                           curve: Curves.linear,

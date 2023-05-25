@@ -302,8 +302,6 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                               .read(prefsChangeNotifierProvider)
                               .randomizePIN,
                           onSubmit: (String pin) async {
-                            print("PIN: $pin");
-
                             _attempts++;
 
                             if (_attempts > maxAttemptsBeforeThrottling) {

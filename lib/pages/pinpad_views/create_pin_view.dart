@@ -155,8 +155,6 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                       });
                     },
                     onSubmit: (String pin) {
-                      print("PIN: $pin");
-
                       if (pin.length < 4) {
                         showFloatingFlushBar(
                           type: FlushBarType.warning,
