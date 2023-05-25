@@ -52,9 +52,10 @@ class JsonRPC {
   void _doneHandler() {
     Logging.instance.log(
       "JsonRPC doneHandler: "
-      "connection closed to ${_socket?.address}:${_socket?.port}",
+      "connection closed to ${_socket?.address}:${_socket?.port}, destroying socket",
       level: LogLevel.Info,
     );
+    _socket?.destroy();
   }
 
   Future<void> _onReqCompleted(_JsonRPCRequest req) async {
