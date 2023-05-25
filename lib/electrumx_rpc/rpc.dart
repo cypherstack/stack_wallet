@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:mutex/mutex.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 // hacky fix to receive large jsonrpc responses
@@ -18,6 +19,7 @@ class JsonRPC {
   final int port;
   final Duration connectionTimeout;
 
+  final _requestMutex = Mutex();
   final _JsonRPCRequestQueue _requestQueue = _JsonRPCRequestQueue();
   Socket? _socket;
   StreamSubscription<Uint8List>? _subscription;
@@ -50,7 +52,7 @@ class JsonRPC {
   void _doneHandler() {
     Logging.instance.log(
       "JsonRPC doneHandler: "
-      "connection closed to ${_socket?.address}:$port, destroying socket",
+      "connection closed to $host:$port, destroying socket",
       level: LogLevel.Info,
     );
 
@@ -93,7 +95,7 @@ class JsonRPC {
     _socket!.write('${req.jsonRequest}\r\n');
     // Logging.instance.log(
     //   "JsonRPC request: wrote request ${req.jsonRequest} "
-    //   "to socket ${_socket?.address}:${_socket?.port}",
+    //   "to socket $host:$port",
     //   level: LogLevel.Info,
     // );
   }
@@ -101,13 +103,15 @@ class JsonRPC {
   Future<dynamic> request(String jsonRpcRequest) async {
     // todo: handle this better?
     // Do we need to check the subscription, too?
-    if (_socket == null) {
-      Logging.instance.log(
-        "JsonRPC request: opening socket $host:$port",
-        level: LogLevel.Info,
-      );
-      await connect();
-    }
+    await _requestMutex.protect(() async {
+      if (_socket == null) {
+        Logging.instance.log(
+          "JsonRPC request: opening socket $host:$port",
+          level: LogLevel.Info,
+        );
+        await connect();
+      }
+    });
 
     final req = _JsonRPCRequest(
       jsonRequest: jsonRpcRequest,
@@ -122,7 +126,7 @@ class JsonRPC {
     } else {
       // Logging.instance.log(
       //   "JsonRPC request: queued request $jsonRpcRequest "
-      //   "to socket ${_socket?.address}:$port",
+      //   "to socket $host:$port",
       //   level: LogLevel.Info,
       // );
     }
@@ -131,6 +135,7 @@ class JsonRPC {
   }
 
   void disconnect() {
+    // TODO: maybe clear req queue here and wrap in mutex?
     _subscription?.cancel().then((_) => _subscription = null);
     _socket?.destroy();
     _socket = null;
