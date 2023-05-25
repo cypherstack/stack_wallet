@@ -35,9 +35,10 @@ mixin FiroHive {
   }
 
   // mintIndex
-  int? firoGetMintIndex() {
+  int firoGetMintIndex() {
     return DB.instance.get<dynamic>(boxName: _walletId, key: "mintIndex")
-        as int?;
+            as int? ??
+        0;
   }
 
   Future<void> firoUpdateMintIndex(int mintIndex) async {

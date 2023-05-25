@@ -11,7 +11,7 @@ description: Stack Wallet
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.7.8+171
+version: 1.7.10+174
 
 environment:
   sdk: ">=2.17.0 <3.0.0"
@@ -85,8 +85,8 @@ dependencies:
       ref: 3bef5acc21340f3cc78df0ad1dce5868a3ed68a5
   bitbox:
     git:
-      url: https://github.com/Quppy/bitbox-flutter.git
-      ref: ea65073efbaf395a5557e8cd7bd72f195cd7eb11
+      url: https://github.com/PiRK/bitbox-flutter.git
+      ref: 50bf29957514a5712466ba37590a851212a244bf
   bip32: ^2.0.0
   bech32:
     git:
@@ -288,6 +288,7 @@ flutter:
     - assets/svg/message-question.svg
     - assets/svg/envelope.svg
     - assets/svg/share-2.svg
+    - assets/svg/anonymize.svg
     - assets/svg/tx-icon-anonymize.svg
     - assets/svg/tx-icon-anonymize-pending.svg
     - assets/svg/tx-icon-anonymize-failed.svg

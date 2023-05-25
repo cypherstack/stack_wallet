@@ -70,7 +70,7 @@ final openedFromSWBFileStringStateProvider =
 // runs the MyApp widget and checks for new users, caching the value in the
 // miscellaneous box for later use
 void main() async {
-  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = false;
   if (Platform.isIOS) {
     Util.libraryPath = await getLibraryDirectory();
@@ -179,7 +179,9 @@ void main() async {
   }
 
   monero.onStartup();
-  wownero.onStartup();
+  if (!Platform.isLinux && !Platform.isWindows) {
+    wownero.onStartup();
+  }
 
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
   //     overlays: [SystemUiOverlay.bottom]);
@@ -188,33 +190,8 @@ void main() async {
   await MainDB.instance.initMainDB();
   ThemeService.instance.init(MainDB.instance);
 
-  // install default themes
-  if (!(await ThemeService.instance.verifyInstalled(themeId: "light"))) {
-    Logging.instance.log(
-      "Installing default light theme...",
-      level: LogLevel.Info,
-    );
-    final lightZip = await rootBundle.load("assets/default_themes/light.zip");
-    await ThemeService.instance
-        .install(themeArchiveData: lightZip.buffer.asUint8List());
-    Logging.instance.log(
-      "Installing default light theme... finished",
-      level: LogLevel.Info,
-    );
-  }
-  if (!(await ThemeService.instance.verifyInstalled(themeId: "dark"))) {
-    Logging.instance.log(
-      "Installing default dark theme... ",
-      level: LogLevel.Info,
-    );
-    final darkZip = await rootBundle.load("assets/default_themes/dark.zip");
-    await ThemeService.instance
-        .install(themeArchiveData: darkZip.buffer.asUint8List());
-    Logging.instance.log(
-      "Installing default dark theme... finished",
-      level: LogLevel.Info,
-    );
-  }
+  // check and update or install default themes
+  await ThemeService.instance.checkDefaultThemesOnStartup();
 
   runApp(const ProviderScope(child: MyApp()));
 }

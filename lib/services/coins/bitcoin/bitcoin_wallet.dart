@@ -1468,7 +1468,7 @@ class BitcoinWallet extends CoinServiceAPI
     }
     await _secureStore.write(
         key: '${_walletId}_mnemonic',
-        value: bip39.generateMnemonic(strength: 256));
+        value: bip39.generateMnemonic(strength: 128));
     await _secureStore.write(key: '${_walletId}_mnemonicPassphrase', value: "");
 
     // Generate and add addresses to relevant arrays

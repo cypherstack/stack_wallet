@@ -24,7 +24,7 @@ class TxIcon extends ConsumerWidget {
   static const Size size = Size(32, 32);
 
   String _getAssetName(
-      bool isCancelled, bool isReceived, bool isPending, ThemeAssets assets) {
+      bool isCancelled, bool isReceived, bool isPending, IThemeAssets assets) {
     if (!isReceived && transaction.subType == TransactionSubType.mint) {
       if (isCancelled) {
         return Assets.svg.anonymizeFailed;
@@ -65,7 +65,7 @@ class TxIcon extends ConsumerWidget {
         currentHeight,
         coin.requiredConfirmations,
       ),
-      ref.watch(themeProvider).assets,
+      ref.watch(themeAssetsProvider),
     );
 
     return SizedBox(

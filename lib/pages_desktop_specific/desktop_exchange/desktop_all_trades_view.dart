@@ -288,7 +288,7 @@ class DesktopTradeRowCard extends ConsumerStatefulWidget {
 class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
   late final String tradeId;
 
-  String _fetchIconAssetForStatus(String statusString, ThemeAssets assets) {
+  String _fetchIconAssetForStatus(String statusString, IThemeAssets assets) {
     ChangeNowTransactionStatus? status;
     try {
       if (statusString.toLowerCase().startsWith("waiting")) {
@@ -528,7 +528,7 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
                       _fetchIconAssetForStatus(
                         trade.status,
                         ref.watch(
-                          themeProvider.select((value) => value.assets),
+                          themeAssetsProvider,
                         ),
                       ),
                     ),
