@@ -148,19 +148,31 @@ mixin ElectrumXParsing {
       type = TransactionType.outgoing;
       amount = amountSentFromWallet - changeAmount - fee;
 
-      final possible =
-          outputAddresses.difference(myChangeReceivedOnAddresses).first;
+      // non wallet addresses found in tx outputs
+      final nonWalletOutAddresses = outputAddresses.difference(
+        myChangeReceivedOnAddresses,
+      );
 
-      if (transactionAddress.value != possible) {
-        transactionAddress = Address(
-          walletId: walletId,
-          value: possible,
-          derivationIndex: -1,
-          derivationPath: null,
-          subType: AddressSubType.nonWallet,
-          type: AddressType.nonWallet,
-          publicKey: [],
-        );
+      if (nonWalletOutAddresses.isNotEmpty) {
+        final possible = nonWalletOutAddresses.first;
+
+        if (transactionAddress.value != possible) {
+          transactionAddress = Address(
+            walletId: walletId,
+            value: possible,
+            derivationIndex: -1,
+            derivationPath: null,
+            subType: AddressSubType.nonWallet,
+            type: AddressType.nonWallet,
+            publicKey: [],
+          );
+        }
+      } else {
+        // some other type of tx where the receiving address is
+        // one of my change addresses
+
+        type = TransactionType.sentToSelf;
+        amount = changeAmount;
       }
     } else {
       // incoming tx
