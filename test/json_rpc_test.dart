@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stackwallet/electrumx_rpc/rpc.dart';
+import 'package:stackwallet/electrumx_rpc/rpc2.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 
 void main() {

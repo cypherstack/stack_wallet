@@ -7,7 +7,7 @@ import 'dart:async' as _i3;
 import 'dart:ui' as _i7;
 
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:stackwallet/electrumx_rpc/rpc.dart' as _i2;
+import 'package:stackwallet/electrumx_rpc/rpc2.dart' as _i2;
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i6;
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i5;
 import 'package:stackwallet/utilities/prefs.dart' as _i4;
