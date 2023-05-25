@@ -56,6 +56,8 @@ class JsonRPC {
       level: LogLevel.Info,
     );
     _socket?.destroy();
+    _socket = null; // is this redundant?
+    // should we also cancel and/or null the subscription?
 
     if (_requestQueue.isNotEmpty) {
       Logging.instance.log(
