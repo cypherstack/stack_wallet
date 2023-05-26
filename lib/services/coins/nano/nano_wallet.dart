@@ -31,6 +31,8 @@ import 'dart:async';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 
 const int MINIMUM_CONFIRMATIONS = 1;
+const String DEFAULT_REPRESENTATIVE =
+    "nano_38713x95zyjsqzx6nm1dsom1jmm668owkeb9913ax6nfgj15az3nu8xkx579";
 
 class NanoWallet extends CoinServiceAPI
     with WalletCache, WalletDB, CoinControlInterface {
@@ -135,7 +137,7 @@ class NanoWallet extends CoinServiceAPI
   Future<String?> requestWork(String hash) async {
     return http
         .post(
-      Uri.parse("https://rpc.nano.to"),
+      Uri.parse("https://rpc.nano.to"), // this should be a
       headers: {'Content-type': 'application/json'},
       body: json.encode(
         {
@@ -295,8 +297,7 @@ class NanoWallet extends CoinServiceAPI
     final data = jsonDecode(response.body);
     _balance = Balance(
       total: Amount(
-          rawValue: (BigInt.parse(data["balance"]
-                  .toString()) /*+ BigInt.parse(data["receivable"].toString())*/) ~/
+          rawValue: (BigInt.parse(data["balance"].toString())) ~/
               BigInt.from(10).pow(23),
           fractionDigits: 7),
       spendable: Amount(
@@ -317,17 +318,38 @@ class NanoWallet extends CoinServiceAPI
     // TODO: the opening block of an account is a special case
     bool openBlock = false;
 
+    final headers = {
+      "Content-Type": "application/json",
+    };
+
     // our address:
     final String publicAddress = await getAddressFromMnemonic();
+
+    // first check if the account is open:
+    // get the account info (we need the frontier and representative):
+    final infoBody = jsonEncode({
+      "action": "account_info",
+      "representative": "true",
+      "account": publicAddress,
+    });
+    final infoResponse = await http.post(
+      Uri.parse(getCurrentNode().host),
+      headers: headers,
+      body: infoBody,
+    );
+    final infoData = jsonDecode(infoResponse.body);
+
+    if (infoData["error"] != null) {
+      // account is not open yet, we need to create an open block:
+      openBlock = true;
+    }
 
     // first get the account balance:
     final balanceBody = jsonEncode({
       "action": "account_balance",
       "account": publicAddress,
     });
-    final headers = {
-      "Content-Type": "application/json",
-    };
+
     final balanceResponse = await http.post(
       Uri.parse(getCurrentNode().host),
       headers: headers,
@@ -340,21 +362,13 @@ class NanoWallet extends CoinServiceAPI
     final BigInt txAmount = BigInt.parse(amountRaw);
     final BigInt balanceAfterTx = currentBalance + txAmount;
 
-    // get the account info (we need the frontier and representative):
-    final infoBody = jsonEncode({
-      "action": "account_info",
-      "representative": "true",
-      "account": publicAddress,
-    });
-    final infoResponse = await http.post(
-      Uri.parse(getCurrentNode().host),
-      headers: headers,
-      body: infoBody,
-    );
+    String frontier = infoData["frontier"].toString();
+    String representative = infoData["representative"].toString();
 
-    String frontier = jsonDecode(infoResponse.body)["frontier"].toString();
-    final String representative =
-        jsonDecode(infoResponse.body)["representative"].toString();
+    if (openBlock) {
+      // we don't have a representative set yet:
+      representative = DEFAULT_REPRESENTATIVE;
+    }
 
     // link = send block hash:
     final String link = blockHash;
@@ -495,7 +509,12 @@ class NanoWallet extends CoinServiceAPI
             nonce: 0);
         transactionList.add(transaction);
       }
-      await db.putTransactions(transactionList);
+      try {
+        await db.putTransactions(transactionList);
+      } catch (e) {
+        // I don't know why this fails sometimes, but it does
+        print(e);
+      }
       return;
     }
   }
@@ -552,7 +571,7 @@ class NanoWallet extends CoinServiceAPI
       value: publicAddress,
       publicKey: [], // TODO: add public key
       derivationIndex: 0,
-      derivationPath: DerivationPath(),
+      derivationPath: null,
       type: AddressType.unknown,
       subType: AddressSubType.receiving,
     );
@@ -650,8 +669,7 @@ class NanoWallet extends CoinServiceAPI
         value: publicAddress,
         publicKey: [], // TODO: add public key
         derivationIndex: 0,
-        derivationPath: DerivationPath()
-          ..value = "0/0", // TODO: Check if this is true
+        derivationPath: null,
         type: AddressType.unknown,
         subType: AddressSubType.receiving,
       );
