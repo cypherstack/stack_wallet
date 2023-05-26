@@ -135,7 +135,10 @@ class JsonRPC {
       // );
     }
 
-    return req.completer.future;
+    return req.completer.future.onError(
+      (error, stackTrace) =>
+          Exception("return req.completer.future.onError: $error"),
+    );
   }
 
   void disconnect() {
