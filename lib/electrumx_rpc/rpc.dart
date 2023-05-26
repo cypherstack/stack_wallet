@@ -97,6 +97,8 @@ class JsonRPC {
     final req = _requestQueue.next;
 
     _socket!.write('${req.jsonRequest}\r\n');
+
+    req.initiateTimeout(const Duration(seconds: 10));
     // Logging.instance.log(
     //   "JsonRPC request: wrote request ${req.jsonRequest} "
     //   "to socket $host:$port",
@@ -212,6 +214,18 @@ class _JsonRPCRequest {
         completer.completeError(e, s);
       }
     }
+  }
+
+  void initiateTimeout(Duration timeout) {
+    Future<void>.delayed(timeout).then((_) {
+      if (!isComplete) {
+        try {
+          throw Exception("_JsonRPCRequest timed out: $jsonRequest");
+        } catch (e, s) {
+          completer.completeError(e, s);
+        }
+      }
+    });
   }
 
   bool get isComplete => completer.isCompleted;
