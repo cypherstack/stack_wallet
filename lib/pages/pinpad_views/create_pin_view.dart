@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -9,7 +10,6 @@ import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/biometrics.dart';
-import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -35,10 +35,11 @@ class CreatePinView extends ConsumerStatefulWidget {
 class _CreatePinViewState extends ConsumerState<CreatePinView> {
   BoxDecoration get _pinPutDecoration {
     return BoxDecoration(
-      color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
+      color: Theme.of(context).extension<StackColors>()!.infoItemIcons,
       border: Border.all(
-          width: 1,
-          color: Theme.of(context).extension<StackColors>()!.textSubtitle3),
+        width: 1,
+        color: Theme.of(context).extension<StackColors>()!.infoItemIcons,
+      ),
       borderRadius: BorderRadius.circular(6),
     );
   }
@@ -57,10 +58,13 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
   late SecureStorageInterface _secureStore;
   late Biometrics biometrics;
 
+  int pinCount = 1;
+
   @override
   initState() {
     _secureStore = ref.read(secureStoreProvider);
     biometrics = widget.biometrics;
+
     super.initState();
   }
 
@@ -71,11 +75,13 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
     _pinPutController2.dispose();
     _pinPutFocusNode1.dispose();
     _pinPutFocusNode2.dispose();
+
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // int pinCount = 1;
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -116,7 +122,7 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                     height: 36,
                   ),
                   CustomPinPut(
-                    fieldsCount: Constants.pinLength,
+                    fieldsCount: pinCount,
                     eachFieldHeight: 12,
                     eachFieldWidth: 12,
                     textStyle: STextStyles.label(context).copyWith(
@@ -140,21 +146,23 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                     ),
                     isRandom:
                         ref.read(prefsChangeNotifierProvider).randomizePIN,
-                    submittedFieldDecoration: _pinPutDecoration.copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .infoItemIcons,
-                      border: Border.all(
-                        width: 1,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .infoItemIcons,
-                      ),
-                    ),
+                    submittedFieldDecoration: _pinPutDecoration,
                     selectedFieldDecoration: _pinPutDecoration,
                     followingFieldDecoration: _pinPutDecoration,
+                    onPinLengthChanged: (newLength) {
+                      setState(() {
+                        pinCount = newLength;
+                      });
+                    },
                     onSubmit: (String pin) {
-                      if (pin.length == Constants.pinLength) {
+                      if (pin.length < 4) {
+                        showFloatingFlushBar(
+                          type: FlushBarType.warning,
+                          message: "PIN not long enough!",
+                          iconAsset: Assets.svg.alertCircle,
+                          context: context,
+                        );
+                      } else {
                         _pageController.nextPage(
                           duration: const Duration(milliseconds: 300),
                           curve: Curves.linear,
@@ -184,7 +192,7 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                     height: 36,
                   ),
                   CustomPinPut(
-                    fieldsCount: Constants.pinLength,
+                    fieldsCount: pinCount,
                     eachFieldHeight: 12,
                     eachFieldWidth: 12,
                     textStyle: STextStyles.infoSmall(context).copyWith(
