@@ -65,10 +65,14 @@ class JsonRPC {
 
       for (final req in _requestQueue.queue) {
         if (!req.isComplete) {
-          req.completer.completeError(
-            "JsonRPC doneHandler: socket closed "
-            "before request could complete",
-          );
+          try {
+            throw Exception(
+              "JsonRPC doneHandler: socket closed "
+              "before request could complete",
+            );
+          } catch (e, s) {
+            req.completer.completeError(e, s);
+          }
         }
       }
       _requestQueue.clear();

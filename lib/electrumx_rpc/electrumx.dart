@@ -132,6 +132,11 @@ class ElectrumX {
 
       final response = await _rpcClient!.request(jsonRequestString);
 
+      print("=================================================");
+      print("TYPE: ${response.runtimeType}");
+      print("RESPONSE: $response");
+      print("=================================================");
+
       if (response["error"] != null) {
         if (response["error"]
             .toString()
