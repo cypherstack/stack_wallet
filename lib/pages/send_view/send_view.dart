@@ -27,6 +27,7 @@ import 'package:stackwallet/pages/coin_control/coin_control_view.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/firo_balance_selection_sheet.dart';
+import 'package:stackwallet/pages/send_view/sub_widgets/openalias_sheet.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
@@ -928,10 +929,26 @@ class _SendViewState extends ConsumerState<SendView> {
                           const SizedBox(
                             height: 16,
                           ),
-                          Text(
-                            isPaynymSend ? "Send to PayNym address" : "Send to",
-                            style: STextStyles.smallMed12(context),
-                            textAlign: TextAlign.left,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                isPaynymSend ? "Send to PayNym address" : "Send to",
+                                style: STextStyles.smallMed12(context),
+                                textAlign: TextAlign.left,
+                              ),
+                              if (coin == Coin.monero)
+                                CustomTextButton(
+                                  text: "Use OpenAlias",
+                                  onTap: () async {
+                                    await showModalBottomSheet(context: context, builder: (context) => OpenAliasBottomSheet(
+                                      onSelected: (address) {
+                                        sendToController.text = address;
+                                      },
+                                    ));
+                                  },
+                                )
+                            ],
                           ),
                           const SizedBox(
                             height: 8,
