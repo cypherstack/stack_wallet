@@ -13,6 +13,7 @@ import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/block_explorer.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
+// Returns the default block explorer URL for the given coin and txid
 Uri getDefaultBlockExplorerUrlFor({
   required Coin coin,
   required String txid,
@@ -59,7 +60,7 @@ Uri getDefaultBlockExplorerUrlFor({
   }
 }
 
-/// returns internal Isar ID for the inserted object/record
+// Returns internal Isar ID for the inserted object/record
 Future<int> setBlockExplorerForCoin({
   required Coin coin,
   required Uri url,
@@ -72,6 +73,7 @@ Future<int> setBlockExplorerForCoin({
   );
 }
 
+// Returns the block explorer URL for the given coin and txid
 Uri getBlockExplorerTransactionUrlFor({
   required Coin coin,
   required String txid,

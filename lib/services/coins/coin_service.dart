@@ -34,6 +34,18 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 
+/*
+ * This file implements the CoinServiceAPI abstract class that is used by wallet files to implement the coin specific functionality.
+ * @param coin: The coin type
+ * @param walletId: The wallet id
+ * @param walletName: The wallet name
+ * @param secureStorageInterface: The interface for securely storing data like private keys, mnemonics, passphrases, etc.
+ * @param node: The node to connect to
+ * @param tracker: The transaction notification tracker
+ * @param prefs: The preferences
+ * @return: The coin service API
+ */
+
 abstract class CoinServiceAPI {
   CoinServiceAPI();
 

@@ -24,6 +24,11 @@ import 'package:tuple/tuple.dart';
 
 part '../queries/queries.dart';
 
+/*
+ * This file includes the functions that are used to interact with the main database.
+ * To add a new function, add it in the class MainDB.
+ */
+
 class MainDB {
   MainDB._();
   static MainDB? _instance;

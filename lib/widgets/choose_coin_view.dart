@@ -24,6 +24,14 @@ import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
+/*
+ * This widget is used to choose a coin from a list of coins.
+ * @param title: The title of the page.
+ * @param coinAdditional: Additional text to be displayed after the coin name.
+ * @param nextRouteName: The name of the route to be pushed when a coin is selected.
+ * @return A widget that displays a list of coins.
+ */
+
 class ChooseCoinView extends ConsumerStatefulWidget {
   const ChooseCoinView({
     Key? key,

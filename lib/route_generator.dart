@@ -165,6 +165,11 @@ import 'package:tuple/tuple.dart';
 
 import 'models/isar/models/contact_entry.dart';
 
+/*
+ * This file contains all the routes for the app.
+ * To add a new route, add it to the switch statement in the generateRoute method.
+ */
+
 class RouteGenerator {
   static const bool useMaterialPageRoute = true;
 
