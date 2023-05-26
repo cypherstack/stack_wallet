@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:stackwallet/widgets/custom_pin_put/custom_pin_put.dart';
 import 'package:stackwallet/widgets/custom_pin_put/pin_keyboard.dart';
@@ -9,6 +11,13 @@ class CustomPinPutState extends State<CustomPinPut>
   late ValueNotifier<String> _textControllerValue;
 
   int get selectedIndex => _controller.value.text.length;
+
+  int _pinCount = 0;
+  int get pinCount => _pinCount;
+  set pinCount(int newCount) {
+    _pinCount = newCount;
+    widget.onPinLengthChanged?.call(newCount);
+  }
 
   @override
   void initState() {
@@ -50,22 +59,19 @@ class CustomPinPutState extends State<CustomPinPut>
 
   @override
   Widget build(BuildContext context) {
-    // final bool randomize = ref
-    //     .read(prefsChangeNotifierProvider)
-    //     .randomizePIN;
     return SizedBox(
       width: widget.width,
       height: widget.height,
       child: Column(
         children: [
           SizedBox(
-            width: (30 * widget.fieldsCount) - 18,
+            width: max((30 * pinCount) - 18, 1),
             child: Stack(
               children: [
                 _hiddenTextField,
                 Align(
                   alignment: Alignment.bottomCenter,
-                  child: _fields,
+                  child: _fields(pinCount),
                 ),
               ],
             ),
@@ -75,15 +81,22 @@ class CustomPinPutState extends State<CustomPinPut>
               isRandom: widget.isRandom,
               customKey: widget.customKey,
               onNumberKeyPressed: (number) {
-                if (_controller.text.length < widget.fieldsCount) {
-                  _controller.text += number;
-                }
+                _controller.text += number;
+
+                // add a set state and have the counter increment
+                setState(() {
+                  pinCount = _controller.text.length;
+                });
               },
               onBackPressed: () {
                 final text = _controller.text;
                 if (text.isNotEmpty) {
                   _controller.text = text.substring(0, text.length - 1);
+                  setState(() {
+                    pinCount = _controller.text.length;
+                  });
                 }
+                // decrement counter here
               },
               onSubmitPressed: () {
                 final pin = _controller.value.text;
@@ -117,7 +130,7 @@ class CustomPinPutState extends State<CustomPinPut>
       textCapitalization: widget.textCapitalization,
       inputFormatters: widget.inputFormatters,
       enableInteractiveSelection: false,
-      maxLength: widget.fieldsCount,
+      maxLength: 10,
       showCursor: false,
       scrollPadding: EdgeInsets.zero,
       decoration: widget.inputDecoration,
@@ -127,21 +140,22 @@ class CustomPinPutState extends State<CustomPinPut>
     );
   }
 
-  Widget get _fields {
+  // have it include an int as a param
+  Widget _fields(int count) {
     return ValueListenableBuilder<String>(
       valueListenable: _textControllerValue,
       builder: (BuildContext context, value, Widget? child) {
         return Row(
           mainAxisSize: widget.mainAxisSize,
           mainAxisAlignment: widget.fieldsAlignment,
-          children: _buildFieldsWithSeparator(),
+          children: _buildFieldsWithSeparator(count),
         );
       },
     );
   }
 
-  List<Widget> _buildFieldsWithSeparator() {
-    final fields = Iterable<int>.generate(widget.fieldsCount).map((index) {
+  List<Widget> _buildFieldsWithSeparator(int count) {
+    final fields = Iterable<int>.generate(count).map((index) {
       return _getField(index);
     }).toList();
 
