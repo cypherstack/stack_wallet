@@ -6,8 +6,7 @@ ignore = [".g.dart", "LICENSE", "external_api_keys.dart"]
 
 # To update the header, only change the variable below
 
-header = """
-/* 
+header = """/* 
  * This file is part of Stack Wallet.
  * 
  * Copyright (c) 2023 Cypher Stack
@@ -32,13 +31,13 @@ def add_text_to_files(folder_path, text, ignored_extensions=[]):
                 with open(file_path, 'r') as file:
                     lines = file.readlines()
                     if len(lines) >= 4:
-                        second_line = lines[1]
-                        third_line = lines[2]
-                        fourth_line = lines[3]
+                        second_line = lines[0]
+                        third_line = lines[1]
+                        fourth_line = lines[2]
                         if second_line.startswith("/*") and third_line.startswith(" *") and fourth_line.startswith(" *"):
                             with open(file_path, 'w') as file:
                                 file.seek(0, 0)
-                                file.write(text + ''.join(lines[10:]))
+                                file.write(text + ''.join(lines[9:]))
                         else:
                             with open(file_path, 'w') as file:
                                 file.seek(0, 0)
