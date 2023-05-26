@@ -33,7 +33,7 @@ abstract class Constants {
       BigInt.parse("1000000000000000000000000000000");
   static final BigInt _satsPerCoin = BigInt.from(100000000);
   static const int _decimalPlaces = 8;
-  static const int _decimalPlacesNano = 6;
+  static const int _decimalPlacesNano = 30;
   static const int _decimalPlacesWownero = 11;
   static const int _decimalPlacesMonero = 12;
   static const int _decimalPlacesEthereum = 18;

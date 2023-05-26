@@ -9,6 +9,8 @@ import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart'
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
+import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/coin_control_interface.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
@@ -16,6 +18,7 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/log_level_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:tuple/tuple.dart';
 
 import '../../../db/isar/main_db.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
@@ -179,8 +182,8 @@ class NanoWallet extends CoinServiceAPI
         headers: headers,
         body: balanceBody,
       );
-
       final balanceData = jsonDecode(balanceResponse.body);
+
       final BigInt currentBalance =
           BigInt.parse(balanceData["balance"].toString());
       final BigInt txAmount = txData["recipientAmt"].raw as BigInt;
@@ -272,7 +275,8 @@ class NanoWallet extends CoinServiceAPI
   @override
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) {
     // fees are always 0 :)
-    return Future.value(Amount(rawValue: BigInt.from(0), fractionDigits: 7));
+    return Future.value(
+        Amount(rawValue: BigInt.from(0), fractionDigits: coin.decimals));
   }
 
   @override
@@ -297,18 +301,17 @@ class NanoWallet extends CoinServiceAPI
     final data = jsonDecode(response.body);
     _balance = Balance(
       total: Amount(
-          rawValue: (BigInt.parse(data["balance"].toString())) ~/
-              BigInt.from(10).pow(23),
-          fractionDigits: 7),
+          rawValue: (BigInt.parse(data["balance"].toString()) +
+              BigInt.parse(data["receivable"].toString())),
+          fractionDigits: coin.decimals),
       spendable: Amount(
-          rawValue: BigInt.parse(data["balance"].toString()) ~/
-              BigInt.from(10).pow(23),
-          fractionDigits: 7),
-      blockedTotal: Amount(rawValue: BigInt.parse("0"), fractionDigits: 30),
+          rawValue: BigInt.parse(data["balance"].toString()),
+          fractionDigits: coin.decimals),
+      blockedTotal:
+          Amount(rawValue: BigInt.parse("0"), fractionDigits: coin.decimals),
       pendingSpendable: Amount(
-          rawValue: BigInt.parse(data["receivable"].toString()) ~/
-              BigInt.from(10).pow(23),
-          fractionDigits: 7),
+          rawValue: BigInt.parse(data["receivable"].toString()),
+          fractionDigits: coin.decimals),
     );
     await updateCachedBalance(_balance!);
   }
@@ -464,11 +467,12 @@ class NanoWallet extends CoinServiceAPI
 
   Future<void> updateTransactions() async {
     await confirmAllReceivable();
+    final String publicAddress = await getAddressFromMnemonic();
     final response = await http.post(Uri.parse(getCurrentNode().host),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "action": "account_history",
-          "account": await getAddressFromMnemonic(),
+          "account": publicAddress,
           "count": "-1",
         }));
     final data = await jsonDecode(response.body);
@@ -476,14 +480,14 @@ class NanoWallet extends CoinServiceAPI
     if (transactions.isEmpty) {
       return;
     } else {
-      List<Transaction> transactionList = [];
+      List<Tuple2<Transaction, Address?>> transactionList = [];
       for (var tx in transactions) {
         var typeString = tx["type"].toString();
-        TransactionType type = TransactionType.unknown;
+        TransactionType transactionType = TransactionType.unknown;
         if (typeString == "send") {
-          type = TransactionType.outgoing;
+          transactionType = TransactionType.outgoing;
         } else if (typeString == "receive") {
-          type = TransactionType.incoming;
+          transactionType = TransactionType.incoming;
         }
         final amount = Amount(
           rawValue: BigInt.parse(tx["amount"].toString()),
@@ -491,30 +495,45 @@ class NanoWallet extends CoinServiceAPI
         );
 
         var transaction = Transaction(
-            walletId: walletId,
-            txid: tx["hash"].toString(),
-            timestamp: int.parse(tx["local_timestamp"].toString()),
-            type: type,
-            subType: TransactionSubType.none,
-            amount: 0,
-            amountString: amount.toJsonString(),
-            fee: 0,
-            height: int.parse(tx["height"].toString()),
-            isCancelled: false,
-            isLelantus: false,
-            slateId: "",
-            otherData: "",
-            inputs: [],
-            outputs: [],
-            nonce: 0);
-        transactionList.add(transaction);
+          walletId: walletId,
+          txid: tx["hash"].toString(),
+          timestamp: int.parse(tx["local_timestamp"].toString()),
+          type: transactionType,
+          subType: TransactionSubType.none,
+          amount: 0,
+          amountString: amount.toJsonString(),
+          fee: 0,
+          height: int.parse(tx["height"].toString()),
+          isCancelled: false,
+          isLelantus: false,
+          slateId: "",
+          otherData: "",
+          inputs: [],
+          outputs: [],
+          nonce: 0,
+        );
+
+        Address address = Address(
+          walletId: walletId,
+          publicKey: [],
+          value: transactionType == TransactionType.incoming
+              ? publicAddress
+              : tx["account"].toString(),
+          derivationIndex: 0,
+          derivationPath: null,
+          type: transactionType == TransactionType.incoming
+              ? AddressType.nonWallet
+              : AddressType.nano,
+          subType: transactionType == TransactionType.incoming
+              ? AddressSubType.receiving
+              : AddressSubType.nonWallet,
+        );
+        Tuple2<Transaction, Address> tuple = Tuple2(transaction, address);
+        transactionList.add(tuple);
       }
-      try {
-        await db.putTransactions(transactionList);
-      } catch (e) {
-        // I don't know why this fails sometimes, but it does
-        print(e);
-      }
+
+      await db.addNewTransactionData(transactionList, walletId);
+
       return;
     }
   }
@@ -523,8 +542,8 @@ class NanoWallet extends CoinServiceAPI
   Future<void> fullRescan(
       int maxUnusedAddressGap, int maxNumberOfIndexesToCheck) async {
     await _prefs.init();
-    await updateBalance();
     await updateTransactions();
+    await updateBalance();
   }
 
   @override
@@ -686,8 +705,36 @@ class NanoWallet extends CoinServiceAPI
   @override
   Future<void> refresh() async {
     await _prefs.init();
-    await updateBalance();
-    await updateTransactions();
+
+    GlobalEventBus.instance.fire(
+      WalletSyncStatusChangedEvent(
+        WalletSyncStatus.syncing,
+        walletId,
+        coin,
+      ),
+    );
+
+    try {
+      await updateChainHeight();
+      await updateTransactions();
+      await updateBalance();
+
+      GlobalEventBus.instance.fire(
+        WalletSyncStatusChangedEvent(
+          WalletSyncStatus.synced,
+          walletId,
+          coin,
+        ),
+      );
+    } catch (e) {
+      GlobalEventBus.instance.fire(
+        WalletSyncStatusChangedEvent(
+          WalletSyncStatus.unableToSync,
+          walletId,
+          coin,
+        ),
+      );
+    }
   }
 
   @override
@@ -740,5 +787,26 @@ class NanoWallet extends CoinServiceAPI
   @override
   bool validateAddress(String address) {
     return NanoAccounts.isValid(NanoAccountType.NANO, address);
+  }
+
+  Future<void> updateChainHeight() async {
+    final String publicAddress = await getAddressFromMnemonic();
+    // first get the account balance:
+    final infoBody = jsonEncode({
+      "action": "account_info",
+      "account": publicAddress,
+    });
+    final headers = {
+      "Content-Type": "application/json",
+    };
+    final infoResponse = await http.post(
+      Uri.parse(getCurrentNode().host),
+      headers: headers,
+      body: infoBody,
+    );
+    final infoData = jsonDecode(infoResponse.body);
+
+    final int height = int.parse(infoData["confirmation_height"].toString());
+    await updateCachedChainHeight(height);
   }
 }
