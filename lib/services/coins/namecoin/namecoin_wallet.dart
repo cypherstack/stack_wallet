@@ -2801,19 +2801,18 @@ class NamecoinWallet extends CoinServiceAPI
 
     // Add transaction output
     for (var i = 0; i < recipients.length; i++) {
-      txb.addOutput(recipients[i], satoshiAmounts[i], namecoin.bech32!);
+      txb.addOutput(recipients[i], satoshiAmounts[i], _network.bech32!);
     }
 
     try {
       // Sign the transaction accordingly
       for (var i = 0; i < utxoSigningData.length; i++) {
-        final txid = utxoSigningData[i].utxo.txid;
-        txb.addInput(
-          txid,
-          utxoSigningData[i].utxo.vout,
-          null,
-          utxoSigningData[i].output!,
-          _network.bech32!,
+        txb.sign(
+          vin: i,
+          keyPair: utxoSigningData[i].keyPair!,
+          witnessValue: utxoSigningData[i].utxo.value,
+          redeemScript: utxoSigningData[i].redeemScript,
+          overridePrefix: _network.bech32!,
         );
       }
     } catch (e, s) {
@@ -2822,7 +2821,7 @@ class NamecoinWallet extends CoinServiceAPI
       rethrow;
     }
 
-    final builtTx = txb.build(namecoin.bech32!);
+    final builtTx = txb.build(_network.bech32!);
     final vSize = builtTx.virtualSize();
 
     return {"hex": builtTx.toHex(), "vSize": vSize};
