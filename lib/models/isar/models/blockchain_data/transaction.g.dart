@@ -286,6 +286,7 @@ Transaction _transactionDeserialize(
     type: _TransactiontypeValueEnumMap[reader.readByteOrNull(offsets[14])] ??
         TransactionType.outgoing,
     walletId: reader.readString(offsets[15]),
+    numberOfMessages: reader.readLong(offsets[2]),
   );
   object.id = id;
   return object;
