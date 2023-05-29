@@ -397,6 +397,7 @@ class DbVersionMigrator with WalletDB {
               nonce: null,
               inputs: [],
               outputs: [],
+              numberOfMessages: tx.numberOfMessages,
             );
 
             if (tx.address.isEmpty) {

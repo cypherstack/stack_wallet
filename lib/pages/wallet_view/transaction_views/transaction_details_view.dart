@@ -126,6 +126,37 @@ class _TransactionDetailsViewState
       }
     }
 
+    if (coin == Coin.epicCash) {
+      if (_transaction.isCancelled) {
+        return "Cancelled";
+      } else if (type == TransactionType.incoming) {
+        if (tx.isConfirmed(height, coin.requiredConfirmations)) {
+          return "Received";
+        } else {
+          if (_transaction.numberOfMessages == 1) {
+            return "Receiving (waiting for sender)";
+          } else if ((_transaction.numberOfMessages ?? 0) > 1) {
+            return
+            "Receiving (waiting for confirmations)"; // TODO test if the sender still has to open again after the receiver has 2 messages present, ie. sender->receiver->sender->node (yes) vs. sender->receiver->node (no)
+          } else {
+            return "Receiving";
+          }
+        }
+      } else if (type == TransactionType.outgoing) {
+        if (tx.isConfirmed(height, coin.requiredConfirmations)) {
+          return "Sent (confirmed)";
+        } else {
+          if (_transaction.numberOfMessages == 1) {
+            return "Sending (waiting for receiver)";
+          } else if ((_transaction.numberOfMessages ?? 0) > 1) {
+            return "Sending (waiting for confirmations)";
+          } else {
+            return "Sending";
+          }
+        }
+      }
+    }
+
     if (type == TransactionType.incoming) {
       // if (_transaction.isMinting) {
       //   return "Minting";

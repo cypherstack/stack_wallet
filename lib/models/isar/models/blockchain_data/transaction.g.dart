@@ -58,46 +58,51 @@ const TransactionSchema = CollectionSchema(
       name: r'nonce',
       type: IsarType.long,
     ),
-    r'otherData': PropertySchema(
+    r'numberOfMessages': PropertySchema(
       id: 8,
+      name: r'numberOfMessages',
+      type: IsarType.long,
+    ),
+    r'otherData': PropertySchema(
+      id: 9,
       name: r'otherData',
       type: IsarType.string,
     ),
     r'outputs': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'outputs',
       type: IsarType.objectList,
       target: r'Output',
     ),
     r'slateId': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'slateId',
       type: IsarType.string,
     ),
     r'subType': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'subType',
       type: IsarType.byte,
       enumMap: _TransactionsubTypeEnumValueMap,
     ),
     r'timestamp': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'timestamp',
       type: IsarType.long,
     ),
     r'txid': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'txid',
       type: IsarType.string,
     ),
     r'type': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'type',
       type: IsarType.byte,
       enumMap: _TransactiontypeEnumValueMap,
     ),
     r'walletId': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'walletId',
       type: IsarType.string,
     )
@@ -233,19 +238,20 @@ void _transactionSerialize(
   writer.writeBool(offsets[5], object.isCancelled);
   writer.writeBool(offsets[6], object.isLelantus);
   writer.writeLong(offsets[7], object.nonce);
-  writer.writeString(offsets[8], object.otherData);
+  writer.writeLong(offsets[8], object.numberOfMessages);
+  writer.writeString(offsets[9], object.otherData);
   writer.writeObjectList<Output>(
-    offsets[9],
+    offsets[10],
     allOffsets,
     OutputSchema.serialize,
     object.outputs,
   );
-  writer.writeString(offsets[10], object.slateId);
-  writer.writeByte(offsets[11], object.subType.index);
-  writer.writeLong(offsets[12], object.timestamp);
-  writer.writeString(offsets[13], object.txid);
-  writer.writeByte(offsets[14], object.type.index);
-  writer.writeString(offsets[15], object.walletId);
+  writer.writeString(offsets[11], object.slateId);
+  writer.writeByte(offsets[12], object.subType.index);
+  writer.writeLong(offsets[13], object.timestamp);
+  writer.writeString(offsets[14], object.txid);
+  writer.writeByte(offsets[15], object.type.index);
+  writer.writeString(offsets[16], object.walletId);
 }
 
 Transaction _transactionDeserialize(
@@ -269,23 +275,24 @@ Transaction _transactionDeserialize(
     isCancelled: reader.readBool(offsets[5]),
     isLelantus: reader.readBoolOrNull(offsets[6]),
     nonce: reader.readLongOrNull(offsets[7]),
-    otherData: reader.readStringOrNull(offsets[8]),
+    numberOfMessages: reader.readLongOrNull(offsets[8]),
+    otherData: reader.readStringOrNull(offsets[9]),
     outputs: reader.readObjectList<Output>(
-          offsets[9],
+          offsets[10],
           OutputSchema.deserialize,
           allOffsets,
           Output(),
         ) ??
         [],
-    slateId: reader.readStringOrNull(offsets[10]),
+    slateId: reader.readStringOrNull(offsets[11]),
     subType:
-        _TransactionsubTypeValueEnumMap[reader.readByteOrNull(offsets[11])] ??
+        _TransactionsubTypeValueEnumMap[reader.readByteOrNull(offsets[12])] ??
             TransactionSubType.none,
-    timestamp: reader.readLong(offsets[12]),
-    txid: reader.readString(offsets[13]),
-    type: _TransactiontypeValueEnumMap[reader.readByteOrNull(offsets[14])] ??
+    timestamp: reader.readLong(offsets[13]),
+    txid: reader.readString(offsets[14]),
+    type: _TransactiontypeValueEnumMap[reader.readByteOrNull(offsets[15])] ??
         TransactionType.outgoing,
-    walletId: reader.readString(offsets[15]),
+    walletId: reader.readString(offsets[16]),
   );
   object.id = id;
   return object;
@@ -321,8 +328,10 @@ P _transactionDeserializeProp<P>(
     case 7:
       return (reader.readLongOrNull(offset)) as P;
     case 8:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 9:
+      return (reader.readStringOrNull(offset)) as P;
+    case 10:
       return (reader.readObjectList<Output>(
             offset,
             OutputSchema.deserialize,
@@ -330,19 +339,19 @@ P _transactionDeserializeProp<P>(
             Output(),
           ) ??
           []) as P;
-    case 10:
-      return (reader.readStringOrNull(offset)) as P;
     case 11:
+      return (reader.readStringOrNull(offset)) as P;
+    case 12:
       return (_TransactionsubTypeValueEnumMap[reader.readByteOrNull(offset)] ??
           TransactionSubType.none) as P;
-    case 12:
-      return (reader.readLong(offset)) as P;
     case 13:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 14:
+      return (reader.readString(offset)) as P;
+    case 15:
       return (_TransactiontypeValueEnumMap[reader.readByteOrNull(offset)] ??
           TransactionType.outgoing) as P;
-    case 15:
+    case 16:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1375,6 +1384,80 @@ extension TransactionQueryFilter
   }
 
   QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      numberOfMessagesIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'numberOfMessages',
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      numberOfMessagesIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'numberOfMessages',
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      numberOfMessagesEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'numberOfMessages',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      numberOfMessagesGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'numberOfMessages',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      numberOfMessagesLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'numberOfMessages',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      numberOfMessagesBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'numberOfMessages',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
       otherDataIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -2320,6 +2403,20 @@ extension TransactionQuerySortBy
     });
   }
 
+  QueryBuilder<Transaction, Transaction, QAfterSortBy>
+      sortByNumberOfMessages() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'numberOfMessages', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterSortBy>
+      sortByNumberOfMessagesDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'numberOfMessages', Sort.desc);
+    });
+  }
+
   QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByOtherData() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'otherData', Sort.asc);
@@ -2504,6 +2601,20 @@ extension TransactionQuerySortThenBy
     });
   }
 
+  QueryBuilder<Transaction, Transaction, QAfterSortBy>
+      thenByNumberOfMessages() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'numberOfMessages', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterSortBy>
+      thenByNumberOfMessagesDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'numberOfMessages', Sort.desc);
+    });
+  }
+
   QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByOtherData() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'otherData', Sort.asc);
@@ -2634,6 +2745,13 @@ extension TransactionQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Transaction, Transaction, QDistinct>
+      distinctByNumberOfMessages() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'numberOfMessages');
+    });
+  }
+
   QueryBuilder<Transaction, Transaction, QDistinct> distinctByOtherData(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2734,6 +2852,12 @@ extension TransactionQueryProperty
   QueryBuilder<Transaction, int?, QQueryOperations> nonceProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'nonce');
+    });
+  }
+
+  QueryBuilder<Transaction, int?, QQueryOperations> numberOfMessagesProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'numberOfMessages');
     });
   }
 

@@ -47,39 +47,15 @@ class MockJsonRPC extends _i1.Mock implements _i2.JsonRPC {
         returnValue: false,
       ) as bool);
   @override
-  set useSSL(bool? _useSSL) => super.noSuchMethod(
-        Invocation.setter(
-          #useSSL,
-          _useSSL,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
   String get host => (super.noSuchMethod(
         Invocation.getter(#host),
         returnValue: '',
       ) as String);
   @override
-  set host(String? _host) => super.noSuchMethod(
-        Invocation.setter(
-          #host,
-          _host,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
   int get port => (super.noSuchMethod(
         Invocation.getter(#port),
         returnValue: 0,
       ) as int);
-  @override
-  set port(int? _port) => super.noSuchMethod(
-        Invocation.setter(
-          #port,
-          _port,
-        ),
-        returnValueForMissingStub: null,
-      );
   @override
   Duration get connectionTimeout => (super.noSuchMethod(
         Invocation.getter(#connectionTimeout),
@@ -89,14 +65,6 @@ class MockJsonRPC extends _i1.Mock implements _i2.JsonRPC {
         ),
       ) as Duration);
   @override
-  set connectionTimeout(Duration? _connectionTimeout) => super.noSuchMethod(
-        Invocation.setter(
-          #connectionTimeout,
-          _connectionTimeout,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
   _i3.Future<dynamic> request(String? jsonRpcRequest) => (super.noSuchMethod(
         Invocation.method(
           #request,
@@ -104,6 +72,23 @@ class MockJsonRPC extends _i1.Mock implements _i2.JsonRPC {
         ),
         returnValue: _i3.Future<dynamic>.value(),
       ) as _i3.Future<dynamic>);
+  @override
+  void disconnect() => super.noSuchMethod(
+        Invocation.method(
+          #disconnect,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i3.Future<void> connect() => (super.noSuchMethod(
+        Invocation.method(
+          #connect,
+          [],
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
 }
 
 /// A class which mocks [Prefs].
