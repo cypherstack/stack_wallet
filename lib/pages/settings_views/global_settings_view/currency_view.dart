@@ -50,6 +50,10 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
       currenciesWithoutSelected.remove(current);
       currenciesWithoutSelected.insert(0, current);
       ref.read(prefsChangeNotifierProvider).currency = current;
+
+      if (ref.read(prefsChangeNotifierProvider).externalCalls) {
+        ref.read(priceAnd24hChangeNotifierProvider).updatePrice();
+      }
     }
   }
 
