@@ -33,6 +33,17 @@ class _FakeDuration_0 extends _i1.SmartFake implements Duration {
         );
 }
 
+class _FakeJsonRPCResponse_1 extends _i1.SmartFake
+    implements _i2.JsonRPCResponse {
+  _FakeJsonRPCResponse_1(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
 /// A class which mocks [JsonRPC].
 ///
 /// See the documentation for Mockito's code generation for more information.
@@ -65,21 +76,31 @@ class MockJsonRPC extends _i1.Mock implements _i2.JsonRPC {
         ),
       ) as Duration);
   @override
-  _i3.Future<dynamic> request(String? jsonRpcRequest) => (super.noSuchMethod(
+  _i3.Future<_i2.JsonRPCResponse> request(String? jsonRpcRequest) =>
+      (super.noSuchMethod(
         Invocation.method(
           #request,
           [jsonRpcRequest],
         ),
-        returnValue: _i3.Future<dynamic>.value(),
-      ) as _i3.Future<dynamic>);
+        returnValue:
+            _i3.Future<_i2.JsonRPCResponse>.value(_FakeJsonRPCResponse_1(
+          this,
+          Invocation.method(
+            #request,
+            [jsonRpcRequest],
+          ),
+        )),
+      ) as _i3.Future<_i2.JsonRPCResponse>);
   @override
-  void disconnect() => super.noSuchMethod(
+  _i3.Future<void> disconnect({required String? reason}) => (super.noSuchMethod(
         Invocation.method(
           #disconnect,
           [],
+          {#reason: reason},
         ),
-        returnValueForMissingStub: null,
-      );
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
   @override
   _i3.Future<void> connect() => (super.noSuchMethod(
         Invocation.method(

@@ -1616,13 +1616,18 @@ class EpicCashWallet extends CoinServiceAPI
 
   void _periodicPingCheck() async {
     bool hasNetwork = await testNetworkConnection();
-    _isConnected = hasNetwork;
+
     if (_isConnected != hasNetwork) {
       NodeConnectionStatus status = hasNetwork
           ? NodeConnectionStatus.connected
           : NodeConnectionStatus.disconnected;
       GlobalEventBus.instance
           .fire(NodeConnectionStatusChangedEvent(status, walletId, coin));
+
+      _isConnected = hasNetwork;
+      if (hasNetwork) {
+        unawaited(refresh());
+      }
     }
   }
 

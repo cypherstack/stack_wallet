@@ -132,13 +132,12 @@ class ElectrumX {
 
       final response = await _rpcClient!.request(jsonRequestString);
 
-      print("=================================================");
-      print("TYPE: ${response.runtimeType}");
-      print("RESPONSE: $response");
-      print("=================================================");
+      if (response.exception != null) {
+        throw response.exception!;
+      }
 
-      if (response["error"] != null) {
-        if (response["error"]
+      if (response.data["error"] != null) {
+        if (response.data["error"]
             .toString()
             .contains("No such mempool or blockchain transaction")) {
           throw NoSuchTransactionException(
@@ -148,11 +147,15 @@ class ElectrumX {
         }
 
         throw Exception(
-            "JSONRPC response     \ncommand: $command     \nargs: $args     \nerror: $response");
+          "JSONRPC response\n"
+          "     command: $command\n"
+          "     args: $args\n"
+          "     error: $response.data",
+        );
       }
 
       currentFailoverIndex = -1;
-      return response;
+      return response.data;
     } on WifiOnlyException {
       rethrow;
     } on SocketException {
@@ -233,7 +236,13 @@ class ElectrumX {
       // Logging.instance.log("batch request: $request");
 
       // send batch request
-      final response = (await _rpcClient!.request(request)) as List<dynamic>;
+      final jsonRpcResponse = (await _rpcClient!.request(request));
+
+      if (jsonRpcResponse.exception != null) {
+        throw jsonRpcResponse.exception!;
+      }
+
+      final response = jsonRpcResponse.data as List;
 
       // check for errors, format and throw if there are any
       final List<String> errors = [];
