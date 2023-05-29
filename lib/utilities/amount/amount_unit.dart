@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:decimal/decimal.dart';
 import 'package:intl/number_symbols.dart';
 import 'package:intl/number_symbols_data.dart';
+import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
@@ -61,13 +62,36 @@ extension AmountUnitExt on AmountUnit {
     }
   }
 
+  String unitForContract(EthContract contract) {
+    switch (this) {
+      case AmountUnit.normal:
+        return contract.symbol;
+      case AmountUnit.milli:
+        return "m${contract.symbol}";
+      case AmountUnit.micro:
+        return "µ${contract.symbol}";
+      case AmountUnit.nano:
+        return "gwei";
+      case AmountUnit.pico:
+        return "mwei";
+      case AmountUnit.femto:
+        return "kwei";
+      case AmountUnit.atto:
+        return "wei";
+    }
+  }
+
   String displayAmount({
     required Amount amount,
     required String locale,
     required Coin coin,
     required int maxDecimalPlaces,
+    bool withUnitName = true,
+    String? overrideUnit,
+    EthContract? tokenContract,
   }) {
     assert(maxDecimalPlaces >= 0);
+
     // ensure we don't shift past minimum atomic value
     final realShift = math.min(shift, amount.fractionDigits);
 
@@ -88,11 +112,27 @@ extension AmountUnitExt on AmountUnit {
       // get the fractional value
       final Decimal fraction = shifted - shifted.truncate();
 
-      // get final decimal based on max precision wanted
-      final int actualDecimalPlaces = math.min(places, maxDecimalPlaces);
+      // get final decimal based on max precision wanted while ensuring that
+      // maxDecimalPlaces doesn't exceed the max per coin
+      final int updatedMax;
+      if (tokenContract != null) {
+        updatedMax = maxDecimalPlaces > tokenContract.decimals
+            ? tokenContract.decimals
+            : maxDecimalPlaces;
+      } else {
+        updatedMax =
+            maxDecimalPlaces > coin.decimals ? coin.decimals : maxDecimalPlaces;
+      }
+      final int actualDecimalPlaces = math.min(places, updatedMax);
 
       // get remainder string without the prepending "0."
-      String remainder = fraction.toString().substring(2);
+      final fractionString = fraction.toString();
+      String remainder;
+      if (fractionString.length > 2) {
+        remainder = fraction.toString().substring(2);
+      } else {
+        remainder = "0";
+      }
 
       if (remainder.length > actualDecimalPlaces) {
         // trim unwanted trailing digits
@@ -115,7 +155,14 @@ extension AmountUnitExt on AmountUnit {
       returnValue += "$separator$remainder";
     }
 
+    if (!withUnitName) {
+      return returnValue;
+    }
+
     // return the value with the proper unit symbol
-    return "$returnValue ${unitForCoin(coin)}";
+    if (tokenContract != null) {
+      overrideUnit = unitForContract(tokenContract);
+    }
+    return "$returnValue ${overrideUnit ?? unitForCoin(coin)}";
   }
 }

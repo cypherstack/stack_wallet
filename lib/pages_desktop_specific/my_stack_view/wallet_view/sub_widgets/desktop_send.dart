@@ -27,6 +27,7 @@ import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
@@ -452,7 +453,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (price > Decimal.zero) {
           final String fiatAmountString = (_amountToSend!.decimal * price)
               .toAmount(fractionDigits: 2)
-              .localizedStringAsFixed(
+              .fiatString(
                 locale: ref.read(localeServiceChangeNotifierProvider).locale,
               );
 
@@ -506,10 +507,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       } else {
         balance = wallet.availablePublicBalance();
       }
-      return balance.localizedStringAsFixed(
-        locale: locale,
-        decimalPlaces: coin.decimals,
-      );
+      return ref.read(pAmountFormatter(coin)).format(balance);
     }
 
     return null;
@@ -583,11 +581,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           final amount = Decimal.parse(results["amount"]!).toAmount(
             fractionDigits: coin.decimals,
           );
-          cryptoAmountController.text = amount.localizedStringAsFixed(
-            locale: ref.read(localeServiceChangeNotifierProvider).locale,
-            decimalPlaces: Constants.decimalPlacesForCoin(coin),
-          );
-          amount.toString();
+          cryptoAmountController.text = ref
+              .read(pAmountFormatter(coin))
+              .format(amount, withUnitName: false);
           _amountToSend = amount;
         }
 
@@ -669,10 +665,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       Logging.instance.log("it changed $_amountToSend $_cachedAmountToSend",
           level: LogLevel.Info);
 
-      final amountString = _amountToSend!.localizedStringAsFixed(
-        locale: ref.read(localeServiceChangeNotifierProvider).locale,
-        decimalPlaces: coin.decimals,
-      );
+      final amountString = ref.read(pAmountFormatter(coin)).format(
+            _amountToSend!,
+            withUnitName: false,
+          );
 
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = amountString;

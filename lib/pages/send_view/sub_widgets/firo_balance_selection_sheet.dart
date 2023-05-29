@@ -4,8 +4,8 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 
 class FiroBalanceSelectionSheet extends ConsumerStatefulWidget {
@@ -152,14 +152,11 @@ class _FiroBalanceSelectionSheetState
                                 width: 2,
                               ),
                               Text(
-                                "${firoWallet.availablePrivateBalance().localizedStringAsFixed(
-                                      locale: ref.watch(
-                                        localeServiceChangeNotifierProvider
-                                            .select(
-                                          (value) => value.locale,
-                                        ),
-                                      ),
-                                    )} ${manager.coin.ticker}",
+                                ref
+                                    .watch(pAmountFormatter(manager.coin))
+                                    .format(
+                                      firoWallet.availablePrivateBalance(),
+                                    ),
                                 style: STextStyles.itemSubtitle(context),
                                 textAlign: TextAlign.left,
                               ),
@@ -233,14 +230,11 @@ class _FiroBalanceSelectionSheetState
                                 width: 2,
                               ),
                               Text(
-                                "${firoWallet.availablePublicBalance().localizedStringAsFixed(
-                                      locale: ref.watch(
-                                        localeServiceChangeNotifierProvider
-                                            .select(
-                                          (value) => value.locale,
-                                        ),
-                                      ),
-                                    )} ${manager.coin.ticker}",
+                                ref
+                                    .watch(pAmountFormatter(manager.coin))
+                                    .format(
+                                      firoWallet.availablePublicBalance(),
+                                    ),
                                 style: STextStyles.itemSubtitle(context),
                                 textAlign: TextAlign.left,
                               ),

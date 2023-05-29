@@ -26,6 +26,7 @@ import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -356,13 +357,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                   trade.payInCurrency);
                               final amount = sendAmount.toAmount(
                                   fractionDigits: coin.decimals);
-                              text = amount.localizedStringAsFixed(
-                                locale: ref.watch(
-                                  localeServiceChangeNotifierProvider.select(
-                                    (value) => value.locale,
-                                  ),
-                                ),
-                              );
+                              text = ref
+                                  .watch(pAmountFormatter(coin))
+                                  .format(amount);
                             } catch (_) {
                               text = sendAmount.toStringAsFixed(
                                   trade.payInCurrency.toLowerCase() == "xmr"

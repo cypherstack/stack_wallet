@@ -8,6 +8,7 @@ import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -131,14 +132,11 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
                       ),
                       Expanded(
                         child: Text(
-                          "${total.localizedStringAsFixed(
-                            locale: ref.watch(
-                              localeServiceChangeNotifierProvider.select(
-                                (value) => value.locale,
-                              ),
-                            ),
-                            decimalPlaces: manager.coin.decimals,
-                          )} ${manager.coin.ticker}",
+                          ref
+                              .watch(
+                                pAmountFormatter(manager.coin),
+                              )
+                              .format(total),
                           style: STextStyles.itemSubtitle(context),
                         ),
                       ),
@@ -174,14 +172,11 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
                         height: 2,
                       ),
                       Text(
-                        "${total.localizedStringAsFixed(
-                          locale: ref.watch(
-                            localeServiceChangeNotifierProvider.select(
-                              (value) => value.locale,
-                            ),
-                          ),
-                          decimalPlaces: manager.coin.decimals,
-                        )} ${manager.coin.ticker}",
+                        ref
+                            .watch(
+                              pAmountFormatter(manager.coin),
+                            )
+                            .format(total),
                         style: STextStyles.itemSubtitle(context),
                       ),
                     ],

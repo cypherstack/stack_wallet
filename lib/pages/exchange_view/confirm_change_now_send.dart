@@ -13,6 +13,7 @@ import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -366,20 +367,19 @@ class _ConfirmChangeNowSendViewState
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           Text(
-                            "${(transactionInfo["fee"] is Amount ? transactionInfo["fee"] as Amount : (transactionInfo["fee"] as int).toAmountAsRaw(
-                                fractionDigits: ref.watch(
-                                  managerProvider
-                                      .select((value) => value.coin.decimals),
-                                ),
-                              )).localizedStringAsFixed(
-                              locale: ref.watch(
-                                localeServiceChangeNotifierProvider.select(
-                                  (value) => value.locale,
-                                ),
-                              ),
-                            )} ${ref.watch(
+                            ref
+                                .watch(pAmountFormatter(ref.watch(
                                   managerProvider.select((value) => value.coin),
-                                ).ticker}",
+                                )))
+                                .format(transactionInfo["fee"] is Amount
+                                    ? transactionInfo["fee"] as Amount
+                                    : (transactionInfo["fee"] as int)
+                                        .toAmountAsRaw(
+                                        fractionDigits: ref.watch(
+                                          managerProvider.select(
+                                              (value) => value.coin.decimals),
+                                        ),
+                                      )),
                             style:
                                 STextStyles.desktopTextExtraExtraSmall(context)
                                     .copyWith(
@@ -423,16 +423,9 @@ class _ConfirmChangeNowSendViewState
                               final amount =
                                   transactionInfo["recipientAmt"] as Amount;
                               final total = amount + fee;
-                              final locale = ref.watch(
-                                localeServiceChangeNotifierProvider.select(
-                                  (value) => value.locale,
-                                ),
-                              );
+
                               return Text(
-                                "${total.localizedStringAsFixed(
-                                  locale: locale,
-                                )}"
-                                " ${coin.ticker}",
+                                ref.watch(pAmountFormatter(coin)).format(total),
                                 style: STextStyles.itemSubtitle12(context)
                                     .copyWith(
                                   color: Theme.of(context)
@@ -605,7 +598,7 @@ class _ConfirmChangeNowSendViewState
                           );
 
                           return Text(
-                            " | ${value.localizedStringAsFixed(locale: locale)} $currency",
+                            " | ${value.fiatString(locale: locale)} $currency",
                             style:
                                 STextStyles.desktopTextExtraExtraSmall(context)
                                     .copyWith(
@@ -618,15 +611,11 @@ class _ConfirmChangeNowSendViewState
                       ],
                     ),
                     child: Text(
-                      "${(transactionInfo["recipientAmt"] as Amount).localizedStringAsFixed(
-                        locale: ref.watch(
-                          localeServiceChangeNotifierProvider.select(
-                            (value) => value.locale,
-                          ),
-                        ),
-                      )} ${ref.watch(
-                            managerProvider.select((value) => value.coin),
-                          ).ticker}",
+                      ref
+                          .watch(pAmountFormatter(ref.watch(
+                              walletsChangeNotifierProvider.select(
+                                  (value) => value.getManager(walletId).coin))))
+                          .format((transactionInfo["recipientAmt"] as Amount)),
                       style: STextStyles.itemSubtitle12(context),
                       textAlign: TextAlign.right,
                     ),
@@ -652,19 +641,20 @@ class _ConfirmChangeNowSendViewState
                     style: STextStyles.smallMed12(context),
                   ),
                   Text(
-                    "${(transactionInfo["fee"] is Amount ? transactionInfo["fee"] as Amount : (transactionInfo["fee"] as int).toAmountAsRaw(fractionDigits: ref.watch(
-                        managerProvider.select(
-                          (value) => value.coin.decimals,
-                        ),
-                      ))).localizedStringAsFixed(
-                      locale: ref.watch(
-                        localeServiceChangeNotifierProvider.select(
-                          (value) => value.locale,
-                        ),
-                      ),
-                    )} ${ref.watch(
+                    ref
+                        .watch(pAmountFormatter(ref.watch(
                           managerProvider.select((value) => value.coin),
-                        ).ticker}",
+                        )))
+                        .format(
+                          (transactionInfo["fee"] is Amount
+                              ? transactionInfo["fee"] as Amount
+                              : (transactionInfo["fee"] as int).toAmountAsRaw(
+                                  fractionDigits: ref.watch(
+                                  managerProvider.select(
+                                    (value) => value.coin.decimals,
+                                  ),
+                                ))),
+                        ),
                     style: STextStyles.itemSubtitle12(context),
                     textAlign: TextAlign.right,
                   ),
@@ -756,16 +746,9 @@ class _ConfirmChangeNowSendViewState
                         final amount =
                             transactionInfo["recipientAmt"] as Amount;
                         final total = amount + fee;
-                        final locale = ref.watch(
-                          localeServiceChangeNotifierProvider.select(
-                            (value) => value.locale,
-                          ),
-                        );
+
                         return Text(
-                          "${total.localizedStringAsFixed(
-                            locale: locale,
-                          )}"
-                          " ${coin.ticker}",
+                          ref.watch(pAmountFormatter(coin)).format(total),
                           style: STextStyles.itemSubtitle12(context).copyWith(
                             color: Theme.of(context)
                                 .extension<StackColors>()!

@@ -8,11 +8,11 @@ import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/coin_control/utxo_card.dart';
 import 'package:stackwallet/pages/coin_control/utxo_details_view.dart';
-import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/mixins/coin_control_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -687,14 +687,9 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                             fractionDigits: coin.decimals,
                                           );
                                           return Text(
-                                            "${selectedSum.localizedStringAsFixed(
-                                              locale: ref.watch(
-                                                localeServiceChangeNotifierProvider
-                                                    .select(
-                                                  (value) => value.locale,
-                                                ),
-                                              ),
-                                            )} ${coin.ticker}",
+                                            ref
+                                                .watch(pAmountFormatter(coin))
+                                                .format(selectedSum),
                                             style: widget.requestedTotal == null
                                                 ? STextStyles.w600_14(context)
                                                 : STextStyles.w600_14(context).copyWith(
@@ -735,14 +730,9 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                           style: STextStyles.w600_14(context),
                                         ),
                                         Text(
-                                          "${widget.requestedTotal!.localizedStringAsFixed(
-                                            locale: ref.watch(
-                                              localeServiceChangeNotifierProvider
-                                                  .select(
-                                                (value) => value.locale,
-                                              ),
-                                            ),
-                                          )} ${coin.ticker}",
+                                          ref
+                                              .watch(pAmountFormatter(coin))
+                                              .format(widget.requestedTotal!),
                                           style: STextStyles.w600_14(context),
                                         ),
                                       ],

@@ -18,6 +18,7 @@ import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -161,18 +162,15 @@ class _Step4ViewState extends ConsumerState<Step4View> {
               ),
               SecondaryButton(
                 label:
-                    "${firoWallet.balancePrivate.spendable.localizedStringAsFixed(
-                  locale: locale,
-                )} (private)",
+                    "${ref.watch(pAmountFormatter(firoWallet.coin)).format(firoWallet.balancePrivate.spendable)} (private)",
                 onPressed: () => Navigator.of(context).pop(false),
               ),
               const SizedBox(
                 height: 16,
               ),
               SecondaryButton(
-                label: "${firoWallet.balance.spendable.localizedStringAsFixed(
-                  locale: locale,
-                )} (public)",
+                label:
+                    "${ref.watch(pAmountFormatter(firoWallet.coin)).format(firoWallet.balance.spendable)} (public)",
                 onPressed: () => Navigator.of(context).pop(true),
               ),
               const SizedBox(

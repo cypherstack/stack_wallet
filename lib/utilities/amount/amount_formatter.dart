@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -44,12 +45,20 @@ class AmountFormatter {
     required this.maxDecimals,
   });
 
-  String format(Amount amount) {
+  String format(
+    Amount amount, {
+    String? overrideUnit,
+    EthContract? ethContract,
+    bool withUnitName = true,
+  }) {
     return unit.displayAmount(
       amount: amount,
       locale: locale,
       coin: coin,
       maxDecimalPlaces: maxDecimals,
+      withUnitName: withUnitName,
+      overrideUnit: overrideUnit,
+      tokenContract: ethContract,
     );
   }
 }

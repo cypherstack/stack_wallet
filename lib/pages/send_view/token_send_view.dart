@@ -20,6 +20,7 @@ import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
@@ -166,9 +167,10 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
           final Amount amount = Decimal.parse(results["amount"]!).toAmount(
             fractionDigits: tokenContract.decimals,
           );
-          cryptoAmountController.text = amount.localizedStringAsFixed(
-            locale: ref.read(localeServiceChangeNotifierProvider).locale,
-          );
+          cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
+                amount,
+                withUnitName: false,
+              );
           _amountToSend = amount;
         }
 
@@ -238,9 +240,10 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
           level: LogLevel.Info);
 
       _cryptoAmountChangeLock = true;
-      cryptoAmountController.text = _amountToSend!.localizedStringAsFixed(
-        locale: ref.read(localeServiceChangeNotifierProvider).locale,
-      );
+      cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
+            _amountToSend!,
+            withUnitName: false,
+          );
       _cryptoAmountChangeLock = false;
     } else {
       _amountToSend = Amount.zero;
@@ -285,7 +288,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
               .toAmount(
                 fractionDigits: 2,
               )
-              .localizedStringAsFixed(
+              .fiatString(
                 locale: ref.read(localeServiceChangeNotifierProvider).locale,
               );
         }
@@ -356,9 +359,10 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
     }
 
     final Amount fee = wallet.estimateFeeFor(feeRate);
-    cachedFees = fee.localizedStringAsFixed(
-      locale: ref.read(localeServiceChangeNotifierProvider).locale,
-    );
+    cachedFees = ref.read(pAmountFormatter(coin)).format(
+          fee,
+          withUnitName: false,
+        );
 
     return cachedFees;
   }
@@ -674,14 +678,13 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                   GestureDetector(
                                     onTap: () {
                                       cryptoAmountController.text = ref
-                                          .read(tokenServiceProvider)!
-                                          .balance
-                                          .spendable
-                                          .localizedStringAsFixed(
-                                            locale: ref
-                                                .read(
-                                                    localeServiceChangeNotifierProvider)
-                                                .locale,
+                                          .watch(pAmountFormatter(coin))
+                                          .format(
+                                            ref
+                                                .read(tokenServiceProvider)!
+                                                .balance
+                                                .spendable,
+                                            withUnitName: false,
                                           );
                                     },
                                     child: Container(
@@ -691,20 +694,22 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                             CrossAxisAlignment.end,
                                         children: [
                                           Text(
-                                            "${ref.watch(
-                                              tokenServiceProvider.select(
-                                                (value) => value!
-                                                    .balance.spendable
-                                                    .localizedStringAsFixed(
-                                                  locale: ref.watch(
-                                                    localeServiceChangeNotifierProvider
-                                                        .select(
-                                                      (value) => value.locale,
+                                            ref
+                                                .watch(pAmountFormatter(coin))
+                                                .format(
+                                                  ref.watch(
+                                                    tokenServiceProvider.select(
+                                                      (value) => value!
+                                                          .balance.spendable,
+                                                    ),
+                                                  ),
+                                                  ethContract: ref.watch(
+                                                    tokenServiceProvider.select(
+                                                      (value) =>
+                                                          value!.tokenContract,
                                                     ),
                                                   ),
                                                 ),
-                                              ),
-                                            )} ${tokenContract.symbol}",
                                             style:
                                                 STextStyles.titleBold12(context)
                                                     .copyWith(
@@ -715,7 +720,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                           Text(
                                             "${(ref.watch(tokenServiceProvider.select((value) => value!.balance.spendable.decimal)) * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getTokenPrice(tokenContract.address).item1))).toAmount(
                                                   fractionDigits: 2,
-                                                ).localizedStringAsFixed(
+                                                ).fiatString(
                                                   locale: locale,
                                                 )} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
                                             style: STextStyles.subtitle(context)

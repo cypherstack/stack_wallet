@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -124,15 +124,11 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          "${utxo.value.toAmountAsRaw(
-                                fractionDigits: coin.decimals,
-                              ).localizedStringAsFixed(
-                                locale: ref.watch(
-                                  localeServiceChangeNotifierProvider.select(
-                                    (value) => value.locale,
-                                  ),
+                          ref.watch(pAmountFormatter(coin)).format(
+                                utxo.value.toAmountAsRaw(
+                                  fractionDigits: coin.decimals,
                                 ),
-                              )} ${coin.ticker}",
+                              ),
                           style: STextStyles.w600_14(context),
                         ),
                         const SizedBox(

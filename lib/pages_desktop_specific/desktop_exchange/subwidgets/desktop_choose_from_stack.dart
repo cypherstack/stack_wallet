@@ -5,6 +5,7 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -279,8 +280,6 @@ class _BalanceDisplay extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final manager = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManager(walletId)));
-    final locale = ref.watch(
-        localeServiceChangeNotifierProvider.select((value) => value.locale));
 
     Amount total = manager.balance.total;
     if (manager.coin == Coin.firo || manager.coin == Coin.firoTestNet) {
@@ -289,8 +288,7 @@ class _BalanceDisplay extends ConsumerWidget {
     }
 
     return Text(
-      "${total.localizedStringAsFixed(locale: locale)} "
-      "${manager.coin.ticker}",
+      ref.watch(pAmountFormatter(manager.coin)).format(total),
       style: STextStyles.desktopTextExtraSmall(context).copyWith(
         color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
       ),

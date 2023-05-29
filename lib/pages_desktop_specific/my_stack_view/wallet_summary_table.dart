@@ -214,13 +214,12 @@ class TablePriceInfo extends ConsumerWidget {
     final priceString = Amount.fromDecimal(
       tuple.item1,
       fractionDigits: 2,
-    ).localizedStringAsFixed(
+    ).fiatString(
       locale: ref
           .watch(
             localeServiceChangeNotifierProvider.notifier,
           )
           .locale,
-      decimalPlaces: 2,
     );
 
     final double percentChange = tuple.item2;

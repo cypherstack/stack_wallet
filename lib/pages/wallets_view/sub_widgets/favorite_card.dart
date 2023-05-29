@@ -10,6 +10,7 @@ import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -272,14 +273,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                           FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(
-                              "${total.localizedStringAsFixed(
-                                locale: ref.watch(
-                                  localeServiceChangeNotifierProvider.select(
-                                    (value) => value.locale,
-                                  ),
-                                ),
-                                decimalPlaces: coin.decimals,
-                              )} ${coin.ticker}",
+                              ref.watch(pAmountFormatter(coin)).format(total),
                               style: STextStyles.titleBold12(context).copyWith(
                                 fontSize: 16,
                                 color: Theme.of(context)
@@ -294,13 +288,12 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                             ),
                           if (externalCalls)
                             Text(
-                              "${fiatTotal.localizedStringAsFixed(
+                              "${fiatTotal.fiatString(
                                 locale: ref.watch(
                                   localeServiceChangeNotifierProvider.select(
                                     (value) => value.locale,
                                   ),
                                 ),
-                                decimalPlaces: 2,
                               )} ${ref.watch(
                                 prefsChangeNotifierProvider.select(
                                   (value) => value.currency,

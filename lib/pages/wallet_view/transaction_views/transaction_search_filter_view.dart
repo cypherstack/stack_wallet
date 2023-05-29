@@ -5,11 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_rounded_date_picker/flutter_rounded_date_picker.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/transaction_filter.dart';
-import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -76,11 +76,12 @@ class _TransactionSearchViewState
       _toDateString =
           _selectedToDate == null ? "" : Format.formatDate(_selectedToDate!);
 
-      final String amount = filterState.amount?.localizedStringAsFixed(
-            locale: ref.read(localeServiceChangeNotifierProvider).locale,
-            decimalPlaces: widget.coin.decimals,
-          ) ??
-          "";
+      final String amount = filterState.amount == null
+          ? ""
+          : ref.read(pAmountFormatter(widget.coin)).format(
+                filterState.amount!,
+                withUnitName: false,
+              );
 
       _amountTextEditingController.text = amount;
     }

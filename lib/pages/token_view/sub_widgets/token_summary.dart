@@ -19,6 +19,7 @@ import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -86,14 +87,10 @@ class TokenSummary extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "${balance.total.localizedStringAsFixed(
-                      locale: ref.watch(
-                        localeServiceChangeNotifierProvider.select(
-                          (value) => value.locale,
+                    ref.watch(pAmountFormatter(Coin.ethereum)).format(
+                          balance.total,
+                          ethContract: token,
                         ),
-                      ),
-                    )}"
-                    " ${token.symbol}",
                     style: STextStyles.pageTitleH1(context).copyWith(
                       color: Theme.of(context)
                           .extension<StackColors>()!
@@ -118,7 +115,7 @@ class TokenSummary extends ConsumerWidget {
                           ),
                         )).toAmount(
                       fractionDigits: 2,
-                    ).localizedStringAsFixed(
+                    ).fiatString(
                       locale: ref.watch(
                         localeServiceChangeNotifierProvider.select(
                           (value) => value.locale,

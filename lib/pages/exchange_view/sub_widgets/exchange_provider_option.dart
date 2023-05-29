@@ -8,6 +8,8 @@ import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/amount/amount_formatter.dart';
+import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
@@ -97,13 +99,32 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
                               .toAmount(fractionDigits: decimals);
                         }
 
-                        final rateString =
-                            "1 ${sendCurrency.ticker.toUpperCase()} ~ ${rate.localizedStringAsFixed(
-                          locale: ref.watch(
-                            localeServiceChangeNotifierProvider
-                                .select((value) => value.locale),
-                          ),
-                        )} ${receivingCurrency.ticker.toUpperCase()}";
+                        Coin? coin;
+                        try {
+                          coin = coinFromTickerCaseInsensitive(
+                              receivingCurrency.ticker);
+                        } catch (_) {
+                          coin = null;
+                        }
+
+                        final String rateString;
+                        if (coin != null) {
+                          rateString = "1 ${sendCurrency.ticker.toUpperCase()} "
+                              "~ ${ref.watch(pAmountFormatter(coin)).format(rate)}";
+                        } else {
+                          final formatter = AmountFormatter(
+                            unit: AmountUnit.normal,
+                            locale: ref.watch(
+                              localeServiceChangeNotifierProvider
+                                  .select((value) => value.locale),
+                            ),
+                            coin: Coin.bitcoin, // some sane default
+                            maxDecimals: 8, // some sane default
+                          );
+                          rateString = "1 ${sendCurrency.ticker.toUpperCase()} "
+                              "~ ${formatter.format(rate, withUnitName: false)}"
+                              " ${receivingCurrency.ticker.toUpperCase()}";
+                        }
 
                         return ConditionalParent(
                           condition: i > 0,

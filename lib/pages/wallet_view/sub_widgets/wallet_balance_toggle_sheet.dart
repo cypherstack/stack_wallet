@@ -7,6 +7,7 @@ import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provide
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
@@ -278,13 +279,7 @@ class BalanceSelector<T> extends ConsumerWidget {
                   height: 2,
                 ),
                 Text(
-                  "${balance.localizedStringAsFixed(
-                    locale: ref.watch(
-                      localeServiceChangeNotifierProvider.select(
-                        (value) => value.locale,
-                      ),
-                    ),
-                  )} ${coin.ticker}",
+                  "${ref.watch(pAmountFormatter(coin)).format(balance)} ${coin.ticker}",
                   style: STextStyles.itemSubtitle12(context).copyWith(
                     color: Theme.of(context)
                         .extension<StackColors>()!
