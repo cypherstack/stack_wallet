@@ -729,6 +729,15 @@ class MockThemeService extends _i1.Mock implements _i25.ThemeService {
         returnValueForMissingStub: _i22.Future<void>.value(),
       ) as _i22.Future<void>);
   @override
+  _i22.Future<void> checkDefaultThemesOnStartup() => (super.noSuchMethod(
+        Invocation.method(
+          #checkDefaultThemesOnStartup,
+          [],
+        ),
+        returnValue: _i22.Future<void>.value(),
+        returnValueForMissingStub: _i22.Future<void>.value(),
+      ) as _i22.Future<void>);
+  @override
   _i22.Future<bool> verifyInstalled({required String? themeId}) =>
       (super.noSuchMethod(
         Invocation.method(
