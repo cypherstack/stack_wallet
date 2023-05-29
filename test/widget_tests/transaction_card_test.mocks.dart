@@ -2076,6 +2076,14 @@ class MockFiroWallet extends _i1.Mock implements _i22.FiroWallet {
         returnValueForMissingStub: _i18.Future<void>.value(),
       ) as _i18.Future<void>);
   @override
+  int firoGetMintIndex() => (super.noSuchMethod(
+        Invocation.method(
+          #firoGetMintIndex,
+          [],
+        ),
+        returnValue: 0,
+      ) as int);
+  @override
   _i18.Future<void> firoUpdateMintIndex(int? mintIndex) => (super.noSuchMethod(
         Invocation.method(
           #firoUpdateMintIndex,
@@ -2859,6 +2867,15 @@ class MockThemeService extends _i1.Mock implements _i30.ThemeService {
           #remove,
           [],
           {#themeId: themeId},
+        ),
+        returnValue: _i18.Future<void>.value(),
+        returnValueForMissingStub: _i18.Future<void>.value(),
+      ) as _i18.Future<void>);
+  @override
+  _i18.Future<void> checkDefaultThemesOnStartup() => (super.noSuchMethod(
+        Invocation.method(
+          #checkDefaultThemesOnStartup,
+          [],
         ),
         returnValue: _i18.Future<void>.value(),
         returnValueForMissingStub: _i18.Future<void>.value(),
