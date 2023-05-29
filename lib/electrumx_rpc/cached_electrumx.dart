@@ -4,43 +4,23 @@ import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
 import 'package:string_validator/string_validator.dart';
 
 class CachedElectrumX {
-  final ElectrumX? electrumXClient;
-
-  final String server;
-  final int port;
-  final bool useSSL;
-
-  final Prefs prefs;
-  final List<ElectrumXNode> failovers;
+  final ElectrumX electrumXClient;
 
   static const minCacheConfirms = 30;
 
   const CachedElectrumX({
-    required this.server,
-    required this.port,
-    required this.useSSL,
-    required this.prefs,
-    required this.failovers,
-    this.electrumXClient,
+    required this.electrumXClient,
   });
 
   factory CachedElectrumX.from({
-    required ElectrumXNode node,
-    required Prefs prefs,
-    required List<ElectrumXNode> failovers,
-    ElectrumX? electrumXClient,
+    required ElectrumX electrumXClient,
   }) =>
       CachedElectrumX(
-          server: node.address,
-          port: node.port,
-          useSSL: node.useSSL,
-          prefs: prefs,
-          failovers: failovers,
-          electrumXClient: electrumXClient);
+        electrumXClient: electrumXClient,
+      );
 
   Future<Map<String, dynamic>> getAnonymitySet({
     required String groupId,
@@ -66,16 +46,7 @@ class CachedElectrumX {
         set = Map<String, dynamic>.from(cachedSet);
       }
 
-      final client = electrumXClient ??
-          ElectrumX(
-            host: server,
-            port: port,
-            useSSL: useSSL,
-            prefs: prefs,
-            failovers: failovers,
-          );
-
-      final newSet = await client.getAnonymitySet(
+      final newSet = await electrumXClient.getAnonymitySet(
         groupId: groupId,
         blockhash: set["blockHash"] as String,
       );
@@ -115,8 +86,9 @@ class CachedElectrumX {
             key: groupId,
             value: set);
         Logging.instance.log(
-            "Updated currently anonymity set for ${coin.name} with group ID $groupId",
-            level: LogLevel.Info);
+          "Updated current anonymity set for ${coin.name} with group ID $groupId",
+          level: LogLevel.Info,
+        );
       }
 
       return set;
@@ -151,16 +123,8 @@ class CachedElectrumX {
       final cachedTx = DB.instance.get<dynamic>(
           boxName: DB.instance.boxNameTxCache(coin: coin), key: txHash) as Map?;
       if (cachedTx == null) {
-        final client = electrumXClient ??
-            ElectrumX(
-              host: server,
-              port: port,
-              useSSL: useSSL,
-              prefs: prefs,
-              failovers: failovers,
-            );
-        final Map<String, dynamic> result =
-            await client.getTransaction(txHash: txHash, verbose: verbose);
+        final Map<String, dynamic> result = await electrumXClient
+            .getTransaction(txHash: txHash, verbose: verbose);
 
         result.remove("hex");
         result.remove("lelantusData");
@@ -187,31 +151,25 @@ class CachedElectrumX {
     }
   }
 
-  Future<List<dynamic>> getUsedCoinSerials({
+  Future<List<String>> getUsedCoinSerials({
     required Coin coin,
     int startNumber = 0,
   }) async {
     try {
-      List<dynamic>? cachedSerials = DB.instance.get<dynamic>(
+      final _list = DB.instance.get<dynamic>(
           boxName: DB.instance.boxNameUsedSerialsCache(coin: coin),
           key: "serials") as List?;
 
-      cachedSerials ??= [];
+      List<String> cachedSerials =
+          _list == null ? [] : List<String>.from(_list);
 
       final startNumber = cachedSerials.length;
 
-      final client = electrumXClient ??
-          ElectrumX(
-            host: server,
-            port: port,
-            useSSL: useSSL,
-            prefs: prefs,
-            failovers: failovers,
-          );
+      final serials =
+          await electrumXClient.getUsedCoinSerials(startNumber: startNumber);
+      List<String> newSerials = [];
 
-      final serials = await client.getUsedCoinSerials(startNumber: startNumber);
-      List newSerials = [];
-      for (var element in (serials["serials"] as List)) {
+      for (final element in (serials["serials"] as List)) {
         if (!isHexadecimal(element as String)) {
           newSerials.add(base64ToHex(element));
         } else {
@@ -221,9 +179,10 @@ class CachedElectrumX {
       cachedSerials.addAll(newSerials);
 
       await DB.instance.put<dynamic>(
-          boxName: DB.instance.boxNameUsedSerialsCache(coin: coin),
-          key: "serials",
-          value: cachedSerials);
+        boxName: DB.instance.boxNameUsedSerialsCache(coin: coin),
+        key: "serials",
+        value: cachedSerials,
+      );
 
       return cachedSerials;
     } catch (e, s) {

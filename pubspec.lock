@@ -120,9 +120,9 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: ea65073efbaf395a5557e8cd7bd72f195cd7eb11
-      resolved-ref: ea65073efbaf395a5557e8cd7bd72f195cd7eb11
-      url: "https://github.com/Quppy/bitbox-flutter.git"
+      ref: "50bf29957514a5712466ba37590a851212a244bf"
+      resolved-ref: "50bf29957514a5712466ba37590a851212a244bf"
+      url: "https://github.com/PiRK/bitbox-flutter.git"
     source: git
     version: "1.0.1"
   bitcoindart:

@@ -132,6 +132,11 @@ class ElectrumX {
 
       final response = await _rpcClient!.request(jsonRequestString);
 
+      print("=================================================");
+      print("TYPE: ${response.runtimeType}");
+      print("RESPONSE: $response");
+      print("=================================================");
+
       if (response["error"] != null) {
         if (response["error"]
             .toString()
@@ -310,6 +315,13 @@ class ElectrumX {
         requestID: requestID,
         command: 'blockchain.headers.subscribe',
       );
+      if (response["result"] == null) {
+        Logging.instance.log(
+          "getBlockHeadTip returned null response",
+          level: LogLevel.Error,
+        );
+        throw 'getBlockHeadTip returned null response';
+      }
       return Map<String, dynamic>.from(response["result"] as Map);
     } catch (e) {
       rethrow;

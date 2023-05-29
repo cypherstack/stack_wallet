@@ -1194,15 +1194,13 @@ class DogecoinWallet extends CoinServiceAPI
             ))
         .toList();
     final newNode = await getCurrentNode();
-    _cachedElectrumXClient = CachedElectrumX.from(
-      node: newNode,
-      prefs: _prefs,
-      failovers: failovers,
-    );
     _electrumXClient = ElectrumX.from(
       node: newNode,
       prefs: _prefs,
       failovers: failovers,
+    );
+    _cachedElectrumXClient = CachedElectrumX.from(
+      electrumXClient: _electrumXClient,
     );
 
     if (shouldRefresh) {
@@ -1318,7 +1316,7 @@ class DogecoinWallet extends CoinServiceAPI
     }
     await _secureStore.write(
         key: '${_walletId}_mnemonic',
-        value: bip39.generateMnemonic(strength: 256));
+        value: bip39.generateMnemonic(strength: 128));
     await _secureStore.write(
       key: '${_walletId}_mnemonicPassphrase',
       value: "",

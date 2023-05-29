@@ -20,3 +20,11 @@ final themeProvider = StateProvider<StackTheme>(
     ),
   ),
 );
+
+final themeAssetsProvider = StateProvider<IThemeAssets>(
+  (ref) => ref.watch(
+    themeProvider.select(
+      (value) => value.assets,
+    ),
+  ),
+);

@@ -110,7 +110,7 @@ class ContactPopUp extends ConsumerWidget {
                                             .textFieldDefaultBG,
                                         borderRadius: BorderRadius.circular(32),
                                       ),
-                                      child: contact.id == "default"
+                                      child: contact.customId == "default"
                                           ? Center(
                                               child: SvgPicture.file(
                                                 File(
@@ -146,13 +146,13 @@ class ContactPopUp extends ConsumerWidget {
                                             STextStyles.itemSubtitle12(context),
                                       ),
                                     ),
-                                    if (contact.id != "default")
+                                    if (contact.customId != "default")
                                       TextButton(
                                         onPressed: () {
                                           Navigator.pop(context);
                                           Navigator.of(context).pushNamed(
                                             ContactDetailsView.routeName,
-                                            arguments: contact.id,
+                                            arguments: contact.customId,
                                           );
                                         },
                                         style: Theme.of(context)
@@ -176,7 +176,7 @@ class ContactPopUp extends ConsumerWidget {
                                 ),
                               ),
                               SizedBox(
-                                height: contact.id == "default" ? 16 : 8,
+                                height: contact.customId == "default" ? 16 : 8,
                               ),
                               Container(
                                 height: 1,
@@ -233,14 +233,14 @@ class ContactPopUp extends ConsumerWidget {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            if (contact.id == "default")
+                                            if (contact.customId == "default")
                                               Text(
                                                 e.other!,
                                                 style:
                                                     STextStyles.itemSubtitle12(
                                                         context),
                                               ),
-                                            if (contact.id != "default")
+                                            if (contact.customId != "default")
                                               Text(
                                                 "${e.label} (${e.coin.ticker})",
                                                 style:
@@ -336,13 +336,13 @@ class ContactPopUp extends ConsumerWidget {
                                             ),
                                           ],
                                         ),
-                                      if (contact.id != "default" &&
+                                      if (contact.customId != "default" &&
                                           hasActiveWallet &&
                                           !isExchangeFlow)
                                         const SizedBox(
                                           width: 4,
                                         ),
-                                      if (contact.id != "default" &&
+                                      if (contact.customId != "default" &&
                                           hasActiveWallet &&
                                           !isExchangeFlow)
                                         Column(

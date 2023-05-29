@@ -1325,15 +1325,13 @@ class LitecoinWallet extends CoinServiceAPI
             ))
         .toList();
     final newNode = await getCurrentNode();
-    _cachedElectrumXClient = CachedElectrumX.from(
-      node: newNode,
-      prefs: _prefs,
-      failovers: failovers,
-    );
     _electrumXClient = ElectrumX.from(
       node: newNode,
       prefs: _prefs,
       failovers: failovers,
+    );
+    _cachedElectrumXClient = CachedElectrumX.from(
+      electrumXClient: _electrumXClient,
     );
 
     if (shouldRefresh) {
@@ -1498,7 +1496,7 @@ class LitecoinWallet extends CoinServiceAPI
     }
     await _secureStore.write(
         key: '${_walletId}_mnemonic',
-        value: bip39.generateMnemonic(strength: 256));
+        value: bip39.generateMnemonic(strength: 128));
     await _secureStore.write(
       key: '${_walletId}_mnemonicPassphrase',
       value: "",
@@ -1793,6 +1791,18 @@ class LitecoinWallet extends CoinServiceAPI
             coin: coin,
           );
 
+          bool shouldBlock = false;
+          String? blockReason;
+          String? label;
+
+          final utxoAmount = jsonUTXO["value"] as int;
+
+          if (utxoAmount <= 10000) {
+            shouldBlock = true;
+            blockReason = "May contain ordinal";
+            label = "Possible ordinal";
+          }
+
           final vout = jsonUTXO["tx_pos"] as int;
 
           final outputs = txn["vout"] as List;
@@ -1811,10 +1821,10 @@ class LitecoinWallet extends CoinServiceAPI
             walletId: walletId,
             txid: txn["txid"] as String,
             vout: vout,
-            value: jsonUTXO["value"] as int,
-            name: "",
-            isBlocked: false,
-            blockedReason: null,
+            value: utxoAmount,
+            name: label ?? "",
+            isBlocked: shouldBlock,
+            blockedReason: blockReason,
             isCoinbase: txn["is_coinbase"] as bool? ?? false,
             blockHash: txn["blockhash"] as String?,
             blockHeight: jsonUTXO["height"] as int?,
@@ -1826,16 +1836,20 @@ class LitecoinWallet extends CoinServiceAPI
         }
       }
 
-      Logging.instance
-          .log('Outputs fetched: $outputArray', level: LogLevel.Info);
+      Logging.instance.log(
+        'Outputs fetched: $outputArray',
+        level: LogLevel.Info,
+      );
 
       await db.updateUTXOs(walletId, outputArray);
 
       // finally update balance
       await _updateBalance();
     } catch (e, s) {
-      Logging.instance
-          .log("Output fetch unsuccessful: $e\n$s", level: LogLevel.Error);
+      Logging.instance.log(
+        "Output fetch unsuccessful: $e\n$s",
+        level: LogLevel.Error,
+      );
     }
   }
 

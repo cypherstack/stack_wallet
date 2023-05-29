@@ -1314,15 +1314,13 @@ class NamecoinWallet extends CoinServiceAPI
             ))
         .toList();
     final newNode = await getCurrentNode();
-    _cachedElectrumXClient = CachedElectrumX.from(
-      node: newNode,
-      prefs: _prefs,
-      failovers: failovers,
-    );
     _electrumXClient = ElectrumX.from(
       node: newNode,
       prefs: _prefs,
       failovers: failovers,
+    );
+    _cachedElectrumXClient = CachedElectrumX.from(
+      electrumXClient: _electrumXClient,
     );
 
     if (shouldRefresh) {
@@ -1479,7 +1477,7 @@ class NamecoinWallet extends CoinServiceAPI
     }
     await _secureStore.write(
         key: '${_walletId}_mnemonic',
-        value: bip39.generateMnemonic(strength: 256));
+        value: bip39.generateMnemonic(strength: 128));
     await _secureStore.write(
       key: '${_walletId}_mnemonicPassphrase',
       value: "",
@@ -2803,19 +2801,18 @@ class NamecoinWallet extends CoinServiceAPI
 
     // Add transaction output
     for (var i = 0; i < recipients.length; i++) {
-      txb.addOutput(recipients[i], satoshiAmounts[i], namecoin.bech32!);
+      txb.addOutput(recipients[i], satoshiAmounts[i], _network.bech32!);
     }
 
     try {
       // Sign the transaction accordingly
       for (var i = 0; i < utxoSigningData.length; i++) {
-        final txid = utxoSigningData[i].utxo.txid;
-        txb.addInput(
-          txid,
-          utxoSigningData[i].utxo.vout,
-          null,
-          utxoSigningData[i].output!,
-          _network.bech32!,
+        txb.sign(
+          vin: i,
+          keyPair: utxoSigningData[i].keyPair!,
+          witnessValue: utxoSigningData[i].utxo.value,
+          redeemScript: utxoSigningData[i].redeemScript,
+          overridePrefix: _network.bech32!,
         );
       }
     } catch (e, s) {
@@ -2824,7 +2821,7 @@ class NamecoinWallet extends CoinServiceAPI
       rethrow;
     }
 
-    final builtTx = txb.build(namecoin.bech32!);
+    final builtTx = txb.build(_network.bech32!);
     final vSize = builtTx.virtualSize();
 
     return {"hex": builtTx.toHex(), "vSize": vSize};
