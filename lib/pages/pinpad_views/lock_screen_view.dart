@@ -13,7 +13,6 @@ import 'package:stackwallet/themes/stack_colors.dart';
 // import 'package:stackwallet/providers/global/should_show_lockscreen_on_resume_state_provider.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/biometrics.dart';
-import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
@@ -189,10 +188,11 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
 
   BoxDecoration get _pinPutDecoration {
     return BoxDecoration(
-      color: Theme.of(context).extension<StackColors>()!.textSubtitle2,
+      color: Theme.of(context).extension<StackColors>()!.infoItemIcons,
       border: Border.all(
-          width: 1,
-          color: Theme.of(context).extension<StackColors>()!.textSubtitle2),
+        width: 1,
+        color: Theme.of(context).extension<StackColors>()!.infoItemIcons,
+      ),
       borderRadius: BorderRadius.circular(6),
     );
   }
@@ -202,6 +202,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
 
   late SecureStorageInterface _secureStore;
   late Biometrics biometrics;
+  int pinCount = 1;
 
   Widget get _body => Background(
         child: SafeArea(
@@ -274,13 +275,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                           height: 52,
                         ),
                         CustomPinPut(
-                          // customKey: CustomKey(
-                          //   onPressed: _checkUseBiometrics,
-                          //   iconAssetName: Platform.isIOS
-                          //       ? Assets.svg.faceId
-                          //       : Assets.svg.fingerprint,
-                          // ),
-                          fieldsCount: Constants.pinLength,
+                          fieldsCount: pinCount,
                           eachFieldHeight: 12,
                           eachFieldWidth: 12,
                           textStyle: STextStyles.label(context).copyWith(
@@ -302,19 +297,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                                 .background,
                             counterText: "",
                           ),
-                          submittedFieldDecoration: _pinPutDecoration.copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .infoItemIcons,
-                            border: Border.all(
-                              width: 1,
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .infoItemIcons,
-                            ),
-                          ),
-                          selectedFieldDecoration: _pinPutDecoration,
-                          followingFieldDecoration: _pinPutDecoration,
+                          submittedFieldDecoration: _pinPutDecoration,
                           isRandom: ref
                               .read(prefsChangeNotifierProvider)
                               .randomizePIN,

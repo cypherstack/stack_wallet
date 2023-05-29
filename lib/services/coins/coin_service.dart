@@ -56,17 +56,7 @@ abstract class CoinServiceAPI {
       prefs: prefs,
     );
     final cachedClient = CachedElectrumX.from(
-      node: electrumxNode,
-      failovers: failovers
-          .map((e) => ElectrumXNode(
-                address: e.host,
-                port: e.port,
-                name: e.name,
-                id: e.id,
-                useSSL: e.useSSL,
-              ))
-          .toList(),
-      prefs: prefs,
+      electrumXClient: client,
     );
     switch (coin) {
       case Coin.firo:

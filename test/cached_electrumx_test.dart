@@ -126,12 +126,8 @@ void main() {
       ).thenThrow(Exception());
 
       final cachedClient = CachedElectrumX(
-          electrumXClient: client,
-          port: 0,
-          failovers: [],
-          server: '',
-          useSSL: true,
-          prefs: Prefs.instance);
+        electrumXClient: client,
+      );
 
       expect(
           () async => await cachedClient.getTransaction(
@@ -143,12 +139,8 @@ void main() {
 
     test("clearSharedTransactionCache", () async {
       final cachedClient = CachedElectrumX(
-          server: '',
-          electrumXClient: MockElectrumX(),
-          port: 0,
-          useSSL: true,
-          prefs: MockPrefs(),
-          failovers: []);
+        electrumXClient: MockElectrumX(),
+      );
 
       bool didThrow = false;
       try {
@@ -174,11 +166,7 @@ void main() {
       useSSL: true,
     );
 
-    final client = CachedElectrumX.from(
-        node: node,
-        prefs: MockPrefs(),
-        failovers: [],
-        electrumXClient: MockElectrumX());
+    final client = CachedElectrumX.from(electrumXClient: MockElectrumX());
 
     expect(client, isA<CachedElectrumX>());
   });

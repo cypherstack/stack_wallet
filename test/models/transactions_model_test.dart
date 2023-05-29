@@ -143,7 +143,7 @@ void main() {
         ]
       });
       expect(txChunk.toString(),
-          "timestamp: 993260735 transactions: [\n    {txid: txid, type: txType, subType: mint, value: 10, fee: 1, height: 1, confirm: true, confirmations: 1, address: address, timestamp: 1876352482, worthNow: 1, inputs: [], slateid: slateId } \n]");
+          "timestamp: 993260735 transactions: [\n    {txid: txid, type: txType, subType: mint, value: 10, fee: 1, height: 1, confirm: true, confirmations: 1, address: address, timestamp: 1876352482, worthNow: 1, inputs: [], slateid: slateId, numberOfMessages: null } \n]");
     });
   });
 

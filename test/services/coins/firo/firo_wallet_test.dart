@@ -105,6 +105,7 @@ void main() {
               nonce: null,
               inputs: [],
               outputs: [],
+              numberOfMessages: null,
             ),
           )
           .toList();

@@ -71,6 +71,7 @@ void main() {
       nonce: null,
       inputs: [],
       outputs: [],
+      numberOfMessages: null,
     )..address.value = Address(
         walletId: "walletId",
         value: "",
@@ -188,6 +189,7 @@ void main() {
       nonce: null,
       inputs: [],
       outputs: [],
+      numberOfMessages: null,
     )..address.value = Address(
         walletId: "walletId",
         value: "",
@@ -302,6 +304,7 @@ void main() {
       nonce: null,
       inputs: [],
       outputs: [],
+      numberOfMessages: null,
     )..address.value = Address(
         walletId: "walletId",
         value: "",
@@ -410,6 +413,7 @@ void main() {
       nonce: null,
       inputs: [],
       outputs: [],
+      numberOfMessages: null,
     )..address.value = Address(
         walletId: "walletId",
         value: "",

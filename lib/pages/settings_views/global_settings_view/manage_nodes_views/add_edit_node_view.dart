@@ -150,6 +150,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
       case Coin.bitcoincash:
       case Coin.litecoin:
       case Coin.dogecoin:
+      case Coin.eCash:
       case Coin.firo:
       case Coin.namecoin:
       case Coin.particl:

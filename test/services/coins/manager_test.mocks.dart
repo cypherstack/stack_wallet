@@ -1086,6 +1086,14 @@ class MockFiroWallet extends _i1.Mock implements _i10.FiroWallet {
         returnValueForMissingStub: _i11.Future<void>.value(),
       ) as _i11.Future<void>);
   @override
+  int firoGetMintIndex() => (super.noSuchMethod(
+        Invocation.method(
+          #firoGetMintIndex,
+          [],
+        ),
+        returnValue: 0,
+      ) as int);
+  @override
   _i11.Future<void> firoUpdateMintIndex(int? mintIndex) => (super.noSuchMethod(
         Invocation.method(
           #firoUpdateMintIndex,

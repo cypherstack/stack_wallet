@@ -6,7 +6,6 @@ import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -27,10 +26,11 @@ class ChangePinView extends ConsumerStatefulWidget {
 class _ChangePinViewState extends ConsumerState<ChangePinView> {
   BoxDecoration get _pinPutDecoration {
     return BoxDecoration(
-      color: Theme.of(context).extension<StackColors>()!.textSubtitle2,
+      color: Theme.of(context).extension<StackColors>()!.infoItemIcons,
       border: Border.all(
-          width: 1,
-          color: Theme.of(context).extension<StackColors>()!.textSubtitle2),
+        width: 1,
+        color: Theme.of(context).extension<StackColors>()!.infoItemIcons,
+      ),
       borderRadius: BorderRadius.circular(6),
     );
   }
@@ -47,6 +47,8 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
   final FocusNode _pinPutFocusNode2 = FocusNode();
 
   late final SecureStorageInterface _secureStore;
+
+  int pinCount = 1;
 
   @override
   void initState() {
@@ -101,7 +103,7 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
                     height: 52,
                   ),
                   CustomPinPut(
-                    fieldsCount: Constants.pinLength,
+                    fieldsCount: pinCount,
                     eachFieldHeight: 12,
                     eachFieldWidth: 12,
                     textStyle: STextStyles.label(context).copyWith(
@@ -125,21 +127,18 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
                     ),
                     isRandom:
                         ref.read(prefsChangeNotifierProvider).randomizePIN,
-                    submittedFieldDecoration: _pinPutDecoration.copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .infoItemIcons,
-                      border: Border.all(
-                        width: 1,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .infoItemIcons,
-                      ),
-                    ),
+                    submittedFieldDecoration: _pinPutDecoration,
                     selectedFieldDecoration: _pinPutDecoration,
                     followingFieldDecoration: _pinPutDecoration,
                     onSubmit: (String pin) {
-                      if (pin.length == Constants.pinLength) {
+                      if (pin.length < 4) {
+                        showFloatingFlushBar(
+                          type: FlushBarType.warning,
+                          message: "PIN not long enough!",
+                          iconAsset: Assets.svg.alertCircle,
+                          context: context,
+                        );
+                      } else {
                         _pageController.nextPage(
                           duration: const Duration(milliseconds: 300),
                           curve: Curves.linear,
@@ -165,7 +164,7 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
                     height: 52,
                   ),
                   CustomPinPut(
-                    fieldsCount: Constants.pinLength,
+                    fieldsCount: pinCount,
                     eachFieldHeight: 12,
                     eachFieldWidth: 12,
                     textStyle: STextStyles.infoSmall(context).copyWith(
@@ -192,17 +191,7 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
                     ),
                     isRandom:
                         ref.read(prefsChangeNotifierProvider).randomizePIN,
-                    submittedFieldDecoration: _pinPutDecoration.copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .infoItemIcons,
-                      border: Border.all(
-                        width: 1,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .infoItemIcons,
-                      ),
-                    ),
+                    submittedFieldDecoration: _pinPutDecoration,
                     selectedFieldDecoration: _pinPutDecoration,
                     followingFieldDecoration: _pinPutDecoration,
                     onSubmit: (String pin) async {

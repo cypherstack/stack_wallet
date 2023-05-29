@@ -17,7 +17,7 @@ void main() {
         '{"jsonrpc": "2.0", "id": "some id","method": "server.ping","params": []}';
     final result = await jsonRPC.request(jsonRequestString);
 
-    expect(result, {"jsonrpc": "2.0", "result": null, "id": "some id"});
+    expect(result.data, {"jsonrpc": "2.0", "result": null, "id": "some id"});
   });
 
   test("JsonRPC.request fails due to SocketException", () async {
