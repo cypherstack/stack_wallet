@@ -20,6 +20,33 @@ enum AmountUnit {
 
   const AmountUnit(this.shift);
   final int shift;
+
+  static List<AmountUnit> valuesForCoin(Coin coin) {
+    switch (coin) {
+      case Coin.firo:
+      case Coin.litecoin:
+      case Coin.particl:
+      case Coin.namecoin:
+      case Coin.bitcoinTestNet:
+      case Coin.litecoinTestNet:
+      case Coin.bitcoincashTestnet:
+      case Coin.dogecoinTestNet:
+      case Coin.firoTestNet:
+      case Coin.bitcoin:
+      case Coin.bitcoincash:
+      case Coin.dogecoin:
+      case Coin.eCash:
+      case Coin.epicCash:
+        return AmountUnit.values.sublist(0, 4);
+
+      case Coin.monero:
+      case Coin.wownero:
+        return AmountUnit.values.sublist(0, 5);
+
+      case Coin.ethereum:
+        return AmountUnit.values;
+    }
+  }
 }
 
 extension AmountUnitExt on AmountUnit {
