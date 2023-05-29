@@ -279,7 +279,7 @@ class BalanceSelector<T> extends ConsumerWidget {
                   height: 2,
                 ),
                 Text(
-                  "${ref.watch(pAmountFormatter(coin)).format(balance)} ${coin.ticker}",
+                  ref.watch(pAmountFormatter(coin)).format(balance),
                   style: STextStyles.itemSubtitle12(context).copyWith(
                     color: Theme.of(context)
                         .extension<StackColors>()!

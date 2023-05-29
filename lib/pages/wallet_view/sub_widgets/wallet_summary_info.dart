@@ -151,7 +151,7 @@ class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
               FittedBox(
                 fit: BoxFit.scaleDown,
                 child: SelectableText(
-                  "${ref.watch(pAmountFormatter(coin)).format(balanceToShow)} ${coin.ticker}",
+                  ref.watch(pAmountFormatter(coin)).format(balanceToShow),
                   style: STextStyles.pageTitleH1(context).copyWith(
                     fontSize: 24,
                     color: Theme.of(context)
