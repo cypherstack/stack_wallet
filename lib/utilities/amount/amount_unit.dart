@@ -134,6 +134,9 @@ extension AmountUnitExt on AmountUnit {
     // start building the return value with just the whole value
     String returnValue = wholeNumber.toString();
 
+    // if true and withUnitName is true, we will show "~" prepended on amount
+    bool didLosePrecision = false;
+
     // if any decimal places should be shown continue building the return value
     if (places > 0) {
       // get the fractional value
@@ -162,6 +165,13 @@ extension AmountUnitExt on AmountUnit {
       }
 
       if (remainder.length > actualDecimalPlaces) {
+        // check for loss of precision
+        final remainingRemainder =
+            BigInt.tryParse(remainder.substring(actualDecimalPlaces));
+        if (remainingRemainder != null) {
+          didLosePrecision = remainingRemainder > BigInt.zero;
+        }
+
         // trim unwanted trailing digits
         remainder = remainder.substring(0, actualDecimalPlaces);
       } else if (remainder.length < actualDecimalPlaces) {
@@ -190,6 +200,11 @@ extension AmountUnitExt on AmountUnit {
     if (tokenContract != null) {
       overrideUnit = unitForContract(tokenContract);
     }
+
+    if (didLosePrecision) {
+      returnValue = "~$returnValue";
+    }
+
     return "$returnValue ${overrideUnit ?? unitForCoin(coin)}";
   }
 }
