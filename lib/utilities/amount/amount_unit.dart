@@ -6,6 +6,7 @@ import 'package:intl/number_symbols_data.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
+// preserve index order as index is used to store value in preferences
 enum AmountUnit {
   normal(0),
   milli(3),
