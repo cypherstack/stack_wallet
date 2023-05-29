@@ -33,17 +33,6 @@ class _FakeDuration_0 extends _i1.SmartFake implements Duration {
         );
 }
 
-class _FakeJsonRPCResponse_1 extends _i1.SmartFake
-    implements _i2.JsonRPCResponse {
-  _FakeJsonRPCResponse_1(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
 /// A class which mocks [JsonRPC].
 ///
 /// See the documentation for Mockito's code generation for more information.
@@ -58,15 +47,39 @@ class MockJsonRPC extends _i1.Mock implements _i2.JsonRPC {
         returnValue: false,
       ) as bool);
   @override
+  set useSSL(bool? _useSSL) => super.noSuchMethod(
+        Invocation.setter(
+          #useSSL,
+          _useSSL,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   String get host => (super.noSuchMethod(
         Invocation.getter(#host),
         returnValue: '',
       ) as String);
   @override
+  set host(String? _host) => super.noSuchMethod(
+        Invocation.setter(
+          #host,
+          _host,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   int get port => (super.noSuchMethod(
         Invocation.getter(#port),
         returnValue: 0,
       ) as int);
+  @override
+  set port(int? _port) => super.noSuchMethod(
+        Invocation.setter(
+          #port,
+          _port,
+        ),
+        returnValueForMissingStub: null,
+      );
   @override
   Duration get connectionTimeout => (super.noSuchMethod(
         Invocation.getter(#connectionTimeout),
@@ -76,40 +89,21 @@ class MockJsonRPC extends _i1.Mock implements _i2.JsonRPC {
         ),
       ) as Duration);
   @override
-  _i3.Future<_i2.JsonRPCResponse> request(String? jsonRpcRequest) =>
-      (super.noSuchMethod(
+  set connectionTimeout(Duration? _connectionTimeout) => super.noSuchMethod(
+        Invocation.setter(
+          #connectionTimeout,
+          _connectionTimeout,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i3.Future<dynamic> request(String? jsonRpcRequest) => (super.noSuchMethod(
         Invocation.method(
           #request,
           [jsonRpcRequest],
         ),
-        returnValue:
-            _i3.Future<_i2.JsonRPCResponse>.value(_FakeJsonRPCResponse_1(
-          this,
-          Invocation.method(
-            #request,
-            [jsonRpcRequest],
-          ),
-        )),
-      ) as _i3.Future<_i2.JsonRPCResponse>);
-  @override
-  _i3.Future<void> disconnect({required String? reason}) => (super.noSuchMethod(
-        Invocation.method(
-          #disconnect,
-          [],
-          {#reason: reason},
-        ),
-        returnValue: _i3.Future<void>.value(),
-        returnValueForMissingStub: _i3.Future<void>.value(),
-      ) as _i3.Future<void>);
-  @override
-  _i3.Future<void> connect() => (super.noSuchMethod(
-        Invocation.method(
-          #connect,
-          [],
-        ),
-        returnValue: _i3.Future<void>.value(),
-        returnValueForMissingStub: _i3.Future<void>.value(),
-      ) as _i3.Future<void>);
+        returnValue: _i3.Future<dynamic>.value(),
+      ) as _i3.Future<dynamic>);
 }
 
 /// A class which mocks [Prefs].

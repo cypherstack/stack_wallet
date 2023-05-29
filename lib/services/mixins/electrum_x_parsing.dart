@@ -258,6 +258,7 @@ mixin ElectrumXParsing {
       nonce: null,
       inputs: ins,
       outputs: outs,
+      numberOfMessages: null,
     );
 
     return Tuple2(tx, transactionAddress);
