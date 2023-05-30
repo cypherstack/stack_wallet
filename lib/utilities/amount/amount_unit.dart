@@ -26,6 +26,10 @@ enum AmountUnit {
   pico(12),
   femto(15),
   atto(18),
+  zepto(21),
+  yocto(24),
+  ronto(27),
+  quecto(30),
   ;
 
   const AmountUnit(this.shift);
@@ -54,6 +58,9 @@ enum AmountUnit {
         return AmountUnit.values.sublist(0, 5);
 
       case Coin.ethereum:
+        return AmountUnit.values.sublist(0, 7);
+
+      case Coin.nano:
         return AmountUnit.values;
     }
   }
@@ -71,7 +78,9 @@ extension AmountUnitExt on AmountUnit {
       case AmountUnit.nano:
         if (coin == Coin.ethereum) {
           return "gwei";
-        } else if (coin == Coin.wownero || coin == Coin.monero) {
+        } else if (coin == Coin.wownero ||
+            coin == Coin.monero ||
+            coin == Coin.nano) {
           return "n${coin.ticker}";
         } else {
           return "sats";
@@ -79,7 +88,9 @@ extension AmountUnitExt on AmountUnit {
       case AmountUnit.pico:
         if (coin == Coin.ethereum) {
           return "mwei";
-        } else if (coin == Coin.wownero || coin == Coin.monero) {
+        } else if (coin == Coin.wownero ||
+            coin == Coin.monero ||
+            coin == Coin.nano) {
           return "p${coin.ticker}";
         } else {
           return "invalid";
@@ -87,12 +98,40 @@ extension AmountUnitExt on AmountUnit {
       case AmountUnit.femto:
         if (coin == Coin.ethereum) {
           return "kwei";
+        } else if (coin == Coin.nano) {
+          return "f${coin.ticker}";
         } else {
           return "invalid";
         }
       case AmountUnit.atto:
         if (coin == Coin.ethereum) {
           return "wei";
+        } else if (coin == Coin.nano) {
+          return "a${coin.ticker}";
+        } else {
+          return "invalid";
+        }
+      case AmountUnit.zepto:
+        if (coin == Coin.nano) {
+          return "z${coin.ticker}";
+        } else {
+          return "invalid";
+        }
+      case AmountUnit.yocto:
+        if (coin == Coin.nano) {
+          return "y${coin.ticker}";
+        } else {
+          return "invalid";
+        }
+      case AmountUnit.ronto:
+        if (coin == Coin.nano) {
+          return "r${coin.ticker}";
+        } else {
+          return "invalid";
+        }
+      case AmountUnit.quecto:
+        if (coin == Coin.nano) {
+          return "q${coin.ticker}";
         } else {
           return "invalid";
         }
@@ -115,6 +154,10 @@ extension AmountUnitExt on AmountUnit {
         return "kwei";
       case AmountUnit.atto:
         return "wei";
+      default:
+        throw ArgumentError(
+          "Does eth even allow more than 18 decimal places?",
+        );
     }
   }
 
