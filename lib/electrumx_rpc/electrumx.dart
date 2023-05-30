@@ -567,8 +567,9 @@ class ElectrumX {
     bool verbose = true,
     String? requestID,
   }) async {
+    dynamic response;
     try {
-      final response = await request(
+      response = await request(
         requestID: requestID,
         command: 'blockchain.transaction.get',
         args: [
@@ -582,6 +583,10 @@ class ElectrumX {
 
       return Map<String, dynamic>.from(response["result"] as Map);
     } catch (e) {
+      Logging.instance.log(
+        "getTransaction($txHash) response: $response",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }
