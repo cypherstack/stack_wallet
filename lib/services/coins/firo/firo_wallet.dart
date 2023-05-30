@@ -449,6 +449,7 @@ Future<Map<dynamic, dynamic>> staticProcessRestore(
           nonce: null,
           inputs: element.inputs,
           outputs: element.outputs,
+          numberOfMessages: null,
         )..address.value = element.address.value;
       }
     });
@@ -891,6 +892,7 @@ class FiroWallet extends CoinServiceAPI
       nonce: null,
       inputs: [],
       outputs: [],
+      numberOfMessages: null,
     );
 
     final address = txData["address"] is String
@@ -3038,6 +3040,7 @@ class FiroWallet extends CoinServiceAPI
           otherData: transactionInfo["otherData"] as String?,
           inputs: [],
           outputs: [],
+          numberOfMessages: null,
         );
 
         final transactionAddress = await db
@@ -3518,6 +3521,7 @@ class FiroWallet extends CoinServiceAPI
           nonce: null,
           inputs: ins,
           outputs: [],
+          numberOfMessages: null,
         );
 
         txnsData.add(Tuple2(tx, null));
@@ -3640,6 +3644,7 @@ class FiroWallet extends CoinServiceAPI
           nonce: null,
           inputs: ins,
           outputs: outs,
+          numberOfMessages: null,
         );
 
         txnsData.add(Tuple2(tx, transactionAddress));
@@ -3791,6 +3796,7 @@ class FiroWallet extends CoinServiceAPI
           nonce: null,
           inputs: ins,
           outputs: outs,
+          numberOfMessages: null,
         );
 
         txnsData.add(Tuple2(tx, transactionAddress));
@@ -5069,6 +5075,7 @@ class FiroWallet extends CoinServiceAPI
             nonce: null,
             inputs: [],
             outputs: [],
+            numberOfMessages: null,
           );
 
           final address = await db

@@ -1145,6 +1145,7 @@ class DogecoinWallet extends CoinServiceAPI
       nonce: null,
       inputs: [],
       outputs: [],
+      numberOfMessages: null,
     );
 
     final address = txData["address"] is String

@@ -1153,10 +1153,6 @@ class EpicCashWallet extends CoinServiceAPI
   Future<bool> startScans() async {
     try {
       if (ListenerManager.pointer != null) {
-        Logging.instance
-            .log("LISTENER HANDLER IS NOT NULL ....", level: LogLevel.Info);
-        Logging.instance
-            .log("STOPPING ANY WALLET LISTENER ....", level: LogLevel.Info);
         epicboxListenerStop(ListenerManager.pointer!);
       }
 
@@ -1648,7 +1644,7 @@ class EpicCashWallet extends CoinServiceAPI
   Future<void> _refreshTransactions() async {
     // final currentChainHeight = await chainHeight;
     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
-    const refreshFromNode = 0;
+    const refreshFromNode = 1;
 
     dynamic message;
     await m.protect(() async {
@@ -1714,6 +1710,7 @@ class EpicCashWallet extends CoinServiceAPI
               ?[tx["tx_type"] == "TxReceived" ? "from" : "to"] as String? ??
           "";
       String? commitId = slatesToCommits[slateId]?['commitId'] as String?;
+      tx['numberOfMessages'] = tx['messages']?['messages']?.length;
 
       int? height;
 
@@ -1725,6 +1722,7 @@ class EpicCashWallet extends CoinServiceAPI
 
       final isIncoming = (tx["tx_type"] == "TxReceived" ||
           tx["tx_type"] == "TxReceivedCancelled");
+
 
       final txn = isar_models.Transaction(
         walletId: walletId,
@@ -1749,6 +1747,7 @@ class EpicCashWallet extends CoinServiceAPI
         otherData: tx["id"].toString(),
         inputs: [],
         outputs: [],
+        numberOfMessages: ((tx["numberOfMessages"] == null) ? 0 : tx["numberOfMessages"]) as int,
       );
 
       // txn.address =

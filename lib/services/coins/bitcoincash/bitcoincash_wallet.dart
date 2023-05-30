@@ -1158,6 +1158,7 @@ class BitcoinCashWallet extends CoinServiceAPI
       nonce: null,
       inputs: [],
       outputs: [],
+      numberOfMessages: null,
     );
 
     final address = txData["address"] is String
@@ -2142,6 +2143,7 @@ class BitcoinCashWallet extends CoinServiceAPI
         nonce: null,
         inputs: inputs,
         outputs: outputs,
+        numberOfMessages: null,
       );
 
       txns.add(Tuple2(tx, transactionAddress));

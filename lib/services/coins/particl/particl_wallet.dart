@@ -1193,6 +1193,7 @@ class ParticlWallet extends CoinServiceAPI
       nonce: null,
       inputs: [],
       outputs: [],
+      numberOfMessages: null,
     );
 
     final address = txData["address"] is String
@@ -2396,6 +2397,7 @@ class ParticlWallet extends CoinServiceAPI
         nonce: null,
         slateId: null,
         otherData: null,
+        numberOfMessages: null,
       );
 
       txns.add(Tuple2(tx, transactionAddress));

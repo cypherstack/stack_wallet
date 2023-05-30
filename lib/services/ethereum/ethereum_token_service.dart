@@ -169,6 +169,7 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
           response.value?.nonce.toBigIntFromHex.toInt(),
       inputs: [],
       outputs: [],
+      numberOfMessages: null,
     );
 
     Address? address = await ethWallet.db.getAddress(
@@ -519,6 +520,7 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
           otherData: tuple.item1.address,
           inputs: [],
           outputs: [],
+          numberOfMessages: null,
         );
 
         Address? transactionAddress = await ethWallet.db

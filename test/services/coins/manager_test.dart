@@ -126,6 +126,7 @@ void main() {
       nonce: null,
       inputs: [],
       outputs: [],
+      numberOfMessages: null,
     );
     when(wallet.transactions).thenAnswer((_) async => [
           tx,
