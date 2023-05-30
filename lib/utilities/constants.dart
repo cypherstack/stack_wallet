@@ -30,10 +30,13 @@ abstract class Constants {
   static final BigInt _satsPerCoinMonero = BigInt.from(1000000000000);
   static final BigInt _satsPerCoinWownero = BigInt.from(100000000000);
   static final BigInt _satsPerCoinNano =
-      BigInt.parse("1000000000000000000000000000000");
+      BigInt.parse("1000000000000000000000000000000");// 1*10^30
+  static final BigInt _satsPerCoinBanano =
+      BigInt.parse("100000000000000000000000000000");// 1*10^29
   static final BigInt _satsPerCoin = BigInt.from(100000000);
   static const int _decimalPlaces = 8;
   static const int _decimalPlacesNano = 30;
+  static const int _decimalPlacesBanano = 29;
   static const int _decimalPlacesWownero = 11;
   static const int _decimalPlacesMonero = 12;
   static const int _decimalPlacesEthereum = 18;
@@ -71,6 +74,9 @@ abstract class Constants {
       case Coin.nano:
         return _satsPerCoinNano;
 
+      case Coin.banano:
+        return _satsPerCoinBanano;
+
       case Coin.wownero:
         return _satsPerCoinWownero;
 
@@ -105,6 +111,9 @@ abstract class Constants {
       case Coin.nano:
         return _decimalPlacesNano;
 
+      case Coin.banano:
+        return _decimalPlacesBanano;
+
       case Coin.wownero:
         return _decimalPlacesWownero;
 
@@ -138,7 +147,10 @@ abstract class Constants {
       case Coin.namecoin:
       case Coin.particl:
       case Coin.nano:
-        values.addAll([24, 21, 18, 15, 12]);
+        values.addAll([24, 12]);
+        break;
+      case Coin.banano:
+        values.addAll([24, 12]);
         break;
 
       case Coin.monero:
@@ -192,7 +204,8 @@ abstract class Constants {
         return 600;
 
       case Coin.nano: // TODO: Verify this
-        return 3;
+      case Coin.banano: // TODO: Verify this
+        return 1;
     }
   }
 

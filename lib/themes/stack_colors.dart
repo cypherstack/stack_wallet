@@ -1699,6 +1699,8 @@ class StackColors extends ThemeExtension<StackColors> {
         return _coin.particl;
       case Coin.nano:
         return _coin.nano;
+      case Coin.banano:
+        return _coin.banano;
     }
   }
 

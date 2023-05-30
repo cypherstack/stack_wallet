@@ -90,7 +90,7 @@ class PriceAPI {
           Uri.parse("https://api.coingecko.com/api/v3/coins/markets?vs_currency"
               "=${baseCurrency.toLowerCase()}"
               "&ids=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
-              "bitcoin-cash,namecoin,wownero,ethereum,particl,nano"
+              "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,ban"
               "&order=market_cap_desc&per_page=50&page=1&sparkline=false");
 
       final coinGeckoResponse = await client.get(

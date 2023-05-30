@@ -124,7 +124,8 @@ enum AddressType {
   unknown,
   nonWallet,
   ethereum,
-  nano;
+  nano,
+  banano;
 
   String get readableName {
     switch (this) {
@@ -146,6 +147,8 @@ enum AddressType {
         return "Ethereum";
       case AddressType.nano:
         return "Nano";
+      case AddressType.banano:
+        return "Banano";
     }
   }
 }

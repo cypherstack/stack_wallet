@@ -45,6 +45,8 @@ Uri getDefaultBlockExplorerUrlFor({
       return Uri.parse("https://chainz.cryptoid.info/part/tx.dws?$txid.htm");
     case Coin.nano:
       return Uri.parse("https://www.nanolooker.com/block/$txid");
+    case Coin.banano:
+      return Uri.parse("https://www.bananolooker.com/block/$txid");
   }
 }
 

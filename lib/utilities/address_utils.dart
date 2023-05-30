@@ -77,6 +77,8 @@ class AddressUtils {
         return Address.validateAddress(address, particl);
       case Coin.nano:
         return NanoAccounts.isValid(NanoAccountType.NANO, address);
+      case Coin.banano:
+        return NanoAccounts.isValid(NanoAccountType.BANANO, address);
       case Coin.bitcoinTestNet:
         return Address.validateAddress(address, testnet);
       case Coin.litecoinTestNet:

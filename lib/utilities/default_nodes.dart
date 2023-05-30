@@ -183,6 +183,18 @@ abstract class DefaultNodes {
       isDown: false
   );
 
+  static NodeModel get banano => NodeModel(
+      host: "https://kaliumapi.appditto.com/api",
+      port: 443,
+      name: defaultName,
+      id: _nodeId(Coin.banano),
+      useSSL: true,
+      enabled: true,
+      coinName: Coin.banano.name,
+      isFailover: true,
+      isDown: false
+  );
+
   static NodeModel get bitcoinTestnet => NodeModel(
         host: "bitcoin-testnet.stackwallet.com",
         port: 51002,
