@@ -221,7 +221,6 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
                                     child: FavoriteCard(
                                       key: Key("favCard_$walletId"),
                                       walletId: walletId!,
-                                      managerProvider: managerProvider!,
                                       width: cardWidth,
                                       height: cardHeight,
                                     ),
@@ -229,7 +228,6 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
                                 : FavoriteCard(
                                     key: Key("favCard_$walletId"),
                                     walletId: walletId!,
-                                    managerProvider: managerProvider!,
                                     width: cardWidth,
                                     height: cardHeight,
                                   )

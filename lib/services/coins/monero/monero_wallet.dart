@@ -964,6 +964,7 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
           nonce: null,
           inputs: [],
           outputs: [],
+          numberOfMessages: null,
         );
 
         txnsData.add(Tuple2(txn, address));

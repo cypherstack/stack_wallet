@@ -142,8 +142,12 @@ class ElectrumX {
 
       final response = await _rpcClient!.request(jsonRequestString);
 
-      if (response["error"] != null) {
-        if (response["error"]
+      if (response.exception != null) {
+        throw response.exception!;
+      }
+
+      if (response.data["error"] != null) {
+        if (response.data["error"]
             .toString()
             .contains("No such mempool or blockchain transaction")) {
           throw NoSuchTransactionException(
@@ -153,11 +157,15 @@ class ElectrumX {
         }
 
         throw Exception(
-            "JSONRPC response     \ncommand: $command     \nargs: $args     \nerror: $response");
+          "JSONRPC response\n"
+          "     command: $command\n"
+          "     args: $args\n"
+          "     error: $response.data",
+        );
       }
 
       currentFailoverIndex = -1;
-      return response;
+      return response.data;
     } on WifiOnlyException {
       rethrow;
     } on SocketException {
@@ -238,7 +246,13 @@ class ElectrumX {
       // Logging.instance.log("batch request: $request");
 
       // send batch request
-      final response = (await _rpcClient!.request(request)) as List<dynamic>;
+      final jsonRpcResponse = (await _rpcClient!.request(request));
+
+      if (jsonRpcResponse.exception != null) {
+        throw jsonRpcResponse.exception!;
+      }
+
+      final response = jsonRpcResponse.data as List;
 
       // check for errors, format and throw if there are any
       final List<String> errors = [];
@@ -320,6 +334,13 @@ class ElectrumX {
         requestID: requestID,
         command: 'blockchain.headers.subscribe',
       );
+      if (response["result"] == null) {
+        Logging.instance.log(
+          "getBlockHeadTip returned null response",
+          level: LogLevel.Error,
+        );
+        throw 'getBlockHeadTip returned null response';
+      }
       return Map<String, dynamic>.from(response["result"] as Map);
     } catch (e) {
       rethrow;
@@ -556,8 +577,9 @@ class ElectrumX {
     bool verbose = true,
     String? requestID,
   }) async {
+    dynamic response;
     try {
-      final response = await request(
+      response = await request(
         requestID: requestID,
         command: 'blockchain.transaction.get',
         args: [
@@ -571,6 +593,10 @@ class ElectrumX {
 
       return Map<String, dynamic>.from(response["result"] as Map);
     } catch (e) {
+      Logging.instance.log(
+        "getTransaction($txHash) response: $response",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }

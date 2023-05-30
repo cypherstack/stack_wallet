@@ -26,6 +26,7 @@ import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -157,13 +158,7 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
             Row(
               children: [
                 Text(
-                  "You need to send ${amount.localizedStringAsFixed(
-                    locale: ref.watch(
-                      localeServiceChangeNotifierProvider.select(
-                        (value) => value.locale,
-                      ),
-                    ),
-                  )} ${coin.ticker}",
+                  "You need to send ${ref.watch(pAmountFormatter(coin)).format(amount)}",
                   style: isDesktop
                       ? STextStyles.desktopTextExtraExtraSmall(context)
                       : STextStyles.itemSubtitle(context),
@@ -463,9 +458,10 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                               style: STextStyles.itemSubtitle(context),
                             ),
                             Text(
-                              "${(manager.wallet as FiroWallet).availablePrivateBalance().localizedStringAsFixed(
-                                    locale: locale,
-                                  )} ${coin.ticker}",
+                              ref.watch(pAmountFormatter(coin)).format(
+                                    (manager.wallet as FiroWallet)
+                                        .availablePrivateBalance(),
+                                  ),
                               style: STextStyles.itemSubtitle(context),
                             ),
                           ],
@@ -525,9 +521,9 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                               style: STextStyles.itemSubtitle(context),
                             ),
                             Text(
-                              "${(manager.wallet as FiroWallet).availablePublicBalance().localizedStringAsFixed(
-                                    locale: locale,
-                                  )} ${coin.ticker}",
+                              ref.watch(pAmountFormatter(coin)).format(
+                                  (manager.wallet as FiroWallet)
+                                      .availablePublicBalance()),
                               style: STextStyles.itemSubtitle(context),
                             ),
                           ],
@@ -615,9 +611,9 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                       ),
                     if (!isFiro)
                       Text(
-                        "${manager.balance.spendable.localizedStringAsFixed(
-                          locale: locale,
-                        )} ${coin.ticker}",
+                        ref
+                            .watch(pAmountFormatter(coin))
+                            .format(manager.balance.spendable),
                         style: STextStyles.itemSubtitle(context),
                       ),
                   ],

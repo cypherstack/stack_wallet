@@ -165,6 +165,9 @@ class Transaction {
   // @HiveField(18)
   final String? otherData;
 
+  // @HiveField(16)
+  final int? numberOfMessages;
+
   Transaction({
     required this.txid,
     required this.confirmedStatus,
@@ -186,6 +189,7 @@ class Transaction {
     this.isCancelled = false,
     this.slateId,
     this.otherData,
+    this.numberOfMessages,
   });
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
@@ -221,6 +225,7 @@ class Transaction {
       isCancelled: json["isCancelled"] as bool? ?? false,
       slateId: json["slateId"] as String?,
       otherData: json["otherData"] as String?,
+      numberOfMessages: json["numberOfMessages"] as int?,
     );
   }
 
@@ -279,6 +284,7 @@ class Transaction {
     bool? isCancelled,
     String? slateId,
     String? otherData,
+    int? numberOfMessages,
   }) {
     return Transaction(
       txid: txid ?? this.txid,
@@ -302,13 +308,14 @@ class Transaction {
       isCancelled: isCancelled ?? this.isCancelled,
       slateId: slateId ?? this.slateId,
       otherData: otherData ?? this.otherData,
+      numberOfMessages: numberOfMessages ?? this.numberOfMessages,
     );
   }
 
   @override
   String toString() {
     String transaction =
-        "{txid: $txid, type: $txType, subType: $subType, value: $amount, fee: $fees, height: $height, confirm: $confirmedStatus, confirmations: $confirmations, address: $address, timestamp: $timestamp, worthNow: $worthNow, inputs: $inputs, slateid: $slateId }";
+        "{txid: $txid, type: $txType, subType: $subType, value: $amount, fee: $fees, height: $height, confirm: $confirmedStatus, confirmations: $confirmations, address: $address, timestamp: $timestamp, worthNow: $worthNow, inputs: $inputs, slateid: $slateId, numberOfMessages: $numberOfMessages }";
     return transaction;
   }
 }

@@ -30,6 +30,7 @@ import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -393,9 +394,8 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
           final String fiatAmountString = Amount.fromDecimal(
             _amountToSend!.decimal * price,
             fractionDigits: 2,
-          ).localizedStringAsFixed(
+          ).fiatString(
             locale: ref.read(localeServiceChangeNotifierProvider).locale,
-            decimalPlaces: 2,
           );
 
           baseAmountController.text = fiatAmountString;
@@ -463,11 +463,11 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
             fractionDigits:
                 ref.read(tokenServiceProvider)!.tokenContract.decimals,
           );
-          cryptoAmountController.text = amount.localizedStringAsFixed(
-            locale: ref.read(localeServiceChangeNotifierProvider).locale,
-          );
+          cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
+                amount,
+                withUnitName: false,
+              );
 
-          amount.toString();
           _amountToSend = amount;
         }
 
@@ -551,10 +551,11 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
       Logging.instance.log("it changed $_amountToSend $_cachedAmountToSend",
           level: LogLevel.Info);
 
-      final amountString = _amountToSend!.localizedStringAsFixed(
-        locale: ref.read(localeServiceChangeNotifierProvider).locale,
-        decimalPlaces: tokenDecimals,
-      );
+      final amountString = ref.read(pAmountFormatter(coin)).format(
+            _amountToSend!,
+            withUnitName: false,
+            ethContract: ref.read(tokenServiceProvider)!.tokenContract,
+          );
 
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = amountString;

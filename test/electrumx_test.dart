@@ -57,16 +57,18 @@ void main() {
     const jsonArgs = '["",true]';
     when(
       mockClient.request(
-          '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+        '{"jsonrpc": "2.0", "id": "some requestId",'
+        '"method": "$command","params": $jsonArgs}',
+      ),
     ).thenAnswer(
-      (_) async => {
+      (_) async => JsonRPCResponse(data: {
         "jsonrpc": "2.0",
         "error": {
           "code": 1,
           "message": "None should be a transaction hash",
         },
         "id": "some requestId",
-      },
+      }),
     );
 
     final mockPrefs = MockPrefs();
@@ -93,13 +95,15 @@ void main() {
       const jsonArgs = '[]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenAnswer(
-        (_) async => {
+        (_) async => JsonRPCResponse(data: {
           "jsonrpc": "2.0",
           "result": {"height": 520481, "hex": "some block hex string"},
           "id": "some requestId"
-        },
+        }),
       );
 
       final mockPrefs = MockPrefs();
@@ -126,7 +130,9 @@ void main() {
       const jsonArgs = '[]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
@@ -153,9 +159,15 @@ void main() {
       const jsonArgs = '[]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenAnswer(
-        (_) async => {"jsonrpc": "2.0", "result": null, "id": "some requestId"},
+        (_) async => JsonRPCResponse(data: {
+          "jsonrpc": "2.0",
+          "result": null,
+          "id": "some requestId",
+        }),
       );
 
       final mockPrefs = MockPrefs();
@@ -181,7 +193,9 @@ void main() {
       const jsonArgs = '[]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
@@ -208,9 +222,11 @@ void main() {
       const jsonArgs = '[]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenAnswer(
-        (_) async => {
+        (_) async => JsonRPCResponse(data: {
           "jsonrpc": "2.0",
           "result": {
             "genesis_hash":
@@ -225,7 +241,7 @@ void main() {
             "hash_function": "sha256"
           },
           "id": "some requestId"
-        },
+        }),
       );
 
       final mockPrefs = MockPrefs();
@@ -263,7 +279,9 @@ void main() {
       const jsonArgs = '[]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
@@ -290,13 +308,15 @@ void main() {
       const jsonArgs = '["some raw transaction string"]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenAnswer(
-        (_) async => {
+        (_) async => JsonRPCResponse(data: {
           "jsonrpc": "2.0",
           "result": "the txid of the rawtx",
           "id": "some requestId"
-        },
+        }),
       );
 
       final mockPrefs = MockPrefs();
@@ -323,7 +343,9 @@ void main() {
       const jsonArgs = '["some raw transaction string"]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
@@ -353,16 +375,18 @@ void main() {
       const jsonArgs = '["dummy hash"]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenAnswer(
-        (_) async => {
+        (_) async => JsonRPCResponse(data: {
           "jsonrpc": "2.0",
           "result": {
             "confirmed": 103873966,
             "unconfirmed": 23684400,
           },
           "id": "some requestId"
-        },
+        }),
       );
 
       final mockPrefs = MockPrefs();
@@ -389,7 +413,9 @@ void main() {
       const jsonArgs = '["dummy hash"]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
@@ -418,9 +444,11 @@ void main() {
       const jsonArgs = '["dummy hash"]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenAnswer(
-        (_) async => {
+        (_) async => JsonRPCResponse(data: {
           "jsonrpc": "2.0",
           "result": [
             {
@@ -435,7 +463,7 @@ void main() {
             }
           ],
           "id": "some requestId"
-        },
+        }),
       );
 
       final mockPrefs = MockPrefs();
@@ -473,7 +501,9 @@ void main() {
       const jsonArgs = '["dummy hash"]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
@@ -502,9 +532,11 @@ void main() {
       const jsonArgs = '["dummy hash"]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenAnswer(
-        (_) async => {
+        (_) async => JsonRPCResponse(data: {
           "jsonrpc": "2.0",
           "result": [
             {
@@ -523,7 +555,7 @@ void main() {
             }
           ],
           "id": "some requestId"
-        },
+        }),
       );
 
       final mockPrefs = MockPrefs();
@@ -565,7 +597,9 @@ void main() {
       const jsonArgs = '["dummy hash"]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
@@ -594,13 +628,15 @@ void main() {
       const jsonArgs = '["${SampleGetTransactionData.txHash0}",true]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenAnswer(
-        (_) async => {
+        (_) async => JsonRPCResponse(data: {
           "jsonrpc": "2.0",
           "result": SampleGetTransactionData.txData0,
           "id": "some requestId"
-        },
+        }),
       );
 
       final mockPrefs = MockPrefs();
@@ -629,7 +665,9 @@ void main() {
       const jsonArgs = '["${SampleGetTransactionData.txHash0}",true]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
@@ -659,13 +697,15 @@ void main() {
       const jsonArgs = '["1",""]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenAnswer(
-        (_) async => {
+        (_) async => JsonRPCResponse(data: {
           "jsonrpc": "2.0",
           "result": GetAnonymitySetSampleData.data,
           "id": "some requestId"
-        },
+        }),
       );
 
       final mockPrefs = MockPrefs();
@@ -692,7 +732,9 @@ void main() {
       const jsonArgs = '["1",""]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
@@ -721,13 +763,15 @@ void main() {
       const jsonArgs = '["some mints"]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenAnswer(
-        (_) async => {
+        (_) async => JsonRPCResponse(data: {
           "jsonrpc": "2.0",
           "result": "mint meta data",
           "id": "some requestId"
-        },
+        }),
       );
 
       final mockPrefs = MockPrefs();
@@ -754,7 +798,9 @@ void main() {
       const jsonArgs = '["some mints"]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
@@ -783,13 +829,15 @@ void main() {
       const jsonArgs = '["0"]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenAnswer(
-        (_) async => {
+        (_) async => JsonRPCResponse(data: {
           "jsonrpc": "2.0",
           "result": GetUsedSerialsSampleData.serials,
           "id": "some requestId"
-        },
+        }),
       );
 
       final mockPrefs = MockPrefs();
@@ -816,7 +864,9 @@ void main() {
       const jsonArgs = '["0"]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
@@ -845,9 +895,15 @@ void main() {
       const jsonArgs = '[]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenAnswer(
-        (_) async => {"jsonrpc": "2.0", "result": 1, "id": "some requestId"},
+        (_) async => JsonRPCResponse(data: {
+          "jsonrpc": "2.0",
+          "result": 1,
+          "id": "some requestId",
+        }),
       );
 
       final mockPrefs = MockPrefs();
@@ -873,7 +929,9 @@ void main() {
       const jsonArgs = '[]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
@@ -886,7 +944,10 @@ void main() {
           prefs: mockPrefs,
           failovers: []);
 
-      expect(() => client.getLatestCoinId(requestID: "some requestId"),
+      expect(
+          () => client.getLatestCoinId(
+                requestID: "some requestId",
+              ),
           throwsA(isA<Exception>()));
       verify(mockPrefs.wifiOnly).called(1);
       verifyNoMoreInteractions(mockPrefs);
@@ -900,13 +961,15 @@ void main() {
       const jsonArgs = '["1",""]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenAnswer(
-        (_) async => {
+        (_) async => JsonRPCResponse(data: {
           "jsonrpc": "2.0",
           "result": GetAnonymitySetSampleData.data,
           "id": "some requestId"
-        },
+        }),
       );
 
       final mockPrefs = MockPrefs();
@@ -933,7 +996,9 @@ void main() {
       const jsonArgs = '["1",""]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
@@ -947,8 +1012,10 @@ void main() {
           failovers: []);
 
       expect(
-          () =>
-              client.getAnonymitySet(groupId: "1", requestID: "some requestId"),
+          () => client.getAnonymitySet(
+                groupId: "1",
+                requestID: "some requestId",
+              ),
           throwsA(isA<Exception>()));
       verify(mockPrefs.wifiOnly).called(1);
       verifyNoMoreInteractions(mockPrefs);
@@ -962,13 +1029,15 @@ void main() {
       const jsonArgs = '["some mints"]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenAnswer(
-        (_) async => {
+        (_) async => JsonRPCResponse(data: {
           "jsonrpc": "2.0",
           "result": "mint meta data",
           "id": "some requestId"
-        },
+        }),
       );
 
       final mockPrefs = MockPrefs();
@@ -995,7 +1064,9 @@ void main() {
       const jsonArgs = '["some mints"]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
@@ -1010,7 +1081,9 @@ void main() {
 
       expect(
           () => client.getMintData(
-              mints: "some mints", requestID: "some requestId"),
+                mints: "some mints",
+                requestID: "some requestId",
+              ),
           throwsA(isA<Exception>()));
       verify(mockPrefs.wifiOnly).called(1);
       verifyNoMoreInteractions(mockPrefs);
@@ -1024,13 +1097,15 @@ void main() {
       const jsonArgs = '["0"]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenAnswer(
-        (_) async => {
+        (_) async => JsonRPCResponse(data: {
           "jsonrpc": "2.0",
           "result": GetUsedSerialsSampleData.serials,
           "id": "some requestId"
-        },
+        }),
       );
 
       final mockPrefs = MockPrefs();
@@ -1057,7 +1132,9 @@ void main() {
       const jsonArgs = '["0"]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
@@ -1086,9 +1163,15 @@ void main() {
       const jsonArgs = '[]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenAnswer(
-        (_) async => {"jsonrpc": "2.0", "result": 1, "id": "some requestId"},
+        (_) async => JsonRPCResponse(data: {
+          "jsonrpc": "2.0",
+          "result": 1,
+          "id": "some requestId",
+        }),
       );
 
       final mockPrefs = MockPrefs();
@@ -1114,7 +1197,9 @@ void main() {
       const jsonArgs = '[]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
@@ -1141,15 +1226,17 @@ void main() {
       const jsonArgs = '[]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenAnswer(
-        (_) async => {
+        (_) async => JsonRPCResponse(data: {
           "jsonrpc": "2.0",
           "result": {
             "rate": 1000,
           },
           "id": "some requestId"
-        },
+        }),
       );
 
       final mockPrefs = MockPrefs();
@@ -1175,7 +1262,9 @@ void main() {
       const jsonArgs = '[]';
       when(
         mockClient.request(
-            '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}'),
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+        ),
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();

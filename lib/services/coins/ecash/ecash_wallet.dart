@@ -57,7 +57,7 @@ import 'package:stackwallet/widgets/crypto_notifications.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 
-const int MINIMUM_CONFIRMATIONS = 1;
+const int MINIMUM_CONFIRMATIONS = 0;
 
 const String GENESIS_HASH_MAINNET =
     "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f";
@@ -371,9 +371,9 @@ class ECashWallet extends CoinServiceAPI
         print("format $format");
       }
 
-      if (_coin == Coin.bitcoincashTestnet) {
-        return true;
-      }
+      // if (_coin == Coin.bitcoincashTestnet) {
+      //   return true;
+      // }
 
       if (format == bitbox.Address.formatCashAddr) {
         return validateCashAddr(address);
@@ -420,15 +420,13 @@ class ECashWallet extends CoinServiceAPI
             ))
         .toList();
     final newNode = await getCurrentNode();
-    _cachedElectrumXClient = CachedElectrumX.from(
-      node: newNode,
-      prefs: _prefs,
-      failovers: failovers,
-    );
     _electrumXClient = ElectrumX.from(
       node: newNode,
       prefs: _prefs,
       failovers: failovers,
+    );
+    _cachedElectrumXClient = CachedElectrumX.from(
+      electrumXClient: _electrumXClient,
     );
 
     if (shouldRefresh) {
@@ -1377,6 +1375,7 @@ class ECashWallet extends CoinServiceAPI
         nonce: null,
         inputs: inputs,
         outputs: outputs,
+        numberOfMessages: null,
       );
 
       txns.add(Tuple2(tx, transactionAddress));
@@ -1909,7 +1908,7 @@ class ECashWallet extends CoinServiceAPI
     required List<int> satoshiAmounts,
   }) async {
     final builder = bitbox.Bitbox.transactionBuilder(
-      testnet: coin == Coin.bitcoincashTestnet,
+      testnet: false, //coin == Coin.bitcoincashTestnet,
     );
 
     // retrieve address' utxos from the rest api
@@ -2691,13 +2690,18 @@ class ECashWallet extends CoinServiceAPI
 
   void _periodicPingCheck() async {
     bool hasNetwork = await testNetworkConnection();
-    _isConnected = hasNetwork;
+
     if (_isConnected != hasNetwork) {
       NodeConnectionStatus status = hasNetwork
           ? NodeConnectionStatus.connected
           : NodeConnectionStatus.disconnected;
       GlobalEventBus.instance
           .fire(NodeConnectionStatusChangedEvent(status, walletId, coin));
+
+      _isConnected = hasNetwork;
+      if (hasNetwork) {
+        unawaited(refresh());
+      }
     }
   }
 
@@ -2782,6 +2786,7 @@ class ECashWallet extends CoinServiceAPI
       nonce: null,
       inputs: [],
       outputs: [],
+      numberOfMessages: null,
     );
 
     final address = txData["address"] is String

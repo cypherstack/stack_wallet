@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/manage_coin_units/manage_coin_units_view.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/advanced_settings/debug_info_dialog.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/advanced_settings/desktop_manage_block_explorers_dialog.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/advanced_settings/stack_privacy_dialog.dart';
@@ -287,6 +288,47 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                       ),
                     ],
                   ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.all(10.0),
+                  child: Divider(
+                    thickness: 0.5,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Units",
+                        style: STextStyles.desktopTextExtraSmall(context)
+                            .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark),
+                        textAlign: TextAlign.left,
+                      ),
+                      PrimaryButton(
+                        buttonHeight: ButtonHeight.xs,
+                        label: "Edit",
+                        width: 101,
+                        onPressed: () async {
+                          await showDialog<dynamic>(
+                            context: context,
+                            useSafeArea: false,
+                            barrierDismissible: true,
+                            builder: (context) {
+                              return const ManageCoinUnitsView();
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(
+                  height: 10,
                 ),
               ],
             ),

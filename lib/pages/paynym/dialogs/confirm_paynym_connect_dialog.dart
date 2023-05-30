@@ -9,9 +9,11 @@
  */
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -22,7 +24,7 @@ import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
-class ConfirmPaynymConnectDialog extends StatelessWidget {
+class ConfirmPaynymConnectDialog extends ConsumerWidget {
   const ConfirmPaynymConnectDialog({
     Key? key,
     required this.nymName,
@@ -40,14 +42,14 @@ class ConfirmPaynymConnectDialog extends StatelessWidget {
 
   String get title => "Connect to $nymName";
 
-  String get message => "A one-time connection fee of "
-      "${amount.localizedStringAsFixed(locale: locale)} ${coin.ticker} "
+  String message(String amountString) => "A one-time connection fee of "
+      "$amountString "
       "will be charged to connect to this PayNym.\n\nThis fee "
       "covers the cost of creating a one-time transaction to create a "
       "record on the blockchain. This keeps PayNyms decentralized.";
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (Util.isDesktop) {
       return DesktopDialog(
         maxHeight: double.infinity,
@@ -86,7 +88,7 @@ class ConfirmPaynymConnectDialog extends StatelessWidget {
                 right: 40,
               ),
               child: Text(
-                message,
+                message(ref.watch(pAmountFormatter(coin)).format(amount)),
                 style: STextStyles.desktopTextMedium(context).copyWith(
                   color: Theme.of(context).extension<StackColors>()!.textDark3,
                 ),
@@ -133,7 +135,7 @@ class ConfirmPaynymConnectDialog extends StatelessWidget {
           width: 24,
           height: 24,
         ),
-        message: message,
+        message: message(ref.watch(pAmountFormatter(coin)).format(amount)),
         leftButton: SecondaryButton(
           buttonHeight: ButtonHeight.xl,
           label: "Cancel",

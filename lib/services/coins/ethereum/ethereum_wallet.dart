@@ -954,6 +954,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
           response.value?.nonce.toBigIntFromHex.toInt(),
       inputs: [],
       outputs: [],
+      numberOfMessages: null,
     );
 
     Address? address = await db.getAddress(
@@ -1045,6 +1046,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
           nonce: tuple.item2,
           inputs: [],
           outputs: [],
+          numberOfMessages: null,
         );
 
         Address? transactionAddress = await db

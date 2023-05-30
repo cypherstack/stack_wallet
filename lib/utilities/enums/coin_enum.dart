@@ -74,7 +74,7 @@ extension CoinExt on Coin {
       case Coin.epicCash:
         return "Epic Cash";
       case Coin.eCash:
-        return "E-Cash";
+        return "eCash";
       case Coin.ethereum:
         return "Ethereum";
       case Coin.firo:

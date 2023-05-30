@@ -22,6 +22,7 @@ import 'package:stackwallet/providers/wallet/public_private_balance_state_provid
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -370,10 +371,10 @@ class FeeDropDownChild extends ConsumerWidget {
               children: [
                 Text(
                   "${feeRateType.prettyName} "
-                  "(~${snapshot.data!.decimal.toStringAsFixed(
-                    manager.coin.decimals,
-                  )} "
-                  "${manager.coin.ticker})",
+                  "(~${ref.watch(pAmountFormatter(manager.coin)).format(
+                        snapshot.data!,
+                        indicatePrecisionLoss: false,
+                      )})",
                   style:
                       STextStyles.desktopTextExtraExtraSmall(context).copyWith(
                     color: Theme.of(context)

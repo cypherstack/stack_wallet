@@ -25,6 +25,7 @@ import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -134,15 +135,24 @@ class _DesktopPaynymSendDialogState
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          "${!isFiro ? manager.balance.spendable.localizedStringAsFixed(
-                              locale: locale,
-                            ) : ref.watch(
-                                publicPrivateBalanceStateProvider.state,
-                              ).state == "Private" ? (manager.wallet as FiroWallet).availablePrivateBalance().localizedStringAsFixed(
-                                locale: locale,
-                              ) : (manager.wallet as FiroWallet).availablePublicBalance().localizedStringAsFixed(
-                                locale: locale,
-                              )} ${coin.ticker}",
+                          !isFiro
+                              ? ref
+                                  .watch(pAmountFormatter(coin))
+                                  .format(manager.balance.spendable)
+                              : ref
+                                          .watch(
+                                            publicPrivateBalanceStateProvider
+                                                .state,
+                                          )
+                                          .state ==
+                                      "Private"
+                                  ? ref.watch(pAmountFormatter(coin)).format(
+                                      (manager.wallet as FiroWallet)
+                                          .availablePrivateBalance())
+                                  : ref.watch(pAmountFormatter(coin)).format(
+                                        (manager.wallet as FiroWallet)
+                                            .availablePublicBalance(),
+                                      ),
                           style: STextStyles.titleBold12(context),
                           textAlign: TextAlign.right,
                         ),
@@ -150,7 +160,15 @@ class _DesktopPaynymSendDialogState
                           height: 2,
                         ),
                         Text(
-                          "${((!isFiro ? manager.balance.spendable.decimal : ref.watch(publicPrivateBalanceStateProvider.state).state == "Private" ? (manager.wallet as FiroWallet).availablePrivateBalance().decimal : (manager.wallet as FiroWallet).availablePublicBalance().decimal) * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin).item1))).toAmount(fractionDigits: 2).localizedStringAsFixed(locale: locale)} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
+                          "${((!isFiro ? manager.balance.spendable.decimal : ref.watch(publicPrivateBalanceStateProvider.state).state == "Private" ? (manager.wallet as FiroWallet).availablePrivateBalance().decimal : (manager.wallet as FiroWallet).availablePublicBalance().decimal) * ref.watch(
+                                    priceAnd24hChangeNotifierProvider.select(
+                                      (value) => value.getPrice(coin).item1,
+                                    ),
+                                  )).toAmount(fractionDigits: 2).fiatString(
+                                locale: locale,
+                              )} ${ref.watch(prefsChangeNotifierProvider.select(
+                            (value) => value.currency,
+                          ))}",
                           style: STextStyles.baseXS(context).copyWith(
                             color: Theme.of(context)
                                 .extension<StackColors>()!

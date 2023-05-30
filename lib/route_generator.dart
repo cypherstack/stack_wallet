@@ -72,6 +72,8 @@ import 'package:stackwallet/pages/send_view/token_send_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/about_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/advanced_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/debug_view.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/manage_coin_units/edit_coin_units_view.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/manage_coin_units/manage_coin_units_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/manage_explorer_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/appearance_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/manage_themes.dart';
@@ -634,6 +636,26 @@ class RouteGenerator {
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => RestoreFromEncryptedStringView(
               encrypted: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ManageCoinUnitsView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const ManageCoinUnitsView(),
+            settings: RouteSettings(name: settings.name));
+
+      case EditCoinUnitsView.routeName:
+        if (args is Coin) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => EditCoinUnitsView(
+              coin: args,
             ),
             settings: RouteSettings(
               name: settings.name,

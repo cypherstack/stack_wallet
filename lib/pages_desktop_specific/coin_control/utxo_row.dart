@@ -14,10 +14,10 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/coin_control/utxo_details_view.dart';
-import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -154,16 +154,12 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
               ),
               if (!widget.compact)
                 Text(
-                  "${Amount(
-                    rawValue: BigInt.from(utxo.value),
-                    fractionDigits: coin.decimals,
-                  ).localizedStringAsFixed(
-                    locale: ref.watch(
-                      localeServiceChangeNotifierProvider.select(
-                        (value) => value.locale,
+                  ref.watch(pAmountFormatter(coin)).format(
+                        Amount(
+                          rawValue: BigInt.from(utxo.value),
+                          fractionDigits: coin.decimals,
+                        ),
                       ),
-                    ),
-                  )} ${coin.ticker}",
                   textAlign: TextAlign.right,
                   style: STextStyles.w600_14(context),
                 ),
@@ -180,16 +176,12 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          "${Amount(
-                            rawValue: BigInt.from(utxo.value),
-                            fractionDigits: coin.decimals,
-                          ).localizedStringAsFixed(
-                            locale: ref.watch(
-                              localeServiceChangeNotifierProvider.select(
-                                (value) => value.locale,
+                          ref.watch(pAmountFormatter(coin)).format(
+                                Amount(
+                                  rawValue: BigInt.from(utxo.value),
+                                  fractionDigits: coin.decimals,
+                                ),
                               ),
-                            ),
-                          )} ${coin.ticker}",
                           textAlign: TextAlign.right,
                           style: STextStyles.w600_14(context),
                         ),

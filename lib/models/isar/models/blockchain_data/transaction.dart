@@ -22,6 +22,7 @@ part 'transaction.g.dart';
 
 @Collection()
 class Transaction {
+
   Transaction({
     required this.walletId,
     required this.txid,
@@ -39,6 +40,7 @@ class Transaction {
     required this.inputs,
     required this.outputs,
     required this.nonce,
+    required this.numberOfMessages,
   });
 
   Tuple2<Transaction, Address?> copyWith({
@@ -60,6 +62,7 @@ class Transaction {
     int? nonce,
     Id? id,
     Address? address,
+    int? numberOfMessages,
   }) {
     return Tuple2(
       Transaction(
@@ -78,7 +81,8 @@ class Transaction {
           otherData: otherData ?? this.otherData,
           nonce: nonce ?? this.nonce,
           inputs: inputs ?? this.inputs,
-          outputs: outputs ?? this.outputs)
+          outputs: outputs ?? this.outputs,
+          numberOfMessages: numberOfMessages ?? this.numberOfMessages)
         ..id = id ?? this.id,
       address ?? this.address.value,
     );
@@ -124,6 +128,8 @@ class Transaction {
 
   late final List<Output> outputs;
 
+  late final int? numberOfMessages;
+
   @Backlink(to: "transactions")
   final address = IsarLink<Address>();
 
@@ -164,6 +170,7 @@ class Transaction {
       "address: ${address.value}, "
       "inputsLength: ${inputs.length}, "
       "outputsLength: ${outputs.length}, "
+      "numberOfMessages: $numberOfMessages, "
       "}";
 
   String toJsonString() {
@@ -185,6 +192,7 @@ class Transaction {
       "address": address.value?.toJsonString(),
       "inputs": inputs.map((e) => e.toJsonString()).toList(),
       "outputs": outputs.map((e) => e.toJsonString()).toList(),
+      "numberOfMessages": numberOfMessages,
     };
     return jsonEncode(result);
   }
@@ -215,6 +223,7 @@ class Transaction {
       outputs: List<String>.from(json["outputs"] as List)
           .map((e) => Output.fromJsonString(e))
           .toList(),
+      numberOfMessages: json["numberOfMessages"] as int,
     );
     if (json["address"] == null) {
       return Tuple2(transaction, null);

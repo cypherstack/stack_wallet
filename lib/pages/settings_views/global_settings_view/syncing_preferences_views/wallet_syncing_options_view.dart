@@ -16,8 +16,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -157,14 +157,10 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                           height: 2,
                                         ),
                                         Text(
-                                          "${manager.balance.total.localizedStringAsFixed(
-                                            locale: ref.watch(
-                                              localeServiceChangeNotifierProvider
-                                                  .select(
-                                                (value) => value.locale,
-                                              ),
-                                            ),
-                                          )} ${manager.coin.ticker}",
+                                          ref
+                                              .watch(pAmountFormatter(
+                                                  manager.coin))
+                                              .format(manager.balance.total),
                                           style:
                                               STextStyles.itemSubtitle(context),
                                         )

@@ -20,7 +20,9 @@ import 'package:stackwallet/services/ethereum/cached_eth_token_balance.dart';
 import 'package:stackwallet/services/ethereum/ethereum_token_service.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -173,14 +175,10 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
                           ),
                           const Spacer(),
                           Text(
-                            "${cachedBalance.getCachedBalance().total.localizedStringAsFixed(
-                                  locale: ref.watch(
-                                    localeServiceChangeNotifierProvider.select(
-                                      (value) => value.locale,
-                                    ),
-                                  ),
-                                )} "
-                            "${widget.token.symbol}",
+                            ref.watch(pAmountFormatter(Coin.ethereum)).format(
+                                  cachedBalance.getCachedBalance().total,
+                                  ethContract: widget.token,
+                                ),
                             style: isDesktop
                                 ? STextStyles.desktopTextExtraSmall(context)
                                     .copyWith(

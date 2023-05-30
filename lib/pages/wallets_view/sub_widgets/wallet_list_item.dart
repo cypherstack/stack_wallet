@@ -108,12 +108,12 @@ class WalletListItem extends ConsumerWidget {
                   final calls =
                       ref.watch(prefsChangeNotifierProvider).externalCalls;
 
-                  final priceString = tuple.item1
-                      .toAmount(fractionDigits: 2)
-                      .localizedStringAsFixed(
-                        locale: ref.watch(localeServiceChangeNotifierProvider
-                            .select((value) => value.locale)),
-                      );
+                  final priceString =
+                      tuple.item1.toAmount(fractionDigits: 2).fiatString(
+                            locale: ref.watch(
+                                localeServiceChangeNotifierProvider
+                                    .select((value) => value.locale)),
+                          );
 
                   final double percentChange = tuple.item2;
 

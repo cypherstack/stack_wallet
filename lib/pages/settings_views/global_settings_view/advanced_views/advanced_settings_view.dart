@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/debug_view.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/manage_coin_units/manage_coin_units_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/manage_explorer_view.dart';
 import 'package:stackwallet/pages/stack_privacy_calls.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
@@ -263,6 +264,41 @@ class AdvancedSettingsView extends StatelessWidget {
                       children: [
                         Text(
                           "Change block explorer",
+                          style: STextStyles.titleBold12(context),
+                          textAlign: TextAlign.left,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 8,
+              ),
+              RoundedWhiteContainer(
+                padding: const EdgeInsets.all(0),
+                child: RawMaterialButton(
+                  // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pushNamed(
+                      ManageCoinUnitsView.routeName,
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 20,
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
+                          "Units",
                           style: STextStyles.titleBold12(context),
                           textAlign: TextAlign.left,
                         ),

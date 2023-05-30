@@ -40,6 +40,8 @@ import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/amount/amount_formatter.dart';
+import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
@@ -125,14 +127,25 @@ class _SendViewState extends ConsumerState<SendView> {
 
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
-      final String cryptoAmount = cryptoAmountController.text;
+      String cryptoAmount = cryptoAmountController.text;
       if (cryptoAmount.isNotEmpty &&
           cryptoAmount != "." &&
           cryptoAmount != ",") {
+        if (cryptoAmount.startsWith("~")) {
+          cryptoAmount = cryptoAmount.substring(1);
+        }
+        if (cryptoAmount.contains(" ")) {
+          cryptoAmount = cryptoAmount.split(" ").first;
+        }
+
+        final shift = ref.read(pAmountUnit(coin)).shift;
+
         _amountToSend = cryptoAmount.contains(",")
             ? Decimal.parse(cryptoAmount.replaceFirst(",", "."))
+                .shift(0 - shift)
                 .toAmount(fractionDigits: coin.decimals)
             : Decimal.parse(cryptoAmount)
+                .shift(0 - shift)
                 .toAmount(fractionDigits: coin.decimals);
         if (_cachedAmountToSend != null &&
             _cachedAmountToSend == _amountToSend) {
@@ -150,7 +163,7 @@ class _SendViewState extends ConsumerState<SendView> {
               .toAmount(
                 fractionDigits: 2,
               )
-              .localizedStringAsFixed(
+              .fiatString(
                 locale: ref.read(localeServiceChangeNotifierProvider).locale,
               );
         }
@@ -199,6 +212,15 @@ class _SendViewState extends ConsumerState<SendView> {
   late Amount _currentFee;
 
   void _setCurrentFee(String fee, bool shouldSetState) {
+    fee = fee.trim();
+
+    if (fee.startsWith("~")) {
+      fee = fee.substring(1);
+    }
+    if (fee.contains(" ")) {
+      fee = fee.split(" ").first;
+    }
+
     final value = fee.contains(",")
         ? Decimal.parse(fee.replaceFirst(",", "."))
             .toAmount(fractionDigits: coin.decimals)
@@ -279,7 +301,6 @@ class _SendViewState extends ConsumerState<SendView> {
         break;
     }
 
-    final String locale = ref.read(localeServiceChangeNotifierProvider).locale;
     Amount fee;
     if (coin == Coin.monero) {
       MoneroTransactionPriority specialMoneroId;
@@ -296,7 +317,11 @@ class _SendViewState extends ConsumerState<SendView> {
       }
 
       fee = await manager.estimateFeeFor(amount, specialMoneroId.raw!);
-      cachedFees[amount] = fee.localizedStringAsFixed(locale: locale);
+      cachedFees[amount] = ref.read(pAmountFormatter(coin)).format(
+            fee,
+            withUnitName: true,
+            indicatePrecisionLoss: false,
+          );
 
       return cachedFees[amount]!;
     } else if (coin == Coin.firo || coin == Coin.firoTestNet) {
@@ -304,22 +329,32 @@ class _SendViewState extends ConsumerState<SendView> {
           "Private") {
         fee = await manager.estimateFeeFor(amount, feeRate);
 
-        cachedFiroPrivateFees[amount] =
-            fee.localizedStringAsFixed(locale: locale);
+        cachedFiroPrivateFees[amount] = ref.read(pAmountFormatter(coin)).format(
+              fee,
+              withUnitName: true,
+              indicatePrecisionLoss: false,
+            );
 
         return cachedFiroPrivateFees[amount]!;
       } else {
         fee = await (manager.wallet as FiroWallet)
             .estimateFeeForPublic(amount, feeRate);
 
-        cachedFiroPublicFees[amount] =
-            fee.localizedStringAsFixed(locale: locale);
+        cachedFiroPublicFees[amount] = ref.read(pAmountFormatter(coin)).format(
+              fee,
+              withUnitName: true,
+              indicatePrecisionLoss: false,
+            );
 
         return cachedFiroPublicFees[amount]!;
       }
     } else {
       fee = await manager.estimateFeeFor(amount, feeRate);
-      cachedFees[amount] = fee.localizedStringAsFixed(locale: locale);
+      cachedFees[amount] = ref.read(pAmountFormatter(coin)).format(
+            fee,
+            withUnitName: true,
+            indicatePrecisionLoss: false,
+          );
 
       return cachedFees[amount]!;
     }
@@ -338,9 +373,9 @@ class _SendViewState extends ConsumerState<SendView> {
         balance = wallet.availablePublicBalance();
       }
 
-      return balance.localizedStringAsFixed(
-        locale: ref.read(localeServiceChangeNotifierProvider).locale,
-      );
+      return ref.read(pAmountFormatter(coin)).format(
+            balance,
+          );
     }
 
     return null;
@@ -598,7 +633,15 @@ class _SendViewState extends ConsumerState<SendView> {
 
     if (_data != null) {
       if (_data!.amount != null) {
-        cryptoAmountController.text = _data!.amount!.toString();
+        final amount = Amount.fromDecimal(
+          _data!.amount!,
+          fractionDigits: coin.decimals,
+        );
+
+        cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
+              amount,
+              withUnitName: false,
+            );
       }
       sendToController.text = _data!.contactLabel;
       _address = _data!.address.trim();
@@ -842,10 +885,12 @@ class _SendViewState extends ConsumerState<SendView> {
                                       if (_cachedBalance != null) {
                                         return GestureDetector(
                                           onTap: () {
-                                            cryptoAmountController.text =
-                                                _cachedBalance!
-                                                    .localizedStringAsFixed(
-                                                        locale: locale);
+                                            cryptoAmountController.text = ref
+                                                .read(pAmountFormatter(coin))
+                                                .format(
+                                                  _cachedBalance!,
+                                                  withUnitName: false,
+                                                );
                                           },
                                           child: Container(
                                             color: Colors.transparent,
@@ -854,9 +899,10 @@ class _SendViewState extends ConsumerState<SendView> {
                                                   CrossAxisAlignment.end,
                                               children: [
                                                 Text(
-                                                  "${_cachedBalance!.localizedStringAsFixed(
-                                                    locale: locale,
-                                                  )} ${coin.ticker}",
+                                                  ref
+                                                      .watch(pAmountFormatter(
+                                                          coin))
+                                                      .format(_cachedBalance!),
                                                   style:
                                                       STextStyles.titleBold12(
                                                               context)
@@ -868,7 +914,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                 Text(
                                                   "${(_cachedBalance!.decimal * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin).item1))).toAmount(
                                                         fractionDigits: 2,
-                                                      ).localizedStringAsFixed(
+                                                      ).fiatString(
                                                         locale: locale,
                                                       )} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
                                                   style: STextStyles.subtitle(
@@ -1176,10 +1222,15 @@ class _SendViewState extends ConsumerState<SendView> {
                                                       );
                                                       cryptoAmountController
                                                               .text =
-                                                          amount
-                                                              .localizedStringAsFixed(
-                                                        locale: locale,
-                                                      );
+                                                          ref
+                                                              .read(
+                                                                  pAmountFormatter(
+                                                                      coin))
+                                                              .format(
+                                                                amount,
+                                                                withUnitName:
+                                                                    false,
+                                                              );
                                                       _amountToSend = amount;
                                                     }
 
@@ -1367,7 +1418,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                     _privateBalanceString !=
                                                         null) {
                                                   return Text(
-                                                    "$_privateBalanceString ${coin.ticker}",
+                                                    "$_privateBalanceString",
                                                     style: STextStyles
                                                         .itemSubtitle(context),
                                                   );
@@ -1380,7 +1431,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                     _publicBalanceString !=
                                                         null) {
                                                   return Text(
-                                                    "$_publicBalanceString ${coin.ticker}",
+                                                    "$_publicBalanceString",
                                                     style: STextStyles
                                                         .itemSubtitle(context),
                                                   );
@@ -1440,23 +1491,32 @@ class _SendViewState extends ConsumerState<SendView> {
                                                       .state)
                                               .state ==
                                           "Private") {
-                                        cryptoAmountController.text = firoWallet
-                                            .availablePrivateBalance()
-                                            .localizedStringAsFixed(
-                                                locale: locale);
+                                        cryptoAmountController.text = ref
+                                            .read(pAmountFormatter(coin))
+                                            .format(
+                                              firoWallet
+                                                  .availablePrivateBalance(),
+                                              withUnitName: false,
+                                            );
                                       } else {
-                                        cryptoAmountController.text = firoWallet
-                                            .availablePublicBalance()
-                                            .localizedStringAsFixed(
-                                                locale: locale);
+                                        cryptoAmountController.text = ref
+                                            .read(pAmountFormatter(coin))
+                                            .format(
+                                              firoWallet
+                                                  .availablePublicBalance(),
+                                              withUnitName: false,
+                                            );
                                       }
                                     } else {
                                       cryptoAmountController.text = ref
-                                          .read(provider)
-                                          .balance
-                                          .spendable
-                                          .localizedStringAsFixed(
-                                              locale: locale);
+                                          .read(pAmountFormatter(coin))
+                                          .format(
+                                            ref
+                                                .read(provider)
+                                                .balance
+                                                .spendable,
+                                            withUnitName: false,
+                                          );
                                     }
                                     _cryptoAmountChanged();
                                   },
@@ -1509,7 +1569,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                 child: Padding(
                                   padding: const EdgeInsets.all(12),
                                   child: Text(
-                                    coin.ticker,
+                                    ref
+                                        .watch(pAmountUnit(coin))
+                                        .unitForCoin(coin),
                                     style: STextStyles.smallMed14(context)
                                         .copyWith(
                                             color: Theme.of(context)
@@ -1595,12 +1657,10 @@ class _SendViewState extends ConsumerState<SendView> {
                                       level: LogLevel.Info);
 
                                   final amountString =
-                                      _amountToSend!.localizedStringAsFixed(
-                                    locale: ref
-                                        .read(
-                                            localeServiceChangeNotifierProvider)
-                                        .locale,
-                                  );
+                                      ref.read(pAmountFormatter(coin)).format(
+                                            _amountToSend!,
+                                            withUnitName: false,
+                                          );
 
                                   _cryptoAmountChangeLock = true;
                                   cryptoAmountController.text = amountString;
@@ -1833,6 +1893,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                 amount: (Decimal.tryParse(
                                                             cryptoAmountController
                                                                 .text) ??
+                                                        _amountToSend
+                                                            ?.decimal ??
                                                         Decimal.zero)
                                                     .toAmount(
                                                   fractionDigits: coin.decimals,
@@ -1872,7 +1934,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                       false,
                                                     );
                                                     return Text(
-                                                      "~${snapshot.data! as String} ${coin.ticker}",
+                                                      "~${snapshot.data! as String}",
                                                       style: STextStyles
                                                           .itemSubtitle(
                                                               context),
@@ -1929,7 +1991,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                           false,
                                                         );
                                                         return Text(
-                                                          "~${snapshot.data! as String} ${coin.ticker}",
+                                                          "~${snapshot.data! as String}",
                                                           style: STextStyles
                                                               .itemSubtitle(
                                                                   context),

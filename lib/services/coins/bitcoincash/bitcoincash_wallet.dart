@@ -1082,13 +1082,18 @@ class BitcoinCashWallet extends CoinServiceAPI
 
   void _periodicPingCheck() async {
     bool hasNetwork = await testNetworkConnection();
-    _isConnected = hasNetwork;
+
     if (_isConnected != hasNetwork) {
       NodeConnectionStatus status = hasNetwork
           ? NodeConnectionStatus.connected
           : NodeConnectionStatus.disconnected;
       GlobalEventBus.instance
           .fire(NodeConnectionStatusChangedEvent(status, walletId, coin));
+
+      _isConnected = hasNetwork;
+      if (hasNetwork) {
+        unawaited(refresh());
+      }
     }
   }
 
@@ -1163,6 +1168,7 @@ class BitcoinCashWallet extends CoinServiceAPI
       nonce: null,
       inputs: [],
       outputs: [],
+      numberOfMessages: null,
     );
 
     final address = txData["address"] is String
@@ -1244,15 +1250,13 @@ class BitcoinCashWallet extends CoinServiceAPI
             ))
         .toList();
     final newNode = await getCurrentNode();
-    _cachedElectrumXClient = CachedElectrumX.from(
-      node: newNode,
-      prefs: _prefs,
-      failovers: failovers,
-    );
     _electrumXClient = ElectrumX.from(
       node: newNode,
       prefs: _prefs,
       failovers: failovers,
+    );
+    _cachedElectrumXClient = CachedElectrumX.from(
+      electrumXClient: _electrumXClient,
     );
 
     if (shouldRefresh) {
@@ -2149,6 +2153,7 @@ class BitcoinCashWallet extends CoinServiceAPI
         nonce: null,
         inputs: inputs,
         outputs: outputs,
+        numberOfMessages: null,
       );
 
       txns.add(Tuple2(tx, transactionAddress));

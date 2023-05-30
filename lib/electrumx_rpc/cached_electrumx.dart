@@ -14,43 +14,23 @@ import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
 import 'package:string_validator/string_validator.dart';
 
 class CachedElectrumX {
-  final ElectrumX? electrumXClient;
-
-  final String server;
-  final int port;
-  final bool useSSL;
-
-  final Prefs prefs;
-  final List<ElectrumXNode> failovers;
+  final ElectrumX electrumXClient;
 
   static const minCacheConfirms = 30;
 
   const CachedElectrumX({
-    required this.server,
-    required this.port,
-    required this.useSSL,
-    required this.prefs,
-    required this.failovers,
-    this.electrumXClient,
+    required this.electrumXClient,
   });
 
   factory CachedElectrumX.from({
-    required ElectrumXNode node,
-    required Prefs prefs,
-    required List<ElectrumXNode> failovers,
-    ElectrumX? electrumXClient,
+    required ElectrumX electrumXClient,
   }) =>
       CachedElectrumX(
-          server: node.address,
-          port: node.port,
-          useSSL: node.useSSL,
-          prefs: prefs,
-          failovers: failovers,
-          electrumXClient: electrumXClient);
+        electrumXClient: electrumXClient,
+      );
 
   Future<Map<String, dynamic>> getAnonymitySet({
     required String groupId,
@@ -76,16 +56,7 @@ class CachedElectrumX {
         set = Map<String, dynamic>.from(cachedSet);
       }
 
-      final client = electrumXClient ??
-          ElectrumX(
-            host: server,
-            port: port,
-            useSSL: useSSL,
-            prefs: prefs,
-            failovers: failovers,
-          );
-
-      final newSet = await client.getAnonymitySet(
+      final newSet = await electrumXClient.getAnonymitySet(
         groupId: groupId,
         blockhash: set["blockHash"] as String,
       );
@@ -162,16 +133,8 @@ class CachedElectrumX {
       final cachedTx = DB.instance.get<dynamic>(
           boxName: DB.instance.boxNameTxCache(coin: coin), key: txHash) as Map?;
       if (cachedTx == null) {
-        final client = electrumXClient ??
-            ElectrumX(
-              host: server,
-              port: port,
-              useSSL: useSSL,
-              prefs: prefs,
-              failovers: failovers,
-            );
-        final Map<String, dynamic> result =
-            await client.getTransaction(txHash: txHash, verbose: verbose);
+        final Map<String, dynamic> result = await electrumXClient
+            .getTransaction(txHash: txHash, verbose: verbose);
 
         result.remove("hex");
         result.remove("lelantusData");
@@ -212,16 +175,8 @@ class CachedElectrumX {
 
       final startNumber = cachedSerials.length;
 
-      final client = electrumXClient ??
-          ElectrumX(
-            host: server,
-            port: port,
-            useSSL: useSSL,
-            prefs: prefs,
-            failovers: failovers,
-          );
-
-      final serials = await client.getUsedCoinSerials(startNumber: startNumber);
+      final serials =
+          await electrumXClient.getUsedCoinSerials(startNumber: startNumber);
       List<String> newSerials = [];
 
       for (final element in (serials["serials"] as List)) {

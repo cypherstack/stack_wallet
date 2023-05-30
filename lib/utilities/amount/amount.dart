@@ -62,18 +62,10 @@ class Amount {
     return jsonEncode(toMap());
   }
 
-  String localizedStringAsFixed({
+  String fiatString({
     required String locale,
-    int? decimalPlaces,
   }) {
-    decimalPlaces ??= fractionDigits;
-    assert(decimalPlaces >= 0);
-
     final wholeNumber = decimal.truncate();
-
-    if (decimalPlaces == 0) {
-      return wholeNumber.toStringAsFixed(0);
-    }
 
     final String separator =
         (numberFormatSymbols[locale] as NumberSymbols?)?.DECIMAL_SEP ??
@@ -83,8 +75,31 @@ class Amount {
 
     final fraction = decimal - wholeNumber;
 
-    return "${wholeNumber.toStringAsFixed(0)}$separator${fraction.toStringAsFixed(decimalPlaces).substring(2)}";
+    return "${wholeNumber.toStringAsFixed(0)}$separator${fraction.toStringAsFixed(2).substring(2)}";
   }
+  // String localizedStringAsFixed({
+  //   required String locale,
+  //   int? decimalPlaces,
+  // }) {
+  //   decimalPlaces ??= fractionDigits;
+  //   assert(decimalPlaces >= 0);
+  //
+  //   final wholeNumber = decimal.truncate();
+  //
+  //   if (decimalPlaces == 0) {
+  //     return wholeNumber.toStringAsFixed(0);
+  //   }
+  //
+  //   final String separator =
+  //       (numberFormatSymbols[locale] as NumberSymbols?)?.DECIMAL_SEP ??
+  //           (numberFormatSymbols[locale.substring(0, 2)] as NumberSymbols?)
+  //               ?.DECIMAL_SEP ??
+  //           ".";
+  //
+  //   final fraction = decimal - wholeNumber;
+  //
+  //   return "${wholeNumber.toStringAsFixed(0)}$separator${fraction.toStringAsFixed(decimalPlaces).substring(2)}";
+  // }
 
   // ===========================================================================
   // ======= Deserialization ===================================================

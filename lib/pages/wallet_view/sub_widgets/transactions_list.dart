@@ -103,12 +103,7 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
           children: [
             TransactionCard(
               // this may mess with combined firo transactions
-              key: isConfirmed
-                  ? Key(tx.txid +
-                      tx.type.name +
-                      tx.address.value.toString() +
-                      tx.height.toString())
-                  : UniqueKey(), //
+              key: UniqueKey(), //
               transaction: tx,
               walletId: widget.walletId,
             ),
@@ -203,12 +198,7 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
         ),
         child: TransactionCard(
           // this may mess with combined firo transactions
-          key: isConfirmed
-              ? Key(tx.txid +
-                  tx.type.name +
-                  tx.address.value.toString() +
-                  tx.height.toString())
-              : UniqueKey(),
+          key: UniqueKey(),
           transaction: tx,
           walletId: widget.walletId,
         ),
