@@ -34,7 +34,7 @@ class DebugService extends ChangeNotifier {
     // });
   }
 
-  List<Log> get recentLogs => isar.logs.where().limit(200).findAllSync();
+  List<Log> get recentLogs => isar.logs.where().sortByTimestampInMillisUTCDesc().limit(100).findAllSync();
 
   // Future<void> updateRecentLogs() async {
   //   int totalCount = await isar.logs.count();
