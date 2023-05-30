@@ -1,3 +1,4 @@
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -17,6 +18,7 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
@@ -105,20 +107,36 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
     return ConditionalParent(
       condition: Util.isDesktop,
       builder: (child) => DesktopDialog(
-          child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Edit ${widget.coin.prettyName} Units",
-                style: STextStyles.desktopH3(context),
+        maxHeight: 350,
+        maxWidth: 500,
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 32),
+                  child: Text(
+                    "Edit ${widget.coin.prettyName} units",
+                    style: STextStyles.desktopH3(context),
+                  ),
+                ),
+                const DesktopDialogCloseButton(),
+              ],
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: 32,
+                  right: 32,
+                  bottom: 32,
+                ),
+                child: child,
               ),
-              const DesktopDialogCloseButton(),
-            ],
-          )
-        ],
-      )),
+            ),
+          ],
+        ),
+      ),
       child: ConditionalParent(
         condition: !Util.isDesktop,
         builder: (child) => Background(
@@ -144,54 +162,106 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
         ),
         child: Column(
           children: [
-            Stack(
-              children: [
-                TextField(
-                  autocorrect: Util.isDesktop ? false : true,
-                  enableSuggestions: Util.isDesktop ? false : true,
-                  // controller: _lengthController,
-                  readOnly: true,
-                  textInputAction: TextInputAction.none,
-                ),
-                Positioned.fill(
-                  child: RawMaterialButton(
-                    splashColor:
-                        Theme.of(context).extension<StackColors>()!.highlight,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius,
+            if (Util.isDesktop)
+              DropdownButtonHideUnderline(
+                child: DropdownButton2<AmountUnit>(
+                  value: _currentUnit,
+                  items: [
+                    ...AmountUnit.valuesForCoin(widget.coin).map(
+                      (e) => DropdownMenuItem(
+                        value: e,
+                        child: Text(
+                          e.unitForCoin(widget.coin),
+                          style: STextStyles.desktopTextMedium(context),
+                        ),
                       ),
                     ),
-                    onPressed: chooseUnit,
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        left: 12,
-                        right: 17,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            _currentUnit.unitForCoin(widget.coin),
-                            style: STextStyles.itemSubtitle12(context),
-                          ),
-                          SvgPicture.asset(
-                            Assets.svg.chevronDown,
-                            width: 14,
-                            height: 6,
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textFieldActiveSearchIconRight,
-                          ),
-                        ],
-                      ),
+                  ],
+                  onChanged: (value) {
+                    if (value is AmountUnit) {
+                      _currentUnit = value;
+                    }
+                  },
+                  isExpanded: true,
+                  icon: SvgPicture.asset(
+                    Assets.svg.chevronDown,
+                    width: 12,
+                    height: 6,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldActiveSearchIconRight,
+                  ),
+                  buttonPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  buttonDecoration: BoxDecoration(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
                     ),
                   ),
-                )
-              ],
-            ),
-            const SizedBox(
-              height: 8,
+                  dropdownDecoration: BoxDecoration(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
+                  ),
+                ),
+              ),
+            if (!Util.isDesktop)
+              Stack(
+                children: [
+                  TextField(
+                    autocorrect: Util.isDesktop ? false : true,
+                    enableSuggestions: Util.isDesktop ? false : true,
+                    // controller: _lengthController,
+                    readOnly: true,
+                    textInputAction: TextInputAction.none,
+                  ),
+                  Positioned.fill(
+                    child: RawMaterialButton(
+                      splashColor:
+                          Theme.of(context).extension<StackColors>()!.highlight,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
+                      ),
+                      onPressed: chooseUnit,
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          left: 12,
+                          right: 17,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _currentUnit.unitForCoin(widget.coin),
+                              style: STextStyles.itemSubtitle12(context),
+                            ),
+                            SvgPicture.asset(
+                              Assets.svg.chevronDown,
+                              width: 14,
+                              height: 6,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldActiveSearchIconRight,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            SizedBox(
+              height: Util.isDesktop ? 24 : 8,
             ),
             ClipRRect(
               borderRadius: BorderRadius.circular(
@@ -213,6 +283,8 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
                   _decimalsFocusNode,
                   context,
                 ).copyWith(
+                  labelStyle:
+                      Util.isDesktop ? STextStyles.fieldLabel(context) : null,
                   suffixIcon: _decimalsController.text.isNotEmpty
                       ? Padding(
                           padding: const EdgeInsets.only(right: 0),
@@ -237,11 +309,31 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
             const SizedBox(
               height: 24,
             ),
-            if (!Util.isDesktop) const Spacer(),
-            PrimaryButton(
-              label: "Save",
-              buttonHeight: ButtonHeight.xl,
-              onPressed: onSave,
+            const Spacer(),
+            ConditionalParent(
+              condition: Util.isDesktop,
+              builder: (child) => Row(
+                children: [
+                  Expanded(
+                    child: SecondaryButton(
+                      label: "Cancel",
+                      buttonHeight: ButtonHeight.l,
+                      onPressed: Navigator.of(context).pop,
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 16,
+                  ),
+                  Expanded(
+                    child: child,
+                  ),
+                ],
+              ),
+              child: PrimaryButton(
+                label: "Save",
+                buttonHeight: Util.isDesktop ? ButtonHeight.l : ButtonHeight.xl,
+                onPressed: onSave,
+              ),
             ),
           ],
         ),
