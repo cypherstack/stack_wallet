@@ -180,8 +180,7 @@ abstract class DefaultNodes {
       enabled: true,
       coinName: Coin.nano.name,
       isFailover: true,
-      isDown: false
-  );
+      isDown: false);
 
   static NodeModel get banano => NodeModel(
       host: "https://kaliumapi.appditto.com/api",
@@ -192,8 +191,7 @@ abstract class DefaultNodes {
       enabled: true,
       coinName: Coin.banano.name,
       isFailover: true,
-      isDown: false
-  );
+      isDown: false);
 
   static NodeModel get bitcoinTestnet => NodeModel(
         host: "bitcoin-testnet.stackwallet.com",
@@ -295,6 +293,9 @@ abstract class DefaultNodes {
 
       case Coin.nano:
         return nano;
+
+      case Coin.banano:
+        return banano;
 
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;
