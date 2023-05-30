@@ -15,7 +15,7 @@ import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:tuple/tuple.dart';
 
-class EthApiException with Exception {
+class EthApiException implements Exception {
   EthApiException(this.message);
 
   final String message;
