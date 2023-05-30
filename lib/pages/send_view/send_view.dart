@@ -30,6 +30,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
+import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
@@ -115,14 +116,25 @@ class _SendViewState extends ConsumerState<SendView> {
 
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
-      final String cryptoAmount = cryptoAmountController.text;
+      String cryptoAmount = cryptoAmountController.text;
       if (cryptoAmount.isNotEmpty &&
           cryptoAmount != "." &&
           cryptoAmount != ",") {
+        if (cryptoAmount.startsWith("~")) {
+          cryptoAmount = cryptoAmount.substring(1);
+        }
+        if (cryptoAmount.contains(" ")) {
+          cryptoAmount = cryptoAmount.split(" ").first;
+        }
+
+        final shift = ref.read(pAmountUnit(coin)).shift;
+
         _amountToSend = cryptoAmount.contains(",")
             ? Decimal.parse(cryptoAmount.replaceFirst(",", "."))
+                .shift(0 - shift)
                 .toAmount(fractionDigits: coin.decimals)
             : Decimal.parse(cryptoAmount)
+                .shift(0 - shift)
                 .toAmount(fractionDigits: coin.decimals);
         if (_cachedAmountToSend != null &&
             _cachedAmountToSend == _amountToSend) {
@@ -189,6 +201,15 @@ class _SendViewState extends ConsumerState<SendView> {
   late Amount _currentFee;
 
   void _setCurrentFee(String fee, bool shouldSetState) {
+    fee = fee.trim();
+
+    if (fee.startsWith("~")) {
+      fee = fee.substring(1);
+    }
+    if (fee.contains(" ")) {
+      fee = fee.split(" ").first;
+    }
+
     final value = fee.contains(",")
         ? Decimal.parse(fee.replaceFirst(",", "."))
             .toAmount(fractionDigits: coin.decimals)
@@ -269,7 +290,6 @@ class _SendViewState extends ConsumerState<SendView> {
         break;
     }
 
-    final String locale = ref.read(localeServiceChangeNotifierProvider).locale;
     Amount fee;
     if (coin == Coin.monero) {
       MoneroTransactionPriority specialMoneroId;
@@ -288,7 +308,8 @@ class _SendViewState extends ConsumerState<SendView> {
       fee = await manager.estimateFeeFor(amount, specialMoneroId.raw!);
       cachedFees[amount] = ref.read(pAmountFormatter(coin)).format(
             fee,
-            withUnitName: false,
+            withUnitName: true,
+            indicatePrecisionLoss: false,
           );
 
       return cachedFees[amount]!;
@@ -299,7 +320,8 @@ class _SendViewState extends ConsumerState<SendView> {
 
         cachedFiroPrivateFees[amount] = ref.read(pAmountFormatter(coin)).format(
               fee,
-              withUnitName: false,
+              withUnitName: true,
+              indicatePrecisionLoss: false,
             );
 
         return cachedFiroPrivateFees[amount]!;
@@ -309,7 +331,8 @@ class _SendViewState extends ConsumerState<SendView> {
 
         cachedFiroPublicFees[amount] = ref.read(pAmountFormatter(coin)).format(
               fee,
-              withUnitName: false,
+              withUnitName: true,
+              indicatePrecisionLoss: false,
             );
 
         return cachedFiroPublicFees[amount]!;
@@ -318,7 +341,8 @@ class _SendViewState extends ConsumerState<SendView> {
       fee = await manager.estimateFeeFor(amount, feeRate);
       cachedFees[amount] = ref.read(pAmountFormatter(coin)).format(
             fee,
-            withUnitName: false,
+            withUnitName: true,
+            indicatePrecisionLoss: false,
           );
 
       return cachedFees[amount]!;
@@ -340,7 +364,6 @@ class _SendViewState extends ConsumerState<SendView> {
 
       return ref.read(pAmountFormatter(coin)).format(
             balance,
-            withUnitName: false,
           );
     }
 
@@ -599,7 +622,15 @@ class _SendViewState extends ConsumerState<SendView> {
 
     if (_data != null) {
       if (_data!.amount != null) {
-        cryptoAmountController.text = _data!.amount!.toString();
+        final amount = Amount.fromDecimal(
+          _data!.amount!,
+          fractionDigits: coin.decimals,
+        );
+
+        cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
+              amount,
+              withUnitName: false,
+            );
       }
       sendToController.text = _data!.contactLabel;
       _address = _data!.address.trim();
@@ -1360,7 +1391,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                     _privateBalanceString !=
                                                         null) {
                                                   return Text(
-                                                    "$_privateBalanceString ${coin.ticker}",
+                                                    "$_privateBalanceString",
                                                     style: STextStyles
                                                         .itemSubtitle(context),
                                                   );
@@ -1373,7 +1404,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                     _publicBalanceString !=
                                                         null) {
                                                   return Text(
-                                                    "$_publicBalanceString ${coin.ticker}",
+                                                    "$_publicBalanceString",
                                                     style: STextStyles
                                                         .itemSubtitle(context),
                                                   );
@@ -1511,7 +1542,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                 child: Padding(
                                   padding: const EdgeInsets.all(12),
                                   child: Text(
-                                    coin.ticker,
+                                    ref
+                                        .watch(pAmountUnit(coin))
+                                        .unitForCoin(coin),
                                     style: STextStyles.smallMed14(context)
                                         .copyWith(
                                             color: Theme.of(context)
@@ -1833,6 +1866,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                 amount: (Decimal.tryParse(
                                                             cryptoAmountController
                                                                 .text) ??
+                                                        _amountToSend
+                                                            ?.decimal ??
                                                         Decimal.zero)
                                                     .toAmount(
                                                   fractionDigits: coin.decimals,
@@ -1872,7 +1907,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                       false,
                                                     );
                                                     return Text(
-                                                      "~${snapshot.data! as String} ${coin.ticker}",
+                                                      "~${snapshot.data! as String}",
                                                       style: STextStyles
                                                           .itemSubtitle(
                                                               context),
@@ -1929,7 +1964,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                           false,
                                                         );
                                                         return Text(
-                                                          "~${snapshot.data! as String} ${coin.ticker}",
+                                                          "~${snapshot.data! as String}",
                                                           style: STextStyles
                                                               .itemSubtitle(
                                                                   context),

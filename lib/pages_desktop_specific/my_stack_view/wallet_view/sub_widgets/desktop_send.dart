@@ -28,6 +28,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
+import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
@@ -430,14 +431,25 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
-      final String cryptoAmount = cryptoAmountController.text;
+      String cryptoAmount = cryptoAmountController.text;
       if (cryptoAmount.isNotEmpty &&
           cryptoAmount != "." &&
           cryptoAmount != ",") {
+        if (cryptoAmount.startsWith("~")) {
+          cryptoAmount = cryptoAmount.substring(1);
+        }
+        if (cryptoAmount.contains(" ")) {
+          cryptoAmount = cryptoAmount.split(" ").first;
+        }
+
+        final shift = ref.read(pAmountUnit(coin)).shift;
+
         _amountToSend = cryptoAmount.contains(",")
             ? Decimal.parse(cryptoAmount.replaceFirst(",", "."))
+                .shift(0 - shift)
                 .toAmount(fractionDigits: coin.decimals)
             : Decimal.parse(cryptoAmount)
+                .shift(0 - shift)
                 .toAmount(fractionDigits: coin.decimals);
         if (_cachedAmountToSend != null &&
             _cachedAmountToSend == _amountToSend) {
@@ -527,12 +539,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     }
     if (private && _privateBalanceString != null) {
       return Text(
-        "$_privateBalanceString ${coin.ticker}",
+        "$_privateBalanceString",
         style: STextStyles.itemSubtitle(context),
       );
     } else if (!private && _publicBalanceString != null) {
       return Text(
-        "$_publicBalanceString ${coin.ticker}",
+        "$_publicBalanceString",
         style: STextStyles.itemSubtitle(context),
       );
     } else {
@@ -1043,7 +1055,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Text(
-                  coin.ticker,
+                  ref.watch(pAmountUnit(coin)).unitForCoin(coin),
                   style: STextStyles.smallMed14(context).copyWith(
                       color: Theme.of(context)
                           .extension<StackColors>()!

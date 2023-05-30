@@ -50,6 +50,7 @@ class AmountFormatter {
     String? overrideUnit,
     EthContract? ethContract,
     bool withUnitName = true,
+    bool indicatePrecisionLoss = true,
   }) {
     return unit.displayAmount(
       amount: amount,
@@ -57,6 +58,7 @@ class AmountFormatter {
       coin: coin,
       maxDecimalPlaces: maxDecimals,
       withUnitName: withUnitName,
+      indicatePrecisionLoss: indicatePrecisionLoss,
       overrideUnit: overrideUnit,
       tokenContract: ethContract,
     );

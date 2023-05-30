@@ -170,6 +170,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
           cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
                 amount,
                 withUnitName: false,
+                indicatePrecisionLoss: false,
               );
           _amountToSend = amount;
         }
@@ -261,10 +262,17 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
-      final String cryptoAmount = cryptoAmountController.text;
+      String cryptoAmount = cryptoAmountController.text;
       if (cryptoAmount.isNotEmpty &&
           cryptoAmount != "." &&
           cryptoAmount != ",") {
+        if (cryptoAmount.startsWith("~")) {
+          cryptoAmount = cryptoAmount.substring(1);
+        }
+        if (cryptoAmount.contains(" ")) {
+          cryptoAmount = cryptoAmount.split(" ").first;
+        }
+
         _amountToSend = Amount.fromDecimal(
             cryptoAmount.contains(",")
                 ? Decimal.parse(cryptoAmount.replaceFirst(",", "."))
@@ -361,7 +369,8 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
     final Amount fee = wallet.estimateFeeFor(feeRate);
     cachedFees = ref.read(pAmountFormatter(coin)).format(
           fee,
-          withUnitName: false,
+          withUnitName: true,
+          indicatePrecisionLoss: false,
         );
 
     return cachedFees;
@@ -684,7 +693,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                                 .read(tokenServiceProvider)!
                                                 .balance
                                                 .spendable,
+                                            ethContract: tokenContract,
                                             withUnitName: false,
+                                            indicatePrecisionLoss: true,
                                           );
                                     },
                                     child: Container(
@@ -1164,7 +1175,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                                       ConnectionState.done &&
                                                   snapshot.hasData) {
                                                 return Text(
-                                                  "~${snapshot.data! as String} ${coin.ticker}",
+                                                  "~${snapshot.data! as String}",
                                                   style:
                                                       STextStyles.itemSubtitle(
                                                           context),

@@ -114,6 +114,7 @@ extension AmountUnitExt on AmountUnit {
     required Coin coin,
     required int maxDecimalPlaces,
     bool withUnitName = true,
+    bool indicatePrecisionLoss = true,
     String? overrideUnit,
     EthContract? tokenContract,
   }) {
@@ -192,17 +193,21 @@ extension AmountUnitExt on AmountUnit {
       returnValue += "$separator$remainder";
     }
 
-    if (!withUnitName) {
+    if (!withUnitName && !indicatePrecisionLoss) {
+      return returnValue;
+    }
+
+    if (didLosePrecision && indicatePrecisionLoss) {
+      returnValue = "~$returnValue";
+    }
+
+    if (!withUnitName && indicatePrecisionLoss) {
       return returnValue;
     }
 
     // return the value with the proper unit symbol
     if (tokenContract != null) {
       overrideUnit = unitForContract(tokenContract);
-    }
-
-    if (didLosePrecision) {
-      returnValue = "~$returnValue";
     }
 
     return "$returnValue ${overrideUnit ?? unitForCoin(coin)}";
