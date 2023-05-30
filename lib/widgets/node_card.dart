@@ -156,6 +156,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
       case Coin.litecoinTestNet:
       case Coin.namecoin:
       case Coin.bitcoincashTestnet:
+      case Coin.eCash:
         final client = ElectrumX(
           host: node.host,
           port: node.port,
