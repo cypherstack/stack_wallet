@@ -255,6 +255,7 @@ class PageMetrics extends FixedScrollMetrics {
     required double? pixels,
     required double? viewportDimension,
     required AxisDirection axisDirection,
+    required double devicePixelRatio,
     required this.viewportFraction,
   }) : super(
           minScrollExtent: minScrollExtent,
@@ -262,6 +263,7 @@ class PageMetrics extends FixedScrollMetrics {
           pixels: pixels,
           viewportDimension: viewportDimension,
           axisDirection: axisDirection,
+          devicePixelRatio: devicePixelRatio,
         );
 
   @override
@@ -271,6 +273,7 @@ class PageMetrics extends FixedScrollMetrics {
     double? pixels,
     double? viewportDimension,
     AxisDirection? axisDirection,
+    double? devicePixelRatio,
     double? viewportFraction,
   }) {
     return PageMetrics(
@@ -282,6 +285,7 @@ class PageMetrics extends FixedScrollMetrics {
       viewportDimension: viewportDimension ??
           (hasViewportDimension ? this.viewportDimension : null),
       axisDirection: axisDirection ?? this.axisDirection,
+      devicePixelRatio: devicePixelRatio ?? this.devicePixelRatio,
       viewportFraction: viewportFraction ?? this.viewportFraction,
     );
   }
@@ -397,7 +401,7 @@ class _PagePosition extends ScrollPositionWithSingleContext
 
   @override
   void saveScrollOffset() {
-    PageStorage.of(context.storageContext)?.writeState(context.storageContext,
+    PageStorage.of(context.storageContext).writeState(context.storageContext,
         _cachedPage ?? getPageFromPixels(pixels, viewportDimension));
   }
 
@@ -405,7 +409,7 @@ class _PagePosition extends ScrollPositionWithSingleContext
   void restoreScrollOffset() {
     if (!hasPixels) {
       final double? value = PageStorage.of(context.storageContext)
-          ?.readState(context.storageContext) as double?;
+          .readState(context.storageContext) as double?;
       if (value != null) _pageToUseOnStartup = value;
     }
   }
@@ -472,6 +476,7 @@ class _PagePosition extends ScrollPositionWithSingleContext
     double? pixels,
     double? viewportDimension,
     AxisDirection? axisDirection,
+    double? devicePixelRatio,
     double? viewportFraction,
   }) {
     return PageMetrics(
@@ -483,6 +488,7 @@ class _PagePosition extends ScrollPositionWithSingleContext
       viewportDimension: viewportDimension ??
           (hasViewportDimension ? this.viewportDimension : null),
       axisDirection: axisDirection ?? this.axisDirection,
+      devicePixelRatio: devicePixelRatio ?? this.devicePixelRatio,
       viewportFraction: viewportFraction ?? this.viewportFraction,
     );
   }

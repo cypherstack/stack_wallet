@@ -14,7 +14,8 @@ description: Stack Wallet
 version: 1.7.11+176
 
 environment:
-  sdk: ">=2.17.0 <3.0.0"
+  sdk: ">=3.0.2 <4.0.0"
+  flutter: ^3.10.0
 
 dependencies:
   flutter:
@@ -108,7 +109,7 @@ dependencies:
   # UI/Component plugins
   flutter_native_splash: ^2.2.4
   animations: ^2.0.2
-  toast: ^0.1.5
+  toast: ^0.3.0
   flare_flutter: ^3.0.2
   google_fonts: ^2.2.0
   url_launcher: ^6.0.5
@@ -161,13 +162,13 @@ dev_dependencies:
       sdk: flutter
   build_runner: ^2.1.7
   flutter_launcher_icons: ^0.11.0
-  hive_generator: ^1.1.2
+  hive_generator: ^2.0.0
   dependency_validator: ^3.1.2
   hive_test: ^1.0.1
-  mockito: ^5.1.0
+  mockito: ^5.4.1
   mockingjay: ^0.2.0
 #  lint: ^1.10.0
-  analyzer: ^4.6.0
+  analyzer: ^5.13.0
   import_sorter: ^4.6.0
   flutter_lints: ^2.0.1
   isar_generator: 3.0.5
