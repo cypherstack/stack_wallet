@@ -17,6 +17,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
+import 'package:stackwallet/utilities/test_eth_node_connection.dart';
 import 'package:stackwallet/utilities/test_monero_node_connection.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -171,6 +172,14 @@ class _NodeCardState extends ConsumerState<NodeCard> {
           testPassed = false;
         }
 
+        break;
+
+      case Coin.ethereum:
+        try {
+          testPassed = await testEthNodeConnection(node.host);
+        } catch (_) {
+          testPassed = false;
+        }
         break;
     }
 
