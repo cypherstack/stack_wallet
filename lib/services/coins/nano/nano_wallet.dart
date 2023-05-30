@@ -8,40 +8,34 @@
  *
  */
 
+import 'dart:async';
 import 'dart:convert';
 
+import 'package:http/http.dart' as http;
 import 'package:isar/isar.dart';
 import 'package:nanodart/nanodart.dart';
-import 'package:http/http.dart' as http;
-
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
+import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/coin_control_interface.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
+import 'package:stackwallet/services/node_service.dart';
+import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/log_level_enum.dart';
+import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
-
-import '../../../db/isar/main_db.dart';
-import '../../../models/isar/models/blockchain_data/address.dart';
-import '../../../models/node_model.dart';
-import '../../../utilities/default_nodes.dart';
-import '../../../utilities/flutter_secure_storage_interface.dart';
-import '../../../utilities/prefs.dart';
-import '../../node_service.dart';
-import '../../transaction_notification_tracker.dart';
-
-import 'dart:async';
-
-import 'package:stackwallet/models/isar/models/isar_models.dart';
 
 const int MINIMUM_CONFIRMATIONS = 1;
 const String DEFAULT_REPRESENTATIVE =
@@ -135,13 +129,26 @@ class NanoWallet extends CoinServiceAPI
   late final TransactionNotificationTracker txTracker;
   final _prefs = Prefs.instance;
 
+  Timer? timer;
   bool _shouldAutoSync = false;
 
   @override
   bool get shouldAutoSync => _shouldAutoSync;
 
   @override
-  set shouldAutoSync(bool shouldAutoSync) => _shouldAutoSync = shouldAutoSync;
+  set shouldAutoSync(bool shouldAutoSync) {
+    if (_shouldAutoSync != shouldAutoSync) {
+      _shouldAutoSync = shouldAutoSync;
+      if (!shouldAutoSync) {
+        timer?.cancel();
+        timer = null;
+        stopNetworkAlivePinging();
+      } else {
+        startNetworkAlivePinging();
+        refresh();
+      }
+    }
+  }
 
   @override
   Balance get balance => _balance ??= getCachedBalance();
@@ -177,7 +184,7 @@ class NanoWallet extends CoinServiceAPI
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
     try {
       // our address:
-      final String publicAddress = await getAddressFromMnemonic();
+      final String publicAddress = await currentReceivingAddress;
 
       // first get the account balance:
       final balanceBody = jsonEncode({
@@ -279,8 +286,18 @@ class NanoWallet extends CoinServiceAPI
     }
   }
 
+  Future<Address?> get _currentReceivingAddress => db
+      .getAddresses(walletId)
+      .filter()
+      .typeEqualTo(AddressType.nano)
+      .and()
+      .subTypeEqualTo(AddressSubType.receiving)
+      .sortByDerivationIndexDesc()
+      .findFirst();
+
   @override
-  Future<String> get currentReceivingAddress => getAddressFromMnemonic();
+  Future<String> get currentReceivingAddress async =>
+      (await _currentReceivingAddress)?.value ?? await getAddressFromMnemonic();
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) {
@@ -295,13 +312,13 @@ class NanoWallet extends CoinServiceAPI
   }
 
   @override
-  // TODO: implement fees
+  // Nano has no fees
   Future<FeeObject> get fees => throw UnimplementedError();
 
   Future<void> updateBalance() async {
     final body = jsonEncode({
       "action": "account_balance",
-      "account": await getAddressFromMnemonic(),
+      "account": await currentReceivingAddress,
     });
     final headers = {
       "Content-Type": "application/json",
@@ -336,7 +353,7 @@ class NanoWallet extends CoinServiceAPI
     };
 
     // our address:
-    final String publicAddress = await getAddressFromMnemonic();
+    final String publicAddress = await currentReceivingAddress;
 
     // first check if the account is open:
     // get the account info (we need the frontier and representative):
@@ -455,7 +472,7 @@ class NanoWallet extends CoinServiceAPI
         body: jsonEncode({
           "action": "receivable",
           "source": "true",
-          "account": await getAddressFromMnemonic(),
+          "account": await currentReceivingAddress,
           "count": "-1",
         }));
 
@@ -477,7 +494,8 @@ class NanoWallet extends CoinServiceAPI
 
   Future<void> updateTransactions() async {
     await confirmAllReceivable();
-    final String publicAddress = await getAddressFromMnemonic();
+    final receivingAddress = (await _currentReceivingAddress)!;
+    final String publicAddress = receivingAddress.value;
     final response = await http.post(Uri.parse(getCurrentNode().host),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
@@ -521,23 +539,20 @@ class NanoWallet extends CoinServiceAPI
           inputs: [],
           outputs: [],
           nonce: 0,
+          numberOfMessages: null,
         );
 
-        Address address = Address(
-          walletId: walletId,
-          publicKey: [],
-          value: transactionType == TransactionType.incoming
-              ? publicAddress
-              : tx["account"].toString(),
-          derivationIndex: 0,
-          derivationPath: null,
-          type: transactionType == TransactionType.incoming
-              ? AddressType.nonWallet
-              : AddressType.nano,
-          subType: transactionType == TransactionType.incoming
-              ? AddressSubType.receiving
-              : AddressSubType.nonWallet,
-        );
+        Address address = transactionType == TransactionType.incoming
+            ? receivingAddress
+            : Address(
+                walletId: walletId,
+                publicKey: [],
+                value: tx["account"].toString(),
+                derivationIndex: 0,
+                derivationPath: null,
+                type: AddressType.nano,
+                subType: AddressSubType.nonWallet,
+              );
         Tuple2<Transaction, Address> tuple = Tuple2(transaction, address);
         transactionList.add(tuple);
       }
@@ -550,7 +565,9 @@ class NanoWallet extends CoinServiceAPI
 
   @override
   Future<void> fullRescan(
-      int maxUnusedAddressGap, int maxNumberOfIndexesToCheck) async {
+    int maxUnusedAddressGap,
+    int maxNumberOfIndexesToCheck,
+  ) async {
     await _prefs.init();
     await updateTransactions();
     await updateBalance();
@@ -592,23 +609,27 @@ class NanoWallet extends CoinServiceAPI
     );
     String privateKey = NanoKeys.seedToPrivate(seed, 0);
     String publicKey = NanoKeys.createPublicKey(privateKey);
-    String publicAddress =
-        NanoAccounts.createAccount(NanoAccountType.NANO, publicKey);
+    String publicAddress = NanoAccounts.createAccount(
+      NanoAccountType.NANO,
+      publicKey,
+    );
 
     final address = Address(
       walletId: walletId,
       value: publicAddress,
-      publicKey: [], // TODO: add public key
+      publicKey: [],
       derivationIndex: 0,
       derivationPath: null,
-      type: AddressType.unknown,
+      type: AddressType.nano,
       subType: AddressSubType.receiving,
     );
 
     await db.putAddress(address);
 
-    await Future.wait(
-        [updateCachedId(walletId), updateCachedIsFavorite(false)]);
+    await Future.wait([
+      updateCachedId(walletId),
+      updateCachedIsFavorite(false),
+    ]);
   }
 
   @override
@@ -643,20 +664,14 @@ class NanoWallet extends CoinServiceAPI
     Map<String, dynamic>? args,
   }) async {
     try {
-      int satAmount = amount.raw.toInt();
-      int realfee = 0;
-
-      if (balance.spendable == amount) {
-        satAmount = balance.spendable.raw.toInt() - realfee;
+      if (amount.decimals != coin.decimals) {
+        throw ArgumentError("Nano prepareSend attempted with invalid Amount");
       }
 
       Map<String, dynamic> txData = {
-        "fee": realfee,
+        "fee": 0,
         "addresss": address,
-        "recipientAmt": Amount(
-          rawValue: BigInt.from(satAmount),
-          fractionDigits: coin.decimals,
-        ),
+        "recipientAmt": amount,
       };
 
       Logging.instance.log("prepare send: $txData", level: LogLevel.Info);
@@ -696,17 +711,19 @@ class NanoWallet extends CoinServiceAPI
       final address = Address(
         walletId: walletId,
         value: publicAddress,
-        publicKey: [], // TODO: add public key
+        publicKey: [],
         derivationIndex: 0,
         derivationPath: null,
-        type: AddressType.unknown,
+        type: AddressType.nano,
         subType: AddressSubType.receiving,
       );
 
       await db.putAddress(address);
 
-      await Future.wait(
-          [updateCachedId(walletId), updateCachedIsFavorite(false)]);
+      await Future.wait([
+        updateCachedId(walletId),
+        updateCachedIsFavorite(false),
+      ]);
     } catch (e) {
       rethrow;
     }
@@ -769,6 +786,49 @@ class NanoWallet extends CoinServiceAPI
     return Future.value(false);
   }
 
+  Timer? _networkAliveTimer;
+
+  void startNetworkAlivePinging() {
+    // call once on start right away
+    _periodicPingCheck();
+
+    // then periodically check
+    _networkAliveTimer = Timer.periodic(
+      Constants.networkAliveTimerDuration,
+      (_) async {
+        _periodicPingCheck();
+      },
+    );
+  }
+
+  void _periodicPingCheck() async {
+    bool hasNetwork = await testNetworkConnection();
+
+    if (_isConnected != hasNetwork) {
+      NodeConnectionStatus status = hasNetwork
+          ? NodeConnectionStatus.connected
+          : NodeConnectionStatus.disconnected;
+
+      GlobalEventBus.instance.fire(
+        NodeConnectionStatusChangedEvent(
+          status,
+          walletId,
+          coin,
+        ),
+      );
+
+      _isConnected = hasNetwork;
+      if (hasNetwork) {
+        unawaited(refresh());
+      }
+    }
+  }
+
+  void stopNetworkAlivePinging() {
+    _networkAliveTimer?.cancel();
+    _networkAliveTimer = null;
+  }
+
   @override
   Future<List<Transaction>> get transactions =>
       db.getTransactions(walletId).findAll();
@@ -785,9 +845,9 @@ class NanoWallet extends CoinServiceAPI
   }
 
   @override
-  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) {
-    // TODO: implement updateSentCachedTxData
-    throw UnimplementedError();
+  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
+    // not currently used for nano
+    return;
   }
 
   @override
@@ -800,7 +860,7 @@ class NanoWallet extends CoinServiceAPI
   }
 
   Future<void> updateChainHeight() async {
-    final String publicAddress = await getAddressFromMnemonic();
+    final String publicAddress = await currentReceivingAddress;
     // first get the account balance:
     final infoBody = jsonEncode({
       "action": "account_info",
