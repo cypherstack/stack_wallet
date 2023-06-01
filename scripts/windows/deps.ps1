@@ -1,9 +1,9 @@
 # Create C:\development
 New-Item -Path 'C:\development' -ItemType Directory
-# Download flutter_windows_3.10.2-stable.zip
-Invoke-WebRequest "https://storage.googleapis.com/flutter_infra_release/releases/stable/windows/flutter_windows_3.10.2-stable.zip" -OutFile "C:\development\flutter_windows_3.10.2-stable.zip"
+# Download flutter_windows_3.7.12-stable.zip
+Invoke-WebRequest "https://storage.googleapis.com/flutter_infra_release/releases/stable/windows/flutter_windows_3.7.12-stable.zip" -OutFile "C:\development\flutter_windows_3.7.12-stable.zip"
 # Extract Flutter SDK
-Expand-Archive "C:\development\flutter_windows_3.10.2-stable.zip" -DestinationPath "C:\development"
+Expand-Archive "C:\development\flutter_windows_3.7.12-stable.zip" -DestinationPath "C:\development"
 
 # See https://stackoverflow.com/a/69239861
 function Add-Path {
