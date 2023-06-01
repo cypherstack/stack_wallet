@@ -4,42 +4,37 @@ Here you will find instructions on how to install the necessary tools for buildi
 
 ## Prerequisites
 
-- The only OS supported for building is Ubuntu 20.04.  Advanced users may also be able to build on other Debian-based distributions like Linux Mint.
+- The only OS supported for building Android and Linux desktop is Ubuntu 20.04.  Windows build are completed using Ubuntu 20.04 on WSL2.  Advanced users may also be able to build on other Debian-based distributions like Linux Mint.
 - Android setup ([Android Studio](https://developer.android.com/studio) and subsequent dependencies)
 - 100 GB of storage
 
-Install Android Studio following the instructions below before proceeding, then the following prerequisites can be installed with the setup script [`scripts/setup.sh`](./../scripts/setup.sh) or manually as described below:
-
-- Flutter 3.7.12 [(install manually or with git, do not install with snap)](https://docs.flutter.dev/get-started/install)
-- Dart SDK Requirement (>=2.19.0, up until <3.0.0) (normally included with a flutter install)
+## Linux host
+The following instructions are for building and running on a Linux host.  Alternatively, see the [Windows](#Windows host) section.
 
 ### Android Studio
-Android Studio is the recommended IDE for development, not just for launching on Android devices and emulators but also for Linux desktop development.
-
-Follow instructions here [https://developer.android.com/studio/install#linux](https://developer.android.com/studio/install#linux) or install via snap:
+Install Android Studio.  Follow instructions here [https://developer.android.com/studio/install#linux](https://developer.android.com/studio/install#linux) or install via snap:
 ```
 # setup android studio
 sudo apt install -y openjdk-11-jdk
 sudo snap install android-studio --classic
 ```
 
-Use Tools > SDK Manager to install:
- - SDK Tools > Android SDK (API 30)
- - SDK Tools > NDK
- - SDK Tools > Android SDK command line tools
- - SDK Tools > CMake
+Use `Tools > SDK Manager` to install:
+ - `SDK Tools > Android SDK (API 30)`
+ - `SDK Tools > NDK`
+ - `SDK Tools > Android SDK command line tools`
+ - `SDK Tools > CMake`
 
-Then in File > Settings > Plugins, install the Flutter plugin and restart the IDE.  In File > Settings > Languages & Frameworks > Flutter > Editor, enable auto format on save to match the project's code style.  If you have problems with the Dart SDK, make sure to run `flutter` in a terminal to download it (use `source ~/.bashrc` to update your environment variables if you're still using the same terminal from which you ran `setup.sh`)
+Then in `File > Settings > Plugins`, install the **Flutter** and **Dart** plugins and restart the IDE.  In `File > Settings > Languages & Frameworks > Flutter > Editor`, enable auto format on save to match the project's code style.  If you have problems with the Dart SDK, make sure to run `flutter` in a terminal to download it (use `source ~/.bashrc` to update your environment variables if you're still using the same terminal from which you ran `setup.sh`).  Run `flutter doctor` to install any missing dependencies and review and agree to any license agreements.
 
 Make a Pixel 4 (API 30) x86_64 emulator with 2GB of storage space for emulation
 
 ### Scripted setup
 
-[`scripts/setup.sh`](./../scripts/setup.sh) is provided as a tool to set up installation for building: download the script and run it anywhere.  This script should skip the entire [Manual setup](#manual-setup) section below and prepare you for [running](#running).  It will set up the stack_wallet repository in `~/projects/stack_wallet` and build it there. 
+[`scripts/setup.sh`](./../scripts/setup.sh) is provided as a tool to set up installation for building: download the script and run it anywhere.  This script should skip the entire [Manual setup](#manual-setup) section below and prepare you for [running](#Running).
 
 ### Manual setup
-
-> If you used the `setup.sh` script, skip to [running](#running)
+> If you used the `setup.sh` script, skip to [running](#Running)
 
 Install basic dependencies
 ```
@@ -83,7 +78,6 @@ git submodule update --init --recursive
 ```
 
 Run prebuild script
-
 ```
 cd scripts
 ./prebuild.sh
@@ -101,26 +95,28 @@ sudo apt-get remove '^libboost.*-dev.*'
 ```
 <!-- TODO: configure compiler to prefer built over system libraries. Should already use them? -->
 
-Building plugins for Android 
+### Building plugins for Android 
 > Warning: This will take a long time, please be patient
 ```
-cd scripts/android/
+cd scripts/android
 ./build_all.sh
-// when finished go back to the root directory
-cd ../..
 ```
 
-Building plugins for Linux
-
+### Building plugins for Linux
 ```
-cd scripts/linux/
+cd scripts/linux
 ./build_all.sh
-// when finished go back to the root directory
-cd ../..
 ```
 
-## Running
-### Android
+### Building plugins for Windows
+```
+cd scripts/windows
+./deps.sh
+./build_all.sh
+```
+
+### Running
+#### Android
 Plug in your android device or use the emulator available via Android Studio and then run the following commands:
 ```
 flutter pub get
@@ -129,9 +125,30 @@ flutter run android
 
 Note on Emulators: Only x86_64 emulators are supported, x86 emulators will not work
 
-### Linux
+#### Linux
 Plug in your android device or use the emulator available via Android Studio and then run the following commands:
 ```
-flutter pub get Linux
+flutter pub get
 flutter run linux
+```
+
+## Windows host
+### Visual Studio
+Visual Studio is required for Windows development with the Flutter SDK.  Download it at https://visualstudio.microsoft.com/downloads/ and install the "Desktop development with C++" workload, including all of its default components.
+
+### Building libraries in WSL2
+Set up Ubuntu 20.04 in WSL2.  Follow the entire Linux host section to get set up and build windows `dll` libraries.  Copy the resulting `dll`s to their respective positions on the Windows host:
+
+- `stack_wallet/crypto_plugins/flutter_libepiccash/scripts/windows/build/libepic_cash_wallet.dll`
+- `stack_wallet/crypto_plugins/flutter_liblelantus/scripts/windows/build/libmobileliblelantus.dll`
+<!-- TODO: script this -->
+
+### Install Flutter on Windows host
+Install Flutter on your Windows host (not in WSL2) by following these instructions: https://docs.flutter.dev/get-started/install/windows or by running `scripts/windows/deps.ps1`.  You may still have to add `C:\development\flutter\bin` to PATH before proceeding, even if you ran `deps.ps1`.  Run `flutter doctor` in PowerShell to confirm its installation.
+
+### Running
+Run the following commands:
+```
+flutter pub get
+flutter run windows
 ```
