@@ -146,11 +146,25 @@ Set up Ubuntu 20.04 in WSL2.  Follow the entire Linux host section to get set up
 ### Install Flutter on Windows host
 Install Flutter 3.7.12 on your Windows host (not in WSL2) by following these instructions: https://docs.flutter.dev/get-started/install/windows or by running `scripts/windows/deps.ps1`.  You may still have to add `C:\development\flutter\bin` to PATH before proceeding, even if you ran `deps.ps1`.  Run `flutter doctor` in PowerShell to confirm its installation.
 
-### Running
+### Dependencies
 You may need to enable Developer Mode for symlink support,
 ```
 start ms-settings:developers
 ```
+
+Install NuGet:
+```
+winget install 9WZDNCRDMDM3 # NuGet, can also use Microsoft.NuGet
+```
+
+You may need to install CppWinRT / C++/WinRT SDKs:
+```
+winget install Microsoft.Windows.CppWinRT
+```
+
+Install the Windows SDK: https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/
+
+### Running
 
 Run the following commands:
 ```
