@@ -1,3 +1,6 @@
+$FLUTTER_SDK_ZIP = "C:\development\flutter_windows_3.10.3-stable.zip"
+$FLUTTER_SDK_URL = "https://storage.googleapis.com/flutter_infra_release/releases/stable/windows/flutter_windows_3.10.3-stable.zip"
+
 # Create C:\development
 New-Item -Path 'C:\development' -ItemType Directory -ErrorAction Ignore
 
@@ -8,18 +11,15 @@ New-Item -Path 'C:\development' -ItemType Directory -ErrorAction Ignore
 # if (-Not [System.IO.File]::Exists("C:\development\flutter_windows_3.7.12-stable.zip") or -Not ($FileHash.Hash -eq $publishedHash)) {
 # } else {
 # Download flutter_windows_3.7.12-stable.zip
-# Write-Output "Downloading flutter_windows_3.7.12-stable.zip"
-# $ProgressPreference = 'SilentlyContinue' # Speed up download process, see https://stackoverflow.com/questions/28682642/powershell-why-is-using-invoke-webrequest-much-slower-than-a-browser-download
-# Invoke-WebRequest "https://storage.googleapis.com/flutter_infra_release/releases/stable/windows/flutter_windows_3.7.12-stable.zip" -OutFile "C:\development\flutter_windows_3.7.12-stable.zip"
+Write-Output "Downloading $FLUTTER_SDK_ZIP"
+$ProgressPreference = 'SilentlyContinue' # Speed up download and extraction processes, see https://stackoverflow.com/questions/28682642/powershell-why-is-using-invoke-webrequest-much-slower-than-a-browser-download and https://github.com/PowerShell/Microsoft.PowerShell.Archive/issues/32#issuecomment-642582179
+Invoke-WebRequest -Uri $FLUTTER_SDK_URL -OutFile $FLUTTER_SDK_ZIP
 # }
 
 # Extract Flutter SDK
-Write-Output "Extracting flutter_windows_3.7.12-stable.zip"
-$progressPreference = 'SilentlyContinue' # Speed up extraction process, see https://github.com/PowerShell/Microsoft.PowerShell.Archive/issues/32#issuecomment-642582179
-# Add-MpPreference -ExclusionPath C:\development
-# Expand-Archive "C:\development\flutter_windows_3.7.12-stable.zip" -DestinationPath "C:\development"
+Write-Output "Extracting $FLUTTER_SDK_ZIP"
+Expand-Archive $FLUTTER_SDK_ZIP -DestinationPath "C:\development"
 Add-Type -Assembly "System.IO.Compression.Filesystem"
-[System.IO.Compression.ZipFile]::ExtractToDirectory("C:\development\flutter_windows_3.7.12-stable.zip", "C:\development")
 
 # See https://stackoverflow.com/a/69239861
 function Add-Path {
