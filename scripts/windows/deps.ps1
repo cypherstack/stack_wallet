@@ -19,7 +19,6 @@ Invoke-WebRequest -Uri $FLUTTER_SDK_URL -OutFile $FLUTTER_SDK_ZIP
 # Extract Flutter SDK
 Write-Output "Extracting $FLUTTER_SDK_ZIP"
 Expand-Archive $FLUTTER_SDK_ZIP -DestinationPath "C:\development"
-Add-Type -Assembly "System.IO.Compression.Filesystem"
 
 # See https://stackoverflow.com/a/69239861
 function Add-Path {
