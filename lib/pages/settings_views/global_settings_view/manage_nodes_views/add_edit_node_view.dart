@@ -186,12 +186,17 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         break;
 
       case Coin.ethereum:
+        // TODO fix this
         // final client = Web3Client(
         //     "https://mainnet.infura.io/v3/22677300bf774e49a458b73313ee56ba",
         //     Client());
         try {
           // await client.getSyncStatus();
         } catch (_) {}
+
+      case Coin.nano:
+      case Coin.banano:
+      //TODO: check network/node
     }
 
     if (showFlushBar && mounted) {

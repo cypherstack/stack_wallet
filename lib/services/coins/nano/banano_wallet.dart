@@ -1,12 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 
+import 'package:http/http.dart' as http;
 import 'package:isar/isar.dart';
 import 'package:nanodart/nanodart.dart';
-import 'package:http/http.dart' as http;
-
 import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -16,22 +15,16 @@ import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/log_level_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../db/isar/main_db.dart';
-import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../utilities/prefs.dart';
 import '../../node_service.dart';
 import '../../transaction_notification_tracker.dart';
-
-import 'dart:async';
-
-import 'package:stackwallet/models/isar/models/isar_models.dart';
 
 const int MINIMUM_CONFIRMATIONS = 1;
 const String DEFAULT_REPRESENTATIVE =
@@ -511,6 +504,7 @@ class BananoWallet extends CoinServiceAPI
           inputs: [],
           outputs: [],
           nonce: 0,
+          numberOfMessages: null,
         );
 
         Address address = Address(

@@ -169,6 +169,10 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
           testPassed = false;
         }
         break;
+
+      case Coin.nano:
+      case Coin.banano:
+      //TODO: check network/node
     }
 
     if (testPassed) {

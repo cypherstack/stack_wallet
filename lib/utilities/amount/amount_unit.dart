@@ -61,6 +61,7 @@ enum AmountUnit {
         return AmountUnit.values.sublist(0, 7);
 
       case Coin.nano:
+      case Coin.banano:
         return AmountUnit.values;
     }
   }
