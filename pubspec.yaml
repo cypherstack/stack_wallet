@@ -150,6 +150,8 @@ dependencies:
   hex: ^0.2.0
   archive: ^3.3.2
   desktop_drop: ^0.4.1
+  nanodart: ^2.0.0
+  basic_utils: ^5.5.4
 
 dev_dependencies:
   flutter_test:
