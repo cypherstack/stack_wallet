@@ -1430,7 +1430,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           const SizedBox(
             height: 20,
           ),
-        if (!([Coin.nano, Coin.epicCash].contains(coin)))
+        if (!([Coin.nano, Coin.banano, Coin.epicCash].contains(coin)))
           Text(
             "Transaction fee (${coin == Coin.ethereum ? "max" : "estimated"})",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
@@ -1440,11 +1440,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ),
             textAlign: TextAlign.left,
           ),
-        if (!([Coin.nano, Coin.epicCash].contains(coin)))
+        if (!([Coin.nano, Coin.banano, Coin.epicCash].contains(coin)))
           const SizedBox(
             height: 10,
           ),
-        if (!([Coin.nano, Coin.epicCash].contains(coin)))
+        if (!([Coin.nano, Coin.banano, Coin.epicCash].contains(coin)))
           DesktopFeeDropDown(
             walletId: walletId,
           ),

@@ -44,6 +44,7 @@ enum Coin {
   particl,
   wownero,
   nano,
+  banano,
 
   ///
 
@@ -89,6 +90,8 @@ extension CoinExt on Coin {
         return "Namecoin";
       case Coin.nano:
         return "Nano";
+      case Coin.banano:
+        return "Banano";
       case Coin.bitcoinTestNet:
         return "tBitcoin";
       case Coin.litecoinTestNet:
@@ -130,6 +133,8 @@ extension CoinExt on Coin {
         return "NMC";
       case Coin.nano:
         return "XNO";
+      case Coin.banano:
+        return "BAN";
       case Coin.bitcoinTestNet:
         return "tBTC";
       case Coin.litecoinTestNet:
@@ -172,6 +177,8 @@ extension CoinExt on Coin {
         return "namecoin";
       case Coin.nano:
         return "nano";
+      case Coin.banano:
+        return "ban";
       case Coin.bitcoinTestNet:
         return "bitcoin";
       case Coin.litecoinTestNet:
@@ -206,7 +213,8 @@ extension CoinExt on Coin {
       case Coin.ethereum:
       case Coin.monero:
       case Coin.wownero:
-      case Coin.nano: // TODO: Check this
+      case Coin.nano:
+      case Coin.banano:
         return false;
     }
   }
@@ -233,6 +241,7 @@ extension CoinExt on Coin {
       case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
       case Coin.nano:
+      case Coin.banano:
         return false;
     }
   }
@@ -251,6 +260,7 @@ extension CoinExt on Coin {
       case Coin.monero:
       case Coin.wownero:
       case Coin.nano:
+      case Coin.banano:
       case Coin.eCash:
         return false;
 
@@ -277,6 +287,7 @@ extension CoinExt on Coin {
       case Coin.monero:
       case Coin.wownero:
       case Coin.nano:
+      case Coin.banano:
       case Coin.eCash:
         return this;
 
@@ -341,6 +352,7 @@ extension CoinExt on Coin {
         return nmc.MINIMUM_CONFIRMATIONS;
 
       case Coin.nano:
+      case Coin.banano:
         return nano.MINIMUM_CONFIRMATIONS;
     }
   }
@@ -432,6 +444,10 @@ Coin coinFromPrettyName(String name) {
     case "nano":
       return Coin.nano;
 
+    case "Banano":
+    case "banano":
+      return Coin.banano;
+
     default:
       throw ArgumentError.value(
         name,
@@ -479,6 +495,8 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
       return Coin.wownero;
     case "xno":
       return Coin.nano;
+    case "ban":
+      return Coin.banano;
     default:
       throw ArgumentError.value(
           ticker, "name", "No Coin enum value with that ticker");

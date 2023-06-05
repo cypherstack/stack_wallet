@@ -24,6 +24,7 @@ import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/litecoin/litecoin_wallet.dart';
 import 'package:stackwallet/services/coins/monero/monero_wallet.dart';
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
+import 'package:stackwallet/services/coins/nano/banano_wallet.dart';
 import 'package:stackwallet/services/coins/nano/nano_wallet.dart';
 import 'package:stackwallet/services/coins/particl/particl_wallet.dart';
 import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart';
@@ -239,6 +240,15 @@ abstract class CoinServiceAPI {
 
       case Coin.nano:
         return NanoWallet(
+            walletId: walletId,
+            walletName: walletName,
+            coin: coin,
+            tracker: tracker,
+            secureStore: secureStorageInterface
+        );
+
+      case Coin.banano:
+        return BananoWallet(
             walletId: walletId,
             walletName: walletName,
             coin: coin,
