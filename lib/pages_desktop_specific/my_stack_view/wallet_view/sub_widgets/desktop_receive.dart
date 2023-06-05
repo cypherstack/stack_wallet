@@ -219,7 +219,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
           height: 32,
         ),
         Center(
-          child: QrImage(
+          child: QrImageView(
             data: "${coin.uriScheme}:$receivingAddress",
             size: 200,
             foregroundColor:

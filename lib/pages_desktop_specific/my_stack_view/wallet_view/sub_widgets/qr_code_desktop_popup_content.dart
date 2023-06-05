@@ -20,16 +20,16 @@ class QRCodeDesktopPopupContent extends StatelessWidget {
       maxWidth: 614,
       child: Column(
         children: [
-          Row(
+          const Row(
             mainAxisAlignment: MainAxisAlignment.end,
-            children: const [
+            children: [
               DesktopDialogCloseButton(),
             ],
           ),
           const SizedBox(
             height: 14,
           ),
-          QrImage(
+          QrImageView(
             data: value,
             size: 300,
             foregroundColor:

@@ -168,7 +168,7 @@ class WalletBackupView extends ConsumerWidget {
                                 child: SizedBox(
                                   width: width + 20,
                                   height: width + 20,
-                                  child: QrImage(
+                                  child: QrImageView(
                                       data: data,
                                       size: width,
                                       backgroundColor: Theme.of(context)

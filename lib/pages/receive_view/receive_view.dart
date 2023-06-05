@@ -320,7 +320,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                       child: Center(
                         child: Column(
                           children: [
-                            QrImage(
+                            QrImageView(
                                 data: "${coin.uriScheme}:$receivingAddress",
                                 size: MediaQuery.of(context).size.width / 2,
                                 foregroundColor: Theme.of(context)

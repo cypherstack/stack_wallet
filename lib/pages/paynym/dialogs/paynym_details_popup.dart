@@ -369,7 +369,7 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                 const SizedBox(
                   width: 20,
                 ),
-                QrImage(
+                QrImageView(
                   padding: const EdgeInsets.all(0),
                   size: 100,
                   data: widget.accountLite.code,

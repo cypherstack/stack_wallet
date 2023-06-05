@@ -374,7 +374,7 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
                                   height: 48,
                                 ),
                                 Center(
-                                  child: QrImage(
+                                  child: QrImageView(
                                     // TODO: grab coin uri scheme from somewhere
                                     // data: "${coin.uriScheme}:$receivingAddress",
                                     data: ref.watch(desktopExchangeModelProvider

@@ -147,7 +147,7 @@ class PaynymQrPopup extends StatelessWidget {
                 const SizedBox(
                   width: 20,
                 ),
-                QrImage(
+                QrImageView(
                   padding: const EdgeInsets.all(0),
                   size: 130,
                   data: paynymAccount.nonSegwitPaymentCode.code,

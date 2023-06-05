@@ -190,73 +190,47 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
         .select((value) => value.getManager(walletId)));
 
     return FutureBuilder(
-        future: manager.fees,
-        builder: (context, AsyncSnapshot<FeeObject> snapshot) {
-          if (snapshot.connectionState == ConnectionState.done &&
-              snapshot.hasData) {
-            feeObject = snapshot.data!;
-          }
-          return DropdownButtonHideUnderline(
-            child: DropdownButton2(
-              offset: const Offset(0, -10),
-              isExpanded: true,
-              dropdownElevation: 0,
-              value: ref.watch(feeRateTypeStateProvider.state).state,
-              // selectedItemBuilder: (s) {
-              //   return [
-              //     ...FeeRateType.values.map(
-              //       (e) => DropdownMenuItem(
-              //         value: e,
-              //         child: FeeDropDownChild(
-              //           feeObject: feeObject,
-              //           feeRateType: e,
-              //           walletId: walletId,
-              //           amount: amount,
-              //           feeFor: feeFor,
-              //           isSelected: true,
-              //         ),
-              //       ),
-              //     ),
-              //   ];
-              // },
-              items: [
-                ...FeeRateType.values.map(
-                  (e) => DropdownMenuItem(
-                    value: e,
-                    child: FeeDropDownChild(
-                      feeObject: feeObject,
-                      feeRateType: e,
-                      walletId: walletId,
-                      feeFor: feeFor,
-                      isSelected: false,
-                    ),
+      future: manager.fees,
+      builder: (context, AsyncSnapshot<FeeObject> snapshot) {
+        if (snapshot.connectionState == ConnectionState.done &&
+            snapshot.hasData) {
+          feeObject = snapshot.data!;
+        }
+        return DropdownButtonHideUnderline(
+          child: DropdownButton2(
+            isExpanded: true,
+            value: ref.watch(feeRateTypeStateProvider.state).state,
+            items: [
+              ...FeeRateType.values.map(
+                (e) => DropdownMenuItem(
+                  value: e,
+                  child: FeeDropDownChild(
+                    feeObject: feeObject,
+                    feeRateType: e,
+                    walletId: walletId,
+                    feeFor: feeFor,
+                    isSelected: false,
                   ),
                 ),
-              ],
-              onChanged: (newRateType) {
-                if (newRateType is FeeRateType) {
-                  ref.read(feeRateTypeStateProvider.state).state = newRateType;
-                }
-              },
+              ),
+            ],
+            onChanged: (newRateType) {
+              if (newRateType is FeeRateType) {
+                ref.read(feeRateTypeStateProvider.state).state = newRateType;
+              }
+            },
+            iconStyleData: IconStyleData(
               icon: SvgPicture.asset(
                 Assets.svg.chevronDown,
                 width: 12,
                 height: 6,
                 color: Theme.of(context).extension<StackColors>()!.textDark3,
               ),
-              buttonPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
-              buttonDecoration: BoxDecoration(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldDefaultBG,
-                borderRadius: BorderRadius.circular(
-                  Constants.size.circularBorderRadius,
-                ),
-              ),
-              dropdownDecoration: BoxDecoration(
+            ),
+            dropdownStyleData: DropdownStyleData(
+              offset: const Offset(0, -10),
+              elevation: 0,
+              decoration: BoxDecoration(
                 color: Theme.of(context)
                     .extension<StackColors>()!
                     .textFieldDefaultBG,
@@ -265,8 +239,16 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
                 ),
               ),
             ),
-          );
-        });
+            menuItemStyleData: const MenuItemStyleData(
+              padding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 }
 

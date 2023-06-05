@@ -654,7 +654,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                             height: 24,
                                           ),
                                           Center(
-                                            child: QrImage(
+                                            child: QrImageView(
                                               // TODO: grab coin uri scheme from somewhere
                                               // data: "${coin.uriScheme}:$receivingAddress",
                                               data: model.trade!.payInAddress,

@@ -77,7 +77,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                   Center(
                     child: RepaintBoundary(
                       key: _qrKey,
-                      child: QrImage(
+                      child: QrImageView(
                         data: AddressUtils.buildUriString(
                           ref.watch(walletsChangeNotifierProvider.select(
                               (value) =>
@@ -266,7 +266,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                   Center(
                     child: RepaintBoundary(
                       key: _qrKey,
-                      child: QrImage(
+                      child: QrImageView(
                         data: AddressUtils.buildUriString(
                           ref.watch(walletsChangeNotifierProvider.select(
                               (value) =>

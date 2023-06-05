@@ -768,7 +768,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                       child: SizedBox(
                                         width: width + 20,
                                         height: width + 20,
-                                        child: QrImage(
+                                        child: QrImageView(
                                             data: trade.payInAddress,
                                             size: width,
                                             backgroundColor: Theme.of(context)

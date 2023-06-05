@@ -243,7 +243,7 @@ class _XPub extends StatelessWidget {
             builder: (child) => RoundedWhiteContainer(
               child: child,
             ),
-            child: QrImage(
+            child: QrImageView(
               data: xpub,
               size: isDesktop ? 280 : MediaQuery.of(context).size.width / 1.5,
               foregroundColor:

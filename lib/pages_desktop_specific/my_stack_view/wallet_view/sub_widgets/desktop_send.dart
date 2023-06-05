@@ -869,9 +869,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (coin == Coin.firo)
           DropdownButtonHideUnderline(
             child: DropdownButton2(
-              offset: const Offset(0, -10),
               isExpanded: true,
-              dropdownElevation: 0,
               value: ref.watch(publicPrivateBalanceStateProvider.state).state,
               items: [
                 DropdownMenuItem(
@@ -929,30 +927,30 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   });
                 }
               },
-              icon: SvgPicture.asset(
-                Assets.svg.chevronDown,
-                width: 12,
-                height: 6,
-                color: Theme.of(context).extension<StackColors>()!.textDark3,
-              ),
-              buttonPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
-              buttonDecoration: BoxDecoration(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldDefaultBG,
-                borderRadius: BorderRadius.circular(
-                  Constants.size.circularBorderRadius,
+              iconStyleData: IconStyleData(
+                icon: SvgPicture.asset(
+                  Assets.svg.chevronDown,
+                  width: 12,
+                  height: 6,
+                  color: Theme.of(context).extension<StackColors>()!.textDark3,
                 ),
               ),
-              dropdownDecoration: BoxDecoration(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldDefaultBG,
-                borderRadius: BorderRadius.circular(
-                  Constants.size.circularBorderRadius,
+              dropdownStyleData: DropdownStyleData(
+                offset: const Offset(0, -10),
+                elevation: 0,
+                decoration: BoxDecoration(
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
+                  borderRadius: BorderRadius.circular(
+                    Constants.size.circularBorderRadius,
+                  ),
+                ),
+              ),
+              menuItemStyleData: const MenuItemStyleData(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
                 ),
               ),
             ),

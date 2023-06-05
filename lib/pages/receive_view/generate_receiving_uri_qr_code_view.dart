@@ -201,7 +201,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                   child: SizedBox(
                     width: width + 20,
                     height: width + 20,
-                    child: QrImage(
+                    child: QrImageView(
                         data: uriString,
                         size: width,
                         backgroundColor:
@@ -543,7 +543,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                                 child: SizedBox(
                                   width: 234,
                                   height: 234,
-                                  child: QrImage(
+                                  child: QrImageView(
                                       data: _uriString,
                                       size: 220,
                                       backgroundColor: Theme.of(context)

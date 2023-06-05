@@ -126,7 +126,7 @@ class _AddressQrPopupState extends State<AddressQrPopup> {
           Center(
             child: RepaintBoundary(
               key: _qrKey,
-              child: QrImage(
+              child: QrImageView(
                 data: AddressUtils.buildUriString(
                   widget.coin,
                   widget.addressString,
