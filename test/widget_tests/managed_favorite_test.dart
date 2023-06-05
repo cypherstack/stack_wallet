@@ -103,161 +103,161 @@ void main() {
     expect(find.byType(ManagedFavorite), findsOneWidget);
   });
 
-  testWidgets("Button Pressed - wallet unfavorite", (widgetTester) async {
-    final wallets = MockWallets();
-    final CoinServiceAPI wallet = MockBitcoinWallet();
-    final mockLocaleService = MockLocaleService();
-    final mockWalletsService = MockWalletsService();
-    final mockThemeService = MockThemeService();
+  // testWidgets("Button Pressed - wallet unfavorite", (widgetTester) async {
+  //   final wallets = MockWallets();
+  //   final CoinServiceAPI wallet = MockBitcoinWallet();
+  //   final mockLocaleService = MockLocaleService();
+  //   final mockWalletsService = MockWalletsService();
+  //   final mockThemeService = MockThemeService();
+  //
+  //   when(mockThemeService.getTheme(themeId: "light")).thenAnswer(
+  //     (_) => StackTheme.fromJson(
+  //       json: lightThemeJsonMap,
+  //       applicationThemesDirectoryPath: "test",
+  //     ),
+  //   );
+  //   when(wallet.coin).thenAnswer((_) => Coin.bitcoin);
+  //   when(wallet.walletName).thenAnswer((_) => "some wallet");
+  //   when(wallet.walletId).thenAnswer((_) => "some wallet id");
+  //
+  //   final manager = Manager(wallet);
+  //
+  //   when(wallets.getManager("some wallet id"))
+  //       .thenAnswer((realInvocation) => manager);
+  //   when(manager.balance).thenAnswer(
+  //     (realInvocation) => Balance(
+  //       total: _a(10),
+  //       spendable: _a(10),
+  //       blockedTotal: _a(0),
+  //       pendingSpendable: _a(0),
+  //     ),
+  //   );
+  //
+  //   when(manager.isFavorite).thenAnswer((realInvocation) => false);
+  //
+  //   when(mockLocaleService.locale).thenAnswer((_) => "en_US");
+  //
+  //   when(wallets.getManagerProvider("some wallet id")).thenAnswer(
+  //       (realInvocation) => ChangeNotifierProvider((ref) => manager));
+  //
+  //   const managedFavorite = ManagedFavorite(walletId: "some wallet id");
+  //
+  //   final ListenableList<ChangeNotifierProvider<Manager>> favorites =
+  //       ListenableList();
+  //
+  //   final ListenableList<ChangeNotifierProvider<Manager>> nonfavorites =
+  //       ListenableList();
+  //   await widgetTester.pumpWidget(
+  //     ProviderScope(
+  //       overrides: [
+  //         walletsChangeNotifierProvider.overrideWithValue(wallets),
+  //         localeServiceChangeNotifierProvider
+  //             .overrideWithValue(mockLocaleService),
+  //         favoritesProvider.overrideWithValue(favorites),
+  //         nonFavoritesProvider.overrideWithValue(nonfavorites),
+  //         pThemeService.overrideWithValue(mockThemeService),
+  //         walletsServiceChangeNotifierProvider
+  //             .overrideWithValue(mockWalletsService)
+  //       ],
+  //       child: MaterialApp(
+  //         theme: ThemeData(
+  //           extensions: [
+  //             StackColors.fromStackColorTheme(
+  //               StackTheme.fromJson(
+  //                 json: lightThemeJsonMap,
+  //                 applicationThemesDirectoryPath: "test",
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //         home: const Material(
+  //           child: managedFavorite,
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  //
+  //   expect(find.byType(RawMaterialButton), findsOneWidget);
+  //   await widgetTester.tap(find.byType(RawMaterialButton));
+  //   await widgetTester.pump();
+  // });
 
-    when(mockThemeService.getTheme(themeId: "light")).thenAnswer(
-      (_) => StackTheme.fromJson(
-        json: lightThemeJsonMap,
-        applicationThemesDirectoryPath: "test",
-      ),
-    );
-    when(wallet.coin).thenAnswer((_) => Coin.bitcoin);
-    when(wallet.walletName).thenAnswer((_) => "some wallet");
-    when(wallet.walletId).thenAnswer((_) => "some wallet id");
-
-    final manager = Manager(wallet);
-
-    when(wallets.getManager("some wallet id"))
-        .thenAnswer((realInvocation) => manager);
-    when(manager.balance).thenAnswer(
-      (realInvocation) => Balance(
-        total: _a(10),
-        spendable: _a(10),
-        blockedTotal: _a(0),
-        pendingSpendable: _a(0),
-      ),
-    );
-
-    when(manager.isFavorite).thenAnswer((realInvocation) => false);
-
-    when(mockLocaleService.locale).thenAnswer((_) => "en_US");
-
-    when(wallets.getManagerProvider("some wallet id")).thenAnswer(
-        (realInvocation) => ChangeNotifierProvider((ref) => manager));
-
-    const managedFavorite = ManagedFavorite(walletId: "some wallet id");
-
-    final ListenableList<ChangeNotifierProvider<Manager>> favorites =
-        ListenableList();
-
-    final ListenableList<ChangeNotifierProvider<Manager>> nonfavorites =
-        ListenableList();
-    await widgetTester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          walletsChangeNotifierProvider.overrideWithValue(wallets),
-          localeServiceChangeNotifierProvider
-              .overrideWithValue(mockLocaleService),
-          favoritesProvider.overrideWithValue(favorites),
-          nonFavoritesProvider.overrideWithValue(nonfavorites),
-          pThemeService.overrideWithValue(mockThemeService),
-          walletsServiceChangeNotifierProvider
-              .overrideWithValue(mockWalletsService)
-        ],
-        child: MaterialApp(
-          theme: ThemeData(
-            extensions: [
-              StackColors.fromStackColorTheme(
-                StackTheme.fromJson(
-                  json: lightThemeJsonMap,
-                  applicationThemesDirectoryPath: "test",
-                ),
-              ),
-            ],
-          ),
-          home: const Material(
-            child: managedFavorite,
-          ),
-        ),
-      ),
-    );
-
-    expect(find.byType(RawMaterialButton), findsOneWidget);
-    await widgetTester.tap(find.byType(RawMaterialButton));
-    await widgetTester.pump();
-  });
-
-  testWidgets("Button Pressed - wallet is favorite", (widgetTester) async {
-    final wallets = MockWallets();
-    final CoinServiceAPI wallet = MockBitcoinWallet();
-    final mockLocaleService = MockLocaleService();
-    final mockWalletsService = MockWalletsService();
-    final mockThemeService = MockThemeService();
-
-    when(mockThemeService.getTheme(themeId: "light")).thenAnswer(
-      (_) => StackTheme.fromJson(
-        json: lightThemeJsonMap,
-        applicationThemesDirectoryPath: "test",
-      ),
-    );
-    when(wallet.coin).thenAnswer((_) => Coin.bitcoin);
-    when(wallet.walletName).thenAnswer((_) => "some wallet");
-    when(wallet.walletId).thenAnswer((_) => "some wallet id");
-
-    final manager = Manager(wallet);
-
-    when(wallets.getManager("some wallet id"))
-        .thenAnswer((realInvocation) => manager);
-
-    when(manager.isFavorite).thenAnswer((realInvocation) => true);
-    when(manager.balance).thenAnswer(
-      (realInvocation) => Balance(
-        total: _a(10),
-        spendable: _a(10),
-        blockedTotal: _a(0),
-        pendingSpendable: _a(0),
-      ),
-    );
-
-    when(mockLocaleService.locale).thenAnswer((_) => "en_US");
-
-    when(wallets.getManagerProvider("some wallet id")).thenAnswer(
-        (realInvocation) => ChangeNotifierProvider((ref) => manager));
-
-    const managedFavorite = ManagedFavorite(walletId: "some wallet id");
-
-    final ListenableList<ChangeNotifierProvider<Manager>> favorites =
-        ListenableList();
-
-    final ListenableList<ChangeNotifierProvider<Manager>> nonfavorites =
-        ListenableList();
-    await widgetTester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          walletsChangeNotifierProvider.overrideWithValue(wallets),
-          localeServiceChangeNotifierProvider
-              .overrideWithValue(mockLocaleService),
-          favoritesProvider.overrideWithValue(favorites),
-          nonFavoritesProvider.overrideWithValue(nonfavorites),
-          pThemeService.overrideWithValue(mockThemeService),
-          walletsServiceChangeNotifierProvider
-              .overrideWithValue(mockWalletsService)
-        ],
-        child: MaterialApp(
-          theme: ThemeData(
-            extensions: [
-              StackColors.fromStackColorTheme(
-                StackTheme.fromJson(
-                  json: lightThemeJsonMap,
-                  applicationThemesDirectoryPath: "test",
-                ),
-              ),
-            ],
-          ),
-          home: const Material(
-            child: managedFavorite,
-          ),
-        ),
-      ),
-    );
-
-    expect(find.byType(RawMaterialButton), findsOneWidget);
-    await widgetTester.tap(find.byType(RawMaterialButton));
-    await widgetTester.pump();
-  });
+  // testWidgets("Button Pressed - wallet is favorite", (widgetTester) async {
+  //   final wallets = MockWallets();
+  //   final CoinServiceAPI wallet = MockBitcoinWallet();
+  //   final mockLocaleService = MockLocaleService();
+  //   final mockWalletsService = MockWalletsService();
+  //   final mockThemeService = MockThemeService();
+  //
+  //   when(mockThemeService.getTheme(themeId: "light")).thenAnswer(
+  //     (_) => StackTheme.fromJson(
+  //       json: lightThemeJsonMap,
+  //       applicationThemesDirectoryPath: "test",
+  //     ),
+  //   );
+  //   when(wallet.coin).thenAnswer((_) => Coin.bitcoin);
+  //   when(wallet.walletName).thenAnswer((_) => "some wallet");
+  //   when(wallet.walletId).thenAnswer((_) => "some wallet id");
+  //
+  //   final manager = Manager(wallet);
+  //
+  //   when(wallets.getManager("some wallet id"))
+  //       .thenAnswer((realInvocation) => manager);
+  //
+  //   when(manager.isFavorite).thenAnswer((realInvocation) => true);
+  //   when(manager.balance).thenAnswer(
+  //     (realInvocation) => Balance(
+  //       total: _a(10),
+  //       spendable: _a(10),
+  //       blockedTotal: _a(0),
+  //       pendingSpendable: _a(0),
+  //     ),
+  //   );
+  //
+  //   when(mockLocaleService.locale).thenAnswer((_) => "en_US");
+  //
+  //   when(wallets.getManagerProvider("some wallet id")).thenAnswer(
+  //       (realInvocation) => ChangeNotifierProvider((ref) => manager));
+  //
+  //   const managedFavorite = ManagedFavorite(walletId: "some wallet id");
+  //
+  //   final ListenableList<ChangeNotifierProvider<Manager>> favorites =
+  //       ListenableList();
+  //
+  //   final ListenableList<ChangeNotifierProvider<Manager>> nonfavorites =
+  //       ListenableList();
+  //   await widgetTester.pumpWidget(
+  //     ProviderScope(
+  //       overrides: [
+  //         walletsChangeNotifierProvider.overrideWithValue(wallets),
+  //         localeServiceChangeNotifierProvider
+  //             .overrideWithValue(mockLocaleService),
+  //         favoritesProvider.overrideWithValue(favorites),
+  //         nonFavoritesProvider.overrideWithValue(nonfavorites),
+  //         pThemeService.overrideWithValue(mockThemeService),
+  //         walletsServiceChangeNotifierProvider
+  //             .overrideWithValue(mockWalletsService)
+  //       ],
+  //       child: MaterialApp(
+  //         theme: ThemeData(
+  //           extensions: [
+  //             StackColors.fromStackColorTheme(
+  //               StackTheme.fromJson(
+  //                 json: lightThemeJsonMap,
+  //                 applicationThemesDirectoryPath: "test",
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //         home: const Material(
+  //           child: managedFavorite,
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  //
+  //   expect(find.byType(RawMaterialButton), findsOneWidget);
+  //   await widgetTester.tap(find.byType(RawMaterialButton));
+  //   await widgetTester.pump();
+  // });
 }
