@@ -77,14 +77,6 @@ git submodule update --init --recursive
 
 ```
 
-Run prebuild script
-```
-cd scripts
-./prebuild.sh
-// when finished go back to the root directory
-cd ..
-```
-
 Remove pre-installed system libraries for the following packages built by cryptography plugins in the crypto_plugins folder: `boost iconv libjson-dev libsecret openssl sodium unbound zmq`.  You can use
 ```
 sudo apt list --installed | grep boost
@@ -94,6 +86,17 @@ for example to find which pre-installed packages you may need to remove with `su
 sudo apt-get remove '^libboost.*-dev.*'
 ```
 <!-- TODO: configure compiler to prefer built over system libraries. Should already use them? -->
+
+### Run prebuild script
+
+Certain test wallet parameter and API key template files must be created in order to run Stack Wallet.  These can be created by script as in
+```
+cd scripts
+./prebuild.sh
+// when finished go back to the root directory
+cd ..
+```
+or manually by creating the files referenced in that script with the specified content.
 
 ### Building plugins for Android 
 > Warning: This will take a long time, please be patient
@@ -160,6 +163,17 @@ winget install 9WZDNCRDMDM3 # NuGet, can also use Microsoft.NuGet
 winget install Microsoft.Windows.CppWinRT -Version 2.0.210806.1
 ```
 or [download the package](https://www.nuget.org/packages/Microsoft.Windows.CppWinRT/2.0.210806.1) and [manually install it](https://github.com/Baseflow/flutter-permission-handler/issues/1025#issuecomment-1518576722).
+
+### Run prebuild script
+
+Certain test wallet parameter and API key template files must be created in order to run Stack Wallet.  These can be created by script as in
+```
+cd scripts
+./prebuild.ps1
+// when finished go back to the root directory
+cd ..
+```
+or manually by creating the files referenced in that script with the specified content.
 
 ### Running
 
