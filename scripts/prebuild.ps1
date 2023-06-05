@@ -12,6 +12,6 @@ foreach ($coin in $coins) {
     $WALLETTESTPARAMFILE = "..\test\services\coins\$coin\${coin}_wallet_test_parameters.dart"
     if (-not (Test-Path $WALLETTESTPARAMFILE)) {
         Write-Host "prebuild.ps1: creating template test/services/coins/$coin/${coin}_wallet_test_parameters.dart file"
-        "const TEST_MNEMONIC = "";" + "`nconst ROOT_WIF = "";" + "`nconst NODE_WIF_84 = "";" | Out-File -FilePath $WALLETTESTPARAMFILE
+        "const TEST_MNEMONIC = "";" + "`nconst ROOT_WIF = "";" + "`nconst NODE_WIF_84 = "";" | Out-File -FilePath $WALLETTESTPARAMFILE -Encoding UTF8
     }
 }
