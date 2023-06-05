@@ -4,27 +4,28 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:isar/isar.dart';
 import 'package:nanodart/nanodart.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
+import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/coin_control_interface.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
+import 'package:stackwallet/services/node_service.dart';
+import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
-
-import '../../../db/isar/main_db.dart';
-import '../../../models/node_model.dart';
-import '../../../utilities/default_nodes.dart';
-import '../../../utilities/flutter_secure_storage_interface.dart';
-import '../../../utilities/prefs.dart';
-import '../../node_service.dart';
-import '../../transaction_notification_tracker.dart';
 
 const int MINIMUM_CONFIRMATIONS = 1;
 const String DEFAULT_REPRESENTATIVE =
@@ -118,13 +119,26 @@ class BananoWallet extends CoinServiceAPI
   late final TransactionNotificationTracker txTracker;
   final _prefs = Prefs.instance;
 
+  Timer? timer;
   bool _shouldAutoSync = false;
 
   @override
   bool get shouldAutoSync => _shouldAutoSync;
 
   @override
-  set shouldAutoSync(bool shouldAutoSync) => _shouldAutoSync = shouldAutoSync;
+  set shouldAutoSync(bool shouldAutoSync) {
+    if (_shouldAutoSync != shouldAutoSync) {
+      _shouldAutoSync = shouldAutoSync;
+      if (!shouldAutoSync) {
+        timer?.cancel();
+        timer = null;
+        stopNetworkAlivePinging();
+      } else {
+        startNetworkAlivePinging();
+        refresh();
+      }
+    }
+  }
 
   @override
   Balance get balance => _balance ??= getCachedBalance();
@@ -751,6 +765,49 @@ class BananoWallet extends CoinServiceAPI
       }
     });
     return Future.value(false);
+  }
+
+  Timer? _networkAliveTimer;
+
+  void startNetworkAlivePinging() {
+    // call once on start right away
+    _periodicPingCheck();
+
+    // then periodically check
+    _networkAliveTimer = Timer.periodic(
+      Constants.networkAliveTimerDuration,
+      (_) async {
+        _periodicPingCheck();
+      },
+    );
+  }
+
+  void _periodicPingCheck() async {
+    bool hasNetwork = await testNetworkConnection();
+
+    if (_isConnected != hasNetwork) {
+      NodeConnectionStatus status = hasNetwork
+          ? NodeConnectionStatus.connected
+          : NodeConnectionStatus.disconnected;
+
+      GlobalEventBus.instance.fire(
+        NodeConnectionStatusChangedEvent(
+          status,
+          walletId,
+          coin,
+        ),
+      );
+
+      _isConnected = hasNetwork;
+      if (hasNetwork) {
+        unawaited(refresh());
+      }
+    }
+  }
+
+  void stopNetworkAlivePinging() {
+    _networkAliveTimer?.cancel();
+    _networkAliveTimer = null;
   }
 
   @override
