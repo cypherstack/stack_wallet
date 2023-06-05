@@ -147,22 +147,19 @@ Set up Ubuntu 20.04 in WSL2.  Follow the entire Linux host section to get set up
 Install Flutter 3.7.12 on your Windows host (not in WSL2) by following these instructions: https://docs.flutter.dev/get-started/install/windows or by running `scripts/windows/deps.ps1`.  You may still have to add `C:\development\flutter\bin` to PATH before proceeding, even if you ran `deps.ps1`.  Run `flutter doctor` in PowerShell to confirm its installation.
 
 ### Dependencies
-You may need to enable Developer Mode for symlink support,
+Install the Windows SDK: https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/
+
+Enable Developer Mode for symlink support,
 ```
 start ms-settings:developers
 ```
 
-Install NuGet:
+You may need to install NuGet and CppWinRT / C++/WinRT SDKs version `2.0.210806.1`:
 ```
 winget install 9WZDNCRDMDM3 # NuGet, can also use Microsoft.NuGet
+winget install Microsoft.Windows.CppWinRT -Version 2.0.210806.1
 ```
-
-You may need to install CppWinRT / C++/WinRT SDKs:
-```
-winget install Microsoft.Windows.CppWinRT
-```
-
-Install the Windows SDK: https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/
+or [download the package](https://www.nuget.org/packages/Microsoft.Windows.CppWinRT/2.0.210806.1) and [manually install it](https://github.com/Baseflow/flutter-permission-handler/issues/1025#issuecomment-1518576722).
 
 ### Running
 
