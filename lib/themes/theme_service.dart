@@ -40,9 +40,7 @@ class ThemeService {
       throw Exception("Invalid theme archive: Missing theme.json");
     }
 
-    final OutputStream os = OutputStream();
-    themeJsonFiles.first.decompress(os);
-    final String jsonString = utf8.decode(os.getBytes());
+    final jsonString = utf8.decode(themeJsonFiles.first.content as List<int>);
     final json = jsonDecode(jsonString) as Map;
 
     final theme = StackTheme.fromJson(
