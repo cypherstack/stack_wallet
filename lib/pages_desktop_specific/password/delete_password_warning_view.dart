@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive/hive.dart';
+import 'package:isar/isar.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/intro_view.dart';
@@ -52,7 +53,21 @@ class _ForgotPasswordDesktopViewState
 
     try {
       await Hive.close();
-      if (Platform.isWindows || Platform.isLinux) {
+      if (Platform.isWindows) {
+        final xmrDir = Directory("${appRoot.path}/wallets");
+        if (xmrDir.existsSync()) {
+          await xmrDir.delete(recursive: true);
+        }
+        final epicDir = Directory("${appRoot.path}/epiccash");
+        if (epicDir.existsSync()) {
+          await epicDir.delete(recursive: true);
+        }
+
+        await Isar.getInstance("desktopStore")?.close(deleteFromDisk: true);
+
+        await (await StackFileSystem.applicationHiveDirectory())
+            .delete(recursive: true);
+      } else if (Platform.isLinux) {
         await appRoot.delete(recursive: true);
       } else {
         // macos in ipad mode

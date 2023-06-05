@@ -17,11 +17,11 @@ import 'package:event_bus/event_bus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_libepiccash/git_versions.dart' as EPIC_VERSIONS;
-import 'package:flutter_libmonero/git_versions.dart' as MONERO_VERSIONS;
+// import 'package:flutter_libepiccash/git_versions.dart' as EPIC_VERSIONS;
+// import 'package:flutter_libmonero/git_versions.dart' as MONERO_VERSIONS;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:lelantus/git_versions.dart' as FIRO_VERSIONS;
+// import 'package:lelantus/git_versions.dart' as FIRO_VERSIONS;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:stackwallet/models/isar/models/log.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
@@ -302,11 +302,11 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                         packageInfo.buildSignature;
                                     final appName = packageInfo.appName;
                                     String firoCommit =
-                                        FIRO_VERSIONS.getPluginVersion();
+                                        "Unable to fetch version"; //FIRO_VERSIONS.getPluginVersion();
                                     String epicCashCommit =
-                                        EPIC_VERSIONS.getPluginVersion();
+                                        "Unable to fetch version"; //EPIC_VERSIONS.getPluginVersion();
                                     String moneroCommit =
-                                        MONERO_VERSIONS.getPluginVersion();
+                                        "Unable to fetch version"; // MONERO_VERSIONS.getPluginVersion();
                                     DeviceInfoPlugin deviceInfoPlugin =
                                         DeviceInfoPlugin();
                                     final deviceInfo =
