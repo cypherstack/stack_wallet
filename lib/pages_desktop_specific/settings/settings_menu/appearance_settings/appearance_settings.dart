@@ -177,7 +177,7 @@ class ThemeToggle extends ConsumerStatefulWidget {
 
 class _ThemeToggle extends ConsumerState<ThemeToggle> {
   late final StreamSubscription<void> _subscription;
-  late int _current;
+  int _current = 0;
 
   List<Tuple3<String, String, String>> installedThemeIdNames = [];
 

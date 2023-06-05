@@ -1517,7 +1517,7 @@ class StackTheme {
               themeId: json["id"] as String,
             )
           : null
-      ..assetsV2 = version == 2
+      ..assetsV2 = version >= 2
           ? ThemeAssetsV2.fromJson(
               json: Map<String, dynamic>.from(json["assets"] as Map),
               applicationThemesDirectoryPath: applicationThemesDirectoryPath,
@@ -2221,6 +2221,36 @@ class ThemeAssetsV2 implements IThemeAssets {
     }
 
     return result;
+  }
+
+  @override
+  String toString() {
+    return 'ThemeAssetsV2('
+        'bellNew: $bellNew, '
+        'buy: $buy, '
+        'exchange: $exchange, '
+        'personaIncognito: $personaIncognito, '
+        'personaEasy: $personaEasy, '
+        'stack: $stack, '
+        'stackIcon: $stackIcon, '
+        'receive: $receive, '
+        'receivePending: $receivePending, '
+        'receiveCancelled: $receiveCancelled, '
+        'send: $send, '
+        'sendPending: $sendPending, '
+        'sendCancelled: $sendCancelled, '
+        'themeSelector: $themeSelector, '
+        'themePreview: $themePreview, '
+        'txExchange: $txExchange, '
+        'txExchangePending: $txExchangePending, '
+        'txExchangeFailed: $txExchangeFailed, '
+        'loadingGif: $loadingGif, '
+        'background: $background, '
+        'coinPlaceholder: $coinPlaceholder, '
+        'coinIcons: $coinIcons, '
+        'coinImages: $coinImages, '
+        'coinSecondaryImages: $coinSecondaryImages'
+        ')';
   }
 }
 
