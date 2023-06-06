@@ -144,13 +144,13 @@ Set up Ubuntu 20.04 in WSL2.  Follow the entire Linux host section to get set up
 
 - `stack_wallet/crypto_plugins/flutter_libepiccash/scripts/windows/build/libepic_cash_wallet.dll`
 - `stack_wallet/crypto_plugins/flutter_liblelantus/scripts/windows/build/libmobileliblelantus.dll`
-<!-- TODO: script this -->
+<!-- TODO: script the copying or installation of libraries from WSL2 to the parent Windows host -->
 
 ### Install Flutter on Windows host
 Install Flutter 3.7.12 on your Windows host (not in WSL2) by following these instructions: https://docs.flutter.dev/get-started/install/windows or by running `scripts/windows/deps.ps1`.  You may still have to add `C:\development\flutter\bin` to PATH before proceeding, even if you ran `deps.ps1`.  Run `flutter doctor` in PowerShell to confirm its installation.
 
 ### Dependencies
-Install the Windows SDK: https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/  You may need to install the [Windows 10 SDK](https://developer.microsoft.com/en-us/windows/downloads/sdk-archive/), which can be installed [by Visual Studio](https://stackoverflow.com/a/73923899) (`Tools > Get Tools and Features... > Modify > Individual Components > Windows 10 SDK`)
+Install the Windows SDK: https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/  You may need to install the [Windows 10 SDK](https://developer.microsoft.com/en-us/windows/downloads/sdk-archive/), which can be installed [by Visual Studio](https://stackoverflow.com/a/73923899) (`Tools > Get Tools and Features... > Modify > Individual Components > Windows 10 SDK`).
 
 Enable Developer Mode for symlink support,
 ```
@@ -162,7 +162,8 @@ You may need to install NuGet and CppWinRT / C++/WinRT SDKs version `2.0.210806.
 winget install 9WZDNCRDMDM3 # NuGet, can also use Microsoft.NuGet
 winget install Microsoft.Windows.CppWinRT -Version 2.0.210806.1
 ```
-or [download the package](https://www.nuget.org/packages/Microsoft.Windows.CppWinRT/2.0.210806.1) and [manually install it](https://github.com/Baseflow/flutter-permission-handler/issues/1025#issuecomment-1518576722).
+or [download the package](https://www.nuget.org/packages/Microsoft.Windows.CppWinRT/2.0.210806.1) and [manually install it](https://github.com/Baseflow/flutter-permission-handler/issues/1025#issuecomment-1518576722) by placing it in `flutter/bin` with [nuget.exe](https://dist.nuget.org/win-x86-commandline/latest/nuget.exe) and installing by running `nuget install Microsoft.Windows.CppWinRT -Version 2.0.210806.1` in the root `stack_wallet` folder. 
+<!-- TODO: script this NuGet and WinCppRT installation -->
 
 ### Run prebuild script
 
@@ -180,5 +181,5 @@ or manually by creating the files referenced in that script with the specified c
 Run the following commands:
 ```
 flutter pub get
-flutter run windows
+flutter run -d windows
 ```
