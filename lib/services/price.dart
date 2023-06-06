@@ -115,8 +115,8 @@ class PriceAPI {
         final coin = coinFromPrettyName(coinName);
 
         final price = Decimal.parse(map["current_price"].toString());
-        final change24h =
-            double.parse(map["price_change_percentage_24h"].toString());
+        final change24h = map["price_change_percentage_24h"] != null ?
+            double.parse(map["price_change_percentage_24h"].toString()) : 0.0;
 
         result[coin] = Tuple2(price, change24h);
       }
