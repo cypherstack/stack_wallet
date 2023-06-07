@@ -2199,10 +2199,11 @@ class ThemeAssetsV2 implements IThemeAssets {
         "$applicationThemesDirectoryPath/$themeId/assets",
         Map<String, dynamic>.from(json["coins"]["secondaries"] as Map),
       )
-      ..coinCardImagesString = createCoinAssetsString(
+      ..coinCardImagesString = json["coins"]["cards"] is Map
+          ? createCoinAssetsString(
         "$applicationThemesDirectoryPath/$themeId/assets",
         Map<String, dynamic>.from(json["coins"]["cards"] as Map),
-      )
+      ) : null
       ..loadingGif = json["loading_gif"] is String
           ? "$applicationThemesDirectoryPath/$themeId/assets/${json["loading_gif"] as String}"
           : null
