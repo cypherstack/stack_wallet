@@ -866,7 +866,7 @@ class MockBitcoinWallet extends _i1.Mock implements _i28.BitcoinWallet {
   @override
   _i21.Coin get coin => (super.noSuchMethod(
         Invocation.getter(#coin),
-        returnValue: _i21.Coin.bitcoin,
+        returnValue: _i21.Coin.banano,
       ) as _i21.Coin);
   @override
   _i22.Future<List<_i17.UTXO>> get utxos => (super.noSuchMethod(
@@ -2077,7 +2077,7 @@ class MockManager extends _i1.Mock implements _i6.Manager {
   @override
   _i21.Coin get coin => (super.noSuchMethod(
         Invocation.getter(#coin),
-        returnValue: _i21.Coin.bitcoin,
+        returnValue: _i21.Coin.banano,
       ) as _i21.Coin);
   @override
   bool get isRefreshing => (super.noSuchMethod(
@@ -2445,7 +2445,7 @@ class MockCoinServiceAPI extends _i1.Mock implements _i19.CoinServiceAPI {
   @override
   _i21.Coin get coin => (super.noSuchMethod(
         Invocation.getter(#coin),
-        returnValue: _i21.Coin.bitcoin,
+        returnValue: _i21.Coin.banano,
       ) as _i21.Coin);
   @override
   bool get isRefreshing => (super.noSuchMethod(

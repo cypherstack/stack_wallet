@@ -81,7 +81,8 @@ extension AmountUnitExt on AmountUnit {
           return "gwei";
         } else if (coin == Coin.wownero ||
             coin == Coin.monero ||
-            coin == Coin.nano) {
+            coin == Coin.nano ||
+            coin == Coin.banano) {
           return "n${coin.ticker}";
         } else {
           return "sats";
@@ -91,7 +92,8 @@ extension AmountUnitExt on AmountUnit {
           return "mwei";
         } else if (coin == Coin.wownero ||
             coin == Coin.monero ||
-            coin == Coin.nano) {
+            coin == Coin.nano ||
+            coin == Coin.banano) {
           return "p${coin.ticker}";
         } else {
           return "invalid";
@@ -99,7 +101,7 @@ extension AmountUnitExt on AmountUnit {
       case AmountUnit.femto:
         if (coin == Coin.ethereum) {
           return "kwei";
-        } else if (coin == Coin.nano) {
+        } else if (coin == Coin.nano || coin == Coin.banano) {
           return "f${coin.ticker}";
         } else {
           return "invalid";
@@ -107,31 +109,31 @@ extension AmountUnitExt on AmountUnit {
       case AmountUnit.atto:
         if (coin == Coin.ethereum) {
           return "wei";
-        } else if (coin == Coin.nano) {
+        } else if (coin == Coin.nano || coin == Coin.banano) {
           return "a${coin.ticker}";
         } else {
           return "invalid";
         }
       case AmountUnit.zepto:
-        if (coin == Coin.nano) {
+        if (coin == Coin.nano || coin == Coin.banano) {
           return "z${coin.ticker}";
         } else {
           return "invalid";
         }
       case AmountUnit.yocto:
-        if (coin == Coin.nano) {
+        if (coin == Coin.nano || coin == Coin.banano) {
           return "y${coin.ticker}";
         } else {
           return "invalid";
         }
       case AmountUnit.ronto:
-        if (coin == Coin.nano) {
+        if (coin == Coin.nano || coin == Coin.banano) {
           return "r${coin.ticker}";
         } else {
           return "invalid";
         }
       case AmountUnit.quecto:
-        if (coin == Coin.nano) {
+        if (coin == Coin.nano || coin == Coin.banano) {
           return "q${coin.ticker}";
         } else {
           return "invalid";
