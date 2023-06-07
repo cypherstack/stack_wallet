@@ -82,7 +82,7 @@ dependencies:
   bip39:
     git:
       url: https://github.com/cypherstack/stack-bip39.git
-      ref: 787814bfea1af30ecf9d90c2c416846def1801f1
+      ref: 0cd6d54e2860bea68fc50c801cb9db2a760192fb
   bitbox:
     git:
       url: https://github.com/PiRK/bitbox-flutter.git
@@ -208,7 +208,7 @@ dependency_overrides:
   bip39:
     git:
       url: https://github.com/cypherstack/stack-bip39.git
-      ref: 787814bfea1af30ecf9d90c2c416846def1801f1
+      ref: 0cd6d54e2860bea68fc50c801cb9db2a760192fb
   crypto: 3.0.2
   flutter_secure_storage: ^8.0.0
 # For information on the generic Dart part of this file, see the
