@@ -17,47 +17,8 @@ final coinCardProvider = Provider.family<String?, Coin>((ref, coin) {
   final assets = ref.watch(themeAssetsProvider);
 
   if (assets is ThemeAssets) {
-    switch (coin) {
-      // case Coin.bitcoin:
-      //   return assets.bitcoinImage;
-      // case Coin.litecoin:
-      // case Coin.litecoinTestNet:
-      //   return assets.litecoinImage;
-      // case Coin.bitcoincash:
-      //   return assets.bitcoincashImage;
-      // case Coin.dogecoin:
-      //   return assets.dogecoinImage;
-      // case Coin.eCash:
-      //   return assets.bitcoinImage;
-      // case Coin.epicCash:
-      //   return assets.epicCashImage;
-      // case Coin.firo:
-      //   return assets.firoImage;
-      // case Coin.monero:
-      //   return assets.moneroImage;
-      // case Coin.wownero:
-      //   return assets.wowneroImage;
-      // case Coin.namecoin:
-      //   return assets.namecoinImage;
-      // case Coin.particl:
-      //   return assets.particlImage;
-      // case Coin.bitcoinTestNet:
-      //   return assets.bitcoinImage;
-      // case Coin.bitcoincashTestnet:
-      //   return assets.bitcoincashImage;
-      // case Coin.firoTestNet:
-      //   return assets.firoImage;
-      // case Coin.dogecoinTestNet:
-      //   return assets.dogecoinImage;
-      // case Coin.ethereum:
-      //   return assets.ethereumImage;
-      default:
-        return null;
-    }
-  }
-  else {
-    if(assets != null) {
-      return (assets as ThemeAssetsV2).coinCardImages?[coin.mainNetVersion]!;
-    }
+    return null;
+  } else {
+    return (assets as ThemeAssetsV2?)?.coinCardImages?[coin.mainNetVersion];
   }
 });

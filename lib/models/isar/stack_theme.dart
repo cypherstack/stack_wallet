@@ -18,6 +18,8 @@ import 'package:stackwallet/utilities/extensions/impl/box_shadow.dart';
 import 'package:stackwallet/utilities/extensions/impl/gradient.dart';
 import 'package:stackwallet/utilities/extensions/impl/string.dart';
 
+part 'stack_theme.g.dart';
+
 @Collection(inheritance: false)
 class StackTheme {
   Id id = Isar.autoIncrement;
@@ -1936,10 +1938,6 @@ class ThemeAssets implements IThemeAssets {
   late final String? loadingGif;
   @override
   late final String? background;
-
-  @override
-  @ignore
-  String? get walletSummaryCardBackground => null;
 
   ThemeAssets();
 

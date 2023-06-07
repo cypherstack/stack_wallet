@@ -25791,114 +25791,114 @@ const ThemeAssetsV2Schema = Schema(
       name: r'buy',
       type: IsarType.string,
     ),
-    r'coinIconsString': PropertySchema(
+    r'coinCardImagesString': PropertySchema(
       id: 3,
+      name: r'coinCardImagesString',
+      type: IsarType.string,
+    ),
+    r'coinIconsString': PropertySchema(
+      id: 4,
       name: r'coinIconsString',
       type: IsarType.string,
     ),
     r'coinImagesString': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'coinImagesString',
       type: IsarType.string,
     ),
     r'coinPlaceholder': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'coinPlaceholder',
       type: IsarType.string,
     ),
     r'coinSecondaryImagesString': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'coinSecondaryImagesString',
       type: IsarType.string,
     ),
     r'exchange': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'exchange',
       type: IsarType.string,
     ),
     r'loadingGif': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'loadingGif',
       type: IsarType.string,
     ),
     r'personaEasy': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'personaEasy',
       type: IsarType.string,
     ),
     r'personaIncognito': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'personaIncognito',
       type: IsarType.string,
     ),
     r'receive': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'receive',
       type: IsarType.string,
     ),
     r'receiveCancelled': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'receiveCancelled',
       type: IsarType.string,
     ),
     r'receivePending': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'receivePending',
       type: IsarType.string,
     ),
     r'send': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'send',
       type: IsarType.string,
     ),
     r'sendCancelled': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'sendCancelled',
       type: IsarType.string,
     ),
     r'sendPending': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'sendPending',
       type: IsarType.string,
     ),
     r'stack': PropertySchema(
-      id: 17,
+      id: 18,
       name: r'stack',
       type: IsarType.string,
     ),
     r'stackIcon': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'stackIcon',
       type: IsarType.string,
     ),
     r'themePreview': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'themePreview',
       type: IsarType.string,
     ),
     r'themeSelector': PropertySchema(
-      id: 20,
+      id: 21,
       name: r'themeSelector',
       type: IsarType.string,
     ),
     r'txExchange': PropertySchema(
-      id: 21,
+      id: 22,
       name: r'txExchange',
       type: IsarType.string,
     ),
     r'txExchangeFailed': PropertySchema(
-      id: 22,
+      id: 23,
       name: r'txExchangeFailed',
       type: IsarType.string,
     ),
     r'txExchangePending': PropertySchema(
-      id: 23,
-      name: r'txExchangePending',
-      type: IsarType.string,
-    ),
-    r'walletSummaryCardBackground': PropertySchema(
       id: 24,
-      name: r'walletSummaryCardBackground',
+      name: r'txExchangePending',
       type: IsarType.string,
     )
   },
@@ -25922,6 +25922,12 @@ int _themeAssetsV2EstimateSize(
   }
   bytesCount += 3 + object.bellNew.length * 3;
   bytesCount += 3 + object.buy.length * 3;
+  {
+    final value = object.coinCardImagesString;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.coinIconsString.length * 3;
   bytesCount += 3 + object.coinImagesString.length * 3;
   bytesCount += 3 + object.coinPlaceholder.length * 3;
@@ -25948,12 +25954,6 @@ int _themeAssetsV2EstimateSize(
   bytesCount += 3 + object.txExchange.length * 3;
   bytesCount += 3 + object.txExchangeFailed.length * 3;
   bytesCount += 3 + object.txExchangePending.length * 3;
-  {
-    final value = object.walletSummaryCardBackground;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
   return bytesCount;
 }
 
@@ -25966,28 +25966,28 @@ void _themeAssetsV2Serialize(
   writer.writeString(offsets[0], object.background);
   writer.writeString(offsets[1], object.bellNew);
   writer.writeString(offsets[2], object.buy);
-  writer.writeString(offsets[3], object.coinIconsString);
-  writer.writeString(offsets[4], object.coinImagesString);
-  writer.writeString(offsets[5], object.coinPlaceholder);
-  writer.writeString(offsets[6], object.coinSecondaryImagesString);
-  writer.writeString(offsets[7], object.exchange);
-  writer.writeString(offsets[8], object.loadingGif);
-  writer.writeString(offsets[9], object.personaEasy);
-  writer.writeString(offsets[10], object.personaIncognito);
-  writer.writeString(offsets[11], object.receive);
-  writer.writeString(offsets[12], object.receiveCancelled);
-  writer.writeString(offsets[13], object.receivePending);
-  writer.writeString(offsets[14], object.send);
-  writer.writeString(offsets[15], object.sendCancelled);
-  writer.writeString(offsets[16], object.sendPending);
-  writer.writeString(offsets[17], object.stack);
-  writer.writeString(offsets[18], object.stackIcon);
-  writer.writeString(offsets[19], object.themePreview);
-  writer.writeString(offsets[20], object.themeSelector);
-  writer.writeString(offsets[21], object.txExchange);
-  writer.writeString(offsets[22], object.txExchangeFailed);
-  writer.writeString(offsets[23], object.txExchangePending);
-  writer.writeString(offsets[24], object.walletSummaryCardBackground);
+  writer.writeString(offsets[3], object.coinCardImagesString);
+  writer.writeString(offsets[4], object.coinIconsString);
+  writer.writeString(offsets[5], object.coinImagesString);
+  writer.writeString(offsets[6], object.coinPlaceholder);
+  writer.writeString(offsets[7], object.coinSecondaryImagesString);
+  writer.writeString(offsets[8], object.exchange);
+  writer.writeString(offsets[9], object.loadingGif);
+  writer.writeString(offsets[10], object.personaEasy);
+  writer.writeString(offsets[11], object.personaIncognito);
+  writer.writeString(offsets[12], object.receive);
+  writer.writeString(offsets[13], object.receiveCancelled);
+  writer.writeString(offsets[14], object.receivePending);
+  writer.writeString(offsets[15], object.send);
+  writer.writeString(offsets[16], object.sendCancelled);
+  writer.writeString(offsets[17], object.sendPending);
+  writer.writeString(offsets[18], object.stack);
+  writer.writeString(offsets[19], object.stackIcon);
+  writer.writeString(offsets[20], object.themePreview);
+  writer.writeString(offsets[21], object.themeSelector);
+  writer.writeString(offsets[22], object.txExchange);
+  writer.writeString(offsets[23], object.txExchangeFailed);
+  writer.writeString(offsets[24], object.txExchangePending);
 }
 
 ThemeAssetsV2 _themeAssetsV2Deserialize(
@@ -26000,28 +26000,28 @@ ThemeAssetsV2 _themeAssetsV2Deserialize(
   object.background = reader.readStringOrNull(offsets[0]);
   object.bellNew = reader.readString(offsets[1]);
   object.buy = reader.readString(offsets[2]);
-  object.coinIconsString = reader.readString(offsets[3]);
-  object.coinImagesString = reader.readString(offsets[4]);
-  object.coinPlaceholder = reader.readString(offsets[5]);
-  object.coinSecondaryImagesString = reader.readString(offsets[6]);
-  object.exchange = reader.readString(offsets[7]);
-  object.loadingGif = reader.readStringOrNull(offsets[8]);
-  object.personaEasy = reader.readString(offsets[9]);
-  object.personaIncognito = reader.readString(offsets[10]);
-  object.receive = reader.readString(offsets[11]);
-  object.receiveCancelled = reader.readString(offsets[12]);
-  object.receivePending = reader.readString(offsets[13]);
-  object.send = reader.readString(offsets[14]);
-  object.sendCancelled = reader.readString(offsets[15]);
-  object.sendPending = reader.readString(offsets[16]);
-  object.stack = reader.readString(offsets[17]);
-  object.stackIcon = reader.readString(offsets[18]);
-  object.themePreview = reader.readString(offsets[19]);
-  object.themeSelector = reader.readString(offsets[20]);
-  object.txExchange = reader.readString(offsets[21]);
-  object.txExchangeFailed = reader.readString(offsets[22]);
-  object.txExchangePending = reader.readString(offsets[23]);
-  object.walletSummaryCardBackground = reader.readStringOrNull(offsets[24]);
+  object.coinCardImagesString = reader.readStringOrNull(offsets[3]);
+  object.coinIconsString = reader.readString(offsets[4]);
+  object.coinImagesString = reader.readString(offsets[5]);
+  object.coinPlaceholder = reader.readString(offsets[6]);
+  object.coinSecondaryImagesString = reader.readString(offsets[7]);
+  object.exchange = reader.readString(offsets[8]);
+  object.loadingGif = reader.readStringOrNull(offsets[9]);
+  object.personaEasy = reader.readString(offsets[10]);
+  object.personaIncognito = reader.readString(offsets[11]);
+  object.receive = reader.readString(offsets[12]);
+  object.receiveCancelled = reader.readString(offsets[13]);
+  object.receivePending = reader.readString(offsets[14]);
+  object.send = reader.readString(offsets[15]);
+  object.sendCancelled = reader.readString(offsets[16]);
+  object.sendPending = reader.readString(offsets[17]);
+  object.stack = reader.readString(offsets[18]);
+  object.stackIcon = reader.readString(offsets[19]);
+  object.themePreview = reader.readString(offsets[20]);
+  object.themeSelector = reader.readString(offsets[21]);
+  object.txExchange = reader.readString(offsets[22]);
+  object.txExchangeFailed = reader.readString(offsets[23]);
+  object.txExchangePending = reader.readString(offsets[24]);
   return object;
 }
 
@@ -26039,7 +26039,7 @@ P _themeAssetsV2DeserializeProp<P>(
     case 2:
       return (reader.readString(offset)) as P;
     case 3:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 4:
       return (reader.readString(offset)) as P;
     case 5:
@@ -26049,9 +26049,9 @@ P _themeAssetsV2DeserializeProp<P>(
     case 7:
       return (reader.readString(offset)) as P;
     case 8:
-      return (reader.readStringOrNull(offset)) as P;
-    case 9:
       return (reader.readString(offset)) as P;
+    case 9:
+      return (reader.readStringOrNull(offset)) as P;
     case 10:
       return (reader.readString(offset)) as P;
     case 11:
@@ -26081,7 +26081,7 @@ P _themeAssetsV2DeserializeProp<P>(
     case 23:
       return (reader.readString(offset)) as P;
     case 24:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -26508,6 +26508,160 @@ extension ThemeAssetsV2QueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'buy',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinCardImagesStringIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'coinCardImagesString',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinCardImagesStringIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'coinCardImagesString',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinCardImagesStringEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinCardImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinCardImagesStringGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'coinCardImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinCardImagesStringLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'coinCardImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinCardImagesStringBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'coinCardImagesString',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinCardImagesStringStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'coinCardImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinCardImagesStringEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'coinCardImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinCardImagesStringContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'coinCardImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinCardImagesStringMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'coinCardImagesString',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinCardImagesStringIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinCardImagesString',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinCardImagesStringIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'coinCardImagesString',
         value: '',
       ));
     });
@@ -29383,162 +29537,6 @@ extension ThemeAssetsV2QueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'txExchangePending',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
-      walletSummaryCardBackgroundIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'walletSummaryCardBackground',
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
-      walletSummaryCardBackgroundIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'walletSummaryCardBackground',
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
-      walletSummaryCardBackgroundEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'walletSummaryCardBackground',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
-      walletSummaryCardBackgroundGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'walletSummaryCardBackground',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
-      walletSummaryCardBackgroundLessThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'walletSummaryCardBackground',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
-      walletSummaryCardBackgroundBetween(
-    String? lower,
-    String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'walletSummaryCardBackground',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
-      walletSummaryCardBackgroundStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'walletSummaryCardBackground',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
-      walletSummaryCardBackgroundEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'walletSummaryCardBackground',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
-      walletSummaryCardBackgroundContains(String value,
-          {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'walletSummaryCardBackground',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
-      walletSummaryCardBackgroundMatches(String pattern,
-          {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'walletSummaryCardBackground',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
-      walletSummaryCardBackgroundIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'walletSummaryCardBackground',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
-      walletSummaryCardBackgroundIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'walletSummaryCardBackground',
         value: '',
       ));
     });

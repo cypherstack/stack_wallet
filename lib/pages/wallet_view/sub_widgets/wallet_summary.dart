@@ -68,8 +68,7 @@ class WalletSummary extends ConsumerWidget {
             if (hasCardImageBg)
               SvgPicture.file(
                 File(
-                  ref.watch(
-                      coinCardProvider(coin) as ProviderListenable<String>),
+                  ref.watch(coinCardProvider(coin))!,
                 ),
                 height: 24,
                 width: 24,
