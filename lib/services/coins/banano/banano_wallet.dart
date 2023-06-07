@@ -279,7 +279,7 @@ class BananoWallet extends CoinServiceAPI
   Future<Address?> get _currentReceivingAddress => db
       .getAddresses(walletId)
       .filter()
-      .typeEqualTo(AddressType.nano)
+      .typeEqualTo(AddressType.banano)
       .and()
       .subTypeEqualTo(AddressSubType.receiving)
       .sortByDerivationIndexDesc()
