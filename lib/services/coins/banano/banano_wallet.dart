@@ -533,21 +533,17 @@ class BananoWallet extends CoinServiceAPI
           numberOfMessages: null,
         );
 
-        Address address = Address(
-          walletId: walletId,
-          publicKey: [],
-          value: transactionType == TransactionType.incoming
-              ? publicAddress
-              : tx["account"].toString(),
-          derivationIndex: 0,
-          derivationPath: null,
-          type: transactionType == TransactionType.incoming
-              ? AddressType.nonWallet
-              : AddressType.banano,
-          subType: transactionType == TransactionType.incoming
-              ? AddressSubType.receiving
-              : AddressSubType.nonWallet,
-        );
+        Address address = transactionType == TransactionType.incoming
+            ? receivingAddress
+            : Address(
+                walletId: walletId,
+                publicKey: [],
+                value: tx["account"].toString(),
+                derivationIndex: 0,
+                derivationPath: null,
+                type: AddressType.banano,
+                subType: AddressSubType.nonWallet,
+              );
         Tuple2<Transaction, Address> tuple = Tuple2(transaction, address);
         transactionList.add(tuple);
       }
@@ -611,7 +607,7 @@ class BananoWallet extends CoinServiceAPI
       publicKey: [], // TODO: add public key
       derivationIndex: 0,
       derivationPath: null,
-      type: AddressType.unknown,
+      type: AddressType.banano,
       subType: AddressSubType.receiving,
     );
 
@@ -706,10 +702,10 @@ class BananoWallet extends CoinServiceAPI
       final address = Address(
         walletId: walletId,
         value: publicAddress,
-        publicKey: [], // TODO: add public key
+        publicKey: [],
         derivationIndex: 0,
         derivationPath: null,
-        type: AddressType.unknown,
+        type: AddressType.banano,
         subType: AddressSubType.receiving,
       );
 
