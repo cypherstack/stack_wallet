@@ -64,12 +64,10 @@ class WalletSummary extends ConsumerWidget {
         child: Stack(
           children: [
             if (hasCardImageBg)
-              SvgPicture.file(
+              Image.file(
                 File(
                   ref.watch(coinCardProvider(coin))!,
                 ),
-                height: 24,
-                width: 24,
               ),
             if (!hasCardImageBg)
               Consumer(
