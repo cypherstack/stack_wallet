@@ -46,95 +46,97 @@ class _ChooseUnitSheetState extends ConsumerState<ChooseUnitSheet> {
           top: 10,
           bottom: 0,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldDefaultBG,
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
                   ),
+                  width: 60,
+                  height: 4,
                 ),
-                width: 60,
-                height: 4,
               ),
-            ),
-            const SizedBox(
-              height: 36,
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Phrase length",
-                  style: STextStyles.pageTitleH2(context),
-                  textAlign: TextAlign.left,
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                for (int i = 0; i < values.length; i++)
-                  Column(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _current = values[i];
-                          });
+              const SizedBox(
+                height: 36,
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Coin units",
+                    style: STextStyles.pageTitleH2(context),
+                    textAlign: TextAlign.left,
+                  ),
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  for (int i = 0; i < values.length; i++)
+                    Column(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _current = values[i];
+                            });
 
-                          Navigator.of(context).pop(_current);
-                        },
-                        child: Container(
-                          color: Colors.transparent,
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: Radio(
-                                  activeColor: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .radioButtonIconEnabled,
-                                  value: values[i],
-                                  groupValue: _current,
-                                  onChanged: (x) {
-                                    setState(() {
-                                      _current = values[i];
-                                    });
+                            Navigator.of(context).pop(_current);
+                          },
+                          child: Container(
+                            color: Colors.transparent,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: Radio(
+                                    activeColor: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .radioButtonIconEnabled,
+                                    value: values[i],
+                                    groupValue: _current,
+                                    onChanged: (x) {
+                                      setState(() {
+                                        _current = values[i];
+                                      });
 
-                                    Navigator.of(context).pop(_current);
-                                  },
+                                      Navigator.of(context).pop(_current);
+                                    },
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(
-                                width: 12,
-                              ),
-                              Text(
-                                values[i].unitForCoin(widget.coin),
-                                style: STextStyles.titleBold12(context),
-                                textAlign: TextAlign.left,
-                              ),
-                            ],
+                                const SizedBox(
+                                  width: 12,
+                                ),
+                                Text(
+                                  values[i].unitForCoin(widget.coin),
+                                  style: STextStyles.titleBold12(context),
+                                  textAlign: TextAlign.left,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(
-                        height: 16,
-                      ),
-                    ],
+                        const SizedBox(
+                          height: 16,
+                        ),
+                      ],
+                    ),
+                  const SizedBox(
+                    height: 8,
                   ),
-                const SizedBox(
-                  height: 8,
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
