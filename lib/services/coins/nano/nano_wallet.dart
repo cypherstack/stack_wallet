@@ -775,15 +775,10 @@ class NanoWallet extends CoinServiceAPI
   }
 
   @override
-  Future<bool> testNetworkConnection() {
-    http
-        .get(Uri.parse("${getCurrentNode().host}?action=version"))
-        .then((response) {
-      if (response.statusCode == 200) {
-        return true;
-      }
-    });
-    return Future.value(false);
+  Future<bool> testNetworkConnection() async {
+    final uri = Uri.parse("${getCurrentNode().host}?action=version");
+    final response = await http.get(uri);
+    return response.statusCode == 200;
   }
 
   Timer? _networkAliveTimer;
