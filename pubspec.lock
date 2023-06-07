@@ -1759,7 +1759,7 @@ packages:
     dependency: "direct overridden"
     description:
       path: wakelock_windows
-      ref: win32-v5
+      ref: "2a9bca63a540771f241d688562351482b2cf234c"
       resolved-ref: "2a9bca63a540771f241d688562351482b2cf234c"
       url: "https://github.com/timsneath/wakelock"
     source: git

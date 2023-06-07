@@ -181,7 +181,7 @@ dependency_overrides:
   wakelock_windows:
     git:
       url: https://github.com/timsneath/wakelock
-      ref: win32-v5
+      ref: 2a9bca63a540771f241d688562351482b2cf234c
       path: wakelock_windows
   stack_wallet_backup:
     git:
