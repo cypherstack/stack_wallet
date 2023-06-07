@@ -45,7 +45,7 @@ dependencies:
   bitcoindart:
     git:
       url: https://github.com/cypherstack/bitcoindart.git
-      ref: 6136230e660fd1f681d18c75d38ca7de4d81187c
+      ref: af6d6c27edfe2e7cc35772ed2684eb4cc826f0e4
 
   stack_wallet_backup:
     git:
@@ -55,7 +55,7 @@ dependencies:
   bip47:
     git:
       url: https://github.com/cypherstack/bip47.git
-      ref: f0e50250f84438a11364018f8ed3dd5c09ab2e7b
+      ref: 081ca1863c2feba00c35bb5b297902f12f499941
 
   # Utility plugins
   http: ^0.13.0
@@ -84,7 +84,7 @@ dependencies:
   bech32:
     git:
       url: https://github.com/cypherstack/bech32.git
-      ref: 9e3927a53a606cc3f87f98c5cba36e9fd59917a5
+      ref: b6d2a5b4cd17311d917787c0f9505f04932659b1
   bs58check: ^1.0.2
 
   # Eth Plugins
@@ -187,10 +187,6 @@ dependency_overrides:
     git:
       url: https://github.com/cypherstack/stack_wallet_backup.git
       ref: ee1da8a9ba1cbeb50c5b354ea1fd5a25b7c5a3ed
-  bech32:
-    git:
-      url: https://github.com/cypherstack/bech32.git
-      ref: 9e3927a53a606cc3f87f98c5cba36e9fd59917a5
   bip39:
     git:
       url: https://github.com/cypherstack/stack-bip39.git

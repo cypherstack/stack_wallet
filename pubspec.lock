@@ -77,8 +77,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "9e3927a53a606cc3f87f98c5cba36e9fd59917a5"
-      resolved-ref: "9e3927a53a606cc3f87f98c5cba36e9fd59917a5"
+      ref: b6d2a5b4cd17311d917787c0f9505f04932659b1
+      resolved-ref: b6d2a5b4cd17311d917787c0f9505f04932659b1
       url: "https://github.com/cypherstack/bech32.git"
     source: git
     version: "0.2.1"
@@ -94,8 +94,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "787814bfea1af30ecf9d90c2c416846def1801f1"
-      resolved-ref: "787814bfea1af30ecf9d90c2c416846def1801f1"
+      ref: "0cd6d54e2860bea68fc50c801cb9db2a760192fb"
+      resolved-ref: "0cd6d54e2860bea68fc50c801cb9db2a760192fb"
       url: "https://github.com/cypherstack/stack-bip39.git"
     source: git
     version: "1.0.6"
@@ -103,8 +103,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: f0e50250f84438a11364018f8ed3dd5c09ab2e7b
-      resolved-ref: f0e50250f84438a11364018f8ed3dd5c09ab2e7b
+      ref: "081ca1863c2feba00c35bb5b297902f12f499941"
+      resolved-ref: "081ca1863c2feba00c35bb5b297902f12f499941"
       url: "https://github.com/cypherstack/bip47.git"
     source: git
     version: "2.0.0"
@@ -121,8 +121,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "6136230e660fd1f681d18c75d38ca7de4d81187c"
-      resolved-ref: "6136230e660fd1f681d18c75d38ca7de4d81187c"
+      ref: af6d6c27edfe2e7cc35772ed2684eb4cc826f0e4
+      resolved-ref: af6d6c27edfe2e7cc35772ed2684eb4cc826f0e4
       url: "https://github.com/cypherstack/bitcoindart.git"
     source: git
     version: "3.0.1"
