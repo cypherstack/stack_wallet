@@ -58,6 +58,12 @@ class ThemeService {
       applicationThemesDirectoryPath: themesDir.path,
     );
 
+    try {
+      theme.assets;
+    } catch (_) {
+      throw Exception("Invalid theme: Failed to create assets object");
+    }
+
     final String assetsPath = "${themesDir.path}/${theme.themeId}";
 
     for (final file in archive.files) {
@@ -167,9 +173,15 @@ class ThemeService {
 
   // TODO more thorough check/verification of theme
   Future<bool> verifyInstalled({required String themeId}) async {
-    final dbHasTheme =
-        await db.isar.stackThemes.where().themeIdEqualTo(themeId).count() > 0;
-    if (dbHasTheme) {
+    final theme =
+        await db.isar.stackThemes.where().themeIdEqualTo(themeId).findFirst();
+    if (theme != null) {
+      try {
+        theme.assets;
+      } catch (_) {
+        return false;
+      }
+
       final themesDir = await StackFileSystem.applicationThemesDirectory();
       final jsonFileExists =
           await File("${themesDir.path}/$themeId/theme.json").exists();

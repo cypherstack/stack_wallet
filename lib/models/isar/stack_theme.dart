@@ -1939,7 +1939,9 @@ class ThemeAssets implements IThemeAssets {
   @override
   late final String? background;
 
-  // todo: add all assets expected in json
+  @override
+  @ignore
+  String? get walletSummaryCardBackground => null;
 
   ThemeAssets();
 
@@ -2102,6 +2104,8 @@ class ThemeAssetsV2 implements IThemeAssets {
   late final String? loadingGif;
   @override
   late final String? background;
+  @override
+  late final String? walletSummaryCardBackground;
 
   late final String coinPlaceholder;
 
@@ -2196,6 +2200,10 @@ class ThemeAssetsV2 implements IThemeAssets {
           : null
       ..background = json["background"] is String
           ? "$applicationThemesDirectoryPath/$themeId/assets/${json["background"] as String}"
+          : null
+      ..walletSummaryCardBackground = json["walletSummaryCardBackground"]
+              is String
+          ? "$applicationThemesDirectoryPath/$themeId/assets/${json["walletSummaryCardBackground"] as String}"
           : null;
   }
 
@@ -2246,6 +2254,7 @@ class ThemeAssetsV2 implements IThemeAssets {
         'txExchangeFailed: $txExchangeFailed, '
         'loadingGif: $loadingGif, '
         'background: $background, '
+        'walletSummaryCardBackground: $walletSummaryCardBackground, '
         'coinPlaceholder: $coinPlaceholder, '
         'coinIcons: $coinIcons, '
         'coinImages: $coinImages, '
@@ -2276,4 +2285,5 @@ abstract class IThemeAssets {
 
   String? get loadingGif;
   String? get background;
+  String? get walletSummaryCardBackground;
 }

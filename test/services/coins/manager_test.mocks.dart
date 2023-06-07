@@ -217,7 +217,7 @@ class MockFiroWallet extends _i1.Mock implements _i10.FiroWallet {
   @override
   _i12.Coin get coin => (super.noSuchMethod(
         Invocation.getter(#coin),
-        returnValue: _i12.Coin.bitcoin,
+        returnValue: _i12.Coin.banano,
       ) as _i12.Coin);
   @override
   _i11.Future<List<String>> get mnemonic => (super.noSuchMethod(

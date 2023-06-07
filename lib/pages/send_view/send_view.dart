@@ -978,21 +978,27 @@ class _SendViewState extends ConsumerState<SendView> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                isPaynymSend ? "Send to PayNym address" : "Send to",
+                                isPaynymSend
+                                    ? "Send to PayNym address"
+                                    : "Send to",
                                 style: STextStyles.smallMed12(context),
                                 textAlign: TextAlign.left,
                               ),
-                              if (coin == Coin.monero)
-                                CustomTextButton(
-                                  text: "Use OpenAlias",
-                                  onTap: () async {
-                                    await showModalBottomSheet(context: context, builder: (context) => OpenAliasBottomSheet(
-                                      onSelected: (address) {
-                                        sendToController.text = address;
-                                      },
-                                    ));
-                                  },
-                                )
+                              // if (coin == Coin.monero)
+                              //   CustomTextButton(
+                              //     text: "Use OpenAlias",
+                              //     onTap: () async {
+                              //       await showModalBottomSheet(
+                              //         context: context,
+                              //         builder: (context) =>
+                              //             OpenAliasBottomSheet(
+                              //           onSelected: (address) {
+                              //             sendToController.text = address;
+                              //           },
+                              //         ),
+                              //       );
+                              //     },
+                              //   ),
                             ],
                           ),
                           const SizedBox(

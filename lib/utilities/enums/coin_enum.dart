@@ -31,6 +31,7 @@ import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart' as wow;
 import 'package:stackwallet/utilities/constants.dart';
 
 enum Coin {
+  banano,
   bitcoin,
   bitcoincash,
   dogecoin,
@@ -41,10 +42,9 @@ enum Coin {
   litecoin,
   monero,
   namecoin,
+  nano,
   particl,
   wownero,
-  nano,
-  banano,
 
   ///
 
@@ -52,10 +52,10 @@ enum Coin {
   ///
 
   bitcoinTestNet,
-  litecoinTestNet,
   bitcoincashTestnet,
   dogecoinTestNet,
   firoTestNet,
+  litecoinTestNet,
 }
 
 final int kTestNetCoinCount = 4; // Util.isDesktop ? 5 : 4;

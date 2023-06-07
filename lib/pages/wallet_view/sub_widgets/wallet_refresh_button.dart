@@ -66,26 +66,38 @@ class _RefreshButtonState extends ConsumerState<WalletRefreshButton> {
             widget.tokenContractAddress == null) {
           switch (event.newStatus) {
             case WalletSyncStatus.unableToSync:
-              _spinController.stop?.call();
+              if (_spinController.hasLoadedAnimation) {
+                _spinController.stop?.call();
+              }
               break;
             case WalletSyncStatus.synced:
-              _spinController.stop?.call();
+              if (_spinController.hasLoadedAnimation) {
+                _spinController.stop?.call();
+              }
               break;
             case WalletSyncStatus.syncing:
-              _spinController.repeat?.call();
+              if (_spinController.hasLoadedAnimation) {
+                _spinController.repeat?.call();
+              }
               break;
           }
         } else if (widget.tokenContractAddress != null &&
             event.walletId == widget.walletId + widget.tokenContractAddress!) {
           switch (event.newStatus) {
             case WalletSyncStatus.unableToSync:
-              _spinController.stop?.call();
+              if (_spinController.hasLoadedAnimation) {
+                _spinController.stop?.call();
+              }
               break;
             case WalletSyncStatus.synced:
-              _spinController.stop?.call();
+              if (_spinController.hasLoadedAnimation) {
+                _spinController.stop?.call();
+              }
               break;
             case WalletSyncStatus.syncing:
-              _spinController.repeat?.call();
+              if (_spinController.hasLoadedAnimation) {
+                _spinController.repeat?.call();
+              }
               break;
           }
         }
