@@ -178,20 +178,27 @@ flutter_native_splash:
   android_disable_fullscreen: true
 
 dependency_overrides:
+
+  # required for dart 3, at least until a fix is merged upstream
   wakelock_windows:
     git:
       url: https://github.com/timsneath/wakelock
       ref: 2a9bca63a540771f241d688562351482b2cf234c
       path: wakelock_windows
+
+  # required for libmonero - can remove once libmonero has been updated, PR has been merged in swb
   stack_wallet_backup:
     git:
       url: https://github.com/cypherstack/stack_wallet_backup.git
       ref: ee1da8a9ba1cbeb50c5b354ea1fd5a25b7c5a3ed
+
+  # required override for nanodart
   bip39:
     git:
       url: https://github.com/cypherstack/stack-bip39.git
       ref: 0cd6d54e2860bea68fc50c801cb9db2a760192fb
-  crypto: 3.0.2
+
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
