@@ -49,10 +49,8 @@ class WalletSummary extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bool hasCardImageBg =
-        ref.watch(managerProvider.select((value) => value.coin)) != null;
-
     final Coin coin = ref.watch(managerProvider.select((value) => value.coin));
+    final bool hasCardImageBg = ref.watch(coinCardProvider(coin)) != null;
 
     return AspectRatio(
       aspectRatio: aspectRatio,

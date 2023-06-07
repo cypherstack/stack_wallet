@@ -17,6 +17,7 @@ import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
+import 'package:stackwallet/themes/coin_card_provider.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -66,6 +67,8 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
     final externalCalls = ref.watch(
       prefsChangeNotifierProvider.select((value) => value.externalCalls),
     );
+
+    final bool hasCardImageBg = ref.watch(coinCardProvider(coin)) != null;
 
     return ConditionalParent(
       condition: Util.isDesktop,
@@ -147,63 +150,74 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
           child: CardOverlayStack(
             background: Stack(
               children: [
-                Container(
-                  width: widget.width,
-                  height: widget.height,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .colorForCoin(coin),
-                    borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius,
+                if (hasCardImageBg)
+                  SvgPicture.file(
+                    File(
+                      ref.watch(coinCardProvider(coin))!,
+                    ),
+                    height: 24,
+                    width: 24,
+                  ),
+                if (!hasCardImageBg)
+                  Container(
+                    width: widget.width,
+                    height: widget.height,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .colorForCoin(coin),
+                      borderRadius: BorderRadius.circular(
+                        Constants.size.circularBorderRadius,
+                      ),
                     ),
                   ),
-                ),
-                Column(
-                  children: [
-                    const Spacer(),
-                    SizedBox(
-                      height: widget.width * 0.3,
-                      child: Row(
-                        children: [
-                          const Spacer(
-                            flex: 9,
-                          ),
-                          SvgPicture.asset(
-                            Assets.svg.ellipse2,
-                            height: widget.width * 0.3,
-                          ),
-                          // ),
-                          const Spacer(
-                            flex: 2,
-                          ),
-                        ],
+                if (!hasCardImageBg)
+                  Column(
+                    children: [
+                      const Spacer(),
+                      SizedBox(
+                        height: widget.width * 0.3,
+                        child: Row(
+                          children: [
+                            const Spacer(
+                              flex: 9,
+                            ),
+                            SvgPicture.asset(
+                              Assets.svg.ellipse2,
+                              height: widget.width * 0.3,
+                            ),
+                            // ),
+                            const Spacer(
+                              flex: 2,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    const Spacer(
-                      flex: 5,
-                    ),
-                    SizedBox(
-                      width: widget.width * 0.45,
-                      child: Column(
-                        children: [
-                          SvgPicture.asset(
-                            Assets.svg.ellipse1,
-                            width: widget.width * 0.45,
-                          ),
-                          const Spacer(),
-                        ],
+                    ],
+                  ),
+                if (!hasCardImageBg)
+                  Row(
+                    children: [
+                      const Spacer(
+                        flex: 5,
                       ),
-                    ),
-                    const Spacer(
-                      flex: 1,
-                    ),
-                  ],
-                ),
+                      SizedBox(
+                        width: widget.width * 0.45,
+                        child: Column(
+                          children: [
+                            SvgPicture.asset(
+                              Assets.svg.ellipse1,
+                              width: widget.width * 0.45,
+                            ),
+                            const Spacer(),
+                          ],
+                        ),
+                      ),
+                      const Spacer(
+                        flex: 1,
+                      ),
+                    ],
+                  ),
               ],
             ),
             child: Padding(
