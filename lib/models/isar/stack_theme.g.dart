@@ -25895,6 +25895,11 @@ const ThemeAssetsV2Schema = Schema(
       id: 23,
       name: r'txExchangePending',
       type: IsarType.string,
+    ),
+    r'walletSummaryCardBackground': PropertySchema(
+      id: 24,
+      name: r'walletSummaryCardBackground',
+      type: IsarType.string,
     )
   },
   estimateSize: _themeAssetsV2EstimateSize,
@@ -25943,6 +25948,12 @@ int _themeAssetsV2EstimateSize(
   bytesCount += 3 + object.txExchange.length * 3;
   bytesCount += 3 + object.txExchangeFailed.length * 3;
   bytesCount += 3 + object.txExchangePending.length * 3;
+  {
+    final value = object.walletSummaryCardBackground;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   return bytesCount;
 }
 
@@ -25976,6 +25987,7 @@ void _themeAssetsV2Serialize(
   writer.writeString(offsets[21], object.txExchange);
   writer.writeString(offsets[22], object.txExchangeFailed);
   writer.writeString(offsets[23], object.txExchangePending);
+  writer.writeString(offsets[24], object.walletSummaryCardBackground);
 }
 
 ThemeAssetsV2 _themeAssetsV2Deserialize(
@@ -26009,6 +26021,7 @@ ThemeAssetsV2 _themeAssetsV2Deserialize(
   object.txExchange = reader.readString(offsets[21]);
   object.txExchangeFailed = reader.readString(offsets[22]);
   object.txExchangePending = reader.readString(offsets[23]);
+  object.walletSummaryCardBackground = reader.readStringOrNull(offsets[24]);
   return object;
 }
 
@@ -26067,6 +26080,8 @@ P _themeAssetsV2DeserializeProp<P>(
       return (reader.readString(offset)) as P;
     case 23:
       return (reader.readString(offset)) as P;
+    case 24:
+      return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -29368,6 +29383,162 @@ extension ThemeAssetsV2QueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'txExchangePending',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      walletSummaryCardBackgroundIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'walletSummaryCardBackground',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      walletSummaryCardBackgroundIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'walletSummaryCardBackground',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      walletSummaryCardBackgroundEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'walletSummaryCardBackground',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      walletSummaryCardBackgroundGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'walletSummaryCardBackground',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      walletSummaryCardBackgroundLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'walletSummaryCardBackground',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      walletSummaryCardBackgroundBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'walletSummaryCardBackground',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      walletSummaryCardBackgroundStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'walletSummaryCardBackground',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      walletSummaryCardBackgroundEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'walletSummaryCardBackground',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      walletSummaryCardBackgroundContains(String value,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'walletSummaryCardBackground',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      walletSummaryCardBackgroundMatches(String pattern,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'walletSummaryCardBackground',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      walletSummaryCardBackgroundIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'walletSummaryCardBackground',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      walletSummaryCardBackgroundIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'walletSummaryCardBackground',
         value: '',
       ));
     });
