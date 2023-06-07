@@ -42,12 +42,6 @@ dependencies:
   flutter_libepiccash:
     path: ./crypto_plugins/flutter_libepiccash
 
-#  firo_flutter:
-#    git:
-#      url: https://github.com/cypherstack/firo_flutter.git
-#      ref: update
-  #    path: ./crypto_plugins/firo_flutter
-
   bitcoindart:
     git:
       url: https://github.com/cypherstack/bitcoindart.git
@@ -69,7 +63,6 @@ dependencies:
   permission_handler: ^10.0.0
   flutter_local_notifications: ^9.4.0
   rxdart: ^0.27.3
-#  filesystem_picker: ^3.0.0-beta.1
   zxcvbn: ^1.0.0
   dart_numerics: ^0.0.6
 
@@ -96,7 +89,6 @@ dependencies:
 
   # Eth Plugins
   web3dart: 2.6.1
-  string_to_hex: 0.2.2
   ethereum_addresses: 1.0.2
 
   # Storage plugins
@@ -107,7 +99,6 @@ dependencies:
 
   # UI/Component plugins
   flutter_native_splash: ^2.2.4
-  animations: ^2.0.2
   google_fonts: ^4.0.4
   url_launcher: ^6.0.5
   flutter_svg: ^1.0.1
@@ -117,9 +108,7 @@ dependencies:
   uuid: ^3.0.5
   flutter_rounded_date_picker: ^3.0.1
   crypto: ^3.0.2
-  jsonrpc2: ^3.0.1
   barcode_scan2: ^4.2.0
-  app_settings: ^4.1.1
   wakelock: ^0.6.2
   intl: ^0.17.0
   devicelocale: ^0.6.0
@@ -134,11 +123,8 @@ dependencies:
   pointycastle: ^3.6.0
   package_info_plus: ^4.0.2
   lottie: ^2.3.2
-#  shared_preferences: ^2.0.15
   file_picker: ^5.3.1
-#  connectivity_plus: 2.3.6+1
   connectivity_plus: ^4.0.1
-#  document_file_save_plus: ^1.0.5
   isar: 3.0.5
   isar_flutter_libs: 3.0.5 # contains the binaries
   dropdown_button2: ^2.1.3
