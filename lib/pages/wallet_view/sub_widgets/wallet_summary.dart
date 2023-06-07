@@ -8,6 +8,9 @@
  *
  */
 
+// import 'dart:html';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -18,7 +21,10 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 
-class WalletSummary extends StatelessWidget {
+import '../../../themes/coin_card_provider.dart';
+import '../../../utilities/enums/coin_enum.dart';
+
+class WalletSummary extends ConsumerWidget {
   const WalletSummary({
     Key? key,
     required this.walletId,
@@ -42,7 +48,12 @@ class WalletSummary extends StatelessWidget {
   final double maxWidth;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bool hasCardImageBg =
+        ref.watch(managerProvider.select((value) => value.coin)) != null;
+
+    final Coin coin = ref.watch(managerProvider.select((value) => value.coin));
+
     return AspectRatio(
       aspectRatio: aspectRatio,
       child: ConstrainedBox(
@@ -54,68 +65,80 @@ class WalletSummary extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            Consumer(
-              builder: (_, ref, __) {
-                return Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .colorForCoin(ref.watch(
-                            managerProvider.select((value) => value.coin))),
-                    borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius,
-                    ),
-                  ),
-                );
-              },
-            ),
-            Positioned.fill(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Spacer(
-                    flex: 5,
-                  ),
-                  Expanded(
-                    flex: 6,
-                    child: SvgPicture.asset(
-                      Assets.svg.ellipse1,
-                      // fit: BoxFit.fitWidth,
-                      // clipBehavior: Clip.none,
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 25,
-                  ),
-                ],
+            if (hasCardImageBg)
+              SvgPicture.file(
+                File(
+                  ref.watch(
+                      coinCardProvider(coin) as ProviderListenable<String>),
+                ),
+                height: 24,
+                width: 24,
               ),
-            ),
+            if (!hasCardImageBg)
+              Consumer(
+                builder: (_, ref, __) {
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .colorForCoin(ref.watch(
+                              managerProvider.select((value) => value.coin))),
+                      borderRadius: BorderRadius.circular(
+                        Constants.size.circularBorderRadius,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            if (!hasCardImageBg)
+              Positioned.fill(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Spacer(
+                      flex: 5,
+                    ),
+                    Expanded(
+                      flex: 6,
+                      child: SvgPicture.asset(
+                        Assets.svg.ellipse1,
+                        // fit: BoxFit.fitWidth,
+                        // clipBehavior: Clip.none,
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 25,
+                    ),
+                  ],
+                ),
+              ),
             // Positioned.fill(
             //   child:
             // Column(
             //   mainAxisAlignment: MainAxisAlignment.end,
             //   children: [
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Row(
-                children: [
-                  const Spacer(
-                    flex: 1,
-                  ),
-                  Expanded(
-                    flex: 3,
-                    child: SvgPicture.asset(
-                      Assets.svg.ellipse2,
-                      // fit: BoxFit.f,
-                      // clipBehavior: Clip.none,
+            if (!hasCardImageBg)
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Row(
+                  children: [
+                    const Spacer(
+                      flex: 1,
                     ),
-                  ),
-                  const SizedBox(
-                    width: 13,
-                  ),
-                ],
+                    Expanded(
+                      flex: 3,
+                      child: SvgPicture.asset(
+                        Assets.svg.ellipse2,
+                        // fit: BoxFit.f,
+                        // clipBehavior: Clip.none,
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 13,
+                    ),
+                  ],
+                ),
               ),
-            ),
             //   ],
             // ),
             // ),

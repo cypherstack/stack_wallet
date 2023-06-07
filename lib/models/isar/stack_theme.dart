@@ -18,8 +18,6 @@ import 'package:stackwallet/utilities/extensions/impl/box_shadow.dart';
 import 'package:stackwallet/utilities/extensions/impl/gradient.dart';
 import 'package:stackwallet/utilities/extensions/impl/string.dart';
 
-part 'stack_theme.g.dart';
-
 @Collection(inheritance: false)
 class StackTheme {
   Id id = Isar.autoIncrement;
@@ -2104,8 +2102,6 @@ class ThemeAssetsV2 implements IThemeAssets {
   late final String? loadingGif;
   @override
   late final String? background;
-  @override
-  late final String? walletSummaryCardBackground;
 
   late final String coinPlaceholder;
 
@@ -2136,6 +2132,16 @@ class ThemeAssetsV2 implements IThemeAssets {
   @ignore
   Map<Coin, String>? _coinSecondaryImages;
   late final String coinSecondaryImagesString;
+
+  @ignore
+  Map<Coin, String>? get coinCardImages =>
+      _coinCardImages ??= parseCoinAssetsString(
+        coinCardImagesString!,
+        placeHolder: coinPlaceholder,
+      );
+  @ignore
+  Map<Coin, String>? _coinCardImages;
+  late final String? coinCardImagesString;
 
   ThemeAssetsV2();
 
@@ -2195,15 +2201,15 @@ class ThemeAssetsV2 implements IThemeAssets {
         "$applicationThemesDirectoryPath/$themeId/assets",
         Map<String, dynamic>.from(json["coins"]["secondaries"] as Map),
       )
+      ..coinCardImagesString = createCoinAssetsString(
+        "$applicationThemesDirectoryPath/$themeId/assets",
+        Map<String, dynamic>.from(json["coins"]["cards"] as Map),
+      )
       ..loadingGif = json["loading_gif"] is String
           ? "$applicationThemesDirectoryPath/$themeId/assets/${json["loading_gif"] as String}"
           : null
       ..background = json["background"] is String
           ? "$applicationThemesDirectoryPath/$themeId/assets/${json["background"] as String}"
-          : null
-      ..walletSummaryCardBackground = json["walletSummaryCardBackground"]
-              is String
-          ? "$applicationThemesDirectoryPath/$themeId/assets/${json["walletSummaryCardBackground"] as String}"
           : null;
   }
 
@@ -2254,11 +2260,11 @@ class ThemeAssetsV2 implements IThemeAssets {
         'txExchangeFailed: $txExchangeFailed, '
         'loadingGif: $loadingGif, '
         'background: $background, '
-        'walletSummaryCardBackground: $walletSummaryCardBackground, '
         'coinPlaceholder: $coinPlaceholder, '
         'coinIcons: $coinIcons, '
         'coinImages: $coinImages, '
-        'coinSecondaryImages: $coinSecondaryImages'
+        'coinSecondaryImages: $coinSecondaryImages, '
+        'coinCardImages: $coinCardImages'
         ')';
   }
 }
@@ -2285,5 +2291,4 @@ abstract class IThemeAssets {
 
   String? get loadingGif;
   String? get background;
-  String? get walletSummaryCardBackground;
 }
