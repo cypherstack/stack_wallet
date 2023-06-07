@@ -174,7 +174,7 @@ class BananoWallet extends CoinServiceAPI
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
     try {
       // our address:
-      final String publicAddress = await getAddressFromMnemonic();
+      final String publicAddress = await currentReceivingAddress;
 
       // first get the account balance:
       final balanceBody = jsonEncode({
@@ -276,8 +276,18 @@ class BananoWallet extends CoinServiceAPI
     }
   }
 
+  Future<Address?> get _currentReceivingAddress => db
+      .getAddresses(walletId)
+      .filter()
+      .typeEqualTo(AddressType.nano)
+      .and()
+      .subTypeEqualTo(AddressSubType.receiving)
+      .sortByDerivationIndexDesc()
+      .findFirst();
+
   @override
-  Future<String> get currentReceivingAddress => getAddressFromMnemonic();
+  Future<String> get currentReceivingAddress async =>
+      (await _currentReceivingAddress)?.value ?? await getAddressFromMnemonic();
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) {
@@ -298,7 +308,7 @@ class BananoWallet extends CoinServiceAPI
   Future<void> updateBalance() async {
     final body = jsonEncode({
       "action": "account_balance",
-      "account": await getAddressFromMnemonic(),
+      "account": await currentReceivingAddress,
     });
     final headers = {
       "Content-Type": "application/json",
@@ -333,7 +343,7 @@ class BananoWallet extends CoinServiceAPI
     };
 
     // our address:
-    final String publicAddress = await getAddressFromMnemonic();
+    final String publicAddress = await currentReceivingAddress;
 
     // first check if the account is open:
     // get the account info (we need the frontier and representative):
@@ -452,7 +462,7 @@ class BananoWallet extends CoinServiceAPI
         body: jsonEncode({
           "action": "receivable",
           "source": "true",
-          "account": await getAddressFromMnemonic(),
+          "account": await currentReceivingAddress,
           "count": "-1",
         }));
 
@@ -474,7 +484,8 @@ class BananoWallet extends CoinServiceAPI
 
   Future<void> updateTransactions() async {
     await confirmAllReceivable();
-    final String publicAddress = await getAddressFromMnemonic();
+    final receivingAddress = (await _currentReceivingAddress)!;
+    final String publicAddress = receivingAddress.value;
     final response = await http.post(Uri.parse(getCurrentNode().host),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
@@ -483,7 +494,8 @@ class BananoWallet extends CoinServiceAPI
           "count": "-1",
         }));
     final data = await jsonDecode(response.body);
-    final transactions = data["history"] as List<dynamic>;
+    final transactions =
+        data["history"] is List ? data["history"] as List<dynamic> : [];
     if (transactions.isEmpty) {
       return;
     } else {
@@ -734,7 +746,11 @@ class BananoWallet extends CoinServiceAPI
           coin,
         ),
       );
-    } catch (e) {
+    } catch (e, s) {
+      Logging.instance.log(
+        "Failed to refresh banano wallet \'$walletName\': $e\n$s",
+        level: LogLevel.Warning,
+      );
       GlobalEventBus.instance.fire(
         WalletSyncStatusChangedEvent(
           WalletSyncStatus.unableToSync,
@@ -757,8 +773,18 @@ class BananoWallet extends CoinServiceAPI
 
   @override
   Future<bool> testNetworkConnection() async {
-    final uri = Uri.parse("${getCurrentNode().host}?action=version");
-    final response = await http.get(uri);
+    final uri = Uri.parse(getCurrentNode().host);
+
+    final response = await http.post(
+      uri,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(
+        {
+          "action": "version",
+        },
+      ),
+    );
+
     return response.statusCode == 200;
   }
 
@@ -836,7 +862,7 @@ class BananoWallet extends CoinServiceAPI
   }
 
   Future<void> updateChainHeight() async {
-    final String publicAddress = await getAddressFromMnemonic();
+    final String publicAddress = await currentReceivingAddress;
     // first get the account balance:
     final infoBody = jsonEncode({
       "action": "account_info",
@@ -852,7 +878,9 @@ class BananoWallet extends CoinServiceAPI
     );
     final infoData = jsonDecode(infoResponse.body);
 
-    final int height = int.parse(infoData["confirmation_height"].toString());
-    await updateCachedChainHeight(height);
+    final int? height = int.tryParse(
+      infoData["confirmation_height"].toString(),
+    );
+    await updateCachedChainHeight(height ?? 0);
   }
 }

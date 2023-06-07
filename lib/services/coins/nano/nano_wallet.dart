@@ -504,7 +504,8 @@ class NanoWallet extends CoinServiceAPI
           "count": "-1",
         }));
     final data = await jsonDecode(response.body);
-    final transactions = data["history"] as List<dynamic>;
+    final transactions =
+        data["history"] is List ? data["history"] as List<dynamic> : [];
     if (transactions.isEmpty) {
       return;
     } else {
@@ -776,8 +777,18 @@ class NanoWallet extends CoinServiceAPI
 
   @override
   Future<bool> testNetworkConnection() async {
-    final uri = Uri.parse("${getCurrentNode().host}?action=version");
-    final response = await http.get(uri);
+    final uri = Uri.parse(getCurrentNode().host);
+
+    final response = await http.post(
+      uri,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(
+        {
+          "action": "version",
+        },
+      ),
+    );
+
     return response.statusCode == 200;
   }
 
@@ -871,7 +882,9 @@ class NanoWallet extends CoinServiceAPI
     );
     final infoData = jsonDecode(infoResponse.body);
 
-    final int height = int.parse(infoData["confirmation_height"].toString());
-    await updateCachedChainHeight(height);
+    final int? height = int.tryParse(
+      infoData["confirmation_height"].toString(),
+    );
+    await updateCachedChainHeight(height ?? 0);
   }
 }
