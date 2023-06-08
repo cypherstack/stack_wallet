@@ -148,8 +148,7 @@ class _TransactionDetailsViewState
           if (_transaction.numberOfMessages == 1) {
             return "Receiving (waiting for sender)";
           } else if ((_transaction.numberOfMessages ?? 0) > 1) {
-            return
-            "Receiving (waiting for confirmations)"; // TODO test if the sender still has to open again after the receiver has 2 messages present, ie. sender->receiver->sender->node (yes) vs. sender->receiver->node (no)
+            return "Receiving (waiting for confirmations)"; // TODO test if the sender still has to open again after the receiver has 2 messages present, ie. sender->receiver->sender->node (yes) vs. sender->receiver->node (no)
           } else {
             return "Receiving";
           }
@@ -963,94 +962,99 @@ class _TransactionDetailsViewState
                                 ],
                               ),
                             ),
-                            isDesktop
-                                ? const _Divider()
-                                : const SizedBox(
-                                    height: 12,
-                                  ),
-                            RoundedWhiteContainer(
-                              padding: isDesktop
-                                  ? const EdgeInsets.all(16)
-                                  : const EdgeInsets.all(12),
-                              child: Builder(builder: (context) {
-                                String feeString = showFeePending
-                                    ? _transaction.isConfirmed(
-                                        currentHeight,
-                                        coin.requiredConfirmations,
-                                      )
-                                        ? ref
-                                            .watch(pAmountFormatter(coin))
-                                            .format(
-                                              fee,
-                                              withUnitName: isTokenTx,
-                                            )
-                                        : "Pending"
-                                    : ref.watch(pAmountFormatter(coin)).format(
-                                          fee,
-                                          withUnitName: isTokenTx,
-                                        );
+                            if (coin != Coin.banano && coin != Coin.nano)
+                              isDesktop
+                                  ? const _Divider()
+                                  : const SizedBox(
+                                      height: 12,
+                                    ),
+                            if (coin != Coin.banano && coin != Coin.nano)
+                              RoundedWhiteContainer(
+                                padding: isDesktop
+                                    ? const EdgeInsets.all(16)
+                                    : const EdgeInsets.all(12),
+                                child: Builder(builder: (context) {
+                                  String feeString = showFeePending
+                                      ? _transaction.isConfirmed(
+                                          currentHeight,
+                                          coin.requiredConfirmations,
+                                        )
+                                          ? ref
+                                              .watch(pAmountFormatter(coin))
+                                              .format(
+                                                fee,
+                                                withUnitName: isTokenTx,
+                                              )
+                                          : "Pending"
+                                      : ref
+                                          .watch(pAmountFormatter(coin))
+                                          .format(
+                                            fee,
+                                            withUnitName: isTokenTx,
+                                          );
 
-                                return Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Transaction fee",
-                                          style: isDesktop
-                                              ? STextStyles
-                                                  .desktopTextExtraExtraSmall(
-                                                      context)
-                                              : STextStyles.itemSubtitle(
-                                                  context),
-                                        ),
-                                        if (isDesktop)
-                                          const SizedBox(
-                                            height: 2,
-                                          ),
-                                        if (isDesktop)
-                                          SelectableText(
-                                            feeString,
+                                  return Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "Transaction fee",
                                             style: isDesktop
                                                 ? STextStyles
-                                                        .desktopTextExtraExtraSmall(
-                                                            context)
-                                                    .copyWith(
-                                                    color: Theme.of(context)
-                                                        .extension<
-                                                            StackColors>()!
-                                                        .textDark,
-                                                  )
-                                                : STextStyles.itemSubtitle12(
-                                                    context),
-                                          ),
-                                      ],
-                                    ),
-                                    if (!isDesktop)
-                                      SelectableText(
-                                        feeString,
-                                        style: isDesktop
-                                            ? STextStyles
                                                     .desktopTextExtraExtraSmall(
                                                         context)
-                                                .copyWith(
-                                                color: Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .textDark,
-                                              )
-                                            : STextStyles.itemSubtitle12(
-                                                context),
+                                                : STextStyles.itemSubtitle(
+                                                    context),
+                                          ),
+                                          if (isDesktop)
+                                            const SizedBox(
+                                              height: 2,
+                                            ),
+                                          if (isDesktop)
+                                            SelectableText(
+                                              feeString,
+                                              style: isDesktop
+                                                  ? STextStyles
+                                                          .desktopTextExtraExtraSmall(
+                                                              context)
+                                                      .copyWith(
+                                                      color: Theme.of(context)
+                                                          .extension<
+                                                              StackColors>()!
+                                                          .textDark,
+                                                    )
+                                                  : STextStyles.itemSubtitle12(
+                                                      context),
+                                            ),
+                                        ],
                                       ),
-                                    if (isDesktop)
-                                      IconCopyButton(data: feeString)
-                                  ],
-                                );
-                              }),
-                            ),
+                                      if (!isDesktop)
+                                        SelectableText(
+                                          feeString,
+                                          style: isDesktop
+                                              ? STextStyles
+                                                      .desktopTextExtraExtraSmall(
+                                                          context)
+                                                  .copyWith(
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .textDark,
+                                                )
+                                              : STextStyles.itemSubtitle12(
+                                                  context),
+                                        ),
+                                      if (isDesktop)
+                                        IconCopyButton(data: feeString)
+                                    ],
+                                  );
+                                }),
+                              ),
                             isDesktop
                                 ? const _Divider()
                                 : const SizedBox(
