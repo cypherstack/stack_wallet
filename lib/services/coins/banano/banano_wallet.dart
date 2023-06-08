@@ -293,7 +293,11 @@ class BananoWallet extends CoinServiceAPI
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) {
     // fees are always 0 :)
     return Future.value(
-        Amount(rawValue: BigInt.from(0), fractionDigits: coin.decimals));
+      Amount(
+        rawValue: BigInt.from(0),
+        fractionDigits: coin.decimals,
+      ),
+    );
   }
 
   @override
@@ -302,8 +306,15 @@ class BananoWallet extends CoinServiceAPI
   }
 
   @override
-  // TODO: implement fees
-  Future<FeeObject> get fees => throw UnimplementedError();
+  // Banano has no fees
+  Future<FeeObject> get fees async => FeeObject(
+        numberOfBlocksFast: 1,
+        numberOfBlocksAverage: 1,
+        numberOfBlocksSlow: 1,
+        fast: 0,
+        medium: 0,
+        slow: 0,
+      );
 
   Future<void> updateBalance() async {
     final body = jsonEncode({
@@ -744,7 +755,7 @@ class BananoWallet extends CoinServiceAPI
       );
     } catch (e, s) {
       Logging.instance.log(
-        "Failed to refresh banano wallet \'$walletName\': $e\n$s",
+        "Failed to refresh banano wallet $walletId: '$walletName': $e\n$s",
         level: LogLevel.Warning,
       );
       GlobalEventBus.instance.fire(

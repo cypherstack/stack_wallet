@@ -313,7 +313,14 @@ class NanoWallet extends CoinServiceAPI
 
   @override
   // Nano has no fees
-  Future<FeeObject> get fees => throw UnimplementedError();
+  Future<FeeObject> get fees async => FeeObject(
+        numberOfBlocksFast: 1,
+        numberOfBlocksAverage: 1,
+        numberOfBlocksSlow: 1,
+        fast: 0,
+        medium: 0,
+        slow: 0,
+      );
 
   Future<void> updateBalance() async {
     final body = jsonEncode({
@@ -754,7 +761,11 @@ class NanoWallet extends CoinServiceAPI
           coin,
         ),
       );
-    } catch (e) {
+    } catch (e, s) {
+      Logging.instance.log(
+        "Failed to refresh nano wallet $walletId: '$walletName': $e\n$s",
+        level: LogLevel.Warning,
+      );
       GlobalEventBus.instance.fire(
         WalletSyncStatusChangedEvent(
           WalletSyncStatus.unableToSync,
