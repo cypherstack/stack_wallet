@@ -40,9 +40,9 @@ abstract class Constants {
   static final BigInt _satsPerCoinMonero = BigInt.from(1000000000000);
   static final BigInt _satsPerCoinWownero = BigInt.from(100000000000);
   static final BigInt _satsPerCoinNano =
-      BigInt.parse("1000000000000000000000000000000");// 1*10^30
+      BigInt.parse("1000000000000000000000000000000"); // 1*10^30
   static final BigInt _satsPerCoinBanano =
-      BigInt.parse("100000000000000000000000000000");// 1*10^29
+      BigInt.parse("100000000000000000000000000000"); // 1*10^29
   static final BigInt _satsPerCoin = BigInt.from(100000000);
   static const int _decimalPlaces = 8;
   static const int _decimalPlacesNano = 30;
@@ -217,8 +217,36 @@ abstract class Constants {
     }
   }
 
-  static const int seedPhraseWordCountBip39 = 12;
-  static const int seedPhraseWordCountMonero = 25;
+  static int defaultSeedPhraseLengthFor({required Coin coin}) {
+    switch (coin) {
+      case Coin.bitcoin:
+      case Coin.bitcoinTestNet:
+      case Coin.bitcoincash:
+      case Coin.bitcoincashTestnet:
+      case Coin.eCash:
+      case Coin.dogecoin:
+      case Coin.dogecoinTestNet:
+      case Coin.litecoin:
+      case Coin.litecoinTestNet:
+      case Coin.firo:
+      case Coin.firoTestNet:
+      case Coin.epicCash:
+      case Coin.namecoin:
+      case Coin.particl:
+      case Coin.ethereum:
+        return 12;
+
+      case Coin.wownero:
+        return 14;
+
+      case Coin.nano:
+      case Coin.banano:
+        return 24;
+
+      case Coin.monero:
+        return 25;
+    }
+  }
 
   static const Map<int, String> monthMapShort = {
     1: 'Jan',
