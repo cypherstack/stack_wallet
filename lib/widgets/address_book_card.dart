@@ -137,29 +137,31 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
             const SizedBox(
               width: 16,
             ),
-          if (isDesktop && !desktopSendFrom) const Spacer(),
-          if (isDesktop)
-            Text(
-              coinsString,
-              style: STextStyles.label(context),
-            ),
-          if (!isDesktop)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: isDesktop && !desktopSendFrom
+                  ? CrossAxisAlignment.end
+                  : CrossAxisAlignment.start,
               children: [
-                Text(
-                  contact.name,
-                  style: STextStyles.itemSubtitle12(context),
-                ),
-                const SizedBox(
-                  height: 4,
-                ),
+                if (!isDesktop)
+                  Text(
+                    contact.name,
+                    style: STextStyles.itemSubtitle12(context),
+                  ),
+                if (!isDesktop)
+                  const SizedBox(
+                    height: 4,
+                  ),
                 Text(
                   coinsString,
                   style: STextStyles.label(context),
+                  textAlign: isDesktop && !desktopSendFrom
+                      ? TextAlign.right
+                      : TextAlign.left,
                 ),
               ],
             ),
+          ),
           if (isDesktop && desktopSendFrom) const Spacer(),
           if (isDesktop && desktopSendFrom)
             SvgPicture.asset(
