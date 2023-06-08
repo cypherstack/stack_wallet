@@ -8,27 +8,15 @@
  *
  */
 
-// import 'dart:html';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_summary_info.dart';
-import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/widgets/coin_card.dart';
 
-import '../../../themes/coin_card_provider.dart';
-import '../../../utilities/enums/coin_enum.dart';
-
-class WalletSummary extends ConsumerWidget {
+class WalletSummary extends StatelessWidget {
   const WalletSummary({
     Key? key,
     required this.walletId,
-    required this.managerProvider,
     required this.initialSyncStatus,
     this.aspectRatio = 2.0,
     this.minHeight = 100.0,
@@ -38,7 +26,6 @@ class WalletSummary extends ConsumerWidget {
   }) : super(key: key);
 
   final String walletId;
-  final ChangeNotifierProvider<Manager> managerProvider;
   final WalletSyncStatus initialSyncStatus;
 
   final double aspectRatio;
@@ -48,10 +35,7 @@ class WalletSummary extends ConsumerWidget {
   final double maxWidth;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final Coin coin = ref.watch(managerProvider.select((value) => value.coin));
-    final bool hasCardImageBg = ref.watch(coinCardProvider(coin)) != null;
-
+  Widget build(BuildContext context) {
     return AspectRatio(
       aspectRatio: aspectRatio,
       child: ConstrainedBox(
@@ -61,92 +45,25 @@ class WalletSummary extends ConsumerWidget {
           maxHeight: maxHeight,
           maxWidth: minWidth,
         ),
-        child: Stack(
-          children: [
-            if (hasCardImageBg)
-              Image.file(
-                File(
-                  ref.watch(coinCardProvider(coin))!,
-                ),
+        child: LayoutBuilder(
+          builder: (_, constraints) => Stack(
+            children: [
+              CoinCard(
+                walletId: walletId,
+                width: constraints.maxWidth,
+                height: constraints.maxHeight,
               ),
-            if (!hasCardImageBg)
-              Consumer(
-                builder: (_, ref, __) {
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .colorForCoin(ref.watch(
-                              managerProvider.select((value) => value.coin))),
-                      borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            if (!hasCardImageBg)
               Positioned.fill(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Spacer(
-                      flex: 5,
-                    ),
-                    Expanded(
-                      flex: 6,
-                      child: SvgPicture.asset(
-                        Assets.svg.ellipse1,
-                        // fit: BoxFit.fitWidth,
-                        // clipBehavior: Clip.none,
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 25,
-                    ),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: WalletSummaryInfo(
+                    walletId: walletId,
+                    initialSyncStatus: initialSyncStatus,
+                  ),
                 ),
               ),
-            // Positioned.fill(
-            //   child:
-            // Column(
-            //   mainAxisAlignment: MainAxisAlignment.end,
-            //   children: [
-            if (!hasCardImageBg)
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Row(
-                  children: [
-                    const Spacer(
-                      flex: 1,
-                    ),
-                    Expanded(
-                      flex: 3,
-                      child: SvgPicture.asset(
-                        Assets.svg.ellipse2,
-                        // fit: BoxFit.f,
-                        // clipBehavior: Clip.none,
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 13,
-                    ),
-                  ],
-                ),
-              ),
-            //   ],
-            // ),
-            // ),
-            Positioned.fill(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: WalletSummaryInfo(
-                  walletId: walletId,
-                  initialSyncStatus: initialSyncStatus,
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
