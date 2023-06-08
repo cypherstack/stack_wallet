@@ -10,6 +10,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:bip47/bip47.dart';
 import 'package:cw_core/monero_transaction_priority.dart';
@@ -26,7 +27,6 @@ import 'package:stackwallet/pages/coin_control/coin_control_view.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/firo_balance_selection_sheet.dart';
-import 'package:stackwallet/pages/send_view/sub_widgets/openalias_sheet.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
@@ -138,7 +138,8 @@ class _SendViewState extends ConsumerState<SendView> {
           cryptoAmount = cryptoAmount.split(" ").first;
         }
 
-        final shift = ref.read(pAmountUnit(coin)).shift;
+        // ensure we don't shift past minimum atomic value
+        final shift = min(ref.read(pAmountUnit(coin)).shift, coin.decimals);
 
         _amountToSend = cryptoAmount.contains(",")
             ? Decimal.parse(cryptoAmount.replaceFirst(",", "."))
