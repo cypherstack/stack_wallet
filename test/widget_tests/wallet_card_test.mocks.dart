@@ -521,7 +521,7 @@ class MockBitcoinWallet extends _i1.Mock implements _i24.BitcoinWallet {
   @override
   _i20.Coin get coin => (super.noSuchMethod(
         Invocation.getter(#coin),
-        returnValue: _i20.Coin.bitcoin,
+        returnValue: _i20.Coin.banano,
       ) as _i20.Coin);
   @override
   _i21.Future<List<_i17.UTXO>> get utxos => (super.noSuchMethod(

@@ -205,6 +205,27 @@ void main() async {
   // check and update or install default themes
   await ThemeService.instance.checkDefaultThemesOnStartup();
 
+  // verify current user preference theme and revert to default
+  // if problems are found to prevent app being unusable
+  if (!(await ThemeService.instance
+      .verifyInstalled(themeId: Prefs.instance.themeId))) {
+    Prefs.instance.themeId = "light";
+  }
+
+  // verify current user preference light brightness theme and revert to default
+  // if problems are found to prevent app being unusable
+  if (!(await ThemeService.instance
+      .verifyInstalled(themeId: Prefs.instance.systemBrightnessLightThemeId))) {
+    Prefs.instance.systemBrightnessLightThemeId = "light";
+  }
+
+  // verify current user preference dark brightness theme and revert to default
+  // if problems are found to prevent app being unusable
+  if (!(await ThemeService.instance
+      .verifyInstalled(themeId: Prefs.instance.systemBrightnessDarkThemeId))) {
+    Prefs.instance.systemBrightnessDarkThemeId = "dark";
+  }
+
   runApp(const ProviderScope(child: MyApp()));
 }
 

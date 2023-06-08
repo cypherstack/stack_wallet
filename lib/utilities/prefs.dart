@@ -8,8 +8,6 @@
  *
  */
 
-import 'dart:math';
-
 import 'package:flutter/cupertino.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
@@ -866,8 +864,8 @@ class Prefs extends ChangeNotifier {
             boxName: DB.boxNamePrefs,
             key: "maxDecimalsFor${coin.name}",
           ) as int? ??
-          max(coin.decimals,
-              18); // use some sane max rather than up to 30 that nano uses
+          (coin.decimals > 18 ? 18 : coin.decimals);
+      // use some sane max rather than up to 30 that nano uses
       _amountDecimals[coin] = decimals;
     }
   }
