@@ -304,6 +304,9 @@ class BananoWallet extends CoinServiceAPI
   @override
   Future<void> exit() async {
     _hasCalledExit = true;
+    timer?.cancel();
+    timer = null;
+    stopNetworkAlivePinging();
   }
 
   @override
@@ -767,6 +770,22 @@ class BananoWallet extends CoinServiceAPI
           coin,
         ),
       );
+
+      if (shouldAutoSync) {
+        timer ??= Timer.periodic(const Duration(seconds: 30), (timer) async {
+          Logging.instance.log(
+              "Periodic refresh check for $walletId $walletName in object instance: $hashCode",
+              level: LogLevel.Info);
+
+          await refresh();
+          GlobalEventBus.instance.fire(
+            UpdatedInBackgroundEvent(
+              "New data found in $walletId $walletName in background!",
+              walletId,
+            ),
+          );
+        });
+      }
     } catch (e, s) {
       Logging.instance.log(
         "Failed to refresh banano wallet $walletId: '$walletName': $e\n$s",
