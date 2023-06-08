@@ -88,7 +88,12 @@ class Wallets extends ChangeNotifier {
       result.add(Tuple2(coin, map[coin]!));
     }
 
-    result.sort((a, b) => a.item1.prettyName.compareTo(b.item1.prettyName));
+    // result.sort((a, b) => a.item1.prettyName.compareTo(b.item1.prettyName));
+    result.sort((a, b) => a.item1.prettyName == "Bitcoin"
+        ? -1
+        : b.item1.prettyName == "Monero"
+            ? 1
+            : a.item1.prettyName.compareTo(b.item1.prettyName));
 
     return result;
   }

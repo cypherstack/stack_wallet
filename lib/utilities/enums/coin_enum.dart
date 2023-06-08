@@ -31,8 +31,9 @@ import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart' as wow;
 import 'package:stackwallet/utilities/constants.dart';
 
 enum Coin {
-  banano,
   bitcoin,
+  monero,
+  banano,
   bitcoincash,
   dogecoin,
   eCash,
@@ -40,7 +41,6 @@ enum Coin {
   ethereum,
   firo,
   litecoin,
-  monero,
   namecoin,
   nano,
   particl,
