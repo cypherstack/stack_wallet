@@ -2347,10 +2347,12 @@ class ThemeAssetsV3 implements IThemeAssets {
 
   @ignore
   Map<Coin, String>? get coinCardImages =>
-      _coinCardImages ??= parseCoinAssetsString(
-        coinCardImagesString!,
-        placeHolder: coinPlaceholder,
-      );
+      _coinCardImages ??= coinCardImagesString == null
+          ? null
+          : parseCoinAssetsString(
+              coinCardImagesString!,
+              placeHolder: coinPlaceholder,
+            );
   @ignore
   Map<Coin, String>? _coinCardImages;
   late final String? coinCardImagesString;
