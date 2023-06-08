@@ -290,6 +290,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                   walletId: tuple.item1,
                   routeOnSuccessName: HomeView.routeName,
                   trade: model.trade!,
+                  shouldSendPublicFiroFunds: firoPublicSend,
                 ),
                 settings: const RouteSettings(
                   name: ConfirmChangeNowSendView.routeName,

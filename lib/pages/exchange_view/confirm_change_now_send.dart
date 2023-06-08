@@ -26,6 +26,7 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -156,7 +157,12 @@ class _ConfirmChangeNowSendViewState
 
         Navigator.of(context).popUntil(ModalRoute.withName(routeOnSuccessName));
       }
-    } catch (e) {
+    } catch (e, s) {
+      Logging.instance.log(
+        "Broadcast transaction failed: $e\n$s",
+        level: LogLevel.Error,
+      );
+
       // pop sending dialog
       Navigator.of(context).pop();
 
@@ -205,9 +211,9 @@ class _ConfirmChangeNowSendViewState
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
+              const Row(
                 mainAxisAlignment: MainAxisAlignment.end,
-                children: const [
+                children: [
                   DesktopDialogCloseButton(),
                 ],
               ),
