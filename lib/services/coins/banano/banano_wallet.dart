@@ -668,20 +668,14 @@ class BananoWallet extends CoinServiceAPI
     Map<String, dynamic>? args,
   }) async {
     try {
-      int satAmount = amount.raw.toInt();
-      int realfee = 0;
-
-      if (balance.spendable == amount) {
-        satAmount = balance.spendable.raw.toInt() - realfee;
+      if (amount.decimals != coin.decimals) {
+        throw ArgumentError("Banano prepareSend attempted with invalid Amount");
       }
 
       Map<String, dynamic> txData = {
-        "fee": realfee,
+        "fee": 0,
         "addresss": address,
-        "recipientAmt": Amount(
-          rawValue: BigInt.from(satAmount),
-          fractionDigits: coin.decimals,
-        ),
+        "recipientAmt": amount,
       };
 
       Logging.instance.log("prepare send: $txData", level: LogLevel.Info);
