@@ -9,6 +9,7 @@
  */
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:bip47/bip47.dart';
 import 'package:decimal/decimal.dart';
@@ -452,7 +453,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           cryptoAmount = cryptoAmount.split(" ").first;
         }
 
-        final shift = ref.read(pAmountUnit(coin)).shift;
+        // ensure we don't shift past minimum atomic value
+        final shift = min(ref.read(pAmountUnit(coin)).shift, coin.decimals);
 
         _amountToSend = cryptoAmount.contains(",")
             ? Decimal.parse(cryptoAmount.replaceFirst(",", "."))

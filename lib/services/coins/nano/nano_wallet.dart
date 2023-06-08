@@ -21,6 +21,7 @@ import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/coin_control_interface.dart';
@@ -309,11 +310,21 @@ class NanoWallet extends CoinServiceAPI
   @override
   Future<void> exit() async {
     _hasCalledExit = true;
+    timer?.cancel();
+    timer = null;
+    stopNetworkAlivePinging();
   }
 
   @override
   // Nano has no fees
-  Future<FeeObject> get fees => throw UnimplementedError();
+  Future<FeeObject> get fees async => FeeObject(
+        numberOfBlocksFast: 1,
+        numberOfBlocksAverage: 1,
+        numberOfBlocksSlow: 1,
+        fast: 0,
+        medium: 0,
+        slow: 0,
+      );
 
   Future<void> updateBalance() async {
     final body = jsonEncode({
@@ -560,7 +571,14 @@ class NanoWallet extends CoinServiceAPI
 
       await db.addNewTransactionData(transactionList, walletId);
 
-      return;
+      if (transactionList.isNotEmpty) {
+        GlobalEventBus.instance.fire(
+          UpdatedInBackgroundEvent(
+            "Transactions updated/added for: $walletId $walletName  ",
+            walletId,
+          ),
+        );
+      }
     }
   }
 
@@ -732,17 +750,27 @@ class NanoWallet extends CoinServiceAPI
 
   @override
   Future<void> refresh() async {
-    await _prefs.init();
-
-    GlobalEventBus.instance.fire(
-      WalletSyncStatusChangedEvent(
-        WalletSyncStatus.syncing,
-        walletId,
-        coin,
-      ),
-    );
+    if (refreshMutex) {
+      Logging.instance.log(
+        "$walletId $walletName refreshMutex denied",
+        level: LogLevel.Info,
+      );
+      return;
+    } else {
+      refreshMutex = true;
+    }
 
     try {
+      await _prefs.init();
+
+      GlobalEventBus.instance.fire(
+        WalletSyncStatusChangedEvent(
+          WalletSyncStatus.syncing,
+          walletId,
+          coin,
+        ),
+      );
+
       await updateChainHeight();
       await updateTransactions();
       await updateBalance();
@@ -754,7 +782,27 @@ class NanoWallet extends CoinServiceAPI
           coin,
         ),
       );
-    } catch (e) {
+
+      if (shouldAutoSync) {
+        timer ??= Timer.periodic(const Duration(seconds: 30), (timer) async {
+          Logging.instance.log(
+              "Periodic refresh check for $walletId $walletName in object instance: $hashCode",
+              level: LogLevel.Info);
+
+          await refresh();
+          GlobalEventBus.instance.fire(
+            UpdatedInBackgroundEvent(
+              "New data found in $walletId $walletName in background!",
+              walletId,
+            ),
+          );
+        });
+      }
+    } catch (e, s) {
+      Logging.instance.log(
+        "Failed to refresh nano wallet $walletId: '$walletName': $e\n$s",
+        level: LogLevel.Warning,
+      );
       GlobalEventBus.instance.fire(
         WalletSyncStatusChangedEvent(
           WalletSyncStatus.unableToSync,
@@ -763,6 +811,8 @@ class NanoWallet extends CoinServiceAPI
         ),
       );
     }
+
+    refreshMutex = false;
   }
 
   @override

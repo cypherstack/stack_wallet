@@ -11,6 +11,7 @@ import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/coin_control_interface.dart';
@@ -293,17 +294,31 @@ class BananoWallet extends CoinServiceAPI
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) {
     // fees are always 0 :)
     return Future.value(
-        Amount(rawValue: BigInt.from(0), fractionDigits: coin.decimals));
+      Amount(
+        rawValue: BigInt.from(0),
+        fractionDigits: coin.decimals,
+      ),
+    );
   }
 
   @override
   Future<void> exit() async {
     _hasCalledExit = true;
+    timer?.cancel();
+    timer = null;
+    stopNetworkAlivePinging();
   }
 
   @override
-  // TODO: implement fees
-  Future<FeeObject> get fees => throw UnimplementedError();
+  // Banano has no fees
+  Future<FeeObject> get fees async => FeeObject(
+        numberOfBlocksFast: 1,
+        numberOfBlocksAverage: 1,
+        numberOfBlocksSlow: 1,
+        fast: 0,
+        medium: 0,
+        slow: 0,
+      );
 
   Future<void> updateBalance() async {
     final body = jsonEncode({
@@ -550,7 +565,14 @@ class BananoWallet extends CoinServiceAPI
 
       await db.addNewTransactionData(transactionList, walletId);
 
-      return;
+      if (transactionList.isNotEmpty) {
+        GlobalEventBus.instance.fire(
+          UpdatedInBackgroundEvent(
+            "Transactions updated/added for: $walletId $walletName  ",
+            walletId,
+          ),
+        );
+      }
     }
   }
 
@@ -649,20 +671,14 @@ class BananoWallet extends CoinServiceAPI
     Map<String, dynamic>? args,
   }) async {
     try {
-      int satAmount = amount.raw.toInt();
-      int realfee = 0;
-
-      if (balance.spendable == amount) {
-        satAmount = balance.spendable.raw.toInt() - realfee;
+      if (amount.decimals != coin.decimals) {
+        throw ArgumentError("Banano prepareSend attempted with invalid Amount");
       }
 
       Map<String, dynamic> txData = {
-        "fee": realfee,
+        "fee": 0,
         "addresss": address,
-        "recipientAmt": Amount(
-          rawValue: BigInt.from(satAmount),
-          fractionDigits: coin.decimals,
-        ),
+        "recipientAmt": amount,
       };
 
       Logging.instance.log("prepare send: $txData", level: LogLevel.Info);
@@ -720,17 +736,29 @@ class BananoWallet extends CoinServiceAPI
 
   @override
   Future<void> refresh() async {
+    if (refreshMutex) {
+      Logging.instance.log(
+        "$walletId $walletName refreshMutex denied",
+        level: LogLevel.Info,
+      );
+      return;
+    } else {
+      refreshMutex = true;
+    }
+
     await _prefs.init();
 
-    GlobalEventBus.instance.fire(
-      WalletSyncStatusChangedEvent(
-        WalletSyncStatus.syncing,
-        walletId,
-        coin,
-      ),
-    );
-
     try {
+      GlobalEventBus.instance.fire(
+        WalletSyncStatusChangedEvent(
+          WalletSyncStatus.syncing,
+          walletId,
+          coin,
+        ),
+      );
+
+      await _prefs.init();
+
       await updateChainHeight();
       await updateTransactions();
       await updateBalance();
@@ -742,9 +770,25 @@ class BananoWallet extends CoinServiceAPI
           coin,
         ),
       );
+
+      if (shouldAutoSync) {
+        timer ??= Timer.periodic(const Duration(seconds: 30), (timer) async {
+          Logging.instance.log(
+              "Periodic refresh check for $walletId $walletName in object instance: $hashCode",
+              level: LogLevel.Info);
+
+          await refresh();
+          GlobalEventBus.instance.fire(
+            UpdatedInBackgroundEvent(
+              "New data found in $walletId $walletName in background!",
+              walletId,
+            ),
+          );
+        });
+      }
     } catch (e, s) {
       Logging.instance.log(
-        "Failed to refresh banano wallet \'$walletName\': $e\n$s",
+        "Failed to refresh banano wallet $walletId: '$walletName': $e\n$s",
         level: LogLevel.Warning,
       );
       GlobalEventBus.instance.fire(
@@ -755,6 +799,8 @@ class BananoWallet extends CoinServiceAPI
         ),
       );
     }
+
+    refreshMutex = false;
   }
 
   @override
@@ -843,9 +889,9 @@ class BananoWallet extends CoinServiceAPI
   }
 
   @override
-  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) {
-    // TODO: implement updateSentCachedTxData
-    throw UnimplementedError();
+  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
+    // not currently used for nano
+    return;
   }
 
   @override

@@ -436,36 +436,38 @@ class _ConfirmTransactionViewState
                       ],
                     ),
                   ),
-                  const SizedBox(
-                    height: 12,
-                  ),
-                  RoundedWhiteContainer(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Transaction fee",
-                          style: STextStyles.smallMed12(context),
-                        ),
-                        Text(
-                          ref.watch(pAmountFormatter(coin)).format(
-                                (transactionInfo["fee"] is Amount
-                                    ? transactionInfo["fee"] as Amount
-                                    : (transactionInfo["fee"] as int)
-                                        .toAmountAsRaw(
-                                        fractionDigits: ref.watch(
-                                          managerProvider.select(
-                                            (value) => value.coin.decimals,
-                                          ),
-                                        ),
-                                      )),
-                              ),
-                          style: STextStyles.itemSubtitle12(context),
-                          textAlign: TextAlign.right,
-                        ),
-                      ],
+                  if (coin != Coin.banano && coin != Coin.nano)
+                    const SizedBox(
+                      height: 12,
                     ),
-                  ),
+                  if (coin != Coin.banano && coin != Coin.nano)
+                    RoundedWhiteContainer(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Transaction fee",
+                            style: STextStyles.smallMed12(context),
+                          ),
+                          Text(
+                            ref.watch(pAmountFormatter(coin)).format(
+                                  (transactionInfo["fee"] is Amount
+                                      ? transactionInfo["fee"] as Amount
+                                      : (transactionInfo["fee"] as int)
+                                          .toAmountAsRaw(
+                                          fractionDigits: ref.watch(
+                                            managerProvider.select(
+                                              (value) => value.coin.decimals,
+                                            ),
+                                          ),
+                                        )),
+                                ),
+                            style: STextStyles.itemSubtitle12(context),
+                            textAlign: TextAlign.right,
+                          ),
+                        ],
+                      ),
+                    ),
                   const SizedBox(
                     height: 12,
                   ),

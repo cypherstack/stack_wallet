@@ -1493,8 +1493,12 @@ class StackTheme {
 
   late final ThemeAssetsV2? assetsV2;
 
+  // cheat build runner into adding this at end of property id list in isar
+  @Name("zAssetsV3")
+  late final ThemeAssetsV3? assetsV3;
+
   @ignore
-  IThemeAssets get assets => assetsV2 ?? assetsV1!;
+  IThemeAssets get assets => assetsV3 ?? assetsV2 ?? assetsV1!;
 
   // ===========================================================================
 
@@ -1517,8 +1521,15 @@ class StackTheme {
               themeId: json["id"] as String,
             )
           : null
-      ..assetsV2 = version >= 2
+      ..assetsV2 = version == 2
           ? ThemeAssetsV2.fromJson(
+              json: Map<String, dynamic>.from(json["assets"] as Map),
+              applicationThemesDirectoryPath: applicationThemesDirectoryPath,
+              themeId: json["id"] as String,
+            )
+          : null
+      ..assetsV3 = version >= 3
+          ? ThemeAssetsV3.fromJson(
               json: Map<String, dynamic>.from(json["assets"] as Map),
               applicationThemesDirectoryPath: applicationThemesDirectoryPath,
               themeId: json["id"] as String,
@@ -1939,10 +1950,6 @@ class ThemeAssets implements IThemeAssets {
   @override
   late final String? background;
 
-  @override
-  @ignore
-  String? get walletSummaryCardBackground => null;
-
   ThemeAssets();
 
   factory ThemeAssets.fromJson({
@@ -2104,8 +2111,6 @@ class ThemeAssetsV2 implements IThemeAssets {
   late final String? loadingGif;
   @override
   late final String? background;
-  @override
-  late final String? walletSummaryCardBackground;
 
   late final String coinPlaceholder;
 
@@ -2200,10 +2205,6 @@ class ThemeAssetsV2 implements IThemeAssets {
           : null
       ..background = json["background"] is String
           ? "$applicationThemesDirectoryPath/$themeId/assets/${json["background"] as String}"
-          : null
-      ..walletSummaryCardBackground = json["walletSummaryCardBackground"]
-              is String
-          ? "$applicationThemesDirectoryPath/$themeId/assets/${json["walletSummaryCardBackground"] as String}"
           : null;
   }
 
@@ -2254,11 +2255,235 @@ class ThemeAssetsV2 implements IThemeAssets {
         'txExchangeFailed: $txExchangeFailed, '
         'loadingGif: $loadingGif, '
         'background: $background, '
-        'walletSummaryCardBackground: $walletSummaryCardBackground, '
         'coinPlaceholder: $coinPlaceholder, '
         'coinIcons: $coinIcons, '
         'coinImages: $coinImages, '
-        'coinSecondaryImages: $coinSecondaryImages'
+        'coinSecondaryImages: $coinSecondaryImages, '
+        ')';
+  }
+}
+
+@Embedded(inheritance: false)
+class ThemeAssetsV3 implements IThemeAssets {
+  @override
+  late final String bellNew;
+  @override
+  late final String buy;
+  @override
+  late final String exchange;
+  @override
+  late final String personaIncognito;
+  @override
+  late final String personaEasy;
+  @override
+  late final String stack;
+  @override
+  late final String stackIcon;
+  @override
+  late final String receive;
+  @override
+  late final String receivePending;
+  @override
+  late final String receiveCancelled;
+  @override
+  late final String send;
+  @override
+  late final String sendPending;
+  @override
+  late final String sendCancelled;
+  @override
+  late final String themeSelector;
+  @override
+  late final String themePreview;
+  @override
+  late final String txExchange;
+  @override
+  late final String txExchangePending;
+  @override
+  late final String txExchangeFailed;
+  @override
+  late final String? loadingGif;
+  @override
+  late final String? background;
+
+  late final String coinPlaceholder;
+
+  // Added some future proof params in case we want to add anything else
+  // This should provide some buffer in stead of creating assetsV4 etc
+  @Name("otherStringParam1")
+  late final String? dummy1;
+  @Name("otherStringParam2")
+  late final String? dummy2;
+  @Name("otherStringParam3")
+  late final String? dummy3;
+
+  @ignore
+  Map<Coin, String> get coinIcons => _coinIcons ??= parseCoinAssetsString(
+        coinIconsString,
+        placeHolder: coinPlaceholder,
+      );
+  @ignore
+  Map<Coin, String>? _coinIcons;
+  late final String coinIconsString;
+
+  @ignore
+  Map<Coin, String> get coinImages => _coinImages ??= parseCoinAssetsString(
+        coinImagesString,
+        placeHolder: coinPlaceholder,
+      );
+  @ignore
+  Map<Coin, String>? _coinImages;
+  late final String coinImagesString;
+
+  @ignore
+  Map<Coin, String> get coinSecondaryImages =>
+      _coinSecondaryImages ??= parseCoinAssetsString(
+        coinSecondaryImagesString,
+        placeHolder: coinPlaceholder,
+      );
+  @ignore
+  Map<Coin, String>? _coinSecondaryImages;
+  late final String coinSecondaryImagesString;
+
+  @ignore
+  Map<Coin, String>? get coinCardImages =>
+      _coinCardImages ??= coinCardImagesString == null
+          ? null
+          : parseCoinAssetsString(
+              coinCardImagesString!,
+              placeHolder: coinPlaceholder,
+            );
+  @ignore
+  Map<Coin, String>? _coinCardImages;
+  late final String? coinCardImagesString;
+
+  ThemeAssetsV3();
+
+  factory ThemeAssetsV3.fromJson({
+    required Map<String, dynamic> json,
+    required String applicationThemesDirectoryPath,
+    required String themeId,
+  }) {
+    return ThemeAssetsV3()
+      ..bellNew =
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["bell_new"] as String}"
+      ..buy =
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["buy"] as String}"
+      ..exchange =
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["exchange"] as String}"
+      ..personaIncognito =
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["persona_incognito"] as String}"
+      ..personaEasy =
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["persona_easy"] as String}"
+      ..stack =
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["stack"] as String}"
+      ..stackIcon =
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["stack_icon"] as String}"
+      ..receive =
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["receive"] as String}"
+      ..receivePending =
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["receive_pending"] as String}"
+      ..receiveCancelled =
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["receive_cancelled"] as String}"
+      ..send =
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["send"] as String}"
+      ..sendPending =
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["send_pending"] as String}"
+      ..sendCancelled =
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["send_cancelled"] as String}"
+      ..themeSelector =
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["theme_selector"] as String}"
+      ..themePreview =
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["theme_preview"] as String}"
+      ..txExchange =
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["tx_exchange"] as String}"
+      ..txExchangePending =
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["tx_exchange_pending"] as String}"
+      ..txExchangeFailed =
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["tx_exchange_failed"] as String}"
+      ..coinPlaceholder =
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["coin_placeholder"] as String}"
+      ..coinIconsString = createCoinAssetsString(
+        "$applicationThemesDirectoryPath/$themeId/assets",
+        Map<String, dynamic>.from(json["coins"]["icons"] as Map),
+      )
+      ..coinImagesString = createCoinAssetsString(
+        "$applicationThemesDirectoryPath/$themeId/assets",
+        Map<String, dynamic>.from(json["coins"]["images"] as Map),
+      )
+      ..coinSecondaryImagesString = createCoinAssetsString(
+        "$applicationThemesDirectoryPath/$themeId/assets",
+        Map<String, dynamic>.from(json["coins"]["secondaries"] as Map),
+      )
+      ..coinCardImagesString = json["coins"]["cards"] is Map
+          ? createCoinAssetsString(
+              "$applicationThemesDirectoryPath/$themeId/assets",
+              Map<String, dynamic>.from(json["coins"]["cards"] as Map),
+            )
+          : null
+      ..loadingGif = json["loading_gif"] is String
+          ? "$applicationThemesDirectoryPath/$themeId/assets/${json["loading_gif"] as String}"
+          : null
+      ..background = json["background"] is String
+          ? "$applicationThemesDirectoryPath/$themeId/assets/${json["background"] as String}"
+          : null
+      ..dummy1 = null
+      ..dummy2 = null
+      ..dummy3 = null;
+  }
+
+  static String createCoinAssetsString(String path, Map<String, dynamic> json) {
+    final Map<String, dynamic> map = {};
+    for (final entry in json.entries) {
+      map[entry.key] = "$path/${entry.value as String}";
+    }
+    return jsonEncode(map);
+  }
+
+  static Map<Coin, String> parseCoinAssetsString(
+    String jsonString, {
+    required String placeHolder,
+  }) {
+    final json = jsonDecode(jsonString) as Map;
+    final map = Map<String, dynamic>.from(json);
+
+    final Map<Coin, String> result = {};
+
+    for (final coin in Coin.values) {
+      result[coin] = map[coin.name] as String? ?? placeHolder;
+    }
+
+    return result;
+  }
+
+  @override
+  String toString() {
+    return 'ThemeAssetsV3('
+        'bellNew: $bellNew, '
+        'buy: $buy, '
+        'exchange: $exchange, '
+        'personaIncognito: $personaIncognito, '
+        'personaEasy: $personaEasy, '
+        'stack: $stack, '
+        'stackIcon: $stackIcon, '
+        'receive: $receive, '
+        'receivePending: $receivePending, '
+        'receiveCancelled: $receiveCancelled, '
+        'send: $send, '
+        'sendPending: $sendPending, '
+        'sendCancelled: $sendCancelled, '
+        'themeSelector: $themeSelector, '
+        'themePreview: $themePreview, '
+        'txExchange: $txExchange, '
+        'txExchangePending: $txExchangePending, '
+        'txExchangeFailed: $txExchangeFailed, '
+        'loadingGif: $loadingGif, '
+        'background: $background, '
+        'coinPlaceholder: $coinPlaceholder, '
+        'coinIcons: $coinIcons, '
+        'coinImages: $coinImages, '
+        'coinSecondaryImages: $coinSecondaryImages, '
+        'coinCardImages: $coinCardImages'
         ')';
   }
 }
@@ -2285,5 +2510,4 @@ abstract class IThemeAssets {
 
   String? get loadingGif;
   String? get background;
-  String? get walletSummaryCardBackground;
 }

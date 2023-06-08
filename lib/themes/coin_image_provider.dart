@@ -52,10 +52,12 @@ final coinImageProvider = Provider.family<String, Coin>((ref, coin) {
       case Coin.ethereum:
         return assets.ethereumImage;
       default:
-        return assets.bitcoinImage;
+        return assets.stackIcon;
     }
+  } else if (assets is ThemeAssetsV2) {
+    return (assets).coinImages[coin.mainNetVersion]!;
   } else {
-    return (assets as ThemeAssetsV2).coinImages[coin.mainNetVersion]!;
+    return (assets as ThemeAssetsV3).coinImages[coin.mainNetVersion]!;
   }
 });
 
@@ -99,9 +101,11 @@ final coinImageSecondaryProvider = Provider.family<String, Coin>((ref, coin) {
         return assets.ethereumImageSecondary;
 
       default:
-        return assets.ethereumImageSecondary;
+        return assets.stackIcon;
     }
+  } else if (assets is ThemeAssetsV2) {
+    return (assets).coinSecondaryImages[coin.mainNetVersion]!;
   } else {
-    return (assets as ThemeAssetsV2).coinSecondaryImages[coin.mainNetVersion]!;
+    return (assets as ThemeAssetsV3).coinSecondaryImages[coin.mainNetVersion]!;
   }
 });
