@@ -870,9 +870,9 @@ class BananoWallet extends CoinServiceAPI
   }
 
   @override
-  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) {
-    // TODO: implement updateSentCachedTxData
-    throw UnimplementedError();
+  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
+    // not currently used for nano
+    return;
   }
 
   @override
