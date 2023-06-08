@@ -11,6 +11,7 @@ import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/coin_control_interface.dart';
@@ -561,7 +562,14 @@ class BananoWallet extends CoinServiceAPI
 
       await db.addNewTransactionData(transactionList, walletId);
 
-      return;
+      if (transactionList.isNotEmpty) {
+        GlobalEventBus.instance.fire(
+          UpdatedInBackgroundEvent(
+            "Transactions updated/added for: $walletId $walletName  ",
+            walletId,
+          ),
+        );
+      }
     }
   }
 
