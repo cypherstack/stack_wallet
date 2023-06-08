@@ -733,17 +733,29 @@ class BananoWallet extends CoinServiceAPI
 
   @override
   Future<void> refresh() async {
+    if (refreshMutex) {
+      Logging.instance.log(
+        "$walletId $walletName refreshMutex denied",
+        level: LogLevel.Info,
+      );
+      return;
+    } else {
+      refreshMutex = true;
+    }
+
     await _prefs.init();
 
-    GlobalEventBus.instance.fire(
-      WalletSyncStatusChangedEvent(
-        WalletSyncStatus.syncing,
-        walletId,
-        coin,
-      ),
-    );
-
     try {
+      GlobalEventBus.instance.fire(
+        WalletSyncStatusChangedEvent(
+          WalletSyncStatus.syncing,
+          walletId,
+          coin,
+        ),
+      );
+
+      await _prefs.init();
+
       await updateChainHeight();
       await updateTransactions();
       await updateBalance();
@@ -768,6 +780,8 @@ class BananoWallet extends CoinServiceAPI
         ),
       );
     }
+
+    refreshMutex = false;
   }
 
   @override

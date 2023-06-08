@@ -747,17 +747,27 @@ class NanoWallet extends CoinServiceAPI
 
   @override
   Future<void> refresh() async {
-    await _prefs.init();
-
-    GlobalEventBus.instance.fire(
-      WalletSyncStatusChangedEvent(
-        WalletSyncStatus.syncing,
-        walletId,
-        coin,
-      ),
-    );
+    if (refreshMutex) {
+      Logging.instance.log(
+        "$walletId $walletName refreshMutex denied",
+        level: LogLevel.Info,
+      );
+      return;
+    } else {
+      refreshMutex = true;
+    }
 
     try {
+      await _prefs.init();
+
+      GlobalEventBus.instance.fire(
+        WalletSyncStatusChangedEvent(
+          WalletSyncStatus.syncing,
+          walletId,
+          coin,
+        ),
+      );
+
       await updateChainHeight();
       await updateTransactions();
       await updateBalance();
@@ -782,6 +792,8 @@ class NanoWallet extends CoinServiceAPI
         ),
       );
     }
+
+    refreshMutex = false;
   }
 
   @override
