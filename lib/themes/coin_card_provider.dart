@@ -16,9 +16,9 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 final coinCardProvider = Provider.family<String?, Coin>((ref, coin) {
   final assets = ref.watch(themeAssetsProvider);
 
-  if (assets is ThemeAssets) {
-    return null;
+  if (assets is ThemeAssetsV3) {
+    return assets.coinCardImages?[coin.mainNetVersion];
   } else {
-    return (assets as ThemeAssetsV2?)?.coinCardImages?[coin.mainNetVersion];
+    return null;
   }
 });
