@@ -28,7 +28,7 @@ void main() {
         Uri.parse(
             "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc&ids"
             "=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,bitcoin-cash"
-            ",namecoin,wownero,ethereum,particl,nano,ban&order=market_cap_desc&per_page=50"
+            ",namecoin,wownero,ethereum,particl,nano,banano&order=market_cap_desc&per_page=50"
             "&page=1&sparkline=false"),
         headers: {
           'Content-Type': 'application/json'
@@ -125,7 +125,7 @@ void main() {
         Uri.parse(
           "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc"
           "&ids=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
-          "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,ban"
+          "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano"
           "&order=market_cap_desc&per_page=50&page=1&sparkline=false",
         ),
         headers: {'Content-Type': 'application/json'})).called(1);
@@ -140,7 +140,7 @@ void main() {
         Uri.parse(
             "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc&"
             "ids=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
-            "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,ban"
+            "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano"
             "&order=market_cap_desc&per_page=50&page=1&sparkline=false"),
         headers: {
           'Content-Type': 'application/json'
@@ -244,7 +244,7 @@ void main() {
         Uri.parse(
             "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc&ids"
             "=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
-            "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,ban"
+            "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano"
             "&order=market_cap_desc&per_page=50&page=1&sparkline=false"),
         headers: {'Content-Type': 'application/json'})).called(1);
 
@@ -258,7 +258,7 @@ void main() {
         Uri.parse(
             "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc"
             "&ids=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
-            "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,ban"
+            "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano"
             "&order=market_cap_desc&per_page=50&page=1&sparkline=false"),
         headers: {
           'Content-Type': 'application/json'
@@ -361,7 +361,7 @@ void main() {
         Uri.parse(
             "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc"
             "&ids=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
-            "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,ban"
+            "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano"
             "&order=market_cap_desc&per_page=50&page=1&sparkline=false"),
         headers: {
           'Content-Type': 'application/json'
