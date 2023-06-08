@@ -100,8 +100,9 @@ void main() {
     expect(
       price.toString(),
       '{'
-      'Coin.banano: [0, 0.0], '
       'Coin.bitcoin: [1, 0.0], '
+      'Coin.monero: [0.00717236, -0.77656], '
+      'Coin.banano: [0, 0.0], '
       'Coin.bitcoincash: [0, 0.0], '
       'Coin.dogecoin: [0.00000315, -2.68533], '
       'Coin.eCash: [0, 0.0], '
@@ -109,7 +110,6 @@ void main() {
       'Coin.ethereum: [0, 0.0], '
       'Coin.firo: [0.0001096, -0.89304], '
       'Coin.litecoin: [0, 0.0], '
-      'Coin.monero: [0.00717236, -0.77656], '
       'Coin.namecoin: [0, 0.0], '
       'Coin.nano: [0, 0.0], '
       'Coin.particl: [0, 0.0], '
@@ -217,8 +217,9 @@ void main() {
     expect(
       cachedPrice.toString(),
       '{'
-      'Coin.banano: [0, 0.0], '
       'Coin.bitcoin: [1, 0.0], '
+      'Coin.monero: [0.00717236, -0.77656], '
+      'Coin.banano: [0, 0.0], '
       'Coin.bitcoincash: [0, 0.0], '
       'Coin.dogecoin: [0.00000315, -2.68533], '
       'Coin.eCash: [0, 0.0], '
@@ -226,7 +227,6 @@ void main() {
       'Coin.ethereum: [0, 0.0], '
       'Coin.firo: [0.0001096, -0.89304], '
       'Coin.litecoin: [0, 0.0], '
-      'Coin.monero: [0.00717236, -0.77656], '
       'Coin.namecoin: [0, 0.0], '
       'Coin.nano: [0, 0.0], '
       'Coin.particl: [0, 0.0], '
@@ -331,8 +331,9 @@ void main() {
     expect(
       price.toString(),
       '{'
-      'Coin.banano: [0, 0.0], '
       'Coin.bitcoin: [0, 0.0], '
+      'Coin.monero: [0, 0.0], '
+      'Coin.banano: [0, 0.0], '
       'Coin.bitcoincash: [0, 0.0], '
       'Coin.dogecoin: [0, 0.0], '
       'Coin.eCash: [0, 0.0], '
@@ -340,7 +341,6 @@ void main() {
       'Coin.ethereum: [0, 0.0], '
       'Coin.firo: [0, 0.0], '
       'Coin.litecoin: [0, 0.0], '
-      'Coin.monero: [0, 0.0], '
       'Coin.namecoin: [0, 0.0], '
       'Coin.nano: [0, 0.0], '
       'Coin.particl: [0, 0.0], '
@@ -376,8 +376,9 @@ void main() {
     expect(
       price.toString(),
       '{'
-      'Coin.banano: [0, 0.0], '
       'Coin.bitcoin: [0, 0.0], '
+      'Coin.monero: [0, 0.0], '
+      'Coin.banano: [0, 0.0], '
       'Coin.bitcoincash: [0, 0.0], '
       'Coin.dogecoin: [0, 0.0], '
       'Coin.eCash: [0, 0.0], '
@@ -385,7 +386,6 @@ void main() {
       'Coin.ethereum: [0, 0.0], '
       'Coin.firo: [0, 0.0], '
       'Coin.litecoin: [0, 0.0], '
-      'Coin.monero: [0, 0.0], '
       'Coin.namecoin: [0, 0.0], '
       'Coin.nano: [0, 0.0], '
       'Coin.particl: [0, 0.0], '
