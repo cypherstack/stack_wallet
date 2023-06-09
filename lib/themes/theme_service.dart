@@ -98,7 +98,10 @@ class ThemeService {
       await db.isar.writeTxn(() async {
         await db.isar.stackThemes.delete(isarId);
       });
-      await Directory("${themesDir.path}/$themeId").delete(recursive: true);
+      final dir = Directory("${themesDir.path}/$themeId");
+      if (dir.existsSync()) {
+        await dir.delete(recursive: true);
+      }
     } else {
       Logging.instance.log(
         "Failed to delete theme $themeId",
