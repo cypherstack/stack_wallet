@@ -1902,6 +1902,7 @@ class ThemeAssets implements IThemeAssets {
   late final String wownero;
   late final String namecoin;
   late final String particl;
+  late final String tezos;
   late final String bitcoinImage;
   late final String bitcoincashImage;
   late final String dogecoinImage;
@@ -1913,6 +1914,7 @@ class ThemeAssets implements IThemeAssets {
   late final String wowneroImage;
   late final String namecoinImage;
   late final String particlImage;
+  late final String tezosImage;
   late final String bitcoinImageSecondary;
   late final String bitcoincashImageSecondary;
   late final String dogecoinImageSecondary;
@@ -1924,6 +1926,7 @@ class ThemeAssets implements IThemeAssets {
   late final String wowneroImageSecondary;
   late final String namecoinImageSecondary;
   late final String particlImageSecondary;
+  late final String tezosImageSecondary;
   @override
   late final String? loadingGif;
   @override
@@ -1997,6 +2000,8 @@ class ThemeAssets implements IThemeAssets {
           "$applicationThemesDirectoryPath/$themeId/assets/${json["namecoin"] as String}"
       ..particl =
           "$applicationThemesDirectoryPath/$themeId/assets/${json["particl"] as String}"
+      ..tezos =
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["bitcoin"] as String}" // TODO: change to tezos
       ..bitcoinImage =
           "$applicationThemesDirectoryPath/$themeId/assets/${json["bitcoin_image"] as String}"
       ..bitcoincashImage =
@@ -2019,6 +2024,8 @@ class ThemeAssets implements IThemeAssets {
           "$applicationThemesDirectoryPath/$themeId/assets/${json["namecoin_image"] as String}"
       ..particlImage =
           "$applicationThemesDirectoryPath/$themeId/assets/${json["particl_image"] as String}"
+      ..tezosImage =
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["bitcoin_image"] as String}" // TODO: change to tezos
       ..bitcoinImageSecondary =
           "$applicationThemesDirectoryPath/$themeId/assets/${json["bitcoin_image_secondary"] as String}"
       ..bitcoincashImageSecondary =
@@ -2041,6 +2048,8 @@ class ThemeAssets implements IThemeAssets {
           "$applicationThemesDirectoryPath/$themeId/assets/${json["namecoin_image_secondary"] as String}"
       ..particlImageSecondary =
           "$applicationThemesDirectoryPath/$themeId/assets/${json["particl_image_secondary"] as String}"
+      ..tezosImageSecondary =
+          "$applicationThemesDirectoryPath/$themeId/assets/${json["bitcoin_image_secondary"] as String}" // TODO: change to tezos
       ..loadingGif = json["loading_gif"] is String
           ? "$applicationThemesDirectoryPath/$themeId/assets/${json["loading_gif"] as String}"
           : null

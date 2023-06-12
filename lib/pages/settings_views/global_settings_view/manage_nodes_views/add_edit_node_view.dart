@@ -711,6 +711,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       case Coin.namecoin:
       case Coin.bitcoincash:
       case Coin.particl:
+      case Coin.tezos:
       case Coin.bitcoinTestNet:
       case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:

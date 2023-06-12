@@ -29,12 +29,14 @@ abstract class Constants {
   static const int _satsPerCoinECash = 100;
   static const int _satsPerCoinMonero = 1000000000000;
   static const int _satsPerCoinWownero = 100000000000;
+  static const int _satsPerCoinTezos = 1000000;
   static const int _satsPerCoin = 100000000;
   static const int _decimalPlaces = 8;
   static const int _decimalPlacesWownero = 11;
   static const int _decimalPlacesMonero = 12;
   static const int _decimalPlacesEthereum = 18;
   static const int _decimalPlacesECash = 2;
+  static const int _decimalPlacesTezos = 6;
 
   static const int notificationsMax = 0xFFFFFFFF;
   static const Duration networkAliveTimerDuration = Duration(seconds: 10);
@@ -76,6 +78,9 @@ abstract class Constants {
 
       case Coin.eCash:
         return _satsPerCoinECash;
+
+      case Coin.tezos:
+        return _satsPerCoinTezos;
     }
   }
 
@@ -107,6 +112,9 @@ abstract class Constants {
 
       case Coin.eCash:
         return _decimalPlacesECash;
+
+      case Coin.tezos:
+        return _decimalPlacesTezos;
     }
   }
 
@@ -180,6 +188,9 @@ abstract class Constants {
 
       case Coin.particl:
         return 600;
+
+      case Coin.tezos:
+        return 60;
     }
   }
 

@@ -74,6 +74,8 @@ class AddressUtils {
         return Address.validateAddress(address, namecoin, namecoin.bech32!);
       case Coin.particl:
         return Address.validateAddress(address, particl);
+      case Coin.tezos:
+        return RegExp(r"^tz[1-9A-HJ-NP-Za-km-z]{34}$").hasMatch(address);
       case Coin.bitcoinTestNet:
         return Address.validateAddress(address, testnet);
       case Coin.litecoinTestNet:
