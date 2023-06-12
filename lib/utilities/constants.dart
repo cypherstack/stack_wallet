@@ -44,6 +44,7 @@ abstract class Constants {
   static final BigInt _satsPerCoinBanano =
       BigInt.parse("100000000000000000000000000000"); // 1*10^29
   static final BigInt _satsPerCoin = BigInt.from(100000000);
+  static final BigInt _satsPerCoinTezos = BigInt.from(1000000);
   static const int _decimalPlaces = 8;
   static const int _decimalPlacesNano = 30;
   static const int _decimalPlacesBanano = 29;
@@ -51,6 +52,7 @@ abstract class Constants {
   static const int _decimalPlacesMonero = 12;
   static const int _decimalPlacesEthereum = 18;
   static const int _decimalPlacesECash = 2;
+  static const int _decimalPlacesTezos = 6;
 
   static const int notificationsMax = 0xFFFFFFFF;
   static const Duration networkAliveTimerDuration = Duration(seconds: 10);
@@ -96,6 +98,9 @@ abstract class Constants {
 
       case Coin.eCash:
         return _satsPerCoinECash;
+
+      case Coin.tezos:
+        return _satsPerCoinTezos;
     }
   }
 
@@ -133,6 +138,9 @@ abstract class Constants {
 
       case Coin.eCash:
         return _decimalPlacesECash;
+
+      case Coin.tezos:
+        return _decimalPlacesTezos;
     }
   }
 
@@ -160,6 +168,8 @@ abstract class Constants {
       case Coin.banano:
         values.addAll([24, 12]);
         break;
+      case Coin.tezos:
+        values.addAll([24, 12]);
 
       case Coin.monero:
         values.addAll([25]);
@@ -214,6 +224,9 @@ abstract class Constants {
       case Coin.nano: // TODO: Verify this
       case Coin.banano: // TODO: Verify this
         return 1;
+
+      case Coin.tezos:
+        return 60;
     }
   }
 
@@ -241,6 +254,7 @@ abstract class Constants {
 
       case Coin.nano:
       case Coin.banano:
+      case Coin.tezos:
         return 24;
 
       case Coin.monero:

@@ -179,7 +179,20 @@ abstract class DefaultNodes {
       enabled: true,
       coinName: Coin.particl.name,
       isFailover: true,
-      isDown: false);
+      isDown: false
+  );
+
+  static NodeModel get tezos => NodeModel( // TODO: Change this to original one
+      host: "https://mainnet.api.tez.ie",
+      port: 443,
+      name: defaultName,
+      id: _nodeId(Coin.tezos),
+      useSSL: true,
+      enabled: true,
+      coinName: Coin.tezos.name,
+      isFailover: true,
+      isDown: false
+  );
 
   static NodeModel get nano => NodeModel(
       host: "https://rainstorm.city/api",
@@ -300,12 +313,13 @@ abstract class DefaultNodes {
 
       case Coin.particl:
         return particl;
-
       case Coin.nano:
         return nano;
 
       case Coin.banano:
         return banano;
+      case Coin.tezos:
+        return tezos;
 
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;

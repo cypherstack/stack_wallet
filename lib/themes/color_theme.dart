@@ -30,6 +30,7 @@ class CoinThemeColorDefault {
   Color get particl => const Color(0xFF8175BD);
   Color get nano => const Color(0xFF209CE9);
   Color get banano => const Color(0xFFFBDD11);
+  Color get tezos => const Color(0xFF0F61FF);
 
   Color forCoin(Coin coin) {
     switch (coin) {
@@ -66,6 +67,8 @@ class CoinThemeColorDefault {
         return nano;
       case Coin.banano:
         return banano;
+      case Coin.tezos:
+        return tezos;
     }
   }
 }

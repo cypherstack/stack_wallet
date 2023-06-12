@@ -49,6 +49,7 @@ extension DerivePathTypeExt on DerivePathType {
       case Coin.wownero:
       case Coin.nano:
       case Coin.banano:
+      case Coin.tezos: // TODO: Is this true?
         throw UnsupportedError(
             "$coin does not use bitcoin style derivation paths");
     }
