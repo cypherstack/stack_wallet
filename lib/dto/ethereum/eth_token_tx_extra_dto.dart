@@ -116,13 +116,13 @@ class EthTokenTxExtraDTO {
     map['timestamp'] = timestamp;
     map['from'] = from;
     map['to'] = to;
-    map['value'] = value;
-    map['gas'] = gas;
-    map['gasPrice'] = gasPrice;
+    map['value'] = value.toJsonString();
+    map['gas'] = gas.toJsonString();
+    map['gasPrice'] = gasPrice.toJsonString();
     map['input'] = input;
     map['nonce'] = nonce;
-    map['gasCost'] = gasCost;
-    map['gasUsed'] = gasUsed;
+    map['gasCost'] = gasCost.toJsonString();
+    map['gasUsed'] = gasUsed.toJsonString();
     return map;
   }
 
