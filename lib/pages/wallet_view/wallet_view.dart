@@ -680,6 +680,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: WalletSummary(
                               walletId: walletId,
+                              aspectRatio: 1.75,
                               initialSyncStatus: ref.watch(managerProvider
                                       .select((value) => value.isRefreshing))
                                   ? WalletSyncStatus.syncing
