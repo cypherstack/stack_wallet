@@ -6,11 +6,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockingjay/mockingjay.dart' as mockingjay;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
-import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
+import 'package:stackwallet/providers/global/locale_provider.dart';
+import 'package:stackwallet/providers/global/prefs_provider.dart';
+import 'package:stackwallet/providers/global/price_provider.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
@@ -21,6 +25,7 @@ import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -40,6 +45,7 @@ import 'transaction_card_test.mocks.dart';
   PriceService,
   NotesService,
   ThemeService,
+  MainDB,
 ], customMocks: [])
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -50,6 +56,7 @@ void main() {
     final mockPrefs = MockPrefs();
     final mockPriceService = MockPriceService();
     final mockThemeService = MockThemeService();
+    final mockDB = MockMainDB();
 
     final tx = Transaction(
       txid: "some txid",
@@ -71,6 +78,7 @@ void main() {
       nonce: null,
       inputs: [],
       outputs: [],
+      numberOfMessages: null,
     )..address.value = Address(
         walletId: "walletId",
         value: "",
@@ -101,6 +109,17 @@ void main() {
         .thenAnswer((realInvocation) => Manager(wallet));
 
     when(wallet.storedChainHeight).thenAnswer((_) => 6000000);
+
+    when(mockPrefs.amountUnit(Coin.firo)).thenAnswer(
+      (_) => AmountUnit.normal,
+    );
+    when(mockPrefs.maxDecimals(Coin.firo)).thenAnswer(
+      (_) => 8,
+    );
+
+    when(mockDB.getEthContractSync("")).thenAnswer(
+      (_) => null,
+    );
     //
     await tester.pumpWidget(
       ProviderScope(
@@ -110,7 +129,8 @@ void main() {
               .overrideWithValue(mockLocaleService),
           pThemeService.overrideWithValue(mockThemeService),
           prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
-          priceAnd24hChangeNotifierProvider.overrideWithValue(mockPriceService)
+          priceAnd24hChangeNotifierProvider.overrideWithValue(mockPriceService),
+          mainDBProvider.overrideWithValue(mockDB),
         ],
         child: MaterialApp(
           theme: ThemeData(
@@ -154,7 +174,7 @@ void main() {
     verify(mockPriceService.getPrice(Coin.firo)).called(1);
     verify(wallet.coin.ticker).called(1);
 
-    verify(mockLocaleService.locale).called(1);
+    verify(mockLocaleService.locale).called(2);
 
     verifyNoMoreInteractions(mockManager);
     verifyNoMoreInteractions(mockLocaleService);
@@ -167,6 +187,7 @@ void main() {
     final mockPrefs = MockPrefs();
     final mockPriceService = MockPriceService();
     final mockThemeService = MockThemeService();
+    final mockDB = MockMainDB();
 
     final tx = Transaction(
       txid: "some txid",
@@ -188,6 +209,7 @@ void main() {
       nonce: null,
       inputs: [],
       outputs: [],
+      numberOfMessages: null,
     )..address.value = Address(
         walletId: "walletId",
         value: "",
@@ -215,6 +237,17 @@ void main() {
     when(wallet.coin).thenAnswer((_) => Coin.firo);
     when(wallet.storedChainHeight).thenAnswer((_) => 6000000);
 
+    when(mockPrefs.amountUnit(Coin.firo)).thenAnswer(
+      (_) => AmountUnit.normal,
+    );
+    when(mockPrefs.maxDecimals(Coin.firo)).thenAnswer(
+      (_) => 8,
+    );
+
+    when(mockDB.getEthContractSync("")).thenAnswer(
+      (_) => null,
+    );
+
     when(wallets.getManager("wallet-id"))
         .thenAnswer((realInvocation) => Manager(wallet));
     //
@@ -226,6 +259,7 @@ void main() {
               .overrideWithValue(mockLocaleService),
           prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
           pThemeService.overrideWithValue(mockThemeService),
+          mainDBProvider.overrideWithValue(mockDB),
           priceAnd24hChangeNotifierProvider.overrideWithValue(mockPriceService)
         ],
         child: MaterialApp(
@@ -268,7 +302,7 @@ void main() {
     verify(mockPriceService.getPrice(Coin.firo)).called(1);
     verify(wallet.coin.ticker).called(1);
 
-    verify(mockLocaleService.locale).called(1);
+    verify(mockLocaleService.locale).called(2);
 
     verifyNoMoreInteractions(mockManager);
     verifyNoMoreInteractions(mockLocaleService);
@@ -281,6 +315,7 @@ void main() {
     final mockPrefs = MockPrefs();
     final mockPriceService = MockPriceService();
     final mockThemeService = MockThemeService();
+    final mockDB = MockMainDB();
 
     final tx = Transaction(
       txid: "some txid",
@@ -302,6 +337,7 @@ void main() {
       nonce: null,
       inputs: [],
       outputs: [],
+      numberOfMessages: null,
     )..address.value = Address(
         walletId: "walletId",
         value: "",
@@ -333,6 +369,17 @@ void main() {
 
     when(wallet.storedChainHeight).thenAnswer((_) => 6000000);
 
+    when(mockPrefs.amountUnit(Coin.firo)).thenAnswer(
+      (_) => AmountUnit.normal,
+    );
+    when(mockPrefs.maxDecimals(Coin.firo)).thenAnswer(
+      (_) => 8,
+    );
+
+    when(mockDB.getEthContractSync("")).thenAnswer(
+      (_) => null,
+    );
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -341,6 +388,7 @@ void main() {
               .overrideWithValue(mockLocaleService),
           prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
           pThemeService.overrideWithValue(mockThemeService),
+          mainDBProvider.overrideWithValue(mockDB),
           priceAnd24hChangeNotifierProvider.overrideWithValue(mockPriceService)
         ],
         child: MaterialApp(
@@ -375,7 +423,7 @@ void main() {
     verify(mockPriceService.getPrice(Coin.firo)).called(1);
     verify(wallet.coin.ticker).called(1);
 
-    verify(mockLocaleService.locale).called(1);
+    verify(mockLocaleService.locale).called(2);
 
     verifyNoMoreInteractions(mockManager);
     verifyNoMoreInteractions(mockLocaleService);
@@ -388,6 +436,7 @@ void main() {
     final mockPrefs = MockPrefs();
     final mockPriceService = MockPriceService();
     final mockThemeService = MockThemeService();
+    final mockDB = MockMainDB();
     final navigator = mockingjay.MockNavigator();
 
     final tx = Transaction(
@@ -410,6 +459,7 @@ void main() {
       nonce: null,
       inputs: [],
       outputs: [],
+      numberOfMessages: null,
     )..address.value = Address(
         walletId: "walletId",
         value: "",
@@ -446,6 +496,17 @@ void main() {
             arguments: Tuple3(tx, Coin.firo, "wallet id")))
         .thenAnswer((_) async => {});
 
+    when(mockPrefs.amountUnit(Coin.firo)).thenAnswer(
+      (_) => AmountUnit.normal,
+    );
+    when(mockPrefs.maxDecimals(Coin.firo)).thenAnswer(
+      (_) => 8,
+    );
+
+    when(mockDB.getEthContractSync("")).thenAnswer(
+      (_) => null,
+    );
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -454,6 +515,7 @@ void main() {
               .overrideWithValue(mockLocaleService),
           prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
           pThemeService.overrideWithValue(mockThemeService),
+          mainDBProvider.overrideWithValue(mockDB),
           priceAnd24hChangeNotifierProvider.overrideWithValue(mockPriceService)
         ],
         child: MaterialApp(
@@ -482,7 +544,7 @@ void main() {
     verify(mockLocaleService.addListener(any)).called(1);
 
     verify(mockPrefs.currency).called(2);
-    verify(mockLocaleService.locale).called(4);
+    verify(mockLocaleService.locale).called(3);
     verify(wallet.coin.ticker).called(1);
     verify(wallet.storedChainHeight).called(2);
 

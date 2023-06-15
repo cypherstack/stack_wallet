@@ -28,7 +28,7 @@ void main() {
         Uri.parse(
             "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc&ids"
             "=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,bitcoin-cash"
-            ",namecoin,wownero,ethereum,particl&order=market_cap_desc&per_page=50"
+            ",namecoin,wownero,ethereum,particl,nano,banano&order=market_cap_desc&per_page=50"
             "&page=1&sparkline=false"),
         headers: {
           'Content-Type': 'application/json'
@@ -99,22 +99,33 @@ void main() {
 
     expect(
       price.toString(),
-      '{Coin.bitcoin: [1, 0.0], Coin.bitcoincash: [0, 0.0], '
+      '{'
+      'Coin.bitcoin: [1, 0.0], '
+      'Coin.monero: [0.00717236, -0.77656], '
+      'Coin.banano: [0, 0.0], '
+      'Coin.bitcoincash: [0, 0.0], '
       'Coin.dogecoin: [0.00000315, -2.68533], '
-      'Coin.eCash: [0, 0.0], Coin.epicCash: [0.00002803, 7.27524], '
+      'Coin.eCash: [0, 0.0], '
+      'Coin.epicCash: [0.00002803, 7.27524], '
       'Coin.ethereum: [0, 0.0], '
-      'Coin.firo: [0.0001096, -0.89304], Coin.litecoin: [0, 0.0], '
-      'Coin.monero: [0.00717236, -0.77656], Coin.namecoin: [0, 0.0], '
-      'Coin.particl: [0, 0.0], Coin.wownero: [0, 0.0], '
-      'Coin.bitcoinTestNet: [0, 0.0],'
-      ' Coin.litecoinTestNet: [0, 0.0], Coin.bitcoincashTestnet: [0, 0.0], '
-      'Coin.dogecoinTestNet: [0, 0.0], Coin.firoTestNet: [0, 0.0]}',
+      'Coin.firo: [0.0001096, -0.89304], '
+      'Coin.litecoin: [0, 0.0], '
+      'Coin.namecoin: [0, 0.0], '
+      'Coin.nano: [0, 0.0], '
+      'Coin.particl: [0, 0.0], '
+      'Coin.wownero: [0, 0.0], '
+      'Coin.bitcoinTestNet: [0, 0.0], '
+      'Coin.bitcoincashTestnet: [0, 0.0], '
+      'Coin.dogecoinTestNet: [0, 0.0], '
+      'Coin.firoTestNet: [0, 0.0], '
+      'Coin.litecoinTestNet: [0, 0.0]'
+      '}',
     );
     verify(client.get(
         Uri.parse(
           "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc"
           "&ids=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
-          "bitcoin-cash,namecoin,wownero,ethereum,particl"
+          "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano"
           "&order=market_cap_desc&per_page=50&page=1&sparkline=false",
         ),
         headers: {'Content-Type': 'application/json'})).called(1);
@@ -129,7 +140,7 @@ void main() {
         Uri.parse(
             "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc&"
             "ids=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
-            "bitcoin-cash,namecoin,wownero,ethereum,particl"
+            "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano"
             "&order=market_cap_desc&per_page=50&page=1&sparkline=false"),
         headers: {
           'Content-Type': 'application/json'
@@ -204,22 +215,36 @@ void main() {
         await priceAPI.getPricesAnd24hChange(baseCurrency: "btc");
 
     expect(
-        cachedPrice.toString(),
-        '{Coin.bitcoin: [1, 0.0], Coin.bitcoincash: [0, 0.0],'
-        ' Coin.dogecoin: [0.00000315, -2.68533], Coin.eCash: [0, 0.0], Coin.epicCash: [0.00002803, 7.27524],'
-        ' Coin.ethereum: [0, 0.0], Coin.firo: [0.0001096, -0.89304], '
-        'Coin.litecoin: [0, 0.0], Coin.monero: [0.00717236, -0.77656], '
-        'Coin.namecoin: [0, 0.0], Coin.particl: [0, 0.0], Coin.wownero: [0, 0.0], '
-        'Coin.bitcoinTestNet: [0, 0.0], Coin.litecoinTestNet: [0, 0.0], '
-        'Coin.bitcoincashTestnet: [0, 0.0], Coin.dogecoinTestNet: [0, 0.0], '
-        'Coin.firoTestNet: [0, 0.0]}');
+      cachedPrice.toString(),
+      '{'
+      'Coin.bitcoin: [1, 0.0], '
+      'Coin.monero: [0.00717236, -0.77656], '
+      'Coin.banano: [0, 0.0], '
+      'Coin.bitcoincash: [0, 0.0], '
+      'Coin.dogecoin: [0.00000315, -2.68533], '
+      'Coin.eCash: [0, 0.0], '
+      'Coin.epicCash: [0.00002803, 7.27524], '
+      'Coin.ethereum: [0, 0.0], '
+      'Coin.firo: [0.0001096, -0.89304], '
+      'Coin.litecoin: [0, 0.0], '
+      'Coin.namecoin: [0, 0.0], '
+      'Coin.nano: [0, 0.0], '
+      'Coin.particl: [0, 0.0], '
+      'Coin.wownero: [0, 0.0], '
+      'Coin.bitcoinTestNet: [0, 0.0], '
+      'Coin.bitcoincashTestnet: [0, 0.0], '
+      'Coin.dogecoinTestNet: [0, 0.0], '
+      'Coin.firoTestNet: [0, 0.0], '
+      'Coin.litecoinTestNet: [0, 0.0]'
+      '}',
+    );
 
     // verify only called once during filling of cache
     verify(client.get(
         Uri.parse(
             "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc&ids"
             "=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
-            "bitcoin-cash,namecoin,wownero,ethereum,particl"
+            "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano"
             "&order=market_cap_desc&per_page=50&page=1&sparkline=false"),
         headers: {'Content-Type': 'application/json'})).called(1);
 
@@ -233,7 +258,7 @@ void main() {
         Uri.parse(
             "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc"
             "&ids=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
-            "bitcoin-cash,namecoin,wownero,ethereum,particl"
+            "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano"
             "&order=market_cap_desc&per_page=50&page=1&sparkline=false"),
         headers: {
           'Content-Type': 'application/json'
@@ -304,14 +329,29 @@ void main() {
     final price = await priceAPI.getPricesAnd24hChange(baseCurrency: "btc");
 
     expect(
-        price.toString(),
-        '{Coin.bitcoin: [0, 0.0], Coin.bitcoincash: [0, 0.0], Coin.dogecoin: '
-        '[0, 0.0], Coin.eCash: [0, 0.0], Coin.epicCash: [0, 0.0], Coin.ethereum: [0, 0.0],'
-        ' Coin.firo: [0, 0.0], Coin.litecoin: [0, 0.0], Coin.monero: [0, 0.0],'
-        ' Coin.namecoin: [0, 0.0], Coin.particl: [0, 0.0], Coin.wownero: [0, 0.0],'
-        ' Coin.bitcoinTestNet: [0, 0.0], Coin.litecoinTestNet: [0, 0.0], '
-        'Coin.bitcoincashTestnet: [0, 0.0], Coin.dogecoinTestNet: [0, 0.0],'
-        ' Coin.firoTestNet: [0, 0.0]}');
+      price.toString(),
+      '{'
+      'Coin.bitcoin: [0, 0.0], '
+      'Coin.monero: [0, 0.0], '
+      'Coin.banano: [0, 0.0], '
+      'Coin.bitcoincash: [0, 0.0], '
+      'Coin.dogecoin: [0, 0.0], '
+      'Coin.eCash: [0, 0.0], '
+      'Coin.epicCash: [0, 0.0], '
+      'Coin.ethereum: [0, 0.0], '
+      'Coin.firo: [0, 0.0], '
+      'Coin.litecoin: [0, 0.0], '
+      'Coin.namecoin: [0, 0.0], '
+      'Coin.nano: [0, 0.0], '
+      'Coin.particl: [0, 0.0], '
+      'Coin.wownero: [0, 0.0], '
+      'Coin.bitcoinTestNet: [0, 0.0], '
+      'Coin.bitcoincashTestnet: [0, 0.0], '
+      'Coin.dogecoinTestNet: [0, 0.0], '
+      'Coin.firoTestNet: [0, 0.0], '
+      'Coin.litecoinTestNet: [0, 0.0]'
+      '}',
+    );
   });
 
   test("no internet available", () async {
@@ -321,7 +361,7 @@ void main() {
         Uri.parse(
             "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc"
             "&ids=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
-            "bitcoin-cash,namecoin,wownero,ethereum,particl"
+            "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano"
             "&order=market_cap_desc&per_page=50&page=1&sparkline=false"),
         headers: {
           'Content-Type': 'application/json'
@@ -334,14 +374,29 @@ void main() {
     final price = await priceAPI.getPricesAnd24hChange(baseCurrency: "btc");
 
     expect(
-        price.toString(),
-        '{Coin.bitcoin: [0, 0.0], Coin.bitcoincash: [0, 0.0], '
-        'Coin.dogecoin: [0, 0.0], Coin.eCash: [0, 0.0], Coin.epicCash: [0, 0.0], Coin.ethereum: [0, 0.0],'
-        ' Coin.firo: [0, 0.0], Coin.litecoin: [0, 0.0], Coin.monero: [0, 0.0],'
-        ' Coin.namecoin: [0, 0.0], Coin.particl: [0, 0.0], Coin.wownero: [0, 0.0],'
-        ' Coin.bitcoinTestNet: [0, 0.0], Coin.litecoinTestNet: [0, 0.0], '
-        'Coin.bitcoincashTestnet: [0, 0.0], Coin.dogecoinTestNet: [0, 0.0], '
-        'Coin.firoTestNet: [0, 0.0]}');
+      price.toString(),
+      '{'
+      'Coin.bitcoin: [0, 0.0], '
+      'Coin.monero: [0, 0.0], '
+      'Coin.banano: [0, 0.0], '
+      'Coin.bitcoincash: [0, 0.0], '
+      'Coin.dogecoin: [0, 0.0], '
+      'Coin.eCash: [0, 0.0], '
+      'Coin.epicCash: [0, 0.0], '
+      'Coin.ethereum: [0, 0.0], '
+      'Coin.firo: [0, 0.0], '
+      'Coin.litecoin: [0, 0.0], '
+      'Coin.namecoin: [0, 0.0], '
+      'Coin.nano: [0, 0.0], '
+      'Coin.particl: [0, 0.0], '
+      'Coin.wownero: [0, 0.0], '
+      'Coin.bitcoinTestNet: [0, 0.0], '
+      'Coin.bitcoincashTestnet: [0, 0.0], '
+      'Coin.dogecoinTestNet: [0, 0.0], '
+      'Coin.firoTestNet: [0, 0.0], '
+      'Coin.litecoinTestNet: [0, 0.0]'
+      '}',
+    );
   });
 
   tearDown(() async {

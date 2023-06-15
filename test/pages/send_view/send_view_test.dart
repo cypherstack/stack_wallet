@@ -16,6 +16,7 @@ import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/services/wallets_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_service.dart';
+import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 
@@ -63,6 +64,9 @@ void main() {
     );
     when(mockPrefs.currency).thenAnswer((_) => "USD");
     when(mockPrefs.enableCoinControl).thenAnswer((_) => false);
+    when(mockPrefs.amountUnit(Coin.bitcoin)).thenAnswer(
+      (_) => AmountUnit.normal,
+    );
     when(wallet.validateAddress("send to address"))
         .thenAnswer((realInvocation) => true);
 
@@ -131,6 +135,9 @@ void main() {
     when(mockLocaleService.locale).thenAnswer((_) => "en_US");
     when(mockPrefs.currency).thenAnswer((_) => "USD");
     when(mockPrefs.enableCoinControl).thenAnswer((_) => false);
+    when(mockPrefs.amountUnit(Coin.bitcoin)).thenAnswer(
+      (_) => AmountUnit.normal,
+    );
     when(wallet.validateAddress("send to address"))
         .thenAnswer((realInvocation) => false);
     when(mockThemeService.getTheme(themeId: "light")).thenAnswer(
