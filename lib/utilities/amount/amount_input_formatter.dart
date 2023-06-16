@@ -1,12 +1,20 @@
+import 'dart:math';
+
 import 'package:flutter/services.dart';
 import 'package:intl/number_symbols.dart';
 import 'package:intl/number_symbols_data.dart';
+import 'package:stackwallet/utilities/amount/amount_unit.dart';
 
 class AmountInputFormatter extends TextInputFormatter {
   final int decimals;
   final String locale;
+  final AmountUnit? unit;
 
-  AmountInputFormatter({required this.decimals, required this.locale});
+  AmountInputFormatter({
+    required this.decimals,
+    required this.locale,
+    this.unit,
+  });
 
   @override
   TextEditingValue formatEditUpdate(
@@ -46,7 +54,10 @@ class AmountInputFormatter extends TextInputFormatter {
         fraction = "";
       }
 
-      if (fraction.length > decimals) {
+      final fractionDigits =
+          unit == null ? decimals : max(decimals - unit!.shift, 0);
+
+      if (fraction.length > fractionDigits) {
         return oldValue;
       }
     }

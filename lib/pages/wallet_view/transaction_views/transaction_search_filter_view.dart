@@ -760,6 +760,7 @@ class _TransactionSearchViewState
               inputFormatters: [
                 AmountInputFormatter(
                   decimals: widget.coin.decimals,
+                  unit: ref.watch(pAmountUnit(widget.coin)),
                   locale: ref.watch(
                     localeServiceChangeNotifierProvider
                         .select((value) => value.locale),

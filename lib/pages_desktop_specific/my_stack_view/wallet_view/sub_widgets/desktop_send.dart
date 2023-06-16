@@ -1043,6 +1043,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           inputFormatters: [
             AmountInputFormatter(
               decimals: coin.decimals,
+              unit: ref.watch(pAmountUnit(coin)),
               locale: locale,
             ),
             // // regex to validate a crypto amount with 8 decimal places

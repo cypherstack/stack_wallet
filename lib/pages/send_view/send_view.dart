@@ -1539,6 +1539,7 @@ class _SendViewState extends ConsumerState<SendView> {
                             inputFormatters: [
                               AmountInputFormatter(
                                 decimals: coin.decimals,
+                                unit: ref.watch(pAmountUnit(coin)),
                                 locale: locale,
                               ),
 

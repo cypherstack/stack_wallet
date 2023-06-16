@@ -720,6 +720,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
           inputFormatters: [
             AmountInputFormatter(
               decimals: tokenContract.decimals,
+              unit: ref.watch(pAmountUnit(coin)),
               locale: ref.watch(
                 localeServiceChangeNotifierProvider
                     .select((value) => value.locale),
