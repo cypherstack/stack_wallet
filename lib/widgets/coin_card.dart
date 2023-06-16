@@ -47,8 +47,11 @@ class CoinCard extends ConsumerWidget {
             width: width,
             height: height,
             decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(
+                Constants.size.circularBorderRadius,
+              ),
               image: DecorationImage(
-                fit: BoxFit.fill,
+                fit: BoxFit.cover,
                 image: FileImage(
                   File(
                     ref.watch(coinCardProvider(coin))!,

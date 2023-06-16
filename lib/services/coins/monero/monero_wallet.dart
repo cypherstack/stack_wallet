@@ -864,6 +864,10 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     //
     String address = walletBase!.getTransactionAddress(chain, index);
 
+    if (address.contains("111")) {
+      return await _generateAddressForChain(chain, index + 1);
+    }
+
     return isar_models.Address(
       walletId: walletId,
       derivationIndex: index,

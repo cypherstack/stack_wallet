@@ -265,17 +265,23 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<FeeObject> get fees => EthereumAPI.getFees();
 
-  //Full rescan is not needed for ETH since we have a balance
   @override
   Future<void> fullRescan(
-      int maxUnusedAddressGap, int maxNumberOfIndexesToCheck) {
-    // TODO: implement fullRescan
-    throw UnimplementedError();
+    int maxUnusedAddressGap,
+    int maxNumberOfIndexesToCheck,
+  ) async {
+    await db.deleteWalletBlockchainData(walletId);
+    await _generateAndSaveAddress(
+      (await mnemonicString)!,
+      (await mnemonicPassphrase)!,
+    );
+    await updateBalance();
+    await _refreshTransactions(isRescan: true);
   }
 
   @override
   Future<bool> generateNewAddress() {
-    // TODO: implement generateNewAddress - might not be needed for ETH
+    // not used for ETH
     throw UnimplementedError();
   }
 
@@ -291,10 +297,10 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
       level: LogLevel.Info,
     );
 
-    //First get mnemonic so we can initialize credentials
-    String privateKey =
-        getPrivateKey((await mnemonicString)!, (await mnemonicPassphrase)!);
-    _credentials = web3.EthPrivateKey.fromHex(privateKey);
+    await _initCredentials(
+      (await mnemonicString)!,
+      (await mnemonicPassphrase)!,
+    );
 
     if (getCachedId() == null) {
       throw Exception(
@@ -367,8 +373,24 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
       value: "",
     );
 
-    String privateKey = getPrivateKey(mnemonic, "");
+    await _generateAndSaveAddress(mnemonic, "");
+
+    Logging.instance.log("_generateNewWalletFinished", level: LogLevel.Info);
+  }
+
+  Future<void> _initCredentials(
+    String mnemonic,
+    String mnemonicPassphrase,
+  ) async {
+    String privateKey = getPrivateKey(mnemonic, mnemonicPassphrase);
     _credentials = web3.EthPrivateKey.fromHex(privateKey);
+  }
+
+  Future<void> _generateAndSaveAddress(
+    String mnemonic,
+    String mnemonicPassphrase,
+  ) async {
+    await _initCredentials(mnemonic, mnemonicPassphrase);
 
     final address = Address(
       walletId: walletId,
@@ -381,8 +403,6 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
     );
 
     await db.putAddress(address);
-
-    Logging.instance.log("_generateNewWalletFinished", level: LogLevel.Info);
   }
 
   bool _isConnected = false;
@@ -649,7 +669,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
       if (!needsRefresh) {
         var allOwnAddresses = await _fetchAllOwnAddresses();
         final response = await EthereumAPI.getEthTransactions(
-          allOwnAddresses.elementAt(0).value,
+          address: allOwnAddresses.elementAt(0).value,
         );
         if (response.value != null) {
           final allTxs = response.value!;
@@ -985,10 +1005,25 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
     return isValidEthereumAddress(address);
   }
 
-  Future<void> _refreshTransactions() async {
+  Future<void> _refreshTransactions({bool isRescan = false}) async {
     String thisAddress = await currentReceivingAddress;
 
-    final response = await EthereumAPI.getEthTransactions(thisAddress);
+    int firstBlock = 0;
+
+    if (!isRescan) {
+      firstBlock =
+          await db.getTransactions(walletId).heightProperty().max() ?? 0;
+
+      if (firstBlock > 10) {
+        // add some buffer
+        firstBlock -= 10;
+      }
+    }
+
+    final response = await EthereumAPI.getEthTransactions(
+      address: thisAddress,
+      firstBlock: isRescan ? 0 : firstBlock,
+    );
 
     if (response.value == null) {
       Logging.instance.log(
@@ -996,6 +1031,11 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
         "$walletId: ${response.exception}",
         level: LogLevel.Warning,
       );
+      return;
+    }
+
+    if (response.value!.isEmpty) {
+      // no new transactions found
       return;
     }
 

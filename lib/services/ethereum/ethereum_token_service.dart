@@ -507,9 +507,13 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
         } else if (toAddress == addressString) {
           isIncoming = true;
         } else {
-          throw Exception("Unknown token transaction found for "
-              "${ethWallet.walletName} ${ethWallet.walletId}: "
-              "${tuple.item1.toString()}");
+          // ignore for now I guess since anything here is not reflected in
+          // balance anyways
+          continue;
+
+          // throw Exception("Unknown token transaction found for "
+          //     "${ethWallet.walletName} ${ethWallet.walletId}: "
+          //     "${tuple.item1.toString()}");
         }
 
         final txn = Transaction(
