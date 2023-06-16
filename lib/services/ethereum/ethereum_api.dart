@@ -47,12 +47,14 @@ class EthereumResponse<T> {
 abstract class EthereumAPI {
   static String get stackBaseServer => DefaultNodes.ethereum.host;
 
-  static Future<EthereumResponse<List<EthTxDTO>>> getEthTransactions(
-      String address) async {
+  static Future<EthereumResponse<List<EthTxDTO>>> getEthTransactions({
+    required String address,
+    int firstBlock = 0,
+  }) async {
     try {
       final response = await get(
         Uri.parse(
-          "$stackBaseServer/export?addrs=$address",
+          "$stackBaseServer/export?addrs=$address&firstBlock=$firstBlock",
         ),
       );
 
