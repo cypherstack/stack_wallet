@@ -64,7 +64,7 @@ class AmountFormatter {
     );
   }
 
-  Amount? amountFrom(
+  Amount? tryParse(
     String string, {
     required String locale,
     required Coin coin,

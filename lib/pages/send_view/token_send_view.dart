@@ -218,16 +218,11 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
   }
 
   void _onFiatAmountFieldChanged(String baseAmountString) {
-    if (baseAmountString.isNotEmpty &&
-        baseAmountString != "." &&
-        baseAmountString != ",") {
-      final baseAmount = Amount.fromDecimal(
-        baseAmountString.contains(",")
-            ? Decimal.parse(baseAmountString.replaceFirst(",", "."))
-            : Decimal.parse(baseAmountString),
-        fractionDigits: tokenContract.decimals,
-      );
-
+    final baseAmount = Amount.tryParseFiatString(
+      baseAmountString,
+      locale: ref.read(localeServiceChangeNotifierProvider).locale,
+    );
+    if (baseAmount != null) {
       final _price = ref
           .read(priceAnd24hChangeNotifierProvider)
           .getTokenPrice(tokenContract.address)
@@ -272,22 +267,14 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
-      String cryptoAmount = cryptoAmountController.text;
-      if (cryptoAmount.isNotEmpty &&
-          cryptoAmount != "." &&
-          cryptoAmount != ",") {
-        if (cryptoAmount.startsWith("~")) {
-          cryptoAmount = cryptoAmount.substring(1);
-        }
-        if (cryptoAmount.contains(" ")) {
-          cryptoAmount = cryptoAmount.split(" ").first;
-        }
-
-        _amountToSend = Amount.fromDecimal(
-            cryptoAmount.contains(",")
-                ? Decimal.parse(cryptoAmount.replaceFirst(",", "."))
-                : Decimal.parse(cryptoAmount),
-            fractionDigits: tokenContract.decimals);
+      final cryptoAmount = ref.read(pAmountFormatter(coin)).tryParse(
+            cryptoAmountController.text,
+            locale: ref.read(localeServiceChangeNotifierProvider).locale,
+            coin: coin,
+            ethContract: tokenContract,
+          );
+      if (cryptoAmount != null) {
+        _amountToSend = cryptoAmount;
         if (_cachedAmountToSend != null &&
             _cachedAmountToSend == _amountToSend) {
           return;
@@ -1185,7 +1172,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                                       ConnectionState.done &&
                                                   snapshot.hasData) {
                                                 return Text(
-                                                  "~${snapshot.data! as String}",
+                                                  "~${snapshot.data!}",
                                                   style:
                                                       STextStyles.itemSubtitle(
                                                           context),

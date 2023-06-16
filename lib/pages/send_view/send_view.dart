@@ -10,7 +10,6 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:bip47/bip47.dart';
 import 'package:cw_core/monero_transaction_priority.dart';
@@ -127,27 +126,13 @@ class _SendViewState extends ConsumerState<SendView> {
 
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
-      String cryptoAmount = cryptoAmountController.text;
-      if (cryptoAmount.isNotEmpty &&
-          cryptoAmount != "." &&
-          cryptoAmount != ",") {
-        if (cryptoAmount.startsWith("~")) {
-          cryptoAmount = cryptoAmount.substring(1);
-        }
-        if (cryptoAmount.contains(" ")) {
-          cryptoAmount = cryptoAmount.split(" ").first;
-        }
-
-        // ensure we don't shift past minimum atomic value
-        final shift = min(ref.read(pAmountUnit(coin)).shift, coin.decimals);
-
-        _amountToSend = cryptoAmount.contains(",")
-            ? Decimal.parse(cryptoAmount.replaceFirst(",", "."))
-                .shift(0 - shift)
-                .toAmount(fractionDigits: coin.decimals)
-            : Decimal.parse(cryptoAmount)
-                .shift(0 - shift)
-                .toAmount(fractionDigits: coin.decimals);
+      final cryptoAmount = ref.read(pAmountFormatter(coin)).tryParse(
+            cryptoAmountController.text,
+            locale: ref.read(localeServiceChangeNotifierProvider).locale,
+            coin: coin,
+          );
+      if (cryptoAmount != null) {
+        _amountToSend = cryptoAmount;
         if (_cachedAmountToSend != null &&
             _cachedAmountToSend == _amountToSend) {
           return;
@@ -1623,17 +1608,11 @@ class _SendViewState extends ConsumerState<SendView> {
                                         : oldValue),
                               ],
                               onChanged: (baseAmountString) {
-                                if (baseAmountString.isNotEmpty &&
-                                    baseAmountString != "." &&
-                                    baseAmountString != ",") {
-                                  final Amount baseAmount =
-                                      baseAmountString.contains(",")
-                                          ? Decimal.parse(baseAmountString
-                                                  .replaceFirst(",", "."))
-                                              .toAmount(fractionDigits: 2)
-                                          : Decimal.parse(baseAmountString)
-                                              .toAmount(fractionDigits: 2);
-
+                                final baseAmount = Amount.tryParseFiatString(
+                                  baseAmountString,
+                                  locale: locale,
+                                );
+                                if (baseAmount != null) {
                                   final Decimal _price = ref
                                       .read(priceAnd24hChangeNotifierProvider)
                                       .getPrice(coin)
