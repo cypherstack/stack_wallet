@@ -63,4 +63,13 @@ class AmountFormatter {
       tokenContract: ethContract,
     );
   }
+
+  Amount? amountFrom(
+    String string, {
+    required String locale,
+    required Coin coin,
+    EthContract? ethContract,
+  }) {
+    return unit.tryParse(string, locale: locale, coin: coin);
+  }
 }
