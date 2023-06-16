@@ -66,8 +66,6 @@ class AmountFormatter {
 
   Amount? tryParse(
     String string, {
-    required String locale,
-    required Coin coin,
     EthContract? ethContract,
   }) {
     return unit.tryParse(string, locale: locale, coin: coin);

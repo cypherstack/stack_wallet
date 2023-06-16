@@ -10,16 +10,17 @@
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_rounded_date_picker/flutter_rounded_date_picker.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/transaction_filter.dart';
+import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
+import 'package:stackwallet/utilities/amount/amount_input_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -757,12 +758,19 @@ class _TransactionSearchViewState
                       decimal: true,
                     ),
               inputFormatters: [
-                // regex to validate a crypto amount with 8 decimal places
-                TextInputFormatter.withFunction((oldValue, newValue) =>
-                    RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
-                            .hasMatch(newValue.text)
-                        ? newValue
-                        : oldValue),
+                AmountInputFormatter(
+                  decimals: widget.coin.decimals,
+                  locale: ref.watch(
+                    localeServiceChangeNotifierProvider
+                        .select((value) => value.locale),
+                  ),
+                ),
+                // // regex to validate a crypto amount with 8 decimal places
+                // TextInputFormatter.withFunction((oldValue, newValue) =>
+                //     RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
+                //             .hasMatch(newValue.text)
+                //         ? newValue
+                //         : oldValue),
               ],
               style: isDesktop
                   ? STextStyles.desktopTextExtraSmall(context).copyWith(

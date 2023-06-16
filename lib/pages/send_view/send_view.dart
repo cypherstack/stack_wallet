@@ -40,6 +40,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
+import 'package:stackwallet/utilities/amount/amount_input_formatter.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
@@ -128,8 +129,6 @@ class _SendViewState extends ConsumerState<SendView> {
     if (!_cryptoAmountChangeLock) {
       final cryptoAmount = ref.read(pAmountFormatter(coin)).tryParse(
             cryptoAmountController.text,
-            locale: ref.read(localeServiceChangeNotifierProvider).locale,
-            coin: coin,
           );
       if (cryptoAmount != null) {
         _amountToSend = cryptoAmount;
@@ -1538,13 +1537,20 @@ class _SendViewState extends ConsumerState<SendView> {
                                   ),
                             textAlign: TextAlign.right,
                             inputFormatters: [
+                              AmountInputFormatter(
+                                decimals: coin.decimals,
+                                locale: locale,
+                              ),
+
                               // regex to validate a crypto amount with 8 decimal places
-                              TextInputFormatter.withFunction((oldValue,
-                                      newValue) =>
-                                  RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
-                                          .hasMatch(newValue.text)
-                                      ? newValue
-                                      : oldValue),
+                              // TextInputFormatter.withFunction((oldValue,
+                              //         newValue) =>
+                              //     // RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
+                              //     // RegExp(r'^\d{1,3}([,\.]\d+)?|[,\.\d]+$')
+                              //     getAmountRegex(locale, coin.decimals)
+                              //             .hasMatch(newValue.text)
+                              //         ? newValue
+                              //         : oldValue),
                             ],
                             decoration: InputDecoration(
                               contentPadding: const EdgeInsets.only(
@@ -1599,13 +1605,18 @@ class _SendViewState extends ConsumerState<SendView> {
                                     ),
                               textAlign: TextAlign.right,
                               inputFormatters: [
+                                AmountInputFormatter(
+                                  decimals: 2,
+                                  locale: locale,
+                                ),
                                 // regex to validate a fiat amount with 2 decimal places
-                                TextInputFormatter.withFunction((oldValue,
-                                        newValue) =>
-                                    RegExp(r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$')
-                                            .hasMatch(newValue.text)
-                                        ? newValue
-                                        : oldValue),
+                                // TextInputFormatter.withFunction((oldValue,
+                                //         newValue) =>
+                                //     // RegExp(r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$')
+                                //     getAmountRegex(locale, 2)
+                                //             .hasMatch(newValue.text)
+                                //         ? newValue
+                                //         : oldValue),
                               ],
                               onChanged: (baseAmountString) {
                                 final baseAmount = Amount.tryParseFiatString(

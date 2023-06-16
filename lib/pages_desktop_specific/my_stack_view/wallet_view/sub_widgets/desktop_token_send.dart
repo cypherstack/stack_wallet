@@ -31,6 +31,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
+import 'package:stackwallet/utilities/amount/amount_input_formatter.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -50,7 +51,7 @@ import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
-const _kCryptoAmountRegex = r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$';
+// const _kCryptoAmountRegex = r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$';
 
 class DesktopTokenSend extends ConsumerStatefulWidget {
   const DesktopTokenSend({
@@ -717,15 +718,22 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                 ),
           textAlign: TextAlign.right,
           inputFormatters: [
+            AmountInputFormatter(
+              decimals: tokenContract.decimals,
+              locale: ref.watch(
+                localeServiceChangeNotifierProvider
+                    .select((value) => value.locale),
+              ),
+            ),
             // regex to validate a crypto amount with 8 decimal places
-            TextInputFormatter.withFunction((oldValue, newValue) => RegExp(
-                  _kCryptoAmountRegex.replaceAll(
-                    "0,8",
-                    "0,${tokenContract.decimals}",
-                  ),
-                ).hasMatch(newValue.text)
-                    ? newValue
-                    : oldValue),
+            // TextInputFormatter.withFunction((oldValue, newValue) => RegExp(
+            //       _kCryptoAmountRegex.replaceAll(
+            //         "0,8",
+            //         "0,${tokenContract.decimals}",
+            //       ),
+            //     ).hasMatch(newValue.text)
+            //         ? newValue
+            //         : oldValue),
           ],
           onChanged: (newValue) {},
           decoration: InputDecoration(
@@ -777,12 +785,19 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                   ),
             textAlign: TextAlign.right,
             inputFormatters: [
-              // regex to validate a fiat amount with 2 decimal places
-              TextInputFormatter.withFunction((oldValue, newValue) =>
-                  RegExp(r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$')
-                          .hasMatch(newValue.text)
-                      ? newValue
-                      : oldValue),
+              AmountInputFormatter(
+                decimals: 2,
+                locale: ref.watch(
+                  localeServiceChangeNotifierProvider
+                      .select((value) => value.locale),
+                ),
+              ),
+              // // regex to validate a fiat amount with 2 decimal places
+              // TextInputFormatter.withFunction((oldValue, newValue) =>
+              //     RegExp(r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$')
+              //             .hasMatch(newValue.text)
+              //         ? newValue
+              //         : oldValue),
             ],
             onChanged: fiatTextFieldOnChanged,
             decoration: InputDecoration(
