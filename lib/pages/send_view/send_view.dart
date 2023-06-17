@@ -1839,17 +1839,23 @@ class _SendViewState extends ConsumerState<SendView> {
                           const SizedBox(
                             height: 12,
                           ),
-                          if (coin != Coin.epicCash)
+                          if (coin != Coin.epicCash &&
+                              coin != Coin.nano &&
+                              coin != Coin.banano)
                             Text(
                               "Transaction fee (estimated)",
                               style: STextStyles.smallMed12(context),
                               textAlign: TextAlign.left,
                             ),
-                          if (coin != Coin.epicCash)
+                          if (coin != Coin.epicCash &&
+                              coin != Coin.nano &&
+                              coin != Coin.banano)
                             const SizedBox(
                               height: 8,
                             ),
-                          if (coin != Coin.epicCash)
+                          if (coin != Coin.epicCash &&
+                              coin != Coin.nano &&
+                              coin != Coin.banano)
                             Stack(
                               children: [
                                 TextField(
@@ -1937,11 +1943,11 @@ class _SendViewState extends ConsumerState<SendView> {
                                                               .done &&
                                                       snapshot.hasData) {
                                                     _setCurrentFee(
-                                                      snapshot.data! as String,
+                                                      snapshot.data!,
                                                       false,
                                                     );
                                                     return Text(
-                                                      "~${snapshot.data! as String}",
+                                                      "~${snapshot.data!}",
                                                       style: STextStyles
                                                           .itemSubtitle(
                                                               context),
