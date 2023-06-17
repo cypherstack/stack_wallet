@@ -160,7 +160,7 @@ class ElectrumX {
           "JSONRPC response\n"
           "     command: $command\n"
           "     args: $args\n"
-          "     error: $response.data",
+          "     error: ${response.data}",
         );
       }
 
