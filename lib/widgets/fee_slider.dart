@@ -17,7 +17,7 @@ class FeeSlider extends StatefulWidget {
 
 class _FeeSliderState extends State<FeeSlider> {
   static const int min = 1;
-  static const int max = 10;
+  static const int max = 4;
 
   double sliderValue = 0;
 

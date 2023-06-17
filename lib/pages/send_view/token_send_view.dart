@@ -374,6 +374,8 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
       case FeeRateType.slow:
         feeRate = feeObject.slow;
         break;
+      default:
+        feeRate = -1;
     }
 
     final Amount fee = wallet.estimateFeeFor(feeRate);

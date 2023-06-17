@@ -179,6 +179,8 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
                 ? tokenFeeSessionCacheProvider
                 : feeSheetSessionCacheProvider)
             .slow[amount]!;
+      default:
+        return Amount.zero;
     }
   }
 

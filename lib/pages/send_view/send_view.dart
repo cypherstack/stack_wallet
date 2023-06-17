@@ -56,6 +56,7 @@ import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackwallet/widgets/fee_slider.dart';
 import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
@@ -300,6 +301,8 @@ class _SendViewState extends ConsumerState<SendView> {
       case FeeRateType.slow:
         feeRate = feeObject.slow;
         break;
+      default:
+        feeRate = -1;
     }
 
     Amount fee;
@@ -315,6 +318,8 @@ class _SendViewState extends ConsumerState<SendView> {
         case FeeRateType.slow:
           specialMoneroId = MoneroTransactionPriority.slow;
           break;
+        default:
+          throw ArgumentError("custom fee not available for monero");
       }
 
       fee = await manager.estimateFeeFor(amount, specialMoneroId.raw!);
@@ -510,6 +515,7 @@ class _SendViewState extends ConsumerState<SendView> {
           isSegwit: widget.accountLite!.segwit,
           amount: amount,
           args: {
+            "satsPerVByte": isCustomFee ? customFeeRate : null,
             "feeRate": feeRate,
             "UTXOs": (manager.hasCoinControlSupport &&
                     coinControlEnabled &&
@@ -524,7 +530,10 @@ class _SendViewState extends ConsumerState<SendView> {
         txDataFuture = (manager.wallet as FiroWallet).prepareSendPublic(
           address: _address!,
           amount: amount,
-          args: {"feeRate": ref.read(feeRateTypeStateProvider)},
+          args: {
+            "feeRate": ref.read(feeRateTypeStateProvider),
+            "satsPerVByte": isCustomFee ? customFeeRate : null,
+          },
         );
       } else {
         txDataFuture = manager.prepareSend(
@@ -532,6 +541,7 @@ class _SendViewState extends ConsumerState<SendView> {
           amount: amount,
           args: {
             "feeRate": ref.read(feeRateTypeStateProvider),
+            "satsPerVByte": isCustomFee ? customFeeRate : null,
             "UTXOs": (manager.hasCoinControlSupport &&
                     coinControlEnabled &&
                     selectedUTXOs.isNotEmpty)
@@ -608,6 +618,10 @@ class _SendViewState extends ConsumerState<SendView> {
   }
 
   bool get isPaynymSend => widget.accountLite != null;
+
+  bool isCustomFee = false;
+
+  int customFeeRate = 1;
 
   @override
   void initState() {
@@ -1913,6 +1927,15 @@ class _SendViewState extends ConsumerState<SendView> {
                                                   fractionDigits: coin.decimals,
                                                 ),
                                                 updateChosen: (String fee) {
+                                                  if (fee == "custom") {
+                                                    if (!isCustomFee) {
+                                                      setState(() {
+                                                        isCustomFee = true;
+                                                      });
+                                                    }
+                                                    return;
+                                                  }
+
                                                   _setCurrentFee(
                                                     fee,
                                                     true,
@@ -1920,6 +1943,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                                   setState(() {
                                                     _calculateFeesFuture =
                                                         Future(() => fee);
+                                                    if (isCustomFee) {
+                                                      isCustomFee = false;
+                                                    }
                                                   });
                                                 },
                                               ),
@@ -1999,12 +2025,13 @@ class _SendViewState extends ConsumerState<SendView> {
                                                                   .done &&
                                                           snapshot.hasData) {
                                                         _setCurrentFee(
-                                                          snapshot.data!
-                                                              as String,
+                                                          snapshot.data!,
                                                           false,
                                                         );
                                                         return Text(
-                                                          "~${snapshot.data! as String}",
+                                                          isCustomFee
+                                                              ? ""
+                                                              : "~${snapshot.data!}",
                                                           style: STextStyles
                                                               .itemSubtitle(
                                                                   context),
@@ -2039,6 +2066,18 @@ class _SendViewState extends ConsumerState<SendView> {
                                   ),
                                 )
                               ],
+                            ),
+                          if (isCustomFee)
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                bottom: 12,
+                                top: 16,
+                              ),
+                              child: FeeSlider(
+                                onSatVByteChanged: (rate) {
+                                  customFeeRate = rate;
+                                },
+                              ),
                             ),
                           const Spacer(),
                           const SizedBox(

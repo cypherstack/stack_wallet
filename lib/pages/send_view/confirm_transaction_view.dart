@@ -468,6 +468,31 @@ class _ConfirmTransactionViewState
                         ],
                       ),
                     ),
+                  if (transactionInfo["fee"] is int &&
+                      transactionInfo["vSize"] is int)
+                    const SizedBox(
+                      height: 12,
+                    ),
+                  if (transactionInfo["fee"] is int &&
+                      transactionInfo["vSize"] is int)
+                    RoundedWhiteContainer(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "sats/vByte",
+                            style: STextStyles.smallMed12(context),
+                          ),
+                          const SizedBox(
+                            height: 4,
+                          ),
+                          Text(
+                            "~${(transactionInfo["fee"] / transactionInfo["vSize"]).toInt()}",
+                            style: STextStyles.itemSubtitle12(context),
+                          ),
+                        ],
+                      ),
+                    ),
                   const SizedBox(
                     height: 12,
                   ),
