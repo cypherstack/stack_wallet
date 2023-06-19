@@ -32,6 +32,39 @@ class Amount {
       : assert(fractionDigits >= 0),
         _value = amount.shift(fractionDigits).toBigInt();
 
+  static Amount? tryParseFiatString(
+    String value, {
+    required String locale,
+  }) {
+    final parts = value.split(" ");
+
+    if (parts.first.isEmpty) {
+      return null;
+    }
+
+    String str = parts.first;
+    if (str.startsWith(RegExp(r'[+-]'))) {
+      str = str.substring(1);
+    }
+
+    if (str.isEmpty) {
+      return null;
+    }
+
+    // get number symbols for decimal place and group separator
+    final numberSymbols = numberFormatSymbols[locale] as NumberSymbols? ??
+        numberFormatSymbols[locale.substring(0, 2)] as NumberSymbols?;
+
+    final groupSeparator = numberSymbols?.GROUP_SEP ?? ",";
+    final decimalSeparator = numberSymbols?.DECIMAL_SEP ?? ".";
+
+    str = str.replaceAll(groupSeparator, "");
+
+    final decimalString = str.replaceFirst(decimalSeparator, ".");
+
+    return Decimal.tryParse(decimalString)?.toAmount(fractionDigits: 2);
+  }
+
   // ===========================================================================
   // ======= Instance properties ===============================================
 
@@ -67,15 +100,23 @@ class Amount {
   }) {
     final wholeNumber = decimal.truncate();
 
-    final String separator =
-        (numberFormatSymbols[locale] as NumberSymbols?)?.DECIMAL_SEP ??
-            (numberFormatSymbols[locale.substring(0, 2)] as NumberSymbols?)
-                ?.DECIMAL_SEP ??
-            ".";
+    // get number symbols for decimal place and group separator
+    final numberSymbols = numberFormatSymbols[locale] as NumberSymbols? ??
+        numberFormatSymbols[locale.substring(0, 2)] as NumberSymbols?;
+
+    final String separator = numberSymbols?.DECIMAL_SEP ?? ".";
 
     final fraction = decimal - wholeNumber;
 
-    return "${wholeNumber.toStringAsFixed(0)}$separator${fraction.toStringAsFixed(2).substring(2)}";
+    String wholeNumberString = wholeNumber.toStringAsFixed(0);
+    // insert group separator
+    final regex = RegExp(r'\B(?=(\d{3})+(?!\d))');
+    wholeNumberString = wholeNumberString.replaceAllMapped(
+      regex,
+      (m) => "${m.group(0)}${numberSymbols?.GROUP_SEP ?? ","}",
+    );
+
+    return "$wholeNumberString$separator${fraction.toStringAsFixed(2).substring(2)}";
   }
   // String localizedStringAsFixed({
   //   required String locale,

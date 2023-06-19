@@ -31,6 +31,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
+import 'package:stackwallet/utilities/amount/amount_input_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
@@ -218,16 +219,11 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
   }
 
   void _onFiatAmountFieldChanged(String baseAmountString) {
-    if (baseAmountString.isNotEmpty &&
-        baseAmountString != "." &&
-        baseAmountString != ",") {
-      final baseAmount = Amount.fromDecimal(
-        baseAmountString.contains(",")
-            ? Decimal.parse(baseAmountString.replaceFirst(",", "."))
-            : Decimal.parse(baseAmountString),
-        fractionDigits: tokenContract.decimals,
-      );
-
+    final baseAmount = Amount.tryParseFiatString(
+      baseAmountString,
+      locale: ref.read(localeServiceChangeNotifierProvider).locale,
+    );
+    if (baseAmount != null) {
       final _price = ref
           .read(priceAnd24hChangeNotifierProvider)
           .getTokenPrice(tokenContract.address)
@@ -272,22 +268,12 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
-      String cryptoAmount = cryptoAmountController.text;
-      if (cryptoAmount.isNotEmpty &&
-          cryptoAmount != "." &&
-          cryptoAmount != ",") {
-        if (cryptoAmount.startsWith("~")) {
-          cryptoAmount = cryptoAmount.substring(1);
-        }
-        if (cryptoAmount.contains(" ")) {
-          cryptoAmount = cryptoAmount.split(" ").first;
-        }
-
-        _amountToSend = Amount.fromDecimal(
-            cryptoAmount.contains(",")
-                ? Decimal.parse(cryptoAmount.replaceFirst(",", "."))
-                : Decimal.parse(cryptoAmount),
-            fractionDigits: tokenContract.decimals);
+      final cryptoAmount = ref.read(pAmountFormatter(coin)).tryParse(
+            cryptoAmountController.text,
+            ethContract: tokenContract,
+          );
+      if (cryptoAmount != null) {
+        _amountToSend = cryptoAmount;
         if (_cachedAmountToSend != null &&
             _cachedAmountToSend == _amountToSend) {
           return;
@@ -950,13 +936,18 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                   ),
                             textAlign: TextAlign.right,
                             inputFormatters: [
-                              // regex to validate a crypto amount with 8 decimal places
-                              TextInputFormatter.withFunction((oldValue,
-                                      newValue) =>
-                                  RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
-                                          .hasMatch(newValue.text)
-                                      ? newValue
-                                      : oldValue),
+                              AmountInputFormatter(
+                                decimals: tokenContract.decimals,
+                                unit: ref.watch(pAmountUnit(coin)),
+                                locale: locale,
+                              ),
+                              // // regex to validate a crypto amount with 8 decimal places
+                              // TextInputFormatter.withFunction((oldValue,
+                              //         newValue) =>
+                              //     RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
+                              //             .hasMatch(newValue.text)
+                              //         ? newValue
+                              //         : oldValue),
                             ],
                             decoration: InputDecoration(
                               contentPadding: const EdgeInsets.only(
@@ -1009,13 +1000,17 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                     ),
                               textAlign: TextAlign.right,
                               inputFormatters: [
-                                // regex to validate a fiat amount with 2 decimal places
-                                TextInputFormatter.withFunction((oldValue,
-                                        newValue) =>
-                                    RegExp(r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$')
-                                            .hasMatch(newValue.text)
-                                        ? newValue
-                                        : oldValue),
+                                AmountInputFormatter(
+                                  decimals: 2,
+                                  locale: locale,
+                                ),
+                                // // regex to validate a fiat amount with 2 decimal places
+                                // TextInputFormatter.withFunction((oldValue,
+                                //         newValue) =>
+                                //     RegExp(r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$')
+                                //             .hasMatch(newValue.text)
+                                //         ? newValue
+                                //         : oldValue),
                               ],
                               onChanged: _onFiatAmountFieldChanged,
                               decoration: InputDecoration(
@@ -1185,7 +1180,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                                       ConnectionState.done &&
                                                   snapshot.hasData) {
                                                 return Text(
-                                                  "~${snapshot.data! as String}",
+                                                  "~${snapshot.data!}",
                                                   style:
                                                       STextStyles.itemSubtitle(
                                                           context),
