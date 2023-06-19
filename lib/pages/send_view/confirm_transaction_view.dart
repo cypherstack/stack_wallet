@@ -468,6 +468,31 @@ class _ConfirmTransactionViewState
                         ],
                       ),
                     ),
+                  if (transactionInfo["fee"] is int &&
+                      transactionInfo["vSize"] is int)
+                    const SizedBox(
+                      height: 12,
+                    ),
+                  if (transactionInfo["fee"] is int &&
+                      transactionInfo["vSize"] is int)
+                    RoundedWhiteContainer(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "sats/vByte",
+                            style: STextStyles.smallMed12(context),
+                          ),
+                          const SizedBox(
+                            height: 4,
+                          ),
+                          Text(
+                            "~${(transactionInfo["fee"] / transactionInfo["vSize"]).toInt()}",
+                            style: STextStyles.itemSubtitle12(context),
+                          ),
+                        ],
+                      ),
+                    ),
                   const SizedBox(
                     height: 12,
                   ),
@@ -903,6 +928,43 @@ class _ConfirmTransactionViewState
                         style: STextStyles.itemSubtitle(context),
                       );
                     },
+                  ),
+                ),
+              ),
+            if (isDesktop &&
+                !widget.isPaynymTransaction &&
+                transactionInfo["fee"] is int &&
+                transactionInfo["vSize"] is int)
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 32,
+                ),
+                child: Text(
+                  "sats/vByte",
+                  style: STextStyles.desktopTextExtraExtraSmall(context),
+                ),
+              ),
+            if (isDesktop &&
+                !widget.isPaynymTransaction &&
+                transactionInfo["fee"] is int &&
+                transactionInfo["vSize"] is int)
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 10,
+                  left: 32,
+                  right: 32,
+                ),
+                child: RoundedContainer(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 18,
+                  ),
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
+                  child: Text(
+                    "~${(transactionInfo["fee"] / transactionInfo["vSize"]).toInt()}",
+                    style: STextStyles.itemSubtitle(context),
                   ),
                 ),
               ),

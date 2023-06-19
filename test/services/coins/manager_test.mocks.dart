@@ -217,7 +217,7 @@ class MockFiroWallet extends _i1.Mock implements _i10.FiroWallet {
   @override
   _i12.Coin get coin => (super.noSuchMethod(
         Invocation.getter(#coin),
-        returnValue: _i12.Coin.banano,
+        returnValue: _i12.Coin.bitcoin,
       ) as _i12.Coin);
   @override
   _i11.Future<List<String>> get mnemonic => (super.noSuchMethod(
@@ -487,6 +487,7 @@ class MockFiroWallet extends _i1.Mock implements _i10.FiroWallet {
     int? selectedTxFeeRate,
     String? _recipientAddress,
     bool? isSendAll, {
+    int? satsPerVByte,
     int? additionalOutputs = 0,
     List<_i13.UTXO>? utxos,
   }) =>
@@ -499,6 +500,7 @@ class MockFiroWallet extends _i1.Mock implements _i10.FiroWallet {
           isSendAll,
         ],
         {
+          #satsPerVByte: satsPerVByte,
           #additionalOutputs: additionalOutputs,
           #utxos: utxos,
         },

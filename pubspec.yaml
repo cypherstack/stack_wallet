@@ -182,7 +182,7 @@ dependency_overrides:
   # required for dart 3, at least until a fix is merged upstream
   wakelock_windows:
     git:
-      url: https://github.com/timsneath/wakelock
+      url: https://github.com/diegotori/wakelock
       ref: 2a9bca63a540771f241d688562351482b2cf234c
       path: wakelock_windows
 

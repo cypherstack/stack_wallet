@@ -12,13 +12,14 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:bip47/bip47.dart';
+import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:decimal/decimal.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/models/contact_address_entry.dart';
+import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
@@ -46,16 +47,20 @@ import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_fee_dialog.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/fee_slider.dart';
 import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
@@ -115,6 +120,17 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   late VoidCallback onCryptoAmountChanged;
 
   bool get isPaynymSend => widget.accountLite != null;
+
+  bool isCustomFee = false;
+  int customFeeRate = 1;
+  (FeeRateType, String?, String?)? feeSelectionResult;
+
+  final stringsToLoopThrough = [
+    "Calculating",
+    "Calculating.",
+    "Calculating..",
+    "Calculating...",
+  ];
 
   Future<void> previewSend() async {
     final manager =
@@ -284,6 +300,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           isSegwit: widget.accountLite!.segwit,
           amount: amount,
           args: {
+            "satsPerVByte": isCustomFee ? customFeeRate : null,
             "feeRate": feeRate,
             "UTXOs": (manager.hasCoinControlSupport &&
                     coinControlEnabled &&
@@ -300,6 +317,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           amount: amount,
           args: {
             "feeRate": ref.read(feeRateTypeStateProvider),
+            "satsPerVByte": isCustomFee ? customFeeRate : null,
             "UTXOs": (manager.hasCoinControlSupport &&
                     coinControlEnabled &&
                     ref.read(desktopUseUTXOs).isNotEmpty)
@@ -313,6 +331,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           amount: amount,
           args: {
             "feeRate": ref.read(feeRateTypeStateProvider),
+            "satsPerVByte": isCustomFee ? customFeeRate : null,
             "UTXOs": (manager.hasCoinControlSupport &&
                     coinControlEnabled &&
                     ref.read(desktopUseUTXOs).isNotEmpty)
@@ -562,12 +581,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       );
     } else {
       return AnimatedText(
-        stringsToLoopThrough: const [
-          "Loading balance",
-          "Loading balance.",
-          "Loading balance..",
-          "Loading balance...",
-        ],
+        stringsToLoopThrough: stringsToLoopThrough,
         style: STextStyles.itemSubtitle(context),
       );
     }
@@ -1369,94 +1383,178 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               }
             },
           ),
-        // const SizedBox(
-        //   height: 20,
-        // ),
-        // Text(
-        //   "Note (optional)",
-        //   style: STextStyles.desktopTextExtraSmall(context).copyWith(
-        //     color: Theme.of(context)
-        //         .extension<StackColors>()!
-        //         .textFieldActiveSearchIconRight,
-        //   ),
-        //   textAlign: TextAlign.left,
-        // ),
-        // const SizedBox(
-        //   height: 10,
-        // ),
-        // ClipRRect(
-        //   borderRadius: BorderRadius.circular(
-        //     Constants.size.circularBorderRadius,
-        //   ),
-        //   child: TextField(
-        //     minLines: 1,
-        //     maxLines: 5,
-        //     autocorrect: Util.isDesktop ? false : true,
-        //     enableSuggestions: Util.isDesktop ? false : true,
-        //     controller: noteController,
-        //     focusNode: _noteFocusNode,
-        //     style: STextStyles.desktopTextExtraSmall(context).copyWith(
-        //       color: Theme.of(context)
-        //           .extension<StackColors>()!
-        //           .textFieldActiveText,
-        //       height: 1.8,
-        //     ),
-        //     onChanged: (_) => setState(() {}),
-        //     decoration: standardInputDecoration(
-        //       "Type something...",
-        //       _noteFocusNode,
-        //       context,
-        //       desktopMed: true,
-        //     ).copyWith(
-        //       contentPadding: const EdgeInsets.only(
-        //         left: 16,
-        //         top: 11,
-        //         bottom: 12,
-        //         right: 5,
-        //       ),
-        //       suffixIcon: noteController.text.isNotEmpty
-        //           ? Padding(
-        //               padding: const EdgeInsets.only(right: 0),
-        //               child: UnconstrainedBox(
-        //                 child: Row(
-        //                   children: [
-        //                     TextFieldIconButton(
-        //                       child: const XIcon(),
-        //                       onTap: () async {
-        //                         setState(() {
-        //                           noteController.text = "";
-        //                         });
-        //                       },
-        //                     ),
-        //                   ],
-        //                 ),
-        //               ),
-        //             )
-        //           : null,
-        //     ),
-        //   ),
-        // ),
         if (!isPaynymSend)
           const SizedBox(
             height: 20,
           ),
         if (!([Coin.nano, Coin.banano, Coin.epicCash].contains(coin)))
-          Text(
-            "Transaction fee (${coin == Coin.ethereum ? "max" : "estimated"})",
-            style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .textFieldActiveSearchIconRight,
+          ConditionalParent(
+            condition: coin.isElectrumXCoin,
+            builder: (child) => Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                child,
+                CustomTextButton(
+                  text: "Edit",
+                  onTap: () async {
+                    feeSelectionResult = await showDialog<
+                        (
+                          FeeRateType,
+                          String?,
+                          String?,
+                        )?>(
+                      context: context,
+                      builder: (_) => DesktopFeeDialog(
+                        walletId: walletId,
+                      ),
+                    );
+
+                    if (feeSelectionResult != null) {
+                      if (isCustomFee &&
+                          feeSelectionResult!.$1 != FeeRateType.custom) {
+                        isCustomFee = false;
+                      } else if (!isCustomFee &&
+                          feeSelectionResult!.$1 == FeeRateType.custom) {
+                        isCustomFee = true;
+                      }
+                    }
+
+                    setState(() {});
+                  },
+                ),
+              ],
             ),
-            textAlign: TextAlign.left,
+            child: Text(
+              "Transaction fee"
+              "${isCustomFee ? "" : " (${coin == Coin.ethereum ? "max" : "estimated"})"}",
+              style: STextStyles.desktopTextExtraSmall(context).copyWith(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldActiveSearchIconRight,
+              ),
+              textAlign: TextAlign.left,
+            ),
           ),
         if (!([Coin.nano, Coin.banano, Coin.epicCash].contains(coin)))
           const SizedBox(
             height: 10,
           ),
         if (!([Coin.nano, Coin.banano, Coin.epicCash].contains(coin)))
-          DesktopFeeDropDown(
-            walletId: walletId,
+          if (!isCustomFee)
+            (feeSelectionResult?.$2 == null)
+                ? FutureBuilder(
+                    future: ref.watch(
+                      walletsChangeNotifierProvider.select(
+                        (value) => value.getManager(walletId).fees,
+                      ),
+                    ),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done &&
+                          snapshot.hasData) {
+                        return DesktopFeeItem(
+                          feeObject: snapshot.data,
+                          feeRateType: FeeRateType.average,
+                          walletId: walletId,
+                          feeFor: ({
+                            required Amount amount,
+                            required FeeRateType feeRateType,
+                            required int feeRate,
+                            required Coin coin,
+                          }) async {
+                            if (ref
+                                    .read(feeSheetSessionCacheProvider)
+                                    .average[amount] ==
+                                null) {
+                              final manager = ref
+                                  .read(walletsChangeNotifierProvider)
+                                  .getManager(walletId);
+
+                              if (coin == Coin.monero || coin == Coin.wownero) {
+                                final fee = await manager.estimateFeeFor(amount,
+                                    MoneroTransactionPriority.regular.raw!);
+                                ref
+                                    .read(feeSheetSessionCacheProvider)
+                                    .average[amount] = fee;
+                              } else if ((coin == Coin.firo ||
+                                      coin == Coin.firoTestNet) &&
+                                  ref
+                                          .read(
+                                              publicPrivateBalanceStateProvider
+                                                  .state)
+                                          .state !=
+                                      "Private") {
+                                ref
+                                        .read(feeSheetSessionCacheProvider)
+                                        .average[amount] =
+                                    await (manager.wallet as FiroWallet)
+                                        .estimateFeeForPublic(amount, feeRate);
+                              } else {
+                                ref
+                                        .read(feeSheetSessionCacheProvider)
+                                        .average[amount] =
+                                    await manager.estimateFeeFor(
+                                        amount, feeRate);
+                              }
+                            }
+                            return ref
+                                .read(feeSheetSessionCacheProvider)
+                                .average[amount]!;
+                          },
+                          isSelected: true,
+                        );
+                      } else {
+                        return Row(
+                          children: [
+                            AnimatedText(
+                              stringsToLoopThrough: stringsToLoopThrough,
+                              style: STextStyles.desktopTextExtraExtraSmall(
+                                      context)
+                                  .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textFieldActiveText,
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                    },
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        feeSelectionResult?.$2 ?? "",
+                        style: STextStyles.desktopTextExtraExtraSmall(context)
+                            .copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFieldActiveText,
+                        ),
+                        textAlign: TextAlign.left,
+                      ),
+                      Text(
+                        feeSelectionResult?.$3 ?? "",
+                        style: STextStyles.desktopTextExtraExtraSmall(context)
+                            .copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFieldActiveSearchIconRight,
+                        ),
+                      ),
+                    ],
+                  ),
+        if (isCustomFee)
+          Padding(
+            padding: const EdgeInsets.only(
+              bottom: 12,
+              top: 16,
+            ),
+            child: FeeSlider(
+              onSatVByteChanged: (rate) {
+                customFeeRate = rate;
+              },
+            ),
           ),
         const SizedBox(
           height: 36,

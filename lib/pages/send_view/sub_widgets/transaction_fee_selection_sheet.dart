@@ -161,6 +161,9 @@ class _TransactionFeeSelectionSheetState
           }
         }
         return ref.read(feeSheetSessionCacheProvider).slow[amount]!;
+
+      default:
+        return Amount.zero;
     }
   }
 
@@ -567,8 +570,6 @@ class _TransactionFeeSelectionSheetState
                                         .watch(feeRateTypeStateProvider.state)
                                         .state,
                                     onChanged: (x) {
-                                      //todo: check if print needed
-                                      // debugPrint(x.toString());
                                       ref
                                           .read(feeRateTypeStateProvider.state)
                                           .state = FeeRateType.slow;
@@ -672,6 +673,79 @@ class _TransactionFeeSelectionSheetState
                     const SizedBox(
                       height: 24,
                     ),
+                    if (manager.coin.isElectrumXCoin)
+                      GestureDetector(
+                        onTap: () {
+                          final state =
+                              ref.read(feeRateTypeStateProvider.state).state;
+                          if (state != FeeRateType.custom) {
+                            ref.read(feeRateTypeStateProvider.state).state =
+                                FeeRateType.custom;
+                          }
+                          widget.updateChosen("custom");
+
+                          Navigator.of(context).pop();
+                        },
+                        child: Container(
+                          color: Colors.transparent,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Column(
+                                children: [
+                                  SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: Radio(
+                                      activeColor: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .radioButtonIconEnabled,
+                                      value: FeeRateType.custom,
+                                      groupValue: ref
+                                          .watch(feeRateTypeStateProvider.state)
+                                          .state,
+                                      onChanged: (x) {
+                                        ref
+                                            .read(
+                                                feeRateTypeStateProvider.state)
+                                            .state = FeeRateType.custom;
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(
+                                width: 12,
+                              ),
+                              Flexible(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          FeeRateType.custom.prettyName,
+                                          style:
+                                              STextStyles.titleBold12(context),
+                                          textAlign: TextAlign.left,
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(
+                                      height: 2,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    if (manager.coin.isElectrumXCoin)
+                      const SizedBox(
+                        height: 24,
+                      ),
                   ],
                 );
               },
@@ -713,6 +787,8 @@ class _TransactionFeeSelectionSheetState
                   withUnitName: false,
                 );
           }
+          return null;
+        case FeeRateType.custom:
           return null;
       }
     } catch (e, s) {

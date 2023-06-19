@@ -1761,7 +1761,7 @@ packages:
       path: wakelock_windows
       ref: "2a9bca63a540771f241d688562351482b2cf234c"
       resolved-ref: "2a9bca63a540771f241d688562351482b2cf234c"
-      url: "https://github.com/timsneath/wakelock"
+      url: "https://github.com/diegotori/wakelock"
     source: git
     version: "0.2.2"
   wallet:
