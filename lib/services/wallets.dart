@@ -84,16 +84,11 @@ class Wallets extends ChangeNotifier {
     }
     final List<Tuple2<Coin, List<ChangeNotifierProvider<Manager>>>> result = [];
 
-    for (final coin in map.keys) {
-      result.add(Tuple2(coin, map[coin]!));
+    for (final coin in Coin.values) {
+      if (map[coin] != null) {
+        result.add(Tuple2(coin, map[coin]!));
+      }
     }
-
-    // result.sort((a, b) => a.item1.prettyName.compareTo(b.item1.prettyName));
-    result.sort((a, b) => a.item1.prettyName == "Bitcoin"
-        ? -1
-        : b.item1.prettyName == "Monero"
-            ? 1
-            : a.item1.prettyName.compareTo(b.item1.prettyName));
 
     return result;
   }
