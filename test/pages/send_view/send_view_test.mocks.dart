@@ -987,7 +987,7 @@ class MockBitcoinWallet extends _i1.Mock implements _i27.BitcoinWallet {
   @override
   _i22.Coin get coin => (super.noSuchMethod(
         Invocation.getter(#coin),
-        returnValue: _i22.Coin.banano,
+        returnValue: _i22.Coin.bitcoin,
       ) as _i22.Coin);
   @override
   _i23.Future<List<_i18.UTXO>> get utxos => (super.noSuchMethod(
@@ -1408,6 +1408,7 @@ class MockBitcoinWallet extends _i1.Mock implements _i27.BitcoinWallet {
     required String? recipientAddress,
     required bool? coinControl,
     required bool? isSendAll,
+    int? satsPerVByte,
     int? additionalOutputs = 0,
     List<_i18.UTXO>? utxos,
   }) =>
@@ -1420,6 +1421,7 @@ class MockBitcoinWallet extends _i1.Mock implements _i27.BitcoinWallet {
           #recipientAddress: recipientAddress,
           #coinControl: coinControl,
           #isSendAll: isSendAll,
+          #satsPerVByte: satsPerVByte,
           #additionalOutputs: additionalOutputs,
           #utxos: utxos,
         },
@@ -2837,7 +2839,7 @@ class MockManager extends _i1.Mock implements _i6.Manager {
   @override
   _i22.Coin get coin => (super.noSuchMethod(
         Invocation.getter(#coin),
-        returnValue: _i22.Coin.banano,
+        returnValue: _i22.Coin.bitcoin,
       ) as _i22.Coin);
   @override
   bool get isRefreshing => (super.noSuchMethod(
@@ -3205,7 +3207,7 @@ class MockCoinServiceAPI extends _i1.Mock implements _i20.CoinServiceAPI {
   @override
   _i22.Coin get coin => (super.noSuchMethod(
         Invocation.getter(#coin),
-        returnValue: _i22.Coin.banano,
+        returnValue: _i22.Coin.bitcoin,
       ) as _i22.Coin);
   @override
   bool get isRefreshing => (super.noSuchMethod(
