@@ -10,7 +10,6 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:bip47/bip47.dart';
 import 'package:cw_core/monero_transaction_priority.dart';
@@ -41,6 +40,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
+import 'package:stackwallet/utilities/amount/amount_input_formatter.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
@@ -128,27 +128,11 @@ class _SendViewState extends ConsumerState<SendView> {
 
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
-      String cryptoAmount = cryptoAmountController.text;
-      if (cryptoAmount.isNotEmpty &&
-          cryptoAmount != "." &&
-          cryptoAmount != ",") {
-        if (cryptoAmount.startsWith("~")) {
-          cryptoAmount = cryptoAmount.substring(1);
-        }
-        if (cryptoAmount.contains(" ")) {
-          cryptoAmount = cryptoAmount.split(" ").first;
-        }
-
-        // ensure we don't shift past minimum atomic value
-        final shift = min(ref.read(pAmountUnit(coin)).shift, coin.decimals);
-
-        _amountToSend = cryptoAmount.contains(",")
-            ? Decimal.parse(cryptoAmount.replaceFirst(",", "."))
-                .shift(0 - shift)
-                .toAmount(fractionDigits: coin.decimals)
-            : Decimal.parse(cryptoAmount)
-                .shift(0 - shift)
-                .toAmount(fractionDigits: coin.decimals);
+      final cryptoAmount = ref.read(pAmountFormatter(coin)).tryParse(
+            cryptoAmountController.text,
+          );
+      if (cryptoAmount != null) {
+        _amountToSend = cryptoAmount;
         if (_cachedAmountToSend != null &&
             _cachedAmountToSend == _amountToSend) {
           return;
@@ -1567,13 +1551,21 @@ class _SendViewState extends ConsumerState<SendView> {
                                   ),
                             textAlign: TextAlign.right,
                             inputFormatters: [
+                              AmountInputFormatter(
+                                decimals: coin.decimals,
+                                unit: ref.watch(pAmountUnit(coin)),
+                                locale: locale,
+                              ),
+
                               // regex to validate a crypto amount with 8 decimal places
-                              TextInputFormatter.withFunction((oldValue,
-                                      newValue) =>
-                                  RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
-                                          .hasMatch(newValue.text)
-                                      ? newValue
-                                      : oldValue),
+                              // TextInputFormatter.withFunction((oldValue,
+                              //         newValue) =>
+                              //     // RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
+                              //     // RegExp(r'^\d{1,3}([,\.]\d+)?|[,\.\d]+$')
+                              //     getAmountRegex(locale, coin.decimals)
+                              //             .hasMatch(newValue.text)
+                              //         ? newValue
+                              //         : oldValue),
                             ],
                             decoration: InputDecoration(
                               contentPadding: const EdgeInsets.only(
@@ -1628,26 +1620,25 @@ class _SendViewState extends ConsumerState<SendView> {
                                     ),
                               textAlign: TextAlign.right,
                               inputFormatters: [
+                                AmountInputFormatter(
+                                  decimals: 2,
+                                  locale: locale,
+                                ),
                                 // regex to validate a fiat amount with 2 decimal places
-                                TextInputFormatter.withFunction((oldValue,
-                                        newValue) =>
-                                    RegExp(r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$')
-                                            .hasMatch(newValue.text)
-                                        ? newValue
-                                        : oldValue),
+                                // TextInputFormatter.withFunction((oldValue,
+                                //         newValue) =>
+                                //     // RegExp(r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$')
+                                //     getAmountRegex(locale, 2)
+                                //             .hasMatch(newValue.text)
+                                //         ? newValue
+                                //         : oldValue),
                               ],
                               onChanged: (baseAmountString) {
-                                if (baseAmountString.isNotEmpty &&
-                                    baseAmountString != "." &&
-                                    baseAmountString != ",") {
-                                  final Amount baseAmount =
-                                      baseAmountString.contains(",")
-                                          ? Decimal.parse(baseAmountString
-                                                  .replaceFirst(",", "."))
-                                              .toAmount(fractionDigits: 2)
-                                          : Decimal.parse(baseAmountString)
-                                              .toAmount(fractionDigits: 2);
-
+                                final baseAmount = Amount.tryParseFiatString(
+                                  baseAmountString,
+                                  locale: locale,
+                                );
+                                if (baseAmount != null) {
                                   final Decimal _price = ref
                                       .read(priceAnd24hChangeNotifierProvider)
                                       .getPrice(coin)

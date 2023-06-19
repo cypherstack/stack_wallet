@@ -464,6 +464,12 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
   }
 
   @override
+  void didChangeLocales(List<Locale>? locales) {
+    ref.read(localeServiceChangeNotifierProvider).loadLocale();
+    super.didChangeLocales(locales);
+  }
+
+  @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     debugPrint("didChangeAppLifecycleState: ${state.name}");
     if (state == AppLifecycleState.resumed) {}
