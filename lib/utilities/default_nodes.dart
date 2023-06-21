@@ -173,7 +173,7 @@ abstract class DefaultNodes {
   );
 
   static NodeModel get tezos => NodeModel( // TODO: Change this to original one
-      host: "https://mainnet.api.tez.ie",
+      host: "mainnet.api.tez.ie",
       port: 443,
       name: defaultName,
       id: _nodeId(Coin.tezos),

@@ -136,6 +136,7 @@ abstract class Constants {
       case Coin.ethereum:
       case Coin.namecoin:
       case Coin.particl:
+      case Coin.tezos:
         values.addAll([24, 21, 18, 15, 12]);
         break;
 

@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:ffi';
 
 import 'package:http/http.dart';
+import 'package:isar/isar.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
@@ -11,8 +14,10 @@ import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
+import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 
 import 'package:tezart/tezart.dart';
+import 'package:tuple/tuple.dart';
 
 import '../../../db/isar/main_db.dart';
 import '../../../models/node_model.dart';
@@ -47,6 +52,10 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   NodeModel getCurrentNode() {
     return _xtzNode ?? NodeService(secureStorageInterface: _secureStore).getPrimaryNodeFor(coin: Coin.tezos) ?? DefaultNodes.getNodeFor(Coin.tezos);
+  }
+
+  Future<Keystore> getKeystore() async {
+    return Keystore.fromMnemonic((await mnemonicString).toString());
   }
 
   @override
@@ -102,10 +111,36 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Balance? _balance;
 
   @override
-  Future<String> confirmSend({required Map<String, dynamic> txData}) {
-    // TODO: implement confirmSend,
-    // NOTE FROM DETHERMINAL: I couldnt write this function because I dont have any tezos to test with
-    throw UnimplementedError();
+  Future<Map<String, dynamic>> prepareSend({required String address, required Amount amount, Map<String, dynamic>? args}) async {
+    try {
+      if (amount.decimals != coin.decimals) {
+        throw Exception("Amount decimals do not match coin decimals!");
+      }
+      var fee = int.parse((await estimateFeeFor(amount, (args!["feeRate"] as FeeRateType).index)).raw.toString());
+      Map<String, dynamic> txData = {
+        "fee": fee,
+        "address": address,
+        "recipientAmt": amount,
+      };
+      return Future.value(txData);
+    } catch (e) {
+      return Future.error(e);
+    }
+  }
+
+  @override
+  Future<String> confirmSend({required Map<String, dynamic> txData}) async {
+    try {
+      final node = getCurrentNode().host + getCurrentNode().port.toString();
+      final int amountInMicroTez = ((int.parse((txData["recipientAmt"] as Amount).raw.toString()) * 1000000)).round();
+      final int feeInMicroTez = int.parse(txData["fee"].toString());
+      final String destinationAddress = txData["address"] as String;
+      final String sourceAddress = await currentReceivingAddress;
+      return Future.value(""); // TODO: return tx hash
+    } catch (e) {
+      Logging.instance.log(e.toString(), level: LogLevel.Error);
+      return Future.error(e);
+    }
   }
 
   @override
@@ -114,13 +149,14 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
     if (mneString == null) {
       throw Exception("No mnemonic found!");
     }
-    return Future.value(Keystore.fromMnemonic(mneString).address);
+    return Future.value((Keystore.fromMnemonic(mneString)).address);
   }
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) {
-    // TODO: implement estimateFeeFor
-    throw UnimplementedError();
+    return Future.value(
+      Amount(rawValue: BigInt.parse(100000.toString()), fractionDigits: coin.decimals),
+    );
   }
 
   @override
@@ -130,13 +166,22 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   @override
-  // TODO: implement fees
-  Future<FeeObject> get fees => throw UnimplementedError();
+  Future<FeeObject> get fees async {
+    // TODO: Change this to get fees from node and fix numberOfBlocks
+    return FeeObject(
+        numberOfBlocksFast: 1,
+        numberOfBlocksAverage: 1,
+        numberOfBlocksSlow: 1,
+        fast: 1000000,
+        medium: 100000,
+        slow: 10000,
+    );
+  }
 
   @override
   Future<void> fullRescan(int maxUnusedAddressGap, int maxNumberOfIndexesToCheck) {
-    // TODO: implement fullRescan
-    throw UnimplementedError();
+    refresh();
+    return Future.value();
   }
 
   @override
@@ -216,13 +261,6 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Future<String?> get mnemonicString => _secureStore.read(key: '${_walletId}_mnemonic');
 
   @override
-  Future<Map<String, dynamic>> prepareSend({required String address, required Amount amount, Map<String, dynamic>? args}) {
-    // TODO: implement prepareSend
-    // NOTE FROM DETHERMINAL: I couldnt write this function because I dont have any tezos to test with
-    throw UnimplementedError();
-  }
-
-  @override
   Future<void> recoverFromMnemonic({required String mnemonic, String? mnemonicPassphrase, required int maxUnusedAddressGap, required int maxNumberOfIndexesToCheck, required int height}) async {
     if ((await mnemonicString) != null ||
         (await this.mnemonicPassphrase) != null) {
@@ -267,9 +305,66 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
     await updateCachedBalance(_balance!);
   }
 
+  Future<void> updateTransactions() async {
+    var api = "https://api.mainnet.tzkt.io/v1/accounts/${await currentReceivingAddress}/balance_history"; // TODO: Can we use current node instead of this?
+    var returnedTxs = await get(Uri.parse(api)).then((value) => value.body);
+    Logging.instance.log(
+        "Transactions for ${await currentReceivingAddress}: $returnedTxs",
+        level: LogLevel.Info);
+    List<Tuple2<Transaction, Address>> txs = [];
+    Object? jsonTxs = jsonDecode(returnedTxs);
+    if (jsonTxs == null) {
+      await db.addNewTransactionData(txs, walletId);
+    } else {
+      for (var tx in jsonTxs as List) {
+        var theTx = Transaction(
+            walletId: walletId,
+            txid: "",
+            timestamp: DateTime.parse(tx["timestamp"].toString()).toUtc().millisecondsSinceEpoch ~/ 1000,
+            type: TransactionType.unknown,
+            subType: TransactionSubType.none,
+            amount: int.parse(tx["balance"].toString()),
+            amountString: Amount(
+                rawValue: BigInt.parse(tx["balance"].toString()),
+                fractionDigits: 6
+            ).toJsonString(),
+            fee: 0,
+            height: int.parse(tx["level"].toString()),
+            isCancelled: false,
+            isLelantus: false,
+            slateId: "",
+            otherData: "",
+            inputs: [],
+            outputs: [],
+            nonce: 0
+        );
+        var theAddress = Address(
+            walletId: walletId,
+            value: await currentReceivingAddress,
+            publicKey: [], // TODO: Add public key
+            derivationIndex: 0,
+            derivationPath: null,
+            type: AddressType.unknown,
+            subType: AddressSubType.unknown,
+        );
+        txs.add(Tuple2(theTx, theAddress));
+      }
+      await db.addNewTransactionData(txs, walletId);
+    }
+  }
+
+  Future<void> updateChainHeight() async {
+    var api = "https://api.tzkt.io/v1/blocks/count"; // TODO: Can we use current node instead of this?
+    var returnedHeight = await get(Uri.parse(api)).then((value) => value.body);
+    final int intHeight = int.parse(returnedHeight.toString());
+    await updateCachedChainHeight(intHeight);
+  }
+
   @override
   Future<void> refresh() {
+    updateChainHeight();
     updateBalance();
+    updateTransactions();
     return Future.value();
   }
 
@@ -277,16 +372,17 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   int get storedChainHeight => getCachedChainHeight();
 
   @override
-  Future<bool> testNetworkConnection() {
-    // TODO: implement testNetworkConnection
-    throw UnimplementedError();
+  Future<bool> testNetworkConnection() async{
+    try {
+      await get(Uri.parse("https://api.mainnet.tzkt.io/v1/accounts/${await currentReceivingAddress}/balance"));
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   @override
-  // TODO: implement transactions
-  Future<List<Transaction>> get transactions async {
-    // TODO: Maybe we can use this -> https://api.tzkt.io/#operation/Accounts_GetBalanceHistory
-  }
+  Future<List<Transaction>> get transactions => db.getTransactions(walletId).findAll();
 
   @override
   Future<void> updateNode(bool shouldRefresh) async {
