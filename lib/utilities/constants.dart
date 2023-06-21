@@ -167,7 +167,6 @@ abstract class Constants {
         break;
       case Coin.banano:
         values.addAll([24, 12]);
-        break;
       case Coin.tezos:
         values.addAll([24, 12]);
 
