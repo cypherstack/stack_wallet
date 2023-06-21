@@ -8,6 +8,8 @@
  *
  */
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,8 +45,10 @@ class DesktopAddressCard extends ConsumerWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SvgPicture.asset(
-          ref.watch(coinIconProvider(entry.coin)),
+        SvgPicture.file(
+          File(
+            ref.watch(coinIconProvider(entry.coin)),
+          ),
           height: 32,
           width: 32,
         ),
