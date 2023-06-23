@@ -38,7 +38,15 @@ class AmountInputFormatter extends TextInputFormatter {
       if (parts.length > 2) {
         return oldValue;
       }
+
+      final fractionDigits =
+          unit == null ? decimals : max(decimals - unit!.shift, 0);
+
       if (newText.startsWith(decimalSeparator)) {
+        if (newText.length - 1 > fractionDigits) {
+          newText = newText.substring(0, fractionDigits + 1);
+        }
+
         return TextEditingValue(
           text: newText,
           selection: TextSelection.collapsed(
@@ -54,27 +62,23 @@ class AmountInputFormatter extends TextInputFormatter {
         fraction = "";
       }
 
-      final fractionDigits =
-          unit == null ? decimals : max(decimals - unit!.shift, 0);
-
       if (fraction.length > fractionDigits) {
-        return oldValue;
+        fraction = fraction.substring(0, fractionDigits);
       }
     }
 
-    if (newText.trim() == '' || newText.trim() == '0') {
-      return newValue.copyWith(text: '');
-    } else if (BigInt.parse(newText) < BigInt.one) {
-      return newValue.copyWith(text: '');
+    String newString;
+    final val = BigInt.tryParse(newText);
+    if (val == null || val < BigInt.one) {
+      newString = newText;
+    } else {
+      // insert group separator
+      final regex = RegExp(r'\B(?=(\d{3})+(?!\d))');
+      newString = newText.replaceAllMapped(
+        regex,
+        (m) => "${m.group(0)}${numberSymbols?.GROUP_SEP ?? ","}",
+      );
     }
-
-    // insert group separator
-    final regex = RegExp(r'\B(?=(\d{3})+(?!\d))');
-
-    String newString = newText.replaceAllMapped(
-      regex,
-      (m) => "${m.group(0)}${numberSymbols?.GROUP_SEP ?? ","}",
-    );
 
     if (fraction != null) {
       newString += decimalSeparator;
