@@ -9,9 +9,11 @@
  */
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/buy/response_objects/order.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -21,7 +23,7 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
-class BuyOrderDetailsView extends StatefulWidget {
+class BuyOrderDetailsView extends ConsumerStatefulWidget {
   const BuyOrderDetailsView({
     Key? key,
     required this.order,
@@ -32,10 +34,11 @@ class BuyOrderDetailsView extends StatefulWidget {
   static const String routeName = "/buyOrderDetails";
 
   @override
-  State<BuyOrderDetailsView> createState() => _BuyOrderDetailsViewState();
+  ConsumerState<BuyOrderDetailsView> createState() =>
+      _BuyOrderDetailsViewState();
 }
 
-class _BuyOrderDetailsViewState extends State<BuyOrderDetailsView> {
+class _BuyOrderDetailsViewState extends ConsumerState<BuyOrderDetailsView> {
   final isDesktop = Util.isDesktop;
 
   @override
@@ -245,7 +248,9 @@ class _BuyOrderDetailsViewState extends State<BuyOrderDetailsView> {
                   width: 64,
                   height: 32,
                   child: SvgPicture.asset(
-                    Assets.buy.simplexLogo(context),
+                    Assets.buy.simplexLogo(
+                      ref.watch(themeProvider).brightness,
+                    ),
                   ),
                 ),
               ],
