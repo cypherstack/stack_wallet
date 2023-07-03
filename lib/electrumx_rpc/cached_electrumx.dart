@@ -38,9 +38,8 @@ class CachedElectrumX {
     required Coin coin,
   }) async {
     try {
-      final cachedSet = DB.instance.get<dynamic>(
-          boxName: DB.instance.boxNameSetCache(coin: coin),
-          key: groupId) as Map?;
+      final box = await DB.instance.getAnonymitySetCacheBox(coin: coin);
+      final cachedSet = box.get(groupId) as Map?;
 
       Map<String, dynamic> set;
 
@@ -71,7 +70,7 @@ class CachedElectrumX {
             : newSet["blockHash"];
         for (int i = (newSet["coins"] as List).length - 1; i >= 0; i--) {
           dynamic newCoin = newSet["coins"][i];
-          List translatedCoin = [];
+          List<dynamic> translatedCoin = [];
           translatedCoin.add(!isHexadecimal(newCoin[0] as String)
               ? base64ToHex(newCoin[0] as String)
               : newCoin[0]);
@@ -91,10 +90,7 @@ class CachedElectrumX {
           set["coins"].insert(0, translatedCoin);
         }
         // save set to db
-        await DB.instance.put<dynamic>(
-            boxName: DB.instance.boxNameSetCache(coin: coin),
-            key: groupId,
-            value: set);
+        await box.put(groupId, set);
         Logging.instance.log(
           "Updated current anonymity set for ${coin.name} with group ID $groupId",
           level: LogLevel.Info,
@@ -107,6 +103,8 @@ class CachedElectrumX {
           "Failed to process CachedElectrumX.getAnonymitySet(): $e\n$s",
           level: LogLevel.Error);
       rethrow;
+    } finally {
+      await DB.instance.closeAnonymitySetCacheBox(coin: coin);
     }
   }
 
@@ -130,8 +128,9 @@ class CachedElectrumX {
     bool verbose = true,
   }) async {
     try {
-      final cachedTx = DB.instance.get<dynamic>(
-          boxName: DB.instance.boxNameTxCache(coin: coin), key: txHash) as Map?;
+      final box = await DB.instance.getTxCacheBox(coin: coin);
+
+      final cachedTx = box.get(txHash) as Map?;
       if (cachedTx == null) {
         final Map<String, dynamic> result = await electrumXClient
             .getTransaction(txHash: txHash, verbose: verbose);
@@ -141,10 +140,7 @@ class CachedElectrumX {
 
         if (result["confirmations"] != null &&
             result["confirmations"] as int > minCacheConfirms) {
-          await DB.instance.put<dynamic>(
-              boxName: DB.instance.boxNameTxCache(coin: coin),
-              key: txHash,
-              value: result);
+          await box.put(txHash, result);
         }
 
         Logging.instance.log("using fetched result", level: LogLevel.Info);
@@ -158,6 +154,8 @@ class CachedElectrumX {
           "Failed to process CachedElectrumX.getTransaction(): $e\n$s",
           level: LogLevel.Error);
       rethrow;
+    } finally {
+      await DB.instance.closeTxCacheBox(coin: coin);
     }
   }
 
@@ -166,9 +164,9 @@ class CachedElectrumX {
     int startNumber = 0,
   }) async {
     try {
-      final _list = DB.instance.get<dynamic>(
-          boxName: DB.instance.boxNameUsedSerialsCache(coin: coin),
-          key: "serials") as List?;
+      final box = await DB.instance.getUsedSerialsCacheBox(coin: coin);
+
+      final _list = box.get("serials") as List?;
 
       List<String> cachedSerials =
           _list == null ? [] : List<String>.from(_list);
@@ -188,10 +186,9 @@ class CachedElectrumX {
       }
       cachedSerials.addAll(newSerials);
 
-      await DB.instance.put<dynamic>(
-        boxName: DB.instance.boxNameUsedSerialsCache(coin: coin),
-        key: "serials",
-        value: cachedSerials,
+      await box.put(
+        "serials",
+        cachedSerials,
       );
 
       return cachedSerials;
@@ -200,16 +197,13 @@ class CachedElectrumX {
           "Failed to process CachedElectrumX.getTransaction(): $e\n$s",
           level: LogLevel.Error);
       rethrow;
+    } finally {
+      await DB.instance.closeUsedSerialsCacheBox(coin: coin);
     }
   }
 
   /// Clear all cached transactions for the specified coin
   Future<void> clearSharedTransactionCache({required Coin coin}) async {
-    await DB.instance
-        .deleteAll<dynamic>(boxName: DB.instance.boxNameTxCache(coin: coin));
-    await DB.instance
-        .deleteAll<dynamic>(boxName: DB.instance.boxNameSetCache(coin: coin));
-    await DB.instance.deleteAll<dynamic>(
-        boxName: DB.instance.boxNameUsedSerialsCache(coin: coin));
+    await DB.instance.closeAnonymitySetCacheBox(coin: coin);
   }
 }

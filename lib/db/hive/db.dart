@@ -26,6 +26,7 @@ class DB {
   // legacy (required for migrations)
   @Deprecated("Left over for migration from old versions of Stack Wallet")
   static const String boxNameAddressBook = "addressBook";
+  static const String boxNameTrades = "exchangeTransactionsBox";
 
   // in use
   // TODO: migrate
@@ -36,7 +37,6 @@ class DB {
   static const String boxNameWatchedTransactions =
       "watchedTxNotificationModels";
   static const String boxNameWatchedTrades = "watchedTradesNotificationModels";
-  static const String boxNameTrades = "exchangeTransactionsBox";
   static const String boxNameTradesV2 = "exchangeTradesBox";
   static const String boxNameTradeNotes = "tradeNotesBox";
   static const String boxNameTradeLookup = "tradeToTxidLookUpBox";
@@ -48,10 +48,12 @@ class DB {
   static const String boxNameDBInfo = "dbInfo";
   static const String boxNamePrefs = "prefs";
 
-  String boxNameTxCache({required Coin coin}) => "${coin.name}_txCache";
-  String boxNameSetCache({required Coin coin}) =>
+  String _boxNameTxCache({required Coin coin}) => "${coin.name}_txCache";
+
+  // firo only
+  String _boxNameSetCache({required Coin coin}) =>
       "${coin.name}_anonymitySetCache";
-  String boxNameUsedSerialsCache({required Coin coin}) =>
+  String _boxNameUsedSerialsCache({required Coin coin}) =>
       "${coin.name}_usedSerialsCache";
 
   Box<NodeModel>? _boxNodeModels;
@@ -146,7 +148,6 @@ class DB {
     await Future.wait([
       Hive.openBox<dynamic>(boxNamePriceCache),
       _loadWalletBoxes(),
-      _loadSharedCoinCacheBoxes(),
     ]);
   }
 
@@ -178,14 +179,39 @@ class DB {
     }
   }
 
-  Future<void> _loadSharedCoinCacheBoxes() async {
-    for (final coin in Coin.values) {
-      _txCacheBoxes[coin] =
-          await Hive.openBox<dynamic>(boxNameTxCache(coin: coin));
-      _setCacheBoxes[coin] =
-          await Hive.openBox<dynamic>(boxNameSetCache(coin: coin));
-      _usedSerialsCacheBoxes[coin] =
-          await Hive.openBox<dynamic>(boxNameUsedSerialsCache(coin: coin));
+  Future<Box<dynamic>> getTxCacheBox({required Coin coin}) async {
+    return _txCacheBoxes[coin] ??=
+        await Hive.openBox<dynamic>(_boxNameTxCache(coin: coin));
+  }
+
+  Future<void> closeTxCacheBox({required Coin coin}) async {
+    await _txCacheBoxes[coin]?.close();
+  }
+
+  Future<Box<dynamic>> getAnonymitySetCacheBox({required Coin coin}) async {
+    return _setCacheBoxes[coin] ??=
+        await Hive.openBox<dynamic>(_boxNameSetCache(coin: coin));
+  }
+
+  Future<void> closeAnonymitySetCacheBox({required Coin coin}) async {
+    await _setCacheBoxes[coin]?.close();
+  }
+
+  Future<Box<dynamic>> getUsedSerialsCacheBox({required Coin coin}) async {
+    return _usedSerialsCacheBoxes[coin] ??=
+        await Hive.openBox<dynamic>(_boxNameUsedSerialsCache(coin: coin));
+  }
+
+  Future<void> closeUsedSerialsCacheBox({required Coin coin}) async {
+    await _usedSerialsCacheBoxes[coin]?.close();
+  }
+
+  /// Clear all cached transactions for the specified coin
+  Future<void> clearSharedTransactionCache({required Coin coin}) async {
+    await deleteAll<dynamic>(boxName: _boxNameTxCache(coin: coin));
+    if (coin == Coin.firo) {
+      await deleteAll<dynamic>(boxName: _boxNameSetCache(coin: coin));
+      await deleteAll<dynamic>(boxName: _boxNameUsedSerialsCache(coin: coin));
     }
   }
 
