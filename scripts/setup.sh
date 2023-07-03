@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export SCRIPTS=$(pwd)
+
 sudo apt update && sudo apt upgrade -y && sudo apt dist-upgrade -y
 mkdir "$HOME/development"
 mkdir "$HOME/projects"
@@ -12,7 +14,7 @@ sudo apt install -y unzip pkg-config clang cmake ninja-build libgtk-3-dev
 cd $DEVELOPMENT
 git clone https://github.com/flutter/flutter.git
 cd flutter 
-git checkout 3.7.12
+git checkout 3.10.3
 export FLUTTER_DIR=$(pwd)/bin
 echo 'export PATH="$PATH:'${FLUTTER_DIR}'"' >> ~/.bashrc
 source ~/.bashrc
@@ -46,9 +48,10 @@ rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-andro
 #     printf 'const kChangeNowApiKey = "";\nconst kSimpleSwapApiKey = "";' > $KEYS
 # fi
 
-# # build stack wallet plugins
-# cd $STACK_WALLET
-# cd scripts/android
-# ./build_all.sh
-# cd ../linux
-# ./build_all.sh
+# build stack wallet plugins
+cd $SCRIPTS
+./prebuild.sh
+cd android
+./build_all.sh
+cd ../linux
+./build_all.sh

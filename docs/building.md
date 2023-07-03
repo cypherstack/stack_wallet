@@ -31,7 +31,7 @@ Make a Pixel 4 (API 30) x86_64 emulator with 2GB of storage space for emulation
 
 ### Scripted setup
 
-[`scripts/setup.sh`](./../scripts/setup.sh) is provided as a tool to set up installation for building: download the script and run it anywhere.  This script should skip the entire [Manual setup](#manual-setup) section below and prepare you for [running](#Running).
+[`scripts/setup.sh`](./../scripts/setup.sh) is provided as a tool to set up installation for building: download the script and run it anywhere.  This script should skip the entire [Manual setup](#manual-setup) section below and prepare you to [run the prebuild script](#run-prebuild-script), [build the plugins](#Build-plugins), and [run](#Running).
 
 ### Manual setup
 > If you used the `setup.sh` script, skip to [running](#Running)
@@ -98,20 +98,21 @@ cd ..
 ```
 or manually by creating the files referenced in that script with the specified content.
 
-### Building plugins for Android 
+### Build plugins
+#### Building plugins for Android 
 > Warning: This will take a long time, please be patient
 ```
 cd scripts/android
 ./build_all.sh
 ```
 
-### Building plugins for Linux
+#### Building plugins for Linux
 ```
 cd scripts/linux
 ./build_all.sh
 ```
 
-### Building plugins for Windows
+#### Building plugins for Windows
 ```
 cd scripts/windows
 ./deps.sh
