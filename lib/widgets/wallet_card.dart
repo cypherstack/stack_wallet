@@ -26,6 +26,7 @@ import 'package:stackwallet/services/ethereum/ethereum_token_service.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -136,15 +137,16 @@ class SimpleWalletCard extends ConsumerWidget {
           context: desktopNavigatorState?.context ?? context,
           opaqueBG: true,
           message: "Loading ${contract.name}",
+          isDesktop: Util.isDesktop,
         );
 
         if (!success) {
+          // TODO: show error dialog here?
+          Logging.instance.log(
+            "Failed to load token wallet for $contract",
+            level: LogLevel.Error,
+          );
           return;
-        }
-
-        if (desktopNavigatorState == null) {
-          // pop loading
-          nav.pop();
         }
 
         if (desktopNavigatorState != null) {

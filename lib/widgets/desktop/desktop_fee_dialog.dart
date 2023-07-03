@@ -16,6 +16,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 
@@ -234,6 +235,7 @@ class DesktopFeeItem extends ConsumerStatefulWidget {
     required this.walletId,
     required this.feeFor,
     required this.isSelected,
+    this.isButton = true,
   }) : super(key: key);
 
   final FeeObject? feeObject;
@@ -246,6 +248,7 @@ class DesktopFeeItem extends ConsumerStatefulWidget {
     required Coin coin,
   }) feeFor;
   final bool isSelected;
+  final bool isButton;
 
   @override
   ConsumerState<DesktopFeeItem> createState() => _DesktopFeeItemState();
@@ -291,19 +294,50 @@ class _DesktopFeeItemState extends ConsumerState<DesktopFeeItem> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType : ${widget.feeRateType}");
 
-    return MaterialButton(
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      onPressed: () {
-        Navigator.of(context).pop(
-          (
-            widget.feeRateType,
-            feeString,
-            timeString,
-          ),
-        );
-      },
+    return ConditionalParent(
+      condition: widget.isButton,
+      builder: (child) => MaterialButton(
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        onPressed: () {
+          Navigator.of(context).pop(
+            (
+              widget.feeRateType,
+              feeString,
+              timeString,
+            ),
+          );
+        },
+        child: child,
+      ),
       child: Builder(
         builder: (_) {
+          if (!widget.isButton) {
+            final coin = ref.watch(
+              walletsChangeNotifierProvider.select(
+                (value) => value.getManager(widget.walletId).coin,
+              ),
+            );
+            if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
+                ref.watch(publicPrivateBalanceStateProvider.state).state ==
+                    "Private") {
+              return Text(
+                "~${ref.watch(pAmountFormatter(coin)).format(
+                      Amount(
+                        rawValue: BigInt.parse("3794"),
+                        fractionDigits: coin.decimals,
+                      ),
+                      indicatePrecisionLoss: false,
+                    )}",
+                style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldActiveText,
+                ),
+                textAlign: TextAlign.left,
+              );
+            }
+          }
+
           if (widget.feeRateType == FeeRateType.custom) {
             return Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
