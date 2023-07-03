@@ -108,7 +108,7 @@ dependencies:
   uuid: ^3.0.5
   flutter_rounded_date_picker: ^3.0.1
   crypto: ^3.0.2
-  barcode_scan2: ^4.2.0
+  barcode_scan2: ^4.2.3
   wakelock: ^0.6.2
   intl: ^0.17.0
   devicelocale: ^0.6.0
