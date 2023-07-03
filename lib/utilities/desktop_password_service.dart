@@ -209,4 +209,10 @@ class DPS {
     }
     return value;
   }
+
+  /// Dangerous. Used in one place and should not be called anywhere else.
+  @Deprecated("Don't use this if at all possible")
+  Future<void> deleteBox() async {
+    await Hive.deleteBoxFromDisk(kBoxNameDesktopData);
+  }
 }
