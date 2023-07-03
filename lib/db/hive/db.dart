@@ -23,8 +23,12 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 class DB {
+  // legacy (required for migrations)
+  @Deprecated("Left over for migration from old versions of Stack Wallet")
   static const String boxNameAddressBook = "addressBook";
-  static const String boxNameDebugInfo = "debugInfoBox";
+
+  // in use
+  // TODO: migrate
   static const String boxNameNodeModels = "nodeModels";
   static const String boxNamePrimaryNodes = "primaryNodes";
   static const String boxNameAllWalletsData = "wallets";
@@ -37,13 +41,12 @@ class DB {
   static const String boxNameTradeNotes = "tradeNotesBox";
   static const String boxNameTradeLookup = "tradeToTxidLookUpBox";
   static const String boxNameFavoriteWallets = "favoriteWallets";
-  static const String boxNamePrefs = "prefs";
   static const String boxNameWalletsToDeleteOnStart = "walletsToDeleteOnStart";
   static const String boxNamePriceCache = "priceAPIPrice24hCache";
+
+  // in use (keep for now)
   static const String boxNameDBInfo = "dbInfo";
-  // static const String boxNameTheme = "theme";
-  static const String boxNameDesktopData = "desktopData";
-  static const String boxNameBuys = "buysBox";
+  static const String boxNamePrefs = "prefs";
 
   String boxNameTxCache({required Coin coin}) => "${coin.name}_txCache";
   String boxNameSetCache({required Coin coin}) =>
@@ -51,7 +54,6 @@ class DB {
   String boxNameUsedSerialsCache({required Coin coin}) =>
       "${coin.name}_usedSerialsCache";
 
-  Box<String>? _boxDebugInfo;
   Box<NodeModel>? _boxNodeModels;
   Box<NodeModel>? _boxPrimaryNodes;
   Box<dynamic>? _boxAllWalletsData;
@@ -66,7 +68,7 @@ class DB {
   Box<dynamic>? _boxPrefs;
   Box<TradeWalletLookup>? _boxTradeLookup;
   Box<dynamic>? _boxDBInfo;
-  Box<String>? _boxDesktopData;
+  // Box<String>? _boxDesktopData;
 
   final Map<String, Box<dynamic>> _walletBoxes = {};
 
@@ -109,8 +111,6 @@ class DB {
       _boxPrefs = await Hive.openBox<dynamic>(boxNamePrefs);
     }
 
-    _boxDebugInfo = await Hive.openBox<String>(boxNameDebugInfo);
-
     if (Hive.isBoxOpen(boxNameNodeModels)) {
       _boxNodeModels = Hive.box<NodeModel>(boxNameNodeModels);
     } else {
@@ -127,12 +127,6 @@ class DB {
       _boxAllWalletsData = Hive.box<dynamic>(boxNameAllWalletsData);
     } else {
       _boxAllWalletsData = await Hive.openBox<dynamic>(boxNameAllWalletsData);
-    }
-
-    if (Hive.isBoxOpen(boxNameDesktopData)) {
-      _boxDesktopData = Hive.box<String>(boxNameDesktopData);
-    } else {
-      _boxDesktopData = await Hive.openBox<String>(boxNameDesktopData);
     }
 
     _boxNotifications =
@@ -258,7 +252,7 @@ class DB {
   Future<bool> deleteEverything() async {
     try {
       await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameAddressBook);
-      await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameDebugInfo);
+      await DB.instance.deleteBoxFromDisk(boxName: "debugInfoBox");
       await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameNodeModels);
       await DB.instance.deleteBoxFromDisk(boxName: DB.boxNamePrimaryNodes);
       await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameAllWalletsData);
