@@ -157,20 +157,22 @@ class ThemeService {
       );
     } else {
       // check installed version
-      final theme = ThemeService.instance.getTheme(themeId: "dark");
-      if ((theme?.version ?? 1) < _currentDefaultThemeVersion) {
-        Logging.instance.log(
-          "Updating default dark theme...",
-          level: LogLevel.Info,
-        );
-        final darkZip = await rootBundle.load("assets/default_themes/dark.zip");
-        await ThemeService.instance
-            .install(themeArchiveData: darkZip.buffer.asUint8List());
-        Logging.instance.log(
-          "Updating default dark theme... finished",
-          level: LogLevel.Info,
-        );
-      }
+      // final theme = ThemeService.instance.getTheme(themeId: "dark");
+      // Force update theme to add missing icons for now
+      // TODO: uncomment if statement in future when themes are version 4 or above
+      // if ((theme?.version ?? 1) < _currentDefaultThemeVersion) {
+      Logging.instance.log(
+        "Updating default dark theme...",
+        level: LogLevel.Info,
+      );
+      final darkZip = await rootBundle.load("assets/default_themes/dark.zip");
+      await ThemeService.instance
+          .install(themeArchiveData: darkZip.buffer.asUint8List());
+      Logging.instance.log(
+        "Updating default dark theme... finished",
+        level: LogLevel.Info,
+      );
+      // }
     }
   }
 

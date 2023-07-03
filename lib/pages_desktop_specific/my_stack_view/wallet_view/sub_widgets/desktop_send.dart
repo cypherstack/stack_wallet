@@ -9,7 +9,6 @@
  */
 
 import 'dart:async';
-import 'dart:math';
 
 import 'package:bip47/bip47.dart';
 import 'package:cw_core/monero_transaction_priority.dart';
@@ -462,27 +461,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
-      String cryptoAmount = cryptoAmountController.text;
-      if (cryptoAmount.isNotEmpty &&
-          cryptoAmount != "." &&
-          cryptoAmount != ",") {
-        if (cryptoAmount.startsWith("~")) {
-          cryptoAmount = cryptoAmount.substring(1);
-        }
-        if (cryptoAmount.contains(" ")) {
-          cryptoAmount = cryptoAmount.split(" ").first;
-        }
-
-        // ensure we don't shift past minimum atomic value
-        final shift = min(ref.read(pAmountUnit(coin)).shift, coin.decimals);
-
-        _amountToSend = cryptoAmount.contains(",")
-            ? Decimal.parse(cryptoAmount.replaceFirst(",", "."))
-                .shift(0 - shift)
-                .toAmount(fractionDigits: coin.decimals)
-            : Decimal.parse(cryptoAmount)
-                .shift(0 - shift)
-                .toAmount(fractionDigits: coin.decimals);
+      final cryptoAmount = ref.read(pAmountFormatter(coin)).tryParse(
+            cryptoAmountController.text,
+          );
+      if (cryptoAmount != null) {
+        _amountToSend = cryptoAmount;
         if (_cachedAmountToSend != null &&
             _cachedAmountToSend == _amountToSend) {
           return;
@@ -677,15 +660,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   }
 
   void fiatTextFieldOnChanged(String baseAmountString) {
-    if (baseAmountString.isNotEmpty &&
-        baseAmountString != "." &&
-        baseAmountString != ",") {
-      final baseAmount = baseAmountString.contains(",")
-          ? Decimal.parse(baseAmountString.replaceFirst(",", "."))
-              .toAmount(fractionDigits: 2)
-          : Decimal.parse(baseAmountString).toAmount(fractionDigits: 2);
-
-      var _price =
+    final baseAmount = Amount.tryParseFiatString(
+      baseAmountString,
+      locale: ref.read(localeServiceChangeNotifierProvider).locale,
+    );
+    if (baseAmount != null) {
+      final _price =
           ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
 
       if (_price == Decimal.zero) {
@@ -1389,7 +1369,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           ),
         if (!([Coin.nano, Coin.banano, Coin.epicCash].contains(coin)))
           ConditionalParent(
-            condition: coin.isElectrumXCoin,
+            condition: coin.isElectrumXCoin &&
+                !(((coin == Coin.firo || coin == Coin.firoTestNet) &&
+                    ref.read(publicPrivateBalanceStateProvider.state).state ==
+                        "Private")),
             builder: (child) => Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -1441,72 +1424,117 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           ),
         if (!([Coin.nano, Coin.banano, Coin.epicCash].contains(coin)))
           if (!isCustomFee)
-            (feeSelectionResult?.$2 == null)
-                ? FutureBuilder(
-                    future: ref.watch(
-                      walletsChangeNotifierProvider.select(
-                        (value) => value.getManager(walletId).fees,
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: (feeSelectionResult?.$2 == null)
+                  ? FutureBuilder(
+                      future: ref.watch(
+                        walletsChangeNotifierProvider.select(
+                          (value) => value.getManager(walletId).fees,
+                        ),
                       ),
-                    ),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done &&
-                          snapshot.hasData) {
-                        return DesktopFeeItem(
-                          feeObject: snapshot.data,
-                          feeRateType: FeeRateType.average,
-                          walletId: walletId,
-                          feeFor: ({
-                            required Amount amount,
-                            required FeeRateType feeRateType,
-                            required int feeRate,
-                            required Coin coin,
-                          }) async {
-                            if (ref
-                                    .read(feeSheetSessionCacheProvider)
-                                    .average[amount] ==
-                                null) {
-                              final manager = ref
-                                  .read(walletsChangeNotifierProvider)
-                                  .getManager(walletId);
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done &&
+                            snapshot.hasData) {
+                          return DesktopFeeItem(
+                            feeObject: snapshot.data,
+                            feeRateType: FeeRateType.average,
+                            walletId: walletId,
+                            isButton: false,
+                            feeFor: ({
+                              required Amount amount,
+                              required FeeRateType feeRateType,
+                              required int feeRate,
+                              required Coin coin,
+                            }) async {
+                              if (ref
+                                      .read(feeSheetSessionCacheProvider)
+                                      .average[amount] ==
+                                  null) {
+                                final manager = ref
+                                    .read(walletsChangeNotifierProvider)
+                                    .getManager(walletId);
 
-                              if (coin == Coin.monero || coin == Coin.wownero) {
-                                final fee = await manager.estimateFeeFor(amount,
-                                    MoneroTransactionPriority.regular.raw!);
-                                ref
-                                    .read(feeSheetSessionCacheProvider)
-                                    .average[amount] = fee;
-                              } else if ((coin == Coin.firo ||
-                                      coin == Coin.firoTestNet) &&
+                                if (coin == Coin.monero ||
+                                    coin == Coin.wownero) {
+                                  final fee = await manager.estimateFeeFor(
+                                      amount,
+                                      MoneroTransactionPriority.regular.raw!);
                                   ref
-                                          .read(
-                                              publicPrivateBalanceStateProvider
-                                                  .state)
-                                          .state !=
-                                      "Private") {
-                                ref
-                                        .read(feeSheetSessionCacheProvider)
-                                        .average[amount] =
-                                    await (manager.wallet as FiroWallet)
-                                        .estimateFeeForPublic(amount, feeRate);
-                              } else {
-                                ref
-                                        .read(feeSheetSessionCacheProvider)
-                                        .average[amount] =
-                                    await manager.estimateFeeFor(
-                                        amount, feeRate);
+                                      .read(feeSheetSessionCacheProvider)
+                                      .average[amount] = fee;
+                                } else if ((coin == Coin.firo ||
+                                        coin == Coin.firoTestNet) &&
+                                    ref
+                                            .read(
+                                                publicPrivateBalanceStateProvider
+                                                    .state)
+                                            .state !=
+                                        "Private") {
+                                  ref
+                                      .read(feeSheetSessionCacheProvider)
+                                      .average[amount] = await (manager.wallet
+                                          as FiroWallet)
+                                      .estimateFeeForPublic(amount, feeRate);
+                                } else {
+                                  ref
+                                          .read(feeSheetSessionCacheProvider)
+                                          .average[amount] =
+                                      await manager.estimateFeeFor(
+                                          amount, feeRate);
+                                }
                               }
-                            }
-                            return ref
-                                .read(feeSheetSessionCacheProvider)
-                                .average[amount]!;
-                          },
-                          isSelected: true,
-                        );
-                      } else {
-                        return Row(
+                              return ref
+                                  .read(feeSheetSessionCacheProvider)
+                                  .average[amount]!;
+                            },
+                            isSelected: true,
+                          );
+                        } else {
+                          return Row(
+                            children: [
+                              AnimatedText(
+                                stringsToLoopThrough: stringsToLoopThrough,
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                        context)
+                                    .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFieldActiveText,
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+                      },
+                    )
+                  : (coin == Coin.firo || coin == Coin.firoTestNet) &&
+                          ref
+                                  .watch(
+                                      publicPrivateBalanceStateProvider.state)
+                                  .state ==
+                              "Private"
+                      ? Text(
+                          "~${ref.watch(pAmountFormatter(coin)).format(
+                                Amount(
+                                  rawValue: BigInt.parse("3794"),
+                                  fractionDigits: coin.decimals,
+                                ),
+                                indicatePrecisionLoss: false,
+                              )}",
+                          style: STextStyles.desktopTextExtraExtraSmall(context)
+                              .copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFieldActiveText,
+                          ),
+                          textAlign: TextAlign.left,
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            AnimatedText(
-                              stringsToLoopThrough: stringsToLoopThrough,
+                            Text(
+                              feeSelectionResult?.$2 ?? "",
                               style: STextStyles.desktopTextExtraExtraSmall(
                                       context)
                                   .copyWith(
@@ -1514,36 +1542,21 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                                     .extension<StackColors>()!
                                     .textFieldActiveText,
                               ),
+                              textAlign: TextAlign.left,
+                            ),
+                            Text(
+                              feeSelectionResult?.$3 ?? "",
+                              style: STextStyles.desktopTextExtraExtraSmall(
+                                      context)
+                                  .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textFieldActiveSearchIconRight,
+                              ),
                             ),
                           ],
-                        );
-                      }
-                    },
-                  )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        feeSelectionResult?.$2 ?? "",
-                        style: STextStyles.desktopTextExtraExtraSmall(context)
-                            .copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textFieldActiveText,
                         ),
-                        textAlign: TextAlign.left,
-                      ),
-                      Text(
-                        feeSelectionResult?.$3 ?? "",
-                        style: STextStyles.desktopTextExtraExtraSmall(context)
-                            .copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textFieldActiveSearchIconRight,
-                        ),
-                      ),
-                    ],
-                  ),
+            ),
         if (isCustomFee)
           Padding(
             padding: const EdgeInsets.only(

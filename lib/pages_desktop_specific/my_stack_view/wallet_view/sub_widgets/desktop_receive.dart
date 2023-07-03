@@ -21,6 +21,7 @@ import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -236,7 +237,11 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
         ),
         Center(
           child: QrImageView(
-            data: "${coin.uriScheme}:$receivingAddress",
+            data: AddressUtils.buildUriString(
+              coin,
+              receivingAddress,
+              {},
+            ),
             size: 200,
             foregroundColor:
                 Theme.of(context).extension<StackColors>()!.accentColorDark,

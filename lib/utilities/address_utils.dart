@@ -126,7 +126,17 @@ class AddressUtils {
     String address,
     Map<String, String> params,
   ) {
-    String uriString = "${coin.uriScheme}:$address";
+    // TODO: other sanitation as well ?
+    String sanitizedAddress = address;
+    if (coin == Coin.bitcoincash ||
+        coin == Coin.bitcoincashTestnet ||
+        coin == Coin.eCash) {
+      final prefix = "${coin.uriScheme}:";
+      if (address.startsWith(prefix)) {
+        sanitizedAddress = address.replaceFirst(prefix, "");
+      }
+    }
+    String uriString = "${coin.uriScheme}:$sanitizedAddress";
     if (params.isNotEmpty) {
       uriString += Uri(queryParameters: params).toString();
     }
