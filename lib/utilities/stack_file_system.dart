@@ -73,16 +73,15 @@ abstract class StackFileSystem {
     }
   }
 
-  static Future<Directory> applicationThemesDirectory() async {
+  static Future<void> initThemesDir() async {
     final root = await applicationRootDirectory();
-    // if (Util.isDesktop) {
+
     final dir = Directory("${root.path}/themes");
     if (!dir.existsSync()) {
       await dir.create();
     }
-    return dir;
-    // } else {
-    //   return root;
-    // }
+    themesDir = dir;
   }
+
+  static Directory? themesDir;
 }
