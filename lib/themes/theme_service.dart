@@ -40,7 +40,7 @@ class ThemeService {
   void init(MainDB db) => _db ??= db;
 
   Future<void> install({required Uint8List themeArchiveData}) async {
-    final themesDir = await StackFileSystem.applicationThemesDirectory();
+    final themesDir = StackFileSystem.themesDir!;
 
     final archive = ZipDecoder().decodeBytes(themeArchiveData);
 
@@ -55,7 +55,6 @@ class ThemeService {
 
     final theme = StackTheme.fromJson(
       json: Map<String, dynamic>.from(json),
-      applicationThemesDirectoryPath: themesDir.path,
     );
 
     try {
@@ -88,7 +87,7 @@ class ThemeService {
   }
 
   Future<void> remove({required String themeId}) async {
-    final themesDir = await StackFileSystem.applicationThemesDirectory();
+    final themesDir = StackFileSystem.themesDir!;
     final isarId = await db.isar.stackThemes
         .where()
         .themeIdEqualTo(themeId)
@@ -187,7 +186,7 @@ class ThemeService {
         return false;
       }
 
-      final themesDir = await StackFileSystem.applicationThemesDirectory();
+      final themesDir = StackFileSystem.themesDir!;
       final jsonFileExists =
           await File("${themesDir.path}/$themeId/theme.json").exists();
       final assetsDirExists =

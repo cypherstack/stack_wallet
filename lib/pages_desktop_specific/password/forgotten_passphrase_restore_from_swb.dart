@@ -15,7 +15,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
@@ -213,8 +212,8 @@ class _ForgottenPassphraseRestoreFromSWBState
             await (ref.read(secureStoreProvider).store as DesktopSecureStore)
                 .close();
             ref.refresh(secureStoreProvider);
+            await ref.read(storageCryptoHandlerProvider).deleteBox();
             ref.refresh(storageCryptoHandlerProvider);
-            await Hive.deleteBoxFromDisk(DB.boxNameDesktopData);
             await DB.instance.init();
             if (mounted) {
               Navigator.of(context)
