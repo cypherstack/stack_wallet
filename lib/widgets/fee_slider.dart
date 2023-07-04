@@ -1,14 +1,17 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 
 class FeeSlider extends StatefulWidget {
   const FeeSlider({
     super.key,
     required this.onSatVByteChanged,
+    required this.coin,
   });
 
+  final Coin coin;
   final void Function(int) onSatVByteChanged;
 
   @override
@@ -16,12 +19,12 @@ class FeeSlider extends StatefulWidget {
 }
 
 class _FeeSliderState extends State<FeeSlider> {
-  static const int min = 1;
-  static const int max = 4;
+  static const double min = 1;
+  static const double max = 4;
 
   double sliderValue = 0;
 
-  int rate = min;
+  int rate = min.toInt();
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +48,14 @@ class _FeeSliderState extends State<FeeSlider> {
           onChanged: (value) {
             setState(() {
               sliderValue = value;
-              rate = pow(sliderValue * (max - min) + min, 4).toInt();
+              final number = pow(sliderValue * (max - min) + min, 4).toDouble();
+              switch (widget.coin) {
+                case Coin.dogecoin:
+                case Coin.dogecoinTestNet:
+                  rate = (number * 1000).toInt();
+                default:
+                  rate = number.toInt();
+              }
             });
             widget.onSatVByteChanged(rate);
           },

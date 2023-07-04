@@ -1564,6 +1564,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               top: 16,
             ),
             child: FeeSlider(
+              coin: coin,
               onSatVByteChanged: (rate) {
                 customFeeRate = rate;
               },
