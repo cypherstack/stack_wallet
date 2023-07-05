@@ -516,10 +516,9 @@ class _ConfirmTransactionViewState
                       ],
                     ),
                   ),
-                  if (coin == Coin.epicCash)
-                    const SizedBox(
-                      height: 12,
-                    ),
+                  const SizedBox(
+                    height: 12,
+                  ),
                   RoundedWhiteContainer(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
