@@ -493,6 +493,29 @@ class _ConfirmTransactionViewState
                         ],
                       ),
                     ),
+                  if (coin == Coin.epicCash)
+                    const SizedBox(
+                      height: 12,
+                    ),
+                  if (coin == Coin.epicCash)
+                    RoundedWhiteContainer(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          "On chain note",
+                          style: STextStyles.smallMed12(context),
+                        ),
+                        const SizedBox(
+                          height: 4,
+                        ),
+                        Text(
+                          transactionInfo["onChainNote"] as String,
+                          style: STextStyles.itemSubtitle12(context),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(
                     height: 12,
                   ),
@@ -501,6 +524,7 @@ class _ConfirmTransactionViewState
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
+                          (coin == Coin.epicCash) ? "Local Note" :
                           "Note",
                           style: STextStyles.smallMed12(context),
                         ),

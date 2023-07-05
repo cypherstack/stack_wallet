@@ -358,6 +358,9 @@ class _TransactionDetailsViewState
     final currentHeight = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManager(walletId).currentHeight));
 
+
+    print("THIS TRANSACTION IS $_transaction");
+
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
@@ -774,12 +777,71 @@ class _TransactionDetailsViewState
                                   ],
                                 ),
                               ),
+                            if (coin == Coin.epicCash)
+                              isDesktop
+                                  ? const _Divider()
+                                  : const SizedBox(
+                                height: 12,
+                              ),
+                            if (coin == Coin.epicCash)
+                              RoundedWhiteContainer(
+                                padding: isDesktop
+                                    ? const EdgeInsets.all(16)
+                                    : const EdgeInsets.all(12),
+                                child: Row(
+                                  mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "On chain note",
+                                            style: isDesktop
+                                                ? STextStyles
+                                                .desktopTextExtraExtraSmall(
+                                                context)
+                                                : STextStyles.itemSubtitle(
+                                                context),
+                                          ),
+                                          const SizedBox(
+                                            height: 8,
+                                          ),
+                                          SelectableText(
+                                            _transaction.otherData ?? "",
+                                            style: isDesktop
+                                                ? STextStyles
+                                                .desktopTextExtraExtraSmall(
+                                                context)
+                                                .copyWith(
+                                              color: Theme.of(
+                                                  context)
+                                                  .extension<
+                                                  StackColors>()!
+                                                  .textDark,
+                                            )
+                                                : STextStyles
+                                                .itemSubtitle12(
+                                                context),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    if (isDesktop)
+                                      IconCopyButton(
+                                        data: _transaction.address.value!.value,
+                                      ),
+                                  ],
+                                ),
+                              ),
                             isDesktop
                                 ? const _Divider()
                                 : const SizedBox(
                                     height: 12,
                                   ),
-
                             RoundedWhiteContainer(
                               padding: isDesktop
                                   ? const EdgeInsets.all(16)
@@ -792,7 +854,7 @@ class _TransactionDetailsViewState
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        "Note",
+                                        (coin == Coin.epicCash) ? "Local Note" : "Note ",
                                         style: isDesktop
                                             ? STextStyles
                                                 .desktopTextExtraExtraSmall(
@@ -861,7 +923,7 @@ class _TransactionDetailsViewState
                                         notesServiceChangeNotifierProvider(
                                                 walletId)
                                             .select((value) => value.getNoteFor(
-                                                txid: _transaction.txid))),
+                                                txid: (coin == Coin.epicCash)? _transaction.slateId! : _transaction.txid ))),
                                     builder: (builderContext,
                                         AsyncSnapshot<String> snapshot) {
                                       if (snapshot.connectionState ==
