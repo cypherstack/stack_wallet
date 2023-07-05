@@ -497,6 +497,7 @@ class _ConfirmTransactionViewState
                     const SizedBox(
                       height: 12,
                     ),
+                  if (coin == Coin.epicCash)
                     RoundedWhiteContainer(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -515,9 +516,10 @@ class _ConfirmTransactionViewState
                       ],
                     ),
                   ),
-                  const SizedBox(
-                    height: 12,
-                  ),
+                  if (coin == Coin.epicCash)
+                    const SizedBox(
+                      height: 12,
+                    ),
                   RoundedWhiteContainer(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,

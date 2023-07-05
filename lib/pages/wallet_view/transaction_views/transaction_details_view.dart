@@ -783,6 +783,7 @@ class _TransactionDetailsViewState
                                   : const SizedBox(
                                 height: 12,
                               ),
+                            if (coin == Coin.epicCash)
                               RoundedWhiteContainer(
                                 padding: isDesktop
                                     ? const EdgeInsets.all(16)
@@ -797,33 +798,20 @@ class _TransactionDetailsViewState
                                         crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                         children: [
-                                          ConditionalParent(
-                                            condition: kDebugMode,
-                                            builder: (child) {
-                                              return Row(
-                                                mainAxisAlignment:
-                                                MainAxisAlignment
-                                                    .spaceBetween,
-                                                children: [
-                                                  child,
-                                                ],
-                                              );
-                                            },
-                                            child: Text(
-                                              "On chain note",
-                                              style: isDesktop
-                                                  ? STextStyles
-                                                  .desktopTextExtraExtraSmall(
-                                                  context)
-                                                  : STextStyles.itemSubtitle(
-                                                  context),
-                                            ),
+                                          Text(
+                                            "On chain note",
+                                            style: isDesktop
+                                                ? STextStyles
+                                                .desktopTextExtraExtraSmall(
+                                                context)
+                                                : STextStyles.itemSubtitle(
+                                                context),
                                           ),
                                           const SizedBox(
                                             height: 8,
                                           ),
                                           SelectableText(
-                                            _transaction.otherData!,
+                                            _transaction.otherData ?? "",
                                             style: isDesktop
                                                 ? STextStyles
                                                 .desktopTextExtraExtraSmall(
@@ -854,7 +842,6 @@ class _TransactionDetailsViewState
                                 : const SizedBox(
                                     height: 12,
                                   ),
-
                             RoundedWhiteContainer(
                               padding: isDesktop
                                   ? const EdgeInsets.all(16)

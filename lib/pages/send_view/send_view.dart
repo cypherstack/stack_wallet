@@ -1806,9 +1806,11 @@ class _SendViewState extends ConsumerState<SendView> {
                               style: STextStyles.smallMed12(context),
                               textAlign: TextAlign.left,
                             ),
+                          if (coin == Coin.epicCash)
                             const SizedBox(
                               height: 8,
                             ),
+                          if (coin == Coin.epicCash)
                             ClipRRect(
                               borderRadius: BorderRadius.circular(
                                 Constants.size.circularBorderRadius,
@@ -1849,6 +1851,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                 ),
                               ),
                             ),
+                          if (coin == Coin.epicCash)
                             const SizedBox(
                               height: 12,
                             ),
