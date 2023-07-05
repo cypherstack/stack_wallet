@@ -146,7 +146,7 @@ class ElectrumX {
         throw response.exception!;
       }
 
-      if (response.data["error"] != null) {
+      if (response.data is Map && response.data["error"] != null) {
         if (response.data["error"]
             .toString()
             .contains("No such mempool or blockchain transaction")) {

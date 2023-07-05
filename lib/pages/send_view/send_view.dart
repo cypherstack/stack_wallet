@@ -2127,6 +2127,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                 top: 16,
                               ),
                               child: FeeSlider(
+                                coin: coin,
                                 onSatVByteChanged: (rate) {
                                   customFeeRate = rate;
                                 },

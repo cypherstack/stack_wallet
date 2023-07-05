@@ -341,7 +341,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                     padding: const EdgeInsets.all(0),
                     child: Column(
                       children: [
-                        ..._contact.addresses.map(
+                        ..._contact.addressesSorted.map(
                           (e) => Padding(
                             padding: const EdgeInsets.all(12),
                             child: Row(

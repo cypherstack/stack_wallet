@@ -211,7 +211,8 @@ class _AddNewContactAddressViewState
                         const Duration(milliseconds: 75),
                       );
                     }
-                    List<ContactAddressEntry> entries = contact.addresses;
+                    List<ContactAddressEntry> entries =
+                        contact.addresses.toList();
 
                     entries.add(ref
                         .read(addressEntryDataProvider(0))

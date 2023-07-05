@@ -69,8 +69,8 @@ class _AddressBookAddressChooserState extends State<AddressBookAddressChooser> {
 
   List<ContactEntry> filter(List<ContactEntry> contacts, String searchTerm) {
     if (widget.coin != null) {
-      contacts.removeWhere(
-          (e) => e.addresses.where((a) => a.coin == widget.coin!).isEmpty);
+      contacts.removeWhere((e) =>
+          e.addressesSorted.where((a) => a.coin == widget.coin!).isEmpty);
     }
 
     contacts.retainWhere((e) => _matches(searchTerm, e));
