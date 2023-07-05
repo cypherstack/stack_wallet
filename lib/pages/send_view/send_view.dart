@@ -1849,9 +1849,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                 ),
                               ),
                             ),
-                          const SizedBox(
-                            height: 12,
-                          ),
+                            const SizedBox(
+                              height: 12,
+                            ),
                           Text(
                               (coin == Coin.epicCash) ? "Local Note (optional)"
                                   : "Note (optional)",
