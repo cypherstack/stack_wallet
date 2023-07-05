@@ -29,13 +29,6 @@ Then in `File > Settings > Plugins`, install the **Flutter** and **Dart** plugin
 
 Make a Pixel 4 (API 30) x86_64 emulator with 2GB of storage space for emulation
 
-### Scripted setup
-
-[`scripts/setup.sh`](./../scripts/setup.sh) is provided as a tool to set up installation for building: download the script and run it anywhere.  This script should skip the entire [Manual setup](#manual-setup) section below and prepare you to [run the prebuild script](#run-prebuild-script), [build the plugins](#Build-plugins), and [run](#Running).
-
-### Manual setup
-> If you used the `setup.sh` script, skip to [running](#Running)
-
 Install basic dependencies
 ```
 sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm python3-distutils
