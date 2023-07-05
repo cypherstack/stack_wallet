@@ -1853,7 +1853,8 @@ class _SendViewState extends ConsumerState<SendView> {
                             height: 12,
                           ),
                           Text(
-                            "Note (optional)",
+                              (coin == Coin.epicCash) ? "Local Note (optional)"
+                                  : "Note (optional)",
                             style: STextStyles.smallMed12(context),
                             textAlign: TextAlign.left,
                           ),

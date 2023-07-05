@@ -523,6 +523,7 @@ class _ConfirmTransactionViewState
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
+                          (coin == Coin.epicCash) ? "Local Note" :
                           "Note",
                           style: STextStyles.smallMed12(context),
                         ),
