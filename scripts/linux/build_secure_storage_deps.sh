@@ -22,6 +22,7 @@ cd "$LINUX_DIRECTORY" || exit 1
 # sudo apt install meson libgirepository1.0-dev valac xsltproc gi-docgen docbook-xsl
 # sudo apt install python3-pip
 #pip3 install --user meson markdown tomli --upgrade
+pip3 install --upgrade meson==0.64.1 markdown==3.4.1 markupsafe==2.1.1 jinja2==3.1.2 pygments==2.13.0 toml==0.10.2 typogrify==2.0.7 tomli==2.0.1
 # pip3 install --user gi-docgen
 cd build || exit 1
 git -C libsecret pull || git clone https://gitlab.gnome.org/GNOME/libsecret.git libsecret
