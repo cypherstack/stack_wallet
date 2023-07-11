@@ -134,10 +134,28 @@ flutter run linux
 Visual Studio is required for Windows development with the Flutter SDK.  Download it at https://visualstudio.microsoft.com/downloads/ and install the "Desktop development with C++" workload, including all of its default components.
 
 ### Building libraries in WSL2
-Set up Ubuntu 20.04 in WSL2.  Follow the entire Linux host section to get set up and build windows `dll` libraries.  Copy the resulting `dll`s to their respective positions on the Windows host:
+Set up Ubuntu 20.04 in WSL2.  Follow the entire Linux host section in the WSL2 Ubuntu 20.04 host to get set up to build.  You will also need to install Rust and MXE dependencies on the WSL2 Ubuntu 20.04 host:
+ - [Install Rust](https://rustup.rs/)
+   ```sh
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+   ```
+ - Install MXE by running `stack_wallet/scripts/windows/deps.sh`
+   ```sh
+   ./stack_wallet/scripts/windows/deps.sh
+   ```
+
+The WSL2 host may optionally be navigated to the `stack_wallet` repository on the Windows host in order to build the plugins in-place and skip the next section in which you copy the `dll`s from WSL2 to Windows.  Then build windows `dll` libraries by running the following script on the WSL2 Ubuntu 20.04 host:
+
+- `stack_wallet/scripts/windows/build_all.sh`
+
+Copy the resulting `dll`s to their respective positions on the Windows host:
 
 - `stack_wallet/crypto_plugins/flutter_libepiccash/scripts/windows/build/libepic_cash_wallet.dll`
 - `stack_wallet/crypto_plugins/flutter_liblelantus/scripts/windows/build/libmobileliblelantus.dll`
+<!--
+- `stack_wallet/crypto_plugins/flutter_libmonero/scripts/windows/build/libcw_monero.dll`
+- `stack_wallet/crypto_plugins/flutter_libmonero/scripts/windows/build/libcw_wownero.dll`
+-->
 <!-- TODO: script the copying or installation of libraries from WSL2 to the parent Windows host -->
 
 ### Install Flutter on Windows host
