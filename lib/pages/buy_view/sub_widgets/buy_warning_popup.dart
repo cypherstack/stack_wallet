@@ -11,6 +11,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/buy/response_objects/order.dart';
 import 'package:stackwallet/models/buy/response_objects/quote.dart';
@@ -18,6 +19,7 @@ import 'package:stackwallet/pages/buy_view/buy_order_details.dart';
 import 'package:stackwallet/services/buy/buy_response.dart';
 import 'package:stackwallet/services/buy/simplex/simplex_api.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -28,7 +30,7 @@ import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
-class BuyWarningPopup extends StatefulWidget {
+class BuyWarningPopup extends ConsumerStatefulWidget {
   const BuyWarningPopup({
     Key? key,
     required this.quote,
@@ -37,10 +39,10 @@ class BuyWarningPopup extends StatefulWidget {
   final SimplexQuote quote;
   final SimplexOrder? order;
   @override
-  State<BuyWarningPopup> createState() => _BuyWarningPopupState();
+  ConsumerState<BuyWarningPopup> createState() => _BuyWarningPopupState();
 }
 
-class _BuyWarningPopupState extends State<BuyWarningPopup> {
+class _BuyWarningPopupState extends ConsumerState<BuyWarningPopup> {
   late final bool isDesktop;
   SimplexOrder? order;
 
@@ -236,7 +238,9 @@ class _BuyWarningPopupState extends State<BuyWarningPopup> {
                     width: 64,
                     height: 32,
                     child: SvgPicture.asset(
-                      Assets.buy.simplexLogo(context),
+                      Assets.buy.simplexLogo(
+                        ref.watch(themeProvider).brightness,
+                      ),
                     ),
                   ),
                 ],
@@ -291,7 +295,9 @@ class _BuyWarningPopupState extends State<BuyWarningPopup> {
           width: 64,
           height: 32,
           child: SvgPicture.asset(
-            Assets.buy.simplexLogo(context),
+            Assets.buy.simplexLogo(
+              ref.watch(themeProvider).brightness,
+            ),
           ),
         ),
       );

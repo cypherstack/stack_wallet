@@ -178,10 +178,8 @@ class DbVersionMigrator with WalletDB {
 
       case 3:
         // clear possible broken firo cache
-        await DB.instance.deleteBoxFromDisk(
-            boxName: DB.instance.boxNameSetCache(coin: Coin.firo));
-        await DB.instance.deleteBoxFromDisk(
-            boxName: DB.instance.boxNameUsedSerialsCache(coin: Coin.firo));
+        await DB.instance.clearSharedTransactionCache(coin: Coin.firo);
+
 
         // update version
         await DB.instance.put<dynamic>(

@@ -9,6 +9,7 @@
  */
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
@@ -17,6 +18,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/extensions/impl/box_shadow.dart';
 import 'package:stackwallet/utilities/extensions/impl/gradient.dart';
 import 'package:stackwallet/utilities/extensions/impl/string.dart';
+import 'package:stackwallet/utilities/stack_file_system.dart';
 
 part 'stack_theme.g.dart';
 
@@ -1508,7 +1510,6 @@ class StackTheme {
 
   factory StackTheme.fromJson({
     required Map<String, dynamic> json,
-    required String applicationThemesDirectoryPath,
   }) {
     final version = json["version"] as int? ?? 1;
 
@@ -1517,21 +1518,18 @@ class StackTheme {
       ..assetsV1 = version == 1
           ? ThemeAssets.fromJson(
               json: Map<String, dynamic>.from(json["assets"] as Map),
-              applicationThemesDirectoryPath: applicationThemesDirectoryPath,
               themeId: json["id"] as String,
             )
           : null
       ..assetsV2 = version == 2
           ? ThemeAssetsV2.fromJson(
               json: Map<String, dynamic>.from(json["assets"] as Map),
-              applicationThemesDirectoryPath: applicationThemesDirectoryPath,
               themeId: json["id"] as String,
             )
           : null
       ..assetsV3 = version >= 3
           ? ThemeAssetsV3.fromJson(
               json: Map<String, dynamic>.from(json["assets"] as Map),
-              applicationThemesDirectoryPath: applicationThemesDirectoryPath,
               themeId: json["id"] as String,
             )
           : null
@@ -1954,117 +1952,81 @@ class ThemeAssets implements IThemeAssets {
 
   factory ThemeAssets.fromJson({
     required Map<String, dynamic> json,
-    required String applicationThemesDirectoryPath,
     required String themeId,
   }) {
     return ThemeAssets()
-      ..bellNew =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["bell_new"] as String}"
-      ..buy =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["buy"] as String}"
-      ..exchange =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["exchange"] as String}"
+      ..bellNew = "$themeId/assets/${json["bell_new"] as String}"
+      ..buy = "$themeId/assets/${json["buy"] as String}"
+      ..exchange = "$themeId/assets/${json["exchange"] as String}"
       ..personaIncognito =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["persona_incognito"] as String}"
-      ..personaEasy =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["persona_easy"] as String}"
-      ..stack =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["stack"] as String}"
-      ..stackIcon =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["stack_icon"] as String}"
-      ..receive =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["receive"] as String}"
-      ..receivePending =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["receive_pending"] as String}"
+          "$themeId/assets/${json["persona_incognito"] as String}"
+      ..personaEasy = "$themeId/assets/${json["persona_easy"] as String}"
+      ..stack = "$themeId/assets/${json["stack"] as String}"
+      ..stackIcon = "$themeId/assets/${json["stack_icon"] as String}"
+      ..receive = "$themeId/assets/${json["receive"] as String}"
+      ..receivePending = "$themeId/assets/${json["receive_pending"] as String}"
       ..receiveCancelled =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["receive_cancelled"] as String}"
-      ..send =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["send"] as String}"
-      ..sendPending =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["send_pending"] as String}"
-      ..sendCancelled =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["send_cancelled"] as String}"
-      ..themeSelector =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["theme_selector"] as String}"
-      ..themePreview =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["theme_preview"] as String}"
-      ..txExchange =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["tx_exchange"] as String}"
+          "$themeId/assets/${json["receive_cancelled"] as String}"
+      ..send = "$themeId/assets/${json["send"] as String}"
+      ..sendPending = "$themeId/assets/${json["send_pending"] as String}"
+      ..sendCancelled = "$themeId/assets/${json["send_cancelled"] as String}"
+      ..themeSelector = "$themeId/assets/${json["theme_selector"] as String}"
+      ..themePreview = "$themeId/assets/${json["theme_preview"] as String}"
+      ..txExchange = "$themeId/assets/${json["tx_exchange"] as String}"
       ..txExchangePending =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["tx_exchange_pending"] as String}"
+          "$themeId/assets/${json["tx_exchange_pending"] as String}"
       ..txExchangeFailed =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["tx_exchange_failed"] as String}"
-      ..bitcoin =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["bitcoin"] as String}"
-      ..litecoin =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["litecoin"] as String}"
-      ..bitcoincash =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["bitcoincash"] as String}"
-      ..dogecoin =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["dogecoin"] as String}"
-      ..epicCash =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["epicCash"] as String}"
-      ..ethereum =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["ethereum"] as String}"
-      ..firo =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["firo"] as String}"
-      ..monero =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["monero"] as String}"
-      ..wownero =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["wownero"] as String}"
-      ..namecoin =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["namecoin"] as String}"
-      ..particl =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["particl"] as String}"
-      ..bitcoinImage =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["bitcoin_image"] as String}"
+          "$themeId/assets/${json["tx_exchange_failed"] as String}"
+      ..bitcoin = "$themeId/assets/${json["bitcoin"] as String}"
+      ..litecoin = "$themeId/assets/${json["litecoin"] as String}"
+      ..bitcoincash = "$themeId/assets/${json["bitcoincash"] as String}"
+      ..dogecoin = "$themeId/assets/${json["dogecoin"] as String}"
+      ..epicCash = "$themeId/assets/${json["epicCash"] as String}"
+      ..ethereum = "$themeId/assets/${json["ethereum"] as String}"
+      ..firo = "$themeId/assets/${json["firo"] as String}"
+      ..monero = "$themeId/assets/${json["monero"] as String}"
+      ..wownero = "$themeId/assets/${json["wownero"] as String}"
+      ..namecoin = "$themeId/assets/${json["namecoin"] as String}"
+      ..particl = "$themeId/assets/${json["particl"] as String}"
+      ..bitcoinImage = "$themeId/assets/${json["bitcoin_image"] as String}"
       ..bitcoincashImage =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["bitcoincash_image"] as String}"
-      ..dogecoinImage =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["dogecoin_image"] as String}"
-      ..epicCashImage =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["epicCash_image"] as String}"
-      ..ethereumImage =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["ethereum_image"] as String}"
-      ..firoImage =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["firo_image"] as String}"
-      ..litecoinImage =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["litecoin_image"] as String}"
-      ..moneroImage =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["monero_image"] as String}"
-      ..wowneroImage =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["wownero_image"] as String}"
-      ..namecoinImage =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["namecoin_image"] as String}"
-      ..particlImage =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["particl_image"] as String}"
+          "$themeId/assets/${json["bitcoincash_image"] as String}"
+      ..dogecoinImage = "$themeId/assets/${json["dogecoin_image"] as String}"
+      ..epicCashImage = "$themeId/assets/${json["epicCash_image"] as String}"
+      ..ethereumImage = "$themeId/assets/${json["ethereum_image"] as String}"
+      ..firoImage = "$themeId/assets/${json["firo_image"] as String}"
+      ..litecoinImage = "$themeId/assets/${json["litecoin_image"] as String}"
+      ..moneroImage = "$themeId/assets/${json["monero_image"] as String}"
+      ..wowneroImage = "$themeId/assets/${json["wownero_image"] as String}"
+      ..namecoinImage = "$themeId/assets/${json["namecoin_image"] as String}"
+      ..particlImage = "$themeId/assets/${json["particl_image"] as String}"
       ..bitcoinImageSecondary =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["bitcoin_image_secondary"] as String}"
+          "$themeId/assets/${json["bitcoin_image_secondary"] as String}"
       ..bitcoincashImageSecondary =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["bitcoincash_image_secondary"] as String}"
+          "$themeId/assets/${json["bitcoincash_image_secondary"] as String}"
       ..dogecoinImageSecondary =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["dogecoin_image_secondary"] as String}"
+          "$themeId/assets/${json["dogecoin_image_secondary"] as String}"
       ..epicCashImageSecondary =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["epicCash_image_secondary"] as String}"
+          "$themeId/assets/${json["epicCash_image_secondary"] as String}"
       ..ethereumImageSecondary =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["ethereum_image_secondary"] as String}"
+          "$themeId/assets/${json["ethereum_image_secondary"] as String}"
       ..firoImageSecondary =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["firo_image_secondary"] as String}"
+          "$themeId/assets/${json["firo_image_secondary"] as String}"
       ..litecoinImageSecondary =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["litecoin_image_secondary"] as String}"
+          "$themeId/assets/${json["litecoin_image_secondary"] as String}"
       ..moneroImageSecondary =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["monero_image_secondary"] as String}"
+          "$themeId/assets/${json["monero_image_secondary"] as String}"
       ..wowneroImageSecondary =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["wownero_image_secondary"] as String}"
+          "$themeId/assets/${json["wownero_image_secondary"] as String}"
       ..namecoinImageSecondary =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["namecoin_image_secondary"] as String}"
+          "$themeId/assets/${json["namecoin_image_secondary"] as String}"
       ..particlImageSecondary =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["particl_image_secondary"] as String}"
+          "$themeId/assets/${json["particl_image_secondary"] as String}"
       ..loadingGif = json["loading_gif"] is String
-          ? "$applicationThemesDirectoryPath/$themeId/assets/${json["loading_gif"] as String}"
+          ? "$themeId/assets/${json["loading_gif"] as String}"
           : null
       ..background = json["background"] is String
-          ? "$applicationThemesDirectoryPath/$themeId/assets/${json["background"] as String}"
+          ? "$themeId/assets/${json["background"] as String}"
           : null;
   }
 }
@@ -2146,65 +2108,50 @@ class ThemeAssetsV2 implements IThemeAssets {
 
   factory ThemeAssetsV2.fromJson({
     required Map<String, dynamic> json,
-    required String applicationThemesDirectoryPath,
     required String themeId,
   }) {
     return ThemeAssetsV2()
-      ..bellNew =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["bell_new"] as String}"
-      ..buy =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["buy"] as String}"
-      ..exchange =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["exchange"] as String}"
+      ..bellNew = "$themeId/assets/${json["bell_new"] as String}"
+      ..buy = "$themeId/assets/${json["buy"] as String}"
+      ..exchange = "$themeId/assets/${json["exchange"] as String}"
       ..personaIncognito =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["persona_incognito"] as String}"
-      ..personaEasy =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["persona_easy"] as String}"
-      ..stack =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["stack"] as String}"
-      ..stackIcon =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["stack_icon"] as String}"
-      ..receive =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["receive"] as String}"
-      ..receivePending =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["receive_pending"] as String}"
+          "$themeId/assets/${json["persona_incognito"] as String}"
+      ..personaEasy = "$themeId/assets/${json["persona_easy"] as String}"
+      ..stack = "$themeId/assets/${json["stack"] as String}"
+      ..stackIcon = "$themeId/assets/${json["stack_icon"] as String}"
+      ..receive = "$themeId/assets/${json["receive"] as String}"
+      ..receivePending = "$themeId/assets/${json["receive_pending"] as String}"
       ..receiveCancelled =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["receive_cancelled"] as String}"
-      ..send =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["send"] as String}"
-      ..sendPending =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["send_pending"] as String}"
-      ..sendCancelled =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["send_cancelled"] as String}"
-      ..themeSelector =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["theme_selector"] as String}"
-      ..themePreview =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["theme_preview"] as String}"
-      ..txExchange =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["tx_exchange"] as String}"
+          "$themeId/assets/${json["receive_cancelled"] as String}"
+      ..send = "$themeId/assets/${json["send"] as String}"
+      ..sendPending = "$themeId/assets/${json["send_pending"] as String}"
+      ..sendCancelled = "$themeId/assets/${json["send_cancelled"] as String}"
+      ..themeSelector = "$themeId/assets/${json["theme_selector"] as String}"
+      ..themePreview = "$themeId/assets/${json["theme_preview"] as String}"
+      ..txExchange = "$themeId/assets/${json["tx_exchange"] as String}"
       ..txExchangePending =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["tx_exchange_pending"] as String}"
+          "$themeId/assets/${json["tx_exchange_pending"] as String}"
       ..txExchangeFailed =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["tx_exchange_failed"] as String}"
+          "$themeId/assets/${json["tx_exchange_failed"] as String}"
       ..coinPlaceholder =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["coin_placeholder"] as String}"
+          "$themeId/assets/${json["coin_placeholder"] as String}"
       ..coinIconsString = createCoinAssetsString(
-        "$applicationThemesDirectoryPath/$themeId/assets",
+        "$themeId/assets",
         Map<String, dynamic>.from(json["coins"]["icons"] as Map),
       )
       ..coinImagesString = createCoinAssetsString(
-        "$applicationThemesDirectoryPath/$themeId/assets",
+        "$themeId/assets",
         Map<String, dynamic>.from(json["coins"]["images"] as Map),
       )
       ..coinSecondaryImagesString = createCoinAssetsString(
-        "$applicationThemesDirectoryPath/$themeId/assets",
+        "$themeId/assets",
         Map<String, dynamic>.from(json["coins"]["secondaries"] as Map),
       )
       ..loadingGif = json["loading_gif"] is String
-          ? "$applicationThemesDirectoryPath/$themeId/assets/${json["loading_gif"] as String}"
+          ? "$themeId/assets/${json["loading_gif"] as String}"
           : null
       ..background = json["background"] is String
-          ? "$applicationThemesDirectoryPath/$themeId/assets/${json["background"] as String}"
+          ? "$themeId/assets/${json["background"] as String}"
           : null;
   }
 
@@ -2265,48 +2212,132 @@ class ThemeAssetsV2 implements IThemeAssets {
 
 @Embedded(inheritance: false)
 class ThemeAssetsV3 implements IThemeAssets {
+  @Name("bellNew")
+  late final String bellNewRelative;
   @override
-  late final String bellNew;
-  @override
-  late final String buy;
-  @override
-  late final String exchange;
-  @override
-  late final String personaIncognito;
-  @override
-  late final String personaEasy;
-  @override
-  late final String stack;
-  @override
-  late final String stackIcon;
-  @override
-  late final String receive;
-  @override
-  late final String receivePending;
-  @override
-  late final String receiveCancelled;
-  @override
-  late final String send;
-  @override
-  late final String sendPending;
-  @override
-  late final String sendCancelled;
-  @override
-  late final String themeSelector;
-  @override
-  late final String themePreview;
-  @override
-  late final String txExchange;
-  @override
-  late final String txExchangePending;
-  @override
-  late final String txExchangeFailed;
-  @override
-  late final String? loadingGif;
-  @override
-  late final String? background;
+  @ignore
+  String get bellNew => prependIfNeeded(bellNewRelative);
 
-  late final String coinPlaceholder;
+  @Name("buy")
+  late final String buyRelative;
+  @override
+  @ignore
+  String get buy => prependIfNeeded(buyRelative);
+
+  @Name("exchange")
+  late final String exchangeRelative;
+  @override
+  @ignore
+  String get exchange => prependIfNeeded(exchangeRelative);
+
+  @Name("personaIncognito")
+  late final String personaIncognitoRelative;
+  @override
+  @ignore
+  String get personaIncognito => prependIfNeeded(personaIncognitoRelative);
+
+  @Name("personaEasy")
+  late final String personaEasyRelative;
+  @override
+  @ignore
+  String get personaEasy => prependIfNeeded(personaEasyRelative);
+
+  @Name("stack")
+  late final String stackRelative;
+  @override
+  @ignore
+  String get stack => prependIfNeeded(stackRelative);
+
+  @Name("stackIcon")
+  late final String stackIconRelative;
+  @override
+  @ignore
+  String get stackIcon => prependIfNeeded(stackIconRelative);
+
+  @Name("receive")
+  late final String receiveRelative;
+  @override
+  @ignore
+  String get receive => prependIfNeeded(receiveRelative);
+
+  @Name("receivePending")
+  late final String receivePendingRelative;
+  @override
+  @ignore
+  String get receivePending => prependIfNeeded(receivePendingRelative);
+
+  @Name("receiveCancelled")
+  late final String receiveCancelledRelative;
+  @override
+  @ignore
+  String get receiveCancelled => prependIfNeeded(receiveCancelledRelative);
+
+  @Name("send")
+  late final String sendRelative;
+  @override
+  @ignore
+  String get send => prependIfNeeded(sendRelative);
+
+  @Name("sendPending")
+  late final String sendPendingRelative;
+  @override
+  @ignore
+  String get sendPending => prependIfNeeded(sendPendingRelative);
+
+  @Name("sendCancelled")
+  late final String sendCancelledRelative;
+  @override
+  @ignore
+  String get sendCancelled => prependIfNeeded(sendCancelledRelative);
+
+  @Name("themeSelector")
+  late final String themeSelectorRelative;
+  @override
+  @ignore
+  String get themeSelector => prependIfNeeded(themeSelectorRelative);
+
+  @Name("themePreview")
+  late final String themePreviewRelative;
+  @override
+  @ignore
+  String get themePreview => prependIfNeeded(themePreviewRelative);
+
+  @Name("txExchange")
+  late final String txExchangeRelative;
+  @override
+  @ignore
+  String get txExchange => prependIfNeeded(txExchangeRelative);
+
+  @Name("txExchangePending")
+  late final String txExchangePendingRelative;
+  @override
+  @ignore
+  String get txExchangePending => prependIfNeeded(txExchangePendingRelative);
+
+  @Name("txExchangeFailed")
+  late final String txExchangeFailedRelative;
+  @override
+  @ignore
+  String get txExchangeFailed => prependIfNeeded(txExchangeFailedRelative);
+
+  @Name("loadingGif")
+  late final String? loadingGifRelative;
+  @override
+  @ignore
+  String? get loadingGif =>
+      loadingGifRelative != null ? prependIfNeeded(loadingGifRelative!) : null;
+
+  @Name("background")
+  late final String? backgroundRelative;
+  @override
+  @ignore
+  String? get background =>
+      backgroundRelative != null ? prependIfNeeded(backgroundRelative!) : null;
+
+  @Name("coinPlaceholder")
+  late final String coinPlaceholderRelative;
+  @ignore
+  String get coinPlaceholder => prependIfNeeded(coinPlaceholderRelative);
 
   // Added some future proof params in case we want to add anything else
   // This should provide some buffer in stead of creating assetsV4 etc
@@ -2361,75 +2392,86 @@ class ThemeAssetsV3 implements IThemeAssets {
 
   factory ThemeAssetsV3.fromJson({
     required Map<String, dynamic> json,
-    required String applicationThemesDirectoryPath,
     required String themeId,
   }) {
     return ThemeAssetsV3()
-      ..bellNew =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["bell_new"] as String}"
-      ..buy =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["buy"] as String}"
-      ..exchange =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["exchange"] as String}"
-      ..personaIncognito =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["persona_incognito"] as String}"
-      ..personaEasy =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["persona_easy"] as String}"
-      ..stack =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["stack"] as String}"
-      ..stackIcon =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["stack_icon"] as String}"
-      ..receive =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["receive"] as String}"
-      ..receivePending =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["receive_pending"] as String}"
-      ..receiveCancelled =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["receive_cancelled"] as String}"
-      ..send =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["send"] as String}"
-      ..sendPending =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["send_pending"] as String}"
-      ..sendCancelled =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["send_cancelled"] as String}"
-      ..themeSelector =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["theme_selector"] as String}"
-      ..themePreview =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["theme_preview"] as String}"
-      ..txExchange =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["tx_exchange"] as String}"
-      ..txExchangePending =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["tx_exchange_pending"] as String}"
-      ..txExchangeFailed =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["tx_exchange_failed"] as String}"
-      ..coinPlaceholder =
-          "$applicationThemesDirectoryPath/$themeId/assets/${json["coin_placeholder"] as String}"
+      ..bellNewRelative = "$themeId/assets/${json["bell_new"] as String}"
+      ..buyRelative = "$themeId/assets/${json["buy"] as String}"
+      ..exchangeRelative = "$themeId/assets/${json["exchange"] as String}"
+      ..personaIncognitoRelative =
+          "$themeId/assets/${json["persona_incognito"] as String}"
+      ..personaEasyRelative =
+          "$themeId/assets/${json["persona_easy"] as String}"
+      ..stackRelative = "$themeId/assets/${json["stack"] as String}"
+      ..stackIconRelative = "$themeId/assets/${json["stack_icon"] as String}"
+      ..receiveRelative = "$themeId/assets/${json["receive"] as String}"
+      ..receivePendingRelative =
+          "$themeId/assets/${json["receive_pending"] as String}"
+      ..receiveCancelledRelative =
+          "$themeId/assets/${json["receive_cancelled"] as String}"
+      ..sendRelative = "$themeId/assets/${json["send"] as String}"
+      ..sendPendingRelative =
+          "$themeId/assets/${json["send_pending"] as String}"
+      ..sendCancelledRelative =
+          "$themeId/assets/${json["send_cancelled"] as String}"
+      ..themeSelectorRelative =
+          "$themeId/assets/${json["theme_selector"] as String}"
+      ..themePreviewRelative =
+          "$themeId/assets/${json["theme_preview"] as String}"
+      ..txExchangeRelative = "$themeId/assets/${json["tx_exchange"] as String}"
+      ..txExchangePendingRelative =
+          "$themeId/assets/${json["tx_exchange_pending"] as String}"
+      ..txExchangeFailedRelative =
+          "$themeId/assets/${json["tx_exchange_failed"] as String}"
+      ..coinPlaceholderRelative =
+          "$themeId/assets/${json["coin_placeholder"] as String}"
       ..coinIconsString = createCoinAssetsString(
-        "$applicationThemesDirectoryPath/$themeId/assets",
+        "$themeId/assets",
         Map<String, dynamic>.from(json["coins"]["icons"] as Map),
       )
       ..coinImagesString = createCoinAssetsString(
-        "$applicationThemesDirectoryPath/$themeId/assets",
+        "$themeId/assets",
         Map<String, dynamic>.from(json["coins"]["images"] as Map),
       )
       ..coinSecondaryImagesString = createCoinAssetsString(
-        "$applicationThemesDirectoryPath/$themeId/assets",
+        "$themeId/assets",
         Map<String, dynamic>.from(json["coins"]["secondaries"] as Map),
       )
       ..coinCardImagesString = json["coins"]["cards"] is Map
           ? createCoinAssetsString(
-              "$applicationThemesDirectoryPath/$themeId/assets",
+              "$themeId/assets",
               Map<String, dynamic>.from(json["coins"]["cards"] as Map),
             )
           : null
-      ..loadingGif = json["loading_gif"] is String
-          ? "$applicationThemesDirectoryPath/$themeId/assets/${json["loading_gif"] as String}"
+      ..loadingGifRelative = json["loading_gif"] is String
+          ? "$themeId/assets/${json["loading_gif"] as String}"
           : null
-      ..background = json["background"] is String
-          ? "$applicationThemesDirectoryPath/$themeId/assets/${json["background"] as String}"
+      ..backgroundRelative = json["background"] is String
+          ? "$themeId/assets/${json["background"] as String}"
           : null
       ..dummy1 = null
       ..dummy2 = null
       ..dummy3 = null;
+  }
+
+  static String prependIfNeeded(String relativePath) {
+    final path = StackFileSystem.themesDir!.path;
+
+    if (relativePath.startsWith(path)) {
+      return relativePath;
+    } else {
+      if (Platform.isIOS) {
+        const pattern = "/var/mobile/Containers/Data/Application/";
+        if (relativePath.startsWith(pattern)) {
+          final parts = relativePath.split("/Library/themes/");
+          if (parts.isNotEmpty) {
+            return "$path/${parts.last}";
+          }
+        }
+      }
+
+      return "$path/$relativePath";
+    }
   }
 
   static String createCoinAssetsString(String path, Map<String, dynamic> json) {
@@ -2451,6 +2493,8 @@ class ThemeAssetsV3 implements IThemeAssets {
 
     for (final coin in Coin.values) {
       result[coin] = map[coin.name] as String? ?? placeHolder;
+
+      result[coin] = prependIfNeeded(result[coin]!);
     }
 
     return result;

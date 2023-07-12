@@ -21,7 +21,6 @@ void main() {
     when(mockThemeService.getTheme(themeId: "light")).thenAnswer(
       (_) => StackTheme.fromJson(
         json: lightThemeJsonMap,
-        applicationThemesDirectoryPath: "test",
       ),
     );
     final trade = Trade(
@@ -59,7 +58,6 @@ void main() {
               StackColors.fromStackColorTheme(
                 StackTheme.fromJson(
                   json: lightThemeJsonMap,
-                  applicationThemesDirectoryPath: "test/sample_data",
                 ),
               ),
             ],

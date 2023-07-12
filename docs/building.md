@@ -29,13 +29,6 @@ Then in `File > Settings > Plugins`, install the **Flutter** and **Dart** plugin
 
 Make a Pixel 4 (API 30) x86_64 emulator with 2GB of storage space for emulation
 
-### Scripted setup
-
-[`scripts/setup.sh`](./../scripts/setup.sh) is provided as a tool to set up installation for building: download the script and run it anywhere.  This script should skip the entire [Manual setup](#manual-setup) section below and prepare you for [running](#Running).
-
-### Manual setup
-> If you used the `setup.sh` script, skip to [running](#Running)
-
 Install basic dependencies
 ```
 sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm python3-distutils
@@ -98,20 +91,21 @@ cd ..
 ```
 or manually by creating the files referenced in that script with the specified content.
 
-### Building plugins for Android 
+### Build plugins
+#### Building plugins for Android 
 > Warning: This will take a long time, please be patient
 ```
 cd scripts/android
 ./build_all.sh
 ```
 
-### Building plugins for Linux
+#### Building plugins for Linux
 ```
 cd scripts/linux
 ./build_all.sh
 ```
 
-### Building plugins for Windows
+#### Building plugins for Windows
 ```
 cd scripts/windows
 ./deps.sh
@@ -140,10 +134,28 @@ flutter run linux
 Visual Studio is required for Windows development with the Flutter SDK.  Download it at https://visualstudio.microsoft.com/downloads/ and install the "Desktop development with C++" workload, including all of its default components.
 
 ### Building libraries in WSL2
-Set up Ubuntu 20.04 in WSL2.  Follow the entire Linux host section to get set up and build windows `dll` libraries.  Copy the resulting `dll`s to their respective positions on the Windows host:
+Set up Ubuntu 20.04 in WSL2.  Follow the entire Linux host section in the WSL2 Ubuntu 20.04 host to get set up to build.  You will also need to install Rust and MXE dependencies on the WSL2 Ubuntu 20.04 host:
+ - [Install Rust](https://rustup.rs/)
+   ```sh
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+   ```
+ - Install MXE by running `stack_wallet/scripts/windows/deps.sh`
+   ```sh
+   ./stack_wallet/scripts/windows/deps.sh
+   ```
+
+The WSL2 host may optionally be navigated to the `stack_wallet` repository on the Windows host in order to build the plugins in-place and skip the next section in which you copy the `dll`s from WSL2 to Windows.  Then build windows `dll` libraries by running the following script on the WSL2 Ubuntu 20.04 host:
+
+- `stack_wallet/scripts/windows/build_all.sh`
+
+Copy the resulting `dll`s to their respective positions on the Windows host:
 
 - `stack_wallet/crypto_plugins/flutter_libepiccash/scripts/windows/build/libepic_cash_wallet.dll`
 - `stack_wallet/crypto_plugins/flutter_liblelantus/scripts/windows/build/libmobileliblelantus.dll`
+<!--
+- `stack_wallet/crypto_plugins/flutter_libmonero/scripts/windows/build/libcw_monero.dll`
+- `stack_wallet/crypto_plugins/flutter_libmonero/scripts/windows/build/libcw_wownero.dll`
+-->
 <!-- TODO: script the copying or installation of libraries from WSL2 to the parent Windows host -->
 
 ### Install Flutter on Windows host

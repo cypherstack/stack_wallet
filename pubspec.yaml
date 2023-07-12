@@ -11,7 +11,7 @@ description: Stack Wallet
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.7.13+179
+version: 1.7.15+181
 
 environment:
   sdk: ">=3.0.2 <4.0.0"
@@ -108,7 +108,7 @@ dependencies:
   uuid: ^3.0.5
   flutter_rounded_date_picker: ^3.0.1
   crypto: ^3.0.2
-  barcode_scan2: ^4.2.0
+  barcode_scan2: ^4.2.3
   wakelock: ^0.6.2
   intl: ^0.17.0
   devicelocale: ^0.6.0
@@ -182,7 +182,7 @@ dependency_overrides:
   # required for dart 3, at least until a fix is merged upstream
   wakelock_windows:
     git:
-      url: https://github.com/timsneath/wakelock
+      url: https://github.com/diegotori/wakelock
       ref: 2a9bca63a540771f241d688562351482b2cf234c
       path: wakelock_windows
 

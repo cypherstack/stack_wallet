@@ -10,7 +10,6 @@ void main() {
   testWidgets("Widget build", (widgetTester) async {
     final theme = StackTheme.fromJson(
       json: lightThemeJsonMap,
-      applicationThemesDirectoryPath: "test",
     );
     await widgetTester.pumpWidget(
       MaterialApp(

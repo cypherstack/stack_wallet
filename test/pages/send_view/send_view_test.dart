@@ -59,7 +59,6 @@ void main() {
     when(mockThemeService.getTheme(themeId: "light")).thenAnswer(
       (_) => StackTheme.fromJson(
         json: lightThemeJsonMap,
-        applicationThemesDirectoryPath: "test",
       ),
     );
     when(mockPrefs.currency).thenAnswer((_) => "USD");
@@ -89,7 +88,6 @@ void main() {
               StackColors.fromStackColorTheme(
                 StackTheme.fromJson(
                   json: lightThemeJsonMap,
-                  applicationThemesDirectoryPath: "test",
                 ),
               ),
             ],
@@ -143,7 +141,6 @@ void main() {
     when(mockThemeService.getTheme(themeId: "light")).thenAnswer(
       (_) => StackTheme.fromJson(
         json: lightThemeJsonMap,
-        applicationThemesDirectoryPath: "test",
       ),
     );
 
@@ -169,7 +166,6 @@ void main() {
               StackColors.fromStackColorTheme(
                 StackTheme.fromJson(
                   json: lightThemeJsonMap,
-                  applicationThemesDirectoryPath: "test",
                 ),
               ),
             ],

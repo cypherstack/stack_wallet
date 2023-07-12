@@ -146,7 +146,7 @@ class ElectrumX {
         throw response.exception!;
       }
 
-      if (response.data["error"] != null) {
+      if (response.data is Map && response.data["error"] != null) {
         if (response.data["error"]
             .toString()
             .contains("No such mempool or blockchain transaction")) {
@@ -160,7 +160,7 @@ class ElectrumX {
           "JSONRPC response\n"
           "     command: $command\n"
           "     args: $args\n"
-          "     error: $response.data",
+          "     error: ${response.data}",
         );
       }
 

@@ -65,8 +65,8 @@ class _EXCHANGE {
 class _BUY {
   const _BUY();
 
-  String simplexLogo(BuildContext context) {
-    switch (MediaQuery.of(context).platformBrightness) {
+  String simplexLogo(Brightness themeBrightness) {
+    switch (themeBrightness) {
       case Brightness.dark:
         return "assets/svg/buy/Simplex-Nuvei-Logo-light.svg";
 

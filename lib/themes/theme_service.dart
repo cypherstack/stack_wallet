@@ -40,7 +40,7 @@ class ThemeService {
   void init(MainDB db) => _db ??= db;
 
   Future<void> install({required Uint8List themeArchiveData}) async {
-    final themesDir = await StackFileSystem.applicationThemesDirectory();
+    final themesDir = StackFileSystem.themesDir!;
 
     final archive = ZipDecoder().decodeBytes(themeArchiveData);
 
@@ -55,7 +55,6 @@ class ThemeService {
 
     final theme = StackTheme.fromJson(
       json: Map<String, dynamic>.from(json),
-      applicationThemesDirectoryPath: themesDir.path,
     );
 
     try {
@@ -88,7 +87,7 @@ class ThemeService {
   }
 
   Future<void> remove({required String themeId}) async {
-    final themesDir = await StackFileSystem.applicationThemesDirectory();
+    final themesDir = StackFileSystem.themesDir!;
     final isarId = await db.isar.stackThemes
         .where()
         .themeIdEqualTo(themeId)
@@ -98,7 +97,10 @@ class ThemeService {
       await db.isar.writeTxn(() async {
         await db.isar.stackThemes.delete(isarId);
       });
-      await Directory("${themesDir.path}/$themeId").delete(recursive: true);
+      final dir = Directory("${themesDir.path}/$themeId");
+      if (dir.existsSync()) {
+        await dir.delete(recursive: true);
+      }
     } else {
       Logging.instance.log(
         "Failed to delete theme $themeId",
@@ -154,20 +156,22 @@ class ThemeService {
       );
     } else {
       // check installed version
-      final theme = ThemeService.instance.getTheme(themeId: "dark");
-      if ((theme?.version ?? 1) < _currentDefaultThemeVersion) {
-        Logging.instance.log(
-          "Updating default dark theme...",
-          level: LogLevel.Info,
-        );
-        final darkZip = await rootBundle.load("assets/default_themes/dark.zip");
-        await ThemeService.instance
-            .install(themeArchiveData: darkZip.buffer.asUint8List());
-        Logging.instance.log(
-          "Updating default dark theme... finished",
-          level: LogLevel.Info,
-        );
-      }
+      // final theme = ThemeService.instance.getTheme(themeId: "dark");
+      // Force update theme to add missing icons for now
+      // TODO: uncomment if statement in future when themes are version 4 or above
+      // if ((theme?.version ?? 1) < _currentDefaultThemeVersion) {
+      Logging.instance.log(
+        "Updating default dark theme...",
+        level: LogLevel.Info,
+      );
+      final darkZip = await rootBundle.load("assets/default_themes/dark.zip");
+      await ThemeService.instance
+          .install(themeArchiveData: darkZip.buffer.asUint8List());
+      Logging.instance.log(
+        "Updating default dark theme... finished",
+        level: LogLevel.Info,
+      );
+      // }
     }
   }
 
@@ -182,7 +186,7 @@ class ThemeService {
         return false;
       }
 
-      final themesDir = await StackFileSystem.applicationThemesDirectory();
+      final themesDir = StackFileSystem.themesDir!;
       final jsonFileExists =
           await File("${themesDir.path}/$themeId/theme.json").exists();
       final assetsDirExists =

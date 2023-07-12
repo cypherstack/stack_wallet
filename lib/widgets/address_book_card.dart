@@ -70,9 +70,10 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
     final contact = _contact!;
 
     final List<Coin> coins = [];
-    for (var element in contact.addresses) {
-      if (!coins.contains(element.coin)) {
-        coins.add(element.coin);
+
+    for (final coin in Coin.values) {
+      if (contact.addresses.where((e) => e.coin == coin).isNotEmpty) {
+        coins.add(coin);
       }
     }
 

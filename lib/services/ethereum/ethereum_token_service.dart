@@ -449,6 +449,15 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
     );
 
     if (response.value == null) {
+      if (response.exception != null &&
+          response.exception!.message
+              .contains("response is empty but status code is 200")) {
+        Logging.instance.log(
+          "No ${tokenContract.name} transfers found for $addressString",
+          level: LogLevel.Info,
+        );
+        return;
+      }
       throw response.exception ??
           Exception("Failed to fetch token transaction data");
     }
@@ -507,9 +516,13 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
         } else if (toAddress == addressString) {
           isIncoming = true;
         } else {
-          throw Exception("Unknown token transaction found for "
-              "${ethWallet.walletName} ${ethWallet.walletId}: "
-              "${tuple.item1.toString()}");
+          // ignore for now I guess since anything here is not reflected in
+          // balance anyways
+          continue;
+
+          // throw Exception("Unknown token transaction found for "
+          //     "${ethWallet.walletName} ${ethWallet.walletId}: "
+          //     "${tuple.item1.toString()}");
         }
 
         final txn = Transaction(

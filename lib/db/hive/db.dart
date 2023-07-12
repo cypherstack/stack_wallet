@@ -13,7 +13,6 @@ import 'dart:isolate';
 import 'package:cw_core/wallet_info.dart' as xmr;
 import 'package:hive/hive.dart';
 import 'package:mutex/mutex.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/notification_model.dart';
@@ -23,8 +22,13 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 class DB {
+  // legacy (required for migrations)
+  @Deprecated("Left over for migration from old versions of Stack Wallet")
   static const String boxNameAddressBook = "addressBook";
-  static const String boxNameDebugInfo = "debugInfoBox";
+  static const String boxNameTrades = "exchangeTransactionsBox";
+
+  // in use
+  // TODO: migrate
   static const String boxNameNodeModels = "nodeModels";
   static const String boxNamePrimaryNodes = "primaryNodes";
   static const String boxNameAllWalletsData = "wallets";
@@ -32,33 +36,31 @@ class DB {
   static const String boxNameWatchedTransactions =
       "watchedTxNotificationModels";
   static const String boxNameWatchedTrades = "watchedTradesNotificationModels";
-  static const String boxNameTrades = "exchangeTransactionsBox";
   static const String boxNameTradesV2 = "exchangeTradesBox";
   static const String boxNameTradeNotes = "tradeNotesBox";
   static const String boxNameTradeLookup = "tradeToTxidLookUpBox";
   static const String boxNameFavoriteWallets = "favoriteWallets";
-  static const String boxNamePrefs = "prefs";
   static const String boxNameWalletsToDeleteOnStart = "walletsToDeleteOnStart";
   static const String boxNamePriceCache = "priceAPIPrice24hCache";
-  static const String boxNameDBInfo = "dbInfo";
-  // static const String boxNameTheme = "theme";
-  static const String boxNameDesktopData = "desktopData";
-  static const String boxNameBuys = "buysBox";
 
-  String boxNameTxCache({required Coin coin}) => "${coin.name}_txCache";
-  String boxNameSetCache({required Coin coin}) =>
+  // in use (keep for now)
+  static const String boxNameDBInfo = "dbInfo";
+  static const String boxNamePrefs = "prefs";
+
+  String _boxNameTxCache({required Coin coin}) => "${coin.name}_txCache";
+
+  // firo only
+  String _boxNameSetCache({required Coin coin}) =>
       "${coin.name}_anonymitySetCache";
-  String boxNameUsedSerialsCache({required Coin coin}) =>
+  String _boxNameUsedSerialsCache({required Coin coin}) =>
       "${coin.name}_usedSerialsCache";
 
-  Box<String>? _boxDebugInfo;
   Box<NodeModel>? _boxNodeModels;
   Box<NodeModel>? _boxPrimaryNodes;
   Box<dynamic>? _boxAllWalletsData;
   Box<NotificationModel>? _boxNotifications;
   Box<NotificationModel>? _boxWatchedTransactions;
   Box<NotificationModel>? _boxWatchedTrades;
-  Box<ExchangeTransaction>? _boxTrades;
   Box<Trade>? _boxTradesV2;
   Box<String>? _boxTradeNotes;
   Box<String>? _boxFavoriteWallets;
@@ -66,7 +68,7 @@ class DB {
   Box<dynamic>? _boxPrefs;
   Box<TradeWalletLookup>? _boxTradeLookup;
   Box<dynamic>? _boxDBInfo;
-  Box<String>? _boxDesktopData;
+  // Box<String>? _boxDesktopData;
 
   final Map<String, Box<dynamic>> _walletBoxes = {};
 
@@ -109,8 +111,6 @@ class DB {
       _boxPrefs = await Hive.openBox<dynamic>(boxNamePrefs);
     }
 
-    _boxDebugInfo = await Hive.openBox<String>(boxNameDebugInfo);
-
     if (Hive.isBoxOpen(boxNameNodeModels)) {
       _boxNodeModels = Hive.box<NodeModel>(boxNameNodeModels);
     } else {
@@ -129,19 +129,12 @@ class DB {
       _boxAllWalletsData = await Hive.openBox<dynamic>(boxNameAllWalletsData);
     }
 
-    if (Hive.isBoxOpen(boxNameDesktopData)) {
-      _boxDesktopData = Hive.box<String>(boxNameDesktopData);
-    } else {
-      _boxDesktopData = await Hive.openBox<String>(boxNameDesktopData);
-    }
-
     _boxNotifications =
         await Hive.openBox<NotificationModel>(boxNameNotifications);
     _boxWatchedTransactions =
         await Hive.openBox<NotificationModel>(boxNameWatchedTransactions);
     _boxWatchedTrades =
         await Hive.openBox<NotificationModel>(boxNameWatchedTrades);
-    _boxTrades = await Hive.openBox<ExchangeTransaction>(boxNameTrades);
     _boxTradesV2 = await Hive.openBox<Trade>(boxNameTradesV2);
     _boxTradeNotes = await Hive.openBox<String>(boxNameTradeNotes);
     _boxTradeLookup = await Hive.openBox<TradeWalletLookup>(boxNameTradeLookup);
@@ -152,7 +145,6 @@ class DB {
     await Future.wait([
       Hive.openBox<dynamic>(boxNamePriceCache),
       _loadWalletBoxes(),
-      _loadSharedCoinCacheBoxes(),
     ]);
   }
 
@@ -184,14 +176,39 @@ class DB {
     }
   }
 
-  Future<void> _loadSharedCoinCacheBoxes() async {
-    for (final coin in Coin.values) {
-      _txCacheBoxes[coin] =
-          await Hive.openBox<dynamic>(boxNameTxCache(coin: coin));
-      _setCacheBoxes[coin] =
-          await Hive.openBox<dynamic>(boxNameSetCache(coin: coin));
-      _usedSerialsCacheBoxes[coin] =
-          await Hive.openBox<dynamic>(boxNameUsedSerialsCache(coin: coin));
+  Future<Box<dynamic>> getTxCacheBox({required Coin coin}) async {
+    return _txCacheBoxes[coin] ??=
+        await Hive.openBox<dynamic>(_boxNameTxCache(coin: coin));
+  }
+
+  Future<void> closeTxCacheBox({required Coin coin}) async {
+    await _txCacheBoxes[coin]?.close();
+  }
+
+  Future<Box<dynamic>> getAnonymitySetCacheBox({required Coin coin}) async {
+    return _setCacheBoxes[coin] ??=
+        await Hive.openBox<dynamic>(_boxNameSetCache(coin: coin));
+  }
+
+  Future<void> closeAnonymitySetCacheBox({required Coin coin}) async {
+    await _setCacheBoxes[coin]?.close();
+  }
+
+  Future<Box<dynamic>> getUsedSerialsCacheBox({required Coin coin}) async {
+    return _usedSerialsCacheBoxes[coin] ??=
+        await Hive.openBox<dynamic>(_boxNameUsedSerialsCache(coin: coin));
+  }
+
+  Future<void> closeUsedSerialsCacheBox({required Coin coin}) async {
+    await _usedSerialsCacheBoxes[coin]?.close();
+  }
+
+  /// Clear all cached transactions for the specified coin
+  Future<void> clearSharedTransactionCache({required Coin coin}) async {
+    await deleteAll<dynamic>(boxName: _boxNameTxCache(coin: coin));
+    if (coin == Coin.firo) {
+      await deleteAll<dynamic>(boxName: _boxNameSetCache(coin: coin));
+      await deleteAll<dynamic>(boxName: _boxNameUsedSerialsCache(coin: coin));
     }
   }
 
@@ -253,6 +270,36 @@ class DB {
 
   Future<void> deleteBoxFromDisk({required String boxName}) async =>
       await mutex.protect(() async => await Hive.deleteBoxFromDisk(boxName));
+
+  ///////////////////////////////////////////////////////////////////////////
+  Future<bool> deleteEverything() async {
+    try {
+      await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameAddressBook);
+      await DB.instance.deleteBoxFromDisk(boxName: "debugInfoBox");
+      await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameNodeModels);
+      await DB.instance.deleteBoxFromDisk(boxName: DB.boxNamePrimaryNodes);
+      await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameAllWalletsData);
+      await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameNotifications);
+      await DB.instance
+          .deleteBoxFromDisk(boxName: DB.boxNameWatchedTransactions);
+      await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameWatchedTrades);
+      await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameTrades);
+      await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameTradesV2);
+      await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameTradeNotes);
+      await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameTradeLookup);
+      await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameFavoriteWallets);
+      await DB.instance.deleteBoxFromDisk(boxName: DB.boxNamePrefs);
+      await DB.instance
+          .deleteBoxFromDisk(boxName: DB.boxNameWalletsToDeleteOnStart);
+      await DB.instance.deleteBoxFromDisk(boxName: DB.boxNamePriceCache);
+      await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameDBInfo);
+      await DB.instance.deleteBoxFromDisk(boxName: "theme");
+      return true;
+    } catch (e, s) {
+      Logging.instance.log("$e $s", level: LogLevel.Error);
+      return false;
+    }
+  }
 }
 
 abstract class DBKeys {

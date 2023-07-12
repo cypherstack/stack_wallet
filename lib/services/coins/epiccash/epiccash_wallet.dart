@@ -156,6 +156,7 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
       final secretKeyIndex = arguments['secretKeyIndex'] as int?;
       final epicboxConfig = arguments['epicboxConfig'] as String?;
       final minimumConfirmations = arguments['minimumConfirmations'] as int?;
+      final onChainNote = arguments['onChainNote'] as String?;
 
       Map<String, dynamic> result = {};
       if (!(wallet == null ||
@@ -165,7 +166,7 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
           epicboxConfig == null ||
           minimumConfirmations == null)) {
         var res = await createTransaction(wallet, amount, address,
-            secretKeyIndex, epicboxConfig, minimumConfirmations);
+            secretKeyIndex, epicboxConfig, minimumConfirmations, onChainNote!);
         result['result'] = res;
         sendPort.send(result);
         return;
@@ -175,7 +176,7 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
       final selectionStrategyIsAll =
           arguments['selectionStrategyIsAll'] as int?;
       final minimumConfirmations = arguments['minimumConfirmations'] as int?;
-      final message = arguments['message'] as String?;
+      final message = arguments['onChainNote'] as String?;
       final amount = arguments['amount'] as int?;
       final address = arguments['address'] as String?;
 
@@ -459,6 +460,7 @@ class EpicCashWallet extends CoinServiceAPI
 
       // TODO determine whether it is worth sending change to a change address.
       dynamic message;
+      print("THIS TX DATA IS $txData");
 
       String receiverAddress = txData['addresss'] as String;
 
@@ -480,7 +482,7 @@ class EpicCashWallet extends CoinServiceAPI
             "wallet": wallet!,
             "selectionStrategyIsAll": selectionStrategyIsAll,
             "minimumConfirmations": MINIMUM_CONFIRMATIONS,
-            "message": "",
+            "message": txData['onChainNote'],
             "amount": (txData['recipientAmt'] as Amount).raw.toInt(),
             "address": txData['addresss'] as String,
           }, name: walletName);
@@ -504,6 +506,7 @@ class EpicCashWallet extends CoinServiceAPI
             "secretKeyIndex": 0,
             "epicboxConfig": epicboxConfig.toString(),
             "minimumConfirmations": MINIMUM_CONFIRMATIONS,
+            "onChainNote": txData['onChainNote'],
           }, name: walletName);
 
           message = await receivePort.first;
@@ -1721,6 +1724,8 @@ class EpicCashWallet extends CoinServiceAPI
           "";
       String? commitId = slatesToCommits[slateId]?['commitId'] as String?;
       tx['numberOfMessages'] = tx['messages']?['messages']?.length;
+      tx['onChainNote'] = tx['messages']?['messages']?[0]?['message'];
+      print("ON CHAIN MESSAGE IS ${tx['onChainNote']}");
 
       int? height;
 
@@ -1754,7 +1759,8 @@ class EpicCashWallet extends CoinServiceAPI
         isLelantus: false,
         slateId: slateId,
         nonce: null,
-        otherData: tx["id"].toString(),
+        // otherData: tx["id"].toString(),
+        otherData: tx['onChainNote'].toString(),
         inputs: [],
         outputs: [],
         numberOfMessages: ((tx["numberOfMessages"] == null) ? 0 : tx["numberOfMessages"]) as int,

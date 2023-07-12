@@ -23,7 +23,6 @@ void main() {
     final mockThemeService = MockThemeService();
     final theme = StackTheme.fromJson(
       json: lightThemeJsonMap,
-      applicationThemesDirectoryPath: "test",
     );
 
     when(mockThemeService.getTheme(themeId: "light")).thenAnswer(

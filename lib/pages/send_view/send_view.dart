@@ -10,7 +10,6 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:bip47/bip47.dart';
 import 'package:cw_core/monero_transaction_priority.dart';
@@ -41,6 +40,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
+import 'package:stackwallet/utilities/amount/amount_input_formatter.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
@@ -56,6 +56,7 @@ import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackwallet/widgets/fee_slider.dart';
 import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
@@ -100,12 +101,14 @@ class _SendViewState extends ConsumerState<SendView> {
   late TextEditingController cryptoAmountController;
   late TextEditingController baseAmountController;
   late TextEditingController noteController;
+  late TextEditingController onChainNoteController;
   late TextEditingController feeController;
 
   late final SendViewAutoFillData? _data;
 
   final _addressFocusNode = FocusNode();
   final _noteFocusNode = FocusNode();
+  final _onChainNoteFocusNode = FocusNode();
   final _cryptoFocus = FocusNode();
   final _baseFocus = FocusNode();
 
@@ -127,27 +130,11 @@ class _SendViewState extends ConsumerState<SendView> {
 
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
-      String cryptoAmount = cryptoAmountController.text;
-      if (cryptoAmount.isNotEmpty &&
-          cryptoAmount != "." &&
-          cryptoAmount != ",") {
-        if (cryptoAmount.startsWith("~")) {
-          cryptoAmount = cryptoAmount.substring(1);
-        }
-        if (cryptoAmount.contains(" ")) {
-          cryptoAmount = cryptoAmount.split(" ").first;
-        }
-
-        // ensure we don't shift past minimum atomic value
-        final shift = min(ref.read(pAmountUnit(coin)).shift, coin.decimals);
-
-        _amountToSend = cryptoAmount.contains(",")
-            ? Decimal.parse(cryptoAmount.replaceFirst(",", "."))
-                .shift(0 - shift)
-                .toAmount(fractionDigits: coin.decimals)
-            : Decimal.parse(cryptoAmount)
-                .shift(0 - shift)
-                .toAmount(fractionDigits: coin.decimals);
+      final cryptoAmount = ref.read(pAmountFormatter(coin)).tryParse(
+            cryptoAmountController.text,
+          );
+      if (cryptoAmount != null) {
+        _amountToSend = cryptoAmount;
         if (_cachedAmountToSend != null &&
             _cachedAmountToSend == _amountToSend) {
           return;
@@ -300,6 +287,8 @@ class _SendViewState extends ConsumerState<SendView> {
       case FeeRateType.slow:
         feeRate = feeObject.slow;
         break;
+      default:
+        feeRate = -1;
     }
 
     Amount fee;
@@ -315,6 +304,8 @@ class _SendViewState extends ConsumerState<SendView> {
         case FeeRateType.slow:
           specialMoneroId = MoneroTransactionPriority.slow;
           break;
+        default:
+          throw ArgumentError("custom fee not available for monero");
       }
 
       fee = await manager.estimateFeeFor(amount, specialMoneroId.raw!);
@@ -510,6 +501,7 @@ class _SendViewState extends ConsumerState<SendView> {
           isSegwit: widget.accountLite!.segwit,
           amount: amount,
           args: {
+            "satsPerVByte": isCustomFee ? customFeeRate : null,
             "feeRate": feeRate,
             "UTXOs": (manager.hasCoinControlSupport &&
                     coinControlEnabled &&
@@ -524,7 +516,10 @@ class _SendViewState extends ConsumerState<SendView> {
         txDataFuture = (manager.wallet as FiroWallet).prepareSendPublic(
           address: _address!,
           amount: amount,
-          args: {"feeRate": ref.read(feeRateTypeStateProvider)},
+          args: {
+            "feeRate": ref.read(feeRateTypeStateProvider),
+            "satsPerVByte": isCustomFee ? customFeeRate : null,
+          },
         );
       } else {
         txDataFuture = manager.prepareSend(
@@ -532,6 +527,7 @@ class _SendViewState extends ConsumerState<SendView> {
           amount: amount,
           args: {
             "feeRate": ref.read(feeRateTypeStateProvider),
+            "satsPerVByte": isCustomFee ? customFeeRate : null,
             "UTXOs": (manager.hasCoinControlSupport &&
                     coinControlEnabled &&
                     selectedUTXOs.isNotEmpty)
@@ -552,6 +548,7 @@ class _SendViewState extends ConsumerState<SendView> {
         // pop building dialog
         Navigator.of(context).pop();
         txData["note"] = noteController.text;
+        txData["onChainNote"] = onChainNoteController.text;
         if (isPaynymSend) {
           txData["paynymAccountLite"] = widget.accountLite!;
         } else {
@@ -609,6 +606,10 @@ class _SendViewState extends ConsumerState<SendView> {
 
   bool get isPaynymSend => widget.accountLite != null;
 
+  bool isCustomFee = false;
+
+  int customFeeRate = 1;
+
   @override
   void initState() {
     coin = widget.coin;
@@ -626,6 +627,7 @@ class _SendViewState extends ConsumerState<SendView> {
     cryptoAmountController = TextEditingController();
     baseAmountController = TextEditingController();
     noteController = TextEditingController();
+    onChainNoteController = TextEditingController();
     feeController = TextEditingController();
 
     onCryptoAmountChanged = _cryptoAmountChanged;
@@ -700,9 +702,11 @@ class _SendViewState extends ConsumerState<SendView> {
     cryptoAmountController.dispose();
     baseAmountController.dispose();
     noteController.dispose();
+    onChainNoteController.dispose();
     feeController.dispose();
 
     _noteFocusNode.dispose();
+    _onChainNoteFocusNode.dispose();
     _addressFocusNode.dispose();
     _cryptoFocus.dispose();
     _baseFocus.dispose();
@@ -1553,13 +1557,21 @@ class _SendViewState extends ConsumerState<SendView> {
                                   ),
                             textAlign: TextAlign.right,
                             inputFormatters: [
+                              AmountInputFormatter(
+                                decimals: coin.decimals,
+                                unit: ref.watch(pAmountUnit(coin)),
+                                locale: locale,
+                              ),
+
                               // regex to validate a crypto amount with 8 decimal places
-                              TextInputFormatter.withFunction((oldValue,
-                                      newValue) =>
-                                  RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
-                                          .hasMatch(newValue.text)
-                                      ? newValue
-                                      : oldValue),
+                              // TextInputFormatter.withFunction((oldValue,
+                              //         newValue) =>
+                              //     // RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
+                              //     // RegExp(r'^\d{1,3}([,\.]\d+)?|[,\.\d]+$')
+                              //     getAmountRegex(locale, coin.decimals)
+                              //             .hasMatch(newValue.text)
+                              //         ? newValue
+                              //         : oldValue),
                             ],
                             decoration: InputDecoration(
                               contentPadding: const EdgeInsets.only(
@@ -1614,26 +1626,25 @@ class _SendViewState extends ConsumerState<SendView> {
                                     ),
                               textAlign: TextAlign.right,
                               inputFormatters: [
+                                AmountInputFormatter(
+                                  decimals: 2,
+                                  locale: locale,
+                                ),
                                 // regex to validate a fiat amount with 2 decimal places
-                                TextInputFormatter.withFunction((oldValue,
-                                        newValue) =>
-                                    RegExp(r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$')
-                                            .hasMatch(newValue.text)
-                                        ? newValue
-                                        : oldValue),
+                                // TextInputFormatter.withFunction((oldValue,
+                                //         newValue) =>
+                                //     // RegExp(r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$')
+                                //     getAmountRegex(locale, 2)
+                                //             .hasMatch(newValue.text)
+                                //         ? newValue
+                                //         : oldValue),
                               ],
                               onChanged: (baseAmountString) {
-                                if (baseAmountString.isNotEmpty &&
-                                    baseAmountString != "." &&
-                                    baseAmountString != ",") {
-                                  final Amount baseAmount =
-                                      baseAmountString.contains(",")
-                                          ? Decimal.parse(baseAmountString
-                                                  .replaceFirst(",", "."))
-                                              .toAmount(fractionDigits: 2)
-                                          : Decimal.parse(baseAmountString)
-                                              .toAmount(fractionDigits: 2);
-
+                                final baseAmount = Amount.tryParseFiatString(
+                                  baseAmountString,
+                                  locale: locale,
+                                );
+                                if (baseAmount != null) {
                                   final Decimal _price = ref
                                       .read(priceAnd24hChangeNotifierProvider)
                                       .getPrice(coin)
@@ -1789,8 +1800,64 @@ class _SendViewState extends ConsumerState<SendView> {
                           const SizedBox(
                             height: 12,
                           ),
+                          if (coin == Coin.epicCash)
+                            Text(
+                              "On chain Note (optional)",
+                              style: STextStyles.smallMed12(context),
+                              textAlign: TextAlign.left,
+                            ),
+                          if (coin == Coin.epicCash)
+                            const SizedBox(
+                              height: 8,
+                            ),
+                          if (coin == Coin.epicCash)
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(
+                                Constants.size.circularBorderRadius,
+                              ),
+                              child: TextField(
+                                autocorrect: Util.isDesktop ? false : true,
+                                enableSuggestions: Util.isDesktop ? false : true,
+                                maxLength: 256,
+                                controller: onChainNoteController,
+                                focusNode: _onChainNoteFocusNode,
+                                style: STextStyles.field(context),
+                                onChanged: (_) => setState(() {}),
+                                decoration: standardInputDecoration(
+                                  "Type something...",
+                                  _onChainNoteFocusNode,
+                                  context,
+                                ).copyWith(
+                                  suffixIcon: onChainNoteController.text.isNotEmpty
+                                      ? Padding(
+                                    padding:
+                                    const EdgeInsets.only(right: 0),
+                                    child: UnconstrainedBox(
+                                      child: Row(
+                                        children: [
+                                          TextFieldIconButton(
+                                            child: const XIcon(),
+                                            onTap: () async {
+                                              setState(() {
+                                                onChainNoteController.text = "";
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                      : null,
+                                ),
+                              ),
+                            ),
+                          if (coin == Coin.epicCash)
+                            const SizedBox(
+                              height: 12,
+                            ),
                           Text(
-                            "Note (optional)",
+                              (coin == Coin.epicCash) ? "Local Note (optional)"
+                                  : "Note (optional)",
                             style: STextStyles.smallMed12(context),
                             textAlign: TextAlign.left,
                           ),
@@ -1839,17 +1906,23 @@ class _SendViewState extends ConsumerState<SendView> {
                           const SizedBox(
                             height: 12,
                           ),
-                          if (coin != Coin.epicCash)
+                          if (coin != Coin.epicCash &&
+                              coin != Coin.nano &&
+                              coin != Coin.banano)
                             Text(
                               "Transaction fee (estimated)",
                               style: STextStyles.smallMed12(context),
                               textAlign: TextAlign.left,
                             ),
-                          if (coin != Coin.epicCash)
+                          if (coin != Coin.epicCash &&
+                              coin != Coin.nano &&
+                              coin != Coin.banano)
                             const SizedBox(
                               height: 8,
                             ),
-                          if (coin != Coin.epicCash)
+                          if (coin != Coin.epicCash &&
+                              coin != Coin.nano &&
+                              coin != Coin.banano)
                             Stack(
                               children: [
                                 TextField(
@@ -1907,6 +1980,15 @@ class _SendViewState extends ConsumerState<SendView> {
                                                   fractionDigits: coin.decimals,
                                                 ),
                                                 updateChosen: (String fee) {
+                                                  if (fee == "custom") {
+                                                    if (!isCustomFee) {
+                                                      setState(() {
+                                                        isCustomFee = true;
+                                                      });
+                                                    }
+                                                    return;
+                                                  }
+
                                                   _setCurrentFee(
                                                     fee,
                                                     true,
@@ -1914,6 +1996,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                                   setState(() {
                                                     _calculateFeesFuture =
                                                         Future(() => fee);
+                                                    if (isCustomFee) {
+                                                      isCustomFee = false;
+                                                    }
                                                   });
                                                 },
                                               ),
@@ -1937,11 +2022,11 @@ class _SendViewState extends ConsumerState<SendView> {
                                                               .done &&
                                                       snapshot.hasData) {
                                                     _setCurrentFee(
-                                                      snapshot.data! as String,
+                                                      snapshot.data!,
                                                       false,
                                                     );
                                                     return Text(
-                                                      "~${snapshot.data! as String}",
+                                                      "~${snapshot.data!}",
                                                       style: STextStyles
                                                           .itemSubtitle(
                                                               context),
@@ -1993,12 +2078,13 @@ class _SendViewState extends ConsumerState<SendView> {
                                                                   .done &&
                                                           snapshot.hasData) {
                                                         _setCurrentFee(
-                                                          snapshot.data!
-                                                              as String,
+                                                          snapshot.data!,
                                                           false,
                                                         );
                                                         return Text(
-                                                          "~${snapshot.data! as String}",
+                                                          isCustomFee
+                                                              ? ""
+                                                              : "~${snapshot.data!}",
                                                           style: STextStyles
                                                               .itemSubtitle(
                                                                   context),
@@ -2033,6 +2119,19 @@ class _SendViewState extends ConsumerState<SendView> {
                                   ),
                                 )
                               ],
+                            ),
+                          if (isCustomFee)
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                bottom: 12,
+                                top: 16,
+                              ),
+                              child: FeeSlider(
+                                coin: coin,
+                                onSatVByteChanged: (rate) {
+                                  customFeeRate = rate;
+                                },
+                              ),
                             ),
                           const Spacer(),
                           const SizedBox(

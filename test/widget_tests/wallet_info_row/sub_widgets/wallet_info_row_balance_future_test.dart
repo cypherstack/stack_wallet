@@ -64,7 +64,6 @@ void main() {
               StackColors.fromStackColorTheme(
                 StackTheme.fromJson(
                   json: lightThemeJsonMap,
-                  applicationThemesDirectoryPath: "test",
                 ),
               ),
             ],
