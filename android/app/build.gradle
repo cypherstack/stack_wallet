@@ -34,6 +34,8 @@ if (keystorePropertiesFile.exists()) {
 android {
     compileSdkVersion 33
 
+    ndkVersion = "21.1.6352462"
+
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
@@ -47,6 +49,7 @@ android {
         applicationId "com.cypherstack.stackwallet"
         minSdkVersion 23
         targetSdkVersion 33
+        ndkVersion = "21.1.6352462"
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

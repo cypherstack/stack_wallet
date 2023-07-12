@@ -15,23 +15,23 @@ void main() {
             StackColors.fromStackColorTheme(
               StackTheme.fromJson(
                 json: lightThemeJsonMap,
-                applicationThemesDirectoryPath: "test",
               ),
             ),
           ],
         ),
         home: Material(
           child: Shake(
-              animationRange: 10,
-              controller: ShakeController(),
-              animationDuration: const Duration(milliseconds: 200),
-              child: Column(
-                children: const [
-                  Center(
-                    child: Text("Enter Pin"),
-                  )
-                ],
-              )),
+            animationRange: 10,
+            controller: ShakeController(),
+            animationDuration: const Duration(milliseconds: 200),
+            child: const Column(
+              children: [
+                Center(
+                  child: Text("Enter Pin"),
+                )
+              ],
+            ),
+          ),
         ),
       ),
     );

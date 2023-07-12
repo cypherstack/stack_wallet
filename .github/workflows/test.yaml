@@ -8,12 +8,12 @@ jobs:
       - name: Prepare repository
         uses: actions/checkout@v3
         with:
-          flutter-version: '3.7.10'
+          flutter-version: '3.10.3'
           channel: 'stable'
       - name: Install Flutter 
         uses: subosito/flutter-action@v2 
         with:
-          flutter-version: '3.7.10'
+          flutter-version: '3.10.3'
           channel: 'stable'
       - name: Setup | Rust
         uses: ATiltedTree/setup-rust@v1

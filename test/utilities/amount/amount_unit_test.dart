@@ -28,7 +28,7 @@ void main() {
         coin: Coin.bitcoin,
         maxDecimalPlaces: 8,
       ),
-      "10123.45678 mBTC",
+      "10,123.45678 mBTC",
     );
 
     expect(
@@ -38,7 +38,7 @@ void main() {
         coin: Coin.bitcoin,
         maxDecimalPlaces: 8,
       ),
-      "10123456.78 µBTC",
+      "10,123,456.78 µBTC",
     );
 
     expect(
@@ -48,7 +48,7 @@ void main() {
         coin: Coin.bitcoin,
         maxDecimalPlaces: 8,
       ),
-      "1012345678 sats",
+      "1,012,345,678 sats",
     );
     final dec = Decimal.parse("10.123456789123456789");
 
@@ -68,7 +68,17 @@ void main() {
         coin: Coin.ethereum,
         maxDecimalPlaces: 8,
       ),
-      "10.12345678 ETH",
+      "~10.12345678 ETH",
+    );
+
+    expect(
+      AmountUnit.normal.displayAmount(
+        amount: amount,
+        locale: "en_US",
+        coin: Coin.ethereum,
+        maxDecimalPlaces: 4,
+      ),
+      "~10.1234 ETH",
     );
 
     expect(
@@ -88,7 +98,7 @@ void main() {
         coin: Coin.ethereum,
         maxDecimalPlaces: 9,
       ),
-      "10123.456789123 mETH",
+      "~10,123.456789123 mETH",
     );
 
     expect(
@@ -98,7 +108,7 @@ void main() {
         coin: Coin.ethereum,
         maxDecimalPlaces: 8,
       ),
-      "10123456.78912345 µETH",
+      "~10,123,456.78912345 µETH",
     );
 
     expect(
@@ -108,7 +118,7 @@ void main() {
         coin: Coin.ethereum,
         maxDecimalPlaces: 1,
       ),
-      "10123456789.1 gwei",
+      "~10,123,456,789.1 gwei",
     );
 
     expect(
@@ -118,7 +128,7 @@ void main() {
         coin: Coin.ethereum,
         maxDecimalPlaces: 18,
       ),
-      "10123456789123.456789 mwei",
+      "10,123,456,789,123.456789 mwei",
     );
 
     expect(
@@ -128,7 +138,7 @@ void main() {
         coin: Coin.ethereum,
         maxDecimalPlaces: 4,
       ),
-      "10123456789123456.789 kwei",
+      "10,123,456,789,123,456.789 kwei",
     );
 
     expect(
@@ -138,7 +148,78 @@ void main() {
         coin: Coin.ethereum,
         maxDecimalPlaces: 1,
       ),
-      "10123456789123456789 wei",
+      "10,123,456,789,123,456,789 wei",
+    );
+  });
+
+  test("parse eth string to amount", () {
+    final Amount amount = Amount.fromDecimal(
+      Decimal.parse("10.123456789123456789"),
+      fractionDigits: Coin.ethereum.decimals,
+    );
+
+    expect(
+      AmountUnit.nano.tryParse(
+        "~10,123,456,789.1 gwei",
+        locale: "en_US",
+        coin: Coin.ethereum,
+      ),
+      Amount.fromDecimal(
+        Decimal.parse("10.1234567891"),
+        fractionDigits: Coin.ethereum.decimals,
+      ),
+    );
+
+    expect(
+      AmountUnit.atto.tryParse(
+        "10,123,456,789,123,456,789 wei",
+        locale: "en_US",
+        coin: Coin.ethereum,
+      ),
+      amount,
+    );
+  });
+
+  test("parse btc string to amount", () {
+    final Amount amount = Amount(
+      rawValue: BigInt.from(1012345678),
+      fractionDigits: 8,
+    );
+
+    expect(
+      AmountUnit.normal.tryParse(
+        "10.12345678 BTC",
+        locale: "en_US",
+        coin: Coin.bitcoin,
+      ),
+      amount,
+    );
+
+    expect(
+      AmountUnit.milli.tryParse(
+        "10,123.45678 mBTC",
+        locale: "en_US",
+        coin: Coin.bitcoin,
+      ),
+      amount,
+    );
+
+    expect(
+      AmountUnit.micro.tryParse(
+        "10,123,456.7822 µBTC",
+        locale: "en_US",
+        coin: Coin.bitcoin,
+      ),
+      amount,
+    );
+
+    expect(
+      AmountUnit.nano.tryParse(
+        "1,012,345,678 sats",
+        locale: "en_US",
+        coin: Coin.bitcoin,
+      ),
+      amount,
     );
   });
 }

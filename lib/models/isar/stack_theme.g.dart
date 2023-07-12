@@ -53,765 +53,782 @@ const StackThemeSchema = CollectionSchema(
       type: IsarType.object,
       target: r'ThemeAssets',
     ),
-    r'backgroundAppBarInt': PropertySchema(
+    r'assetsV2': PropertySchema(
       id: 7,
+      name: r'assetsV2',
+      type: IsarType.object,
+      target: r'ThemeAssetsV2',
+    ),
+    r'backgroundAppBarInt': PropertySchema(
+      id: 8,
       name: r'backgroundAppBarInt',
       type: IsarType.long,
     ),
     r'backgroundInt': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'backgroundInt',
       type: IsarType.long,
     ),
     r'bottomNavBackInt': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'bottomNavBackInt',
       type: IsarType.long,
     ),
     r'bottomNavIconBackInt': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'bottomNavIconBackInt',
       type: IsarType.long,
     ),
     r'bottomNavIconIconHighlightedInt': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'bottomNavIconIconHighlightedInt',
       type: IsarType.long,
     ),
     r'bottomNavIconIconInt': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'bottomNavIconIconInt',
       type: IsarType.long,
     ),
     r'bottomNavShadowInt': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'bottomNavShadowInt',
       type: IsarType.long,
     ),
     r'bottomNavTextInt': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'bottomNavTextInt',
       type: IsarType.long,
     ),
     r'brightnessString': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'brightnessString',
       type: IsarType.string,
     ),
     r'buttonBackBorderDisabledInt': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'buttonBackBorderDisabledInt',
       type: IsarType.long,
     ),
     r'buttonBackBorderInt': PropertySchema(
-      id: 17,
+      id: 18,
       name: r'buttonBackBorderInt',
       type: IsarType.long,
     ),
     r'buttonBackBorderSecondaryDisabledInt': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'buttonBackBorderSecondaryDisabledInt',
       type: IsarType.long,
     ),
     r'buttonBackBorderSecondaryInt': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'buttonBackBorderSecondaryInt',
       type: IsarType.long,
     ),
     r'buttonBackPrimaryDisabledInt': PropertySchema(
-      id: 20,
+      id: 21,
       name: r'buttonBackPrimaryDisabledInt',
       type: IsarType.long,
     ),
     r'buttonBackPrimaryInt': PropertySchema(
-      id: 21,
+      id: 22,
       name: r'buttonBackPrimaryInt',
       type: IsarType.long,
     ),
     r'buttonBackSecondaryDisabledInt': PropertySchema(
-      id: 22,
+      id: 23,
       name: r'buttonBackSecondaryDisabledInt',
       type: IsarType.long,
     ),
     r'buttonBackSecondaryInt': PropertySchema(
-      id: 23,
+      id: 24,
       name: r'buttonBackSecondaryInt',
       type: IsarType.long,
     ),
     r'buttonTextBorderInt': PropertySchema(
-      id: 24,
+      id: 25,
       name: r'buttonTextBorderInt',
       type: IsarType.long,
     ),
     r'buttonTextBorderlessDisabledInt': PropertySchema(
-      id: 25,
+      id: 26,
       name: r'buttonTextBorderlessDisabledInt',
       type: IsarType.long,
     ),
     r'buttonTextBorderlessInt': PropertySchema(
-      id: 26,
+      id: 27,
       name: r'buttonTextBorderlessInt',
       type: IsarType.long,
     ),
     r'buttonTextDisabledInt': PropertySchema(
-      id: 27,
+      id: 28,
       name: r'buttonTextDisabledInt',
       type: IsarType.long,
     ),
     r'buttonTextPrimaryDisabledInt': PropertySchema(
-      id: 28,
+      id: 29,
       name: r'buttonTextPrimaryDisabledInt',
       type: IsarType.long,
     ),
     r'buttonTextPrimaryInt': PropertySchema(
-      id: 29,
+      id: 30,
       name: r'buttonTextPrimaryInt',
       type: IsarType.long,
     ),
     r'buttonTextSecondaryDisabledInt': PropertySchema(
-      id: 30,
+      id: 31,
       name: r'buttonTextSecondaryDisabledInt',
       type: IsarType.long,
     ),
     r'buttonTextSecondaryInt': PropertySchema(
-      id: 31,
+      id: 32,
       name: r'buttonTextSecondaryInt',
       type: IsarType.long,
     ),
     r'checkboxBGCheckedInt': PropertySchema(
-      id: 32,
+      id: 33,
       name: r'checkboxBGCheckedInt',
       type: IsarType.long,
     ),
     r'checkboxBGDisabledInt': PropertySchema(
-      id: 33,
+      id: 34,
       name: r'checkboxBGDisabledInt',
       type: IsarType.long,
     ),
     r'checkboxBorderEmptyInt': PropertySchema(
-      id: 34,
+      id: 35,
       name: r'checkboxBorderEmptyInt',
       type: IsarType.long,
     ),
     r'checkboxIconCheckedInt': PropertySchema(
-      id: 35,
+      id: 36,
       name: r'checkboxIconCheckedInt',
       type: IsarType.long,
     ),
     r'checkboxIconDisabledInt': PropertySchema(
-      id: 36,
+      id: 37,
       name: r'checkboxIconDisabledInt',
       type: IsarType.long,
     ),
     r'checkboxTextLabelInt': PropertySchema(
-      id: 37,
+      id: 38,
       name: r'checkboxTextLabelInt',
       type: IsarType.long,
     ),
     r'coinColorsJsonString': PropertySchema(
-      id: 38,
+      id: 39,
       name: r'coinColorsJsonString',
       type: IsarType.string,
     ),
     r'currencyListItemBGInt': PropertySchema(
-      id: 39,
+      id: 40,
       name: r'currencyListItemBGInt',
       type: IsarType.long,
     ),
     r'customTextButtonDisabledTextInt': PropertySchema(
-      id: 40,
+      id: 41,
       name: r'customTextButtonDisabledTextInt',
       type: IsarType.long,
     ),
     r'customTextButtonEnabledTextInt': PropertySchema(
-      id: 41,
+      id: 42,
       name: r'customTextButtonEnabledTextInt',
       type: IsarType.long,
     ),
     r'ethTagBGInt': PropertySchema(
-      id: 42,
+      id: 43,
       name: r'ethTagBGInt',
       type: IsarType.long,
     ),
     r'ethTagTextInt': PropertySchema(
-      id: 43,
+      id: 44,
       name: r'ethTagTextInt',
       type: IsarType.long,
     ),
     r'ethWalletTagBGInt': PropertySchema(
-      id: 44,
+      id: 45,
       name: r'ethWalletTagBGInt',
       type: IsarType.long,
     ),
     r'ethWalletTagTextInt': PropertySchema(
-      id: 45,
+      id: 46,
       name: r'ethWalletTagTextInt',
       type: IsarType.long,
     ),
     r'favoriteStarActiveInt': PropertySchema(
-      id: 46,
+      id: 47,
       name: r'favoriteStarActiveInt',
       type: IsarType.long,
     ),
     r'favoriteStarInactiveInt': PropertySchema(
-      id: 47,
+      id: 48,
       name: r'favoriteStarInactiveInt',
       type: IsarType.long,
     ),
     r'gradientBackgroundString': PropertySchema(
-      id: 48,
+      id: 49,
       name: r'gradientBackgroundString',
       type: IsarType.string,
     ),
     r'highlightInt': PropertySchema(
-      id: 49,
+      id: 50,
       name: r'highlightInt',
       type: IsarType.long,
     ),
     r'homeViewButtonBarBoxShadowString': PropertySchema(
-      id: 50,
+      id: 51,
       name: r'homeViewButtonBarBoxShadowString',
       type: IsarType.string,
     ),
     r'infoItemBGInt': PropertySchema(
-      id: 51,
+      id: 52,
       name: r'infoItemBGInt',
       type: IsarType.long,
     ),
     r'infoItemIconsInt': PropertySchema(
-      id: 52,
+      id: 53,
       name: r'infoItemIconsInt',
       type: IsarType.long,
     ),
     r'infoItemLabelInt': PropertySchema(
-      id: 53,
+      id: 54,
       name: r'infoItemLabelInt',
       type: IsarType.long,
     ),
     r'infoItemTextInt': PropertySchema(
-      id: 54,
+      id: 55,
       name: r'infoItemTextInt',
       type: IsarType.long,
     ),
     r'loadingOverlayTextColorInt': PropertySchema(
-      id: 55,
+      id: 56,
       name: r'loadingOverlayTextColorInt',
       type: IsarType.long,
     ),
     r'myStackContactIconBGInt': PropertySchema(
-      id: 56,
+      id: 57,
       name: r'myStackContactIconBGInt',
       type: IsarType.long,
     ),
     r'name': PropertySchema(
-      id: 57,
+      id: 58,
       name: r'name',
       type: IsarType.string,
     ),
     r'numberBackDefaultInt': PropertySchema(
-      id: 58,
+      id: 59,
       name: r'numberBackDefaultInt',
       type: IsarType.long,
     ),
     r'numberTextDefaultInt': PropertySchema(
-      id: 59,
+      id: 60,
       name: r'numberTextDefaultInt',
       type: IsarType.long,
     ),
     r'numpadBackDefaultInt': PropertySchema(
-      id: 60,
+      id: 61,
       name: r'numpadBackDefaultInt',
       type: IsarType.long,
     ),
     r'numpadTextDefaultInt': PropertySchema(
-      id: 61,
+      id: 62,
       name: r'numpadTextDefaultInt',
       type: IsarType.long,
     ),
     r'overlayInt': PropertySchema(
-      id: 62,
+      id: 63,
       name: r'overlayInt',
       type: IsarType.long,
     ),
     r'popupBGInt': PropertySchema(
-      id: 63,
+      id: 64,
       name: r'popupBGInt',
       type: IsarType.long,
     ),
     r'radioButtonBorderDisabledInt': PropertySchema(
-      id: 64,
+      id: 65,
       name: r'radioButtonBorderDisabledInt',
       type: IsarType.long,
     ),
     r'radioButtonBorderEnabledInt': PropertySchema(
-      id: 65,
+      id: 66,
       name: r'radioButtonBorderEnabledInt',
       type: IsarType.long,
     ),
     r'radioButtonIconBorderDisabledInt': PropertySchema(
-      id: 66,
+      id: 67,
       name: r'radioButtonIconBorderDisabledInt',
       type: IsarType.long,
     ),
     r'radioButtonIconBorderInt': PropertySchema(
-      id: 67,
+      id: 68,
       name: r'radioButtonIconBorderInt',
       type: IsarType.long,
     ),
     r'radioButtonIconCircleInt': PropertySchema(
-      id: 68,
+      id: 69,
       name: r'radioButtonIconCircleInt',
       type: IsarType.long,
     ),
     r'radioButtonIconEnabledInt': PropertySchema(
-      id: 69,
+      id: 70,
       name: r'radioButtonIconEnabledInt',
       type: IsarType.long,
     ),
     r'radioButtonLabelDisabledInt': PropertySchema(
-      id: 70,
+      id: 71,
       name: r'radioButtonLabelDisabledInt',
       type: IsarType.long,
     ),
     r'radioButtonLabelEnabledInt': PropertySchema(
-      id: 71,
+      id: 72,
       name: r'radioButtonLabelEnabledInt',
       type: IsarType.long,
     ),
     r'radioButtonTextDisabledInt': PropertySchema(
-      id: 72,
+      id: 73,
       name: r'radioButtonTextDisabledInt',
       type: IsarType.long,
     ),
     r'radioButtonTextEnabledInt': PropertySchema(
-      id: 73,
+      id: 74,
       name: r'radioButtonTextEnabledInt',
       type: IsarType.long,
     ),
     r'rateTypeToggleColorOffInt': PropertySchema(
-      id: 74,
+      id: 75,
       name: r'rateTypeToggleColorOffInt',
       type: IsarType.long,
     ),
     r'rateTypeToggleColorOnInt': PropertySchema(
-      id: 75,
+      id: 76,
       name: r'rateTypeToggleColorOnInt',
       type: IsarType.long,
     ),
     r'rateTypeToggleDesktopColorOffInt': PropertySchema(
-      id: 76,
+      id: 77,
       name: r'rateTypeToggleDesktopColorOffInt',
       type: IsarType.long,
     ),
     r'rateTypeToggleDesktopColorOnInt': PropertySchema(
-      id: 77,
+      id: 78,
       name: r'rateTypeToggleDesktopColorOnInt',
       type: IsarType.long,
     ),
     r'settingsIconBack2Int': PropertySchema(
-      id: 78,
+      id: 79,
       name: r'settingsIconBack2Int',
       type: IsarType.long,
     ),
     r'settingsIconBackInt': PropertySchema(
-      id: 79,
+      id: 80,
       name: r'settingsIconBackInt',
       type: IsarType.long,
     ),
     r'settingsIconElementInt': PropertySchema(
-      id: 80,
+      id: 81,
       name: r'settingsIconElementInt',
       type: IsarType.long,
     ),
     r'settingsIconIconInt': PropertySchema(
-      id: 81,
+      id: 82,
       name: r'settingsIconIconInt',
       type: IsarType.long,
     ),
     r'settingsItem2ActiveBGInt': PropertySchema(
-      id: 82,
+      id: 83,
       name: r'settingsItem2ActiveBGInt',
       type: IsarType.long,
     ),
     r'settingsItem2ActiveSubInt': PropertySchema(
-      id: 83,
+      id: 84,
       name: r'settingsItem2ActiveSubInt',
       type: IsarType.long,
     ),
     r'settingsItem2ActiveTextInt': PropertySchema(
-      id: 84,
+      id: 85,
       name: r'settingsItem2ActiveTextInt',
       type: IsarType.long,
     ),
     r'shadowInt': PropertySchema(
-      id: 85,
+      id: 86,
       name: r'shadowInt',
       type: IsarType.long,
     ),
     r'snackBarBackErrorInt': PropertySchema(
-      id: 86,
+      id: 87,
       name: r'snackBarBackErrorInt',
       type: IsarType.long,
     ),
     r'snackBarBackInfoInt': PropertySchema(
-      id: 87,
+      id: 88,
       name: r'snackBarBackInfoInt',
       type: IsarType.long,
     ),
     r'snackBarBackSuccessInt': PropertySchema(
-      id: 88,
+      id: 89,
       name: r'snackBarBackSuccessInt',
       type: IsarType.long,
     ),
     r'snackBarTextErrorInt': PropertySchema(
-      id: 89,
+      id: 90,
       name: r'snackBarTextErrorInt',
       type: IsarType.long,
     ),
     r'snackBarTextInfoInt': PropertySchema(
-      id: 90,
+      id: 91,
       name: r'snackBarTextInfoInt',
       type: IsarType.long,
     ),
     r'snackBarTextSuccessInt': PropertySchema(
-      id: 91,
+      id: 92,
       name: r'snackBarTextSuccessInt',
       type: IsarType.long,
     ),
     r'splashInt': PropertySchema(
-      id: 92,
+      id: 93,
       name: r'splashInt',
       type: IsarType.long,
     ),
     r'stackWalletBGInt': PropertySchema(
-      id: 93,
+      id: 94,
       name: r'stackWalletBGInt',
       type: IsarType.long,
     ),
     r'stackWalletBottomInt': PropertySchema(
-      id: 94,
+      id: 95,
       name: r'stackWalletBottomInt',
       type: IsarType.long,
     ),
     r'stackWalletMidInt': PropertySchema(
-      id: 95,
+      id: 96,
       name: r'stackWalletMidInt',
       type: IsarType.long,
     ),
     r'standardBoxShadowString': PropertySchema(
-      id: 96,
+      id: 97,
       name: r'standardBoxShadowString',
       type: IsarType.string,
     ),
     r'stepIndicatorBGCheckInt': PropertySchema(
-      id: 97,
+      id: 98,
       name: r'stepIndicatorBGCheckInt',
       type: IsarType.long,
     ),
     r'stepIndicatorBGInactiveInt': PropertySchema(
-      id: 98,
+      id: 99,
       name: r'stepIndicatorBGInactiveInt',
       type: IsarType.long,
     ),
     r'stepIndicatorBGLinesInactiveInt': PropertySchema(
-      id: 99,
+      id: 100,
       name: r'stepIndicatorBGLinesInactiveInt',
       type: IsarType.long,
     ),
     r'stepIndicatorBGLinesInt': PropertySchema(
-      id: 100,
+      id: 101,
       name: r'stepIndicatorBGLinesInt',
       type: IsarType.long,
     ),
     r'stepIndicatorBGNumberInt': PropertySchema(
-      id: 101,
+      id: 102,
       name: r'stepIndicatorBGNumberInt',
       type: IsarType.long,
     ),
     r'stepIndicatorIconInactiveInt': PropertySchema(
-      id: 102,
+      id: 103,
       name: r'stepIndicatorIconInactiveInt',
       type: IsarType.long,
     ),
     r'stepIndicatorIconNumberInt': PropertySchema(
-      id: 103,
+      id: 104,
       name: r'stepIndicatorIconNumberInt',
       type: IsarType.long,
     ),
     r'stepIndicatorIconTextInt': PropertySchema(
-      id: 104,
+      id: 105,
       name: r'stepIndicatorIconTextInt',
       type: IsarType.long,
     ),
     r'switchBGDisabledInt': PropertySchema(
-      id: 105,
+      id: 106,
       name: r'switchBGDisabledInt',
       type: IsarType.long,
     ),
     r'switchBGOffInt': PropertySchema(
-      id: 106,
+      id: 107,
       name: r'switchBGOffInt',
       type: IsarType.long,
     ),
     r'switchBGOnInt': PropertySchema(
-      id: 107,
+      id: 108,
       name: r'switchBGOnInt',
       type: IsarType.long,
     ),
     r'switchCircleDisabledInt': PropertySchema(
-      id: 108,
+      id: 109,
       name: r'switchCircleDisabledInt',
       type: IsarType.long,
     ),
     r'switchCircleOffInt': PropertySchema(
-      id: 109,
+      id: 110,
       name: r'switchCircleOffInt',
       type: IsarType.long,
     ),
     r'switchCircleOnInt': PropertySchema(
-      id: 110,
+      id: 111,
       name: r'switchCircleOnInt',
       type: IsarType.long,
     ),
     r'textConfirmTotalAmountInt': PropertySchema(
-      id: 111,
+      id: 112,
       name: r'textConfirmTotalAmountInt',
       type: IsarType.long,
     ),
     r'textDark2Int': PropertySchema(
-      id: 112,
+      id: 113,
       name: r'textDark2Int',
       type: IsarType.long,
     ),
     r'textDark3Int': PropertySchema(
-      id: 113,
+      id: 114,
       name: r'textDark3Int',
       type: IsarType.long,
     ),
     r'textDarkInt': PropertySchema(
-      id: 114,
+      id: 115,
       name: r'textDarkInt',
       type: IsarType.long,
     ),
     r'textErrorInt': PropertySchema(
-      id: 115,
+      id: 116,
       name: r'textErrorInt',
       type: IsarType.long,
     ),
     r'textFavoriteCardInt': PropertySchema(
-      id: 116,
+      id: 117,
       name: r'textFavoriteCardInt',
       type: IsarType.long,
     ),
     r'textFieldActiveBGInt': PropertySchema(
-      id: 117,
+      id: 118,
       name: r'textFieldActiveBGInt',
       type: IsarType.long,
     ),
     r'textFieldActiveLabelInt': PropertySchema(
-      id: 118,
+      id: 119,
       name: r'textFieldActiveLabelInt',
       type: IsarType.long,
     ),
     r'textFieldActiveSearchIconLeftInt': PropertySchema(
-      id: 119,
+      id: 120,
       name: r'textFieldActiveSearchIconLeftInt',
       type: IsarType.long,
     ),
     r'textFieldActiveSearchIconRightInt': PropertySchema(
-      id: 120,
+      id: 121,
       name: r'textFieldActiveSearchIconRightInt',
       type: IsarType.long,
     ),
     r'textFieldActiveTextInt': PropertySchema(
-      id: 121,
+      id: 122,
       name: r'textFieldActiveTextInt',
       type: IsarType.long,
     ),
     r'textFieldDefaultBGInt': PropertySchema(
-      id: 122,
+      id: 123,
       name: r'textFieldDefaultBGInt',
       type: IsarType.long,
     ),
     r'textFieldDefaultSearchIconLeftInt': PropertySchema(
-      id: 123,
+      id: 124,
       name: r'textFieldDefaultSearchIconLeftInt',
       type: IsarType.long,
     ),
     r'textFieldDefaultSearchIconRightInt': PropertySchema(
-      id: 124,
+      id: 125,
       name: r'textFieldDefaultSearchIconRightInt',
       type: IsarType.long,
     ),
     r'textFieldDefaultTextInt': PropertySchema(
-      id: 125,
+      id: 126,
       name: r'textFieldDefaultTextInt',
       type: IsarType.long,
     ),
     r'textFieldErrorBGInt': PropertySchema(
-      id: 126,
+      id: 127,
       name: r'textFieldErrorBGInt',
       type: IsarType.long,
     ),
     r'textFieldErrorBorderInt': PropertySchema(
-      id: 127,
+      id: 128,
       name: r'textFieldErrorBorderInt',
       type: IsarType.long,
     ),
     r'textFieldErrorLabelInt': PropertySchema(
-      id: 128,
+      id: 129,
       name: r'textFieldErrorLabelInt',
       type: IsarType.long,
     ),
     r'textFieldErrorSearchIconLeftInt': PropertySchema(
-      id: 129,
+      id: 130,
       name: r'textFieldErrorSearchIconLeftInt',
       type: IsarType.long,
     ),
     r'textFieldErrorSearchIconRightInt': PropertySchema(
-      id: 130,
+      id: 131,
       name: r'textFieldErrorSearchIconRightInt',
       type: IsarType.long,
     ),
     r'textFieldErrorTextInt': PropertySchema(
-      id: 131,
+      id: 132,
       name: r'textFieldErrorTextInt',
       type: IsarType.long,
     ),
     r'textFieldSuccessBGInt': PropertySchema(
-      id: 132,
+      id: 133,
       name: r'textFieldSuccessBGInt',
       type: IsarType.long,
     ),
     r'textFieldSuccessBorderInt': PropertySchema(
-      id: 133,
+      id: 134,
       name: r'textFieldSuccessBorderInt',
       type: IsarType.long,
     ),
     r'textFieldSuccessLabelInt': PropertySchema(
-      id: 134,
+      id: 135,
       name: r'textFieldSuccessLabelInt',
       type: IsarType.long,
     ),
     r'textFieldSuccessSearchIconLeftInt': PropertySchema(
-      id: 135,
+      id: 136,
       name: r'textFieldSuccessSearchIconLeftInt',
       type: IsarType.long,
     ),
     r'textFieldSuccessSearchIconRightInt': PropertySchema(
-      id: 136,
+      id: 137,
       name: r'textFieldSuccessSearchIconRightInt',
       type: IsarType.long,
     ),
     r'textFieldSuccessTextInt': PropertySchema(
-      id: 137,
+      id: 138,
       name: r'textFieldSuccessTextInt',
       type: IsarType.long,
     ),
     r'textRestoreInt': PropertySchema(
-      id: 138,
+      id: 139,
       name: r'textRestoreInt',
       type: IsarType.long,
     ),
     r'textSelectedWordTableItemInt': PropertySchema(
-      id: 139,
+      id: 140,
       name: r'textSelectedWordTableItemInt',
       type: IsarType.long,
     ),
     r'textSubtitle1Int': PropertySchema(
-      id: 140,
+      id: 141,
       name: r'textSubtitle1Int',
       type: IsarType.long,
     ),
     r'textSubtitle2Int': PropertySchema(
-      id: 141,
+      id: 142,
       name: r'textSubtitle2Int',
       type: IsarType.long,
     ),
     r'textSubtitle3Int': PropertySchema(
-      id: 142,
+      id: 143,
       name: r'textSubtitle3Int',
       type: IsarType.long,
     ),
     r'textSubtitle4Int': PropertySchema(
-      id: 143,
+      id: 144,
       name: r'textSubtitle4Int',
       type: IsarType.long,
     ),
     r'textSubtitle5Int': PropertySchema(
-      id: 144,
+      id: 145,
       name: r'textSubtitle5Int',
       type: IsarType.long,
     ),
     r'textSubtitle6Int': PropertySchema(
-      id: 145,
+      id: 146,
       name: r'textSubtitle6Int',
       type: IsarType.long,
     ),
     r'textWhiteInt': PropertySchema(
-      id: 146,
+      id: 147,
       name: r'textWhiteInt',
       type: IsarType.long,
     ),
     r'themeId': PropertySchema(
-      id: 147,
+      id: 148,
       name: r'themeId',
       type: IsarType.string,
     ),
     r'tokenSummaryBGInt': PropertySchema(
-      id: 148,
+      id: 149,
       name: r'tokenSummaryBGInt',
       type: IsarType.long,
     ),
     r'tokenSummaryButtonBGInt': PropertySchema(
-      id: 149,
+      id: 150,
       name: r'tokenSummaryButtonBGInt',
       type: IsarType.long,
     ),
     r'tokenSummaryIconInt': PropertySchema(
-      id: 150,
+      id: 151,
       name: r'tokenSummaryIconInt',
       type: IsarType.long,
     ),
     r'tokenSummaryTextPrimaryInt': PropertySchema(
-      id: 151,
+      id: 152,
       name: r'tokenSummaryTextPrimaryInt',
       type: IsarType.long,
     ),
     r'tokenSummaryTextSecondaryInt': PropertySchema(
-      id: 152,
+      id: 153,
       name: r'tokenSummaryTextSecondaryInt',
       type: IsarType.long,
     ),
     r'topNavIconGreenInt': PropertySchema(
-      id: 153,
+      id: 154,
       name: r'topNavIconGreenInt',
       type: IsarType.long,
     ),
     r'topNavIconPrimaryInt': PropertySchema(
-      id: 154,
+      id: 155,
       name: r'topNavIconPrimaryInt',
       type: IsarType.long,
     ),
     r'topNavIconRedInt': PropertySchema(
-      id: 155,
+      id: 156,
       name: r'topNavIconRedInt',
       type: IsarType.long,
     ),
     r'topNavIconYellowInt': PropertySchema(
-      id: 156,
+      id: 157,
       name: r'topNavIconYellowInt',
       type: IsarType.long,
     ),
+    r'version': PropertySchema(
+      id: 158,
+      name: r'version',
+      type: IsarType.long,
+    ),
     r'warningBackgroundInt': PropertySchema(
-      id: 157,
+      id: 159,
       name: r'warningBackgroundInt',
       type: IsarType.long,
     ),
     r'warningForegroundInt': PropertySchema(
-      id: 158,
+      id: 160,
       name: r'warningForegroundInt',
       type: IsarType.long,
+    ),
+    r'zAssetsV3': PropertySchema(
+      id: 161,
+      name: r'zAssetsV3',
+      type: IsarType.object,
+      target: r'ThemeAssetsV3',
     )
   },
   estimateSize: _stackThemeEstimateSize,
@@ -835,7 +852,11 @@ const StackThemeSchema = CollectionSchema(
     )
   },
   links: {},
-  embeddedSchemas: {r'ThemeAssets': ThemeAssetsSchema},
+  embeddedSchemas: {
+    r'ThemeAssets': ThemeAssetsSchema,
+    r'ThemeAssetsV2': ThemeAssetsV2Schema,
+    r'ThemeAssetsV3': ThemeAssetsV3Schema
+  },
   getId: _stackThemeGetId,
   getLinks: _stackThemeGetLinks,
   attach: _stackThemeAttach,
@@ -848,9 +869,22 @@ int _stackThemeEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  bytesCount += 3 +
-      ThemeAssetsSchema.estimateSize(
-          object.assets, allOffsets[ThemeAssets]!, allOffsets);
+  {
+    final value = object.assetsV1;
+    if (value != null) {
+      bytesCount += 3 +
+          ThemeAssetsSchema.estimateSize(
+              value, allOffsets[ThemeAssets]!, allOffsets);
+    }
+  }
+  {
+    final value = object.assetsV2;
+    if (value != null) {
+      bytesCount += 3 +
+          ThemeAssetsV2Schema.estimateSize(
+              value, allOffsets[ThemeAssetsV2]!, allOffsets);
+    }
+  }
   bytesCount += 3 + object.brightnessString.length * 3;
   bytesCount += 3 + object.coinColorsJsonString.length * 3;
   {
@@ -868,6 +902,14 @@ int _stackThemeEstimateSize(
   bytesCount += 3 + object.name.length * 3;
   bytesCount += 3 + object.standardBoxShadowString.length * 3;
   bytesCount += 3 + object.themeId.length * 3;
+  {
+    final value = object.assetsV3;
+    if (value != null) {
+      bytesCount += 3 +
+          ThemeAssetsV3Schema.estimateSize(
+              value, allOffsets[ThemeAssetsV3]!, allOffsets);
+    }
+  }
   return bytesCount;
 }
 
@@ -887,160 +929,173 @@ void _stackThemeSerialize(
     offsets[6],
     allOffsets,
     ThemeAssetsSchema.serialize,
-    object.assets,
+    object.assetsV1,
   );
-  writer.writeLong(offsets[7], object.backgroundAppBarInt);
-  writer.writeLong(offsets[8], object.backgroundInt);
-  writer.writeLong(offsets[9], object.bottomNavBackInt);
-  writer.writeLong(offsets[10], object.bottomNavIconBackInt);
-  writer.writeLong(offsets[11], object.bottomNavIconIconHighlightedInt);
-  writer.writeLong(offsets[12], object.bottomNavIconIconInt);
-  writer.writeLong(offsets[13], object.bottomNavShadowInt);
-  writer.writeLong(offsets[14], object.bottomNavTextInt);
-  writer.writeString(offsets[15], object.brightnessString);
-  writer.writeLong(offsets[16], object.buttonBackBorderDisabledInt);
-  writer.writeLong(offsets[17], object.buttonBackBorderInt);
-  writer.writeLong(offsets[18], object.buttonBackBorderSecondaryDisabledInt);
-  writer.writeLong(offsets[19], object.buttonBackBorderSecondaryInt);
-  writer.writeLong(offsets[20], object.buttonBackPrimaryDisabledInt);
-  writer.writeLong(offsets[21], object.buttonBackPrimaryInt);
-  writer.writeLong(offsets[22], object.buttonBackSecondaryDisabledInt);
-  writer.writeLong(offsets[23], object.buttonBackSecondaryInt);
-  writer.writeLong(offsets[24], object.buttonTextBorderInt);
-  writer.writeLong(offsets[25], object.buttonTextBorderlessDisabledInt);
-  writer.writeLong(offsets[26], object.buttonTextBorderlessInt);
-  writer.writeLong(offsets[27], object.buttonTextDisabledInt);
-  writer.writeLong(offsets[28], object.buttonTextPrimaryDisabledInt);
-  writer.writeLong(offsets[29], object.buttonTextPrimaryInt);
-  writer.writeLong(offsets[30], object.buttonTextSecondaryDisabledInt);
-  writer.writeLong(offsets[31], object.buttonTextSecondaryInt);
-  writer.writeLong(offsets[32], object.checkboxBGCheckedInt);
-  writer.writeLong(offsets[33], object.checkboxBGDisabledInt);
-  writer.writeLong(offsets[34], object.checkboxBorderEmptyInt);
-  writer.writeLong(offsets[35], object.checkboxIconCheckedInt);
-  writer.writeLong(offsets[36], object.checkboxIconDisabledInt);
-  writer.writeLong(offsets[37], object.checkboxTextLabelInt);
-  writer.writeString(offsets[38], object.coinColorsJsonString);
-  writer.writeLong(offsets[39], object.currencyListItemBGInt);
-  writer.writeLong(offsets[40], object.customTextButtonDisabledTextInt);
-  writer.writeLong(offsets[41], object.customTextButtonEnabledTextInt);
-  writer.writeLong(offsets[42], object.ethTagBGInt);
-  writer.writeLong(offsets[43], object.ethTagTextInt);
-  writer.writeLong(offsets[44], object.ethWalletTagBGInt);
-  writer.writeLong(offsets[45], object.ethWalletTagTextInt);
-  writer.writeLong(offsets[46], object.favoriteStarActiveInt);
-  writer.writeLong(offsets[47], object.favoriteStarInactiveInt);
-  writer.writeString(offsets[48], object.gradientBackgroundString);
-  writer.writeLong(offsets[49], object.highlightInt);
-  writer.writeString(offsets[50], object.homeViewButtonBarBoxShadowString);
-  writer.writeLong(offsets[51], object.infoItemBGInt);
-  writer.writeLong(offsets[52], object.infoItemIconsInt);
-  writer.writeLong(offsets[53], object.infoItemLabelInt);
-  writer.writeLong(offsets[54], object.infoItemTextInt);
-  writer.writeLong(offsets[55], object.loadingOverlayTextColorInt);
-  writer.writeLong(offsets[56], object.myStackContactIconBGInt);
-  writer.writeString(offsets[57], object.name);
-  writer.writeLong(offsets[58], object.numberBackDefaultInt);
-  writer.writeLong(offsets[59], object.numberTextDefaultInt);
-  writer.writeLong(offsets[60], object.numpadBackDefaultInt);
-  writer.writeLong(offsets[61], object.numpadTextDefaultInt);
-  writer.writeLong(offsets[62], object.overlayInt);
-  writer.writeLong(offsets[63], object.popupBGInt);
-  writer.writeLong(offsets[64], object.radioButtonBorderDisabledInt);
-  writer.writeLong(offsets[65], object.radioButtonBorderEnabledInt);
-  writer.writeLong(offsets[66], object.radioButtonIconBorderDisabledInt);
-  writer.writeLong(offsets[67], object.radioButtonIconBorderInt);
-  writer.writeLong(offsets[68], object.radioButtonIconCircleInt);
-  writer.writeLong(offsets[69], object.radioButtonIconEnabledInt);
-  writer.writeLong(offsets[70], object.radioButtonLabelDisabledInt);
-  writer.writeLong(offsets[71], object.radioButtonLabelEnabledInt);
-  writer.writeLong(offsets[72], object.radioButtonTextDisabledInt);
-  writer.writeLong(offsets[73], object.radioButtonTextEnabledInt);
-  writer.writeLong(offsets[74], object.rateTypeToggleColorOffInt);
-  writer.writeLong(offsets[75], object.rateTypeToggleColorOnInt);
-  writer.writeLong(offsets[76], object.rateTypeToggleDesktopColorOffInt);
-  writer.writeLong(offsets[77], object.rateTypeToggleDesktopColorOnInt);
-  writer.writeLong(offsets[78], object.settingsIconBack2Int);
-  writer.writeLong(offsets[79], object.settingsIconBackInt);
-  writer.writeLong(offsets[80], object.settingsIconElementInt);
-  writer.writeLong(offsets[81], object.settingsIconIconInt);
-  writer.writeLong(offsets[82], object.settingsItem2ActiveBGInt);
-  writer.writeLong(offsets[83], object.settingsItem2ActiveSubInt);
-  writer.writeLong(offsets[84], object.settingsItem2ActiveTextInt);
-  writer.writeLong(offsets[85], object.shadowInt);
-  writer.writeLong(offsets[86], object.snackBarBackErrorInt);
-  writer.writeLong(offsets[87], object.snackBarBackInfoInt);
-  writer.writeLong(offsets[88], object.snackBarBackSuccessInt);
-  writer.writeLong(offsets[89], object.snackBarTextErrorInt);
-  writer.writeLong(offsets[90], object.snackBarTextInfoInt);
-  writer.writeLong(offsets[91], object.snackBarTextSuccessInt);
-  writer.writeLong(offsets[92], object.splashInt);
-  writer.writeLong(offsets[93], object.stackWalletBGInt);
-  writer.writeLong(offsets[94], object.stackWalletBottomInt);
-  writer.writeLong(offsets[95], object.stackWalletMidInt);
-  writer.writeString(offsets[96], object.standardBoxShadowString);
-  writer.writeLong(offsets[97], object.stepIndicatorBGCheckInt);
-  writer.writeLong(offsets[98], object.stepIndicatorBGInactiveInt);
-  writer.writeLong(offsets[99], object.stepIndicatorBGLinesInactiveInt);
-  writer.writeLong(offsets[100], object.stepIndicatorBGLinesInt);
-  writer.writeLong(offsets[101], object.stepIndicatorBGNumberInt);
-  writer.writeLong(offsets[102], object.stepIndicatorIconInactiveInt);
-  writer.writeLong(offsets[103], object.stepIndicatorIconNumberInt);
-  writer.writeLong(offsets[104], object.stepIndicatorIconTextInt);
-  writer.writeLong(offsets[105], object.switchBGDisabledInt);
-  writer.writeLong(offsets[106], object.switchBGOffInt);
-  writer.writeLong(offsets[107], object.switchBGOnInt);
-  writer.writeLong(offsets[108], object.switchCircleDisabledInt);
-  writer.writeLong(offsets[109], object.switchCircleOffInt);
-  writer.writeLong(offsets[110], object.switchCircleOnInt);
-  writer.writeLong(offsets[111], object.textConfirmTotalAmountInt);
-  writer.writeLong(offsets[112], object.textDark2Int);
-  writer.writeLong(offsets[113], object.textDark3Int);
-  writer.writeLong(offsets[114], object.textDarkInt);
-  writer.writeLong(offsets[115], object.textErrorInt);
-  writer.writeLong(offsets[116], object.textFavoriteCardInt);
-  writer.writeLong(offsets[117], object.textFieldActiveBGInt);
-  writer.writeLong(offsets[118], object.textFieldActiveLabelInt);
-  writer.writeLong(offsets[119], object.textFieldActiveSearchIconLeftInt);
-  writer.writeLong(offsets[120], object.textFieldActiveSearchIconRightInt);
-  writer.writeLong(offsets[121], object.textFieldActiveTextInt);
-  writer.writeLong(offsets[122], object.textFieldDefaultBGInt);
-  writer.writeLong(offsets[123], object.textFieldDefaultSearchIconLeftInt);
-  writer.writeLong(offsets[124], object.textFieldDefaultSearchIconRightInt);
-  writer.writeLong(offsets[125], object.textFieldDefaultTextInt);
-  writer.writeLong(offsets[126], object.textFieldErrorBGInt);
-  writer.writeLong(offsets[127], object.textFieldErrorBorderInt);
-  writer.writeLong(offsets[128], object.textFieldErrorLabelInt);
-  writer.writeLong(offsets[129], object.textFieldErrorSearchIconLeftInt);
-  writer.writeLong(offsets[130], object.textFieldErrorSearchIconRightInt);
-  writer.writeLong(offsets[131], object.textFieldErrorTextInt);
-  writer.writeLong(offsets[132], object.textFieldSuccessBGInt);
-  writer.writeLong(offsets[133], object.textFieldSuccessBorderInt);
-  writer.writeLong(offsets[134], object.textFieldSuccessLabelInt);
-  writer.writeLong(offsets[135], object.textFieldSuccessSearchIconLeftInt);
-  writer.writeLong(offsets[136], object.textFieldSuccessSearchIconRightInt);
-  writer.writeLong(offsets[137], object.textFieldSuccessTextInt);
-  writer.writeLong(offsets[138], object.textRestoreInt);
-  writer.writeLong(offsets[139], object.textSelectedWordTableItemInt);
-  writer.writeLong(offsets[140], object.textSubtitle1Int);
-  writer.writeLong(offsets[141], object.textSubtitle2Int);
-  writer.writeLong(offsets[142], object.textSubtitle3Int);
-  writer.writeLong(offsets[143], object.textSubtitle4Int);
-  writer.writeLong(offsets[144], object.textSubtitle5Int);
-  writer.writeLong(offsets[145], object.textSubtitle6Int);
-  writer.writeLong(offsets[146], object.textWhiteInt);
-  writer.writeString(offsets[147], object.themeId);
-  writer.writeLong(offsets[148], object.tokenSummaryBGInt);
-  writer.writeLong(offsets[149], object.tokenSummaryButtonBGInt);
-  writer.writeLong(offsets[150], object.tokenSummaryIconInt);
-  writer.writeLong(offsets[151], object.tokenSummaryTextPrimaryInt);
-  writer.writeLong(offsets[152], object.tokenSummaryTextSecondaryInt);
-  writer.writeLong(offsets[153], object.topNavIconGreenInt);
-  writer.writeLong(offsets[154], object.topNavIconPrimaryInt);
-  writer.writeLong(offsets[155], object.topNavIconRedInt);
-  writer.writeLong(offsets[156], object.topNavIconYellowInt);
-  writer.writeLong(offsets[157], object.warningBackgroundInt);
-  writer.writeLong(offsets[158], object.warningForegroundInt);
+  writer.writeObject<ThemeAssetsV2>(
+    offsets[7],
+    allOffsets,
+    ThemeAssetsV2Schema.serialize,
+    object.assetsV2,
+  );
+  writer.writeLong(offsets[8], object.backgroundAppBarInt);
+  writer.writeLong(offsets[9], object.backgroundInt);
+  writer.writeLong(offsets[10], object.bottomNavBackInt);
+  writer.writeLong(offsets[11], object.bottomNavIconBackInt);
+  writer.writeLong(offsets[12], object.bottomNavIconIconHighlightedInt);
+  writer.writeLong(offsets[13], object.bottomNavIconIconInt);
+  writer.writeLong(offsets[14], object.bottomNavShadowInt);
+  writer.writeLong(offsets[15], object.bottomNavTextInt);
+  writer.writeString(offsets[16], object.brightnessString);
+  writer.writeLong(offsets[17], object.buttonBackBorderDisabledInt);
+  writer.writeLong(offsets[18], object.buttonBackBorderInt);
+  writer.writeLong(offsets[19], object.buttonBackBorderSecondaryDisabledInt);
+  writer.writeLong(offsets[20], object.buttonBackBorderSecondaryInt);
+  writer.writeLong(offsets[21], object.buttonBackPrimaryDisabledInt);
+  writer.writeLong(offsets[22], object.buttonBackPrimaryInt);
+  writer.writeLong(offsets[23], object.buttonBackSecondaryDisabledInt);
+  writer.writeLong(offsets[24], object.buttonBackSecondaryInt);
+  writer.writeLong(offsets[25], object.buttonTextBorderInt);
+  writer.writeLong(offsets[26], object.buttonTextBorderlessDisabledInt);
+  writer.writeLong(offsets[27], object.buttonTextBorderlessInt);
+  writer.writeLong(offsets[28], object.buttonTextDisabledInt);
+  writer.writeLong(offsets[29], object.buttonTextPrimaryDisabledInt);
+  writer.writeLong(offsets[30], object.buttonTextPrimaryInt);
+  writer.writeLong(offsets[31], object.buttonTextSecondaryDisabledInt);
+  writer.writeLong(offsets[32], object.buttonTextSecondaryInt);
+  writer.writeLong(offsets[33], object.checkboxBGCheckedInt);
+  writer.writeLong(offsets[34], object.checkboxBGDisabledInt);
+  writer.writeLong(offsets[35], object.checkboxBorderEmptyInt);
+  writer.writeLong(offsets[36], object.checkboxIconCheckedInt);
+  writer.writeLong(offsets[37], object.checkboxIconDisabledInt);
+  writer.writeLong(offsets[38], object.checkboxTextLabelInt);
+  writer.writeString(offsets[39], object.coinColorsJsonString);
+  writer.writeLong(offsets[40], object.currencyListItemBGInt);
+  writer.writeLong(offsets[41], object.customTextButtonDisabledTextInt);
+  writer.writeLong(offsets[42], object.customTextButtonEnabledTextInt);
+  writer.writeLong(offsets[43], object.ethTagBGInt);
+  writer.writeLong(offsets[44], object.ethTagTextInt);
+  writer.writeLong(offsets[45], object.ethWalletTagBGInt);
+  writer.writeLong(offsets[46], object.ethWalletTagTextInt);
+  writer.writeLong(offsets[47], object.favoriteStarActiveInt);
+  writer.writeLong(offsets[48], object.favoriteStarInactiveInt);
+  writer.writeString(offsets[49], object.gradientBackgroundString);
+  writer.writeLong(offsets[50], object.highlightInt);
+  writer.writeString(offsets[51], object.homeViewButtonBarBoxShadowString);
+  writer.writeLong(offsets[52], object.infoItemBGInt);
+  writer.writeLong(offsets[53], object.infoItemIconsInt);
+  writer.writeLong(offsets[54], object.infoItemLabelInt);
+  writer.writeLong(offsets[55], object.infoItemTextInt);
+  writer.writeLong(offsets[56], object.loadingOverlayTextColorInt);
+  writer.writeLong(offsets[57], object.myStackContactIconBGInt);
+  writer.writeString(offsets[58], object.name);
+  writer.writeLong(offsets[59], object.numberBackDefaultInt);
+  writer.writeLong(offsets[60], object.numberTextDefaultInt);
+  writer.writeLong(offsets[61], object.numpadBackDefaultInt);
+  writer.writeLong(offsets[62], object.numpadTextDefaultInt);
+  writer.writeLong(offsets[63], object.overlayInt);
+  writer.writeLong(offsets[64], object.popupBGInt);
+  writer.writeLong(offsets[65], object.radioButtonBorderDisabledInt);
+  writer.writeLong(offsets[66], object.radioButtonBorderEnabledInt);
+  writer.writeLong(offsets[67], object.radioButtonIconBorderDisabledInt);
+  writer.writeLong(offsets[68], object.radioButtonIconBorderInt);
+  writer.writeLong(offsets[69], object.radioButtonIconCircleInt);
+  writer.writeLong(offsets[70], object.radioButtonIconEnabledInt);
+  writer.writeLong(offsets[71], object.radioButtonLabelDisabledInt);
+  writer.writeLong(offsets[72], object.radioButtonLabelEnabledInt);
+  writer.writeLong(offsets[73], object.radioButtonTextDisabledInt);
+  writer.writeLong(offsets[74], object.radioButtonTextEnabledInt);
+  writer.writeLong(offsets[75], object.rateTypeToggleColorOffInt);
+  writer.writeLong(offsets[76], object.rateTypeToggleColorOnInt);
+  writer.writeLong(offsets[77], object.rateTypeToggleDesktopColorOffInt);
+  writer.writeLong(offsets[78], object.rateTypeToggleDesktopColorOnInt);
+  writer.writeLong(offsets[79], object.settingsIconBack2Int);
+  writer.writeLong(offsets[80], object.settingsIconBackInt);
+  writer.writeLong(offsets[81], object.settingsIconElementInt);
+  writer.writeLong(offsets[82], object.settingsIconIconInt);
+  writer.writeLong(offsets[83], object.settingsItem2ActiveBGInt);
+  writer.writeLong(offsets[84], object.settingsItem2ActiveSubInt);
+  writer.writeLong(offsets[85], object.settingsItem2ActiveTextInt);
+  writer.writeLong(offsets[86], object.shadowInt);
+  writer.writeLong(offsets[87], object.snackBarBackErrorInt);
+  writer.writeLong(offsets[88], object.snackBarBackInfoInt);
+  writer.writeLong(offsets[89], object.snackBarBackSuccessInt);
+  writer.writeLong(offsets[90], object.snackBarTextErrorInt);
+  writer.writeLong(offsets[91], object.snackBarTextInfoInt);
+  writer.writeLong(offsets[92], object.snackBarTextSuccessInt);
+  writer.writeLong(offsets[93], object.splashInt);
+  writer.writeLong(offsets[94], object.stackWalletBGInt);
+  writer.writeLong(offsets[95], object.stackWalletBottomInt);
+  writer.writeLong(offsets[96], object.stackWalletMidInt);
+  writer.writeString(offsets[97], object.standardBoxShadowString);
+  writer.writeLong(offsets[98], object.stepIndicatorBGCheckInt);
+  writer.writeLong(offsets[99], object.stepIndicatorBGInactiveInt);
+  writer.writeLong(offsets[100], object.stepIndicatorBGLinesInactiveInt);
+  writer.writeLong(offsets[101], object.stepIndicatorBGLinesInt);
+  writer.writeLong(offsets[102], object.stepIndicatorBGNumberInt);
+  writer.writeLong(offsets[103], object.stepIndicatorIconInactiveInt);
+  writer.writeLong(offsets[104], object.stepIndicatorIconNumberInt);
+  writer.writeLong(offsets[105], object.stepIndicatorIconTextInt);
+  writer.writeLong(offsets[106], object.switchBGDisabledInt);
+  writer.writeLong(offsets[107], object.switchBGOffInt);
+  writer.writeLong(offsets[108], object.switchBGOnInt);
+  writer.writeLong(offsets[109], object.switchCircleDisabledInt);
+  writer.writeLong(offsets[110], object.switchCircleOffInt);
+  writer.writeLong(offsets[111], object.switchCircleOnInt);
+  writer.writeLong(offsets[112], object.textConfirmTotalAmountInt);
+  writer.writeLong(offsets[113], object.textDark2Int);
+  writer.writeLong(offsets[114], object.textDark3Int);
+  writer.writeLong(offsets[115], object.textDarkInt);
+  writer.writeLong(offsets[116], object.textErrorInt);
+  writer.writeLong(offsets[117], object.textFavoriteCardInt);
+  writer.writeLong(offsets[118], object.textFieldActiveBGInt);
+  writer.writeLong(offsets[119], object.textFieldActiveLabelInt);
+  writer.writeLong(offsets[120], object.textFieldActiveSearchIconLeftInt);
+  writer.writeLong(offsets[121], object.textFieldActiveSearchIconRightInt);
+  writer.writeLong(offsets[122], object.textFieldActiveTextInt);
+  writer.writeLong(offsets[123], object.textFieldDefaultBGInt);
+  writer.writeLong(offsets[124], object.textFieldDefaultSearchIconLeftInt);
+  writer.writeLong(offsets[125], object.textFieldDefaultSearchIconRightInt);
+  writer.writeLong(offsets[126], object.textFieldDefaultTextInt);
+  writer.writeLong(offsets[127], object.textFieldErrorBGInt);
+  writer.writeLong(offsets[128], object.textFieldErrorBorderInt);
+  writer.writeLong(offsets[129], object.textFieldErrorLabelInt);
+  writer.writeLong(offsets[130], object.textFieldErrorSearchIconLeftInt);
+  writer.writeLong(offsets[131], object.textFieldErrorSearchIconRightInt);
+  writer.writeLong(offsets[132], object.textFieldErrorTextInt);
+  writer.writeLong(offsets[133], object.textFieldSuccessBGInt);
+  writer.writeLong(offsets[134], object.textFieldSuccessBorderInt);
+  writer.writeLong(offsets[135], object.textFieldSuccessLabelInt);
+  writer.writeLong(offsets[136], object.textFieldSuccessSearchIconLeftInt);
+  writer.writeLong(offsets[137], object.textFieldSuccessSearchIconRightInt);
+  writer.writeLong(offsets[138], object.textFieldSuccessTextInt);
+  writer.writeLong(offsets[139], object.textRestoreInt);
+  writer.writeLong(offsets[140], object.textSelectedWordTableItemInt);
+  writer.writeLong(offsets[141], object.textSubtitle1Int);
+  writer.writeLong(offsets[142], object.textSubtitle2Int);
+  writer.writeLong(offsets[143], object.textSubtitle3Int);
+  writer.writeLong(offsets[144], object.textSubtitle4Int);
+  writer.writeLong(offsets[145], object.textSubtitle5Int);
+  writer.writeLong(offsets[146], object.textSubtitle6Int);
+  writer.writeLong(offsets[147], object.textWhiteInt);
+  writer.writeString(offsets[148], object.themeId);
+  writer.writeLong(offsets[149], object.tokenSummaryBGInt);
+  writer.writeLong(offsets[150], object.tokenSummaryButtonBGInt);
+  writer.writeLong(offsets[151], object.tokenSummaryIconInt);
+  writer.writeLong(offsets[152], object.tokenSummaryTextPrimaryInt);
+  writer.writeLong(offsets[153], object.tokenSummaryTextSecondaryInt);
+  writer.writeLong(offsets[154], object.topNavIconGreenInt);
+  writer.writeLong(offsets[155], object.topNavIconPrimaryInt);
+  writer.writeLong(offsets[156], object.topNavIconRedInt);
+  writer.writeLong(offsets[157], object.topNavIconYellowInt);
+  writer.writeLong(offsets[158], object.version);
+  writer.writeLong(offsets[159], object.warningBackgroundInt);
+  writer.writeLong(offsets[160], object.warningForegroundInt);
+  writer.writeObject<ThemeAssetsV3>(
+    offsets[161],
+    allOffsets,
+    ThemeAssetsV3Schema.serialize,
+    object.assetsV3,
+  );
 }
 
 StackTheme _stackThemeDeserialize(
@@ -1049,173 +1104,183 @@ StackTheme _stackThemeDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = StackTheme(
-    accentColorBlueInt: reader.readLong(offsets[0]),
-    accentColorDarkInt: reader.readLong(offsets[1]),
-    accentColorGreenInt: reader.readLong(offsets[2]),
-    accentColorOrangeInt: reader.readLong(offsets[3]),
-    accentColorRedInt: reader.readLong(offsets[4]),
-    accentColorYellowInt: reader.readLong(offsets[5]),
-    assets: reader.readObjectOrNull<ThemeAssets>(
-          offsets[6],
-          ThemeAssetsSchema.deserialize,
-          allOffsets,
-        ) ??
-        ThemeAssets(),
-    backgroundAppBarInt: reader.readLong(offsets[7]),
-    backgroundInt: reader.readLong(offsets[8]),
-    bottomNavBackInt: reader.readLong(offsets[9]),
-    bottomNavIconBackInt: reader.readLong(offsets[10]),
-    bottomNavIconIconHighlightedInt: reader.readLong(offsets[11]),
-    bottomNavIconIconInt: reader.readLong(offsets[12]),
-    bottomNavShadowInt: reader.readLong(offsets[13]),
-    bottomNavTextInt: reader.readLong(offsets[14]),
-    brightnessString: reader.readString(offsets[15]),
-    buttonBackBorderDisabledInt: reader.readLong(offsets[16]),
-    buttonBackBorderInt: reader.readLong(offsets[17]),
-    buttonBackBorderSecondaryDisabledInt: reader.readLong(offsets[18]),
-    buttonBackBorderSecondaryInt: reader.readLong(offsets[19]),
-    buttonBackPrimaryDisabledInt: reader.readLong(offsets[20]),
-    buttonBackPrimaryInt: reader.readLong(offsets[21]),
-    buttonBackSecondaryDisabledInt: reader.readLong(offsets[22]),
-    buttonBackSecondaryInt: reader.readLong(offsets[23]),
-    buttonTextBorderInt: reader.readLong(offsets[24]),
-    buttonTextBorderlessDisabledInt: reader.readLong(offsets[25]),
-    buttonTextBorderlessInt: reader.readLong(offsets[26]),
-    buttonTextDisabledInt: reader.readLong(offsets[27]),
-    buttonTextPrimaryDisabledInt: reader.readLong(offsets[28]),
-    buttonTextPrimaryInt: reader.readLong(offsets[29]),
-    buttonTextSecondaryDisabledInt: reader.readLong(offsets[30]),
-    buttonTextSecondaryInt: reader.readLong(offsets[31]),
-    checkboxBGCheckedInt: reader.readLong(offsets[32]),
-    checkboxBGDisabledInt: reader.readLong(offsets[33]),
-    checkboxBorderEmptyInt: reader.readLong(offsets[34]),
-    checkboxIconCheckedInt: reader.readLong(offsets[35]),
-    checkboxIconDisabledInt: reader.readLong(offsets[36]),
-    checkboxTextLabelInt: reader.readLong(offsets[37]),
-    coinColorsJsonString: reader.readString(offsets[38]),
-    currencyListItemBGInt: reader.readLong(offsets[39]),
-    customTextButtonDisabledTextInt: reader.readLong(offsets[40]),
-    customTextButtonEnabledTextInt: reader.readLong(offsets[41]),
-    ethTagBGInt: reader.readLong(offsets[42]),
-    ethTagTextInt: reader.readLong(offsets[43]),
-    ethWalletTagBGInt: reader.readLong(offsets[44]),
-    ethWalletTagTextInt: reader.readLong(offsets[45]),
-    favoriteStarActiveInt: reader.readLong(offsets[46]),
-    favoriteStarInactiveInt: reader.readLong(offsets[47]),
-    gradientBackgroundString: reader.readStringOrNull(offsets[48]),
-    highlightInt: reader.readLong(offsets[49]),
-    homeViewButtonBarBoxShadowString: reader.readStringOrNull(offsets[50]),
-    infoItemBGInt: reader.readLong(offsets[51]),
-    infoItemIconsInt: reader.readLong(offsets[52]),
-    infoItemLabelInt: reader.readLong(offsets[53]),
-    infoItemTextInt: reader.readLong(offsets[54]),
-    loadingOverlayTextColorInt: reader.readLong(offsets[55]),
-    myStackContactIconBGInt: reader.readLong(offsets[56]),
-    name: reader.readString(offsets[57]),
-    numberBackDefaultInt: reader.readLong(offsets[58]),
-    numberTextDefaultInt: reader.readLong(offsets[59]),
-    numpadBackDefaultInt: reader.readLong(offsets[60]),
-    numpadTextDefaultInt: reader.readLong(offsets[61]),
-    overlayInt: reader.readLong(offsets[62]),
-    popupBGInt: reader.readLong(offsets[63]),
-    radioButtonBorderDisabledInt: reader.readLong(offsets[64]),
-    radioButtonBorderEnabledInt: reader.readLong(offsets[65]),
-    radioButtonIconBorderDisabledInt: reader.readLong(offsets[66]),
-    radioButtonIconBorderInt: reader.readLong(offsets[67]),
-    radioButtonIconCircleInt: reader.readLong(offsets[68]),
-    radioButtonIconEnabledInt: reader.readLong(offsets[69]),
-    radioButtonLabelDisabledInt: reader.readLong(offsets[70]),
-    radioButtonLabelEnabledInt: reader.readLong(offsets[71]),
-    radioButtonTextDisabledInt: reader.readLong(offsets[72]),
-    radioButtonTextEnabledInt: reader.readLong(offsets[73]),
-    rateTypeToggleColorOffInt: reader.readLong(offsets[74]),
-    rateTypeToggleColorOnInt: reader.readLong(offsets[75]),
-    rateTypeToggleDesktopColorOffInt: reader.readLong(offsets[76]),
-    rateTypeToggleDesktopColorOnInt: reader.readLong(offsets[77]),
-    settingsIconBack2Int: reader.readLong(offsets[78]),
-    settingsIconBackInt: reader.readLong(offsets[79]),
-    settingsIconElementInt: reader.readLong(offsets[80]),
-    settingsIconIconInt: reader.readLong(offsets[81]),
-    settingsItem2ActiveBGInt: reader.readLong(offsets[82]),
-    settingsItem2ActiveSubInt: reader.readLong(offsets[83]),
-    settingsItem2ActiveTextInt: reader.readLong(offsets[84]),
-    shadowInt: reader.readLong(offsets[85]),
-    snackBarBackErrorInt: reader.readLong(offsets[86]),
-    snackBarBackInfoInt: reader.readLong(offsets[87]),
-    snackBarBackSuccessInt: reader.readLong(offsets[88]),
-    snackBarTextErrorInt: reader.readLong(offsets[89]),
-    snackBarTextInfoInt: reader.readLong(offsets[90]),
-    snackBarTextSuccessInt: reader.readLong(offsets[91]),
-    splashInt: reader.readLong(offsets[92]),
-    stackWalletBGInt: reader.readLong(offsets[93]),
-    stackWalletBottomInt: reader.readLong(offsets[94]),
-    stackWalletMidInt: reader.readLong(offsets[95]),
-    standardBoxShadowString: reader.readString(offsets[96]),
-    stepIndicatorBGCheckInt: reader.readLong(offsets[97]),
-    stepIndicatorBGInactiveInt: reader.readLong(offsets[98]),
-    stepIndicatorBGLinesInactiveInt: reader.readLong(offsets[99]),
-    stepIndicatorBGLinesInt: reader.readLong(offsets[100]),
-    stepIndicatorBGNumberInt: reader.readLong(offsets[101]),
-    stepIndicatorIconInactiveInt: reader.readLong(offsets[102]),
-    stepIndicatorIconNumberInt: reader.readLong(offsets[103]),
-    stepIndicatorIconTextInt: reader.readLong(offsets[104]),
-    switchBGDisabledInt: reader.readLong(offsets[105]),
-    switchBGOffInt: reader.readLong(offsets[106]),
-    switchBGOnInt: reader.readLong(offsets[107]),
-    switchCircleDisabledInt: reader.readLong(offsets[108]),
-    switchCircleOffInt: reader.readLong(offsets[109]),
-    switchCircleOnInt: reader.readLong(offsets[110]),
-    textConfirmTotalAmountInt: reader.readLong(offsets[111]),
-    textDark2Int: reader.readLong(offsets[112]),
-    textDark3Int: reader.readLong(offsets[113]),
-    textDarkInt: reader.readLong(offsets[114]),
-    textErrorInt: reader.readLong(offsets[115]),
-    textFavoriteCardInt: reader.readLong(offsets[116]),
-    textFieldActiveBGInt: reader.readLong(offsets[117]),
-    textFieldActiveLabelInt: reader.readLong(offsets[118]),
-    textFieldActiveSearchIconLeftInt: reader.readLong(offsets[119]),
-    textFieldActiveSearchIconRightInt: reader.readLong(offsets[120]),
-    textFieldActiveTextInt: reader.readLong(offsets[121]),
-    textFieldDefaultBGInt: reader.readLong(offsets[122]),
-    textFieldDefaultSearchIconLeftInt: reader.readLong(offsets[123]),
-    textFieldDefaultSearchIconRightInt: reader.readLong(offsets[124]),
-    textFieldDefaultTextInt: reader.readLong(offsets[125]),
-    textFieldErrorBGInt: reader.readLong(offsets[126]),
-    textFieldErrorBorderInt: reader.readLong(offsets[127]),
-    textFieldErrorLabelInt: reader.readLong(offsets[128]),
-    textFieldErrorSearchIconLeftInt: reader.readLong(offsets[129]),
-    textFieldErrorSearchIconRightInt: reader.readLong(offsets[130]),
-    textFieldErrorTextInt: reader.readLong(offsets[131]),
-    textFieldSuccessBGInt: reader.readLong(offsets[132]),
-    textFieldSuccessBorderInt: reader.readLong(offsets[133]),
-    textFieldSuccessLabelInt: reader.readLong(offsets[134]),
-    textFieldSuccessSearchIconLeftInt: reader.readLong(offsets[135]),
-    textFieldSuccessSearchIconRightInt: reader.readLong(offsets[136]),
-    textFieldSuccessTextInt: reader.readLong(offsets[137]),
-    textRestoreInt: reader.readLong(offsets[138]),
-    textSelectedWordTableItemInt: reader.readLong(offsets[139]),
-    textSubtitle1Int: reader.readLong(offsets[140]),
-    textSubtitle2Int: reader.readLong(offsets[141]),
-    textSubtitle3Int: reader.readLong(offsets[142]),
-    textSubtitle4Int: reader.readLong(offsets[143]),
-    textSubtitle5Int: reader.readLong(offsets[144]),
-    textSubtitle6Int: reader.readLong(offsets[145]),
-    textWhiteInt: reader.readLong(offsets[146]),
-    themeId: reader.readString(offsets[147]),
-    tokenSummaryBGInt: reader.readLong(offsets[148]),
-    tokenSummaryButtonBGInt: reader.readLong(offsets[149]),
-    tokenSummaryIconInt: reader.readLong(offsets[150]),
-    tokenSummaryTextPrimaryInt: reader.readLong(offsets[151]),
-    tokenSummaryTextSecondaryInt: reader.readLong(offsets[152]),
-    topNavIconGreenInt: reader.readLong(offsets[153]),
-    topNavIconPrimaryInt: reader.readLong(offsets[154]),
-    topNavIconRedInt: reader.readLong(offsets[155]),
-    topNavIconYellowInt: reader.readLong(offsets[156]),
-    warningBackgroundInt: reader.readLong(offsets[157]),
-    warningForegroundInt: reader.readLong(offsets[158]),
+  final object = StackTheme();
+  object.accentColorBlueInt = reader.readLong(offsets[0]);
+  object.accentColorDarkInt = reader.readLong(offsets[1]);
+  object.accentColorGreenInt = reader.readLong(offsets[2]);
+  object.accentColorOrangeInt = reader.readLong(offsets[3]);
+  object.accentColorRedInt = reader.readLong(offsets[4]);
+  object.accentColorYellowInt = reader.readLong(offsets[5]);
+  object.assetsV1 = reader.readObjectOrNull<ThemeAssets>(
+    offsets[6],
+    ThemeAssetsSchema.deserialize,
+    allOffsets,
   );
+  object.assetsV2 = reader.readObjectOrNull<ThemeAssetsV2>(
+    offsets[7],
+    ThemeAssetsV2Schema.deserialize,
+    allOffsets,
+  );
+  object.backgroundAppBarInt = reader.readLong(offsets[8]);
+  object.backgroundInt = reader.readLong(offsets[9]);
+  object.bottomNavBackInt = reader.readLong(offsets[10]);
+  object.bottomNavIconBackInt = reader.readLong(offsets[11]);
+  object.bottomNavIconIconHighlightedInt = reader.readLong(offsets[12]);
+  object.bottomNavIconIconInt = reader.readLong(offsets[13]);
+  object.bottomNavShadowInt = reader.readLong(offsets[14]);
+  object.bottomNavTextInt = reader.readLong(offsets[15]);
+  object.brightnessString = reader.readString(offsets[16]);
+  object.buttonBackBorderDisabledInt = reader.readLong(offsets[17]);
+  object.buttonBackBorderInt = reader.readLong(offsets[18]);
+  object.buttonBackBorderSecondaryDisabledInt = reader.readLong(offsets[19]);
+  object.buttonBackBorderSecondaryInt = reader.readLong(offsets[20]);
+  object.buttonBackPrimaryDisabledInt = reader.readLong(offsets[21]);
+  object.buttonBackPrimaryInt = reader.readLong(offsets[22]);
+  object.buttonBackSecondaryDisabledInt = reader.readLong(offsets[23]);
+  object.buttonBackSecondaryInt = reader.readLong(offsets[24]);
+  object.buttonTextBorderInt = reader.readLong(offsets[25]);
+  object.buttonTextBorderlessDisabledInt = reader.readLong(offsets[26]);
+  object.buttonTextBorderlessInt = reader.readLong(offsets[27]);
+  object.buttonTextDisabledInt = reader.readLong(offsets[28]);
+  object.buttonTextPrimaryDisabledInt = reader.readLong(offsets[29]);
+  object.buttonTextPrimaryInt = reader.readLong(offsets[30]);
+  object.buttonTextSecondaryDisabledInt = reader.readLong(offsets[31]);
+  object.buttonTextSecondaryInt = reader.readLong(offsets[32]);
+  object.checkboxBGCheckedInt = reader.readLong(offsets[33]);
+  object.checkboxBGDisabledInt = reader.readLong(offsets[34]);
+  object.checkboxBorderEmptyInt = reader.readLong(offsets[35]);
+  object.checkboxIconCheckedInt = reader.readLong(offsets[36]);
+  object.checkboxIconDisabledInt = reader.readLong(offsets[37]);
+  object.checkboxTextLabelInt = reader.readLong(offsets[38]);
+  object.coinColorsJsonString = reader.readString(offsets[39]);
+  object.currencyListItemBGInt = reader.readLong(offsets[40]);
+  object.customTextButtonDisabledTextInt = reader.readLong(offsets[41]);
+  object.customTextButtonEnabledTextInt = reader.readLong(offsets[42]);
+  object.ethTagBGInt = reader.readLong(offsets[43]);
+  object.ethTagTextInt = reader.readLong(offsets[44]);
+  object.ethWalletTagBGInt = reader.readLong(offsets[45]);
+  object.ethWalletTagTextInt = reader.readLong(offsets[46]);
+  object.favoriteStarActiveInt = reader.readLong(offsets[47]);
+  object.favoriteStarInactiveInt = reader.readLong(offsets[48]);
+  object.gradientBackgroundString = reader.readStringOrNull(offsets[49]);
+  object.highlightInt = reader.readLong(offsets[50]);
+  object.homeViewButtonBarBoxShadowString =
+      reader.readStringOrNull(offsets[51]);
   object.id = id;
+  object.infoItemBGInt = reader.readLong(offsets[52]);
+  object.infoItemIconsInt = reader.readLong(offsets[53]);
+  object.infoItemLabelInt = reader.readLong(offsets[54]);
+  object.infoItemTextInt = reader.readLong(offsets[55]);
+  object.loadingOverlayTextColorInt = reader.readLong(offsets[56]);
+  object.myStackContactIconBGInt = reader.readLong(offsets[57]);
+  object.name = reader.readString(offsets[58]);
+  object.numberBackDefaultInt = reader.readLong(offsets[59]);
+  object.numberTextDefaultInt = reader.readLong(offsets[60]);
+  object.numpadBackDefaultInt = reader.readLong(offsets[61]);
+  object.numpadTextDefaultInt = reader.readLong(offsets[62]);
+  object.overlayInt = reader.readLong(offsets[63]);
+  object.popupBGInt = reader.readLong(offsets[64]);
+  object.radioButtonBorderDisabledInt = reader.readLong(offsets[65]);
+  object.radioButtonBorderEnabledInt = reader.readLong(offsets[66]);
+  object.radioButtonIconBorderDisabledInt = reader.readLong(offsets[67]);
+  object.radioButtonIconBorderInt = reader.readLong(offsets[68]);
+  object.radioButtonIconCircleInt = reader.readLong(offsets[69]);
+  object.radioButtonIconEnabledInt = reader.readLong(offsets[70]);
+  object.radioButtonLabelDisabledInt = reader.readLong(offsets[71]);
+  object.radioButtonLabelEnabledInt = reader.readLong(offsets[72]);
+  object.radioButtonTextDisabledInt = reader.readLong(offsets[73]);
+  object.radioButtonTextEnabledInt = reader.readLong(offsets[74]);
+  object.rateTypeToggleColorOffInt = reader.readLong(offsets[75]);
+  object.rateTypeToggleColorOnInt = reader.readLong(offsets[76]);
+  object.rateTypeToggleDesktopColorOffInt = reader.readLong(offsets[77]);
+  object.rateTypeToggleDesktopColorOnInt = reader.readLong(offsets[78]);
+  object.settingsIconBack2Int = reader.readLong(offsets[79]);
+  object.settingsIconBackInt = reader.readLong(offsets[80]);
+  object.settingsIconElementInt = reader.readLong(offsets[81]);
+  object.settingsIconIconInt = reader.readLong(offsets[82]);
+  object.settingsItem2ActiveBGInt = reader.readLong(offsets[83]);
+  object.settingsItem2ActiveSubInt = reader.readLong(offsets[84]);
+  object.settingsItem2ActiveTextInt = reader.readLong(offsets[85]);
+  object.shadowInt = reader.readLong(offsets[86]);
+  object.snackBarBackErrorInt = reader.readLong(offsets[87]);
+  object.snackBarBackInfoInt = reader.readLong(offsets[88]);
+  object.snackBarBackSuccessInt = reader.readLong(offsets[89]);
+  object.snackBarTextErrorInt = reader.readLong(offsets[90]);
+  object.snackBarTextInfoInt = reader.readLong(offsets[91]);
+  object.snackBarTextSuccessInt = reader.readLong(offsets[92]);
+  object.splashInt = reader.readLong(offsets[93]);
+  object.stackWalletBGInt = reader.readLong(offsets[94]);
+  object.stackWalletBottomInt = reader.readLong(offsets[95]);
+  object.stackWalletMidInt = reader.readLong(offsets[96]);
+  object.standardBoxShadowString = reader.readString(offsets[97]);
+  object.stepIndicatorBGCheckInt = reader.readLong(offsets[98]);
+  object.stepIndicatorBGInactiveInt = reader.readLong(offsets[99]);
+  object.stepIndicatorBGLinesInactiveInt = reader.readLong(offsets[100]);
+  object.stepIndicatorBGLinesInt = reader.readLong(offsets[101]);
+  object.stepIndicatorBGNumberInt = reader.readLong(offsets[102]);
+  object.stepIndicatorIconInactiveInt = reader.readLong(offsets[103]);
+  object.stepIndicatorIconNumberInt = reader.readLong(offsets[104]);
+  object.stepIndicatorIconTextInt = reader.readLong(offsets[105]);
+  object.switchBGDisabledInt = reader.readLong(offsets[106]);
+  object.switchBGOffInt = reader.readLong(offsets[107]);
+  object.switchBGOnInt = reader.readLong(offsets[108]);
+  object.switchCircleDisabledInt = reader.readLong(offsets[109]);
+  object.switchCircleOffInt = reader.readLong(offsets[110]);
+  object.switchCircleOnInt = reader.readLong(offsets[111]);
+  object.textConfirmTotalAmountInt = reader.readLong(offsets[112]);
+  object.textDark2Int = reader.readLong(offsets[113]);
+  object.textDark3Int = reader.readLong(offsets[114]);
+  object.textDarkInt = reader.readLong(offsets[115]);
+  object.textErrorInt = reader.readLong(offsets[116]);
+  object.textFavoriteCardInt = reader.readLong(offsets[117]);
+  object.textFieldActiveBGInt = reader.readLong(offsets[118]);
+  object.textFieldActiveLabelInt = reader.readLong(offsets[119]);
+  object.textFieldActiveSearchIconLeftInt = reader.readLong(offsets[120]);
+  object.textFieldActiveSearchIconRightInt = reader.readLong(offsets[121]);
+  object.textFieldActiveTextInt = reader.readLong(offsets[122]);
+  object.textFieldDefaultBGInt = reader.readLong(offsets[123]);
+  object.textFieldDefaultSearchIconLeftInt = reader.readLong(offsets[124]);
+  object.textFieldDefaultSearchIconRightInt = reader.readLong(offsets[125]);
+  object.textFieldDefaultTextInt = reader.readLong(offsets[126]);
+  object.textFieldErrorBGInt = reader.readLong(offsets[127]);
+  object.textFieldErrorBorderInt = reader.readLong(offsets[128]);
+  object.textFieldErrorLabelInt = reader.readLong(offsets[129]);
+  object.textFieldErrorSearchIconLeftInt = reader.readLong(offsets[130]);
+  object.textFieldErrorSearchIconRightInt = reader.readLong(offsets[131]);
+  object.textFieldErrorTextInt = reader.readLong(offsets[132]);
+  object.textFieldSuccessBGInt = reader.readLong(offsets[133]);
+  object.textFieldSuccessBorderInt = reader.readLong(offsets[134]);
+  object.textFieldSuccessLabelInt = reader.readLong(offsets[135]);
+  object.textFieldSuccessSearchIconLeftInt = reader.readLong(offsets[136]);
+  object.textFieldSuccessSearchIconRightInt = reader.readLong(offsets[137]);
+  object.textFieldSuccessTextInt = reader.readLong(offsets[138]);
+  object.textRestoreInt = reader.readLong(offsets[139]);
+  object.textSelectedWordTableItemInt = reader.readLong(offsets[140]);
+  object.textSubtitle1Int = reader.readLong(offsets[141]);
+  object.textSubtitle2Int = reader.readLong(offsets[142]);
+  object.textSubtitle3Int = reader.readLong(offsets[143]);
+  object.textSubtitle4Int = reader.readLong(offsets[144]);
+  object.textSubtitle5Int = reader.readLong(offsets[145]);
+  object.textSubtitle6Int = reader.readLong(offsets[146]);
+  object.textWhiteInt = reader.readLong(offsets[147]);
+  object.themeId = reader.readString(offsets[148]);
+  object.tokenSummaryBGInt = reader.readLong(offsets[149]);
+  object.tokenSummaryButtonBGInt = reader.readLong(offsets[150]);
+  object.tokenSummaryIconInt = reader.readLong(offsets[151]);
+  object.tokenSummaryTextPrimaryInt = reader.readLong(offsets[152]);
+  object.tokenSummaryTextSecondaryInt = reader.readLong(offsets[153]);
+  object.topNavIconGreenInt = reader.readLong(offsets[154]);
+  object.topNavIconPrimaryInt = reader.readLong(offsets[155]);
+  object.topNavIconRedInt = reader.readLong(offsets[156]);
+  object.topNavIconYellowInt = reader.readLong(offsets[157]);
+  object.version = reader.readLongOrNull(offsets[158]);
+  object.warningBackgroundInt = reader.readLong(offsets[159]);
+  object.warningForegroundInt = reader.readLong(offsets[160]);
+  object.assetsV3 = reader.readObjectOrNull<ThemeAssetsV3>(
+    offsets[161],
+    ThemeAssetsV3Schema.deserialize,
+    allOffsets,
+  );
   return object;
 }
 
@@ -1240,13 +1305,16 @@ P _stackThemeDeserializeProp<P>(
       return (reader.readLong(offset)) as P;
     case 6:
       return (reader.readObjectOrNull<ThemeAssets>(
-            offset,
-            ThemeAssetsSchema.deserialize,
-            allOffsets,
-          ) ??
-          ThemeAssets()) as P;
+        offset,
+        ThemeAssetsSchema.deserialize,
+        allOffsets,
+      )) as P;
     case 7:
-      return (reader.readLong(offset)) as P;
+      return (reader.readObjectOrNull<ThemeAssetsV2>(
+        offset,
+        ThemeAssetsV2Schema.deserialize,
+        allOffsets,
+      )) as P;
     case 8:
       return (reader.readLong(offset)) as P;
     case 9:
@@ -1262,9 +1330,9 @@ P _stackThemeDeserializeProp<P>(
     case 14:
       return (reader.readLong(offset)) as P;
     case 15:
-      return (reader.readString(offset)) as P;
-    case 16:
       return (reader.readLong(offset)) as P;
+    case 16:
+      return (reader.readString(offset)) as P;
     case 17:
       return (reader.readLong(offset)) as P;
     case 18:
@@ -1308,9 +1376,9 @@ P _stackThemeDeserializeProp<P>(
     case 37:
       return (reader.readLong(offset)) as P;
     case 38:
-      return (reader.readString(offset)) as P;
-    case 39:
       return (reader.readLong(offset)) as P;
+    case 39:
+      return (reader.readString(offset)) as P;
     case 40:
       return (reader.readLong(offset)) as P;
     case 41:
@@ -1328,13 +1396,13 @@ P _stackThemeDeserializeProp<P>(
     case 47:
       return (reader.readLong(offset)) as P;
     case 48:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 49:
-      return (reader.readLong(offset)) as P;
-    case 50:
       return (reader.readStringOrNull(offset)) as P;
-    case 51:
+    case 50:
       return (reader.readLong(offset)) as P;
+    case 51:
+      return (reader.readStringOrNull(offset)) as P;
     case 52:
       return (reader.readLong(offset)) as P;
     case 53:
@@ -1346,9 +1414,9 @@ P _stackThemeDeserializeProp<P>(
     case 56:
       return (reader.readLong(offset)) as P;
     case 57:
-      return (reader.readString(offset)) as P;
-    case 58:
       return (reader.readLong(offset)) as P;
+    case 58:
+      return (reader.readString(offset)) as P;
     case 59:
       return (reader.readLong(offset)) as P;
     case 60:
@@ -1424,9 +1492,9 @@ P _stackThemeDeserializeProp<P>(
     case 95:
       return (reader.readLong(offset)) as P;
     case 96:
-      return (reader.readString(offset)) as P;
-    case 97:
       return (reader.readLong(offset)) as P;
+    case 97:
+      return (reader.readString(offset)) as P;
     case 98:
       return (reader.readLong(offset)) as P;
     case 99:
@@ -1526,9 +1594,9 @@ P _stackThemeDeserializeProp<P>(
     case 146:
       return (reader.readLong(offset)) as P;
     case 147:
-      return (reader.readString(offset)) as P;
-    case 148:
       return (reader.readLong(offset)) as P;
+    case 148:
+      return (reader.readString(offset)) as P;
     case 149:
       return (reader.readLong(offset)) as P;
     case 150:
@@ -1548,7 +1616,17 @@ P _stackThemeDeserializeProp<P>(
     case 157:
       return (reader.readLong(offset)) as P;
     case 158:
+      return (reader.readLongOrNull(offset)) as P;
+    case 159:
       return (reader.readLong(offset)) as P;
+    case 160:
+      return (reader.readLong(offset)) as P;
+    case 161:
+      return (reader.readObjectOrNull<ThemeAssetsV3>(
+        offset,
+        ThemeAssetsV3Schema.deserialize,
+        allOffsets,
+      )) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -2077,6 +2155,40 @@ extension StackThemeQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition> assetsV1IsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'assets',
+      ));
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition>
+      assetsV1IsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'assets',
+      ));
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition> assetsV2IsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'assetsV2',
+      ));
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition>
+      assetsV2IsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'assetsV2',
       ));
     });
   }
@@ -11120,6 +11232,77 @@ extension StackThemeQueryFilter
     });
   }
 
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition> versionIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'version',
+      ));
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition>
+      versionIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'version',
+      ));
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition> versionEqualTo(
+      int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'version',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition>
+      versionGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'version',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition> versionLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'version',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition> versionBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'version',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition>
       warningBackgroundIntEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
@@ -11231,14 +11414,45 @@ extension StackThemeQueryFilter
       ));
     });
   }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition> assetsV3IsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'zAssetsV3',
+      ));
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition>
+      assetsV3IsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'zAssetsV3',
+      ));
+    });
+  }
 }
 
 extension StackThemeQueryObject
     on QueryBuilder<StackTheme, StackTheme, QFilterCondition> {
-  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition> assets(
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition> assetsV1(
       FilterQuery<ThemeAssets> q) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, r'assets');
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition> assetsV2(
+      FilterQuery<ThemeAssetsV2> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'assetsV2');
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterFilterCondition> assetsV3(
+      FilterQuery<ThemeAssetsV3> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'zAssetsV3');
     });
   }
 }
@@ -13375,6 +13589,18 @@ extension StackThemeQuerySortBy
       sortByTopNavIconYellowIntDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'topNavIconYellowInt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterSortBy> sortByVersion() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'version', Sort.asc);
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterSortBy> sortByVersionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'version', Sort.desc);
     });
   }
 
@@ -15551,6 +15777,18 @@ extension StackThemeQuerySortThenBy
     });
   }
 
+  QueryBuilder<StackTheme, StackTheme, QAfterSortBy> thenByVersion() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'version', Sort.asc);
+    });
+  }
+
+  QueryBuilder<StackTheme, StackTheme, QAfterSortBy> thenByVersionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'version', Sort.desc);
+    });
+  }
+
   QueryBuilder<StackTheme, StackTheme, QAfterSortBy>
       thenByWarningBackgroundInt() {
     return QueryBuilder.apply(this, (query) {
@@ -16649,6 +16887,12 @@ extension StackThemeQueryWhereDistinct
     });
   }
 
+  QueryBuilder<StackTheme, StackTheme, QDistinct> distinctByVersion() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'version');
+    });
+  }
+
   QueryBuilder<StackTheme, StackTheme, QDistinct>
       distinctByWarningBackgroundInt() {
     return QueryBuilder.apply(this, (query) {
@@ -16711,9 +16955,16 @@ extension StackThemeQueryProperty
     });
   }
 
-  QueryBuilder<StackTheme, ThemeAssets, QQueryOperations> assetsProperty() {
+  QueryBuilder<StackTheme, ThemeAssets?, QQueryOperations> assetsV1Property() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'assets');
+    });
+  }
+
+  QueryBuilder<StackTheme, ThemeAssetsV2?, QQueryOperations>
+      assetsV2Property() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'assetsV2');
     });
   }
 
@@ -17728,6 +17979,12 @@ extension StackThemeQueryProperty
     });
   }
 
+  QueryBuilder<StackTheme, int?, QQueryOperations> versionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'version');
+    });
+  }
+
   QueryBuilder<StackTheme, int, QQueryOperations>
       warningBackgroundIntProperty() {
     return QueryBuilder.apply(this, (query) {
@@ -17739,6 +17996,13 @@ extension StackThemeQueryProperty
       warningForegroundIntProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'warningForegroundInt');
+    });
+  }
+
+  QueryBuilder<StackTheme, ThemeAssetsV3?, QQueryOperations>
+      assetsV3Property() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'zAssetsV3');
     });
   }
 }
@@ -25567,3 +25831,7912 @@ extension ThemeAssetsQueryFilter
 
 extension ThemeAssetsQueryObject
     on QueryBuilder<ThemeAssets, ThemeAssets, QFilterCondition> {}
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
+
+const ThemeAssetsV2Schema = Schema(
+  name: r'ThemeAssetsV2',
+  id: -373522695224267013,
+  properties: {
+    r'background': PropertySchema(
+      id: 0,
+      name: r'background',
+      type: IsarType.string,
+    ),
+    r'bellNew': PropertySchema(
+      id: 1,
+      name: r'bellNew',
+      type: IsarType.string,
+    ),
+    r'buy': PropertySchema(
+      id: 2,
+      name: r'buy',
+      type: IsarType.string,
+    ),
+    r'coinIconsString': PropertySchema(
+      id: 3,
+      name: r'coinIconsString',
+      type: IsarType.string,
+    ),
+    r'coinImagesString': PropertySchema(
+      id: 4,
+      name: r'coinImagesString',
+      type: IsarType.string,
+    ),
+    r'coinPlaceholder': PropertySchema(
+      id: 5,
+      name: r'coinPlaceholder',
+      type: IsarType.string,
+    ),
+    r'coinSecondaryImagesString': PropertySchema(
+      id: 6,
+      name: r'coinSecondaryImagesString',
+      type: IsarType.string,
+    ),
+    r'exchange': PropertySchema(
+      id: 7,
+      name: r'exchange',
+      type: IsarType.string,
+    ),
+    r'loadingGif': PropertySchema(
+      id: 8,
+      name: r'loadingGif',
+      type: IsarType.string,
+    ),
+    r'personaEasy': PropertySchema(
+      id: 9,
+      name: r'personaEasy',
+      type: IsarType.string,
+    ),
+    r'personaIncognito': PropertySchema(
+      id: 10,
+      name: r'personaIncognito',
+      type: IsarType.string,
+    ),
+    r'receive': PropertySchema(
+      id: 11,
+      name: r'receive',
+      type: IsarType.string,
+    ),
+    r'receiveCancelled': PropertySchema(
+      id: 12,
+      name: r'receiveCancelled',
+      type: IsarType.string,
+    ),
+    r'receivePending': PropertySchema(
+      id: 13,
+      name: r'receivePending',
+      type: IsarType.string,
+    ),
+    r'send': PropertySchema(
+      id: 14,
+      name: r'send',
+      type: IsarType.string,
+    ),
+    r'sendCancelled': PropertySchema(
+      id: 15,
+      name: r'sendCancelled',
+      type: IsarType.string,
+    ),
+    r'sendPending': PropertySchema(
+      id: 16,
+      name: r'sendPending',
+      type: IsarType.string,
+    ),
+    r'stack': PropertySchema(
+      id: 17,
+      name: r'stack',
+      type: IsarType.string,
+    ),
+    r'stackIcon': PropertySchema(
+      id: 18,
+      name: r'stackIcon',
+      type: IsarType.string,
+    ),
+    r'themePreview': PropertySchema(
+      id: 19,
+      name: r'themePreview',
+      type: IsarType.string,
+    ),
+    r'themeSelector': PropertySchema(
+      id: 20,
+      name: r'themeSelector',
+      type: IsarType.string,
+    ),
+    r'txExchange': PropertySchema(
+      id: 21,
+      name: r'txExchange',
+      type: IsarType.string,
+    ),
+    r'txExchangeFailed': PropertySchema(
+      id: 22,
+      name: r'txExchangeFailed',
+      type: IsarType.string,
+    ),
+    r'txExchangePending': PropertySchema(
+      id: 23,
+      name: r'txExchangePending',
+      type: IsarType.string,
+    )
+  },
+  estimateSize: _themeAssetsV2EstimateSize,
+  serialize: _themeAssetsV2Serialize,
+  deserialize: _themeAssetsV2Deserialize,
+  deserializeProp: _themeAssetsV2DeserializeProp,
+);
+
+int _themeAssetsV2EstimateSize(
+  ThemeAssetsV2 object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  {
+    final value = object.background;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  bytesCount += 3 + object.bellNew.length * 3;
+  bytesCount += 3 + object.buy.length * 3;
+  bytesCount += 3 + object.coinIconsString.length * 3;
+  bytesCount += 3 + object.coinImagesString.length * 3;
+  bytesCount += 3 + object.coinPlaceholder.length * 3;
+  bytesCount += 3 + object.coinSecondaryImagesString.length * 3;
+  bytesCount += 3 + object.exchange.length * 3;
+  {
+    final value = object.loadingGif;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  bytesCount += 3 + object.personaEasy.length * 3;
+  bytesCount += 3 + object.personaIncognito.length * 3;
+  bytesCount += 3 + object.receive.length * 3;
+  bytesCount += 3 + object.receiveCancelled.length * 3;
+  bytesCount += 3 + object.receivePending.length * 3;
+  bytesCount += 3 + object.send.length * 3;
+  bytesCount += 3 + object.sendCancelled.length * 3;
+  bytesCount += 3 + object.sendPending.length * 3;
+  bytesCount += 3 + object.stack.length * 3;
+  bytesCount += 3 + object.stackIcon.length * 3;
+  bytesCount += 3 + object.themePreview.length * 3;
+  bytesCount += 3 + object.themeSelector.length * 3;
+  bytesCount += 3 + object.txExchange.length * 3;
+  bytesCount += 3 + object.txExchangeFailed.length * 3;
+  bytesCount += 3 + object.txExchangePending.length * 3;
+  return bytesCount;
+}
+
+void _themeAssetsV2Serialize(
+  ThemeAssetsV2 object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeString(offsets[0], object.background);
+  writer.writeString(offsets[1], object.bellNew);
+  writer.writeString(offsets[2], object.buy);
+  writer.writeString(offsets[3], object.coinIconsString);
+  writer.writeString(offsets[4], object.coinImagesString);
+  writer.writeString(offsets[5], object.coinPlaceholder);
+  writer.writeString(offsets[6], object.coinSecondaryImagesString);
+  writer.writeString(offsets[7], object.exchange);
+  writer.writeString(offsets[8], object.loadingGif);
+  writer.writeString(offsets[9], object.personaEasy);
+  writer.writeString(offsets[10], object.personaIncognito);
+  writer.writeString(offsets[11], object.receive);
+  writer.writeString(offsets[12], object.receiveCancelled);
+  writer.writeString(offsets[13], object.receivePending);
+  writer.writeString(offsets[14], object.send);
+  writer.writeString(offsets[15], object.sendCancelled);
+  writer.writeString(offsets[16], object.sendPending);
+  writer.writeString(offsets[17], object.stack);
+  writer.writeString(offsets[18], object.stackIcon);
+  writer.writeString(offsets[19], object.themePreview);
+  writer.writeString(offsets[20], object.themeSelector);
+  writer.writeString(offsets[21], object.txExchange);
+  writer.writeString(offsets[22], object.txExchangeFailed);
+  writer.writeString(offsets[23], object.txExchangePending);
+}
+
+ThemeAssetsV2 _themeAssetsV2Deserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = ThemeAssetsV2();
+  object.background = reader.readStringOrNull(offsets[0]);
+  object.bellNew = reader.readString(offsets[1]);
+  object.buy = reader.readString(offsets[2]);
+  object.coinIconsString = reader.readString(offsets[3]);
+  object.coinImagesString = reader.readString(offsets[4]);
+  object.coinPlaceholder = reader.readString(offsets[5]);
+  object.coinSecondaryImagesString = reader.readString(offsets[6]);
+  object.exchange = reader.readString(offsets[7]);
+  object.loadingGif = reader.readStringOrNull(offsets[8]);
+  object.personaEasy = reader.readString(offsets[9]);
+  object.personaIncognito = reader.readString(offsets[10]);
+  object.receive = reader.readString(offsets[11]);
+  object.receiveCancelled = reader.readString(offsets[12]);
+  object.receivePending = reader.readString(offsets[13]);
+  object.send = reader.readString(offsets[14]);
+  object.sendCancelled = reader.readString(offsets[15]);
+  object.sendPending = reader.readString(offsets[16]);
+  object.stack = reader.readString(offsets[17]);
+  object.stackIcon = reader.readString(offsets[18]);
+  object.themePreview = reader.readString(offsets[19]);
+  object.themeSelector = reader.readString(offsets[20]);
+  object.txExchange = reader.readString(offsets[21]);
+  object.txExchangeFailed = reader.readString(offsets[22]);
+  object.txExchangePending = reader.readString(offsets[23]);
+  return object;
+}
+
+P _themeAssetsV2DeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readStringOrNull(offset)) as P;
+    case 1:
+      return (reader.readString(offset)) as P;
+    case 2:
+      return (reader.readString(offset)) as P;
+    case 3:
+      return (reader.readString(offset)) as P;
+    case 4:
+      return (reader.readString(offset)) as P;
+    case 5:
+      return (reader.readString(offset)) as P;
+    case 6:
+      return (reader.readString(offset)) as P;
+    case 7:
+      return (reader.readString(offset)) as P;
+    case 8:
+      return (reader.readStringOrNull(offset)) as P;
+    case 9:
+      return (reader.readString(offset)) as P;
+    case 10:
+      return (reader.readString(offset)) as P;
+    case 11:
+      return (reader.readString(offset)) as P;
+    case 12:
+      return (reader.readString(offset)) as P;
+    case 13:
+      return (reader.readString(offset)) as P;
+    case 14:
+      return (reader.readString(offset)) as P;
+    case 15:
+      return (reader.readString(offset)) as P;
+    case 16:
+      return (reader.readString(offset)) as P;
+    case 17:
+      return (reader.readString(offset)) as P;
+    case 18:
+      return (reader.readString(offset)) as P;
+    case 19:
+      return (reader.readString(offset)) as P;
+    case 20:
+      return (reader.readString(offset)) as P;
+    case 21:
+      return (reader.readString(offset)) as P;
+    case 22:
+      return (reader.readString(offset)) as P;
+    case 23:
+      return (reader.readString(offset)) as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+extension ThemeAssetsV2QueryFilter
+    on QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QFilterCondition> {
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      backgroundIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'background',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      backgroundIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'background',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      backgroundEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'background',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      backgroundGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'background',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      backgroundLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'background',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      backgroundBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'background',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      backgroundStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'background',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      backgroundEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'background',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      backgroundContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'background',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      backgroundMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'background',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      backgroundIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'background',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      backgroundIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'background',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      bellNewEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'bellNew',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      bellNewGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'bellNew',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      bellNewLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'bellNew',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      bellNewBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'bellNew',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      bellNewStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'bellNew',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      bellNewEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'bellNew',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      bellNewContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'bellNew',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      bellNewMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'bellNew',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      bellNewIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'bellNew',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      bellNewIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'bellNew',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition> buyEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'buy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      buyGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'buy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition> buyLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'buy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition> buyBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'buy',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      buyStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'buy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition> buyEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'buy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition> buyContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'buy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition> buyMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'buy',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      buyIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'buy',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      buyIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'buy',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinIconsStringEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinIconsString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinIconsStringGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'coinIconsString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinIconsStringLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'coinIconsString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinIconsStringBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'coinIconsString',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinIconsStringStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'coinIconsString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinIconsStringEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'coinIconsString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinIconsStringContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'coinIconsString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinIconsStringMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'coinIconsString',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinIconsStringIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinIconsString',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinIconsStringIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'coinIconsString',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinImagesStringEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinImagesStringGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'coinImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinImagesStringLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'coinImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinImagesStringBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'coinImagesString',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinImagesStringStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'coinImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinImagesStringEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'coinImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinImagesStringContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'coinImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinImagesStringMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'coinImagesString',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinImagesStringIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinImagesString',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinImagesStringIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'coinImagesString',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinPlaceholderEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinPlaceholder',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinPlaceholderGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'coinPlaceholder',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinPlaceholderLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'coinPlaceholder',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinPlaceholderBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'coinPlaceholder',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinPlaceholderStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'coinPlaceholder',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinPlaceholderEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'coinPlaceholder',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinPlaceholderContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'coinPlaceholder',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinPlaceholderMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'coinPlaceholder',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinPlaceholderIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinPlaceholder',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinPlaceholderIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'coinPlaceholder',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinSecondaryImagesStringEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinSecondaryImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinSecondaryImagesStringGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'coinSecondaryImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinSecondaryImagesStringLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'coinSecondaryImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinSecondaryImagesStringBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'coinSecondaryImagesString',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinSecondaryImagesStringStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'coinSecondaryImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinSecondaryImagesStringEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'coinSecondaryImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinSecondaryImagesStringContains(String value,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'coinSecondaryImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinSecondaryImagesStringMatches(String pattern,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'coinSecondaryImagesString',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinSecondaryImagesStringIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinSecondaryImagesString',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      coinSecondaryImagesStringIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'coinSecondaryImagesString',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      exchangeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'exchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      exchangeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'exchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      exchangeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'exchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      exchangeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'exchange',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      exchangeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'exchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      exchangeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'exchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      exchangeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'exchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      exchangeMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'exchange',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      exchangeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'exchange',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      exchangeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'exchange',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      loadingGifIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'loadingGif',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      loadingGifIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'loadingGif',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      loadingGifEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'loadingGif',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      loadingGifGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'loadingGif',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      loadingGifLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'loadingGif',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      loadingGifBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'loadingGif',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      loadingGifStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'loadingGif',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      loadingGifEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'loadingGif',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      loadingGifContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'loadingGif',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      loadingGifMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'loadingGif',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      loadingGifIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'loadingGif',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      loadingGifIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'loadingGif',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaEasyEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'personaEasy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaEasyGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'personaEasy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaEasyLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'personaEasy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaEasyBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'personaEasy',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaEasyStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'personaEasy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaEasyEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'personaEasy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaEasyContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'personaEasy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaEasyMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'personaEasy',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaEasyIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'personaEasy',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaEasyIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'personaEasy',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaIncognitoEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'personaIncognito',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaIncognitoGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'personaIncognito',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaIncognitoLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'personaIncognito',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaIncognitoBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'personaIncognito',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaIncognitoStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'personaIncognito',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaIncognitoEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'personaIncognito',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaIncognitoContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'personaIncognito',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaIncognitoMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'personaIncognito',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaIncognitoIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'personaIncognito',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      personaIncognitoIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'personaIncognito',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'receive',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'receive',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'receive',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'receive',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'receive',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'receive',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'receive',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'receive',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'receive',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'receive',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveCancelledEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'receiveCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveCancelledGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'receiveCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveCancelledLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'receiveCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveCancelledBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'receiveCancelled',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveCancelledStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'receiveCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveCancelledEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'receiveCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveCancelledContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'receiveCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveCancelledMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'receiveCancelled',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveCancelledIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'receiveCancelled',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receiveCancelledIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'receiveCancelled',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receivePendingEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'receivePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receivePendingGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'receivePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receivePendingLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'receivePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receivePendingBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'receivePending',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receivePendingStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'receivePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receivePendingEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'receivePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receivePendingContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'receivePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receivePendingMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'receivePending',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receivePendingIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'receivePending',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      receivePendingIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'receivePending',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition> sendEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'send',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'send',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'send',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition> sendBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'send',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'send',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'send',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'send',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition> sendMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'send',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'send',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'send',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendCancelledEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'sendCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendCancelledGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'sendCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendCancelledLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'sendCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendCancelledBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'sendCancelled',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendCancelledStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'sendCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendCancelledEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'sendCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendCancelledContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'sendCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendCancelledMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'sendCancelled',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendCancelledIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'sendCancelled',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendCancelledIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'sendCancelled',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendPendingEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'sendPending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendPendingGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'sendPending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendPendingLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'sendPending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendPendingBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'sendPending',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendPendingStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'sendPending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendPendingEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'sendPending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendPendingContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'sendPending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendPendingMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'sendPending',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendPendingIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'sendPending',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      sendPendingIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'sendPending',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'stack',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'stack',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'stack',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'stack',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'stack',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'stack',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'stack',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'stack',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'stack',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'stack',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackIconEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'stackIcon',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackIconGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'stackIcon',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackIconLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'stackIcon',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackIconBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'stackIcon',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackIconStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'stackIcon',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackIconEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'stackIcon',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackIconContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'stackIcon',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackIconMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'stackIcon',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackIconIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'stackIcon',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      stackIconIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'stackIcon',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themePreviewEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'themePreview',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themePreviewGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'themePreview',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themePreviewLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'themePreview',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themePreviewBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'themePreview',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themePreviewStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'themePreview',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themePreviewEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'themePreview',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themePreviewContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'themePreview',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themePreviewMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'themePreview',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themePreviewIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'themePreview',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themePreviewIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'themePreview',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themeSelectorEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'themeSelector',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themeSelectorGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'themeSelector',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themeSelectorLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'themeSelector',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themeSelectorBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'themeSelector',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themeSelectorStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'themeSelector',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themeSelectorEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'themeSelector',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themeSelectorContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'themeSelector',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themeSelectorMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'themeSelector',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themeSelectorIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'themeSelector',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      themeSelectorIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'themeSelector',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'txExchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'txExchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'txExchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'txExchange',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'txExchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'txExchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'txExchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'txExchange',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'txExchange',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'txExchange',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeFailedEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'txExchangeFailed',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeFailedGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'txExchangeFailed',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeFailedLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'txExchangeFailed',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeFailedBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'txExchangeFailed',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeFailedStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'txExchangeFailed',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeFailedEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'txExchangeFailed',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeFailedContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'txExchangeFailed',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeFailedMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'txExchangeFailed',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeFailedIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'txExchangeFailed',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangeFailedIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'txExchangeFailed',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangePendingEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'txExchangePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangePendingGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'txExchangePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangePendingLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'txExchangePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangePendingBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'txExchangePending',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangePendingStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'txExchangePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangePendingEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'txExchangePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangePendingContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'txExchangePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangePendingMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'txExchangePending',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangePendingIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'txExchangePending',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QAfterFilterCondition>
+      txExchangePendingIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'txExchangePending',
+        value: '',
+      ));
+    });
+  }
+}
+
+extension ThemeAssetsV2QueryObject
+    on QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QFilterCondition> {}
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
+
+const ThemeAssetsV3Schema = Schema(
+  name: r'ThemeAssetsV3',
+  id: -8828098514594684151,
+  properties: {
+    r'background': PropertySchema(
+      id: 0,
+      name: r'background',
+      type: IsarType.string,
+    ),
+    r'bellNew': PropertySchema(
+      id: 1,
+      name: r'bellNew',
+      type: IsarType.string,
+    ),
+    r'buy': PropertySchema(
+      id: 2,
+      name: r'buy',
+      type: IsarType.string,
+    ),
+    r'coinCardImagesString': PropertySchema(
+      id: 3,
+      name: r'coinCardImagesString',
+      type: IsarType.string,
+    ),
+    r'coinIconsString': PropertySchema(
+      id: 4,
+      name: r'coinIconsString',
+      type: IsarType.string,
+    ),
+    r'coinImagesString': PropertySchema(
+      id: 5,
+      name: r'coinImagesString',
+      type: IsarType.string,
+    ),
+    r'coinPlaceholder': PropertySchema(
+      id: 6,
+      name: r'coinPlaceholder',
+      type: IsarType.string,
+    ),
+    r'coinSecondaryImagesString': PropertySchema(
+      id: 7,
+      name: r'coinSecondaryImagesString',
+      type: IsarType.string,
+    ),
+    r'exchange': PropertySchema(
+      id: 8,
+      name: r'exchange',
+      type: IsarType.string,
+    ),
+    r'loadingGif': PropertySchema(
+      id: 9,
+      name: r'loadingGif',
+      type: IsarType.string,
+    ),
+    r'otherStringParam1': PropertySchema(
+      id: 10,
+      name: r'otherStringParam1',
+      type: IsarType.string,
+    ),
+    r'otherStringParam2': PropertySchema(
+      id: 11,
+      name: r'otherStringParam2',
+      type: IsarType.string,
+    ),
+    r'otherStringParam3': PropertySchema(
+      id: 12,
+      name: r'otherStringParam3',
+      type: IsarType.string,
+    ),
+    r'personaEasy': PropertySchema(
+      id: 13,
+      name: r'personaEasy',
+      type: IsarType.string,
+    ),
+    r'personaIncognito': PropertySchema(
+      id: 14,
+      name: r'personaIncognito',
+      type: IsarType.string,
+    ),
+    r'receive': PropertySchema(
+      id: 15,
+      name: r'receive',
+      type: IsarType.string,
+    ),
+    r'receiveCancelled': PropertySchema(
+      id: 16,
+      name: r'receiveCancelled',
+      type: IsarType.string,
+    ),
+    r'receivePending': PropertySchema(
+      id: 17,
+      name: r'receivePending',
+      type: IsarType.string,
+    ),
+    r'send': PropertySchema(
+      id: 18,
+      name: r'send',
+      type: IsarType.string,
+    ),
+    r'sendCancelled': PropertySchema(
+      id: 19,
+      name: r'sendCancelled',
+      type: IsarType.string,
+    ),
+    r'sendPending': PropertySchema(
+      id: 20,
+      name: r'sendPending',
+      type: IsarType.string,
+    ),
+    r'stack': PropertySchema(
+      id: 21,
+      name: r'stack',
+      type: IsarType.string,
+    ),
+    r'stackIcon': PropertySchema(
+      id: 22,
+      name: r'stackIcon',
+      type: IsarType.string,
+    ),
+    r'themePreview': PropertySchema(
+      id: 23,
+      name: r'themePreview',
+      type: IsarType.string,
+    ),
+    r'themeSelector': PropertySchema(
+      id: 24,
+      name: r'themeSelector',
+      type: IsarType.string,
+    ),
+    r'txExchange': PropertySchema(
+      id: 25,
+      name: r'txExchange',
+      type: IsarType.string,
+    ),
+    r'txExchangeFailed': PropertySchema(
+      id: 26,
+      name: r'txExchangeFailed',
+      type: IsarType.string,
+    ),
+    r'txExchangePending': PropertySchema(
+      id: 27,
+      name: r'txExchangePending',
+      type: IsarType.string,
+    )
+  },
+  estimateSize: _themeAssetsV3EstimateSize,
+  serialize: _themeAssetsV3Serialize,
+  deserialize: _themeAssetsV3Deserialize,
+  deserializeProp: _themeAssetsV3DeserializeProp,
+);
+
+int _themeAssetsV3EstimateSize(
+  ThemeAssetsV3 object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  {
+    final value = object.backgroundRelative;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  bytesCount += 3 + object.bellNewRelative.length * 3;
+  bytesCount += 3 + object.buyRelative.length * 3;
+  {
+    final value = object.coinCardImagesString;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  bytesCount += 3 + object.coinIconsString.length * 3;
+  bytesCount += 3 + object.coinImagesString.length * 3;
+  bytesCount += 3 + object.coinPlaceholderRelative.length * 3;
+  bytesCount += 3 + object.coinSecondaryImagesString.length * 3;
+  bytesCount += 3 + object.exchangeRelative.length * 3;
+  {
+    final value = object.loadingGifRelative;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.dummy1;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.dummy2;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.dummy3;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  bytesCount += 3 + object.personaEasyRelative.length * 3;
+  bytesCount += 3 + object.personaIncognitoRelative.length * 3;
+  bytesCount += 3 + object.receiveRelative.length * 3;
+  bytesCount += 3 + object.receiveCancelledRelative.length * 3;
+  bytesCount += 3 + object.receivePendingRelative.length * 3;
+  bytesCount += 3 + object.sendRelative.length * 3;
+  bytesCount += 3 + object.sendCancelledRelative.length * 3;
+  bytesCount += 3 + object.sendPendingRelative.length * 3;
+  bytesCount += 3 + object.stackRelative.length * 3;
+  bytesCount += 3 + object.stackIconRelative.length * 3;
+  bytesCount += 3 + object.themePreviewRelative.length * 3;
+  bytesCount += 3 + object.themeSelectorRelative.length * 3;
+  bytesCount += 3 + object.txExchangeRelative.length * 3;
+  bytesCount += 3 + object.txExchangeFailedRelative.length * 3;
+  bytesCount += 3 + object.txExchangePendingRelative.length * 3;
+  return bytesCount;
+}
+
+void _themeAssetsV3Serialize(
+  ThemeAssetsV3 object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeString(offsets[0], object.backgroundRelative);
+  writer.writeString(offsets[1], object.bellNewRelative);
+  writer.writeString(offsets[2], object.buyRelative);
+  writer.writeString(offsets[3], object.coinCardImagesString);
+  writer.writeString(offsets[4], object.coinIconsString);
+  writer.writeString(offsets[5], object.coinImagesString);
+  writer.writeString(offsets[6], object.coinPlaceholderRelative);
+  writer.writeString(offsets[7], object.coinSecondaryImagesString);
+  writer.writeString(offsets[8], object.exchangeRelative);
+  writer.writeString(offsets[9], object.loadingGifRelative);
+  writer.writeString(offsets[10], object.dummy1);
+  writer.writeString(offsets[11], object.dummy2);
+  writer.writeString(offsets[12], object.dummy3);
+  writer.writeString(offsets[13], object.personaEasyRelative);
+  writer.writeString(offsets[14], object.personaIncognitoRelative);
+  writer.writeString(offsets[15], object.receiveRelative);
+  writer.writeString(offsets[16], object.receiveCancelledRelative);
+  writer.writeString(offsets[17], object.receivePendingRelative);
+  writer.writeString(offsets[18], object.sendRelative);
+  writer.writeString(offsets[19], object.sendCancelledRelative);
+  writer.writeString(offsets[20], object.sendPendingRelative);
+  writer.writeString(offsets[21], object.stackRelative);
+  writer.writeString(offsets[22], object.stackIconRelative);
+  writer.writeString(offsets[23], object.themePreviewRelative);
+  writer.writeString(offsets[24], object.themeSelectorRelative);
+  writer.writeString(offsets[25], object.txExchangeRelative);
+  writer.writeString(offsets[26], object.txExchangeFailedRelative);
+  writer.writeString(offsets[27], object.txExchangePendingRelative);
+}
+
+ThemeAssetsV3 _themeAssetsV3Deserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = ThemeAssetsV3();
+  object.backgroundRelative = reader.readStringOrNull(offsets[0]);
+  object.bellNewRelative = reader.readString(offsets[1]);
+  object.buyRelative = reader.readString(offsets[2]);
+  object.coinCardImagesString = reader.readStringOrNull(offsets[3]);
+  object.coinIconsString = reader.readString(offsets[4]);
+  object.coinImagesString = reader.readString(offsets[5]);
+  object.coinPlaceholderRelative = reader.readString(offsets[6]);
+  object.coinSecondaryImagesString = reader.readString(offsets[7]);
+  object.exchangeRelative = reader.readString(offsets[8]);
+  object.loadingGifRelative = reader.readStringOrNull(offsets[9]);
+  object.dummy1 = reader.readStringOrNull(offsets[10]);
+  object.dummy2 = reader.readStringOrNull(offsets[11]);
+  object.dummy3 = reader.readStringOrNull(offsets[12]);
+  object.personaEasyRelative = reader.readString(offsets[13]);
+  object.personaIncognitoRelative = reader.readString(offsets[14]);
+  object.receiveRelative = reader.readString(offsets[15]);
+  object.receiveCancelledRelative = reader.readString(offsets[16]);
+  object.receivePendingRelative = reader.readString(offsets[17]);
+  object.sendRelative = reader.readString(offsets[18]);
+  object.sendCancelledRelative = reader.readString(offsets[19]);
+  object.sendPendingRelative = reader.readString(offsets[20]);
+  object.stackRelative = reader.readString(offsets[21]);
+  object.stackIconRelative = reader.readString(offsets[22]);
+  object.themePreviewRelative = reader.readString(offsets[23]);
+  object.themeSelectorRelative = reader.readString(offsets[24]);
+  object.txExchangeRelative = reader.readString(offsets[25]);
+  object.txExchangeFailedRelative = reader.readString(offsets[26]);
+  object.txExchangePendingRelative = reader.readString(offsets[27]);
+  return object;
+}
+
+P _themeAssetsV3DeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readStringOrNull(offset)) as P;
+    case 1:
+      return (reader.readString(offset)) as P;
+    case 2:
+      return (reader.readString(offset)) as P;
+    case 3:
+      return (reader.readStringOrNull(offset)) as P;
+    case 4:
+      return (reader.readString(offset)) as P;
+    case 5:
+      return (reader.readString(offset)) as P;
+    case 6:
+      return (reader.readString(offset)) as P;
+    case 7:
+      return (reader.readString(offset)) as P;
+    case 8:
+      return (reader.readString(offset)) as P;
+    case 9:
+      return (reader.readStringOrNull(offset)) as P;
+    case 10:
+      return (reader.readStringOrNull(offset)) as P;
+    case 11:
+      return (reader.readStringOrNull(offset)) as P;
+    case 12:
+      return (reader.readStringOrNull(offset)) as P;
+    case 13:
+      return (reader.readString(offset)) as P;
+    case 14:
+      return (reader.readString(offset)) as P;
+    case 15:
+      return (reader.readString(offset)) as P;
+    case 16:
+      return (reader.readString(offset)) as P;
+    case 17:
+      return (reader.readString(offset)) as P;
+    case 18:
+      return (reader.readString(offset)) as P;
+    case 19:
+      return (reader.readString(offset)) as P;
+    case 20:
+      return (reader.readString(offset)) as P;
+    case 21:
+      return (reader.readString(offset)) as P;
+    case 22:
+      return (reader.readString(offset)) as P;
+    case 23:
+      return (reader.readString(offset)) as P;
+    case 24:
+      return (reader.readString(offset)) as P;
+    case 25:
+      return (reader.readString(offset)) as P;
+    case 26:
+      return (reader.readString(offset)) as P;
+    case 27:
+      return (reader.readString(offset)) as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+extension ThemeAssetsV3QueryFilter
+    on QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QFilterCondition> {
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      backgroundRelativeIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'background',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      backgroundRelativeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'background',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      backgroundRelativeEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'background',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      backgroundRelativeGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'background',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      backgroundRelativeLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'background',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      backgroundRelativeBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'background',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      backgroundRelativeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'background',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      backgroundRelativeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'background',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      backgroundRelativeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'background',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      backgroundRelativeMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'background',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      backgroundRelativeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'background',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      backgroundRelativeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'background',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      bellNewRelativeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'bellNew',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      bellNewRelativeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'bellNew',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      bellNewRelativeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'bellNew',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      bellNewRelativeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'bellNew',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      bellNewRelativeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'bellNew',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      bellNewRelativeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'bellNew',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      bellNewRelativeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'bellNew',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      bellNewRelativeMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'bellNew',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      bellNewRelativeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'bellNew',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      bellNewRelativeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'bellNew',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      buyRelativeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'buy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      buyRelativeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'buy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      buyRelativeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'buy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      buyRelativeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'buy',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      buyRelativeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'buy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      buyRelativeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'buy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      buyRelativeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'buy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      buyRelativeMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'buy',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      buyRelativeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'buy',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      buyRelativeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'buy',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinCardImagesStringIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'coinCardImagesString',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinCardImagesStringIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'coinCardImagesString',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinCardImagesStringEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinCardImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinCardImagesStringGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'coinCardImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinCardImagesStringLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'coinCardImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinCardImagesStringBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'coinCardImagesString',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinCardImagesStringStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'coinCardImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinCardImagesStringEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'coinCardImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinCardImagesStringContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'coinCardImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinCardImagesStringMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'coinCardImagesString',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinCardImagesStringIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinCardImagesString',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinCardImagesStringIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'coinCardImagesString',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinIconsStringEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinIconsString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinIconsStringGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'coinIconsString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinIconsStringLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'coinIconsString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinIconsStringBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'coinIconsString',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinIconsStringStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'coinIconsString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinIconsStringEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'coinIconsString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinIconsStringContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'coinIconsString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinIconsStringMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'coinIconsString',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinIconsStringIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinIconsString',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinIconsStringIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'coinIconsString',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinImagesStringEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinImagesStringGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'coinImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinImagesStringLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'coinImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinImagesStringBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'coinImagesString',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinImagesStringStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'coinImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinImagesStringEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'coinImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinImagesStringContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'coinImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinImagesStringMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'coinImagesString',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinImagesStringIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinImagesString',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinImagesStringIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'coinImagesString',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinPlaceholderRelativeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinPlaceholder',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinPlaceholderRelativeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'coinPlaceholder',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinPlaceholderRelativeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'coinPlaceholder',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinPlaceholderRelativeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'coinPlaceholder',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinPlaceholderRelativeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'coinPlaceholder',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinPlaceholderRelativeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'coinPlaceholder',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinPlaceholderRelativeContains(String value,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'coinPlaceholder',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinPlaceholderRelativeMatches(String pattern,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'coinPlaceholder',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinPlaceholderRelativeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinPlaceholder',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinPlaceholderRelativeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'coinPlaceholder',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinSecondaryImagesStringEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinSecondaryImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinSecondaryImagesStringGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'coinSecondaryImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinSecondaryImagesStringLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'coinSecondaryImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinSecondaryImagesStringBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'coinSecondaryImagesString',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinSecondaryImagesStringStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'coinSecondaryImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinSecondaryImagesStringEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'coinSecondaryImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinSecondaryImagesStringContains(String value,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'coinSecondaryImagesString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinSecondaryImagesStringMatches(String pattern,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'coinSecondaryImagesString',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinSecondaryImagesStringIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coinSecondaryImagesString',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      coinSecondaryImagesStringIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'coinSecondaryImagesString',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      exchangeRelativeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'exchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      exchangeRelativeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'exchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      exchangeRelativeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'exchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      exchangeRelativeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'exchange',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      exchangeRelativeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'exchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      exchangeRelativeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'exchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      exchangeRelativeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'exchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      exchangeRelativeMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'exchange',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      exchangeRelativeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'exchange',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      exchangeRelativeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'exchange',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      loadingGifRelativeIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'loadingGif',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      loadingGifRelativeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'loadingGif',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      loadingGifRelativeEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'loadingGif',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      loadingGifRelativeGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'loadingGif',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      loadingGifRelativeLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'loadingGif',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      loadingGifRelativeBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'loadingGif',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      loadingGifRelativeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'loadingGif',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      loadingGifRelativeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'loadingGif',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      loadingGifRelativeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'loadingGif',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      loadingGifRelativeMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'loadingGif',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      loadingGifRelativeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'loadingGif',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      loadingGifRelativeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'loadingGif',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy1IsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'otherStringParam1',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy1IsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'otherStringParam1',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy1EqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'otherStringParam1',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy1GreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'otherStringParam1',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy1LessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'otherStringParam1',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy1Between(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'otherStringParam1',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy1StartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'otherStringParam1',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy1EndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'otherStringParam1',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy1Contains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'otherStringParam1',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy1Matches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'otherStringParam1',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy1IsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'otherStringParam1',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy1IsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'otherStringParam1',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy2IsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'otherStringParam2',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy2IsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'otherStringParam2',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy2EqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'otherStringParam2',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy2GreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'otherStringParam2',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy2LessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'otherStringParam2',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy2Between(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'otherStringParam2',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy2StartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'otherStringParam2',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy2EndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'otherStringParam2',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy2Contains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'otherStringParam2',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy2Matches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'otherStringParam2',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy2IsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'otherStringParam2',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy2IsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'otherStringParam2',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy3IsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'otherStringParam3',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy3IsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'otherStringParam3',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy3EqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'otherStringParam3',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy3GreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'otherStringParam3',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy3LessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'otherStringParam3',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy3Between(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'otherStringParam3',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy3StartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'otherStringParam3',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy3EndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'otherStringParam3',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy3Contains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'otherStringParam3',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy3Matches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'otherStringParam3',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy3IsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'otherStringParam3',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      dummy3IsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'otherStringParam3',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      personaEasyRelativeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'personaEasy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      personaEasyRelativeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'personaEasy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      personaEasyRelativeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'personaEasy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      personaEasyRelativeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'personaEasy',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      personaEasyRelativeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'personaEasy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      personaEasyRelativeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'personaEasy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      personaEasyRelativeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'personaEasy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      personaEasyRelativeMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'personaEasy',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      personaEasyRelativeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'personaEasy',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      personaEasyRelativeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'personaEasy',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      personaIncognitoRelativeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'personaIncognito',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      personaIncognitoRelativeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'personaIncognito',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      personaIncognitoRelativeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'personaIncognito',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      personaIncognitoRelativeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'personaIncognito',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      personaIncognitoRelativeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'personaIncognito',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      personaIncognitoRelativeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'personaIncognito',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      personaIncognitoRelativeContains(String value,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'personaIncognito',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      personaIncognitoRelativeMatches(String pattern,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'personaIncognito',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      personaIncognitoRelativeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'personaIncognito',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      personaIncognitoRelativeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'personaIncognito',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receiveRelativeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'receive',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receiveRelativeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'receive',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receiveRelativeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'receive',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receiveRelativeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'receive',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receiveRelativeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'receive',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receiveRelativeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'receive',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receiveRelativeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'receive',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receiveRelativeMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'receive',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receiveRelativeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'receive',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receiveRelativeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'receive',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receiveCancelledRelativeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'receiveCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receiveCancelledRelativeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'receiveCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receiveCancelledRelativeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'receiveCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receiveCancelledRelativeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'receiveCancelled',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receiveCancelledRelativeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'receiveCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receiveCancelledRelativeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'receiveCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receiveCancelledRelativeContains(String value,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'receiveCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receiveCancelledRelativeMatches(String pattern,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'receiveCancelled',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receiveCancelledRelativeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'receiveCancelled',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receiveCancelledRelativeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'receiveCancelled',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receivePendingRelativeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'receivePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receivePendingRelativeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'receivePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receivePendingRelativeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'receivePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receivePendingRelativeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'receivePending',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receivePendingRelativeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'receivePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receivePendingRelativeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'receivePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receivePendingRelativeContains(String value,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'receivePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receivePendingRelativeMatches(String pattern,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'receivePending',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receivePendingRelativeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'receivePending',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      receivePendingRelativeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'receivePending',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendRelativeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'send',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendRelativeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'send',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendRelativeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'send',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendRelativeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'send',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendRelativeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'send',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendRelativeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'send',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendRelativeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'send',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendRelativeMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'send',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendRelativeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'send',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendRelativeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'send',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendCancelledRelativeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'sendCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendCancelledRelativeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'sendCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendCancelledRelativeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'sendCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendCancelledRelativeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'sendCancelled',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendCancelledRelativeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'sendCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendCancelledRelativeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'sendCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendCancelledRelativeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'sendCancelled',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendCancelledRelativeMatches(String pattern,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'sendCancelled',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendCancelledRelativeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'sendCancelled',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendCancelledRelativeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'sendCancelled',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendPendingRelativeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'sendPending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendPendingRelativeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'sendPending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendPendingRelativeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'sendPending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendPendingRelativeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'sendPending',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendPendingRelativeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'sendPending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendPendingRelativeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'sendPending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendPendingRelativeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'sendPending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendPendingRelativeMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'sendPending',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendPendingRelativeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'sendPending',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendPendingRelativeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'sendPending',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      stackRelativeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'stack',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      stackRelativeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'stack',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      stackRelativeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'stack',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      stackRelativeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'stack',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      stackRelativeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'stack',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      stackRelativeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'stack',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      stackRelativeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'stack',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      stackRelativeMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'stack',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      stackRelativeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'stack',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      stackRelativeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'stack',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      stackIconRelativeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'stackIcon',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      stackIconRelativeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'stackIcon',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      stackIconRelativeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'stackIcon',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      stackIconRelativeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'stackIcon',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      stackIconRelativeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'stackIcon',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      stackIconRelativeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'stackIcon',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      stackIconRelativeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'stackIcon',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      stackIconRelativeMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'stackIcon',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      stackIconRelativeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'stackIcon',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      stackIconRelativeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'stackIcon',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      themePreviewRelativeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'themePreview',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      themePreviewRelativeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'themePreview',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      themePreviewRelativeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'themePreview',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      themePreviewRelativeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'themePreview',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      themePreviewRelativeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'themePreview',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      themePreviewRelativeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'themePreview',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      themePreviewRelativeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'themePreview',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      themePreviewRelativeMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'themePreview',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      themePreviewRelativeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'themePreview',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      themePreviewRelativeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'themePreview',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      themeSelectorRelativeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'themeSelector',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      themeSelectorRelativeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'themeSelector',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      themeSelectorRelativeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'themeSelector',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      themeSelectorRelativeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'themeSelector',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      themeSelectorRelativeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'themeSelector',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      themeSelectorRelativeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'themeSelector',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      themeSelectorRelativeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'themeSelector',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      themeSelectorRelativeMatches(String pattern,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'themeSelector',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      themeSelectorRelativeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'themeSelector',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      themeSelectorRelativeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'themeSelector',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangeRelativeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'txExchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangeRelativeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'txExchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangeRelativeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'txExchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangeRelativeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'txExchange',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangeRelativeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'txExchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangeRelativeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'txExchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangeRelativeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'txExchange',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangeRelativeMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'txExchange',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangeRelativeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'txExchange',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangeRelativeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'txExchange',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangeFailedRelativeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'txExchangeFailed',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangeFailedRelativeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'txExchangeFailed',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangeFailedRelativeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'txExchangeFailed',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangeFailedRelativeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'txExchangeFailed',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangeFailedRelativeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'txExchangeFailed',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangeFailedRelativeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'txExchangeFailed',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangeFailedRelativeContains(String value,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'txExchangeFailed',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangeFailedRelativeMatches(String pattern,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'txExchangeFailed',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangeFailedRelativeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'txExchangeFailed',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangeFailedRelativeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'txExchangeFailed',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangePendingRelativeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'txExchangePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangePendingRelativeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'txExchangePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangePendingRelativeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'txExchangePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangePendingRelativeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'txExchangePending',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangePendingRelativeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'txExchangePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangePendingRelativeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'txExchangePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangePendingRelativeContains(String value,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'txExchangePending',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangePendingRelativeMatches(String pattern,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'txExchangePending',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangePendingRelativeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'txExchangePending',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      txExchangePendingRelativeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'txExchangePending',
+        value: '',
+      ));
+    });
+  }
+}
+
+extension ThemeAssetsV3QueryObject
+    on QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QFilterCondition> {}

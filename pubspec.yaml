@@ -11,10 +11,11 @@ description: Stack Wallet
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.7.8+171
+version: 1.7.15+181
 
 environment:
-  sdk: ">=2.17.0 <3.0.0"
+  sdk: ">=3.0.2 <4.0.0"
+  flutter: ^3.10.0
 
 dependencies:
   flutter:
@@ -41,38 +42,30 @@ dependencies:
   flutter_libepiccash:
     path: ./crypto_plugins/flutter_libepiccash
 
-#  firo_flutter:
-#    git:
-#      url: https://github.com/cypherstack/firo_flutter.git
-#      ref: update
-  #    path: ./crypto_plugins/firo_flutter
-
   bitcoindart:
     git:
       url: https://github.com/cypherstack/bitcoindart.git
-      ref: 004d6f82dff7389b561e5078b4649adcd2d9c10f
+      ref: af6d6c27edfe2e7cc35772ed2684eb4cc826f0e4
 
   stack_wallet_backup:
     git:
       url: https://github.com/cypherstack/stack_wallet_backup.git
-      ref: e4b08d2b8965a5ae49bd57f598fa9011dd0c25e9
+      ref: ee1da8a9ba1cbeb50c5b354ea1fd5a25b7c5a3ed
 
   bip47:
     git:
       url: https://github.com/cypherstack/bip47.git
-      ref: 38847255d035c0f6ec5bc93d19130ec804cf90e9
+      ref: 081ca1863c2feba00c35bb5b297902f12f499941
 
   tor:
     path: ./crypto_plugins/tor
 
   # Utility plugins
-#  provider: ^6.0.1
-  http: ^0.13.4
+  http: ^0.13.0
   local_auth: ^1.1.10
   permission_handler: ^10.0.0
   flutter_local_notifications: ^9.4.0
   rxdart: ^0.27.3
-#  filesystem_picker: ^3.0.0-beta.1
   zxcvbn: ^1.0.0
   dart_numerics: ^0.0.6
 
@@ -85,77 +78,69 @@ dependencies:
   bip39:
     git:
       url: https://github.com/cypherstack/stack-bip39.git
-      ref: 3bef5acc21340f3cc78df0ad1dce5868a3ed68a5
+      ref: 0cd6d54e2860bea68fc50c801cb9db2a760192fb
   bitbox:
     git:
-      url: https://github.com/Quppy/bitbox-flutter.git
-      ref: ea65073efbaf395a5557e8cd7bd72f195cd7eb11
+      url: https://github.com/PiRK/bitbox-flutter.git
+      ref: 50bf29957514a5712466ba37590a851212a244bf
   bip32: ^2.0.0
   bech32:
     git:
       url: https://github.com/cypherstack/bech32.git
-      ref: 22279d4bb24ed541b431acd269a1bc50af0f36a0
+      ref: b6d2a5b4cd17311d917787c0f9505f04932659b1
   bs58check: ^1.0.2
 
   # Eth Plugins
-  web3dart: 2.3.5
-  string_to_hex: 0.2.2
+  web3dart: 2.6.1
   ethereum_addresses: 1.0.2
 
   # Storage plugins
-  flutter_secure_storage: ^5.0.2
+  flutter_secure_storage: ^8.0.0
   hive: ^2.0.5
   hive_flutter: ^1.1.0
-  path_provider: ^2.0.8
+  path_provider: ^2.0.15
 
   # UI/Component plugins
   flutter_native_splash: ^2.2.4
-  animations: ^2.0.2
-  toast: ^0.1.5
-  flare_flutter: ^3.0.2
-  google_fonts: ^2.2.0
+  google_fonts: ^4.0.4
   url_launcher: ^6.0.5
   flutter_svg: ^1.0.1
   flutter_feather_icons: ^2.0.0+1
-  flutter_spinkit: ^5.1.0
   decimal: ^2.1.0
   event_bus: ^2.0.0
   uuid: ^3.0.5
   flutter_rounded_date_picker: ^3.0.1
   crypto: ^3.0.2
-  jsonrpc2: ^3.0.1
-  barcode_scan2: ^4.2.0
-  app_settings: ^4.1.1
+  barcode_scan2: ^4.2.3
   wakelock: ^0.6.2
   intl: ^0.17.0
-  devicelocale: ^0.5.0
-  device_info_plus: ^7.0.1
+  devicelocale: ^0.6.0
+  device_info_plus: ^9.0.2
   keyboard_dismisser: ^3.0.0
   another_flushbar: ^1.10.28
   tuple: ^2.0.0
   flutter_riverpod: ^1.0.3
   qr_flutter: ^4.0.0
-  share_plus: ^6.3.0
+  share_plus: ^7.0.2
   emojis: ^0.9.9
   pointycastle: ^3.6.0
-  package_info_plus: ^1.4.2
-  lottie: ^1.3.0
-#  shared_preferences: ^2.0.15
-  file_picker: ^5.0.1
-  connectivity_plus: 2.3.6+1
-#  document_file_save_plus: ^1.0.5
+  package_info_plus: ^4.0.2
+  lottie: ^2.3.2
+  file_picker: ^5.3.1
+  connectivity_plus: ^4.0.1
   isar: 3.0.5
   isar_flutter_libs: 3.0.5 # contains the binaries
-  dropdown_button2: 1.7.2
+  dropdown_button2: ^2.1.3
   string_validator: ^0.3.0
   equatable: ^2.0.5
   async: ^2.10.0
   dart_bs58: ^1.0.1
   dart_bs58check: ^3.0.2
   hex: ^0.2.0
-  rational: ^2.2.2
   archive: ^3.3.2
   desktop_drop: ^0.4.1
+  nanodart: ^2.0.0
+  basic_utils: ^5.5.4
 
 dev_dependencies:
   flutter_test:
@@ -164,13 +149,13 @@ dev_dependencies:
       sdk: flutter
   build_runner: ^2.1.7
   flutter_launcher_icons: ^0.11.0
-  hive_generator: ^1.1.2
+  hive_generator: ^2.0.0
   dependency_validator: ^3.1.2
   hive_test: ^1.0.1
-  mockito: ^5.1.0
+  mockito: ^5.4.1
   mockingjay: ^0.2.0
 #  lint: ^1.10.0
-  analyzer: ^4.6.0
+  analyzer: ^5.13.0
   import_sorter: ^4.6.0
   flutter_lints: ^2.0.1
   isar_generator: 3.0.5
@@ -196,11 +181,27 @@ flutter_native_splash:
   android_disable_fullscreen: true
 
 dependency_overrides:
+
+  # required for dart 3, at least until a fix is merged upstream
+  wakelock_windows:
+    git:
+      url: https://github.com/diegotori/wakelock
+      ref: 2a9bca63a540771f241d688562351482b2cf234c
+      path: wakelock_windows
+
+  # required for libmonero - can remove once libmonero has been updated, PR has been merged in swb
+  stack_wallet_backup:
+    git:
+      url: https://github.com/cypherstack/stack_wallet_backup.git
+      ref: ee1da8a9ba1cbeb50c5b354ea1fd5a25b7c5a3ed
+
+  # required override for nanodart
   bip39:
     git:
       url: https://github.com/cypherstack/stack-bip39.git
-      ref: 3bef5acc21340f3cc78df0ad1dce5868a3ed68a5
-  crypto: 3.0.2
+      ref: 0cd6d54e2860bea68fc50c801cb9db2a760192fb
+
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
@@ -291,6 +292,7 @@ flutter:
     - assets/svg/message-question.svg
     - assets/svg/envelope.svg
     - assets/svg/share-2.svg
+    - assets/svg/anonymize.svg
     - assets/svg/tx-icon-anonymize.svg
     - assets/svg/tx-icon-anonymize-pending.svg
     - assets/svg/tx-icon-anonymize-failed.svg
