@@ -1,9 +1,8 @@
 import 'dart:math';
 
 import 'package:flutter/services.dart';
-import 'package:intl/number_symbols.dart';
-import 'package:intl/number_symbols_data.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
+import 'package:stackwallet/utilities/util.dart';
 
 class AmountInputFormatter extends TextInputFormatter {
   final int decimals;
@@ -20,8 +19,7 @@ class AmountInputFormatter extends TextInputFormatter {
   TextEditingValue formatEditUpdate(
       TextEditingValue oldValue, TextEditingValue newValue) {
     // get number symbols for decimal place and group separator
-    final numberSymbols = numberFormatSymbols[locale] as NumberSymbols? ??
-        numberFormatSymbols[locale.substring(0, 2)] as NumberSymbols?;
+    final numberSymbols = Util.getSymbolsFor(locale: locale);
 
     final decimalSeparator = numberSymbols?.DECIMAL_SEP ?? ".";
     final groupSeparator = numberSymbols?.GROUP_SEP ?? ",";
