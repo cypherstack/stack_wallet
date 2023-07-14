@@ -141,7 +141,6 @@ dependencies:
   desktop_drop: ^0.4.1
   nanodart: ^2.0.0
   basic_utils: ^5.5.4
-  flutter_socks_proxy: ^0.0.2
 
 dev_dependencies:
   flutter_test:
