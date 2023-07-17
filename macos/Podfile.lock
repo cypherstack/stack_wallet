@@ -1,24 +1,74 @@
 PODS:
-  - connectivity_plus_macos (0.0.1):
+  - connectivity_plus (0.0.1):
     - FlutterMacOS
     - ReachabilitySwift
+  - cw_monero (0.0.1):
+    - cw_monero/Boost (= 0.0.1)
+    - cw_monero/Monero (= 0.0.1)
+    - cw_monero/OpenSSL (= 0.0.1)
+    - cw_monero/Sodium (= 0.0.1)
+    - cw_monero/Unbound (= 0.0.1)
+    - FlutterMacOS
+  - cw_monero/Boost (0.0.1):
+    - FlutterMacOS
+  - cw_monero/Monero (0.0.1):
+    - FlutterMacOS
+  - cw_monero/OpenSSL (0.0.1):
+    - FlutterMacOS
+  - cw_monero/Sodium (0.0.1):
+    - FlutterMacOS
+  - cw_monero/Unbound (0.0.1):
+    - FlutterMacOS
+  - cw_shared_external (0.0.1):
+    - cw_shared_external/Boost (= 0.0.1)
+    - cw_shared_external/OpenSSL (= 0.0.1)
+    - cw_shared_external/Sodium (= 0.0.1)
+    - FlutterMacOS
+  - cw_shared_external/Boost (0.0.1):
+    - FlutterMacOS
+  - cw_shared_external/OpenSSL (0.0.1):
+    - FlutterMacOS
+  - cw_shared_external/Sodium (0.0.1):
+    - FlutterMacOS
+  - cw_wownero (0.0.1):
+    - cw_wownero/Boost (= 0.0.1)
+    - cw_wownero/OpenSSL (= 0.0.1)
+    - cw_wownero/Sodium (= 0.0.1)
+    - cw_wownero/Unbound (= 0.0.1)
+    - cw_wownero/Wownero (= 0.0.1)
+    - FlutterMacOS
+  - cw_wownero/Boost (0.0.1):
+    - FlutterMacOS
+  - cw_wownero/OpenSSL (0.0.1):
+    - FlutterMacOS
+  - cw_wownero/Sodium (0.0.1):
+    - FlutterMacOS
+  - cw_wownero/Unbound (0.0.1):
+    - FlutterMacOS
+  - cw_wownero/Wownero (0.0.1):
+    - FlutterMacOS
+  - desktop_drop (0.0.1):
+    - FlutterMacOS
+  - device_info_plus (0.0.1):
+    - FlutterMacOS
+  - devicelocale (0.0.1):
+    - FlutterMacOS
   - flutter_libepiccash (0.0.1):
     - FlutterMacOS
   - flutter_local_notifications (0.0.1):
     - FlutterMacOS
-  - flutter_secure_storage_macos (3.3.1):
+  - flutter_secure_storage_macos (6.1.1):
     - FlutterMacOS
   - FlutterMacOS (1.0.0)
   - isar_flutter_libs (1.0.0):
     - FlutterMacOS
-  - package_info_plus_macos (0.0.1):
+  - package_info_plus (0.0.1):
     - FlutterMacOS
-  - path_provider_macos (0.0.1):
+  - path_provider_foundation (0.0.1):
+    - Flutter
     - FlutterMacOS
   - ReachabilitySwift (5.0.0)
-  - share_plus_macos (0.0.1):
-    - FlutterMacOS
-  - shared_preferences_macos (0.0.1):
+  - share_plus (0.0.1):
     - FlutterMacOS
   - stack_wallet_backup (0.0.1):
     - FlutterMacOS
@@ -30,16 +80,21 @@ PODS:
     - FlutterMacOS
 
 DEPENDENCIES:
-  - connectivity_plus_macos (from `Flutter/ephemeral/.symlinks/plugins/connectivity_plus_macos/macos`)
+  - connectivity_plus (from `Flutter/ephemeral/.symlinks/plugins/connectivity_plus/macos`)
+  - cw_monero (from `Flutter/ephemeral/.symlinks/plugins/cw_monero/macos`)
+  - cw_shared_external (from `Flutter/ephemeral/.symlinks/plugins/cw_shared_external/macos`)
+  - cw_wownero (from `Flutter/ephemeral/.symlinks/plugins/cw_wownero/macos`)
+  - desktop_drop (from `Flutter/ephemeral/.symlinks/plugins/desktop_drop/macos`)
+  - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
+  - devicelocale (from `Flutter/ephemeral/.symlinks/plugins/devicelocale/macos`)
   - flutter_libepiccash (from `Flutter/ephemeral/.symlinks/plugins/flutter_libepiccash/macos`)
   - flutter_local_notifications (from `Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos`)
   - flutter_secure_storage_macos (from `Flutter/ephemeral/.symlinks/plugins/flutter_secure_storage_macos/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - isar_flutter_libs (from `Flutter/ephemeral/.symlinks/plugins/isar_flutter_libs/macos`)
-  - package_info_plus_macos (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus_macos/macos`)
-  - path_provider_macos (from `Flutter/ephemeral/.symlinks/plugins/path_provider_macos/macos`)
-  - share_plus_macos (from `Flutter/ephemeral/.symlinks/plugins/share_plus_macos/macos`)
-  - shared_preferences_macos (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_macos/macos`)
+  - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
+  - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
+  - share_plus (from `Flutter/ephemeral/.symlinks/plugins/share_plus/macos`)
   - stack_wallet_backup (from `Flutter/ephemeral/.symlinks/plugins/stack_wallet_backup/macos`)
   - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
   - wakelock_macos (from `Flutter/ephemeral/.symlinks/plugins/wakelock_macos/macos`)
@@ -50,8 +105,20 @@ SPEC REPOS:
     - ReachabilitySwift
 
 EXTERNAL SOURCES:
-  connectivity_plus_macos:
-    :path: Flutter/ephemeral/.symlinks/plugins/connectivity_plus_macos/macos
+  connectivity_plus:
+    :path: Flutter/ephemeral/.symlinks/plugins/connectivity_plus/macos
+  cw_monero:
+    :path: Flutter/ephemeral/.symlinks/plugins/cw_monero/macos
+  cw_shared_external:
+    :path: Flutter/ephemeral/.symlinks/plugins/cw_shared_external/macos
+  cw_wownero:
+    :path: Flutter/ephemeral/.symlinks/plugins/cw_wownero/macos
+  desktop_drop:
+    :path: Flutter/ephemeral/.symlinks/plugins/desktop_drop/macos
+  device_info_plus:
+    :path: Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos
+  devicelocale:
+    :path: Flutter/ephemeral/.symlinks/plugins/devicelocale/macos
   flutter_libepiccash:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_libepiccash/macos
   flutter_local_notifications:
@@ -62,14 +129,12 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral
   isar_flutter_libs:
     :path: Flutter/ephemeral/.symlinks/plugins/isar_flutter_libs/macos
-  package_info_plus_macos:
-    :path: Flutter/ephemeral/.symlinks/plugins/package_info_plus_macos/macos
-  path_provider_macos:
-    :path: Flutter/ephemeral/.symlinks/plugins/path_provider_macos/macos
-  share_plus_macos:
-    :path: Flutter/ephemeral/.symlinks/plugins/share_plus_macos/macos
-  shared_preferences_macos:
-    :path: Flutter/ephemeral/.symlinks/plugins/shared_preferences_macos/macos
+  package_info_plus:
+    :path: Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos
+  path_provider_foundation:
+    :path: Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin
+  share_plus:
+    :path: Flutter/ephemeral/.symlinks/plugins/share_plus/macos
   stack_wallet_backup:
     :path: Flutter/ephemeral/.symlinks/plugins/stack_wallet_backup/macos
   url_launcher_macos:
@@ -80,22 +145,27 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/window_size/macos
 
 SPEC CHECKSUMS:
-  connectivity_plus_macos: f6e86fd000e971d361e54b5afcadc8c8fa773308
+  connectivity_plus: 18d3c32514c886e046de60e9c13895109866c747
+  cw_monero: a3442556ad3c06365c912735e4a23942a28692b1
+  cw_shared_external: 1f631d1132521baac5f4caed43176fa10d4e0d8b
+  cw_wownero: b4adb1e701fc363de27fa222fcaf4eff6f5fa63a
+  desktop_drop: 69eeff437544aa619c8db7f4481b3a65f7696898
+  device_info_plus: 5401765fde0b8d062a2f8eb65510fb17e77cf07f
+  devicelocale: 9f0f36ac651cabae2c33f32dcff4f32b61c38225
   flutter_libepiccash: b33f7396504712b513b8ff019a3f6f3bdae54cfb
   flutter_local_notifications: 3805ca215b2fb7f397d78b66db91f6a747af52e4
-  flutter_secure_storage_macos: 6ceee8fbc7f484553ad17f79361b556259df89aa
-  FlutterMacOS: ae6af50a8ea7d6103d888583d46bd8328a7e9811
-  isar_flutter_libs: 1948109973b6c2e46d6196b1537688a36a6edeac
-  package_info_plus_macos: f010621b07802a241d96d01876d6705f15e77c1c
-  path_provider_macos: 3c0c3b4b0d4a76d2bf989a913c2de869c5641a19
+  flutter_secure_storage_macos: d56e2d218c1130b262bef8b4a7d64f88d7f9c9ea
+  FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
+  isar_flutter_libs: 43385c99864c168fadba7c9adeddc5d38838ca6a
+  package_info_plus: 02d7a575e80f194102bef286361c6c326e4c29ce
+  path_provider_foundation: eaf5b3e458fc0e5fbb9940fb09980e853fe058b8
   ReachabilitySwift: 985039c6f7b23a1da463388634119492ff86c825
-  share_plus_macos: 853ee48e7dce06b633998ca0735d482dd671ade4
-  shared_preferences_macos: a64dc611287ed6cbe28fd1297898db1336975727
+  share_plus: 76dd39142738f7a68dd57b05093b5e8193f220f7
   stack_wallet_backup: 6ebc60b1bdcf11cf1f1cbad9aa78332e1e15778c
-  url_launcher_macos: 597e05b8e514239626bcf4a850fcf9ef5c856ec3
+  url_launcher_macos: 5335912b679c073563f29d89d33d10d459f95451
   wakelock_macos: bc3f2a9bd8d2e6c89fee1e1822e7ddac3bd004a9
   window_size: 339dafa0b27a95a62a843042038fa6c3c48de195
 
-PODFILE CHECKSUM: 6eac6b3292e5142cfc23bdeb71848a40ec51c14c
+PODFILE CHECKSUM: 236401fc2c932af29a9fcf0e97baeeb2d750d367
 
 COCOAPODS: 1.11.3
