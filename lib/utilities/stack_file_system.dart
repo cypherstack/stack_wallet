@@ -27,8 +27,8 @@ abstract class StackFileSystem {
     } else if (Platform.isWindows) {
       appDirectory = await getApplicationSupportDirectory();
     } else if (Platform.isMacOS) {
-      // currently run in ipad mode??
-      throw Exception("Unsupported platform");
+      appDirectory = await getLibraryDirectory();
+      appDirectory = Directory("${appDirectory.path}/stackwallet");
     } else if (Platform.isIOS) {
       // todo: check if we need different behaviour here
       if (Util.isDesktop) {
