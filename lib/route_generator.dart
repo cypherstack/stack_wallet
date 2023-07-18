@@ -422,6 +422,9 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case OrdinalDetailsView.routeName:
+
+        print(args.runtimeType);
+
         if (args is ({Ordinal ordinal, String walletId})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,

@@ -5,9 +5,11 @@ import 'package:stackwallet/pages/ordinals/widgets/ordinal_card.dart';
 class OrdinalsList extends StatefulWidget {
   const OrdinalsList({
     super.key,
+    required this.walletId,
     required this.ordinals,
   });
 
+  final String walletId;
   final List<Ordinal> ordinals;
 
   @override
@@ -29,6 +31,7 @@ class _OrdinalsListState extends State<OrdinalsList> {
         childAspectRatio: 3 / 4,
       ),
       itemBuilder: (_, i) => OrdinalCard(
+        walletId: widget.walletId,
         ordinal: widget.ordinals[i],
       ),
     );

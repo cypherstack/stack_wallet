@@ -177,6 +177,7 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
                 ),
                 Expanded(
                   child: OrdinalsList(
+                    walletId: widget.walletId,
                     ordinals: [
                       for (int i = 0; i < 13; i++)
                         Ordinal(

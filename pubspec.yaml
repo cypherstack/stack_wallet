@@ -335,6 +335,7 @@ flutter:
     - assets/svg/trocador_rating_b.svg
     - assets/svg/trocador_rating_c.svg
     - assets/svg/trocador_rating_d.svg
+    - assets/svg/send.svg
 
     # coin control icons
     - assets/svg/coin_control/

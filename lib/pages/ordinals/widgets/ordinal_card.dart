@@ -21,7 +21,7 @@ class OrdinalCard extends StatelessWidget {
       onPressed: () {
         Navigator.of(context).pushNamed(
           OrdinalDetailsView.routeName,
-          arguments: widget.walletId,
+          arguments: (walletId: walletId, ordinal: ordinal),
         );
       },
       child: Column(
