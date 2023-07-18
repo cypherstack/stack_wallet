@@ -23,6 +23,7 @@ import 'package:stackwallet/pages/coin_control/coin_control_view.dart';
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages/notification_views/notifications_view.dart';
+import 'package:stackwallet/pages/ordinals/ordinals_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages/receive_view/receive_view.dart';
@@ -1005,6 +1006,22 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             );
                           }
                         }
+                      },
+                    ),
+                  if (ref.watch(
+                    walletsChangeNotifierProvider.select(
+                      (value) =>
+                          value.getManager(widget.walletId).hasOrdinalsSupport,
+                    ),
+                  ))
+                    WalletNavigationBarItemData(
+                      label: "Ordinals",
+                      icon: const CoinControlNavIcon(),
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          OrdinalsView.routeName,
+                          arguments: widget.walletId,
+                        );
                       },
                     ),
                 ],

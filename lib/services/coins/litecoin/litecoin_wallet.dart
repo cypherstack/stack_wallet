@@ -36,6 +36,7 @@ import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/coin_control_interface.dart';
 import 'package:stackwallet/services/mixins/electrum_x_parsing.dart';
+import 'package:stackwallet/services/mixins/ordinals_interface.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/mixins/xpubable.dart';
@@ -109,7 +110,12 @@ String constructDerivePath({
 }
 
 class LitecoinWallet extends CoinServiceAPI
-    with WalletCache, WalletDB, ElectrumXParsing, CoinControlInterface
+    with
+        WalletCache,
+        WalletDB,
+        ElectrumXParsing,
+        CoinControlInterface,
+        OrdinalsInterface
     implements XPubAble {
   LitecoinWallet({
     required String walletId,
