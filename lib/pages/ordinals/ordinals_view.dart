@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/ordinal.dart';
-import 'package:stackwallet/pages/ordinals/ordinals_list.dart';
+import 'package:stackwallet/pages/ordinals/widgets/ordinals_list.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';

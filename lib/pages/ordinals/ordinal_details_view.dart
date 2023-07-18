@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/models/ordinal.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/ordinals/widgets/dialogs.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -241,8 +242,14 @@ class _OrdinalImageGroup extends StatelessWidget {
                 ),
                 buttonHeight: ButtonHeight.l,
                 iconSpacing: 4,
-                onPressed: () {
-                  // TODO: try send
+                onPressed: () async {
+                  final response = await showDialog<String?>(
+                    context: context,
+                    builder: (_) => const SendOrdinalUnfreezeDialog(),
+                  );
+                  if (response == "unfreeze") {
+                    // TODO: unfreeze and go to send ord screen
+                  }
                 },
               ),
             ),
