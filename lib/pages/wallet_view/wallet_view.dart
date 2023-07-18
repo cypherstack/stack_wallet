@@ -73,6 +73,7 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/buy_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/coin_control_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/exchange_nav_icon.dart';
+import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/ordinals_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/paynym_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/receive_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/send_nav_icon.dart';
@@ -1016,7 +1017,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                   ))
                     WalletNavigationBarItemData(
                       label: "Ordinals",
-                      icon: const CoinControlNavIcon(),
+                      icon: const OrdinalsNavIcon(),
                       onTap: () {
                         Navigator.of(context).pushNamed(
                           OrdinalsView.routeName,
