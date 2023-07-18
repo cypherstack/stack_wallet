@@ -27,6 +27,9 @@
 		33CC10F32044A3C60003C045 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F22044A3C60003C045 /* Assets.xcassets */; };
 		33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F42044A3C60003C045 /* MainMenu.xib */; };
 		33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC11122044BFA00003C045 /* MainFlutterWindow.swift */; };
+		B98151812A674022009D013C /* mobileliblelantus.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B98151802A674022009D013C /* mobileliblelantus.framework */; };
+		B98151822A67402A009D013C /* mobileliblelantus.framework in Bundle Framework */ = {isa = PBXBuildFile; fileRef = B98151802A674022009D013C /* mobileliblelantus.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		B98151842A674143009D013C /* libsqlite3.0.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = B98151832A674143009D013C /* libsqlite3.0.tbd */; };
 		BFD0376C00E1FFD46376BB9D /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9206484E84CB0AD93E3E68CA /* Pods_RunnerTests.framework */; };
 		F653CA022D33E8B60E11A9F3 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E6036BF01BF05EA773C76D22 /* Pods_Runner.framework */; };
 /* End PBXBuildFile section */
@@ -55,6 +58,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				B98151822A67402A009D013C /* mobileliblelantus.framework in Bundle Framework */,
 			);
 			name = "Bundle Framework";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -86,6 +90,8 @@
 		9206484E84CB0AD93E3E68CA /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		ACB8E553D75AA4AC9A7656CE /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
+		B98151802A674022009D013C /* mobileliblelantus.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = mobileliblelantus.framework; path = ../crypto_plugins/flutter_liblelantus/scripts/macos/mobileliblelantus/mobileliblelantus.framework; sourceTree = "<group>"; };
+		B98151832A674143009D013C /* libsqlite3.0.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.0.tbd; path = usr/lib/libsqlite3.0.tbd; sourceTree = SDKROOT; };
 		BF5E76865ACB46314AC27D8F /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		E6036BF01BF05EA773C76D22 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -103,6 +109,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B98151842A674143009D013C /* libsqlite3.0.tbd in Frameworks */,
+				B98151812A674022009D013C /* mobileliblelantus.framework in Frameworks */,
 				F653CA022D33E8B60E11A9F3 /* Pods_Runner.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -188,6 +196,8 @@
 		D73912EC22F37F3D000D13A0 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				B98151832A674143009D013C /* libsqlite3.0.tbd */,
+				B98151802A674022009D013C /* mobileliblelantus.framework */,
 				E6036BF01BF05EA773C76D22 /* Pods_Runner.framework */,
 				9206484E84CB0AD93E3E68CA /* Pods_RunnerTests.framework */,
 			);
@@ -570,6 +580,30 @@
 				CODE_SIGN_ENTITLEMENTS = Runner/DebugProfile.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/ReachabilitySwift\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/connectivity_plus\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/cw_monero\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/cw_shared_external\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/cw_wownero\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/desktop_drop\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/device_info_plus\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/devicelocale\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_libepiccash\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_local_notifications\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_secure_storage_macos\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/isar_flutter_libs\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/lelantus\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/package_info_plus\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/path_provider_foundation\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/share_plus\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/stack_wallet_backup\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/url_launcher_macos\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/wakelock_macos\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/window_size\"",
+					"\"${PROJECT_DIR}/../crypto_plugins/flutter_liblelantus/scripts/macos/mobileliblelantus\"",
+				);
 				INFOPLIST_FILE = Runner/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -698,6 +732,30 @@
 				CODE_SIGN_ENTITLEMENTS = Runner/DebugProfile.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/ReachabilitySwift\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/connectivity_plus\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/cw_monero\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/cw_shared_external\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/cw_wownero\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/desktop_drop\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/device_info_plus\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/devicelocale\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_libepiccash\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_local_notifications\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_secure_storage_macos\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/isar_flutter_libs\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/lelantus\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/package_info_plus\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/path_provider_foundation\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/share_plus\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/stack_wallet_backup\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/url_launcher_macos\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/wakelock_macos\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/window_size\"",
+					"\"${PROJECT_DIR}/../crypto_plugins/flutter_liblelantus/scripts/macos/mobileliblelantus\"",
+				);
 				INFOPLIST_FILE = Runner/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -718,6 +776,30 @@
 				CODE_SIGN_ENTITLEMENTS = Runner/Release.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/ReachabilitySwift\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/connectivity_plus\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/cw_monero\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/cw_shared_external\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/cw_wownero\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/desktop_drop\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/device_info_plus\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/devicelocale\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_libepiccash\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_local_notifications\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_secure_storage_macos\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/isar_flutter_libs\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/lelantus\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/package_info_plus\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/path_provider_foundation\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/share_plus\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/stack_wallet_backup\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/url_launcher_macos\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/wakelock_macos\"",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/window_size\"",
+					"\"${PROJECT_DIR}/../crypto_plugins/flutter_liblelantus/scripts/macos/mobileliblelantus\"",
+				);
 				INFOPLIST_FILE = Runner/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

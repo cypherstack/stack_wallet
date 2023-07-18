@@ -948,7 +948,7 @@ packages:
       path: "crypto_plugins/flutter_liblelantus"
       relative: true
     source: path
-    version: "0.0.1"
+    version: "0.0.2"
   lints:
     dependency: transitive
     description:
