@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/ordinal.dart';
+import 'package:stackwallet/pages/ordinals/ordinals_filter_view.dart';
 import 'package:stackwallet/pages/ordinals/widgets/ordinals_list.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -104,7 +105,9 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
                         .topNavIconPrimary,
                   ),
                   onPressed: () {
-                    // todo filter view
+                    Navigator.of(context).pushNamed(
+                      OrdinalsFilterView.routeName,
+                    );
                   },
                 ),
               ),

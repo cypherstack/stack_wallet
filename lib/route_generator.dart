@@ -59,6 +59,7 @@ import 'package:stackwallet/pages/intro_view.dart';
 import 'package:stackwallet/pages/manage_favorites_view/manage_favorites_view.dart';
 import 'package:stackwallet/pages/notification_views/notifications_view.dart';
 import 'package:stackwallet/pages/ordinals/ordinal_details_view.dart';
+import 'package:stackwallet/pages/ordinals/ordinals_filter_view.dart';
 import 'package:stackwallet/pages/ordinals/ordinals_view.dart';
 import 'package:stackwallet/pages/paynym/add_new_paynym_follow_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
@@ -422,9 +423,6 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case OrdinalDetailsView.routeName:
-
-        print(args.runtimeType);
-
         if (args is ({Ordinal ordinal, String walletId})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
@@ -438,6 +436,12 @@ class RouteGenerator {
           );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case OrdinalsFilterView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const OrdinalsFilterView(),
+            settings: RouteSettings(name: settings.name));
 
       case UtxoDetailsView.routeName:
         if (args is Tuple2<Id, String>) {
