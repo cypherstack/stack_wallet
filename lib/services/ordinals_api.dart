@@ -9,6 +9,7 @@ import 'package:stackwallet/dto/ordinals/output_response.dart';
 import 'package:stackwallet/dto/ordinals/address_response.dart';
 import 'package:stackwallet/dto/ordinals/block_response.dart';
 import 'package:stackwallet/dto/ordinals/content_response.dart';
+import 'package:stackwallet/dto/ordinals/preview_response.dart';
 
 class OrdinalsAPI {
   final String baseUrl;
@@ -71,5 +72,10 @@ class OrdinalsAPI {
   Future<ContentResponse> getInscriptionContent(String inscriptionId) async {
     final response = await _getResponse('/content/$inscriptionId');
     return ContentResponse.fromJson(response);
+  }
+
+  Future<PreviewResponse> getInscriptionPreview(String inscriptionId) async {
+    final response = await _getResponse('/preview/$inscriptionId');
+    return PreviewResponse.fromJson(response);
   }
 }

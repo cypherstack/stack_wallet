@@ -4,7 +4,7 @@ class PreviewResponse {
   PreviewResponse({required this.imageLink});
 
   factory PreviewResponse.fromJson(Map<String, dynamic> json) {
-    return PreviewResponse(imageLink: ImageLink.fromJson(json['_links']['image']));
+    return PreviewResponse(imageLink: ImageLink.fromJson(json['_links']['image'] as Map<String, dynamic>));
   }
 }
 
@@ -14,6 +14,6 @@ class ImageLink {
   ImageLink({required this.href});
 
   factory ImageLink.fromJson(Map<String, dynamic> json) {
-    return ImageLink(href: json['href']);
+    return ImageLink(href: json['href'] as String);
   }
 }
