@@ -1,3 +1,5 @@
+import 'package:stackwallet/dto/ordinals/inscription_link.dart';
+
 class TransactionResponse {
   final TransactionLinks links;
   final List<OutputLink> inputs;
@@ -18,21 +20,21 @@ class TransactionResponse {
   factory TransactionResponse.fromJson(Map<String, dynamic> json) {
     final inputsJson = json['_links']['inputs'] as List;
     final inputs = inputsJson
-        .map((inputJson) => OutputLink.fromJson(inputJson))
+        .map((inputJson) => OutputLink.fromJson(inputJson as Map<String, dynamic>))
         .toList();
 
     final outputsJson = json['_links']['outputs'] as List;
     final outputs = outputsJson
-        .map((outputJson) => OutputLink.fromJson(outputJson))
+        .map((outputJson) => OutputLink.fromJson(outputJson as Map<String, dynamic>))
         .toList();
 
     return TransactionResponse(
-      links: TransactionLinks.fromJson(json['_links']),
+      links: TransactionLinks.fromJson(json['_links'] as Map<String, dynamic>),
       inputs: inputs,
-      inscription: InscriptionLink.fromJson(json['_links']['inscription']),
+      inscription: InscriptionLink.fromJson(json['_links']['inscription'] as Map<String, dynamic>),
       outputs: outputs,
-      self: TransactionLink.fromJson(json['_links']['self']),
-      transaction: json['transaction'],
+      self: TransactionLink.fromJson(json['_links']['self'] as Map<String, dynamic>),
+      transaction: json['transaction'] as String,
     );
   }
 }
@@ -50,9 +52,9 @@ class TransactionLinks {
 
   factory TransactionLinks.fromJson(Map<String, dynamic> json) {
     return TransactionLinks(
-      block: TransactionLink.fromJson(json['block']),
-      inscription: InscriptionLink.fromJson(json['inscription']),
-      self: TransactionLink.fromJson(json['self']),
+      block: TransactionLink.fromJson(json['block'] as Map<String, dynamic>),
+      inscription: InscriptionLink.fromJson(json['inscription'] as Map<String, dynamic>),
+      self: TransactionLink.fromJson(json['self'] as Map<String, dynamic>),
     );
   }
 }
@@ -63,7 +65,7 @@ class TransactionLink {
   TransactionLink({required this.href});
 
   factory TransactionLink.fromJson(Map<String, dynamic> json) {
-    return TransactionLink(href: json['href']);
+    return TransactionLink(href: json['href'] as String);
   }
 }
 
@@ -73,6 +75,6 @@ class OutputLink {
   OutputLink({required this.href});
 
   factory OutputLink.fromJson(Map<String, dynamic> json) {
-    return OutputLink(href: json['href']);
+    return OutputLink(href: json['href'] as String);
   }
 }

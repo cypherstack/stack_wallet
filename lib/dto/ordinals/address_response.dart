@@ -1,4 +1,4 @@
-import 'package:stackwallet/dto/ordinals/inscription_response.dart';
+import 'package:stackwallet/dto/ordinals/inscription_link.dart';
 
 class AddressResponse {
   final AddressLinks links;
@@ -46,16 +46,5 @@ class AddressLink {
 
   factory AddressLink.fromJson(Map<String, dynamic> json) {
     return AddressLink(href: json['href'] as String);
-  }
-}
-
-class InscriptionLink {
-  final String href;
-  final String title;
-
-  InscriptionLink(this.href, this.title);
-
-  factory InscriptionLink.fromJson(Map<String, dynamic> json) {
-    return InscriptionLink(json['href'] as String, json['title'] as String);
   }
 }
