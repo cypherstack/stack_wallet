@@ -799,6 +799,14 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         // if (_swapLock) {
         _sendController.text = ref.read(efSendAmountStringProvider);
         // }
+
+        if (_sendFocusNode.hasFocus) {
+          _sendController.selection = TextSelection.fromPosition(
+            TextPosition(
+              offset: _sendController.text.length,
+            ),
+          );
+        }
       }
     });
     ref.listen(efSendAmountStringProvider, (previous, String next) {
@@ -810,6 +818,14 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                 ? "-"
                 : ref.read(efReceiveAmountStringProvider);
         // }
+
+        if (_receiveFocusNode.hasFocus) {
+          _receiveController.selection = TextSelection.fromPosition(
+            TextPosition(
+              offset: _receiveController.text.length,
+            ),
+          );
+        }
       }
     });
 
