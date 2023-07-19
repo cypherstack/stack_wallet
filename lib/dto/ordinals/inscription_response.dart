@@ -1,17 +1,17 @@
 class InscriptionResponse {
-  final InscriptionLinks links;
-  final String address;
-  final int contentLength;
-  final String contentType;
-  final int genesisFee;
-  final int genesisHeight;
-  final String genesisTransaction;
-  final String location;
-  final int number;
-  final int offset;
-  final String output;
-  final dynamic sat; // Change to appropriate type if available
-  final String timestamp;
+  late final Links links;
+  late final String address;
+  late final int contentLength;
+  late final String contentType;
+  late final int genesisFee;
+  late final int genesisHeight;
+  late final String genesisTransaction;
+  late final String location;
+  late final int number;
+  late final int offset;
+  late final String output;
+  late final String? sat; // Make sure to update the type to allow null
+  late final String timestamp;
 
   InscriptionResponse({
     required this.links,
@@ -29,67 +29,62 @@ class InscriptionResponse {
     required this.timestamp,
   });
 
-  factory InscriptionResponse.fromJson(Map<String, dynamic> json) {
-    return InscriptionResponse(
-      links: InscriptionLinks.fromJson(json['_links']),
-      address: json['address'],
-      contentLength: json['content_length'],
-      contentType: json['content_type'],
-      genesisFee: json['genesis_fee'],
-      genesisHeight: json['genesis_height'],
-      genesisTransaction: json['genesis_transaction'],
-      location: json['location'],
-      number: json['number'],
-      offset: json['offset'],
-      output: json['output'],
-      sat: json['sat'],
-      timestamp: json['timestamp'],
-    );
+  InscriptionResponse.fromJson(Map<String, dynamic> json) {
+    links = Links.fromJson(json['_links'] as Map<String, dynamic>);
+    address = json['address'] as String;
+    contentLength = json['content_length'] as int;
+    contentType = json['content_type'] as String;
+    genesisFee = json['genesis_fee'] as int;
+    genesisHeight = json['genesis_height'] as int;
+    genesisTransaction = json['genesis_transaction'] as String;
+    location = json['location'] as String;
+    number = json['number'] as int;
+    offset = json['offset'] as int;
+    output = json['output'] as String;
+    sat = json['sat'] as String?;
+    timestamp = json['timestamp'] as String;
   }
 }
 
-class InscriptionLinks {
-  final InscriptionLink? content;
-  final InscriptionLink? genesisTransaction;
-  final InscriptionLink? next;
-  final InscriptionLink? output;
-  final InscriptionLink? prev;
-  final InscriptionLink? preview;
-  final InscriptionLink? sat;
-  final InscriptionLink? self;
+class Links {
+  late final Link content;
+  late final Link genesisTransaction;
+  late final Link next;
+  late final Link output;
+  late final Link prev;
+  late final Link preview;
+  late final Link? sat; // Make sure to update the type to allow null
+  late final Link self;
 
-  InscriptionLinks({
-    this.content,
-    this.genesisTransaction,
-    this.next,
-    this.output,
-    this.prev,
-    this.preview,
+  Links({
+    required this.content,
+    required this.genesisTransaction,
+    required this.next,
+    required this.output,
+    required this.prev,
+    required this.preview,
     this.sat,
-    this.self,
+    required this.self,
   });
 
-  factory InscriptionLinks.fromJson(Map<String, dynamic> json) {
-    return InscriptionLinks(
-      content: InscriptionLink.fromJson(json['content']),
-      genesisTransaction: InscriptionLink.fromJson(json['genesis_transaction']),
-      next: InscriptionLink.fromJson(json['next']),
-      output: InscriptionLink.fromJson(json['output']),
-      prev: InscriptionLink.fromJson(json['prev']),
-      preview: InscriptionLink.fromJson(json['preview']),
-      sat: InscriptionLink.fromJson(json['sat']),
-      self: InscriptionLink.fromJson(json['self']),
-    );
+  Links.fromJson(Map<String, dynamic> json) {
+    content = Link.fromJson(json['content'] as Map<String, dynamic>);
+    genesisTransaction = Link.fromJson(json['genesis_transaction'] as Map<String, dynamic>);
+    next = Link.fromJson(json['next'] as Map<String, dynamic>);
+    output = Link.fromJson(json['output'] as Map<String, dynamic>);
+    prev = Link.fromJson(json['prev'] as Map<String, dynamic>);
+    preview = Link.fromJson(json['preview'] as Map<String, dynamic>);
+    sat = json['sat'] != null ? Link.fromJson(json['sat'] as Map<String, dynamic>) : null;
+    self = Link.fromJson(json['self'] as Map<String, dynamic>);
   }
 }
 
-class InscriptionLink {
-  final String href;
-  final String title;
+class Link {
+  late final String href;
 
-  InscriptionLink({required this.href, required this.title});
+  Link({required this.href});
 
-  factory InscriptionLink.fromJson(Map<String, dynamic> json) {
-    return InscriptionLink(href: json['href'], title: json['title']);
+  Link.fromJson(Map<String, dynamic> json) {
+    href = json['href'] as String;
   }
 }
