@@ -14,6 +14,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/ordinal.dart';
 import 'package:stackwallet/pages/ordinals/ordinals_filter_view.dart';
 import 'package:stackwallet/pages/ordinals/widgets/ordinals_list.dart';
+import 'package:stackwallet/services/ordinals_api.dart';
+import 'package:stackwallet/services/mixins/ordinals_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -39,7 +41,7 @@ class OrdinalsView extends ConsumerStatefulWidget {
   ConsumerState<OrdinalsView> createState() => _OrdinalsViewState();
 }
 
-class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
+class _OrdinalsViewState extends ConsumerState<OrdinalsView> with OrdinalsInterface {
   late final TextEditingController searchController;
   late final FocusNode searchFocus;
 
@@ -49,6 +51,7 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
   void initState() {
     searchController = TextEditingController();
     searchFocus = FocusNode();
+
     super.initState();
   }
 
@@ -177,6 +180,13 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
                 ),
                 const SizedBox(
                   height: 16,
+                ),
+                TextButton(onPressed: () async {
+                  await fetchLatestInscriptions();
+                }, child: Text(
+                  "Test",
+                  style: STextStyles.navBarTitle(context),
+                )
                 ),
                 Expanded(
                   child: OrdinalsList(
