@@ -135,6 +135,9 @@ class ExchangeDataLoadingService {
   Future<void> loadAll() async {
     if (!_locked) {
       _locked = true;
+      if (_isar == null) {
+        await initDB();
+      }
       Logging.instance.log(
         "ExchangeDataLoadingService.loadAll starting...",
         level: LogLevel.Info,

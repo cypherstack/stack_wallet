@@ -26,6 +26,7 @@ class NotificationApi {
           priority: Priority.high,
           ticker: 'ticker'),
       iOS: IOSNotificationDetails(),
+      macOS: MacOSNotificationDetails(),
     );
   }
 
@@ -34,8 +35,13 @@ class NotificationApi {
     const iOS = IOSInitializationSettings();
     const linux = LinuxInitializationSettings(
         defaultActionName: "temporary_stack_wallet");
-    const settings =
-        InitializationSettings(android: android, iOS: iOS, linux: linux);
+    const macOS = MacOSInitializationSettings();
+    const settings = InitializationSettings(
+      android: android,
+      iOS: iOS,
+      linux: linux,
+      macOS: macOS,
+    );
     await _notifications.initialize(
       settings,
       onSelectNotification: (payload) async {
