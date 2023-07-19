@@ -19,13 +19,13 @@ class BlockResponse {
 
   factory BlockResponse.fromJson(Map<String, dynamic> json) {
     return BlockResponse(
-      links: BlockLinks.fromJson(json['_links']),
-      hash: json['hash'],
-      previousBlockhash: json['previous_blockhash'],
-      size: json['size'],
-      target: json['target'],
-      timestamp: json['timestamp'],
-      weight: json['weight'],
+      links: BlockLinks.fromJson(json['_links'] as Map<String, dynamic>),
+      hash: json['hash'] as String,
+      previousBlockhash: json['previous_blockhash'] as String,
+      size: json['size'] as int,
+      target: json['target'] as String,
+      timestamp: json['timestamp'] as String,
+      weight: json['weight'] as int,
     );
   }
 }
@@ -41,8 +41,8 @@ class BlockLinks {
 
   factory BlockLinks.fromJson(Map<String, dynamic> json) {
     return BlockLinks(
-      prev: BlockLink.fromJson(json['prev']),
-      self: BlockLink.fromJson(json['self']),
+      prev: BlockLink.fromJson(json['prev'] as Map<String, dynamic>),
+      self: BlockLink.fromJson(json['self'] as Map<String, dynamic>),
     );
   }
 }
@@ -53,6 +53,6 @@ class BlockLink {
   BlockLink({required this.href});
 
   factory BlockLink.fromJson(Map<String, dynamic> json) {
-    return BlockLink(href: json['href']);
+    return BlockLink(href: json['href'] as String);
   }
 }
