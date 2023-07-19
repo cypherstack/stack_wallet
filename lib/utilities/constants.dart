@@ -34,7 +34,6 @@ abstract class Constants {
   // just use enable exchange flag
   // static bool enableBuy = enableExchange;
   // // true; // true for development,
-
   static final BigInt _satsPerCoinECash = BigInt.from(100);
   static final BigInt _satsPerCoinEthereum = BigInt.from(1000000000000000000);
   static final BigInt _satsPerCoinMonero = BigInt.from(1000000000000);
