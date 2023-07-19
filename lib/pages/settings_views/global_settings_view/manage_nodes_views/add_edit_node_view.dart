@@ -196,7 +196,9 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 
       case Coin.nano:
       case Coin.banano:
-      //TODO: check network/node
+      case Coin.stellar:
+        throw UnimplementedError();
+        //TODO: check network/node
     }
 
     if (showFlushBar && mounted) {
@@ -736,6 +738,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       case Coin.nano:
       case Coin.banano:
       case Coin.eCash:
+      case Coin.stellar:
         return false;
 
       case Coin.ethereum:

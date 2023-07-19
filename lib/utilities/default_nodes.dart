@@ -181,6 +181,18 @@ abstract class DefaultNodes {
       isFailover: true,
       isDown: false);
 
+  static NodeModel get stellar => NodeModel(
+      host: "https://horizon.stellar.org",
+      port: 443,
+      name: defaultName,
+      id: _nodeId(Coin.stellar),
+      useSSL: true,
+      enabled: true,
+      coinName: Coin.stellar.name,
+      isFailover: true,
+      isDown: false
+  );
+
   static NodeModel get nano => NodeModel(
       host: "https://rainstorm.city/api",
       port: 443,
@@ -300,6 +312,9 @@ abstract class DefaultNodes {
 
       case Coin.particl:
         return particl;
+
+      case Coin.stellar:
+        return stellar;
 
       case Coin.nano:
         return nano;
