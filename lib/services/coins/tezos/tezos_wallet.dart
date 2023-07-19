@@ -336,7 +336,8 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
             otherData: "",
             inputs: [],
             outputs: [],
-            nonce: 0
+            nonce: 0,
+            numberOfMessages: null,
         );
         var theAddress = Address(
             walletId: walletId,

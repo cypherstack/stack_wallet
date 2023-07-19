@@ -196,6 +196,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 
       case Coin.nano:
       case Coin.banano:
+      case Coin.tezos:
       //TODO: check network/node
     }
 

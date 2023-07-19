@@ -50,6 +50,7 @@ enum AmountUnit {
       case Coin.dogecoin:
       case Coin.eCash:
       case Coin.epicCash:
+      case Coin.tezos:
         return AmountUnit.values.sublist(0, 4);
 
       case Coin.monero:
@@ -62,6 +63,7 @@ enum AmountUnit {
       case Coin.nano:
       case Coin.banano:
         return AmountUnit.values;
+
     }
   }
 }

@@ -177,6 +177,7 @@ class NodeOptionsSheet extends ConsumerWidget {
 
       case Coin.nano:
       case Coin.banano:
+      case Coin.tezos:
       //TODO: check network/node
     }
 
