@@ -182,7 +182,7 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> with OrdinalsInterf
                   height: 16,
                 ),
                 TextButton(onPressed: () async {
-                  await fetchLatestInscriptions();
+                  await getTransaction('ed5a5c4e555e204768ec54c049ae0b01c86fdcc8b126a9d100c4dff745e7d3ca');
                 }, child: Text(
                   "Test",
                   style: STextStyles.navBarTitle(context),
