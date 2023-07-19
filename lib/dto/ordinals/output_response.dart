@@ -1,3 +1,5 @@
+import 'package:stackwallet/dto/ordinals/transaction_response.dart';
+
 class OutputResponse {
   final OutputLinks links;
   final String address;
@@ -15,11 +17,11 @@ class OutputResponse {
 
   factory OutputResponse.fromJson(Map<String, dynamic> json) {
     return OutputResponse(
-      links: OutputLinks.fromJson(json['_links']),
-      address: json['address'],
-      scriptPubkey: json['script_pubkey'],
-      transaction: json['transaction'],
-      value: json['value'],
+      links: OutputLinks.fromJson(json['_links'] as Map<String, dynamic>),
+      address: json['address'] as String,
+      scriptPubkey: json['script_pubkey'] as String,
+      transaction: json['transaction'] as String,
+      value: json['value'] as int,
     );
   }
 }
@@ -35,8 +37,8 @@ class OutputLinks {
 
   factory OutputLinks.fromJson(Map<String, dynamic> json) {
     return OutputLinks(
-      self: OutputLink.fromJson(json['self']),
-      transaction: TransactionLink.fromJson(json['transaction']),
+      self: OutputLink.fromJson(json['self'] as Map<String, dynamic>),
+      transaction: TransactionLink.fromJson(json['transaction'] as Map<String, dynamic>),
     );
   }
 }
