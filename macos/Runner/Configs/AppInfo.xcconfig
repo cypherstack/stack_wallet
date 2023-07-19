@@ -11,4 +11,4 @@ PRODUCT_NAME = Stack Wallet
 PRODUCT_BUNDLE_IDENTIFIER = com.cypherstack.stack_wallet
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2022 com.cypherstack. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2023 com.cypherstack. All rights reserved.
