@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 
 import 'package:stackwallet/dto/ordinals/feed_response.dart';
 import 'package:stackwallet/dto/ordinals/inscription_response.dart';
+import 'package:stackwallet/dto/ordinals/sat_response.dart';
 
 class OrdinalsAPI {
   final String baseUrl;
@@ -35,5 +36,10 @@ class OrdinalsAPI {
   Future<InscriptionResponse> getInscriptionDetails(String inscriptionId) async {
     final response = await _getResponse('/inscription/$inscriptionId');
     return InscriptionResponse.fromJson(response);
+  }
+
+  Future<SatResponse> getSatDetails(int satNumber) async {
+    final response = await _getResponse('/sat/$satNumber');
+    return SatResponse.fromJson(response);
   }
 }

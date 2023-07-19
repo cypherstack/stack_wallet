@@ -29,18 +29,18 @@ class SatResponse {
 
   factory SatResponse.fromJson(Map<String, dynamic> json) {
     return SatResponse(
-      links: SatLinks.fromJson(json['_links']),
-      block: json['block'],
-      cycle: json['cycle'],
-      decimal: json['decimal'],
-      degree: json['degree'],
-      epoch: json['epoch'],
-      name: json['name'],
-      offset: json['offset'],
-      percentile: json['percentile'],
-      period: json['period'],
-      rarity: json['rarity'],
-      timestamp: json['timestamp'],
+      links: SatLinks.fromJson(json['_links'] as Map<String, dynamic>),
+      block: json['block'] as int,
+      cycle: json['cycle'] as int,
+      decimal: json['decimal'] as String,
+      degree: json['degree'] as String,
+      epoch: json['epoch'] as int,
+      name: json['name'] as String,
+      offset: json['offset'] as int,
+      percentile: json['percentile'] as String,
+      period: json['period'] as int,
+      rarity: json['rarity'] as String,
+      timestamp: json['timestamp'] as String,
     );
   }
 }
@@ -62,11 +62,11 @@ class SatLinks {
 
   factory SatLinks.fromJson(Map<String, dynamic> json) {
     return SatLinks(
-      block: SatLink.fromJson(json['block']),
-      inscription: SatLink.fromJson(json['inscription']),
-      next: SatLink.fromJson(json['next']),
-      prev: SatLink.fromJson(json['prev']),
-      self: SatLink.fromJson(json['self']),
+      block: SatLink.fromJson(json['block'] as Map<String, dynamic>),
+      inscription: SatLink.fromJson(json['inscription'] as Map<String, dynamic>),
+      next: SatLink.fromJson(json['next'] as Map<String, dynamic>),
+      prev: SatLink.fromJson(json['prev'] as Map<String, dynamic>),
+      self: SatLink.fromJson(json['self'] as Map<String, dynamic>),
     );
   }
 }
@@ -77,6 +77,6 @@ class SatLink {
   SatLink({required this.href});
 
   factory SatLink.fromJson(Map<String, dynamic> json) {
-    return SatLink(href: json['href']);
+    return SatLink(href: json['href'] as String);
   }
 }
