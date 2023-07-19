@@ -28,6 +28,7 @@ class CoinThemeColorDefault {
   Color get namecoin => const Color(0xFF91B1E1);
   Color get wownero => const Color(0xFFED80C1);
   Color get particl => const Color(0xFF8175BD);
+  Color get stellar => const Color(0xFFE8E8E8); // TODO: find color
   Color get nano => const Color(0xFF209CE9);
   Color get banano => const Color(0xFFFBDD11);
 
@@ -62,6 +63,8 @@ class CoinThemeColorDefault {
         return wownero;
       case Coin.particl:
         return particl;
+      case Coin.stellar:
+        return stellar;
       case Coin.nano:
         return nano;
       case Coin.banano:
