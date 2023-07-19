@@ -1,4 +1,6 @@
-class BlockResponse {
+import 'package:stackwallet/dto/ordinals/ordinals_response.dart';
+
+class BlockResponse extends OrdinalsResponse<BlockResponse> {
   final BlockLinks links;
   final String hash;
   final String previousBlockhash;
@@ -17,15 +19,16 @@ class BlockResponse {
     required this.weight,
   });
 
-  factory BlockResponse.fromJson(Map<String, dynamic> json) {
+  factory BlockResponse.fromJson(OrdinalsResponse json) {
+    final data = json.data as Map<String, dynamic>;
     return BlockResponse(
-      links: BlockLinks.fromJson(json['_links'] as Map<String, dynamic>),
-      hash: json['hash'] as String,
-      previousBlockhash: json['previous_blockhash'] as String,
-      size: json['size'] as int,
-      target: json['target'] as String,
-      timestamp: json['timestamp'] as String,
-      weight: json['weight'] as int,
+      links: BlockLinks.fromJson(data['_links'] as Map<String, dynamic>),
+      hash: data['hash'] as String,
+      previousBlockhash: data['previous_blockhash'] as String,
+      size: data['size'] as int,
+      target: data['target'] as String,
+      timestamp: data['timestamp'] as String,
+      weight: data['weight'] as int,
     );
   }
 }
@@ -41,8 +44,8 @@ class BlockLinks {
 
   factory BlockLinks.fromJson(Map<String, dynamic> json) {
     return BlockLinks(
-      prev: BlockLink.fromJson(json['prev'] as Map<String, dynamic>),
-      self: BlockLink.fromJson(json['self'] as Map<String, dynamic>),
+      prev: json['prev'] != null ? BlockLink.fromJson(json['prev'] as Map<String, dynamic>) : null,
+      self: json['self'] != null ? BlockLink.fromJson(json['self'] as Map<String, dynamic>) : null,
     );
   }
 }

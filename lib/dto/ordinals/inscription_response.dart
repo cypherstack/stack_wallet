@@ -1,4 +1,6 @@
-class InscriptionResponse {
+import 'package:stackwallet/dto/ordinals/ordinals_response.dart';
+
+class InscriptionResponse extends OrdinalsResponse<InscriptionResponse> {
   late final Links links;
   late final String address;
   late final int contentLength;
@@ -29,20 +31,23 @@ class InscriptionResponse {
     required this.timestamp,
   });
 
-  InscriptionResponse.fromJson(Map<String, dynamic> json) {
-    links = Links.fromJson(json['_links'] as Map<String, dynamic>);
-    address = json['address'] as String;
-    contentLength = json['content_length'] as int;
-    contentType = json['content_type'] as String;
-    genesisFee = json['genesis_fee'] as int;
-    genesisHeight = json['genesis_height'] as int;
-    genesisTransaction = json['genesis_transaction'] as String;
-    location = json['location'] as String;
-    number = json['number'] as int;
-    offset = json['offset'] as int;
-    output = json['output'] as String;
-    sat = json['sat'] as String?;
-    timestamp = json['timestamp'] as String;
+  factory InscriptionResponse.fromJson(OrdinalsResponse json) {
+    final data = json.data as Map<String, dynamic>;
+    return InscriptionResponse(
+      links: Links.fromJson(data['_links'] as Map<String, dynamic>),
+      address: data['address'] as String,
+      contentLength: data['content_length'] as int,
+      contentType: data['content_type'] as String,
+      genesisFee: data['genesis_fee'] as int,
+      genesisHeight: data['genesis_height'] as int,
+      genesisTransaction: data['genesis_transaction'] as String,
+      location: data['location'] as String,
+      number: data['number'] as int,
+      offset: data['offset'] as int,
+      output: data['output'] as String,
+      sat: data['sat'] as String?,
+      timestamp: data['timestamp'] as String,
+    );
   }
 }
 
@@ -67,15 +72,17 @@ class Links {
     required this.self,
   });
 
-  Links.fromJson(Map<String, dynamic> json) {
-    content = Link.fromJson(json['content'] as Map<String, dynamic>);
-    genesisTransaction = Link.fromJson(json['genesis_transaction'] as Map<String, dynamic>);
-    next = Link.fromJson(json['next'] as Map<String, dynamic>);
-    output = Link.fromJson(json['output'] as Map<String, dynamic>);
-    prev = Link.fromJson(json['prev'] as Map<String, dynamic>);
-    preview = Link.fromJson(json['preview'] as Map<String, dynamic>);
-    sat = json['sat'] != null ? Link.fromJson(json['sat'] as Map<String, dynamic>) : null;
-    self = Link.fromJson(json['self'] as Map<String, dynamic>);
+  factory Links.fromJson(Map<String, dynamic> json) {
+    return Links(
+      content: Link.fromJson(json['content'] as Map<String, dynamic>),
+      genesisTransaction: Link.fromJson(json['genesis_transaction'] as Map<String, dynamic>),
+      next: Link.fromJson(json['next'] as Map<String, dynamic>),
+      output: Link.fromJson(json['output'] as Map<String, dynamic>),
+      prev: Link.fromJson(json['prev'] as Map<String, dynamic>),
+      preview: Link.fromJson(json['preview'] as Map<String, dynamic>),
+      sat: json['sat'] != null ? Link.fromJson(json['sat'] as Map<String, dynamic>) : null,
+      self: Link.fromJson(json['self'] as Map<String, dynamic>),
+    );
   }
 }
 
@@ -84,7 +91,7 @@ class Link {
 
   Link({required this.href});
 
-  Link.fromJson(Map<String, dynamic> json) {
-    href = json['href'] as String;
+  factory Link.fromJson(Map<String, dynamic> json) {
+    return Link(href: json['href'] as String);
   }
 }

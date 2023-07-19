@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+import 'package:stackwallet/dto/ordinals/ordinals_response.dart';
 import 'package:stackwallet/dto/ordinals/feed_response.dart';
 import 'package:stackwallet/dto/ordinals/inscription_response.dart';
 import 'package:stackwallet/dto/ordinals/sat_response.dart';
@@ -16,10 +17,10 @@ class OrdinalsAPI {
 
   OrdinalsAPI({required this.baseUrl});
 
-  Future<Map<String, dynamic>> _getResponse(String endpoint) async {
+  Future<OrdinalsResponse> _getResponse(String endpoint) async {
     final response = await http.get(Uri.parse('$baseUrl$endpoint'));
     if (response.statusCode == 200) {
-      return _validateJson(response.body);
+      return OrdinalsResponse(data: _validateJson(response.body));
     } else {
       throw Exception('Failed to load data');
     }

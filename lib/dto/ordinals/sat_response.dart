@@ -1,4 +1,6 @@
-class SatResponse {
+import 'package:stackwallet/dto/ordinals/ordinals_response.dart';
+
+class SatResponse extends OrdinalsResponse<SatResponse> {
   final SatLinks links;
   final int block;
   final int cycle;
@@ -27,20 +29,21 @@ class SatResponse {
     required this.timestamp,
   });
 
-  factory SatResponse.fromJson(Map<String, dynamic> json) {
+  factory SatResponse.fromJson(OrdinalsResponse json) {
+    final data = json.data as Map<String, dynamic>;
     return SatResponse(
-      links: SatLinks.fromJson(json['_links'] as Map<String, dynamic>),
-      block: json['block'] as int,
-      cycle: json['cycle'] as int,
-      decimal: json['decimal'] as String,
-      degree: json['degree'] as String,
-      epoch: json['epoch'] as int,
-      name: json['name'] as String,
-      offset: json['offset'] as int,
-      percentile: json['percentile'] as String,
-      period: json['period'] as int,
-      rarity: json['rarity'] as String,
-      timestamp: json['timestamp'] as String,
+      links: SatLinks.fromJson(data['_links'] as Map<String, dynamic>),
+      block: data['block'] as int,
+      cycle: data['cycle'] as int,
+      decimal: data['decimal'] as String,
+      degree: data['degree'] as String,
+      epoch: data['epoch'] as int,
+      name: data['name'] as String,
+      offset: data['offset'] as int,
+      percentile: data['percentile'] as String,
+      period: data['period'] as int,
+      rarity: data['rarity'] as String,
+      timestamp: data['timestamp'] as String,
     );
   }
 }
@@ -62,11 +65,11 @@ class SatLinks {
 
   factory SatLinks.fromJson(Map<String, dynamic> json) {
     return SatLinks(
-      block: SatLink.fromJson(json['block'] as Map<String, dynamic>),
-      inscription: SatLink.fromJson(json['inscription'] as Map<String, dynamic>),
-      next: SatLink.fromJson(json['next'] as Map<String, dynamic>),
-      prev: SatLink.fromJson(json['prev'] as Map<String, dynamic>),
-      self: SatLink.fromJson(json['self'] as Map<String, dynamic>),
+      block: json['block'] != null ? SatLink.fromJson(json['block'] as Map<String, dynamic>) : null,
+      inscription: json['inscription'] != null ? SatLink.fromJson(json['inscription'] as Map<String, dynamic>) : null,
+      next: json['next'] != null ? SatLink.fromJson(json['next'] as Map<String, dynamic>) : null,
+      prev: json['prev'] != null ? SatLink.fromJson(json['prev'] as Map<String, dynamic>) : null,
+      self: json['self'] != null ? SatLink.fromJson(json['self'] as Map<String, dynamic>) : null,
     );
   }
 }

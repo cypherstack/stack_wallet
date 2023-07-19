@@ -1,6 +1,7 @@
 import 'package:stackwallet/dto/ordinals/transaction_response.dart';
+import 'package:stackwallet/dto/ordinals/ordinals_response.dart';
 
-class OutputResponse {
+class OutputResponse extends OrdinalsResponse<OutputResponse> {
   final OutputLinks links;
   final String address;
   final String scriptPubkey;
@@ -15,13 +16,15 @@ class OutputResponse {
     required this.value,
   });
 
-  factory OutputResponse.fromJson(Map<String, dynamic> json) {
+  factory OutputResponse.fromJson(OrdinalsResponse json) {
+    final data = json.data as Map<String, dynamic>;
+
     return OutputResponse(
-      links: OutputLinks.fromJson(json['_links'] as Map<String, dynamic>),
-      address: json['address'] as String,
-      scriptPubkey: json['script_pubkey'] as String,
-      transaction: json['transaction'] as String,
-      value: json['value'] as int,
+      links: OutputLinks.fromJson(data['_links'] as Map<String, dynamic>),
+      address: data['address'] as String,
+      scriptPubkey: data['script_pubkey'] as String,
+      transaction: data['transaction'] as String,
+      value: data['value'] as int,
     );
   }
 }
@@ -37,8 +40,8 @@ class OutputLinks {
 
   factory OutputLinks.fromJson(Map<String, dynamic> json) {
     return OutputLinks(
-      self: OutputLink.fromJson(json['self'] as Map<String, dynamic>),
-      transaction: TransactionLink.fromJson(json['transaction'] as Map<String, dynamic>),
+      self: json['self'] != null ? OutputLink.fromJson(json['self'] as Map<String, dynamic>) : null,
+      transaction: json['transaction'] != null ? TransactionLink.fromJson(json['transaction'] as Map<String, dynamic>) : null,
     );
   }
 }

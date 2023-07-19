@@ -1,10 +1,13 @@
-class ContentResponse {
+import 'package:stackwallet/dto/ordinals/ordinals_response.dart';
+
+class ContentResponse extends OrdinalsResponse<ContentResponse> {
   final FileLink fileLink;
 
   ContentResponse({required this.fileLink});
 
-  factory ContentResponse.fromJson(Map<String, dynamic> json) {
-    return ContentResponse(fileLink: FileLink.fromJson(json['_links']['file'] as Map<String, dynamic>));
+  factory ContentResponse.fromJson(OrdinalsResponse json) {
+    final data = json.data as Map<String, dynamic>;
+    return ContentResponse(fileLink: FileLink.fromJson(data['_links']['file'] as Map<String, dynamic>)); // TODO don't cast as Map<String, dynamic>
   }
 }
 
