@@ -35,6 +35,7 @@ import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -160,26 +161,15 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     if (value == null) {
       return null;
     }
-    try {
-      // wtf Dart?????
-      // This turns "99999999999999999999" into 100000000000000000000.0
-      // final numFromLocalised = NumberFormat.decimalPattern(
-      //         ref.read(localeServiceChangeNotifierProvider).locale)
-      //     .parse(value);
-      // return Decimal.tryParse(numFromLocalised.toString());
 
-      try {
-        return Decimal.parse(value);
-      } catch (_) {
-        try {
-          return Decimal.parse(value.replaceAll(",", "."));
-        } catch (_) {
-          rethrow;
-        }
-      }
-    } catch (_) {
-      return null;
-    }
+    return AmountUnit.normal
+        .tryParse(
+          value,
+          locale: ref.read(localeServiceChangeNotifierProvider).locale,
+          coin: Coin.bitcoin, // dummy value (not used due to override)
+          overrideWithDecimalPlacesFromString: true,
+        )
+        ?.decimal;
   }
 
   Future<AggregateCurrency> _getAggregateCurrency(Currency currency) async {
@@ -824,7 +814,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     });
 
     ref.listen(efEstimateProvider.notifier, (previous, next) {
-      final estimate = (next as StateController<Estimate?>).state;
+      final estimate = (next).state;
       if (ref.read(efReversedProvider)) {
         updateSend(estimate);
       } else {
