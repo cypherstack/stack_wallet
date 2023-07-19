@@ -153,6 +153,7 @@ dependencies:
   rational: ^2.2.2
   archive: ^3.3.2
   desktop_drop: ^0.4.1
+  tezart: ^2.0.5
 
 dev_dependencies:
   flutter_test:
@@ -198,6 +199,7 @@ dependency_overrides:
       url: https://github.com/cypherstack/stack-bip39.git
       ref: 3bef5acc21340f3cc78df0ad1dce5868a3ed68a5
   crypto: 3.0.2
+  analyzer: ^5.2.0
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

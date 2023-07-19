@@ -169,7 +169,20 @@ abstract class DefaultNodes {
       enabled: true,
       coinName: Coin.particl.name,
       isFailover: true,
-      isDown: false);
+      isDown: false
+  );
+
+  static NodeModel get tezos => NodeModel( // TODO: Change this to original one
+      host: "mainnet.api.tez.ie",
+      port: 443,
+      name: defaultName,
+      id: _nodeId(Coin.tezos),
+      useSSL: true,
+      enabled: true,
+      coinName: Coin.tezos.name,
+      isFailover: true,
+      isDown: false
+  );
 
   static NodeModel get bitcoinTestnet => NodeModel(
         host: "bitcoin-testnet.stackwallet.com",
@@ -268,6 +281,9 @@ abstract class DefaultNodes {
 
       case Coin.particl:
         return particl;
+
+      case Coin.tezos:
+        return tezos;
 
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;

@@ -18,6 +18,7 @@ class CoinThemeColorDefault {
   Color get namecoin => const Color(0xFF91B1E1);
   Color get wownero => const Color(0xFFED80C1);
   Color get particl => const Color(0xFF8175BD);
+  Color get tezos => const Color(0xFF0F61FF);
 
   Color forCoin(Coin coin) {
     switch (coin) {
@@ -50,6 +51,8 @@ class CoinThemeColorDefault {
         return wownero;
       case Coin.particl:
         return particl;
+      case Coin.tezos:
+        return tezos;
     }
   }
 }

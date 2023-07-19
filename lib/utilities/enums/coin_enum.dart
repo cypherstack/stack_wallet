@@ -16,6 +16,7 @@ import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart'
     as nmc;
 import 'package:stackwallet/services/coins/particl/particl_wallet.dart'
     as particl;
+import 'package:stackwallet/services/coins/tezos/tezos_wallet.dart' as tezos;
 import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart' as wow;
 import 'package:stackwallet/utilities/constants.dart';
 
@@ -31,6 +32,7 @@ enum Coin {
   monero,
   namecoin,
   particl,
+  tezos,
   wownero,
 
   ///
@@ -71,6 +73,8 @@ extension CoinExt on Coin {
         return "Monero";
       case Coin.particl:
         return "Particl";
+      case Coin.tezos:
+        return "Tezos";
       case Coin.wownero:
         return "Wownero";
       case Coin.namecoin:
@@ -110,6 +114,8 @@ extension CoinExt on Coin {
         return "XMR";
       case Coin.particl:
         return "PART";
+      case Coin.tezos:
+        return "XTZ";
       case Coin.wownero:
         return "WOW";
       case Coin.namecoin:
@@ -150,6 +156,8 @@ extension CoinExt on Coin {
         return "monero";
       case Coin.particl:
         return "particl";
+      case Coin.tezos:
+        return "tezos";
       case Coin.wownero:
         return "wownero";
       case Coin.namecoin:
@@ -187,6 +195,7 @@ extension CoinExt on Coin {
       case Coin.epicCash:
       case Coin.ethereum:
       case Coin.monero:
+      case Coin.tezos:
       case Coin.wownero:
         return false;
     }
@@ -207,6 +216,7 @@ extension CoinExt on Coin {
       case Coin.eCash:
       case Coin.epicCash:
       case Coin.monero:
+      case Coin.tezos:
       case Coin.wownero:
       case Coin.dogecoinTestNet:
       case Coin.bitcoinTestNet:
@@ -229,6 +239,7 @@ extension CoinExt on Coin {
       case Coin.epicCash:
       case Coin.ethereum:
       case Coin.monero:
+      case Coin.tezos:
       case Coin.wownero:
       case Coin.eCash:
         return false;
@@ -254,6 +265,7 @@ extension CoinExt on Coin {
       case Coin.epicCash:
       case Coin.ethereum:
       case Coin.monero:
+      case Coin.tezos:
       case Coin.wownero:
       case Coin.eCash:
         return this;
@@ -312,6 +324,9 @@ extension CoinExt on Coin {
       case Coin.particl:
         return particl.MINIMUM_CONFIRMATIONS;
 
+      case Coin.tezos:
+        return tezos.MINIMUM_CONFIRMATIONS;
+
       case Coin.wownero:
         return wow.MINIMUM_CONFIRMATIONS;
 
@@ -366,6 +381,10 @@ Coin coinFromPrettyName(String name) {
     case "Particl":
     case "particl":
       return Coin.particl;
+
+    case "Tezos":
+    case "tezos":
+      return Coin.tezos;
 
     case "Namecoin":
     case "namecoin":
@@ -436,6 +455,8 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
       return Coin.namecoin;
     case "part":
       return Coin.particl;
+    case "xtz":
+      return Coin.tezos;
     case "tltc":
       return Coin.litecoinTestNet;
     case "tbtc":
