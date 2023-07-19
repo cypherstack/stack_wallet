@@ -12,10 +12,19 @@ import 'package:stackwallet/dto/ordinals/block_response.dart';
 import 'package:stackwallet/dto/ordinals/content_response.dart';
 import 'package:stackwallet/dto/ordinals/preview_response.dart';
 
-class OrdinalsAPI {
-  final String baseUrl;
+import 'package:stackwallet/dto/ordinals/feed_response.dart'; // Assuming this import is necessary
 
-  OrdinalsAPI({required this.baseUrl});
+class OrdinalsAPI {
+  static final OrdinalsAPI _instance = OrdinalsAPI._internal();
+
+  factory OrdinalsAPI({required String baseUrl}) {
+    _instance.baseUrl = baseUrl;
+    return _instance;
+  }
+
+  OrdinalsAPI._internal();
+
+  late String baseUrl;
 
   Future<OrdinalsResponse> _getResponse(String endpoint) async {
     final response = await http.get(Uri.parse('$baseUrl$endpoint'));
