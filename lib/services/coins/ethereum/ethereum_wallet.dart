@@ -1023,6 +1023,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
     final response = await EthereumAPI.getEthTransactions(
       address: thisAddress,
       firstBlock: isRescan ? 0 : firstBlock,
+      includeTokens: true,
     );
 
     if (response.value == null) {
@@ -1057,8 +1058,10 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
             txFailed = true;
           }
           isIncoming = false;
-        } else {
+        } else if (checksumEthereumAddress(element.to) == thisAddress) {
           isIncoming = true;
+        } else {
+          continue;
         }
 
         //Calculate fees (GasLimit * gasPrice)
