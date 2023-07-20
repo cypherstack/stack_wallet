@@ -40,8 +40,7 @@ class CoinCard extends ConsumerWidget {
           .select((value) => value.getManager(walletId).coin),
     );
 
-    final bool hasCardImageBg = ref.watch(coinCardProvider(coin)) != null;
-    final isFavorite = false;
+    final bool hasCardImageBg = (isFavorite) ? ref.watch(coinCardFavoritesProvider(coin)) != null : ref.watch(coinCardProvider(coin)) != null;
 
     return Stack(
       children: [
