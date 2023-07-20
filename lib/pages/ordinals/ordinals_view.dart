@@ -46,11 +46,15 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
   late final FocusNode searchFocus;
 
   String _searchTerm = "";
+  dynamic _manager;
 
   @override
   void initState() {
     searchController = TextEditingController();
     searchFocus = FocusNode();
+
+    _manager = ref.watch(walletsChangeNotifierProvider
+        .select((value) => value.getManager(widget.walletId)));
 
     super.initState();
   }
@@ -91,10 +95,7 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
                         .topNavIconPrimary,
                   ),
                   onPressed: () async {
-                    final manager = ref.watch(walletsChangeNotifierProvider
-                        .select((value) => value.getManager(widget.walletId)));
-
-                    (manager.wallet as OrdinalsInterface).refreshInscriptions();
+                    (_manager.wallet as OrdinalsInterface).refreshInscriptions();
                   },
                 ),
               ),

@@ -52,7 +52,7 @@ mixin OrdinalsInterface {
     final utxos = await _db.getUTXOs(_walletId).findAll();
     final uniqueAddresses = getUniqueAddressesFromUTXOs(utxos);
     _inscriptions = await getInscriptionsFromAddresses(uniqueAddresses);
-    // TODO save inscriptions to isar which gets watched by a StreamBuilder
+    // TODO save inscriptions to isar which gets watched by a FutureBuilder/StreamBuilder
   }
 
   List<String> getUniqueAddressesFromUTXOs(List<UTXO> utxos) {
