@@ -48,9 +48,10 @@ class LitescribeAPI {
 
     if (currentSize == size && currentSize < total) {
       // If the number of returned inscriptions equals the limit and there are more inscriptions available,
-      // increase the size to fetch all inscriptions.
-      return getInscriptionsByAddress(address, cursor: cursor, size: total+1); // potential off-by-one error, but should be safe
-      // TODO don't re-request the same inscriptions previously returned; increment cursor (probably) by size and only request the rest. ex: cursor=0 size=1000 probably returns inscriptions 0-999, so set cursor=size (or size-1?) to get 1000-1999
+      // increment the cursor and make the next API call to fetch the remaining inscriptions.
+      final int newCursor = cursor + size;
+      return getInscriptionsByAddress(address, cursor: newCursor, size: size);
+      // TODO test logic with smaller size "pagination"
     } else {
       try {
         return AddressInscriptionResponse.fromJson(response.data as Map<String, dynamic>);
