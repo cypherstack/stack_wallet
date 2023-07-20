@@ -182,11 +182,11 @@ abstract class DefaultNodes {
       isDown: false);
 
   static NodeModel get stellar => NodeModel(
-      host: "https://horizon.stellar.org",
+      host: "https://horizon-testnet.stellar.org",
       port: 443,
       name: defaultName,
       id: _nodeId(Coin.stellar),
-      useSSL: true,
+      useSSL: false,
       enabled: true,
       coinName: Coin.stellar.name,
       isFailover: true,
