@@ -149,6 +149,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
               walletId: widget.walletId,
               width: widget.width,
               height: widget.height,
+              isFavorite: false,
             ),
             child: Padding(
               padding: const EdgeInsets.all(12.0),

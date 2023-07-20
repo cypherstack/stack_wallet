@@ -2310,8 +2310,6 @@ class ThemeAssetsV3 implements IThemeAssets {
 
   // Added some future proof params in case we want to add anything else
   // This should provide some buffer in stead of creating assetsV4 etc
-  @Name("otherStringParam1")
-  late final String? dummy1;
   @Name("otherStringParam2")
   late final String? dummy2;
   @Name("otherStringParam3")
@@ -2356,6 +2354,20 @@ class ThemeAssetsV3 implements IThemeAssets {
   @ignore
   Map<Coin, String>? _coinCardImages;
   late final String? coinCardImagesString;
+
+
+  @ignore
+  Map<Coin, String>? get coinCardFavoritesImages =>
+      _coinCardFavoritesImages ??= coinCardFavoritesImagesString == null
+          ? null
+          : parseCoinAssetsString(
+        coinCardFavoritesImagesString!,
+        placeHolder: coinPlaceholder,
+      );
+  @ignore
+  Map<Coin, String>? _coinCardFavoritesImages;
+  @Name("otherStringParam1")
+  late final String? coinCardFavoritesImagesString;
 
   ThemeAssetsV3();
 
@@ -2421,13 +2433,18 @@ class ThemeAssetsV3 implements IThemeAssets {
               Map<String, dynamic>.from(json["coins"]["cards"] as Map),
             )
           : null
+      ..coinCardFavoritesImagesString = json["coins"]["favoriteCards"] is Map
+          ? createCoinAssetsString(
+              "$applicationThemesDirectoryPath/$themeId/assets",
+              Map<String, dynamic>.from(json["coins"]["favoriteCards"] as Map),
+            )
+          : null
       ..loadingGif = json["loading_gif"] is String
           ? "$applicationThemesDirectoryPath/$themeId/assets/${json["loading_gif"] as String}"
           : null
       ..background = json["background"] is String
           ? "$applicationThemesDirectoryPath/$themeId/assets/${json["background"] as String}"
           : null
-      ..dummy1 = null
       ..dummy2 = null
       ..dummy3 = null;
   }
@@ -2483,7 +2500,8 @@ class ThemeAssetsV3 implements IThemeAssets {
         'coinIcons: $coinIcons, '
         'coinImages: $coinImages, '
         'coinSecondaryImages: $coinSecondaryImages, '
-        'coinCardImages: $coinCardImages'
+        'coinCardWalletImages: $coinCardImages'
+        'coinCardFavoritesImages: $coinCardFavoritesImages'
         ')';
   }
 }
