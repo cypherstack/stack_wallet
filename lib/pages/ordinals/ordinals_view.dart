@@ -14,6 +14,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/ordinal.dart';
 import 'package:stackwallet/pages/ordinals/ordinals_filter_view.dart';
 import 'package:stackwallet/pages/ordinals/widgets/ordinals_list.dart';
+import 'package:stackwallet/services/litescribe_api.dart';
 import 'package:stackwallet/services/ordinals_api.dart';
 import 'package:stackwallet/services/mixins/ordinals_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -90,8 +91,8 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> with OrdinalsInterf
                         .extension<StackColors>()!
                         .topNavIconPrimary,
                   ),
-                  onPressed: () {
-                    // todo refresh
+                  onPressed: () async {
+                    refreshInscriptions();
                   },
                 ),
               ),
@@ -180,23 +181,6 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> with OrdinalsInterf
                 ),
                 const SizedBox(
                   height: 16,
-                ),
-                TextButton(onPressed: () async {
-                  // await fetchLatestInscriptions();
-                  // await getTransaction('ed5a5c4e555e204768ec54c049ae0b01c86fdcc8b126a9d100c4dff745e7d3ca');
-                  // await getBlock('31278055ba414fe6dbed75e4a77e841da4481972ac09bd2a214c445da1a44aad');
-                  var inscriptions = await getInscriptionsByAddress('ltc1qk4e8hdq5w6rvk5xvkxajjak78v45pkul8a2cg9');
-                  for (var inscription in inscriptions) {
-                    print(inscription);
-                    print(inscription.address);
-                    print(inscription.content);
-                    print(inscription.inscriptionId);
-                    print(inscription.inscriptionNumber);
-                  }
-                }, child: Text(
-                  "Test",
-                  style: STextStyles.navBarTitle(context),
-                )
                 ),
                 Expanded(
                   child: OrdinalsList(

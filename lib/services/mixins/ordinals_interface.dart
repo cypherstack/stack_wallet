@@ -26,6 +26,18 @@ mixin OrdinalsInterface {
     }
   }
 
+  void refreshInscriptions() async {
+    // TODO get all inscriptions at all addresses in wallet
+    var inscriptions = await getInscriptionsByAddress('ltc1qk4e8hdq5w6rvk5xvkxajjak78v45pkul8a2cg9');
+    for (var inscription in inscriptions) {
+      print(inscription);
+      print(inscription.address);
+      print(inscription.content);
+      print(inscription.inscriptionId);
+      print(inscription.inscriptionNumber);
+    }
+  }
+
   /* // ord-litecoin interface
   final OrdinalsAPI ordinalsAPI = OrdinalsAPI(baseUrl: 'https://ord-litecoin.stackwallet.com');
 
