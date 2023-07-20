@@ -197,6 +197,9 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> with OrdinalsInterf
                           name: "dummy name $i",
                           inscription: "insc$i",
                           rank: "r$i",
+                          collection: OrdCollection.moonbirds,
+                          utxoTXID: 'txid',
+                          utxoVOUT: 1
                         ),
                     ],
                   ),

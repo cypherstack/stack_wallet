@@ -12,8 +12,6 @@ import 'package:stackwallet/dto/ordinals/block_response.dart';
 import 'package:stackwallet/dto/ordinals/content_response.dart';
 import 'package:stackwallet/dto/ordinals/preview_response.dart';
 
-import 'package:stackwallet/dto/ordinals/feed_response.dart'; // Assuming this import is necessary
-
 class OrdinalsAPI {
   static final OrdinalsAPI _instance = OrdinalsAPI._internal();
 
