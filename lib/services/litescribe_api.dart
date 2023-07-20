@@ -42,7 +42,7 @@ class LitescribeAPI {
     final response = await _getResponse('/address/inscriptions?address=$address&cursor=$cursor&size=$size');
 
     // Check if the number of returned inscriptions equals the limit
-    final list = response.data['result']['list'] as List<InscriptionData>;
+    final list = response.data['result']['list'];
     final int total = response.data['result']['total'] as int;
     final int currentSize = list.length;
 
@@ -51,10 +51,15 @@ class LitescribeAPI {
       // increment the cursor and make the next API call to fetch the remaining inscriptions.
       final int newCursor = cursor + size;
       return getInscriptionsByAddress(address, cursor: newCursor, size: size);
-      // TODO test logic with smaller size "pagination"
+
     } else {
       try {
-        return list;
+        // Iterate through the list and create InscriptionData objects from each element
+        final List<InscriptionData> inscriptions = (list as List<dynamic>)
+            .map((json) => InscriptionData.fromJson(json as Map<String, dynamic>))
+            .toList();
+
+        return inscriptions;
       } catch (e) {
         throw const FormatException('LitescribeAPI getInscriptionsByAddress exception: AddressInscriptionResponse.fromJson failure');
       }

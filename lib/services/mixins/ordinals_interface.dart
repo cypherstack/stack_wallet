@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
@@ -17,7 +19,6 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 import 'package:stackwallet/services/litescribe_api.dart';
 import 'package:stackwallet/dto/ordinals/inscription_data.dart';
-
 
 mixin OrdinalsInterface {
   late final String _walletId;
@@ -50,7 +51,7 @@ mixin OrdinalsInterface {
     List<dynamic> _inscriptions;
     final utxos = await _db.getUTXOs(_walletId).findAll();
     final uniqueAddresses = getUniqueAddressesFromUTXOs(utxos);
-    _inscriptions = await getAllInscriptionsFromAddresses(uniqueAddresses);
+    _inscriptions = await getInscriptionsFromAddresses(uniqueAddresses);
     // TODO save inscriptions to isar which gets watched by a StreamBuilder
   }
 
@@ -64,7 +65,7 @@ mixin OrdinalsInterface {
     return uniqueAddresses.toList();
   }
 
-  Future<List<InscriptionData>> getAllInscriptionsFromAddresses(List<String> addresses) async {
+  Future<List<InscriptionData>> getInscriptionsFromAddresses(List<String> addresses) async {
     List<InscriptionData> allInscriptions = [];
     for (String address in addresses) {
       try {
