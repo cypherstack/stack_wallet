@@ -1,3 +1,8 @@
+import 'package:isar/isar.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
+
 // ord-litecoin-specific imports
 // import 'package:stackwallet/dto/ordinals/feed_response.dart';
 // import 'package:stackwallet/dto/ordinals/inscription_response.dart';
@@ -13,7 +18,21 @@
 import 'package:stackwallet/dto/ordinals/address_inscription_response.dart'; // verbose due to Litescribe being the 2nd API
 import 'package:stackwallet/services/litescribe_api.dart';
 
+
 mixin OrdinalsInterface {
+  late final String _walletId;
+  late final Coin _coin;
+  late final MainDB _db;
+
+  void initOrdinalsInterface({
+    required String walletId,
+    required Coin coin,
+    required MainDB db,
+  }) {
+    _walletId = walletId;
+    _coin = coin;
+    _db = db;
+  }
   final LitescribeAPI litescribeAPI = LitescribeAPI(baseUrl: 'https://litescribe.io/api');
 
   Future<List<AddressInscription>> getInscriptionsByAddress(String address) async {
@@ -27,6 +46,13 @@ mixin OrdinalsInterface {
   }
 
   void refreshInscriptions() async {
+    List<dynamic> _inscriptions;
+    final utxos = await _db.getUTXOs(_walletId).findAll();
+    final uniqueAddresses = getUniqueAddressesFromUTXOs(utxos);
+    for (String address in uniqueAddresses) {
+      // TODO fetch all inscriptions from all addresses
+      // TODO save those inscriptions to isar, which a StreamBuilder will be "subscribed"-to
+    }
     // TODO get all inscriptions at all addresses in wallet
     var inscriptions = await getInscriptionsByAddress('ltc1qk4e8hdq5w6rvk5xvkxajjak78v45pkul8a2cg9');
     for (var inscription in inscriptions) {
@@ -36,6 +62,16 @@ mixin OrdinalsInterface {
       print(inscription.inscriptionId);
       print(inscription.inscriptionNumber);
     }
+  }
+
+  List<String> getUniqueAddressesFromUTXOs(List<UTXO> utxos) {
+    final Set<String> uniqueAddresses = <String>{};
+    for (var utxo in utxos) {
+      if (utxo.address != null) {
+        uniqueAddresses.add(utxo.address!);
+      }
+    }
+    return uniqueAddresses.toList();
   }
 
   /* // ord-litecoin interface
