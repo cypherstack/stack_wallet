@@ -14,8 +14,9 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/ordinal.dart';
 import 'package:stackwallet/pages/ordinals/ordinals_filter_view.dart';
 import 'package:stackwallet/pages/ordinals/widgets/ordinals_list.dart';
-import 'package:stackwallet/services/litescribe_api.dart';
-import 'package:stackwallet/services/ordinals_api.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
+// import 'package:stackwallet/services/litescribe_api.dart';
+// import 'package:stackwallet/services/ordinals_api.dart';
 import 'package:stackwallet/services/mixins/ordinals_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -27,6 +28,7 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
+
 
 class OrdinalsView extends ConsumerStatefulWidget {
   const OrdinalsView({

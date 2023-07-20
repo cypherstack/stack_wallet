@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-import 'package:stackwallet/dto/ordinals/address_inscription_response.dart';
+import 'package:stackwallet/dto/ordinals/inscription_data.dart';
 import 'package:stackwallet/dto/ordinals/litescribe_response.dart';
 
 class LitescribeAPI {
@@ -34,7 +34,7 @@ class LitescribeAPI {
     }
   }
 
-  Future<AddressInscriptionResponse> getInscriptionsByAddress(String address, {int cursor = 0, int size = 1000}) async {
+  Future<List<InscriptionData>> getInscriptionsByAddress(String address, {int cursor = 0, int size = 1000}) async {
     // size param determines how many inscriptions are returned per response
     // default of 1000 is used to cover most addresses (I assume)
     // if the total number of inscriptions at the address exceeds the length of the list of inscriptions returned, another call with a higher size is made
@@ -42,7 +42,7 @@ class LitescribeAPI {
     final response = await _getResponse('/address/inscriptions?address=$address&cursor=$cursor&size=$size');
 
     // Check if the number of returned inscriptions equals the limit
-    final list = response.data['result']['list'] as List<dynamic>;
+    final list = response.data['result']['list'] as List<InscriptionData>;
     final int total = response.data['result']['total'] as int;
     final int currentSize = list.length;
 
@@ -54,7 +54,7 @@ class LitescribeAPI {
       // TODO test logic with smaller size "pagination"
     } else {
       try {
-        return AddressInscriptionResponse.fromJson(response.data as Map<String, dynamic>);
+        return list;
       } catch (e) {
         throw const FormatException('LitescribeAPI getInscriptionsByAddress exception: AddressInscriptionResponse.fromJson failure');
       }

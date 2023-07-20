@@ -136,6 +136,7 @@ class LitecoinWallet extends CoinServiceAPI
     _secureStore = secureStore;
     initCache(walletId, coin);
     initWalletDB(mockableOverride: mockableOverride);
+    initOrdinalsInterface(walletId:walletId, coin: coin, db: db);
     initCoinControlInterface(
       walletId: walletId,
       walletName: walletName,

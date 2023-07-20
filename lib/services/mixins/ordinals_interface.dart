@@ -15,8 +15,8 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 // import 'package:stackwallet/dto/ordinals/preview_response.dart';
 // import 'package:stackwallet/services/ordinals_api.dart';
 
-import 'package:stackwallet/dto/ordinals/address_inscription_response.dart'; // verbose due to Litescribe being the 2nd API
 import 'package:stackwallet/services/litescribe_api.dart';
+import 'package:stackwallet/dto/ordinals/inscription_data.dart';
 
 
 mixin OrdinalsInterface {
@@ -29,39 +29,29 @@ mixin OrdinalsInterface {
     required Coin coin,
     required MainDB db,
   }) {
+    print('init');
     _walletId = walletId;
     _coin = coin;
     _db = db;
   }
   final LitescribeAPI litescribeAPI = LitescribeAPI(baseUrl: 'https://litescribe.io/api');
 
-  Future<List<AddressInscription>> getInscriptionsByAddress(String address) async {
-    try {
-      var response = await litescribeAPI.getInscriptionsByAddress(address);
-      print("Found ${response.result.total} inscription${response.result.total > 1 ? 's' : ''} at address $address"); // TODO disable (POC)
-      return response.result.list;
-    } catch (e) {
-      throw Exception('Error in OrdinalsInterface getInscriptionsByAddress: $e');
-    }
-  }
+  // Future<List<InscriptionData>> getInscriptionsByAddress(String address) async {
+  //   try {
+  //     var response = await litescribeAPI.getInscriptionsByAddress(address);
+  //     // print("Found ${response.result.total} inscription${response.result.total > 1 ? 's' : ''} at address $address"); // TODO disable (POC)
+  //     return response.result.list;
+  //   } catch (e) {
+  //     throw Exception('Error in OrdinalsInterface getInscriptionsByAddress: $e');
+  //   }
+  // }
 
   void refreshInscriptions() async {
     List<dynamic> _inscriptions;
     final utxos = await _db.getUTXOs(_walletId).findAll();
     final uniqueAddresses = getUniqueAddressesFromUTXOs(utxos);
-    for (String address in uniqueAddresses) {
-      // TODO fetch all inscriptions from all addresses
-      // TODO save those inscriptions to isar, which a StreamBuilder will be "subscribed"-to
-    }
-    // TODO get all inscriptions at all addresses in wallet
-    var inscriptions = await getInscriptionsByAddress('ltc1qk4e8hdq5w6rvk5xvkxajjak78v45pkul8a2cg9');
-    for (var inscription in inscriptions) {
-      print(inscription);
-      print(inscription.address);
-      print(inscription.content);
-      print(inscription.inscriptionId);
-      print(inscription.inscriptionNumber);
-    }
+    _inscriptions = await getAllInscriptionsFromAddresses(uniqueAddresses);
+    // TODO save inscriptions to isar which gets watched by a StreamBuilder
   }
 
   List<String> getUniqueAddressesFromUTXOs(List<UTXO> utxos) {
@@ -74,7 +64,21 @@ mixin OrdinalsInterface {
     return uniqueAddresses.toList();
   }
 
-  /* // ord-litecoin interface
+  Future<List<InscriptionData>> getAllInscriptionsFromAddresses(List<String> addresses) async {
+    List<InscriptionData> allInscriptions = [];
+    for (String address in addresses) {
+      try {
+        var inscriptions = await litescribeAPI.getInscriptionsByAddress(address);
+        print("Found ${inscriptions.length} inscription${inscriptions.length > 1 ? 's' : ''} at address $address");
+        allInscriptions.addAll(inscriptions);
+      } catch (e) {
+        print("Error fetching inscriptions for address $address: $e");
+      }
+    }
+    return allInscriptions;
+  }
+
+/* // ord-litecoin interface
   final OrdinalsAPI ordinalsAPI = OrdinalsAPI(baseUrl: 'https://ord-litecoin.stackwallet.com');
 
   Future<FeedResponse> fetchLatestInscriptions() async {
