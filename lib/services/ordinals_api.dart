@@ -72,8 +72,8 @@ class OrdinalsAPI {
     return AddressResponse.fromJson(response);
   }
 
-  Future<BlockResponse> getBlock(int blockNumber) async {
-    final response = await _getResponse('/block/$blockNumber');
+  Future<BlockResponse> getBlock(String blockHash) async {
+    final response = await _getResponse('/block/$blockHash');
     return BlockResponse.fromJson(response);
   }
 

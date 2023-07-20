@@ -1,15 +1,32 @@
-import 'package:stackwallet/dto/ordinals/feed_response.dart';
-import 'package:stackwallet/dto/ordinals/inscription_response.dart';
-import 'package:stackwallet/dto/ordinals/sat_response.dart';
-import 'package:stackwallet/dto/ordinals/transaction_response.dart';
-import 'package:stackwallet/dto/ordinals/output_response.dart';
-import 'package:stackwallet/dto/ordinals/address_response.dart';
-import 'package:stackwallet/dto/ordinals/block_response.dart';
-import 'package:stackwallet/dto/ordinals/content_response.dart';
-import 'package:stackwallet/dto/ordinals/preview_response.dart';
-import 'package:stackwallet/services/ordinals_api.dart'; // Assuming this import is necessary
+// ord-litecoin-specific imports
+// import 'package:stackwallet/dto/ordinals/feed_response.dart';
+// import 'package:stackwallet/dto/ordinals/inscription_response.dart';
+// import 'package:stackwallet/dto/ordinals/sat_response.dart';
+// import 'package:stackwallet/dto/ordinals/transaction_response.dart';
+// import 'package:stackwallet/dto/ordinals/output_response.dart';
+// import 'package:stackwallet/dto/ordinals/address_response.dart';
+// import 'package:stackwallet/dto/ordinals/block_response.dart';
+// import 'package:stackwallet/dto/ordinals/content_response.dart';
+// import 'package:stackwallet/dto/ordinals/preview_response.dart';
+// import 'package:stackwallet/services/ordinals_api.dart';
+
+import 'package:stackwallet/dto/ordinals/address_inscription_response.dart'; // verbose due to Litescribe being the 2nd API
+import 'package:stackwallet/services/litescribe_api.dart';
 
 mixin OrdinalsInterface {
+  final LitescribeAPI litescribeAPI = LitescribeAPI(baseUrl: 'https://litescribe.io/api');
+
+  Future<List<AddressInscription>> getInscriptionsByAddress(String address) async {
+    try {
+      var response = await litescribeAPI.getInscriptionsByAddress(address);
+      print("Found ${response.result.total} inscriptions at address $address"); // TODO disable (POC)
+      return response.result.list;
+    } catch (e) {
+      throw Exception('Error in OrdinalsInterface getInscriptionsByAddress: $e');
+    }
+  }
+
+  /* // ord-litecoin interface
   final OrdinalsAPI ordinalsAPI = OrdinalsAPI(baseUrl: 'https://ord-litecoin.stackwallet.com');
 
   Future<FeedResponse> fetchLatestInscriptions() async {
@@ -91,4 +108,5 @@ mixin OrdinalsInterface {
       throw Exception('Error in OrdinalsInterface getInscriptionPreview: $e');
     }
   }
+  */ // /ord-litecoin interface
 }
