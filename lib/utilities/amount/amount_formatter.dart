@@ -70,6 +70,11 @@ class AmountFormatter {
     String string, {
     EthContract? ethContract,
   }) {
-    return unit.tryParse(string, locale: locale, coin: coin);
+    return unit.tryParse(
+      string,
+      locale: locale,
+      coin: coin,
+      tokenContract: ethContract,
+    );
   }
 }
