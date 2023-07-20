@@ -19,7 +19,7 @@ mixin OrdinalsInterface {
   Future<List<AddressInscription>> getInscriptionsByAddress(String address) async {
     try {
       var response = await litescribeAPI.getInscriptionsByAddress(address);
-      print("Found ${response.result.total} inscriptions at address $address"); // TODO disable (POC)
+      print("Found ${response.result.total} inscription${response.result.total > 1 ? 's' : ''} at address $address"); // TODO disable (POC)
       return response.result.list;
     } catch (e) {
       throw Exception('Error in OrdinalsInterface getInscriptionsByAddress: $e');
