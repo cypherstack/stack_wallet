@@ -34,12 +34,29 @@ class LitescribeAPI {
     }
   }
 
-  Future<AddressInscriptionResponse> getInscriptionsByAddress(String address, {int cursor = 0, int size = 1000}) async { // size = 1000 = hardcoded limit as default limit to inscriptions returned from API call, TODO increase limit if returned inscriptions = limit
+  Future<AddressInscriptionResponse> getInscriptionsByAddress(String address, {int cursor = 0, int size = 1000}) async {
+    // size param determines how many inscriptions are returned per response
+    // default of 1000 is used to cover most addresses (I assume)
+    // if the total number of inscriptions at the address exceeds the length of the list of inscriptions returned, another call with a higher size is made
+    final int defaultLimit = 1000;
     final response = await _getResponse('/address/inscriptions?address=$address&cursor=$cursor&size=$size');
-    try {
-      return AddressInscriptionResponse.fromJson(response.data as Map<String, dynamic>);
-    } catch(e) {
-      throw const FormatException('LitescribeAPI getInscriptionsByAddress exception: AddressInscriptionResponse.fromJson failure');
+
+    // Check if the number of returned inscriptions equals the limit
+    final list = response.data['result']['list'] as List<dynamic>;
+    final int total = response.data['result']['total'] as int;
+    final int currentSize = list.length;
+
+    if (currentSize == size && currentSize < total) {
+      // If the number of returned inscriptions equals the limit and there are more inscriptions available,
+      // increase the size to fetch all inscriptions.
+      return getInscriptionsByAddress(address, cursor: cursor, size: total+1); // potential off-by-one error, but should be safe
+      // TODO don't re-request the same inscriptions previously returned; increment cursor (probably) by size and only request the rest. ex: cursor=0 size=1000 probably returns inscriptions 0-999, so set cursor=size (or size-1?) to get 1000-1999
+    } else {
+      try {
+        return AddressInscriptionResponse.fromJson(response.data as Map<String, dynamic>);
+      } catch (e) {
+        throw const FormatException('LitescribeAPI getInscriptionsByAddress exception: AddressInscriptionResponse.fromJson failure');
+      }
     }
   }
 }
