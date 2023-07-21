@@ -12,7 +12,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/dto/ordinals/inscription_data.dart';
 import 'package:stackwallet/models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
 import 'package:stackwallet/models/buy/response_objects/quote.dart';
@@ -20,7 +19,7 @@ import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/models/ordinal.dart'; // TODO generalize InscriptionData -> Ordinal
+import 'package:stackwallet/models/ordinal.dart';
 import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/add_custom_token_view.dart';
@@ -458,7 +457,7 @@ class RouteGenerator {
         if (args is ({Ordinal ordinal, String walletId})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => OrdinalDetailsView(
+            builder: (_) => DesktopOrdinalDetailsView(
               walletId: args.walletId,
               ordinal: args.ordinal,
             ),
