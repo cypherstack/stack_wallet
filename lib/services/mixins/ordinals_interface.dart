@@ -5,18 +5,6 @@ import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
-// ord-litecoin-specific imports
-// import 'package:stackwallet/dto/ordinals/feed_response.dart';
-// import 'package:stackwallet/dto/ordinals/inscription_response.dart';
-// import 'package:stackwallet/dto/ordinals/sat_response.dart';
-// import 'package:stackwallet/dto/ordinals/transaction_response.dart';
-// import 'package:stackwallet/dto/ordinals/output_response.dart';
-// import 'package:stackwallet/dto/ordinals/address_response.dart';
-// import 'package:stackwallet/dto/ordinals/block_response.dart';
-// import 'package:stackwallet/dto/ordinals/content_response.dart';
-// import 'package:stackwallet/dto/ordinals/preview_response.dart';
-// import 'package:stackwallet/services/ordinals_api.dart';
-
 import 'package:stackwallet/services/litescribe_api.dart';
 import 'package:stackwallet/dto/ordinals/inscription_data.dart';
 
