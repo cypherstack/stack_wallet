@@ -146,6 +146,7 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/unlock_wallet_keys_desktop.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/wallet_keys_desktop_popup.dart';
 import 'package:stackwallet/pages_desktop_specific/notifications/desktop_notifications_view.dart';
+import 'package:stackwallet/pages_desktop_specific/ordinals/desktop_ordinals_view.dart';
 import 'package:stackwallet/pages_desktop_specific/password/create_password_view.dart';
 import 'package:stackwallet/pages_desktop_specific/password/delete_password_warning_view.dart';
 import 'package:stackwallet/pages_desktop_specific/password/forgot_password_desktop_view.dart';
@@ -413,6 +414,20 @@ class RouteGenerator {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => OrdinalsView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case DesktopOrdinalsView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => DesktopOrdinalsView(
               walletId: args,
             ),
             settings: RouteSettings(
