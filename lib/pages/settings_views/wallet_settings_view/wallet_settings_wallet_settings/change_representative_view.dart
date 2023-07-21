@@ -293,24 +293,24 @@ class _XPubViewState extends ConsumerState<ChangeRepresentativeView> {
                                 const SizedBox(
                                   height: 4,
                                 ),
-                                child,
-                              ],
-                            ),
-                            child: Row(
-                              children: [
-                                SelectableText(
-                                  representative!,
-                                  style: isDesktop
-                                      ? STextStyles.desktopTextExtraExtraSmall(
-                                              context)
-                                          .copyWith(
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .textDark,
-                                        )
-                                      : STextStyles.itemSubtitle12(context),
+                                Row(
+                                  children: [
+                                    child,
+                                  ],
                                 ),
                               ],
+                            ),
+                            child: SelectableText(
+                              representative!,
+                              style: isDesktop
+                                  ? STextStyles.desktopTextExtraExtraSmall(
+                                          context)
+                                      .copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
+                                    )
+                                  : STextStyles.itemSubtitle12(context),
                             ),
                           ),
                         ),
