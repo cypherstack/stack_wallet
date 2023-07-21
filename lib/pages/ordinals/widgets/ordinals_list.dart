@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/models/ordinal.dart';
-
 import 'package:stackwallet/pages/ordinals/widgets/ordinal_card.dart';
 
 class OrdinalsList extends StatelessWidget {
@@ -13,7 +12,7 @@ class OrdinalsList extends StatelessWidget {
   final String walletId;
   final Future<List<Ordinal>> ordinalsFuture;
 
-  get spacing => 2.0;
+  double get spacing => 2.0;
 
   @override
   Widget build(BuildContext context) {
@@ -30,8 +29,8 @@ class OrdinalsList extends StatelessWidget {
             shrinkWrap: true,
             itemCount: ordinals.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisSpacing: spacing as double,
-              mainAxisSpacing: spacing as double,
+              crossAxisSpacing: spacing,
+              mainAxisSpacing: spacing,
               crossAxisCount: 2,
               childAspectRatio: 6 / 7, // was 3/4, less data displayed now
             ),
