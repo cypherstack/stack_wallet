@@ -142,7 +142,7 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
                   context: context,
                   message: "Looking up contract",
                 );
-                currentToken = response.value;
+                currentToken = response!.value;
                 if (currentToken != null) {
                   nameController.text = currentToken!.name;
                   symbolController.text = currentToken!.symbol;
@@ -157,7 +157,7 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
                         context: context,
                         builder: (context) => StackOkDialog(
                           title: "Failed to look up token",
-                          message: response.exception?.message,
+                          message: response!.exception?.message,
                         ),
                       ),
                     );
