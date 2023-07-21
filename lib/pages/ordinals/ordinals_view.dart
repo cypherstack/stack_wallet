@@ -14,6 +14,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/ordinal.dart';
 import 'package:stackwallet/pages/ordinals/ordinals_filter_view.dart';
 import 'package:stackwallet/pages/ordinals/widgets/ordinals_list.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/services/mixins/ordinals_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -44,12 +46,22 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
   late final FocusNode searchFocus;
 
   String _searchTerm = "";
+  dynamic _manager;
 
   @override
   void initState() {
     searchController = TextEditingController();
     searchFocus = FocusNode();
+
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Set _manager here when the widget's dependencies change
+    _manager = ref.watch(walletsChangeNotifierProvider
+        .select((value) => value.getManager(widget.walletId)));
   }
 
   @override
@@ -87,8 +99,8 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
                         .extension<StackColors>()!
                         .topNavIconPrimary,
                   ),
-                  onPressed: () {
-                    // todo refresh
+                  onPressed: () async {
+                    (_manager.wallet as OrdinalsInterface).refreshInscriptions();
                   },
                 ),
               ),
@@ -181,14 +193,7 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
                 Expanded(
                   child: OrdinalsList(
                     walletId: widget.walletId,
-                    ordinals: [
-                      for (int i = 0; i < 13; i++)
-                        Ordinal(
-                          name: "dummy name $i",
-                          inscription: "insc$i",
-                          rank: "r$i",
-                        ),
-                    ],
+                    ordinalsFuture: (_manager.wallet as OrdinalsInterface).getOrdinals(),
                   ),
                 ),
               ],
