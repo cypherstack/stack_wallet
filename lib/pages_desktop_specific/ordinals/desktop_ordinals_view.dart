@@ -14,7 +14,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/add_address_book_entry_view.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/address_book_filter_view.dart';
-import 'package:stackwallet/pages/ordinals/widgets/ordinals_list.dart';
+import 'package:stackwallet/pages_desktop_specific/ordinals/subwidgets/desktop_ordinals_list.dart';
 import 'package:stackwallet/pages_desktop_specific/address_book_view/subwidgets/desktop_address_book_scaffold.dart';
 import 'package:stackwallet/pages_desktop_specific/address_book_view/subwidgets/desktop_contact_details.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
@@ -176,7 +176,7 @@ class _DesktopOrdinals extends ConsumerState<DesktopOrdinalsView> {
                 height: 16,
               ),
               Expanded(
-                child: OrdinalsList(
+                child: DesktopOrdinalsList(
                   walletId: widget.walletId,
                   ordinalsFuture: (_manager.wallet as OrdinalsInterface).getOrdinals(),
                 ),
