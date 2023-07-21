@@ -153,38 +153,65 @@ class StellarWallet extends CoinServiceAPI
   Coin get coin => _coin;
   late Coin _coin;
 
+  Future<bool> accoutExists(String accountId) async {
+    bool exists = false;
+
+    try {
+      AccountResponse receiverAccount = await stellarSdk.accounts
+          .account(accountId);
+      if (receiverAccount.accountId != "") {
+        exists = true;
+      }
+    } catch(e, s) {
+      Logging.instance.log("Error getting account  ${e.toString()} - ${s.toString()}", level: LogLevel.Error);
+    }
+    return exists;
+  }
   @override
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
-    print("TX DATA IS $txData");
     final secretSeed = await _secureStore.read(
         key: '${_walletId}_secretSeed'
     );
-
-    // final amt = Amount(
-    //   rawValue: BigInt.from(txData['recipientAmt']),
-    //   fractionDigits: coin.decimals,
-    // );
-    //
-    // print("THIS AMOUNT IS $amount");
-    //First check if account exists, can be skipped, but if the account does not exist,
-    // the transaction fee will be charged when the transaction fails.
-    AccountResponse receiverAccount = await stellarSdk.accounts
-        .account(txData['address'] as String).onError(
-            (error, stackTrace) => throw("Error getting account :: Cannot send transaction"));
-
     KeyPair senderKeyPair = KeyPair.fromSecretSeed(secretSeed!);
     AccountResponse sender = await stellarSdk.accounts.account(senderKeyPair.accountId);
 
-    Transaction transaction = TransactionBuilder(sender)
-        .addOperation(PaymentOperationBuilder(receiverAccount.accountId, Asset.NATIVE, "100").build())
-        .build();
-    transaction.sign(senderKeyPair, Network.TESTNET);
-    SubmitTransactionResponse response = await stellarSdk.submitTransaction(transaction);
+    final amountToSend = txData['recipientAmt'] as Amount;
 
-    if (!response.success) {
-      throw("Unable to send transaction");
+    //First check if account exists, can be skipped, but if the account does not exist,
+    // the transaction fee will be charged when the transaction fails.
+    bool validAccount = await accoutExists(txData['address'] as String);
+    Transaction transaction;
+
+    if (!validAccount) {
+      //Fund the account, user must ensure account is correct
+      CreateAccountOperationBuilder createAccBuilder =
+      CreateAccountOperationBuilder(
+          txData['address'] as String, amountToSend.decimal.toString()
+      );
+      transaction = TransactionBuilder(sender)
+          .addOperation(createAccBuilder.build())
+          .build();
+    } else {
+      transaction = TransactionBuilder(sender)
+          .addOperation(PaymentOperationBuilder(
+          txData['address'] as String, Asset.NATIVE,
+          amountToSend.decimal.toString())
+          .build()
+      ).build();
     }
-    return response.hash!;
+    transaction.sign(senderKeyPair, Network.TESTNET);
+    try {
+      SubmitTransactionResponse response = await stellarSdk.submitTransaction(transaction);
+
+      if (!response.success) {
+        throw("Unable to send transaction");
+      }
+      return response.hash!;
+    } catch(e, s) {
+      Logging.instance.log("Error sending TX $e - $s", level: LogLevel.Error);
+      rethrow;
+    }
+
   }
 
   Future<SWAddress.Address?> get _currentReceivingAddress =>
@@ -460,68 +487,72 @@ class StellarWallet extends CoinServiceAPI
       );
 
       for (OperationResponse response in payments.records!) {
+        PaymentOperationResponse por;
         if (response is PaymentOperationResponse) {
-          var por = response;
+          por = response;
+
+          Logging.instance.log(
+              "ALL TRANSACTIONS IS $por",
+              level: LogLevel.Info);
           SWTransaction.TransactionType type;
           if (por.sourceAccount == await getAddressSW()) {
             type = SWTransaction.TransactionType.outgoing;
           } else {
             type = SWTransaction.TransactionType.incoming;
           }
-          final amount = Amount(
-            rawValue: BigInt.parse(float.parse(por.amount!).toStringAsFixed(7).replaceAll(".", "")),
-            fractionDigits: 7,
-<<<<<<< HEAD
-        );
-        int fee = 0;
-        int height = 0;
-        var transaction = por.transaction;
-        if (transaction != null) {
-          fee = transaction.feeCharged!;
-          height = transaction.ledger;
-        }
-        var theTransaction = SWTransaction.Transaction(
-          walletId: walletId,
-          txid: por.transactionHash!,
-          timestamp: DateTime.parse(por.createdAt!).millisecondsSinceEpoch ~/ 1000,
-          type: type,
-          subType: SWTransaction.TransactionSubType.none,
-          amount: 0,
-          amountString: amount.toJsonString(),
-          fee: fee,
-          height: height,
-          isCancelled: false,
-          isLelantus: false,
-          slateId: "",
-          otherData: "",
-          inputs: [],
-          outputs: [],
-          nonce: 0,
-          numberOfMessages: null,
-        );
-        SWAddress.Address? receivingAddress = await _currentReceivingAddress;
-        SWAddress.Address address = type == SWTransaction.TransactionType.incoming
-            ? receivingAddress!
-            : SWAddress.Address(
-          walletId: walletId,
-          value: por.sourceAccount!,
-          publicKey: KeyPair.fromAccountId(por.sourceAccount!).publicKey,
-          derivationIndex: 0,
-          derivationPath: null,
-          type: SWAddress.AddressType.unknown, // TODO: set type
-          subType: SWAddress.AddressSubType.unknown
-        );
-        Tuple2<SWTransaction.Transaction, SWAddress.Address> tuple = Tuple2(theTransaction, address);
-        transactionList.add(tuple);
-      } else if (response is CreateAccountOperationResponse) {
-        var caor = response;
-        SWTransaction.TransactionType type;
-        if (caor.sourceAccount == await getAddressSW()) {
-          type = SWTransaction.TransactionType.outgoing;
-        } else {
-          type = SWTransaction.TransactionType.incoming;
-        }
         final amount = Amount(
+            rawValue: BigInt.parse(float.parse(por.amount!).toStringAsFixed(coin.decimals).replaceAll(".", "")),
+            fractionDigits: coin.decimals,
+          );
+          int fee = 0;
+          int height = 0;
+          var transaction = por.transaction;
+          if (transaction != null) {
+            fee = transaction.feeCharged!;
+            height = transaction.ledger;
+          }
+          var theTransaction = SWTransaction.Transaction(
+            walletId: walletId,
+            txid: por.transactionHash!,
+            timestamp: DateTime.parse(por.createdAt!).millisecondsSinceEpoch ~/ 1000,
+            type: type,
+            subType: SWTransaction.TransactionSubType.none,
+            amount: 0,
+            amountString: amount.toJsonString(),
+            fee: fee,
+            height: height,
+            isCancelled: false,
+            isLelantus: false,
+            slateId: "",
+            otherData: "",
+            inputs: [],
+            outputs: [],
+            nonce: 0,
+            numberOfMessages: null,
+          );
+          SWAddress.Address? receivingAddress = await _currentReceivingAddress;
+          SWAddress.Address address = type == SWTransaction.TransactionType.incoming
+              ? receivingAddress!
+              : SWAddress.Address(
+            walletId: walletId,
+            value: por.sourceAccount!,
+            publicKey: KeyPair.fromAccountId(por.sourceAccount!).publicKey,
+            derivationIndex: 0,
+            derivationPath: null,
+            type: SWAddress.AddressType.unknown, // TODO: set type
+            subType: SWAddress.AddressSubType.unknown,
+          );
+          Tuple2<SWTransaction.Transaction, SWAddress.Address> tuple = Tuple2(theTransaction, address);
+          transactionList.add(tuple);
+        } else if (response is CreateAccountOperationResponse) {
+          var caor = response;
+          SWTransaction.TransactionType type;
+          if (caor.sourceAccount == await getAddressSW()) {
+            type = SWTransaction.TransactionType.outgoing;
+          } else {
+            type = SWTransaction.TransactionType.incoming;
+          }
+          final amount = Amount(
             rawValue: BigInt.parse(float.parse(caor.startingBalance!).toStringAsFixed(coin.decimals).replaceAll(".", "")),
             fractionDigits: coin.decimals,
           );
@@ -572,37 +603,43 @@ class StellarWallet extends CoinServiceAPI
       Logging.instance.log(
           "Exception rethrown from updateTransactions(): $e\n$s",
           level: LogLevel.Error);
-      rethrow;
     }
 
   }
 
   Future<void> updateBalance() async {
-    AccountResponse accountResponse = await stellarSdk.accounts.account(await getAddressSW());
-    for (Balance balance in accountResponse.balances) {
-      switch (balance.assetType) {
-        case Asset.TYPE_NATIVE:
-          _balance = SWBalance.Balance(
-            total: Amount(
-              rawValue: BigInt.from(float.parse(balance.balance) * 10000000 - 10000000), // Minus 1 XLM for account activation fee
-              fractionDigits: 7,
-            ),
-            spendable: Amount(
-              rawValue: BigInt.from(float.parse(balance.balance) * 10000000 - 10000000), // Minus 1 XLM for account activation fee
-              fractionDigits: 7,
-            ),
-            blockedTotal: Amount(
-              rawValue: BigInt.from(0),
-              fractionDigits: 7,
-            ),
-            pendingSpendable: Amount(
-              rawValue: BigInt.from(0),
-              fractionDigits: 7,
-            ),
-          );
-          Logging.instance.log(_balance, level: LogLevel.Info);
-          await updateCachedBalance(_balance!);
+    try {
+      AccountResponse accountResponse = await stellarSdk.accounts.account(await getAddressSW());
+      for (Balance balance in accountResponse.balances) {
+        switch (balance.assetType) {
+          case Asset.TYPE_NATIVE:
+            _balance = SWBalance.Balance(
+              total: Amount(
+                rawValue: BigInt.from(float.parse(balance.balance) * 10000000 - 10000000), // Minus 1 XLM for account activation fee
+                fractionDigits: coin.decimals,
+              ),
+              spendable: Amount(
+                rawValue: BigInt.from(float.parse(balance.balance) * 10000000 - 10000000), // Minus 1 XLM for account activation fee
+                fractionDigits: coin.decimals,
+              ),
+              blockedTotal: Amount(
+                rawValue: BigInt.from(0),
+                fractionDigits: coin.decimals,
+              ),
+              pendingSpendable: Amount(
+                rawValue: BigInt.from(0),
+                fractionDigits: coin.decimals,
+              ),
+            );
+            Logging.instance.log(_balance, level: LogLevel.Info);
+            await updateCachedBalance(_balance!);
+        }
       }
+    } catch(e, s) {
+      Logging.instance.log(
+        "ERROR GETTING BALANCE $e\$s",
+        level: LogLevel.Info,
+      );
     }
   }
 
@@ -697,9 +734,38 @@ class StellarWallet extends CoinServiceAPI
   }
 
   @override
-  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) {
-    // TODO: implement updateSentCachedTxData
-    throw UnimplementedError();
+  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
+    final transaction = SWTransaction.Transaction(
+      walletId: walletId,
+      txid: txData["txid"] as String,
+      timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      type: SWTransaction.TransactionType.outgoing,
+      subType: SWTransaction.TransactionSubType.none,
+      // precision may be lost here hence the following amountString
+      amount: (txData["recipientAmt"] as Amount).raw.toInt(),
+      amountString: (txData["recipientAmt"] as Amount).toJsonString(),
+      fee: txData["fee"] as int,
+      height: null,
+      isCancelled: false,
+      isLelantus: false,
+      otherData: null,
+      slateId: null,
+      nonce: null,
+      inputs: [],
+      outputs: [],
+      numberOfMessages: null,
+    );
+
+    final address = txData["address"] is String
+    ? await db.getAddress(walletId, txData["address"] as String)
+    : null;
+
+    await db.addNewTransactionData(
+    [
+    Tuple2(transaction, address),
+    ],
+    walletId,
+    );
   }
 
   @override
