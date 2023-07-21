@@ -26,21 +26,20 @@ import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
 class OrdinalFilter {
-  final bool isMoonbird;
-  final bool isPunk;
+  // final bool isMoonbird;
+  // final bool isPunk;
   final DateTime? from;
   final DateTime? to;
   final String? inscription;
   final String keyword;
 
   OrdinalFilter({
-    required this.isMoonbird,
-    required this.isPunk,
+    // required this.isMoonbird,
+    // required this.isPunk,
     required this.from,
     required this.to,
     required this.inscription,
@@ -48,16 +47,16 @@ class OrdinalFilter {
   });
 
   OrdinalFilter copyWith({
-    bool? isMoonbird,
-    bool? isPunk,
+    // bool? isMoonbird,
+    // bool? isPunk,
     DateTime? from,
     DateTime? to,
     String? inscription,
     String? keyword,
   }) {
     return OrdinalFilter(
-      isMoonbird: isMoonbird ?? this.isMoonbird,
-      isPunk: isPunk ?? this.isPunk,
+      // isMoonbird: isMoonbird ?? this.isMoonbird,
+      // isPunk: isPunk ?? this.isPunk,
       from: from ?? this.from,
       to: to ?? this.to,
       inscription: inscription ?? this.inscription,
@@ -83,8 +82,8 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
   final _inscriptionTextEditingController = TextEditingController();
   final _keywordTextEditingController = TextEditingController();
 
-  bool _isPunk = false;
-  bool _isMoonbird = false;
+  // bool _isPunk = false;
+  // bool _isMoonbird = false;
 
   String _fromDateString = "";
   String _toDateString = "";
@@ -99,8 +98,8 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
     baseColor = ref.read(themeProvider.state).state.textSubtitle2;
     final filterState = ref.read(ordinalFilterProvider.state).state;
     if (filterState != null) {
-      _isMoonbird = filterState.isMoonbird;
-      _isPunk = filterState.isPunk;
+      // _isMoonbird = filterState.isMoonbird;
+      // _isPunk = filterState.isPunk;
       _selectedToDate = filterState.to;
       _selectedFromDate = filterState.from;
       _keywordTextEditingController.text = filterState.keyword;
@@ -521,146 +520,146 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
         SizedBox(
           height: isDesktop ? 14 : 10,
         ),
-        if (!isDesktop)
-          Align(
-            alignment: Alignment.centerLeft,
-            child: FittedBox(
-              child: Text(
-                "Collection",
-                style: STextStyles.smallMed12(context),
-              ),
-            ),
-          ),
-        if (!isDesktop)
-          const SizedBox(
-            height: 12,
-          ),
-        RoundedWhiteContainer(
-          padding: EdgeInsets.all(isDesktop ? 0 : 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _isPunk = !_isPunk;
-                      });
-                    },
-                    child: Container(
-                      color: Colors.transparent,
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: Checkbox(
-                              key: const Key("OrdinalsPunkCheckboxKey"),
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
-                              value: _isPunk,
-                              onChanged: (newValue) {
-                                setState(() {
-                                  _isPunk = newValue!;
-                                });
-                              },
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 14,
-                          ),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: FittedBox(
-                              child: Column(
-                                children: [
-                                  Text(
-                                    "Punks",
-                                    style: isDesktop
-                                        ? STextStyles.desktopTextSmall(context)
-                                        : STextStyles.itemSubtitle12(context),
-                                  ),
-                                  if (isDesktop)
-                                    const SizedBox(
-                                      height: 4,
-                                    ),
-                                ],
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: isDesktop ? 4 : 10,
-              ),
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _isMoonbird = !_isMoonbird;
-                      });
-                    },
-                    child: Container(
-                      color: Colors.transparent,
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: Checkbox(
-                              key: const Key(
-                                "OrdinalsFilterMoonbirdCheckboxKey",
-                              ),
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
-                              value: _isMoonbird,
-                              onChanged: (newValue) {
-                                setState(() {
-                                  _isMoonbird = newValue!;
-                                });
-                              },
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 14,
-                          ),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: FittedBox(
-                              child: Column(
-                                children: [
-                                  Text(
-                                    "Moonbirds",
-                                    style: isDesktop
-                                        ? STextStyles.desktopTextSmall(context)
-                                        : STextStyles.itemSubtitle12(context),
-                                  ),
-                                  if (isDesktop)
-                                    const SizedBox(
-                                      height: 4,
-                                    ),
-                                ],
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: isDesktop ? 32 : 24,
-        ),
+        // if (!isDesktop)
+        //   Align(
+        //     alignment: Alignment.centerLeft,
+        //     child: FittedBox(
+        //       child: Text(
+        //         "Collection",
+        //         style: STextStyles.smallMed12(context),
+        //       ),
+        //     ),
+        //   ),
+        // if (!isDesktop)
+        //   const SizedBox(
+        //     height: 12,
+        //   ),
+        // RoundedWhiteContainer(
+        //   padding: EdgeInsets.all(isDesktop ? 0 : 12),
+        //   child: Column(
+        //     crossAxisAlignment: CrossAxisAlignment.start,
+        //     children: [
+        //       Row(
+        //         children: [
+        //           GestureDetector(
+        //             onTap: () {
+        //               setState(() {
+        //                 _isPunk = !_isPunk;
+        //               });
+        //             },
+        //             child: Container(
+        //               color: Colors.transparent,
+        //               child: Row(
+        //                 children: [
+        //                   SizedBox(
+        //                     height: 20,
+        //                     width: 20,
+        //                     child: Checkbox(
+        //                       key: const Key("OrdinalsPunkCheckboxKey"),
+        //                       materialTapTargetSize:
+        //                           MaterialTapTargetSize.shrinkWrap,
+        //                       value: _isPunk,
+        //                       onChanged: (newValue) {
+        //                         setState(() {
+        //                           _isPunk = newValue!;
+        //                         });
+        //                       },
+        //                     ),
+        //                   ),
+        //                   const SizedBox(
+        //                     width: 14,
+        //                   ),
+        //                   Align(
+        //                     alignment: Alignment.centerLeft,
+        //                     child: FittedBox(
+        //                       child: Column(
+        //                         children: [
+        //                           Text(
+        //                             "Punks",
+        //                             style: isDesktop
+        //                                 ? STextStyles.desktopTextSmall(context)
+        //                                 : STextStyles.itemSubtitle12(context),
+        //                           ),
+        //                           if (isDesktop)
+        //                             const SizedBox(
+        //                               height: 4,
+        //                             ),
+        //                         ],
+        //                       ),
+        //                     ),
+        //                   )
+        //                 ],
+        //               ),
+        //             ),
+        //           ),
+        //         ],
+        //       ),
+        //       SizedBox(
+        //         height: isDesktop ? 4 : 10,
+        //       ),
+        //       Row(
+        //         children: [
+        //           GestureDetector(
+        //             onTap: () {
+        //               setState(() {
+        //                 _isMoonbird = !_isMoonbird;
+        //               });
+        //             },
+        //             child: Container(
+        //               color: Colors.transparent,
+        //               child: Row(
+        //                 children: [
+        //                   SizedBox(
+        //                     height: 20,
+        //                     width: 20,
+        //                     child: Checkbox(
+        //                       key: const Key(
+        //                         "OrdinalsFilterMoonbirdCheckboxKey",
+        //                       ),
+        //                       materialTapTargetSize:
+        //                           MaterialTapTargetSize.shrinkWrap,
+        //                       value: _isMoonbird,
+        //                       onChanged: (newValue) {
+        //                         setState(() {
+        //                           _isMoonbird = newValue!;
+        //                         });
+        //                       },
+        //                     ),
+        //                   ),
+        //                   const SizedBox(
+        //                     width: 14,
+        //                   ),
+        //                   Align(
+        //                     alignment: Alignment.centerLeft,
+        //                     child: FittedBox(
+        //                       child: Column(
+        //                         children: [
+        //                           Text(
+        //                             "Moonbirds",
+        //                             style: isDesktop
+        //                                 ? STextStyles.desktopTextSmall(context)
+        //                                 : STextStyles.itemSubtitle12(context),
+        //                           ),
+        //                           if (isDesktop)
+        //                             const SizedBox(
+        //                               height: 4,
+        //                             ),
+        //                         ],
+        //                       ),
+        //                     ),
+        //                   )
+        //                 ],
+        //               ),
+        //             ),
+        //           ),
+        //         ],
+        //       ),
+        //     ],
+        //   ),
+        // ),
+        // SizedBox(
+        //   height: isDesktop ? 32 : 24,
+        // ),
         Align(
           alignment: Alignment.centerLeft,
           child: FittedBox(
@@ -875,8 +874,8 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
 
   Future<void> _onApplyPressed() async {
     final filter = OrdinalFilter(
-      isPunk: _isPunk,
-      isMoonbird: _isMoonbird,
+      // isPunk: _isPunk,
+      // isMoonbird: _isMoonbird,
       from: _selectedFromDate,
       to: _selectedToDate,
       inscription: _inscriptionTextEditingController.text,
