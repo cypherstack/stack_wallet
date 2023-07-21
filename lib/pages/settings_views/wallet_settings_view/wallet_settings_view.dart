@@ -20,11 +20,12 @@ import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/debug_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/syncing_preferences_views/syncing_preferences_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/xpub_view.dart';
 import 'package:stackwallet/pages/settings_views/sub_widgets/settings_list_button.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_backup_views/wallet_backup_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
+import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/change_representative_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/wallet_settings_wallet_settings_view.dart';
+import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/xpub_view.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/route_generator.dart';
@@ -231,7 +232,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                             .mnemonic;
 
                                         if (mounted) {
-                                          Navigator.push(
+                                          await Navigator.push(
                                             context,
                                             RouteGenerator.getRoute(
                                               shouldUseMaterialRoute:
@@ -299,6 +300,25 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                         onPressed: () {
                                           Navigator.of(context).pushNamed(
                                             XPubView.routeName,
+                                            arguments: widget.walletId,
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
+                                if (coin == Coin.nano || coin == Coin.banano)
+                                  const SizedBox(
+                                    height: 8,
+                                  ),
+                                if (coin == Coin.nano || coin == Coin.banano)
+                                  Consumer(
+                                    builder: (_, ref, __) {
+                                      return SettingsListButton(
+                                        iconAssetName: Assets.svg.eye,
+                                        title: "Change representative",
+                                        onPressed: () {
+                                          Navigator.of(context).pushNamed(
+                                            ChangeRepresentativeView.routeName,
                                             arguments: widget.walletId,
                                           );
                                         },
@@ -434,18 +454,20 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
           TextButton(
             onPressed: () async {
               try {
-                wallet.updateEpicboxConfig(
+                await wallet.updateEpicboxConfig(
                   hostController.text,
                   int.parse(portController.text),
                 );
-                showFloatingFlushBar(
-                  context: context,
-                  message: "Epicbox info saved!",
-                  type: FlushBarType.success,
-                );
-                wallet.refresh();
+                if (mounted) {
+                  await showFloatingFlushBar(
+                    context: context,
+                    message: "Epicbox info saved!",
+                    type: FlushBarType.success,
+                  );
+                }
+                unawaited(wallet.refresh());
               } catch (e) {
-                showFloatingFlushBar(
+                await showFloatingFlushBar(
                   context: context,
                   message: "Failed to save epicbox info: $e",
                   type: FlushBarType.warning,

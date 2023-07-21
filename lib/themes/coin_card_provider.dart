@@ -22,3 +22,14 @@ final coinCardProvider = Provider.family<String?, Coin>((ref, coin) {
     return null;
   }
 });
+
+final coinCardFavoritesProvider = Provider.family<String?, Coin>((ref, coin) {
+  final assets = ref.watch(themeAssetsProvider);
+
+  if (assets is ThemeAssetsV3) {
+    return assets.coinCardFavoritesImages?[coin.mainNetVersion] ??
+        assets.coinCardImages?[coin.mainNetVersion];
+  } else {
+    return null;
+  }
+});

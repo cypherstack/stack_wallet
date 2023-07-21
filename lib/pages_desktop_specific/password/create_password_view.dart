@@ -125,7 +125,7 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
       }
     }
 
-    if (!widget.restoreFromSWB) {
+    if (!widget.restoreFromSWB && mounted) {
       unawaited(showFloatingFlushBar(
         type: FlushBarType.success,
         message: "Your password is set up",
