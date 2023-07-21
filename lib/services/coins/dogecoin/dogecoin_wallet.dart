@@ -2665,7 +2665,10 @@ class DogecoinWallet extends CoinServiceAPI
     Logging.instance
         .log("Starting buildTransaction ----------", level: LogLevel.Info);
 
-    final txb = TransactionBuilder(network: network);
+    final txb = TransactionBuilder(
+      network: network,
+      maximumFeeRate: 2500000, // 1000x default value in bitcoindart lib
+    );
     txb.setVersion(1);
 
     // Add transaction inputs

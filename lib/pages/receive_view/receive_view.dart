@@ -22,6 +22,7 @@ import 'package:stackwallet/pages/receive_view/generate_receiving_uri_qr_code_vi
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -337,7 +338,11 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                         child: Column(
                           children: [
                             QrImageView(
-                                data: "${coin.uriScheme}:$receivingAddress",
+                                data: AddressUtils.buildUriString(
+                                  coin,
+                                  receivingAddress,
+                                  {},
+                                ),
                                 size: MediaQuery.of(context).size.width / 2,
                                 foregroundColor: Theme.of(context)
                                     .extension<StackColors>()!

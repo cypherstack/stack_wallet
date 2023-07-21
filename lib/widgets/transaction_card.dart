@@ -230,7 +230,9 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                               fit: BoxFit.scaleDown,
                               child: Text(
                                 _transaction.isCancelled
-                                    ? "Cancelled"
+                                    ? coin == Coin.ethereum
+                                        ? "Failed"
+                                        : "Cancelled"
                                     : whatIsIt(
                                         _transaction.type,
                                         coin,

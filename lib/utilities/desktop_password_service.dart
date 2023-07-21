@@ -10,9 +10,9 @@
 
 import 'package:hive/hive.dart';
 import 'package:stack_wallet_backup/secure_storage.dart';
-import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
+const String kBoxNameDesktopData = "desktopData";
 const String _kKeyBlobKey = "swbKeyBlobKeyStringID";
 const String _kKeyBlobVersionKey = "swbKeyBlobVersionKeyStringID";
 
@@ -62,14 +62,8 @@ class DPS {
         kLatestBlobVersion,
       );
 
-      final box = await Hive.openBox<String>(DB.boxNameDesktopData);
-      await DB.instance.put<String>(
-        boxName: DB.boxNameDesktopData,
-        key: _kKeyBlobKey,
-        value: await _handler!.getKeyBlob(),
-      );
+      await _put(key: _kKeyBlobKey, value: await _handler!.getKeyBlob());
       await _updateStoredKeyBlobVersion(kLatestBlobVersion);
-      await box.close();
     } catch (e, s) {
       Logging.instance.log(
         "${_getMessageFromException(e)}\n$s",
@@ -85,19 +79,13 @@ class DPS {
           "DPS: attempted to re initialize with existing passphrase");
     }
 
-    final box = await Hive.openBox<String>(DB.boxNameDesktopData);
-    final keyBlob = DB.instance.get<String>(
-      boxName: DB.boxNameDesktopData,
-      key: _kKeyBlobKey,
-    );
-    await box.close();
-
-    if (keyBlob == null) {
-      throw Exception(
-          "DPS: failed to find keyBlob while attempting to initialize with existing passphrase");
-    }
-
     try {
+      final keyBlob = await _get(key: _kKeyBlobKey);
+
+      if (keyBlob == null) {
+        throw Exception(
+            "DPS: failed to find keyBlob while attempting to initialize with existing passphrase");
+      }
       final blobVersion = await _getStoredKeyBlobVersion();
       _handler = await StorageCryptoHandler.fromExisting(
         passphrase,
@@ -107,14 +95,8 @@ class DPS {
       if (blobVersion < kLatestBlobVersion) {
         // update blob
         await _handler!.resetPassphrase(passphrase, kLatestBlobVersion);
-        final box = await Hive.openBox<String>(DB.boxNameDesktopData);
-        await DB.instance.put<String>(
-          boxName: DB.boxNameDesktopData,
-          key: _kKeyBlobKey,
-          value: await _handler!.getKeyBlob(),
-        );
+        await _put(key: _kKeyBlobKey, value: await _handler!.getKeyBlob());
         await _updateStoredKeyBlobVersion(kLatestBlobVersion);
-        await box.close();
       }
     } catch (e, s) {
       Logging.instance.log(
@@ -126,19 +108,13 @@ class DPS {
   }
 
   Future<bool> verifyPassphrase(String passphrase) async {
-    final box = await Hive.openBox<String>(DB.boxNameDesktopData);
-    final keyBlob = DB.instance.get<String>(
-      boxName: DB.boxNameDesktopData,
-      key: _kKeyBlobKey,
-    );
-    await box.close();
-
-    if (keyBlob == null) {
-      // no passphrase key blob found so any passphrase is technically bad
-      return false;
-    }
-
     try {
+      final keyBlob = await _get(key: _kKeyBlobKey);
+
+      if (keyBlob == null) {
+        // no passphrase key blob found so any passphrase is technically bad
+        return false;
+      }
       final blobVersion = await _getStoredKeyBlobVersion();
       await StorageCryptoHandler.fromExisting(passphrase, keyBlob, blobVersion);
       // existing passphrase matches key blob
@@ -157,35 +133,25 @@ class DPS {
     String passphraseOld,
     String passphraseNew,
   ) async {
-    final box = await Hive.openBox<String>(DB.boxNameDesktopData);
-    final keyBlob = DB.instance.get<String>(
-      boxName: DB.boxNameDesktopData,
-      key: _kKeyBlobKey,
-    );
-    await box.close();
-
-    if (keyBlob == null) {
-      // no passphrase key blob found so any passphrase is technically bad
-      return false;
-    }
-
-    if (!(await verifyPassphrase(passphraseOld))) {
-      return false;
-    }
-
-    final blobVersion = await _getStoredKeyBlobVersion();
-
     try {
-      await _handler!.resetPassphrase(passphraseNew, blobVersion);
+      final keyBlob = await _get(key: _kKeyBlobKey);
 
-      final box = await Hive.openBox<String>(DB.boxNameDesktopData);
-      await DB.instance.put<String>(
-        boxName: DB.boxNameDesktopData,
+      if (keyBlob == null) {
+        // no passphrase key blob found so any passphrase is technically bad
+        return false;
+      }
+
+      if (!(await verifyPassphrase(passphraseOld))) {
+        return false;
+      }
+
+      final blobVersion = await _getStoredKeyBlobVersion();
+      await _handler!.resetPassphrase(passphraseNew, blobVersion);
+      await _put(
         key: _kKeyBlobKey,
         value: await _handler!.getKeyBlob(),
       );
       await _updateStoredKeyBlobVersion(blobVersion);
-      await box.close();
 
       // successfully updated passphrase
       return true;
@@ -199,28 +165,54 @@ class DPS {
   }
 
   Future<bool> hasPassword() async {
-    final keyBlob = DB.instance.get<String>(
-      boxName: DB.boxNameDesktopData,
-      key: _kKeyBlobKey,
-    );
+    final keyBlob = await _get(key: _kKeyBlobKey);
     return keyBlob != null;
   }
 
   Future<int> _getStoredKeyBlobVersion() async {
-    final box = await Hive.openBox<String>(DB.boxNameDesktopData);
-    final keyBlobVersionString = DB.instance.get<String>(
-      boxName: DB.boxNameDesktopData,
-      key: _kKeyBlobVersionKey,
-    );
-    await box.close();
+    final keyBlobVersionString = await _get(key: _kKeyBlobVersionKey);
     return int.tryParse(keyBlobVersionString ?? "1") ?? 1;
   }
 
   Future<void> _updateStoredKeyBlobVersion(int version) async {
-    await DB.instance.put<String>(
-      boxName: DB.boxNameDesktopData,
-      key: _kKeyBlobVersionKey,
-      value: version.toString(),
-    );
+    await _put(key: _kKeyBlobVersionKey, value: version.toString());
+  }
+
+  Future<void> _put({required String key, required String value}) async {
+    Box<String>? box;
+    try {
+      box = await Hive.openBox<String>(kBoxNameDesktopData);
+      await box.put(key, value);
+    } catch (e, s) {
+      Logging.instance.log(
+        "DPS failed put($key): $e\n$s",
+        level: LogLevel.Fatal,
+      );
+    } finally {
+      await box?.close();
+    }
+  }
+
+  Future<String?> _get({required String key}) async {
+    String? value;
+    Box<String>? box;
+    try {
+      box = await Hive.openBox<String>(kBoxNameDesktopData);
+      value = box.get(key);
+    } catch (e, s) {
+      Logging.instance.log(
+        "DPS failed get($key): $e\n$s",
+        level: LogLevel.Fatal,
+      );
+    } finally {
+      await box?.close();
+    }
+    return value;
+  }
+
+  /// Dangerous. Used in one place and should not be called anywhere else.
+  @Deprecated("Don't use this if at all possible")
+  Future<void> deleteBox() async {
+    await Hive.deleteBoxFromDisk(kBoxNameDesktopData);
   }
 }

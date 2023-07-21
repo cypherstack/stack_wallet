@@ -101,12 +101,14 @@ class _SendViewState extends ConsumerState<SendView> {
   late TextEditingController cryptoAmountController;
   late TextEditingController baseAmountController;
   late TextEditingController noteController;
+  late TextEditingController onChainNoteController;
   late TextEditingController feeController;
 
   late final SendViewAutoFillData? _data;
 
   final _addressFocusNode = FocusNode();
   final _noteFocusNode = FocusNode();
+  final _onChainNoteFocusNode = FocusNode();
   final _cryptoFocus = FocusNode();
   final _baseFocus = FocusNode();
 
@@ -546,6 +548,7 @@ class _SendViewState extends ConsumerState<SendView> {
         // pop building dialog
         Navigator.of(context).pop();
         txData["note"] = noteController.text;
+        txData["onChainNote"] = onChainNoteController.text;
         if (isPaynymSend) {
           txData["paynymAccountLite"] = widget.accountLite!;
         } else {
@@ -624,6 +627,7 @@ class _SendViewState extends ConsumerState<SendView> {
     cryptoAmountController = TextEditingController();
     baseAmountController = TextEditingController();
     noteController = TextEditingController();
+    onChainNoteController = TextEditingController();
     feeController = TextEditingController();
 
     onCryptoAmountChanged = _cryptoAmountChanged;
@@ -698,9 +702,11 @@ class _SendViewState extends ConsumerState<SendView> {
     cryptoAmountController.dispose();
     baseAmountController.dispose();
     noteController.dispose();
+    onChainNoteController.dispose();
     feeController.dispose();
 
     _noteFocusNode.dispose();
+    _onChainNoteFocusNode.dispose();
     _addressFocusNode.dispose();
     _cryptoFocus.dispose();
     _baseFocus.dispose();
@@ -1794,8 +1800,64 @@ class _SendViewState extends ConsumerState<SendView> {
                           const SizedBox(
                             height: 12,
                           ),
+                          if (coin == Coin.epicCash)
+                            Text(
+                              "On chain Note (optional)",
+                              style: STextStyles.smallMed12(context),
+                              textAlign: TextAlign.left,
+                            ),
+                          if (coin == Coin.epicCash)
+                            const SizedBox(
+                              height: 8,
+                            ),
+                          if (coin == Coin.epicCash)
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(
+                                Constants.size.circularBorderRadius,
+                              ),
+                              child: TextField(
+                                autocorrect: Util.isDesktop ? false : true,
+                                enableSuggestions: Util.isDesktop ? false : true,
+                                maxLength: 256,
+                                controller: onChainNoteController,
+                                focusNode: _onChainNoteFocusNode,
+                                style: STextStyles.field(context),
+                                onChanged: (_) => setState(() {}),
+                                decoration: standardInputDecoration(
+                                  "Type something...",
+                                  _onChainNoteFocusNode,
+                                  context,
+                                ).copyWith(
+                                  suffixIcon: onChainNoteController.text.isNotEmpty
+                                      ? Padding(
+                                    padding:
+                                    const EdgeInsets.only(right: 0),
+                                    child: UnconstrainedBox(
+                                      child: Row(
+                                        children: [
+                                          TextFieldIconButton(
+                                            child: const XIcon(),
+                                            onTap: () async {
+                                              setState(() {
+                                                onChainNoteController.text = "";
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                      : null,
+                                ),
+                              ),
+                            ),
+                          if (coin == Coin.epicCash)
+                            const SizedBox(
+                              height: 12,
+                            ),
                           Text(
-                            "Note (optional)",
+                              (coin == Coin.epicCash) ? "Local Note (optional)"
+                                  : "Note (optional)",
                             style: STextStyles.smallMed12(context),
                             textAlign: TextAlign.left,
                           ),
@@ -2065,6 +2127,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                 top: 16,
                               ),
                               child: FeeSlider(
+                                coin: coin,
                                 onSatVByteChanged: (rate) {
                                   customFeeRate = rate;
                                 },

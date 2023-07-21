@@ -50,6 +50,7 @@ abstract class EthereumAPI {
   static Future<EthereumResponse<List<EthTxDTO>>> getEthTransactions({
     required String address,
     int firstBlock = 0,
+    bool includeTokens = false,
   }) async {
     try {
       final response = await get(
@@ -67,7 +68,7 @@ abstract class EthereumAPI {
           for (final map in list!) {
             final txn = EthTxDTO.fromMap(Map<String, dynamic>.from(map as Map));
 
-            if (txn.hasToken == 0) {
+            if (txn.hasToken == 0 || includeTokens) {
               txns.add(txn);
             }
           }
@@ -76,9 +77,11 @@ abstract class EthereumAPI {
             null,
           );
         } else {
-          throw EthApiException(
-            "getEthTransactions($address) response is empty but status code is "
-            "${response.statusCode}",
+          // nice that the api returns an empty body instead of being
+          // consistent and returning a json object with no transactions
+          return EthereumResponse(
+            [],
+            null,
           );
         }
       } else {
@@ -196,9 +199,11 @@ abstract class EthereumAPI {
             null,
           );
         } else {
-          throw EthApiException(
-            "getEthTransactionNonces($txns) response is empty but status code is "
-            "${response.statusCode}",
+          // nice that the api returns an empty body instead of being
+          // consistent and returning a json object with no transactions
+          return EthereumResponse(
+            [],
+            null,
           );
         }
       } else {
@@ -252,13 +257,13 @@ abstract class EthereumAPI {
           );
         } else {
           throw EthApiException(
-            "getEthTransaction($txids) response is empty but status code is "
+            "getEthTokenTransactionsByTxids($txids) response is empty but status code is "
             "${response.statusCode}",
           );
         }
       } else {
         throw EthApiException(
-          "getEthTransaction($txids) failed with status code: "
+          "getEthTokenTransactionsByTxids($txids) failed with status code: "
           "${response.statusCode}",
         );
       }
@@ -269,7 +274,7 @@ abstract class EthereumAPI {
       );
     } catch (e, s) {
       Logging.instance.log(
-        "getEthTransaction($txids): $e\n$s",
+        "getEthTokenTransactionsByTxids($txids): $e\n$s",
         level: LogLevel.Error,
       );
       return EthereumResponse(
@@ -307,9 +312,11 @@ abstract class EthereumAPI {
             null,
           );
         } else {
-          throw EthApiException(
-            "getTokenTransactions($address, $tokenContractAddress) response is empty but status code is "
-            "${response.statusCode}",
+          // nice that the api returns an empty body instead of being
+          // consistent and returning a json object with no transactions
+          return EthereumResponse(
+            [],
+            null,
           );
         }
       } else {

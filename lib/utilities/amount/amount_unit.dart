@@ -11,11 +11,10 @@
 import 'dart:math' as math;
 
 import 'package:decimal/decimal.dart';
-import 'package:intl/number_symbols.dart';
-import 'package:intl/number_symbols_data.dart';
 import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/util.dart';
 
 // preserve index order as index is used to store value in preferences
 enum AmountUnit {
@@ -169,6 +168,7 @@ extension AmountUnitExt on AmountUnit {
     required String locale,
     required Coin coin,
     EthContract? tokenContract,
+    bool overrideWithDecimalPlacesFromString = false,
   }) {
     final precisionLost = value.startsWith("~");
 
@@ -188,8 +188,7 @@ extension AmountUnitExt on AmountUnit {
     }
 
     // get number symbols for decimal place and group separator
-    final numberSymbols = numberFormatSymbols[locale] as NumberSymbols? ??
-        numberFormatSymbols[locale.substring(0, 2)] as NumberSymbols?;
+    final numberSymbols = Util.getSymbolsFor(locale: locale);
 
     final groupSeparator = numberSymbols?.GROUP_SEP ?? ",";
     final decimalSeparator = numberSymbols?.DECIMAL_SEP ?? ".";
@@ -203,7 +202,9 @@ extension AmountUnitExt on AmountUnit {
       return null;
     }
 
-    final decimalPlaces = tokenContract?.decimals ?? coin.decimals;
+    final decimalPlaces = overrideWithDecimalPlacesFromString
+        ? decimal.scale
+        : tokenContract?.decimals ?? coin.decimals;
     final realShift = math.min(shift, decimalPlaces);
 
     return decimal.shift(0 - realShift).toAmount(fractionDigits: decimalPlaces);
@@ -237,8 +238,7 @@ extension AmountUnitExt on AmountUnit {
     String returnValue = wholeNumber.toString();
 
     // get number symbols for decimal place and group separator
-    final numberSymbols = numberFormatSymbols[locale] as NumberSymbols? ??
-        numberFormatSymbols[locale.substring(0, 2)] as NumberSymbols?;
+    final numberSymbols = Util.getSymbolsFor(locale: locale);
 
     // insert group separator
     final regex = RegExp(r'\B(?=(\d{3})+(?!\d))');

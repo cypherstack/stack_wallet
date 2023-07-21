@@ -29601,13 +29601,13 @@ int _themeAssetsV3EstimateSize(
 ) {
   var bytesCount = offsets.last;
   {
-    final value = object.background;
+    final value = object.backgroundRelative;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
   }
-  bytesCount += 3 + object.bellNew.length * 3;
-  bytesCount += 3 + object.buy.length * 3;
+  bytesCount += 3 + object.bellNewRelative.length * 3;
+  bytesCount += 3 + object.buyRelative.length * 3;
   {
     final value = object.coinCardImagesString;
     if (value != null) {
@@ -29616,11 +29616,11 @@ int _themeAssetsV3EstimateSize(
   }
   bytesCount += 3 + object.coinIconsString.length * 3;
   bytesCount += 3 + object.coinImagesString.length * 3;
-  bytesCount += 3 + object.coinPlaceholder.length * 3;
+  bytesCount += 3 + object.coinPlaceholderRelative.length * 3;
   bytesCount += 3 + object.coinSecondaryImagesString.length * 3;
-  bytesCount += 3 + object.exchange.length * 3;
+  bytesCount += 3 + object.exchangeRelative.length * 3;
   {
-    final value = object.loadingGif;
+    final value = object.loadingGifRelative;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
@@ -29643,21 +29643,21 @@ int _themeAssetsV3EstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
-  bytesCount += 3 + object.personaEasy.length * 3;
-  bytesCount += 3 + object.personaIncognito.length * 3;
-  bytesCount += 3 + object.receive.length * 3;
-  bytesCount += 3 + object.receiveCancelled.length * 3;
-  bytesCount += 3 + object.receivePending.length * 3;
-  bytesCount += 3 + object.send.length * 3;
-  bytesCount += 3 + object.sendCancelled.length * 3;
-  bytesCount += 3 + object.sendPending.length * 3;
-  bytesCount += 3 + object.stack.length * 3;
-  bytesCount += 3 + object.stackIcon.length * 3;
-  bytesCount += 3 + object.themePreview.length * 3;
-  bytesCount += 3 + object.themeSelector.length * 3;
-  bytesCount += 3 + object.txExchange.length * 3;
-  bytesCount += 3 + object.txExchangeFailed.length * 3;
-  bytesCount += 3 + object.txExchangePending.length * 3;
+  bytesCount += 3 + object.personaEasyRelative.length * 3;
+  bytesCount += 3 + object.personaIncognitoRelative.length * 3;
+  bytesCount += 3 + object.receiveRelative.length * 3;
+  bytesCount += 3 + object.receiveCancelledRelative.length * 3;
+  bytesCount += 3 + object.receivePendingRelative.length * 3;
+  bytesCount += 3 + object.sendRelative.length * 3;
+  bytesCount += 3 + object.sendCancelledRelative.length * 3;
+  bytesCount += 3 + object.sendPendingRelative.length * 3;
+  bytesCount += 3 + object.stackRelative.length * 3;
+  bytesCount += 3 + object.stackIconRelative.length * 3;
+  bytesCount += 3 + object.themePreviewRelative.length * 3;
+  bytesCount += 3 + object.themeSelectorRelative.length * 3;
+  bytesCount += 3 + object.txExchangeRelative.length * 3;
+  bytesCount += 3 + object.txExchangeFailedRelative.length * 3;
+  bytesCount += 3 + object.txExchangePendingRelative.length * 3;
   return bytesCount;
 }
 
@@ -29667,34 +29667,34 @@ void _themeAssetsV3Serialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.background);
-  writer.writeString(offsets[1], object.bellNew);
-  writer.writeString(offsets[2], object.buy);
+  writer.writeString(offsets[0], object.backgroundRelative);
+  writer.writeString(offsets[1], object.bellNewRelative);
+  writer.writeString(offsets[2], object.buyRelative);
   writer.writeString(offsets[3], object.coinCardImagesString);
   writer.writeString(offsets[4], object.coinIconsString);
   writer.writeString(offsets[5], object.coinImagesString);
-  writer.writeString(offsets[6], object.coinPlaceholder);
+  writer.writeString(offsets[6], object.coinPlaceholderRelative);
   writer.writeString(offsets[7], object.coinSecondaryImagesString);
-  writer.writeString(offsets[8], object.exchange);
-  writer.writeString(offsets[9], object.loadingGif);
+  writer.writeString(offsets[8], object.exchangeRelative);
+  writer.writeString(offsets[9], object.loadingGifRelative);
   writer.writeString(offsets[10], object.coinCardFavoritesImagesString);
   writer.writeString(offsets[11], object.dummy2);
   writer.writeString(offsets[12], object.dummy3);
-  writer.writeString(offsets[13], object.personaEasy);
-  writer.writeString(offsets[14], object.personaIncognito);
-  writer.writeString(offsets[15], object.receive);
-  writer.writeString(offsets[16], object.receiveCancelled);
-  writer.writeString(offsets[17], object.receivePending);
-  writer.writeString(offsets[18], object.send);
-  writer.writeString(offsets[19], object.sendCancelled);
-  writer.writeString(offsets[20], object.sendPending);
-  writer.writeString(offsets[21], object.stack);
-  writer.writeString(offsets[22], object.stackIcon);
-  writer.writeString(offsets[23], object.themePreview);
-  writer.writeString(offsets[24], object.themeSelector);
-  writer.writeString(offsets[25], object.txExchange);
-  writer.writeString(offsets[26], object.txExchangeFailed);
-  writer.writeString(offsets[27], object.txExchangePending);
+  writer.writeString(offsets[13], object.personaEasyRelative);
+  writer.writeString(offsets[14], object.personaIncognitoRelative);
+  writer.writeString(offsets[15], object.receiveRelative);
+  writer.writeString(offsets[16], object.receiveCancelledRelative);
+  writer.writeString(offsets[17], object.receivePendingRelative);
+  writer.writeString(offsets[18], object.sendRelative);
+  writer.writeString(offsets[19], object.sendCancelledRelative);
+  writer.writeString(offsets[20], object.sendPendingRelative);
+  writer.writeString(offsets[21], object.stackRelative);
+  writer.writeString(offsets[22], object.stackIconRelative);
+  writer.writeString(offsets[23], object.themePreviewRelative);
+  writer.writeString(offsets[24], object.themeSelectorRelative);
+  writer.writeString(offsets[25], object.txExchangeRelative);
+  writer.writeString(offsets[26], object.txExchangeFailedRelative);
+  writer.writeString(offsets[27], object.txExchangePendingRelative);
 }
 
 ThemeAssetsV3 _themeAssetsV3Deserialize(
@@ -29704,34 +29704,34 @@ ThemeAssetsV3 _themeAssetsV3Deserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = ThemeAssetsV3();
-  object.background = reader.readStringOrNull(offsets[0]);
-  object.bellNew = reader.readString(offsets[1]);
-  object.buy = reader.readString(offsets[2]);
+  object.backgroundRelative = reader.readStringOrNull(offsets[0]);
+  object.bellNewRelative = reader.readString(offsets[1]);
+  object.buyRelative = reader.readString(offsets[2]);
   object.coinCardImagesString = reader.readStringOrNull(offsets[3]);
   object.coinIconsString = reader.readString(offsets[4]);
   object.coinImagesString = reader.readString(offsets[5]);
-  object.coinPlaceholder = reader.readString(offsets[6]);
+  object.coinPlaceholderRelative = reader.readString(offsets[6]);
   object.coinSecondaryImagesString = reader.readString(offsets[7]);
-  object.exchange = reader.readString(offsets[8]);
-  object.loadingGif = reader.readStringOrNull(offsets[9]);
+  object.exchangeRelative = reader.readString(offsets[8]);
+  object.loadingGifRelative = reader.readStringOrNull(offsets[9]);
   object.coinCardFavoritesImagesString = reader.readStringOrNull(offsets[10]);
   object.dummy2 = reader.readStringOrNull(offsets[11]);
   object.dummy3 = reader.readStringOrNull(offsets[12]);
-  object.personaEasy = reader.readString(offsets[13]);
-  object.personaIncognito = reader.readString(offsets[14]);
-  object.receive = reader.readString(offsets[15]);
-  object.receiveCancelled = reader.readString(offsets[16]);
-  object.receivePending = reader.readString(offsets[17]);
-  object.send = reader.readString(offsets[18]);
-  object.sendCancelled = reader.readString(offsets[19]);
-  object.sendPending = reader.readString(offsets[20]);
-  object.stack = reader.readString(offsets[21]);
-  object.stackIcon = reader.readString(offsets[22]);
-  object.themePreview = reader.readString(offsets[23]);
-  object.themeSelector = reader.readString(offsets[24]);
-  object.txExchange = reader.readString(offsets[25]);
-  object.txExchangeFailed = reader.readString(offsets[26]);
-  object.txExchangePending = reader.readString(offsets[27]);
+  object.personaEasyRelative = reader.readString(offsets[13]);
+  object.personaIncognitoRelative = reader.readString(offsets[14]);
+  object.receiveRelative = reader.readString(offsets[15]);
+  object.receiveCancelledRelative = reader.readString(offsets[16]);
+  object.receivePendingRelative = reader.readString(offsets[17]);
+  object.sendRelative = reader.readString(offsets[18]);
+  object.sendCancelledRelative = reader.readString(offsets[19]);
+  object.sendPendingRelative = reader.readString(offsets[20]);
+  object.stackRelative = reader.readString(offsets[21]);
+  object.stackIconRelative = reader.readString(offsets[22]);
+  object.themePreviewRelative = reader.readString(offsets[23]);
+  object.themeSelectorRelative = reader.readString(offsets[24]);
+  object.txExchangeRelative = reader.readString(offsets[25]);
+  object.txExchangeFailedRelative = reader.readString(offsets[26]);
+  object.txExchangePendingRelative = reader.readString(offsets[27]);
   return object;
 }
 
@@ -29806,7 +29806,7 @@ P _themeAssetsV3DeserializeProp<P>(
 extension ThemeAssetsV3QueryFilter
     on QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QFilterCondition> {
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      backgroundIsNull() {
+      backgroundRelativeIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
         property: r'background',
@@ -29815,7 +29815,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      backgroundIsNotNull() {
+      backgroundRelativeIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'background',
@@ -29824,7 +29824,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      backgroundEqualTo(
+      backgroundRelativeEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -29838,7 +29838,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      backgroundGreaterThan(
+      backgroundRelativeGreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -29854,7 +29854,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      backgroundLessThan(
+      backgroundRelativeLessThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -29870,7 +29870,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      backgroundBetween(
+      backgroundRelativeBetween(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -29890,7 +29890,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      backgroundStartsWith(
+      backgroundRelativeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -29904,7 +29904,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      backgroundEndsWith(
+      backgroundRelativeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -29918,7 +29918,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      backgroundContains(String value, {bool caseSensitive = true}) {
+      backgroundRelativeContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'background',
@@ -29929,7 +29929,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      backgroundMatches(String pattern, {bool caseSensitive = true}) {
+      backgroundRelativeMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'background',
@@ -29940,7 +29940,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      backgroundIsEmpty() {
+      backgroundRelativeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'background',
@@ -29950,7 +29950,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      backgroundIsNotEmpty() {
+      backgroundRelativeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'background',
@@ -29960,7 +29960,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      bellNewEqualTo(
+      bellNewRelativeEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -29974,7 +29974,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      bellNewGreaterThan(
+      bellNewRelativeGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -29990,7 +29990,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      bellNewLessThan(
+      bellNewRelativeLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -30006,7 +30006,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      bellNewBetween(
+      bellNewRelativeBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -30026,7 +30026,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      bellNewStartsWith(
+      bellNewRelativeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -30040,7 +30040,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      bellNewEndsWith(
+      bellNewRelativeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -30054,7 +30054,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      bellNewContains(String value, {bool caseSensitive = true}) {
+      bellNewRelativeContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'bellNew',
@@ -30065,7 +30065,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      bellNewMatches(String pattern, {bool caseSensitive = true}) {
+      bellNewRelativeMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'bellNew',
@@ -30076,7 +30076,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      bellNewIsEmpty() {
+      bellNewRelativeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'bellNew',
@@ -30086,7 +30086,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      bellNewIsNotEmpty() {
+      bellNewRelativeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'bellNew',
@@ -30095,7 +30095,8 @@ extension ThemeAssetsV3QueryFilter
     });
   }
 
-  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition> buyEqualTo(
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      buyRelativeEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -30109,7 +30110,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      buyGreaterThan(
+      buyRelativeGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -30124,7 +30125,8 @@ extension ThemeAssetsV3QueryFilter
     });
   }
 
-  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition> buyLessThan(
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      buyRelativeLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -30139,7 +30141,8 @@ extension ThemeAssetsV3QueryFilter
     });
   }
 
-  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition> buyBetween(
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      buyRelativeBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -30159,7 +30162,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      buyStartsWith(
+      buyRelativeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -30172,7 +30175,8 @@ extension ThemeAssetsV3QueryFilter
     });
   }
 
-  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition> buyEndsWith(
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      buyRelativeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -30185,9 +30189,8 @@ extension ThemeAssetsV3QueryFilter
     });
   }
 
-  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition> buyContains(
-      String value,
-      {bool caseSensitive = true}) {
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      buyRelativeContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'buy',
@@ -30197,9 +30200,8 @@ extension ThemeAssetsV3QueryFilter
     });
   }
 
-  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition> buyMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      buyRelativeMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'buy',
@@ -30210,7 +30212,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      buyIsEmpty() {
+      buyRelativeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'buy',
@@ -30220,7 +30222,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      buyIsNotEmpty() {
+      buyRelativeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'buy',
@@ -30656,7 +30658,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      coinPlaceholderEqualTo(
+      coinPlaceholderRelativeEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -30670,7 +30672,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      coinPlaceholderGreaterThan(
+      coinPlaceholderRelativeGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -30686,7 +30688,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      coinPlaceholderLessThan(
+      coinPlaceholderRelativeLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -30702,7 +30704,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      coinPlaceholderBetween(
+      coinPlaceholderRelativeBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -30722,7 +30724,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      coinPlaceholderStartsWith(
+      coinPlaceholderRelativeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -30736,7 +30738,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      coinPlaceholderEndsWith(
+      coinPlaceholderRelativeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -30750,7 +30752,8 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      coinPlaceholderContains(String value, {bool caseSensitive = true}) {
+      coinPlaceholderRelativeContains(String value,
+          {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'coinPlaceholder',
@@ -30761,7 +30764,8 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      coinPlaceholderMatches(String pattern, {bool caseSensitive = true}) {
+      coinPlaceholderRelativeMatches(String pattern,
+          {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'coinPlaceholder',
@@ -30772,7 +30776,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      coinPlaceholderIsEmpty() {
+      coinPlaceholderRelativeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'coinPlaceholder',
@@ -30782,7 +30786,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      coinPlaceholderIsNotEmpty() {
+      coinPlaceholderRelativeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'coinPlaceholder',
@@ -30930,7 +30934,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      exchangeEqualTo(
+      exchangeRelativeEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -30944,7 +30948,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      exchangeGreaterThan(
+      exchangeRelativeGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -30960,7 +30964,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      exchangeLessThan(
+      exchangeRelativeLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -30976,7 +30980,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      exchangeBetween(
+      exchangeRelativeBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -30996,7 +31000,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      exchangeStartsWith(
+      exchangeRelativeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -31010,7 +31014,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      exchangeEndsWith(
+      exchangeRelativeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -31024,7 +31028,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      exchangeContains(String value, {bool caseSensitive = true}) {
+      exchangeRelativeContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'exchange',
@@ -31035,7 +31039,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      exchangeMatches(String pattern, {bool caseSensitive = true}) {
+      exchangeRelativeMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'exchange',
@@ -31046,7 +31050,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      exchangeIsEmpty() {
+      exchangeRelativeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'exchange',
@@ -31056,7 +31060,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      exchangeIsNotEmpty() {
+      exchangeRelativeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'exchange',
@@ -31066,7 +31070,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      loadingGifIsNull() {
+      loadingGifRelativeIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
         property: r'loadingGif',
@@ -31075,7 +31079,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      loadingGifIsNotNull() {
+      loadingGifRelativeIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'loadingGif',
@@ -31084,7 +31088,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      loadingGifEqualTo(
+      loadingGifRelativeEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -31098,7 +31102,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      loadingGifGreaterThan(
+      loadingGifRelativeGreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -31114,7 +31118,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      loadingGifLessThan(
+      loadingGifRelativeLessThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -31130,7 +31134,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      loadingGifBetween(
+      loadingGifRelativeBetween(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -31150,7 +31154,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      loadingGifStartsWith(
+      loadingGifRelativeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -31164,7 +31168,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      loadingGifEndsWith(
+      loadingGifRelativeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -31178,7 +31182,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      loadingGifContains(String value, {bool caseSensitive = true}) {
+      loadingGifRelativeContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'loadingGif',
@@ -31189,7 +31193,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      loadingGifMatches(String pattern, {bool caseSensitive = true}) {
+      loadingGifRelativeMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'loadingGif',
@@ -31200,7 +31204,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      loadingGifIsEmpty() {
+      loadingGifRelativeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'loadingGif',
@@ -31210,7 +31214,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      loadingGifIsNotEmpty() {
+      loadingGifRelativeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'loadingGif',
@@ -31684,7 +31688,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      personaEasyEqualTo(
+      personaEasyRelativeEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -31698,7 +31702,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      personaEasyGreaterThan(
+      personaEasyRelativeGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -31714,7 +31718,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      personaEasyLessThan(
+      personaEasyRelativeLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -31730,7 +31734,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      personaEasyBetween(
+      personaEasyRelativeBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -31750,7 +31754,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      personaEasyStartsWith(
+      personaEasyRelativeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -31764,7 +31768,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      personaEasyEndsWith(
+      personaEasyRelativeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -31778,7 +31782,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      personaEasyContains(String value, {bool caseSensitive = true}) {
+      personaEasyRelativeContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'personaEasy',
@@ -31789,7 +31793,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      personaEasyMatches(String pattern, {bool caseSensitive = true}) {
+      personaEasyRelativeMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'personaEasy',
@@ -31800,7 +31804,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      personaEasyIsEmpty() {
+      personaEasyRelativeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'personaEasy',
@@ -31810,7 +31814,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      personaEasyIsNotEmpty() {
+      personaEasyRelativeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'personaEasy',
@@ -31820,7 +31824,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      personaIncognitoEqualTo(
+      personaIncognitoRelativeEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -31834,7 +31838,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      personaIncognitoGreaterThan(
+      personaIncognitoRelativeGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -31850,7 +31854,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      personaIncognitoLessThan(
+      personaIncognitoRelativeLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -31866,7 +31870,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      personaIncognitoBetween(
+      personaIncognitoRelativeBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -31886,7 +31890,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      personaIncognitoStartsWith(
+      personaIncognitoRelativeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -31900,7 +31904,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      personaIncognitoEndsWith(
+      personaIncognitoRelativeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -31914,7 +31918,8 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      personaIncognitoContains(String value, {bool caseSensitive = true}) {
+      personaIncognitoRelativeContains(String value,
+          {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'personaIncognito',
@@ -31925,7 +31930,8 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      personaIncognitoMatches(String pattern, {bool caseSensitive = true}) {
+      personaIncognitoRelativeMatches(String pattern,
+          {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'personaIncognito',
@@ -31936,7 +31942,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      personaIncognitoIsEmpty() {
+      personaIncognitoRelativeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'personaIncognito',
@@ -31946,7 +31952,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      personaIncognitoIsNotEmpty() {
+      personaIncognitoRelativeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'personaIncognito',
@@ -31956,7 +31962,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receiveEqualTo(
+      receiveRelativeEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -31970,7 +31976,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receiveGreaterThan(
+      receiveRelativeGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -31986,7 +31992,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receiveLessThan(
+      receiveRelativeLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -32002,7 +32008,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receiveBetween(
+      receiveRelativeBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -32022,7 +32028,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receiveStartsWith(
+      receiveRelativeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -32036,7 +32042,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receiveEndsWith(
+      receiveRelativeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -32050,7 +32056,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receiveContains(String value, {bool caseSensitive = true}) {
+      receiveRelativeContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'receive',
@@ -32061,7 +32067,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receiveMatches(String pattern, {bool caseSensitive = true}) {
+      receiveRelativeMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'receive',
@@ -32072,7 +32078,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receiveIsEmpty() {
+      receiveRelativeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'receive',
@@ -32082,7 +32088,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receiveIsNotEmpty() {
+      receiveRelativeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'receive',
@@ -32092,7 +32098,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receiveCancelledEqualTo(
+      receiveCancelledRelativeEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -32106,7 +32112,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receiveCancelledGreaterThan(
+      receiveCancelledRelativeGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -32122,7 +32128,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receiveCancelledLessThan(
+      receiveCancelledRelativeLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -32138,7 +32144,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receiveCancelledBetween(
+      receiveCancelledRelativeBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -32158,7 +32164,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receiveCancelledStartsWith(
+      receiveCancelledRelativeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -32172,7 +32178,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receiveCancelledEndsWith(
+      receiveCancelledRelativeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -32186,7 +32192,8 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receiveCancelledContains(String value, {bool caseSensitive = true}) {
+      receiveCancelledRelativeContains(String value,
+          {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'receiveCancelled',
@@ -32197,7 +32204,8 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receiveCancelledMatches(String pattern, {bool caseSensitive = true}) {
+      receiveCancelledRelativeMatches(String pattern,
+          {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'receiveCancelled',
@@ -32208,7 +32216,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receiveCancelledIsEmpty() {
+      receiveCancelledRelativeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'receiveCancelled',
@@ -32218,7 +32226,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receiveCancelledIsNotEmpty() {
+      receiveCancelledRelativeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'receiveCancelled',
@@ -32228,7 +32236,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receivePendingEqualTo(
+      receivePendingRelativeEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -32242,7 +32250,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receivePendingGreaterThan(
+      receivePendingRelativeGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -32258,7 +32266,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receivePendingLessThan(
+      receivePendingRelativeLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -32274,7 +32282,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receivePendingBetween(
+      receivePendingRelativeBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -32294,7 +32302,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receivePendingStartsWith(
+      receivePendingRelativeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -32308,7 +32316,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receivePendingEndsWith(
+      receivePendingRelativeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -32322,7 +32330,8 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receivePendingContains(String value, {bool caseSensitive = true}) {
+      receivePendingRelativeContains(String value,
+          {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'receivePending',
@@ -32333,7 +32342,8 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receivePendingMatches(String pattern, {bool caseSensitive = true}) {
+      receivePendingRelativeMatches(String pattern,
+          {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'receivePending',
@@ -32344,7 +32354,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receivePendingIsEmpty() {
+      receivePendingRelativeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'receivePending',
@@ -32354,7 +32364,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      receivePendingIsNotEmpty() {
+      receivePendingRelativeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'receivePending',
@@ -32363,7 +32373,8 @@ extension ThemeAssetsV3QueryFilter
     });
   }
 
-  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition> sendEqualTo(
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendRelativeEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -32377,7 +32388,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendGreaterThan(
+      sendRelativeGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -32393,7 +32404,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendLessThan(
+      sendRelativeLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -32408,7 +32419,8 @@ extension ThemeAssetsV3QueryFilter
     });
   }
 
-  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition> sendBetween(
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendRelativeBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -32428,7 +32440,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendStartsWith(
+      sendRelativeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -32442,7 +32454,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendEndsWith(
+      sendRelativeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -32456,7 +32468,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendContains(String value, {bool caseSensitive = true}) {
+      sendRelativeContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'send',
@@ -32466,9 +32478,8 @@ extension ThemeAssetsV3QueryFilter
     });
   }
 
-  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition> sendMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+  QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
+      sendRelativeMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'send',
@@ -32479,7 +32490,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendIsEmpty() {
+      sendRelativeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'send',
@@ -32489,7 +32500,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendIsNotEmpty() {
+      sendRelativeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'send',
@@ -32499,7 +32510,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendCancelledEqualTo(
+      sendCancelledRelativeEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -32513,7 +32524,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendCancelledGreaterThan(
+      sendCancelledRelativeGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -32529,7 +32540,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendCancelledLessThan(
+      sendCancelledRelativeLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -32545,7 +32556,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendCancelledBetween(
+      sendCancelledRelativeBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -32565,7 +32576,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendCancelledStartsWith(
+      sendCancelledRelativeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -32579,7 +32590,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendCancelledEndsWith(
+      sendCancelledRelativeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -32593,7 +32604,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendCancelledContains(String value, {bool caseSensitive = true}) {
+      sendCancelledRelativeContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'sendCancelled',
@@ -32604,7 +32615,8 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendCancelledMatches(String pattern, {bool caseSensitive = true}) {
+      sendCancelledRelativeMatches(String pattern,
+          {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'sendCancelled',
@@ -32615,7 +32627,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendCancelledIsEmpty() {
+      sendCancelledRelativeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'sendCancelled',
@@ -32625,7 +32637,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendCancelledIsNotEmpty() {
+      sendCancelledRelativeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'sendCancelled',
@@ -32635,7 +32647,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendPendingEqualTo(
+      sendPendingRelativeEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -32649,7 +32661,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendPendingGreaterThan(
+      sendPendingRelativeGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -32665,7 +32677,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendPendingLessThan(
+      sendPendingRelativeLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -32681,7 +32693,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendPendingBetween(
+      sendPendingRelativeBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -32701,7 +32713,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendPendingStartsWith(
+      sendPendingRelativeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -32715,7 +32727,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendPendingEndsWith(
+      sendPendingRelativeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -32729,7 +32741,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendPendingContains(String value, {bool caseSensitive = true}) {
+      sendPendingRelativeContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'sendPending',
@@ -32740,7 +32752,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendPendingMatches(String pattern, {bool caseSensitive = true}) {
+      sendPendingRelativeMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'sendPending',
@@ -32751,7 +32763,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendPendingIsEmpty() {
+      sendPendingRelativeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'sendPending',
@@ -32761,7 +32773,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      sendPendingIsNotEmpty() {
+      sendPendingRelativeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'sendPending',
@@ -32771,7 +32783,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      stackEqualTo(
+      stackRelativeEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -32785,7 +32797,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      stackGreaterThan(
+      stackRelativeGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -32801,7 +32813,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      stackLessThan(
+      stackRelativeLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -32817,7 +32829,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      stackBetween(
+      stackRelativeBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -32837,7 +32849,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      stackStartsWith(
+      stackRelativeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -32851,7 +32863,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      stackEndsWith(
+      stackRelativeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -32865,7 +32877,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      stackContains(String value, {bool caseSensitive = true}) {
+      stackRelativeContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'stack',
@@ -32876,7 +32888,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      stackMatches(String pattern, {bool caseSensitive = true}) {
+      stackRelativeMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'stack',
@@ -32887,7 +32899,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      stackIsEmpty() {
+      stackRelativeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'stack',
@@ -32897,7 +32909,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      stackIsNotEmpty() {
+      stackRelativeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'stack',
@@ -32907,7 +32919,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      stackIconEqualTo(
+      stackIconRelativeEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -32921,7 +32933,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      stackIconGreaterThan(
+      stackIconRelativeGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -32937,7 +32949,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      stackIconLessThan(
+      stackIconRelativeLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -32953,7 +32965,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      stackIconBetween(
+      stackIconRelativeBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -32973,7 +32985,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      stackIconStartsWith(
+      stackIconRelativeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -32987,7 +32999,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      stackIconEndsWith(
+      stackIconRelativeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -33001,7 +33013,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      stackIconContains(String value, {bool caseSensitive = true}) {
+      stackIconRelativeContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'stackIcon',
@@ -33012,7 +33024,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      stackIconMatches(String pattern, {bool caseSensitive = true}) {
+      stackIconRelativeMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'stackIcon',
@@ -33023,7 +33035,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      stackIconIsEmpty() {
+      stackIconRelativeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'stackIcon',
@@ -33033,7 +33045,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      stackIconIsNotEmpty() {
+      stackIconRelativeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'stackIcon',
@@ -33043,7 +33055,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      themePreviewEqualTo(
+      themePreviewRelativeEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -33057,7 +33069,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      themePreviewGreaterThan(
+      themePreviewRelativeGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -33073,7 +33085,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      themePreviewLessThan(
+      themePreviewRelativeLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -33089,7 +33101,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      themePreviewBetween(
+      themePreviewRelativeBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -33109,7 +33121,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      themePreviewStartsWith(
+      themePreviewRelativeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -33123,7 +33135,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      themePreviewEndsWith(
+      themePreviewRelativeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -33137,7 +33149,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      themePreviewContains(String value, {bool caseSensitive = true}) {
+      themePreviewRelativeContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'themePreview',
@@ -33148,7 +33160,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      themePreviewMatches(String pattern, {bool caseSensitive = true}) {
+      themePreviewRelativeMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'themePreview',
@@ -33159,7 +33171,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      themePreviewIsEmpty() {
+      themePreviewRelativeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'themePreview',
@@ -33169,7 +33181,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      themePreviewIsNotEmpty() {
+      themePreviewRelativeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'themePreview',
@@ -33179,7 +33191,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      themeSelectorEqualTo(
+      themeSelectorRelativeEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -33193,7 +33205,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      themeSelectorGreaterThan(
+      themeSelectorRelativeGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -33209,7 +33221,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      themeSelectorLessThan(
+      themeSelectorRelativeLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -33225,7 +33237,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      themeSelectorBetween(
+      themeSelectorRelativeBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -33245,7 +33257,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      themeSelectorStartsWith(
+      themeSelectorRelativeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -33259,7 +33271,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      themeSelectorEndsWith(
+      themeSelectorRelativeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -33273,7 +33285,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      themeSelectorContains(String value, {bool caseSensitive = true}) {
+      themeSelectorRelativeContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'themeSelector',
@@ -33284,7 +33296,8 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      themeSelectorMatches(String pattern, {bool caseSensitive = true}) {
+      themeSelectorRelativeMatches(String pattern,
+          {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'themeSelector',
@@ -33295,7 +33308,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      themeSelectorIsEmpty() {
+      themeSelectorRelativeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'themeSelector',
@@ -33305,7 +33318,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      themeSelectorIsNotEmpty() {
+      themeSelectorRelativeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'themeSelector',
@@ -33315,7 +33328,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangeEqualTo(
+      txExchangeRelativeEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -33329,7 +33342,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangeGreaterThan(
+      txExchangeRelativeGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -33345,7 +33358,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangeLessThan(
+      txExchangeRelativeLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -33361,7 +33374,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangeBetween(
+      txExchangeRelativeBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -33381,7 +33394,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangeStartsWith(
+      txExchangeRelativeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -33395,7 +33408,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangeEndsWith(
+      txExchangeRelativeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -33409,7 +33422,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangeContains(String value, {bool caseSensitive = true}) {
+      txExchangeRelativeContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'txExchange',
@@ -33420,7 +33433,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangeMatches(String pattern, {bool caseSensitive = true}) {
+      txExchangeRelativeMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'txExchange',
@@ -33431,7 +33444,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangeIsEmpty() {
+      txExchangeRelativeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'txExchange',
@@ -33441,7 +33454,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangeIsNotEmpty() {
+      txExchangeRelativeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'txExchange',
@@ -33451,7 +33464,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangeFailedEqualTo(
+      txExchangeFailedRelativeEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -33465,7 +33478,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangeFailedGreaterThan(
+      txExchangeFailedRelativeGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -33481,7 +33494,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangeFailedLessThan(
+      txExchangeFailedRelativeLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -33497,7 +33510,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangeFailedBetween(
+      txExchangeFailedRelativeBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -33517,7 +33530,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangeFailedStartsWith(
+      txExchangeFailedRelativeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -33531,7 +33544,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangeFailedEndsWith(
+      txExchangeFailedRelativeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -33545,7 +33558,8 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangeFailedContains(String value, {bool caseSensitive = true}) {
+      txExchangeFailedRelativeContains(String value,
+          {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'txExchangeFailed',
@@ -33556,7 +33570,8 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangeFailedMatches(String pattern, {bool caseSensitive = true}) {
+      txExchangeFailedRelativeMatches(String pattern,
+          {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'txExchangeFailed',
@@ -33567,7 +33582,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangeFailedIsEmpty() {
+      txExchangeFailedRelativeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'txExchangeFailed',
@@ -33577,7 +33592,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangeFailedIsNotEmpty() {
+      txExchangeFailedRelativeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'txExchangeFailed',
@@ -33587,7 +33602,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangePendingEqualTo(
+      txExchangePendingRelativeEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -33601,7 +33616,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangePendingGreaterThan(
+      txExchangePendingRelativeGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -33617,7 +33632,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangePendingLessThan(
+      txExchangePendingRelativeLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -33633,7 +33648,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangePendingBetween(
+      txExchangePendingRelativeBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -33653,7 +33668,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangePendingStartsWith(
+      txExchangePendingRelativeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -33667,7 +33682,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangePendingEndsWith(
+      txExchangePendingRelativeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -33681,7 +33696,8 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangePendingContains(String value, {bool caseSensitive = true}) {
+      txExchangePendingRelativeContains(String value,
+          {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'txExchangePending',
@@ -33692,7 +33708,8 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangePendingMatches(String pattern, {bool caseSensitive = true}) {
+      txExchangePendingRelativeMatches(String pattern,
+          {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'txExchangePending',
@@ -33703,7 +33720,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangePendingIsEmpty() {
+      txExchangePendingRelativeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'txExchangePending',
@@ -33713,7 +33730,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      txExchangePendingIsNotEmpty() {
+      txExchangePendingRelativeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'txExchangePending',

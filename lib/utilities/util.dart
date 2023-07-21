@@ -14,10 +14,20 @@ import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/number_symbols.dart';
+import 'package:intl/number_symbols_data.dart';
 
 abstract class Util {
   static Directory? libraryPath;
   static double? screenWidth;
+
+  static NumberSymbols? getSymbolsFor({required String locale}) {
+    return numberFormatSymbols[locale] as NumberSymbols? ??
+        numberFormatSymbols[locale.replaceAll("-", "_")] as NumberSymbols? ??
+        numberFormatSymbols[locale.substring(3).toLowerCase()]
+            as NumberSymbols? ??
+        numberFormatSymbols[locale.substring(0, 2)] as NumberSymbols?;
+  }
 
   static bool get isDesktop {
     // special check for running on linux based phones

@@ -78,7 +78,7 @@ class _ContactListItemState extends ConsumerState<ContactListItem> {
           mainAxisSize: MainAxisSize.min,
           children: [
             // filter addresses by coin is provided before building address list
-            ...contact.addresses
+            ...contact.addressesSorted
                 .where((e) =>
                     filterByCoin != null ? e.coin == filterByCoin! : true)
                 .map(

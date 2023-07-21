@@ -33,6 +33,22 @@ class ContactEntry {
   @Index(unique: true, replace: true)
   late final String customId;
 
+  @ignore
+  List<ContactAddressEntry> get addressesSorted {
+    final List<ContactAddressEntry> sorted = [];
+    for (final coin in Coin.values) {
+      final slice = addresses.where((e) => e.coin == coin).toList();
+      if (slice.isNotEmpty) {
+        slice.sort(
+          (a, b) => (a.other ?? a.label).compareTo(b.other ?? b.label),
+        );
+        sorted.addAll(slice);
+      }
+    }
+
+    return sorted;
+  }
+
   ContactEntry copyWith({
     bool shouldCopyEmojiWithNull = false,
     String? emojiChar,

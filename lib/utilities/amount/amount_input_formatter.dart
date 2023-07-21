@@ -1,9 +1,8 @@
 import 'dart:math';
 
 import 'package:flutter/services.dart';
-import 'package:intl/number_symbols.dart';
-import 'package:intl/number_symbols_data.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
+import 'package:stackwallet/utilities/util.dart';
 
 class AmountInputFormatter extends TextInputFormatter {
   final int decimals;
@@ -20,8 +19,7 @@ class AmountInputFormatter extends TextInputFormatter {
   TextEditingValue formatEditUpdate(
       TextEditingValue oldValue, TextEditingValue newValue) {
     // get number symbols for decimal place and group separator
-    final numberSymbols = numberFormatSymbols[locale] as NumberSymbols? ??
-        numberFormatSymbols[locale.substring(0, 2)] as NumberSymbols?;
+    final numberSymbols = Util.getSymbolsFor(locale: locale);
 
     final decimalSeparator = numberSymbols?.DECIMAL_SEP ?? ".";
     final groupSeparator = numberSymbols?.GROUP_SEP ?? ",";
@@ -38,7 +36,15 @@ class AmountInputFormatter extends TextInputFormatter {
       if (parts.length > 2) {
         return oldValue;
       }
+
+      final fractionDigits =
+          unit == null ? decimals : max(decimals - unit!.shift, 0);
+
       if (newText.startsWith(decimalSeparator)) {
+        if (newText.length - 1 > fractionDigits) {
+          newText = newText.substring(0, fractionDigits + 1);
+        }
+
         return TextEditingValue(
           text: newText,
           selection: TextSelection.collapsed(
@@ -54,27 +60,23 @@ class AmountInputFormatter extends TextInputFormatter {
         fraction = "";
       }
 
-      final fractionDigits =
-          unit == null ? decimals : max(decimals - unit!.shift, 0);
-
       if (fraction.length > fractionDigits) {
-        return oldValue;
+        fraction = fraction.substring(0, fractionDigits);
       }
     }
 
-    if (newText.trim() == '' || newText.trim() == '0') {
-      return newValue.copyWith(text: '');
-    } else if (BigInt.parse(newText) < BigInt.one) {
-      return newValue.copyWith(text: '');
+    String newString;
+    final val = BigInt.tryParse(newText);
+    if (val == null || val < BigInt.one) {
+      newString = newText;
+    } else {
+      // insert group separator
+      final regex = RegExp(r'\B(?=(\d{3})+(?!\d))');
+      newString = newText.replaceAllMapped(
+        regex,
+        (m) => "${m.group(0)}${numberSymbols?.GROUP_SEP ?? ","}",
+      );
     }
-
-    // insert group separator
-    final regex = RegExp(r'\B(?=(\d{3})+(?!\d))');
-
-    String newString = newText.replaceAllMapped(
-      regex,
-      (m) => "${m.group(0)}${numberSymbols?.GROUP_SEP ?? ","}",
-    );
 
     if (fraction != null) {
       newString += decimalSeparator;

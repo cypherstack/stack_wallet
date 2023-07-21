@@ -126,7 +126,7 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
   }
 
   Future<String> getThemeDirectorySize() async {
-    final themesDir = await StackFileSystem.applicationThemesDirectory();
+    final themesDir = StackFileSystem.themesDir!;
     final themeDir = Directory("${themesDir.path}/${widget.data.id}");
     int bytes = 0;
     if (await themeDir.exists()) {
