@@ -43,6 +43,12 @@ mixin OrdinalsInterface {
     // TODO save inscriptions to isar which gets watched by a FutureBuilder/StreamBuilder
   }
 
+  Future<List<InscriptionData>> getInscriptions() async {
+    final utxos = await _db.getUTXOs(_walletId).findAll();
+    final uniqueAddresses = getUniqueAddressesFromUTXOs(utxos);
+    return await getInscriptionsFromAddresses(uniqueAddresses);
+  }
+
   List<String> getUniqueAddressesFromUTXOs(List<UTXO> utxos) {
     final Set<String> uniqueAddresses = <String>{};
     for (var utxo in utxos) {
