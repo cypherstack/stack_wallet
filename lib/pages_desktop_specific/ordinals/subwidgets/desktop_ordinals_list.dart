@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/models/ordinal.dart';
 
-import 'package:stackwallet/pages/ordinals/widgets/ordinal_card.dart';
+import 'package:stackwallet/pages_desktop_specific/ordinals/subwidgets/desktop_ordinal_card.dart';
 
 class DesktopOrdinalsList extends StatelessWidget {
   const DesktopOrdinalsList({
@@ -35,7 +35,7 @@ class DesktopOrdinalsList extends StatelessWidget {
               crossAxisCount: 4,
               childAspectRatio: 6 / 7, // was 3/4, less data displayed now
             ),
-            itemBuilder: (_, i) => OrdinalCard(
+            itemBuilder: (_, i) => DesktopOrdinalCard(
               walletId: walletId,
               ordinal: ordinals[i],
             ),
