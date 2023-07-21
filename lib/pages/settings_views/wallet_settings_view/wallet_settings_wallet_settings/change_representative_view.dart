@@ -87,6 +87,7 @@ class _XPubViewState extends ConsumerState<ChangeRepresentativeView> {
         whileFuture: changeFuture(_textController.text),
         context: context,
         message: "Updating representative...",
+        isDesktop: Util.isDesktop,
         onException: (ex) {
           String msg = ex.toString();
           while (msg.isNotEmpty && msg.startsWith("Exception:")) {
@@ -214,7 +215,7 @@ class _XPubViewState extends ConsumerState<ChangeRepresentativeView> {
                       left: 32,
                     ),
                     child: Text(
-                      "${ref.watch(walletsChangeNotifierProvider.select((value) => value.getManager(widget.walletId).walletName))} xPub",
+                      "Change representative",
                       style: STextStyles.desktopH2(context),
                     ),
                   ),
@@ -240,7 +241,7 @@ class _XPubViewState extends ConsumerState<ChangeRepresentativeView> {
         ),
         child: Column(
           children: [
-            if (isDesktop) const SizedBox(height: 44),
+            if (isDesktop) const SizedBox(height: 24),
             ConditionalParent(
               condition: !isDesktop,
               builder: (child) => Expanded(
@@ -269,15 +270,48 @@ class _XPubViewState extends ConsumerState<ChangeRepresentativeView> {
                   } else {
                     child = Column(
                       children: [
-                        RoundedWhiteContainer(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                representative!,
-                                style: STextStyles.itemSubtitle(context),
-                              ),
-                            ],
+                        ConditionalParent(
+                          condition: !isDesktop,
+                          builder: (child) => RoundedWhiteContainer(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                child,
+                              ],
+                            ),
+                          ),
+                          child: ConditionalParent(
+                            condition: isDesktop,
+                            builder: (child) => Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Current representative",
+                                  style: STextStyles.desktopTextExtraExtraSmall(
+                                      context),
+                                ),
+                                const SizedBox(
+                                  height: 4,
+                                ),
+                                child,
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                SelectableText(
+                                  representative!,
+                                  style: isDesktop
+                                      ? STextStyles.desktopTextExtraExtraSmall(
+                                              context)
+                                          .copyWith(
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textDark,
+                                        )
+                                      : STextStyles.itemSubtitle12(context),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         const SizedBox(
@@ -337,6 +371,7 @@ class _XPubViewState extends ConsumerState<ChangeRepresentativeView> {
                             ),
                           ),
                         ),
+                        if (isDesktop) const SizedBox(height: 60),
                         if (!isDesktop) const Spacer(),
                         PrimaryButton(
                           label: "Save",
