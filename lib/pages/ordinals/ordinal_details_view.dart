@@ -200,8 +200,16 @@ class _OrdinalImageGroup extends StatelessWidget {
         ),
         AspectRatio(
           aspectRatio: 1,
-          child: Container(
-            color: Colors.red,
+          child: AspectRatio(
+            aspectRatio: 1,
+            child: Container(
+              color: Colors.red,
+              child: Image.network(
+                inscriptionData.content, // Use the preview URL as the image source
+                fit: BoxFit.cover,
+                filterQuality: FilterQuality.none, // Set the filter mode to nearest
+              ),
+            ),
           ),
         ),
         const SizedBox(

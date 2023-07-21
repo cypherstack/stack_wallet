@@ -28,13 +28,14 @@ class OrdinalCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          AspectRatio(
-            aspectRatio: 1,
-            child: Container(
+            AspectRatio(
+              aspectRatio: 1,
+              child: Container(
               color: Colors.red,
               child: Image.network(
-                inscriptionData.preview, // Use the preview URL as the image source
+                inscriptionData.content, // Use the preview URL as the image source
                 fit: BoxFit.cover,
+                filterQuality: FilterQuality.none, // Set the filter mode to nearest
               ),
             ),
           ),
