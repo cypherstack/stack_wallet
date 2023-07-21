@@ -53,9 +53,6 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
     searchController = TextEditingController();
     searchFocus = FocusNode();
 
-    _manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(widget.walletId)));
-
     super.initState();
   }
 
@@ -95,6 +92,8 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
                         .topNavIconPrimary,
                   ),
                   onPressed: () async {
+                    _manager = ref.watch(walletsChangeNotifierProvider
+                        .select((value) => value.getManager(widget.walletId)));
                     (_manager.wallet as OrdinalsInterface).refreshInscriptions();
                   },
                 ),
