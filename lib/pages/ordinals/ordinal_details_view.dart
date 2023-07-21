@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/models/ordinal.dart';
+import 'package:stackwallet/dto/ordinals/inscription_data.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/ordinals/widgets/dialogs.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -15,20 +15,21 @@ import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
+
 class OrdinalDetailsView extends StatefulWidget {
   const OrdinalDetailsView({
-    super.key,
+    Key? key,
     required this.walletId,
-    required this.ordinal,
-  });
+    required this.inscriptionData,
+  }) : super(key: key);
 
   final String walletId;
-  final Ordinal ordinal;
+  final InscriptionData inscriptionData;
 
   static const routeName = "/ordinalDetailsView";
 
   @override
-  State<OrdinalDetailsView> createState() => _OrdinalDetailsViewState();
+  _OrdinalDetailsViewState createState() => _OrdinalDetailsViewState();
 }
 
 class _OrdinalDetailsViewState extends State<OrdinalDetailsView> {
@@ -40,10 +41,10 @@ class _OrdinalDetailsViewState extends State<OrdinalDetailsView> {
       child: SafeArea(
         child: Scaffold(
           backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
+          Theme.of(context).extension<StackColors>()!.background,
           appBar: AppBar(
             backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
+            Theme.of(context).extension<StackColors>()!.background,
             leading: const AppBarBackButton(),
             title: Text(
               "Ordinal details",
@@ -61,20 +62,20 @@ class _OrdinalDetailsViewState extends State<OrdinalDetailsView> {
                       horizontal: 39,
                     ),
                     child: _OrdinalImageGroup(
-                      ordinal: widget.ordinal,
+                      inscriptionData: widget.inscriptionData,
                       walletId: widget.walletId,
                     ),
                   ),
                   _DetailsItemWCopy(
                     title: "Inscription number",
-                    data: widget.ordinal.inscription,
+                    data: widget.inscriptionData.inscriptionNumber.toString(),
                   ),
                   const SizedBox(
                     height: _spacing,
                   ),
                   _DetailsItemWCopy(
-                    title: "Rank",
-                    data: widget.ordinal.rank,
+                    title: "ID",
+                    data: widget.inscriptionData.inscriptionId,
                   ),
                   const SizedBox(
                     height: _spacing,
@@ -85,21 +86,21 @@ class _OrdinalDetailsViewState extends State<OrdinalDetailsView> {
                   ),
                   _DetailsItemWCopy(
                     title: "Amount",
-                    data: "FIXME",
+                    data: "${widget.inscriptionData.outputValue}",
                   ),
                   const SizedBox(
                     height: _spacing,
                   ),
                   _DetailsItemWCopy(
                     title: "Owner address",
-                    data: "FIXME",
+                    data: widget.inscriptionData.address,
                   ),
                   const SizedBox(
                     height: _spacing,
                   ),
                   _DetailsItemWCopy(
                     title: "Transaction ID",
-                    data: "FIXME",
+                    data: widget.inscriptionData.genesisTransaction,
                   ),
                   const SizedBox(
                     height: _spacing,
@@ -116,10 +117,10 @@ class _OrdinalDetailsViewState extends State<OrdinalDetailsView> {
 
 class _DetailsItemWCopy extends StatelessWidget {
   const _DetailsItemWCopy({
-    super.key,
+    Key? key,
     required this.title,
     required this.data,
-  });
+  }) : super(key: key);
 
   final String title;
   final String data;
@@ -153,7 +154,7 @@ class _DetailsItemWCopy extends StatelessWidget {
                 child: SvgPicture.asset(
                   Assets.svg.copy,
                   color:
-                      Theme.of(context).extension<StackColors>()!.infoItemIcons,
+                  Theme.of(context).extension<StackColors>()!.infoItemIcons,
                   width: 12,
                 ),
               ),
@@ -174,13 +175,13 @@ class _DetailsItemWCopy extends StatelessWidget {
 
 class _OrdinalImageGroup extends StatelessWidget {
   const _OrdinalImageGroup({
-    super.key,
+    Key? key,
     required this.walletId,
-    required this.ordinal,
-  });
+    required this.inscriptionData,
+  }) : super(key: key);
 
   final String walletId;
-  final Ordinal ordinal;
+  final InscriptionData inscriptionData;
 
   static const _spacing = 12.0;
 
@@ -191,7 +192,7 @@ class _OrdinalImageGroup extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
-          ordinal.name,
+          "${inscriptionData.inscriptionId}", // Use any other property you want
           style: STextStyles.w600_16(context),
         ),
         const SizedBox(
