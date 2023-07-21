@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/models/ordinal.dart';
 import 'package:stackwallet/pages/ordinals/widgets/ordinal_card.dart';
+import 'package:stackwallet/widgets/loading_indicator.dart';
 
 class OrdinalsList extends StatelessWidget {
   const OrdinalsList({
@@ -20,7 +21,7 @@ class OrdinalsList extends StatelessWidget {
       future: ordinalsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const CircularProgressIndicator();
+          return const LoadingIndicator();
         } else if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
         } else if (snapshot.hasData) {

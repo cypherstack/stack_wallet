@@ -4,7 +4,7 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/dto/ordinals/inscription_data.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
-import 'package:stackwallet/models/ordinal.dart';
+import 'package:stackwallet/models/isar/ordinal.dart';
 import 'package:stackwallet/services/litescribe_api.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
@@ -18,12 +18,13 @@ mixin OrdinalsInterface {
     required Coin coin,
     required MainDB db,
   }) {
-    print('init');
     _walletId = walletId;
     _coin = coin;
     _db = db;
   }
-  final LitescribeAPI litescribeAPI = LitescribeAPI(baseUrl: 'https://litescribe.io/api');
+
+  final LitescribeAPI litescribeAPI =
+      LitescribeAPI(baseUrl: 'https://litescribe.io/api');
 
   void refreshInscriptions() async {
     List<dynamic> _inscriptions;
@@ -63,22 +64,26 @@ mixin OrdinalsInterface {
     return uniqueAddresses.toList();
   }
 
-  Future<List<InscriptionData>> getInscriptionDataFromAddress(String address) async {
+  Future<List<InscriptionData>> getInscriptionDataFromAddress(
+      String address) async {
     List<InscriptionData> allInscriptions = [];
     try {
       var inscriptions = await litescribeAPI.getInscriptionsByAddress(address);
       allInscriptions.addAll(inscriptions);
     } catch (e) {
-      throw Exception('Error in OrdinalsInterface getInscriptionsByAddress: $e');
+      throw Exception(
+          'Error in OrdinalsInterface getInscriptionsByAddress: $e');
     }
     return allInscriptions;
   }
 
-  Future<List<InscriptionData>> getInscriptionDataFromAddresses(List<String> addresses) async {
+  Future<List<InscriptionData>> getInscriptionDataFromAddresses(
+      List<String> addresses) async {
     List<InscriptionData> allInscriptions = [];
     for (String address in addresses) {
       try {
-        var inscriptions = await litescribeAPI.getInscriptionsByAddress(address);
+        var inscriptions =
+            await litescribeAPI.getInscriptionsByAddress(address);
         allInscriptions.addAll(inscriptions);
       } catch (e) {
         print("Error fetching inscriptions for address $address: $e");
@@ -90,7 +95,9 @@ mixin OrdinalsInterface {
   Future<List<Ordinal>> getOrdinalsFromAddress(String address) async {
     try {
       var inscriptions = await litescribeAPI.getInscriptionsByAddress(address);
-      return inscriptions.map((data) => Ordinal.fromInscriptionData(data)).toList();
+      return inscriptions
+          .map((data) => Ordinal.fromInscriptionData(data, _walletId))
+          .toList();
     } catch (e) {
       throw Exception('Error in OrdinalsInterface getOrdinalsFromAddress: $e');
     }
@@ -100,8 +107,10 @@ mixin OrdinalsInterface {
     List<Ordinal> allOrdinals = [];
     for (String address in addresses) {
       try {
-        var inscriptions = await litescribeAPI.getInscriptionsByAddress(address);
-        allOrdinals.addAll(inscriptions.map((data) => Ordinal.fromInscriptionData(data)));
+        var inscriptions =
+            await litescribeAPI.getInscriptionsByAddress(address);
+        allOrdinals.addAll(inscriptions
+            .map((data) => Ordinal.fromInscriptionData(data, _walletId)));
       } catch (e) {
         print("Error fetching inscriptions for address $address: $e");
       }
