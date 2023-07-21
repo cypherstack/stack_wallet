@@ -22,11 +22,13 @@ final pMaxDecimals = Provider.family<int, Coin>(
 );
 
 final pAmountFormatter = Provider.family<AmountFormatter, Coin>((ref, coin) {
+  final locale = ref.watch(
+    localeServiceChangeNotifierProvider.select((value) => value.locale),
+  );
+
   return AmountFormatter(
     unit: ref.watch(pAmountUnit(coin)),
-    locale: ref.watch(
-      localeServiceChangeNotifierProvider.select((value) => value.locale),
-    ),
+    locale: locale,
     coin: coin,
     maxDecimals: ref.watch(pMaxDecimals(coin)),
   );
@@ -60,6 +62,18 @@ class AmountFormatter {
       withUnitName: withUnitName,
       indicatePrecisionLoss: indicatePrecisionLoss,
       overrideUnit: overrideUnit,
+      tokenContract: ethContract,
+    );
+  }
+
+  Amount? tryParse(
+    String string, {
+    EthContract? ethContract,
+  }) {
+    return unit.tryParse(
+      string,
+      locale: locale,
+      coin: coin,
       tokenContract: ethContract,
     );
   }

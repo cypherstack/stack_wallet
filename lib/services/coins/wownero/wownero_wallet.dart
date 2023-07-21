@@ -486,6 +486,8 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
           case FeeRateType.slow:
             feePriority = MoneroTransactionPriority.slow;
             break;
+          default:
+            throw ArgumentError("Invalid use of custom fee");
         }
 
         Future<PendingTransaction>? awaitPendingTransaction;

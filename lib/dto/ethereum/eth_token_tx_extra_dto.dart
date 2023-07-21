@@ -46,7 +46,7 @@ class EthTokenTxExtraDTO {
         ),
         gas: _amountFromJsonNum(map['gas']),
         gasPrice: _amountFromJsonNum(map['gasPrice']),
-        nonce: map['nonce'] as int,
+        nonce: map['nonce'] as int?,
         input: map['input'] as String,
         gasCost: _amountFromJsonNum(map['gasCost']),
         gasUsed: _amountFromJsonNum(map['gasUsed']),
@@ -63,7 +63,7 @@ class EthTokenTxExtraDTO {
   final Amount gas;
   final Amount gasPrice;
   final String input;
-  final int nonce;
+  final int? nonce;
   final Amount gasCost;
   final Amount gasUsed;
 
@@ -116,13 +116,13 @@ class EthTokenTxExtraDTO {
     map['timestamp'] = timestamp;
     map['from'] = from;
     map['to'] = to;
-    map['value'] = value;
-    map['gas'] = gas;
-    map['gasPrice'] = gasPrice;
+    map['value'] = value.toJsonString();
+    map['gas'] = gas.toJsonString();
+    map['gasPrice'] = gasPrice.toJsonString();
     map['input'] = input;
     map['nonce'] = nonce;
-    map['gasCost'] = gasCost;
-    map['gasUsed'] = gasUsed;
+    map['gasCost'] = gasCost.toJsonString();
+    map['gasUsed'] = gasUsed.toJsonString();
     return map;
   }
 

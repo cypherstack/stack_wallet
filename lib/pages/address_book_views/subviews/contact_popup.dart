@@ -63,7 +63,7 @@ class ContactPopUp extends ConsumerWidget {
     bool isExchangeFlow =
         ref.watch(exchangeFlowIsActiveStateProvider.state).state;
 
-    final addresses = contact.addresses.where((e) {
+    final addresses = contact.addressesSorted.where((e) {
       if (hasActiveWallet && !isExchangeFlow) {
         return e.coin == active[0].coin;
       } else {

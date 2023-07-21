@@ -10,11 +10,11 @@
 
 import 'dart:convert';
 
+import 'package:bitbox/bitbox.dart' as bitbox;
 import 'package:bitcoindart/bitcoindart.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter_libepiccash/epic_cash.dart';
 import 'package:nanodart/nanodart.dart';
-import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart';
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/coins/ecash/ecash_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
@@ -64,7 +64,27 @@ class AddressUtils {
       case Coin.litecoin:
         return Address.validateAddress(address, litecoin);
       case Coin.bitcoincash:
-        return Address.validateAddress(address, bitcoincash);
+        try {
+          // 0 for bitcoincash: address scheme, 1 for legacy address
+          final format = bitbox.Address.detectFormat(address);
+
+          if (coin == Coin.bitcoincashTestnet) {
+            return true;
+          }
+
+          if (format == bitbox.Address.formatCashAddr) {
+            String addr = address;
+            if (addr.contains(":")) {
+              addr = addr.split(":").last;
+            }
+
+            return addr.startsWith("q");
+          } else {
+            return address.startsWith("1");
+          }
+        } catch (e) {
+          return false;
+        }
       case Coin.dogecoin:
         return Address.validateAddress(address, dogecoin);
       case Coin.epicCash:
@@ -94,7 +114,27 @@ class AddressUtils {
       case Coin.litecoinTestNet:
         return Address.validateAddress(address, litecointestnet);
       case Coin.bitcoincashTestnet:
-        return Address.validateAddress(address, bitcoincashtestnet);
+        try {
+          // 0 for bitcoincash: address scheme, 1 for legacy address
+          final format = bitbox.Address.detectFormat(address);
+
+          if (coin == Coin.bitcoincashTestnet) {
+            return true;
+          }
+
+          if (format == bitbox.Address.formatCashAddr) {
+            String addr = address;
+            if (addr.contains(":")) {
+              addr = addr.split(":").last;
+            }
+
+            return addr.startsWith("q");
+          } else {
+            return address.startsWith("1");
+          }
+        } catch (e) {
+          return false;
+        }
       case Coin.firoTestNet:
         return Address.validateAddress(address, firoTestNetwork);
       case Coin.dogecoinTestNet:
@@ -126,7 +166,17 @@ class AddressUtils {
     String address,
     Map<String, String> params,
   ) {
-    String uriString = "${coin.uriScheme}:$address";
+    // TODO: other sanitation as well ?
+    String sanitizedAddress = address;
+    if (coin == Coin.bitcoincash ||
+        coin == Coin.bitcoincashTestnet ||
+        coin == Coin.eCash) {
+      final prefix = "${coin.uriScheme}:";
+      if (address.startsWith(prefix)) {
+        sanitizedAddress = address.replaceFirst(prefix, "");
+      }
+    }
+    String uriString = "${coin.uriScheme}:$sanitizedAddress";
     if (params.isNotEmpty) {
       uriString += Uri(queryParameters: params).toString();
     }

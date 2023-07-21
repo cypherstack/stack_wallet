@@ -11,11 +11,10 @@
 import 'dart:math' as math;
 
 import 'package:decimal/decimal.dart';
-import 'package:intl/number_symbols.dart';
-import 'package:intl/number_symbols_data.dart';
 import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/util.dart';
 
 // preserve index order as index is used to store value in preferences
 enum AmountUnit {
@@ -164,6 +163,53 @@ extension AmountUnitExt on AmountUnit {
     }
   }
 
+  Amount? tryParse(
+    String value, {
+    required String locale,
+    required Coin coin,
+    EthContract? tokenContract,
+    bool overrideWithDecimalPlacesFromString = false,
+  }) {
+    final precisionLost = value.startsWith("~");
+
+    final parts = (precisionLost ? value.substring(1) : value).split(" ");
+
+    if (parts.first.isEmpty) {
+      return null;
+    }
+
+    String str = parts.first;
+    if (str.startsWith(RegExp(r'[+-]'))) {
+      str = str.substring(1);
+    }
+
+    if (str.isEmpty) {
+      return null;
+    }
+
+    // get number symbols for decimal place and group separator
+    final numberSymbols = Util.getSymbolsFor(locale: locale);
+
+    final groupSeparator = numberSymbols?.GROUP_SEP ?? ",";
+    final decimalSeparator = numberSymbols?.DECIMAL_SEP ?? ".";
+
+    str = str.replaceAll(groupSeparator, "");
+
+    final decimalString = str.replaceFirst(decimalSeparator, ".");
+    final Decimal? decimal = Decimal.tryParse(decimalString);
+
+    if (decimal == null) {
+      return null;
+    }
+
+    final decimalPlaces = overrideWithDecimalPlacesFromString
+        ? decimal.scale
+        : tokenContract?.decimals ?? coin.decimals;
+    final realShift = math.min(shift, decimalPlaces);
+
+    return decimal.shift(0 - realShift).toAmount(fractionDigits: decimalPlaces);
+  }
+
   String displayAmount({
     required Amount amount,
     required String locale,
@@ -190,6 +236,16 @@ extension AmountUnitExt on AmountUnit {
 
     // start building the return value with just the whole value
     String returnValue = wholeNumber.toString();
+
+    // get number symbols for decimal place and group separator
+    final numberSymbols = Util.getSymbolsFor(locale: locale);
+
+    // insert group separator
+    final regex = RegExp(r'\B(?=(\d{3})+(?!\d))');
+    returnValue = returnValue.replaceAllMapped(
+      regex,
+      (m) => "${m.group(0)}${numberSymbols?.GROUP_SEP ?? ","}",
+    );
 
     // if true and withUnitName is true, we will show "~" prepended on amount
     bool didLosePrecision = false;
@@ -239,11 +295,7 @@ extension AmountUnitExt on AmountUnit {
       }
 
       // get decimal separator based on locale
-      final String separator =
-          (numberFormatSymbols[locale] as NumberSymbols?)?.DECIMAL_SEP ??
-              (numberFormatSymbols[locale.substring(0, 2)] as NumberSymbols?)
-                  ?.DECIMAL_SEP ??
-              ".";
+      final String separator = numberSymbols?.DECIMAL_SEP ?? ".";
 
       // append separator and fractional amount
       returnValue += "$separator$remainder";

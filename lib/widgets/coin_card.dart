@@ -25,11 +25,13 @@ class CoinCard extends ConsumerWidget {
     required this.walletId,
     required this.width,
     required this.height,
+    required this.isFavorite,
   });
 
   final String walletId;
   final double width;
   final double height;
+  final bool isFavorite;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -38,7 +40,7 @@ class CoinCard extends ConsumerWidget {
           .select((value) => value.getManager(walletId).coin),
     );
 
-    final bool hasCardImageBg = ref.watch(coinCardProvider(coin)) != null;
+    final bool hasCardImageBg = (isFavorite) ? ref.watch(coinCardFavoritesProvider(coin)) != null : ref.watch(coinCardProvider(coin)) != null;
 
     return Stack(
       children: [
@@ -47,11 +49,16 @@ class CoinCard extends ConsumerWidget {
             width: width,
             height: height,
             decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(
+                Constants.size.circularBorderRadius,
+              ),
               image: DecorationImage(
-                fit: BoxFit.fill,
+                fit: BoxFit.cover,
                 image: FileImage(
                   File(
-                    ref.watch(coinCardProvider(coin))!,
+                    (isFavorite)
+                        ? ref.watch(coinCardFavoritesProvider(coin))!
+                        : ref.watch(coinCardProvider(coin))!,
                   ),
                 ),
               ),

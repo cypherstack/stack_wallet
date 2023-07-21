@@ -83,10 +83,10 @@ class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
   Widget build(BuildContext context) {
     return DesktopScaffold(
       background: Theme.of(context).extension<StackColors>()!.background,
-      appBar: DesktopAppBar(
+      appBar: const DesktopAppBar(
         isCompactHeight: true,
         leading: Row(
-          children: const [
+          children: [
             SizedBox(
               width: 24,
               height: 24,
@@ -97,7 +97,10 @@ class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
       ),
       body: Row(
         children: [
-          const SettingsMenu(),
+          const Padding(
+            padding: EdgeInsets.all(15.0),
+            child: SettingsMenu(),
+          ),
           Expanded(
             child: contentViews[
                 ref.watch(selectedSettingsMenuItemStateProvider.state).state],

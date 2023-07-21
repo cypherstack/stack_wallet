@@ -30,8 +30,6 @@ final coinIconProvider = Provider.family<String, Coin>((ref, coin) {
       case Coin.dogecoin:
       case Coin.dogecoinTestNet:
         return assets.dogecoin;
-      case Coin.eCash:
-        return assets.bitcoin;
       case Coin.epicCash:
         return assets.epicCash;
       case Coin.firo:
@@ -48,7 +46,7 @@ final coinIconProvider = Provider.family<String, Coin>((ref, coin) {
       case Coin.ethereum:
         return assets.ethereum;
       default:
-        return assets.bitcoin;
+        return assets.stackIcon;
     }
   } else if (assets is ThemeAssetsV2) {
     return (assets).coinIcons[coin.mainNetVersion]!;

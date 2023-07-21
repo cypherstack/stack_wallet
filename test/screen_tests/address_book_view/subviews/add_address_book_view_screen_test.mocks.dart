@@ -269,7 +269,7 @@ class MockManager extends _i1.Mock implements _i12.Manager {
   @override
   _i13.Coin get coin => (super.noSuchMethod(
         Invocation.getter(#coin),
-        returnValue: _i13.Coin.banano,
+        returnValue: _i13.Coin.bitcoin,
       ) as _i13.Coin);
   @override
   bool get isRefreshing => (super.noSuchMethod(

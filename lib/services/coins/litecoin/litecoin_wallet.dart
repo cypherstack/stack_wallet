@@ -232,8 +232,8 @@ class LitecoinWallet extends CoinServiceAPI
   @override
   Future<int> get maxFee async {
     final fee = (await fees).fast as String;
-    final satsFee =
-        Decimal.parse(fee) * Decimal.fromInt(Constants.satsPerCoin(coin).toInt());
+    final satsFee = Decimal.parse(fee) *
+        Decimal.fromInt(Constants.satsPerCoin(coin).toInt());
     return satsFee.floor().toBigInt().toInt();
   }
 
@@ -1058,9 +1058,60 @@ class LitecoinWallet extends CoinServiceAPI
   }) async {
     try {
       final feeRateType = args?["feeRate"];
+      final customSatsPerVByte = args?["satsPerVByte"] as int?;
       final feeRateAmount = args?["feeRateAmount"];
       final utxos = args?["UTXOs"] as Set<isar_models.UTXO>?;
-      if (feeRateType is FeeRateType || feeRateAmount is int) {
+
+      if (customSatsPerVByte != null) {
+        // check for send all
+        bool isSendAll = false;
+        if (amount == balance.spendable) {
+          isSendAll = true;
+        }
+
+        final bool coinControl = utxos != null;
+
+        final result = await coinSelection(
+          satoshiAmountToSend: amount.raw.toInt(),
+          selectedTxFeeRate: -1,
+          satsPerVByte: customSatsPerVByte,
+          recipientAddress: address,
+          isSendAll: isSendAll,
+          utxos: utxos?.toList(),
+          coinControl: coinControl,
+        );
+
+        Logging.instance
+            .log("PREPARE SEND RESULT: $result", level: LogLevel.Info);
+        if (result is int) {
+          switch (result) {
+            case 1:
+              throw Exception("Insufficient balance!");
+            case 2:
+              throw Exception("Insufficient funds to pay for transaction fee!");
+            default:
+              throw Exception("Transaction failed with error code $result");
+          }
+        } else {
+          final hex = result["hex"];
+          if (hex is String) {
+            final fee = result["fee"] as int;
+            final vSize = result["vSize"] as int;
+
+            Logging.instance.log("txHex: $hex", level: LogLevel.Info);
+            Logging.instance.log("fee: $fee", level: LogLevel.Info);
+            Logging.instance.log("vsize: $vSize", level: LogLevel.Info);
+            // fee should never be less than vSize sanity check
+            if (fee < vSize) {
+              throw Exception(
+                  "Error in fee calculation: Transaction fee cannot be less than vSize");
+            }
+            return result as Map<String, dynamic>;
+          } else {
+            throw Exception("sent hex is not a String!!!");
+          }
+        }
+      } else if (feeRateType is FeeRateType || feeRateAmount is int) {
         late final int rate;
         if (feeRateType is FeeRateType) {
           int fee = 0;
@@ -1075,6 +1126,8 @@ class LitecoinWallet extends CoinServiceAPI
             case FeeRateType.slow:
               fee = feeObject.slow;
               break;
+            default:
+              throw ArgumentError("Invalid use of custom fee");
           }
           rate = fee;
         } else {
@@ -2298,6 +2351,7 @@ class LitecoinWallet extends CoinServiceAPI
     required String recipientAddress,
     required bool coinControl,
     required bool isSendAll,
+    int? satsPerVByte,
     int additionalOutputs = 0,
     List<isar_models.UTXO>? utxos,
   }) async {
@@ -2403,18 +2457,22 @@ class LitecoinWallet extends CoinServiceAPI
         recipients: [recipientAddress],
         satoshiAmounts: [satoshisBeingUsed - 1],
       ))["vSize"] as int;
-      int feeForOneOutput = estimateTxFee(
-        vSize: vSizeForOneOutput,
-        feeRatePerKB: selectedTxFeeRate,
-      );
+      int feeForOneOutput = satsPerVByte != null
+          ? (satsPerVByte * vSizeForOneOutput)
+          : estimateTxFee(
+              vSize: vSizeForOneOutput,
+              feeRatePerKB: selectedTxFeeRate,
+            );
 
-      final int roughEstimate = roughFeeEstimate(
-        spendableOutputs.length,
-        1,
-        selectedTxFeeRate,
-      ).raw.toInt();
-      if (feeForOneOutput < roughEstimate) {
-        feeForOneOutput = roughEstimate;
+      if (satsPerVByte == null) {
+        final int roughEstimate = roughFeeEstimate(
+          spendableOutputs.length,
+          1,
+          selectedTxFeeRate,
+        ).raw.toInt();
+        if (feeForOneOutput < roughEstimate) {
+          feeForOneOutput = roughEstimate;
+        }
       }
 
       final int amount = satoshiAmountToSend - feeForOneOutput;
@@ -2455,15 +2513,19 @@ class LitecoinWallet extends CoinServiceAPI
     ))["vSize"] as int;
 
     // Assume 1 output, only for recipient and no change
-    final feeForOneOutput = estimateTxFee(
-      vSize: vSizeForOneOutput,
-      feeRatePerKB: selectedTxFeeRate,
-    );
+    final feeForOneOutput = satsPerVByte != null
+        ? (satsPerVByte * vSizeForOneOutput)
+        : estimateTxFee(
+            vSize: vSizeForOneOutput,
+            feeRatePerKB: selectedTxFeeRate,
+          );
     // Assume 2 outputs, one for recipient and one for change
-    final feeForTwoOutputs = estimateTxFee(
-      vSize: vSizeForTwoOutPuts,
-      feeRatePerKB: selectedTxFeeRate,
-    );
+    final feeForTwoOutputs = satsPerVByte != null
+        ? (satsPerVByte * vSizeForTwoOutPuts)
+        : estimateTxFee(
+            vSize: vSizeForTwoOutPuts,
+            feeRatePerKB: selectedTxFeeRate,
+          );
 
     Logging.instance
         .log("feeForTwoOutputs: $feeForTwoOutputs", level: LogLevel.Info);
@@ -2659,6 +2721,7 @@ class LitecoinWallet extends CoinServiceAPI
         return coinSelection(
           satoshiAmountToSend: satoshiAmountToSend,
           selectedTxFeeRate: selectedTxFeeRate,
+          satsPerVByte: satsPerVByte,
           recipientAddress: recipientAddress,
           isSendAll: isSendAll,
           additionalOutputs: additionalOutputs + 1,

@@ -466,7 +466,7 @@ class MockManager extends _i1.Mock implements _i6.Manager {
   @override
   _i18.Coin get coin => (super.noSuchMethod(
         Invocation.getter(#coin),
-        returnValue: _i18.Coin.banano,
+        returnValue: _i18.Coin.bitcoin,
       ) as _i18.Coin);
   @override
   bool get isRefreshing => (super.noSuchMethod(
@@ -838,7 +838,7 @@ class MockCoinServiceAPI extends _i1.Mock implements _i7.CoinServiceAPI {
   @override
   _i18.Coin get coin => (super.noSuchMethod(
         Invocation.getter(#coin),
-        returnValue: _i18.Coin.banano,
+        returnValue: _i18.Coin.bitcoin,
       ) as _i18.Coin);
   @override
   bool get isRefreshing => (super.noSuchMethod(
@@ -1230,7 +1230,7 @@ class MockFiroWallet extends _i1.Mock implements _i23.FiroWallet {
   @override
   _i18.Coin get coin => (super.noSuchMethod(
         Invocation.getter(#coin),
-        returnValue: _i18.Coin.banano,
+        returnValue: _i18.Coin.bitcoin,
       ) as _i18.Coin);
   @override
   _i19.Future<List<String>> get mnemonic => (super.noSuchMethod(
@@ -1500,6 +1500,7 @@ class MockFiroWallet extends _i1.Mock implements _i23.FiroWallet {
     int? selectedTxFeeRate,
     String? _recipientAddress,
     bool? isSendAll, {
+    int? satsPerVByte,
     int? additionalOutputs = 0,
     List<_i22.UTXO>? utxos,
   }) =>
@@ -1512,6 +1513,7 @@ class MockFiroWallet extends _i1.Mock implements _i23.FiroWallet {
           isSendAll,
         ],
         {
+          #satsPerVByte: satsPerVByte,
           #additionalOutputs: additionalOutputs,
           #utxos: utxos,
         },
