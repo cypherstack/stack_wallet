@@ -52,6 +52,7 @@ class WalletSummary extends StatelessWidget {
                 walletId: walletId,
                 width: constraints.maxWidth,
                 height: constraints.maxHeight,
+                isFavorite: false,
               ),
               Positioned.fill(
                 child: Padding(

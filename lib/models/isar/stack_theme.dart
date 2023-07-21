@@ -2341,8 +2341,6 @@ class ThemeAssetsV3 implements IThemeAssets {
 
   // Added some future proof params in case we want to add anything else
   // This should provide some buffer in stead of creating assetsV4 etc
-  @Name("otherStringParam1")
-  late final String? dummy1;
   @Name("otherStringParam2")
   late final String? dummy2;
   @Name("otherStringParam3")
@@ -2387,6 +2385,19 @@ class ThemeAssetsV3 implements IThemeAssets {
   @ignore
   Map<Coin, String>? _coinCardImages;
   late final String? coinCardImagesString;
+
+  @ignore
+  Map<Coin, String>? get coinCardFavoritesImages =>
+      _coinCardFavoritesImages ??= coinCardFavoritesImagesString == null
+          ? null
+          : parseCoinAssetsString(
+              coinCardFavoritesImagesString!,
+              placeHolder: coinPlaceholder,
+            );
+  @ignore
+  Map<Coin, String>? _coinCardFavoritesImages;
+  @Name("otherStringParam1")
+  late final String? coinCardFavoritesImagesString;
 
   ThemeAssetsV3();
 
@@ -2443,13 +2454,18 @@ class ThemeAssetsV3 implements IThemeAssets {
               Map<String, dynamic>.from(json["coins"]["cards"] as Map),
             )
           : null
+      ..coinCardFavoritesImagesString = json["coins"]["favoriteCards"] is Map
+          ? createCoinAssetsString(
+              "$themeId/assets",
+              Map<String, dynamic>.from(json["coins"]["favoriteCards"] as Map),
+            )
+          : null
       ..loadingGifRelative = json["loading_gif"] is String
           ? "$themeId/assets/${json["loading_gif"] as String}"
           : null
       ..backgroundRelative = json["background"] is String
           ? "$themeId/assets/${json["background"] as String}"
           : null
-      ..dummy1 = null
       ..dummy2 = null
       ..dummy3 = null;
   }
@@ -2528,6 +2544,7 @@ class ThemeAssetsV3 implements IThemeAssets {
         'coinImages: $coinImages, '
         'coinSecondaryImages: $coinSecondaryImages, '
         'coinCardImages: $coinCardImages'
+        'coinCardFavoritesImages: $coinCardFavoritesImages'
         ')';
   }
 }
