@@ -14,11 +14,13 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/add_address_book_entry_view.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/address_book_filter_view.dart';
+import 'package:stackwallet/pages/ordinals/widgets/ordinals_list.dart';
 import 'package:stackwallet/pages_desktop_specific/address_book_view/subwidgets/desktop_address_book_scaffold.dart';
 import 'package:stackwallet/pages_desktop_specific/address_book_view/subwidgets/desktop_contact_details.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/address_book_providers/address_book_filter_provider.dart';
+import 'package:stackwallet/services/mixins/ordinals_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -37,6 +39,7 @@ import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
+
 class DesktopOrdinalsView extends ConsumerStatefulWidget {
   const DesktopOrdinalsView({
     super.key,
@@ -52,16 +55,16 @@ class DesktopOrdinalsView extends ConsumerStatefulWidget {
 }
 
 class _DesktopOrdinals extends ConsumerState<DesktopOrdinalsView> {
-  late final TextEditingController _searchController;
-  late final FocusNode _searchFocusNode;
+  late final TextEditingController searchController;
+  late final FocusNode searchFocusNode;
 
   String _searchTerm = "";
   dynamic _manager;
 
   @override
-  void initState() {
-    _searchController = TextEditingController();
-    _searchFocusNode = FocusNode();
+    void initState() {
+    searchController = TextEditingController();
+    searchFocusNode = FocusNode();
 
     super.initState();
   }
@@ -76,8 +79,8 @@ class _DesktopOrdinals extends ConsumerState<DesktopOrdinalsView> {
 
   @override
   void dispose() {
-    _searchController.dispose();
-    _searchFocusNode.dispose();
+    searchController.dispose();
+    searchFocusNode.dispose();
 
     super.dispose();
   }
@@ -101,14 +104,86 @@ class _DesktopOrdinals extends ConsumerState<DesktopOrdinalsView> {
           ],
         ),
       ),
-      body: const Padding(
-        padding: EdgeInsets.only(
+      body: Padding(
+        padding: const EdgeInsets.only(
           left: 24,
           right: 24,
           bottom: 24,
         ),
-        child: Text(
-          "TODO")
+        child: Padding(
+          padding: const EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 8,
+          ),
+          child: Column(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(
+                  Constants.size.circularBorderRadius,
+                ),
+                child: TextField(
+                  autocorrect: Util.isDesktop ? false : true,
+                  enableSuggestions: Util.isDesktop ? false : true,
+                  controller: searchController,
+                  focusNode: searchFocusNode,
+                  onChanged: (value) {
+                    setState(() {
+                      _searchTerm = value;
+                    });
+                  },
+                  style: STextStyles.field(context),
+                  decoration: standardInputDecoration(
+                    "Search",
+                    searchFocusNode,
+                    context,
+                  ).copyWith(
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 16,
+                      ),
+                      child: SvgPicture.asset(
+                        Assets.svg.search,
+                        width: 16,
+                        height: 16,
+                      ),
+                    ),
+                    suffixIcon: searchController.text.isNotEmpty
+                        ? Padding(
+                      padding: const EdgeInsets.only(right: 0),
+                      child: UnconstrainedBox(
+                        child: Row(
+                          children: [
+                            TextFieldIconButton(
+                              child: const XIcon(),
+                              onTap: () async {
+                                setState(() {
+                                  searchController.text = "";
+                                  _searchTerm = "";
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                        : null,
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 16,
+              ),
+              Expanded(
+                child: OrdinalsList(
+                  walletId: widget.walletId,
+                  ordinalsFuture: (_manager.wallet as OrdinalsInterface).getOrdinals(),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
