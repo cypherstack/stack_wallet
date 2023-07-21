@@ -33,7 +33,7 @@ class OrdinalsList extends StatelessWidget {
               crossAxisSpacing: spacing as double,
               mainAxisSpacing: spacing as double,
               crossAxisCount: 2,
-              childAspectRatio: 3 / 4,
+              childAspectRatio: 6 / 7, // was 3/4, less data displayed now
             ),
             itemBuilder: (_, i) => OrdinalCard(
               walletId: walletId,
@@ -41,7 +41,7 @@ class OrdinalsList extends StatelessWidget {
             ),
           );
         } else {
-          return Text('No data found.');
+          return const Text('No data found.');
         }
       },
     );

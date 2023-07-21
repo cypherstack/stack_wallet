@@ -41,14 +41,14 @@ class OrdinalCard extends StatelessWidget {
           ),
           const Spacer(),
           Text(
-            'TODO', // infer from address associated with utxoTXID
+            'INSC. ${ordinal.inscriptionNumber}', // infer from address associated with utxoTXID
             style: STextStyles.w500_12(context),
           ),
-          const Spacer(),
-          Text(
-            "INSC. ${ordinal.inscriptionNumber}   ID ${ordinal.inscriptionId}",
-            style: STextStyles.w500_8(context),
-          ),
+          // const Spacer(),
+          // Text(
+          //   "ID ${ordinal.inscriptionId}",
+          //   style: STextStyles.w500_8(context),
+          // ),
         ],
       ),
     );

@@ -191,13 +191,13 @@ class _OrdinalImageGroup extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text(
-          "${ordinal.inscriptionId}", // Use any other property you want
-          style: STextStyles.w600_16(context),
-        ),
-        const SizedBox(
-          height: _spacing,
-        ),
+        // Text(
+        //   "${ordinal.inscriptionId}", // Use any other property you want
+        //   style: STextStyles.w600_16(context),
+        // ),
+        // const SizedBox(
+        //   height: _spacing,
+        // ),
         AspectRatio(
           aspectRatio: 1,
           child: AspectRatio(
