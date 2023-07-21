@@ -57,6 +57,14 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Set _manager here when the widget's dependencies change
+    _manager = ref.watch(walletsChangeNotifierProvider
+        .select((value) => value.getManager(widget.walletId)));
+  }
+
+  @override
   void dispose() {
     searchController.dispose();
     searchFocus.dispose();
@@ -92,8 +100,6 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
                         .topNavIconPrimary,
                   ),
                   onPressed: () async {
-                    _manager = ref.watch(walletsChangeNotifierProvider
-                        .select((value) => value.getManager(widget.walletId)));
                     (_manager.wallet as OrdinalsInterface).refreshInscriptions();
                   },
                 ),
@@ -187,17 +193,7 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
                 Expanded(
                   child: OrdinalsList(
                     walletId: widget.walletId,
-                    ordinals: [
-                      for (int i = 0; i < 13; i++)
-                        Ordinal(
-                          name: "dummy name $i",
-                          inscription: "insc$i",
-                          rank: "r$i",
-                          collection: OrdCollection.moonbirds,
-                          utxoTXID: 'txid',
-                          utxoVOUT: 1
-                        ),
-                    ],
+                    ordinalsFuture: (_manager.wallet as OrdinalsInterface).getInscriptions(),
                   ),
                 ),
               ],
