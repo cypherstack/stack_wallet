@@ -2386,15 +2386,14 @@ class ThemeAssetsV3 implements IThemeAssets {
   Map<Coin, String>? _coinCardImages;
   late final String? coinCardImagesString;
 
-
   @ignore
   Map<Coin, String>? get coinCardFavoritesImages =>
       _coinCardFavoritesImages ??= coinCardFavoritesImagesString == null
           ? null
           : parseCoinAssetsString(
-        coinCardFavoritesImagesString!,
-        placeHolder: coinPlaceholder,
-      );
+              coinCardFavoritesImagesString!,
+              placeHolder: coinPlaceholder,
+            );
   @ignore
   Map<Coin, String>? _coinCardFavoritesImages;
   @Name("otherStringParam1")
@@ -2467,7 +2466,6 @@ class ThemeAssetsV3 implements IThemeAssets {
       ..backgroundRelative = json["background"] is String
           ? "$themeId/assets/${json["background"] as String}"
           : null
-      ..dummy1 = null
       ..dummy2 = null
       ..dummy3 = null;
   }
