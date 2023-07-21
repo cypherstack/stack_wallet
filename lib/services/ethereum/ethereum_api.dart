@@ -10,7 +10,6 @@
 
 import 'dart:convert';
 
-import 'package:decimal/decimal.dart';
 import 'package:http/http.dart';
 import 'package:stackwallet/dto/ethereum/eth_token_tx_dto.dart';
 import 'package:stackwallet/dto/ethereum/eth_token_tx_extra_dto.dart';
@@ -431,10 +430,10 @@ abstract class EthereumAPI {
           final map = json["data"].first as Map;
 
           final balance =
-              Decimal.tryParse(map["balance"].toString()) ?? Decimal.zero;
+              BigInt.tryParse(map["units"].toString()) ?? BigInt.zero;
 
           return EthereumResponse(
-            Amount.fromDecimal(balance, fractionDigits: map["decimals"] as int),
+            Amount(rawValue: balance, fractionDigits: map["decimals"] as int),
             null,
           );
         } else {
