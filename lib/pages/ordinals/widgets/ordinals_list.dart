@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/dto/ordinals/inscription_data.dart';
+import 'package:stackwallet/models/ordinal.dart';
 
 import 'package:stackwallet/pages/ordinals/widgets/ordinal_card.dart';
 
@@ -11,13 +11,13 @@ class OrdinalsList extends StatelessWidget {
   }) : super(key: key);
 
   final String walletId;
-  final Future<List<InscriptionData>> ordinalsFuture;
+  final Future<List<Ordinal>> ordinalsFuture;
 
   get spacing => 2.0;
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<InscriptionData>>(
+    return FutureBuilder<List<Ordinal>>(
       future: ordinalsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -25,10 +25,10 @@ class OrdinalsList extends StatelessWidget {
         } else if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
         } else if (snapshot.hasData) {
-          final List<InscriptionData> inscriptions = snapshot.data!;
+          final List<Ordinal> ordinals = snapshot.data!;
           return GridView.builder(
             shrinkWrap: true,
-            itemCount: inscriptions.length,
+            itemCount: ordinals.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisSpacing: spacing as double,
               mainAxisSpacing: spacing as double,
@@ -37,7 +37,7 @@ class OrdinalsList extends StatelessWidget {
             ),
             itemBuilder: (_, i) => OrdinalCard(
               walletId: walletId,
-              inscriptionData: inscriptions[i],
+              ordinal: ordinals[i],
             ),
           );
         } else {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/dto/ordinals/inscription_data.dart';
-import 'package:stackwallet/models/ordinal.dart'; // TODO generalize InscriptionData models -> Ordinal
+
+import 'package:stackwallet/models/ordinal.dart';
 import 'package:stackwallet/pages/ordinals/ordinal_details_view.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -9,11 +9,11 @@ class OrdinalCard extends StatelessWidget {
   const OrdinalCard({
     Key? key,
     required this.walletId,
-    required this.inscriptionData,
+    required this.ordinal,
   }) : super(key: key);
 
   final String walletId;
-  final InscriptionData inscriptionData;
+  final Ordinal ordinal;
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +22,7 @@ class OrdinalCard extends StatelessWidget {
       onPressed: () {
         Navigator.of(context).pushNamed(
           OrdinalDetailsView.routeName,
-          arguments: (walletId: walletId, inscriptionData: inscriptionData),
+          arguments: (walletId: walletId, ordinal: ordinal),
         );
       },
       child: Column(
@@ -33,7 +33,7 @@ class OrdinalCard extends StatelessWidget {
               child: Container(
               color: Colors.red,
               child: Image.network(
-                inscriptionData.content, // Use the preview URL as the image source
+                ordinal.content, // Use the preview URL as the image source
                 fit: BoxFit.cover,
                 filterQuality: FilterQuality.none, // Set the filter mode to nearest
               ),
@@ -41,12 +41,12 @@ class OrdinalCard extends StatelessWidget {
           ),
           const Spacer(),
           Text(
-            inscriptionData.address,
+            'TODO', // infer from address associated with utxoTXID
             style: STextStyles.w500_12(context),
           ),
           const Spacer(),
           Text(
-            "INSC. ${inscriptionData.inscriptionNumber}   ID ${inscriptionData.inscriptionId}",
+            "INSC. ${ordinal.inscriptionNumber}   ID ${ordinal.inscriptionId}",
             style: STextStyles.w500_8(context),
           ),
         ],

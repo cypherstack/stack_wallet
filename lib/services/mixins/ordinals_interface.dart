@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-
-import 'package:stackwallet/services/litescribe_api.dart';
 import 'package:stackwallet/dto/ordinals/inscription_data.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
+import 'package:stackwallet/models/ordinal.dart';
+import 'package:stackwallet/services/litescribe_api.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 mixin OrdinalsInterface {
   late final String _walletId;
@@ -25,28 +25,32 @@ mixin OrdinalsInterface {
   }
   final LitescribeAPI litescribeAPI = LitescribeAPI(baseUrl: 'https://litescribe.io/api');
 
-  // Future<List<InscriptionData>> getInscriptionsByAddress(String address) async {
-  //   try {
-  //     var response = await litescribeAPI.getInscriptionsByAddress(address);
-  //     // print("Found ${response.result.total} inscription${response.result.total > 1 ? 's' : ''} at address $address"); // TODO disable (POC)
-  //     return response.result.list;
-  //   } catch (e) {
-  //     throw Exception('Error in OrdinalsInterface getInscriptionsByAddress: $e');
-  //   }
-  // }
-
   void refreshInscriptions() async {
     List<dynamic> _inscriptions;
     final utxos = await _db.getUTXOs(_walletId).findAll();
     final uniqueAddresses = getUniqueAddressesFromUTXOs(utxos);
-    _inscriptions = await getInscriptionsFromAddresses(uniqueAddresses);
+    _inscriptions = await getInscriptionDataFromAddresses(uniqueAddresses);
     // TODO save inscriptions to isar which gets watched by a FutureBuilder/StreamBuilder
   }
 
-  Future<List<InscriptionData>> getInscriptions() async {
-    final utxos = await _db.getUTXOs(_walletId).findAll();
-    final uniqueAddresses = getUniqueAddressesFromUTXOs(utxos);
-    return await getInscriptionsFromAddresses(uniqueAddresses);
+  Future<List<InscriptionData>> getInscriptionData() async {
+    try {
+      final utxos = await _db.getUTXOs(_walletId).findAll();
+      final uniqueAddresses = getUniqueAddressesFromUTXOs(utxos);
+      return await getInscriptionDataFromAddresses(uniqueAddresses);
+    } catch (e) {
+      throw Exception('Error in OrdinalsInterface getInscriptions: $e');
+    }
+  }
+
+  Future<List<Ordinal>> getOrdinals() async {
+    try {
+      final utxos = await _db.getUTXOs(_walletId).findAll();
+      final uniqueAddresses = getUniqueAddressesFromUTXOs(utxos);
+      return await getOrdinalsFromAddresses(uniqueAddresses);
+    } catch (e) {
+      throw Exception('Error in OrdinalsInterface getOrdinals: $e');
+    }
   }
 
   List<String> getUniqueAddressesFromUTXOs(List<UTXO> utxos) {
@@ -59,12 +63,22 @@ mixin OrdinalsInterface {
     return uniqueAddresses.toList();
   }
 
-  Future<List<InscriptionData>> getInscriptionsFromAddresses(List<String> addresses) async {
+  Future<List<InscriptionData>> getInscriptionDataFromAddress(String address) async {
+    List<InscriptionData> allInscriptions = [];
+    try {
+      var inscriptions = await litescribeAPI.getInscriptionsByAddress(address);
+      allInscriptions.addAll(inscriptions);
+    } catch (e) {
+      throw Exception('Error in OrdinalsInterface getInscriptionsByAddress: $e');
+    }
+    return allInscriptions;
+  }
+
+  Future<List<InscriptionData>> getInscriptionDataFromAddresses(List<String> addresses) async {
     List<InscriptionData> allInscriptions = [];
     for (String address in addresses) {
       try {
         var inscriptions = await litescribeAPI.getInscriptionsByAddress(address);
-        print("Found ${inscriptions.length} inscription${inscriptions.length > 1 ? 's' : ''} at address $address");
         allInscriptions.addAll(inscriptions);
       } catch (e) {
         print("Error fetching inscriptions for address $address: $e");
@@ -73,87 +87,25 @@ mixin OrdinalsInterface {
     return allInscriptions;
   }
 
-/* // ord-litecoin interface
-  final OrdinalsAPI ordinalsAPI = OrdinalsAPI(baseUrl: 'https://ord-litecoin.stackwallet.com');
-
-  Future<FeedResponse> fetchLatestInscriptions() async {
+  Future<List<Ordinal>> getOrdinalsFromAddress(String address) async {
     try {
-      final feedResponse = await ordinalsAPI.getLatestInscriptions();
-      // Process the feedResponse data as needed
-      // print('Latest Inscriptions:');
-      // for (var inscription in feedResponse.inscriptions) {
-      //   print('Title: ${inscription.title}, Href: ${inscription.href}');
-      // }
-      return feedResponse;
+      var inscriptions = await litescribeAPI.getInscriptionsByAddress(address);
+      return inscriptions.map((data) => Ordinal.fromInscriptionData(data)).toList();
     } catch (e) {
-      // Handle errors
-      throw Exception('Error in OrdinalsInterface fetchLatestInscriptions: $e');
+      throw Exception('Error in OrdinalsInterface getOrdinalsFromAddress: $e');
     }
   }
 
-  Future<InscriptionResponse> getInscriptionDetails(String inscriptionId) async {
-    try {
-      return await ordinalsAPI.getInscriptionDetails(inscriptionId);
-    } catch (e) {
-      throw Exception('Error in OrdinalsInterface getInscriptionDetails: $e');
+  Future<List<Ordinal>> getOrdinalsFromAddresses(List<String> addresses) async {
+    List<Ordinal> allOrdinals = [];
+    for (String address in addresses) {
+      try {
+        var inscriptions = await litescribeAPI.getInscriptionsByAddress(address);
+        allOrdinals.addAll(inscriptions.map((data) => Ordinal.fromInscriptionData(data)));
+      } catch (e) {
+        print("Error fetching inscriptions for address $address: $e");
+      }
     }
+    return allOrdinals;
   }
-
-  Future<SatResponse> getSatDetails(int satNumber) async {
-    try {
-      return await ordinalsAPI.getSatDetails(satNumber);
-    } catch (e) {
-      throw Exception('Error in OrdinalsInterface getSatDetails: $e');
-    }
-  }
-
-  Future<TransactionResponse> getTransaction(String transactionId) async {
-    try {
-      print(1);
-      return await ordinalsAPI.getTransaction(transactionId);
-    } catch (e) {
-      throw Exception('Error in OrdinalsInterface getTransaction: $e');
-    }
-  }
-
-  Future<OutputResponse> getTransactionOutputs(String transactionId) async {
-    try {
-      return await ordinalsAPI.getTransactionOutputs(transactionId);
-    } catch (e) {
-      throw Exception('Error in OrdinalsInterface getTransactionOutputs: $e');
-    }
-  }
-
-  Future<AddressResponse> getInscriptionsByAddress(String address) async {
-    try {
-      return await ordinalsAPI.getInscriptionsByAddress(address);
-    } catch (e) {
-      throw Exception('Error in OrdinalsInterface getInscriptionsByAddress: $e');
-    }
-  }
-
-  Future<BlockResponse> getBlock(int blockNumber) async {
-    try {
-      return await ordinalsAPI.getBlock(blockNumber);
-    } catch (e) {
-      throw Exception('Error in OrdinalsInterface getBlock: $e');
-    }
-  }
-
-  Future<ContentResponse> getInscriptionContent(String inscriptionId) async {
-    try {
-      return await ordinalsAPI.getInscriptionContent(inscriptionId);
-    } catch (e) {
-      throw Exception('Error in OrdinalsInterface getInscriptionContent: $e');
-    }
-  }
-
-  Future<PreviewResponse> getInscriptionPreview(String inscriptionId) async {
-    try {
-      return await ordinalsAPI.getInscriptionPreview(inscriptionId);
-    } catch (e) {
-      throw Exception('Error in OrdinalsInterface getInscriptionPreview: $e');
-    }
-  }
-  */ // /ord-litecoin interface
 }

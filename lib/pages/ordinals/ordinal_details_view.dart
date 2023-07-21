@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/dto/ordinals/inscription_data.dart';
+import 'package:stackwallet/models/ordinal.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/ordinals/widgets/dialogs.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -15,16 +16,15 @@ import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
-
 class OrdinalDetailsView extends StatefulWidget {
   const OrdinalDetailsView({
     Key? key,
     required this.walletId,
-    required this.inscriptionData,
+    required this.ordinal,
   }) : super(key: key);
 
   final String walletId;
-  final InscriptionData inscriptionData;
+  final Ordinal ordinal;
 
   static const routeName = "/ordinalDetailsView";
 
@@ -62,20 +62,20 @@ class _OrdinalDetailsViewState extends State<OrdinalDetailsView> {
                       horizontal: 39,
                     ),
                     child: _OrdinalImageGroup(
-                      inscriptionData: widget.inscriptionData,
+                      ordinal: widget.ordinal,
                       walletId: widget.walletId,
                     ),
                   ),
                   _DetailsItemWCopy(
                     title: "Inscription number",
-                    data: widget.inscriptionData.inscriptionNumber.toString(),
+                    data: widget.ordinal.inscriptionNumber.toString(),
                   ),
                   const SizedBox(
                     height: _spacing,
                   ),
                   _DetailsItemWCopy(
                     title: "ID",
-                    data: widget.inscriptionData.inscriptionId,
+                    data: widget.ordinal.inscriptionId,
                   ),
                   const SizedBox(
                     height: _spacing,
@@ -84,23 +84,23 @@ class _OrdinalDetailsViewState extends State<OrdinalDetailsView> {
                   const SizedBox(
                     height: _spacing,
                   ),
-                  _DetailsItemWCopy(
+                  const _DetailsItemWCopy(
                     title: "Amount",
-                    data: "${widget.inscriptionData.outputValue}",
+                    data: "TODO", // TODO infer from utxo utxoTXID:utxoVOUT
                   ),
                   const SizedBox(
                     height: _spacing,
                   ),
-                  _DetailsItemWCopy(
+                  const _DetailsItemWCopy(
                     title: "Owner address",
-                    data: widget.inscriptionData.address,
+                    data: "TODO", // infer from address associated w utxoTXID
                   ),
                   const SizedBox(
                     height: _spacing,
                   ),
                   _DetailsItemWCopy(
                     title: "Transaction ID",
-                    data: widget.inscriptionData.genesisTransaction,
+                    data: widget.ordinal.utxoTXID,
                   ),
                   const SizedBox(
                     height: _spacing,
@@ -177,11 +177,11 @@ class _OrdinalImageGroup extends StatelessWidget {
   const _OrdinalImageGroup({
     Key? key,
     required this.walletId,
-    required this.inscriptionData,
+    required this.ordinal,
   }) : super(key: key);
 
   final String walletId;
-  final InscriptionData inscriptionData;
+  final Ordinal ordinal;
 
   static const _spacing = 12.0;
 
@@ -192,7 +192,7 @@ class _OrdinalImageGroup extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
-          "${inscriptionData.inscriptionId}", // Use any other property you want
+          "${ordinal.inscriptionId}", // Use any other property you want
           style: STextStyles.w600_16(context),
         ),
         const SizedBox(
@@ -205,7 +205,7 @@ class _OrdinalImageGroup extends StatelessWidget {
             child: Container(
               color: Colors.red,
               child: Image.network(
-                inscriptionData.content, // Use the preview URL as the image source
+                ordinal.content, // Use the preview URL as the image source
                 fit: BoxFit.cover,
                 filterQuality: FilterQuality.none, // Set the filter mode to nearest
               ),

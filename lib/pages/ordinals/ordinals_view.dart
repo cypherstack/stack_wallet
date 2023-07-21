@@ -193,7 +193,7 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
                 Expanded(
                   child: OrdinalsList(
                     walletId: widget.walletId,
-                    ordinalsFuture: (_manager.wallet as OrdinalsInterface).getInscriptions(),
+                    ordinalsFuture: (_manager.wallet as OrdinalsInterface).getOrdinals(),
                   ),
                 ),
               ],
