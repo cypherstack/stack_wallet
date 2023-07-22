@@ -9,14 +9,15 @@ import 'package:stackwallet/pages/ordinals/widgets/dialogs.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
+import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
-class OrdinalDetailsView extends StatefulWidget {
-  const OrdinalDetailsView({
+class DesktopOrdinalDetailsView extends StatefulWidget {
+  const DesktopOrdinalDetailsView({
     Key? key,
     required this.walletId,
     required this.ordinal,
@@ -25,88 +26,122 @@ class OrdinalDetailsView extends StatefulWidget {
   final String walletId;
   final Ordinal ordinal;
 
-  static const routeName = "/ordinalDetailsView";
+  static const routeName = "/desktopOrdinalDetailsView";
 
   @override
-  _OrdinalDetailsViewState createState() => _OrdinalDetailsViewState();
+  _DesktopOrdinalDetailsViewState createState() =>
+      _DesktopOrdinalDetailsViewState();
 }
 
-class _OrdinalDetailsViewState extends State<OrdinalDetailsView> {
+class _DesktopOrdinalDetailsViewState extends State<DesktopOrdinalDetailsView> {
   static const _spacing = 12.0;
 
   @override
   Widget build(BuildContext context) {
-    return Background(
-      child: SafeArea(
-        child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
-            leading: const AppBarBackButton(),
-            title: Text(
-              "Ordinal details",
-              style: STextStyles.navBarTitle(context),
-            ),
-          ),
-          body: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 39,
-                    ),
-                    child: _OrdinalImageGroup(
-                      ordinal: widget.ordinal,
-                      walletId: widget.walletId,
-                    ),
-                  ),
-                  _DetailsItemWCopy(
-                    title: "Inscription number",
-                    data: widget.ordinal.inscriptionNumber.toString(),
-                  ),
-                  const SizedBox(
-                    height: _spacing,
-                  ),
-                  _DetailsItemWCopy(
-                    title: "ID",
-                    data: widget.ordinal.inscriptionId,
-                  ),
-                  const SizedBox(
-                    height: _spacing,
-                  ),
-                  // todo: add utxo status
-                  const SizedBox(
-                    height: _spacing,
-                  ),
-                  const _DetailsItemWCopy(
-                    title: "Amount",
-                    data: "TODO", // TODO infer from utxo utxoTXID:utxoVOUT
-                  ),
-                  const SizedBox(
-                    height: _spacing,
-                  ),
-                  const _DetailsItemWCopy(
-                    title: "Owner address",
-                    data: "TODO", // infer from address associated w utxoTXID
-                  ),
-                  const SizedBox(
-                    height: _spacing,
-                  ),
-                  _DetailsItemWCopy(
-                    title: "Transaction ID",
-                    data: widget.ordinal.utxoTXID,
-                  ),
-                  const SizedBox(
-                    height: _spacing,
-                  ),
-                ],
+    return DesktopScaffold(
+      appBar: DesktopAppBar(
+        background: Theme.of(context).extension<StackColors>()!.popupBG,
+        leading: Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(
+                width: 32,
               ),
-            ),
+              AppBarIconButton(
+                size: 32,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultBG,
+                shadows: const [],
+                icon: SvgPicture.asset(
+                  Assets.svg.arrowLeft,
+                  width: 18,
+                  height: 18,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .topNavIconPrimary,
+                ),
+                onPressed: Navigator.of(context).pop,
+              ),
+              const SizedBox(
+                width: 18,
+              ),
+              SvgPicture.asset(
+                Assets.svg.ordinal,
+                width: 32,
+                height: 32,
+                color:
+                    Theme.of(context).extension<StackColors>()!.textSubtitle1,
+              ),
+              const SizedBox(
+                width: 12,
+              ),
+              Text(
+                "Ordinals",
+                style: STextStyles.desktopH3(context),
+              ),
+            ],
+          ),
+        ),
+        useSpacers: false,
+        isCompactHeight: true,
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 39,
+                ),
+                child: _OrdinalImageGroup(
+                  ordinal: widget.ordinal,
+                  walletId: widget.walletId,
+                ),
+              ),
+              _DetailsItemWCopy(
+                title: "Inscription number",
+                data: widget.ordinal.inscriptionNumber.toString(),
+              ),
+              const SizedBox(
+                height: _spacing,
+              ),
+              _DetailsItemWCopy(
+                title: "ID",
+                data: widget.ordinal.inscriptionId,
+              ),
+              const SizedBox(
+                height: _spacing,
+              ),
+              // todo: add utxo status
+              const SizedBox(
+                height: _spacing,
+              ),
+              const _DetailsItemWCopy(
+                title: "Amount",
+                data: "TODO", // TODO infer from utxo utxoTXID:utxoVOUT
+              ),
+              const SizedBox(
+                height: _spacing,
+              ),
+              const _DetailsItemWCopy(
+                title: "Owner address",
+                data: "TODO", // infer from address associated w utxoTXID
+              ),
+              const SizedBox(
+                height: _spacing,
+              ),
+              _DetailsItemWCopy(
+                title: "Transaction ID",
+                data: widget.ordinal.utxoTXID,
+              ),
+              const SizedBox(
+                height: _spacing,
+              ),
+            ],
           ),
         ),
       ),

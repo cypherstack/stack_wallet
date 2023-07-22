@@ -19,6 +19,7 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/coin_control/desktop_coin_control_view.dart';
+import 'package:stackwallet/pages_desktop_specific/ordinals/desktop_ordinals_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_menu.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/more_features/more_features_dialog.dart';
@@ -80,6 +81,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         onCoinControlPressed: _onCoinControlPressed,
         onAnonymizeAllPressed: _onAnonymizeAllPressed,
         onWhirlpoolPressed: _onWhirlpoolPressed,
+        onOrdinalsPressed: _onOrdinalsPressed,
       ),
     );
   }
@@ -311,6 +313,15 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         );
       }
     }
+  }
+
+  void _onOrdinalsPressed() {
+    Navigator.of(context, rootNavigator: true).pop();
+
+    Navigator.of(context).pushNamed(
+      DesktopOrdinalsView.routeName,
+      arguments: widget.walletId,
+    );
   }
 
   @override
