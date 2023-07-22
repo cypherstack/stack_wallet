@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/models/ordinal.dart';
+import 'package:stackwallet/models/isar/ordinal.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/ordinals/widgets/dialogs.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -28,7 +28,7 @@ class OrdinalDetailsView extends StatefulWidget {
   static const routeName = "/ordinalDetailsView";
 
   @override
-  _OrdinalDetailsViewState createState() => _OrdinalDetailsViewState();
+  State<OrdinalDetailsView> createState() => _OrdinalDetailsViewState();
 }
 
 class _OrdinalDetailsViewState extends State<OrdinalDetailsView> {

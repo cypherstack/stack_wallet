@@ -11,7 +11,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/ordinal.dart';
 import 'package:stackwallet/pages/ordinals/ordinals_filter_view.dart';
 import 'package:stackwallet/pages/ordinals/widgets/ordinals_list.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
@@ -19,6 +18,7 @@ import 'package:stackwallet/services/mixins/ordinals_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -46,7 +46,6 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
   late final FocusNode searchFocus;
 
   String _searchTerm = "";
-  dynamic _manager;
 
   @override
   void initState() {
@@ -54,14 +53,6 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
     searchFocus = FocusNode();
 
     super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Set _manager here when the widget's dependencies change
-    _manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(widget.walletId)));
   }
 
   @override
@@ -73,6 +64,9 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
 
   @override
   Widget build(BuildContext context) {
+    final manager = ref.watch(walletsChangeNotifierProvider
+        .select((value) => value.getManager(widget.walletId)));
+
     return Background(
       child: SafeArea(
         child: Scaffold(
@@ -100,7 +94,15 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
                         .topNavIconPrimary,
                   ),
                   onPressed: () async {
-                    (_manager.wallet as OrdinalsInterface).refreshInscriptions();
+                    // show loading for a minimum of 2 seconds on refreshing
+                    await showLoading(
+                        whileFuture: Future.wait<void>([
+                          Future.delayed(const Duration(seconds: 2)),
+                          (manager.wallet as OrdinalsInterface)
+                              .refreshInscriptions()
+                        ]),
+                        context: context,
+                        message: "Refreshing...");
                   },
                 ),
               ),
@@ -193,7 +195,6 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
                 Expanded(
                   child: OrdinalsList(
                     walletId: widget.walletId,
-                    ordinalsFuture: (_manager.wallet as OrdinalsInterface).getOrdinals(),
                   ),
                 ),
               ],

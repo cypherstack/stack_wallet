@@ -15,6 +15,7 @@ import 'package:stackwallet/exceptions/main_db/main_db_exception.dart';
 import 'package:stackwallet/models/isar/models/block_explorer.dart';
 import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/models/isar/ordinal.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -54,6 +55,7 @@ class MainDB {
         TransactionBlockExplorerSchema,
         StackThemeSchema,
         ContactEntrySchema,
+        OrdinalSchema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
       // inspector: kDebugMode,

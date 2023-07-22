@@ -1,48 +1,96 @@
-import 'package:flutter/material.dart';
-import 'package:stackwallet/models/ordinal.dart';
-import 'package:stackwallet/pages/ordinals/widgets/ordinal_card.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
+import 'dart:async';
 
-class OrdinalsList extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:isar/isar.dart';
+import 'package:stackwallet/models/isar/ordinal.dart';
+import 'package:stackwallet/pages/ordinals/widgets/ordinal_card.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
+import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+class OrdinalsList extends ConsumerStatefulWidget {
   const OrdinalsList({
     Key? key,
     required this.walletId,
-    required this.ordinalsFuture,
   }) : super(key: key);
 
   final String walletId;
-  final Future<List<Ordinal>> ordinalsFuture;
 
-  double get spacing => 2.0;
+  @override
+  ConsumerState<OrdinalsList> createState() => _OrdinalsListState();
+}
+
+class _OrdinalsListState extends ConsumerState<OrdinalsList> {
+  static const double _spacing = 10.0;
+
+  late List<Ordinal> _data;
+
+  late final Stream<List<Ordinal>?> _stream;
+
+  @override
+  void initState() {
+    _stream = ref
+        .read(mainDBProvider)
+        .isar
+        .ordinals
+        .where()
+        .filter()
+        .walletIdEqualTo(widget.walletId)
+        .watch();
+
+    _data = ref
+        .read(mainDBProvider)
+        .isar
+        .ordinals
+        .where()
+        .filter()
+        .walletIdEqualTo(widget.walletId)
+        .findAllSync();
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Ordinal>>(
-      future: ordinalsFuture,
+    return StreamBuilder<List<Ordinal>?>(
+      stream: _stream,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const LoadingIndicator();
-        } else if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        } else if (snapshot.hasData) {
-          final List<Ordinal> ordinals = snapshot.data!;
-          return GridView.builder(
-            shrinkWrap: true,
-            itemCount: ordinals.length,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisSpacing: spacing,
-              mainAxisSpacing: spacing,
-              crossAxisCount: 2,
-              childAspectRatio: 6 / 7, // was 3/4, less data displayed now
-            ),
-            itemBuilder: (_, i) => OrdinalCard(
-              walletId: walletId,
-              ordinal: ordinals[i],
-            ),
-          );
-        } else {
-          return const Text('No data found.');
+        if (snapshot.hasData) {
+          _data = snapshot.data!;
         }
+
+        if (_data.isEmpty) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              RoundedWhiteContainer(
+                child: Center(
+                  child: Text(
+                    "Your ordinals will appear here",
+                    style: STextStyles.label(context),
+                  ),
+                ),
+              ),
+            ],
+          );
+        }
+
+        return GridView.builder(
+          shrinkWrap: true,
+          itemCount: _data.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisSpacing: _spacing,
+            mainAxisSpacing: _spacing,
+            crossAxisCount: Util.isDesktop ? 4 : 2,
+            childAspectRatio: 6 / 7, // was 3/4, less data displayed now
+          ),
+          itemBuilder: (_, i) => OrdinalCard(
+            walletId: widget.walletId,
+            ordinal: _data[i],
+          ),
+        );
       },
     );
   }

@@ -11,34 +11,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/isar/models/contact_entry.dart';
-import 'package:stackwallet/pages/address_book_views/subviews/add_address_book_entry_view.dart';
-import 'package:stackwallet/pages/address_book_views/subviews/address_book_filter_view.dart';
-import 'package:stackwallet/pages_desktop_specific/ordinals/subwidgets/desktop_ordinals_list.dart';
-import 'package:stackwallet/pages_desktop_specific/address_book_view/subwidgets/desktop_address_book_scaffold.dart';
-import 'package:stackwallet/pages_desktop_specific/address_book_view/subwidgets/desktop_contact_details.dart';
-import 'package:stackwallet/providers/global/address_book_service_provider.dart';
+import 'package:stackwallet/pages/ordinals/widgets/ordinals_list.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/providers/ui/address_book_providers/address_book_filter_provider.dart';
-import 'package:stackwallet/services/mixins/ordinals_interface.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/address_book_card.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
-
 
 class DesktopOrdinalsView extends ConsumerStatefulWidget {
   const DesktopOrdinalsView({
@@ -62,7 +45,7 @@ class _DesktopOrdinals extends ConsumerState<DesktopOrdinalsView> {
   dynamic _manager;
 
   @override
-    void initState() {
+  void initState() {
     searchController = TextEditingController();
     searchFocusNode = FocusNode();
 
@@ -151,23 +134,23 @@ class _DesktopOrdinals extends ConsumerState<DesktopOrdinalsView> {
                     ),
                     suffixIcon: searchController.text.isNotEmpty
                         ? Padding(
-                      padding: const EdgeInsets.only(right: 0),
-                      child: UnconstrainedBox(
-                        child: Row(
-                          children: [
-                            TextFieldIconButton(
-                              child: const XIcon(),
-                              onTap: () async {
-                                setState(() {
-                                  searchController.text = "";
-                                  _searchTerm = "";
-                                });
-                              },
+                            padding: const EdgeInsets.only(right: 0),
+                            child: UnconstrainedBox(
+                              child: Row(
+                                children: [
+                                  TextFieldIconButton(
+                                    child: const XIcon(),
+                                    onTap: () async {
+                                      setState(() {
+                                        searchController.text = "";
+                                        _searchTerm = "";
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
-                          ],
-                        ),
-                      ),
-                    )
+                          )
                         : null,
                   ),
                 ),
@@ -176,9 +159,8 @@ class _DesktopOrdinals extends ConsumerState<DesktopOrdinalsView> {
                 height: 16,
               ),
               Expanded(
-                child: DesktopOrdinalsList(
+                child: OrdinalsList(
                   walletId: widget.walletId,
-                  ordinalsFuture: (_manager.wallet as OrdinalsInterface).getOrdinals(),
                 ),
               ),
             ],
