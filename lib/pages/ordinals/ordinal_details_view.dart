@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/dto/ordinals/inscription_data.dart';
 import 'package:stackwallet/models/ordinal.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/ordinals/widgets/dialogs.dart';
@@ -41,10 +40,10 @@ class _OrdinalDetailsViewState extends State<OrdinalDetailsView> {
       child: SafeArea(
         child: Scaffold(
           backgroundColor:
-          Theme.of(context).extension<StackColors>()!.background,
+              Theme.of(context).extension<StackColors>()!.background,
           appBar: AppBar(
             backgroundColor:
-            Theme.of(context).extension<StackColors>()!.background,
+                Theme.of(context).extension<StackColors>()!.background,
             leading: const AppBarBackButton(),
             title: Text(
               "Ordinal details",
@@ -154,7 +153,7 @@ class _DetailsItemWCopy extends StatelessWidget {
                 child: SvgPicture.asset(
                   Assets.svg.copy,
                   color:
-                  Theme.of(context).extension<StackColors>()!.infoItemIcons,
+                      Theme.of(context).extension<StackColors>()!.infoItemIcons,
                   width: 12,
                 ),
               ),
@@ -200,15 +199,13 @@ class _OrdinalImageGroup extends StatelessWidget {
         // ),
         AspectRatio(
           aspectRatio: 1,
-          child: AspectRatio(
-            aspectRatio: 1,
-            child: Container(
-              color: Colors.red,
-              child: Image.network(
-                ordinal.content, // Use the preview URL as the image source
-                fit: BoxFit.cover,
-                filterQuality: FilterQuality.none, // Set the filter mode to nearest
-              ),
+          child: Container(
+            color: Colors.red,
+            child: Image.network(
+              ordinal.content, // Use the preview URL as the image source
+              fit: BoxFit.cover,
+              filterQuality:
+                  FilterQuality.none, // Set the filter mode to nearest
             ),
           ),
         ),

@@ -29,7 +29,8 @@ class DesktopOrdinalDetailsView extends StatefulWidget {
   static const routeName = "/desktopOrdinalDetailsView";
 
   @override
-  _DesktopOrdinalDetailsViewState createState() => _DesktopOrdinalDetailsViewState();
+  _DesktopOrdinalDetailsViewState createState() =>
+      _DesktopOrdinalDetailsViewState();
 }
 
 class _DesktopOrdinalDetailsViewState extends State<DesktopOrdinalDetailsView> {
@@ -38,55 +39,55 @@ class _DesktopOrdinalDetailsViewState extends State<DesktopOrdinalDetailsView> {
   @override
   Widget build(BuildContext context) {
     return DesktopScaffold(
-        appBar: DesktopAppBar(
-          background: Theme.of(context).extension<StackColors>()!.popupBG,
-          leading: Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(
-                  width: 32,
-                ),
-                AppBarIconButton(
-                  size: 32,
+      appBar: DesktopAppBar(
+        background: Theme.of(context).extension<StackColors>()!.popupBG,
+        leading: Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(
+                width: 32,
+              ),
+              AppBarIconButton(
+                size: 32,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultBG,
+                shadows: const [],
+                icon: SvgPicture.asset(
+                  Assets.svg.arrowLeft,
+                  width: 18,
+                  height: 18,
                   color: Theme.of(context)
                       .extension<StackColors>()!
-                      .textFieldDefaultBG,
-                  shadows: const [],
-                  icon: SvgPicture.asset(
-                    Assets.svg.arrowLeft,
-                    width: 18,
-                    height: 18,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .topNavIconPrimary,
-                  ),
-                  onPressed: Navigator.of(context).pop,
+                      .topNavIconPrimary,
                 ),
-                const SizedBox(
-                  width: 18,
-                ),
-                SvgPicture.asset(
-                  Assets.svg.ordinal,
-                  width: 32,
-                  height: 32,
-                  color:
-                  Theme.of(context).extension<StackColors>()!.textSubtitle1,
-                ),
-                const SizedBox(
-                  width: 12,
-                ),
-                Text(
-                  "Ordinals",
-                  style: STextStyles.desktopH3(context),
-                ),
-              ],
-            ),
+                onPressed: Navigator.of(context).pop,
+              ),
+              const SizedBox(
+                width: 18,
+              ),
+              SvgPicture.asset(
+                Assets.svg.ordinal,
+                width: 32,
+                height: 32,
+                color:
+                    Theme.of(context).extension<StackColors>()!.textSubtitle1,
+              ),
+              const SizedBox(
+                width: 12,
+              ),
+              Text(
+                "Ordinals",
+                style: STextStyles.desktopH3(context),
+              ),
+            ],
           ),
-          useSpacers: false,
-          isCompactHeight: true,
         ),
-        body: SingleChildScrollView(
+        useSpacers: false,
+        isCompactHeight: true,
+      ),
+      body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
@@ -187,7 +188,7 @@ class _DetailsItemWCopy extends StatelessWidget {
                 child: SvgPicture.asset(
                   Assets.svg.copy,
                   color:
-                  Theme.of(context).extension<StackColors>()!.infoItemIcons,
+                      Theme.of(context).extension<StackColors>()!.infoItemIcons,
                   width: 12,
                 ),
               ),
@@ -233,15 +234,13 @@ class _OrdinalImageGroup extends StatelessWidget {
         // ),
         AspectRatio(
           aspectRatio: 1,
-          child: AspectRatio(
-            aspectRatio: 1,
-            child: Container(
-              color: Colors.red,
-              child: Image.network(
-                ordinal.content, // Use the preview URL as the image source
-                fit: BoxFit.cover,
-                filterQuality: FilterQuality.none, // Set the filter mode to nearest
-              ),
+          child: Container(
+            color: Colors.red,
+            child: Image.network(
+              ordinal.content, // Use the preview URL as the image source
+              fit: BoxFit.cover,
+              filterQuality:
+                  FilterQuality.none, // Set the filter mode to nearest
             ),
           ),
         ),
