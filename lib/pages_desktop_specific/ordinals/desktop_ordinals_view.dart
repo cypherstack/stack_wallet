@@ -13,12 +13,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/ordinals/widgets/ordinals_list.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/services/mixins/ordinals_interface.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
@@ -42,7 +47,6 @@ class _DesktopOrdinals extends ConsumerState<DesktopOrdinalsView> {
   late final FocusNode searchFocusNode;
 
   String _searchTerm = "";
-  dynamic _manager;
 
   @override
   void initState() {
@@ -50,14 +54,6 @@ class _DesktopOrdinals extends ConsumerState<DesktopOrdinalsView> {
     searchFocusNode = FocusNode();
 
     super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Set _manager here when the widget's dependencies change
-    _manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(widget.walletId)));
   }
 
   @override
@@ -74,97 +70,171 @@ class _DesktopOrdinals extends ConsumerState<DesktopOrdinalsView> {
 
     return DesktopScaffold(
       appBar: DesktopAppBar(
+        background: Theme.of(context).extension<StackColors>()!.popupBG,
         isCompactHeight: true,
-        leading: Row(
-          children: [
-            const SizedBox(
-              width: 24,
-            ),
-            Text(
-              "Ordinals",
-              style: STextStyles.desktopH3(context),
-            )
-          ],
+        useSpacers: false,
+        leading: Expanded(
+          child: Row(
+            children: [
+              const SizedBox(
+                width: 32,
+              ),
+              AppBarIconButton(
+                size: 32,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultBG,
+                shadows: const [],
+                icon: SvgPicture.asset(
+                  Assets.svg.arrowLeft,
+                  width: 18,
+                  height: 18,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .topNavIconPrimary,
+                ),
+                onPressed: Navigator.of(context).pop,
+              ),
+              const SizedBox(
+                width: 15,
+              ),
+              SvgPicture.asset(
+                Assets.svg.ordinal,
+                width: 32,
+                height: 32,
+              ),
+              const SizedBox(
+                width: 12,
+              ),
+              Text(
+                "Ordinals",
+                style: STextStyles.desktopH3(context),
+              )
+            ],
+          ),
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.only(
-          left: 24,
-          right: 24,
-          bottom: 24,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 8,
-          ),
-          child: Column(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(
-                  Constants.size.circularBorderRadius,
-                ),
-                child: TextField(
-                  autocorrect: Util.isDesktop ? false : true,
-                  enableSuggestions: Util.isDesktop ? false : true,
-                  controller: searchController,
-                  focusNode: searchFocusNode,
-                  onChanged: (value) {
-                    setState(() {
-                      _searchTerm = value;
-                    });
-                  },
-                  style: STextStyles.field(context),
-                  decoration: standardInputDecoration(
-                    "Search",
-                    searchFocusNode,
-                    context,
-                  ).copyWith(
-                    prefixIcon: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 16,
-                      ),
-                      child: SvgPicture.asset(
-                        Assets.svg.search,
-                        width: 16,
-                        height: 16,
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
+                    child: TextField(
+                      autocorrect: Util.isDesktop ? false : true,
+                      enableSuggestions: Util.isDesktop ? false : true,
+                      controller: searchController,
+                      focusNode: searchFocusNode,
+                      onChanged: (value) {
+                        setState(() {
+                          _searchTerm = value;
+                        });
+                      },
+                      style: STextStyles.field(context),
+                      decoration: standardInputDecoration(
+                        "Search",
+                        searchFocusNode,
+                        context,
+                      ).copyWith(
+                        prefixIcon: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 20,
+                          ),
+                          child: SvgPicture.asset(
+                            Assets.svg.search,
+                            width: 16,
+                            height: 16,
+                          ),
+                        ),
+                        suffixIcon: searchController.text.isNotEmpty
+                            ? Padding(
+                                padding: const EdgeInsets.only(right: 0),
+                                child: UnconstrainedBox(
+                                  child: Row(
+                                    children: [
+                                      TextFieldIconButton(
+                                        child: const XIcon(),
+                                        onTap: () async {
+                                          setState(() {
+                                            searchController.text = "";
+                                            _searchTerm = "";
+                                          });
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            : null,
                       ),
                     ),
-                    suffixIcon: searchController.text.isNotEmpty
-                        ? Padding(
-                            padding: const EdgeInsets.only(right: 0),
-                            child: UnconstrainedBox(
-                              child: Row(
-                                children: [
-                                  TextFieldIconButton(
-                                    child: const XIcon(),
-                                    onTap: () async {
-                                      setState(() {
-                                        searchController.text = "";
-                                        _searchTerm = "";
-                                      });
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                        : null,
                   ),
                 ),
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-              Expanded(
-                child: OrdinalsList(
-                  walletId: widget.walletId,
+                // const SizedBox(
+                //   width: 16,
+                // ),
+                // SecondaryButton(
+                //   width: 184,
+                //   label: "Filter",
+                //   buttonHeight: ButtonHeight.l,
+                //   icon: SvgPicture.asset(
+                //     Assets.svg.filter,
+                //     color: Theme.of(context)
+                //         .extension<StackColors>()!
+                //         .buttonTextSecondary,
+                //   ),
+                //   onPressed: () {
+                //     Navigator.of(context).pushNamed(
+                //       OrdinalsFilterView.routeName,
+                //     );
+                //   },
+                // ),
+                const SizedBox(
+                  width: 16,
                 ),
+                SecondaryButton(
+                  width: 184,
+                  label: "Update",
+                  buttonHeight: ButtonHeight.l,
+                  icon: SvgPicture.asset(
+                    Assets.svg.arrowRotate,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonTextSecondary,
+                  ),
+                  onPressed: () async {
+                    // show loading for a minimum of 2 seconds on refreshing
+                    await showLoading(
+                        isDesktop: true,
+                        whileFuture: Future.wait<void>([
+                          Future.delayed(const Duration(seconds: 2)),
+                          (ref
+                                  .read(walletsChangeNotifierProvider)
+                                  .getManager(widget.walletId)
+                                  .wallet as OrdinalsInterface)
+                              .refreshInscriptions()
+                        ]),
+                        context: context,
+                        message: "Refreshing...");
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+            Expanded(
+              child: OrdinalsList(
+                walletId: widget.walletId,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

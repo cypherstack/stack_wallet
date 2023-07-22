@@ -64,9 +64,6 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
 
   @override
   Widget build(BuildContext context) {
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(widget.walletId)));
-
     return Background(
       child: SafeArea(
         child: Scaffold(
@@ -98,7 +95,10 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
                     await showLoading(
                         whileFuture: Future.wait<void>([
                           Future.delayed(const Duration(seconds: 2)),
-                          (manager.wallet as OrdinalsInterface)
+                          (ref
+                                  .read(walletsChangeNotifierProvider)
+                                  .getManager(widget.walletId)
+                                  .wallet as OrdinalsInterface)
                               .refreshInscriptions()
                         ]),
                         context: context,

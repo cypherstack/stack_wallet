@@ -6,6 +6,7 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/ordinal.dart';
 import 'package:stackwallet/pages/ordinals/widgets/ordinal_card.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -23,7 +24,7 @@ class OrdinalsList extends ConsumerStatefulWidget {
 }
 
 class _OrdinalsListState extends ConsumerState<OrdinalsList> {
-  static const double _spacing = 10.0;
+  final double _spacing = Util.isDesktop ? 16 : 10;
 
   late List<Ordinal> _data;
 
@@ -69,7 +70,12 @@ class _OrdinalsListState extends ConsumerState<OrdinalsList> {
                 child: Center(
                   child: Text(
                     "Your ordinals will appear here",
-                    style: STextStyles.label(context),
+                    style: Util.isDesktop
+                        ? STextStyles.w500_14(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textSubtitle1)
+                        : STextStyles.label(context),
                   ),
                 ),
               ),
