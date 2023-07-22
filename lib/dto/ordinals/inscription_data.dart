@@ -50,4 +50,24 @@ class InscriptionData {
       offset: json['offset'] as int,
     );
   }
+
+  @override
+  String toString() {
+    return 'InscriptionData {'
+        ' inscriptionId: $inscriptionId,'
+        ' inscriptionNumber: $inscriptionNumber,'
+        ' address: $address,'
+        ' preview: $preview,'
+        ' content: $content,'
+        ' contentLength: $contentLength,'
+        ' contentType: $contentType,'
+        ' contentBody: $contentBody,'
+        ' timestamp: $timestamp,'
+        ' genesisTransaction: $genesisTransaction,'
+        ' location: $location,'
+        ' output: $output,'
+        ' outputValue: $outputValue,'
+        ' offset: $offset'
+        ' }';
+  }
 }

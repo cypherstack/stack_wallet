@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:stackwallet/models/isar/ordinal.dart';
 import 'package:stackwallet/pages/ordinals/ordinal_details_view.dart';
+import 'package:stackwallet/pages_desktop_specific/ordinals/desktop_ordinal_details_view.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class OrdinalCard extends StatelessWidget {
@@ -21,7 +23,9 @@ class OrdinalCard extends StatelessWidget {
       radiusMultiplier: 2,
       onPressed: () {
         Navigator.of(context).pushNamed(
-          OrdinalDetailsView.routeName,
+          Util.isDesktop
+              ? DesktopOrdinalDetailsView.routeName
+              : OrdinalDetailsView.routeName,
           arguments: (walletId: walletId, ordinal: ordinal),
         );
       },

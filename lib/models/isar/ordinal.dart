@@ -1,5 +1,7 @@
 import 'package:isar/isar.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/dto/ordinals/inscription_data.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 
 part 'ordinal.g.dart';
 
@@ -60,6 +62,17 @@ class Ordinal {
       utxoTXID: utxoTXID ?? this.utxoTXID,
       utxoVOUT: utxoVOUT ?? this.utxoVOUT,
     );
+  }
+
+  UTXO? getUTXO(MainDB db) {
+    return db.isar.utxos
+        .where()
+        .walletIdEqualTo(walletId)
+        .filter()
+        .txidEqualTo(utxoTXID)
+        .and()
+        .voutEqualTo(utxoVOUT)
+        .findFirstSync();
   }
 
   @override
