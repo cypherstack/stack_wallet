@@ -938,7 +938,10 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         ),
                       ))
                     WalletNavigationBarItemData(
-                        icon: SvgPicture.asset(Assets.svg.monkey),
+                        icon: SvgPicture.asset(Assets.svg.monkey,
+                          height: 20,
+                          width: 20,
+                          color: Theme.of(context).extension<StackColors>()!.bottomNavIconIcon,),
                         label: "MonKey",
                         onTap: () {
                           Navigator.of(context).pushNamed(
