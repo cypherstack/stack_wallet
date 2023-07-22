@@ -117,6 +117,7 @@ class _DesktopOrdinals extends ConsumerState<DesktopOrdinalsView> {
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
@@ -230,8 +231,10 @@ class _DesktopOrdinals extends ConsumerState<DesktopOrdinalsView> {
               height: 16,
             ),
             Expanded(
-              child: OrdinalsList(
-                walletId: widget.walletId,
+              child: SingleChildScrollView(
+                child: OrdinalsList(
+                  walletId: widget.walletId,
+                ),
               ),
             ),
           ],

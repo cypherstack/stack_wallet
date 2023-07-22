@@ -83,20 +83,36 @@ class _OrdinalsListState extends ConsumerState<OrdinalsList> {
           );
         }
 
-        return GridView.builder(
-          shrinkWrap: true,
-          itemCount: _data.length,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisSpacing: _spacing,
-            mainAxisSpacing: _spacing,
-            crossAxisCount: Util.isDesktop ? 4 : 2,
-            childAspectRatio: 6 / 7, // was 3/4, less data displayed now
-          ),
-          itemBuilder: (_, i) => OrdinalCard(
-            walletId: widget.walletId,
-            ordinal: _data[i],
-          ),
-        );
+        if (Util.isDesktop) {
+          return Wrap(
+            spacing: _spacing,
+            runSpacing: _spacing,
+            children: _data
+                .map((e) => SizedBox(
+                    width: 220,
+                    height: 270,
+                    child: OrdinalCard(
+                      walletId: widget.walletId,
+                      ordinal: e,
+                    )))
+                .toList(),
+          );
+        } else {
+          return GridView.builder(
+            shrinkWrap: true,
+            itemCount: _data.length,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisSpacing: _spacing,
+              mainAxisSpacing: _spacing,
+              crossAxisCount: Util.isDesktop ? 4 : 2,
+              childAspectRatio: 6 / 7, // was 3/4, less data displayed now
+            ),
+            itemBuilder: (_, i) => OrdinalCard(
+              walletId: widget.walletId,
+              ordinal: _data[i],
+            ),
+          );
+        }
       },
     );
   }
