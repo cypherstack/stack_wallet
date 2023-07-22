@@ -228,7 +228,8 @@ class StellarWallet extends CoinServiceAPI
       (await _currentReceivingAddress)?.value ?? await getAddressSW();
 
   Future<int> getBaseFee() async {
-    final nodeURI = Uri.parse("${getCurrentNode().host}:${getCurrentNode().port}");
+    // final nodeURI = Uri.parse("${getCurrentNode().host}:${getCurrentNode().port}");
+    final nodeURI = Uri.parse(getCurrentNode().host);
     final httpClient = http.Client();
     FeeStatsResponse fsp = await FeeStatsRequestBuilder(httpClient, nodeURI).execute();
     return int.parse(fsp.lastLedgerBaseFee);
