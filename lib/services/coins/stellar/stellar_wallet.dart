@@ -541,7 +541,7 @@ class StellarWallet extends CoinServiceAPI
             derivationIndex: 0,
             derivationPath: null,
             type: SWAddress.AddressType.unknown, // TODO: set type
-            subType: SWAddress.AddressSubType.unknown,
+            subType: SWAddress.AddressSubType.unknown
           );
           Tuple2<SWTransaction.Transaction, SWAddress.Address> tuple = Tuple2(theTransaction, address);
           transactionList.add(tuple);
@@ -593,10 +593,9 @@ class StellarWallet extends CoinServiceAPI
             derivationIndex: 0,
             derivationPath: null,
             type: SWAddress.AddressType.unknown, // TODO: set type
-            subType: SWAddress.AddressSubType.unknown
-        );
-        Tuple2<SWTransaction.Transaction, SWAddress.Address> tuple = Tuple2(theTransaction, address);
-        transactionList.add(tuple);
+            subType: SWAddress.AddressSubType.unknown);
+          Tuple2<SWTransaction.Transaction, SWAddress.Address> tuple = Tuple2(theTransaction, address);
+          transactionList.add(tuple);
         }
       }
       await db.addNewTransactionData(transactionList, walletId);
