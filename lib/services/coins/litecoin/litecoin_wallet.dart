@@ -136,7 +136,7 @@ class LitecoinWallet extends CoinServiceAPI
     _secureStore = secureStore;
     initCache(walletId, coin);
     initWalletDB(mockableOverride: mockableOverride);
-    initOrdinalsInterface(walletId:walletId, coin: coin, db: db);
+    initOrdinalsInterface(walletId: walletId, coin: coin, db: db);
     initCoinControlInterface(
       walletId: walletId,
       walletName: walletName,
@@ -1871,14 +1871,6 @@ class LitecoinWallet extends CoinServiceAPI
           String? blockReason;
           String? label;
 
-          final utxoAmount = jsonUTXO["value"] as int;
-
-          if (utxoAmount <= 10000) {
-            shouldBlock = true;
-            blockReason = "May contain ordinal";
-            label = "Possible ordinal";
-          }
-
           final vout = jsonUTXO["tx_pos"] as int;
 
           final outputs = txn["vout"] as List;
@@ -1890,6 +1882,25 @@ class LitecoinWallet extends CoinServiceAPI
               utxoOwnerAddress =
                   output["scriptPubKey"]?["addresses"]?[0] as String? ??
                       output["scriptPubKey"]?["address"] as String?;
+            }
+          }
+
+          final utxoAmount = jsonUTXO["value"] as int;
+
+          // TODO check the specific output, not just the address in general
+          // TODO optimize by querying the litescribe API for all addresses at once, instead of one API call per output
+          if (utxoOwnerAddress != null) {
+            if (await inscriptionInAddress(utxoOwnerAddress!)) {
+              shouldBlock = true;
+              blockReason = "Ordinal";
+              label = "Ordinal detected at address";
+            }
+          } else {
+            // TODO implement inscriptionInOutput
+            if (utxoAmount <= 10000) {
+              shouldBlock = true;
+              blockReason = "May contain ordinal";
+              label = "Possible ordinal";
             }
           }
 
