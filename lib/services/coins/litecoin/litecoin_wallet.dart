@@ -1856,6 +1856,7 @@ class LitecoinWallet extends CoinServiceAPI
       }
 
       final List<isar_models.UTXO> outputArray = [];
+      bool inscriptionsRefreshNeeded = false;
 
       for (int i = 0; i < fetchedUtxoList.length; i++) {
         for (int j = 0; j < fetchedUtxoList[i].length; j++) {
@@ -1890,10 +1891,12 @@ class LitecoinWallet extends CoinServiceAPI
           // TODO check the specific output, not just the address in general
           // TODO optimize by querying the litescribe API for all addresses at once, instead of one API call per output
           if (utxoOwnerAddress != null) {
+            // TODO add inscription to database
             if (await inscriptionInAddress(utxoOwnerAddress!)) {
               shouldBlock = true;
               blockReason = "Ordinal";
               label = "Ordinal detected at address";
+              inscriptionsRefreshNeeded = true;
             }
           } else {
             // TODO implement inscriptionInOutput
@@ -1901,6 +1904,7 @@ class LitecoinWallet extends CoinServiceAPI
               shouldBlock = true;
               blockReason = "May contain ordinal";
               label = "Possible ordinal";
+              inscriptionsRefreshNeeded = true;
             }
           }
 
@@ -1921,6 +1925,10 @@ class LitecoinWallet extends CoinServiceAPI
 
           outputArray.add(utxo);
         }
+      }
+
+      if (inscriptionsRefreshNeeded) {
+        await refreshInscriptions();
       }
 
       Logging.instance.log(
