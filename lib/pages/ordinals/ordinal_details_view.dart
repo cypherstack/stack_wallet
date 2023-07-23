@@ -200,7 +200,7 @@ class _OrdinalImageGroup extends StatelessWidget {
         AspectRatio(
           aspectRatio: 1,
           child: Container(
-            color: Colors.red,
+            color: Colors.transparent,
             child: Image.network(
               ordinal.content, // Use the preview URL as the image source
               fit: BoxFit.cover,
