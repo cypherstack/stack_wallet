@@ -248,7 +248,8 @@ class MainDB {
         await isar.utxos.putAll(utxos);
       });
 
-  Future<void> updateUTXOs(String walletId, List<UTXO> utxos) async {
+  Future<bool> updateUTXOs(String walletId, List<UTXO> utxos) async {
+    bool newUTXO = false;
     await isar.writeTxn(() async {
       final set = utxos.toSet();
       for (final utxo in utxos) {
@@ -270,12 +271,16 @@ class MainDB {
               blockHash: utxo.blockHash,
             ),
           );
+        } else {
+          newUTXO = true;
         }
       }
 
       await isar.utxos.where().walletIdEqualTo(walletId).deleteAll();
       await isar.utxos.putAll(set.toList());
     });
+
+    return newUTXO;
   }
 
   Stream<UTXO?> watchUTXO({

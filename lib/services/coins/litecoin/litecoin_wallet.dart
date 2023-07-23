@@ -1856,7 +1856,6 @@ class LitecoinWallet extends CoinServiceAPI
       }
 
       final List<isar_models.UTXO> outputArray = [];
-      bool inscriptionsRefreshNeeded = false;
 
       for (int i = 0; i < fetchedUtxoList.length; i++) {
         for (int j = 0; j < fetchedUtxoList[i].length; j++) {
@@ -1889,13 +1888,12 @@ class LitecoinWallet extends CoinServiceAPI
           final utxoAmount = jsonUTXO["value"] as int;
 
           // TODO check the specific output, not just the address in general
-          // TODO optimize by querying the litescribe API for all addresses at once, instead of one API call per output
+          // TODO optimize by freezing output in OrdinalsInterface, so one ordinal API calls is made (or at least many less)
           if (utxoOwnerAddress != null) {
             if (await inscriptionInAddress(utxoOwnerAddress!)) {
               shouldBlock = true;
               blockReason = "Ordinal";
               label = "Ordinal detected at address";
-              inscriptionsRefreshNeeded = true;
             }
           } else {
             // TODO implement inscriptionInOutput
@@ -1903,7 +1901,6 @@ class LitecoinWallet extends CoinServiceAPI
               shouldBlock = true;
               blockReason = "May contain ordinal";
               label = "Possible ordinal";
-              inscriptionsRefreshNeeded = true;
             }
           }
 
@@ -1931,12 +1928,12 @@ class LitecoinWallet extends CoinServiceAPI
         level: LogLevel.Info,
       );
 
-      // TODO replace with refreshInscriptions if outputs are changed
+      bool inscriptionsRefreshNeeded =
+          await db.updateUTXOs(walletId, outputArray);
+
       if (inscriptionsRefreshNeeded) {
         await refreshInscriptions();
       }
-
-      await db.updateUTXOs(walletId, outputArray);
 
       // finally update balance
       await _updateBalance();
