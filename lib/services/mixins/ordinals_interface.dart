@@ -103,7 +103,7 @@ mixin OrdinalsInterface {
             await litescribeAPI.getInscriptionsByAddress(address);
         allInscriptions.addAll(inscriptions);
       } catch (e) {
-        print("Error fetching inscriptions for address $address: $e");
+        throw Exception("Error fetching inscriptions for address $address: $e");
       }
     }
     return allInscriptions;
