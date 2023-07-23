@@ -91,4 +91,14 @@ mixin OrdinalsInterface {
       return false;
     }
   }
+
+  // check if an inscription is in a given <UTXO> output
+  Future<bool> inscriptionInAddresses(List<String> addresses) async {
+    var inscriptions = await _getInscriptionDataFromAddresses(addresses);
+    if (inscriptions.isNotEmpty) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }

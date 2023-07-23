@@ -1891,7 +1891,6 @@ class LitecoinWallet extends CoinServiceAPI
           // TODO check the specific output, not just the address in general
           // TODO optimize by querying the litescribe API for all addresses at once, instead of one API call per output
           if (utxoOwnerAddress != null) {
-            // TODO add inscription to database
             if (await inscriptionInAddress(utxoOwnerAddress!)) {
               shouldBlock = true;
               blockReason = "Ordinal";
@@ -1927,14 +1926,15 @@ class LitecoinWallet extends CoinServiceAPI
         }
       }
 
-      if (inscriptionsRefreshNeeded) {
-        await refreshInscriptions();
-      }
-
       Logging.instance.log(
         'Outputs fetched: $outputArray',
         level: LogLevel.Info,
       );
+
+      // TODO replace with refreshInscriptions if outputs are changed
+      if (inscriptionsRefreshNeeded) {
+        await refreshInscriptions();
+      }
 
       await db.updateUTXOs(walletId, outputArray);
 
