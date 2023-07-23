@@ -7,7 +7,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/models/isar/ordinal.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/ordinals/widgets/dialogs.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -20,7 +19,6 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -150,33 +148,33 @@ class _DesktopOrdinalDetailsViewState
                             const SizedBox(
                               width: 16,
                             ),
-                            PrimaryButton(
-                              width: 150,
-                              label: "Send",
-                              icon: SvgPicture.asset(
-                                Assets.svg.send,
-                                width: 18,
-                                height: 18,
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .buttonTextPrimary,
-                              ),
-                              buttonHeight: ButtonHeight.l,
-                              iconSpacing: 8,
-                              onPressed: () async {
-                                final response = await showDialog<String?>(
-                                  context: context,
-                                  builder: (_) =>
-                                      const SendOrdinalUnfreezeDialog(),
-                                );
-                                if (response == "unfreeze") {
-                                  // TODO: unfreeze and go to send ord screen
-                                }
-                              },
-                            ),
-                            const SizedBox(
-                              width: 16,
-                            ),
+                            // PrimaryButton(
+                            //   width: 150,
+                            //   label: "Send",
+                            //   icon: SvgPicture.asset(
+                            //     Assets.svg.send,
+                            //     width: 18,
+                            //     height: 18,
+                            //     color: Theme.of(context)
+                            //         .extension<StackColors>()!
+                            //         .buttonTextPrimary,
+                            //   ),
+                            //   buttonHeight: ButtonHeight.l,
+                            //   iconSpacing: 8,
+                            //   onPressed: () async {
+                            //     final response = await showDialog<String?>(
+                            //       context: context,
+                            //       builder: (_) =>
+                            //           const SendOrdinalUnfreezeDialog(),
+                            //     );
+                            //     if (response == "unfreeze") {
+                            //       // TODO: unfreeze and go to send ord screen
+                            //     }
+                            //   },
+                            // ),
+                            // const SizedBox(
+                            //   width: 16,
+                            // ),
                             SecondaryButton(
                               width: 150,
                               label: "Download",

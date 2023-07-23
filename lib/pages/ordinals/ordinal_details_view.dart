@@ -232,33 +232,33 @@ class _OrdinalImageGroup extends StatelessWidget {
                 },
               ),
             ),
-            const SizedBox(
-              width: _spacing,
-            ),
-            Expanded(
-              child: PrimaryButton(
-                label: "Send",
-                icon: SvgPicture.asset(
-                  Assets.svg.send,
-                  width: 10,
-                  height: 10,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .buttonTextPrimary,
-                ),
-                buttonHeight: ButtonHeight.l,
-                iconSpacing: 4,
-                onPressed: () async {
-                  final response = await showDialog<String?>(
-                    context: context,
-                    builder: (_) => const SendOrdinalUnfreezeDialog(),
-                  );
-                  if (response == "unfreeze") {
-                    // TODO: unfreeze and go to send ord screen
-                  }
-                },
-              ),
-            ),
+            // const SizedBox(
+            //   width: _spacing,
+            // ),
+            // Expanded(
+            //   child: PrimaryButton(
+            //     label: "Send",
+            //     icon: SvgPicture.asset(
+            //       Assets.svg.send,
+            //       width: 10,
+            //       height: 10,
+            //       color: Theme.of(context)
+            //           .extension<StackColors>()!
+            //           .buttonTextPrimary,
+            //     ),
+            //     buttonHeight: ButtonHeight.l,
+            //     iconSpacing: 4,
+            //     onPressed: () async {
+            //       final response = await showDialog<String?>(
+            //         context: context,
+            //         builder: (_) => const SendOrdinalUnfreezeDialog(),
+            //       );
+            //       if (response == "unfreeze") {
+            //         // TODO: unfreeze and go to send ord screen
+            //       }
+            //     },
+            //   ),
+            // ),
           ],
         ),
       ],
