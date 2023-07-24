@@ -16,22 +16,22 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:tuple/tuple.dart';
 
-import '../../../db/isar/main_db.dart';
-import '../../../models/node_model.dart';
-import '../../../utilities/constants.dart';
-import '../../../utilities/default_nodes.dart';
-import '../../../utilities/enums/coin_enum.dart';
-import '../../../utilities/flutter_secure_storage_interface.dart';
-import '../../../utilities/logger.dart';
-import '../../../utilities/prefs.dart';
-import '../../event_bus/events/global/node_connection_status_changed_event.dart';
-import '../../event_bus/events/global/updated_in_background_event.dart';
-import '../../event_bus/events/global/wallet_sync_status_changed_event.dart';
-import '../../event_bus/global_event_bus.dart';
-import '../../mixins/wallet_cache.dart';
-import '../../mixins/wallet_db.dart';
-import '../../node_service.dart';
-import '../../transaction_notification_tracker.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
+import 'package:stackwallet/models/node_model.dart';
+import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/default_nodes.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
+import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
+import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/mixins/wallet_cache.dart';
+import 'package:stackwallet/services/mixins/wallet_db.dart';
+import 'package:stackwallet/services/node_service.dart';
+import 'package:stackwallet/services/transaction_notification_tracker.dart';
 
 import 'package:stellar_flutter_sdk/stellar_flutter_sdk.dart';
 
@@ -174,7 +174,6 @@ class StellarWallet extends CoinServiceAPI
     );
     KeyPair senderKeyPair = KeyPair.fromSecretSeed(secretSeed!);
     AccountResponse sender = await stellarSdk.accounts.account(senderKeyPair.accountId);
-
     final amountToSend = txData['recipientAmt'] as Amount;
 
     //First check if account exists, can be skipped, but if the account does not exist,
@@ -486,14 +485,13 @@ class StellarWallet extends CoinServiceAPI
           .execute().onError((error, stackTrace) =>
           throw("Could not fetch transactions")
       );
-
       for (OperationResponse response in payments.records!) {
-        PaymentOperationResponse por;
+        // PaymentOperationResponse por;
         if (response is PaymentOperationResponse) {
-          por = response;
+          PaymentOperationResponse por = response;
 
           Logging.instance.log(
-              "ALL TRANSACTIONS IS $por",
+              "ALL TRANSACTIONS IS ${por.transactionSuccessful}",
               level: LogLevel.Info);
           SWTransaction.TransactionType type;
           if (por.sourceAccount == await getAddressSW()) {
@@ -507,10 +505,17 @@ class StellarWallet extends CoinServiceAPI
           );
           int fee = 0;
           int height = 0;
-          var transaction = por.transaction;
-          if (transaction != null) {
-            fee = transaction.feeCharged!;
-            height = transaction.ledger;
+          TransactionResponse? transaction = por.transaction;
+
+          Logging.instance.log(
+              "THIS TRANSACTION IS ${transaction?.hash}",
+              level: LogLevel.Info);
+          //Query the transaction linked to the payment,
+          // por.transaction returns a null sometimes
+          TransactionResponse tx = await stellarSdk.transactions.transaction(por.transactionHash!);
+          if (tx.hash != "") {
+            fee = tx.feeCharged!;
+            height = tx.ledger;
           }
           var theTransaction = SWTransaction.Transaction(
             walletId: walletId,
@@ -615,11 +620,11 @@ class StellarWallet extends CoinServiceAPI
           case Asset.TYPE_NATIVE:
             _balance = SWBalance.Balance(
               total: Amount(
-                rawValue: BigInt.from(float.parse(balance.balance) * 10000000 - 10000000), // Minus 1 XLM for account activation fee
+                rawValue: BigInt.from(float.parse(balance.balance) * 10000000),
                 fractionDigits: coin.decimals,
               ),
               spendable: Amount(
-                rawValue: BigInt.from(float.parse(balance.balance) * 10000000 - 10000000), // Minus 1 XLM for account activation fee
+                rawValue: BigInt.from(float.parse(balance.balance) * 10000000),
                 fractionDigits: coin.decimals,
               ),
               blockedTotal: Amount(
