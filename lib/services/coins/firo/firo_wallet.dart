@@ -3133,17 +3133,6 @@ class FiroWallet extends CoinServiceAPI
         txnsData.add(Tuple2(transaction, transactionAddress));
 
         await db.addNewTransactionData(txnsData, walletId);
-
-        // final models.TransactionData newTxData =
-        //     models.TransactionData.fromMap(transactions);
-        // await DB.instance.put<dynamic>(
-        //     boxName: walletId,
-        //     key: 'latest_lelantus_tx_model',
-        //     value: newTxData);
-        // final ldata = DB.instance.get<dynamic>(
-        //     boxName: walletId,
-        //     key: 'latest_lelantus_tx_model') as models.TransactionData;
-        // _lelantusTransactionData = Future(() => ldata);
       } else {
         // This is a mint
         Logging.instance.log("this is a mint", level: LogLevel.Info);
@@ -3204,20 +3193,6 @@ class FiroWallet extends CoinServiceAPI
 
       Logging.instance.log("fetched fees: $feeObject", level: LogLevel.Info);
       return feeObject;
-
-      // final result = await electrumXClient.getFeeRate();
-      //
-      // final locale = await Devicelocale.currentLocale;
-      // final String fee =
-      //     Format.satoshiAmountToPrettyString(result["rate"] as int, locale!);
-      //
-      // final fees = {
-      //   "fast": fee,
-      //   "average": fee,
-      //   "slow": fee,
-      // };
-      // final FeeObject feeObject = FeeObject.fromJson(fees);
-      // return feeObject;
     } catch (e) {
       Logging.instance
           .log("Exception rethrown from _getFees(): $e", level: LogLevel.Error);
@@ -4071,45 +4046,6 @@ class FiroWallet extends CoinServiceAPI
           : isar_models.AddressSubType.change,
     );
   }
-
-  // /// Takes in a list of isar_models.UTXOs and adds a name (dependent on object index within list)
-  // /// and checks for the txid associated with the utxo being blocked and marks it accordingly.
-  // /// Now also checks for output labeling.
-  // Future<void> _sortOutputs(List<isar_models.UTXO> utxos) async {
-  //   final blockedHashArray =
-  //       DB.instance.get<dynamic>(boxName: walletId, key: 'blocked_tx_hashes')
-  //           as List<dynamic>?;
-  //   final List<String> lst = [];
-  //   if (blockedHashArray != null) {
-  //     for (var hash in blockedHashArray) {
-  //       lst.add(hash as String);
-  //     }
-  //   }
-  //   final labels =
-  //       DB.instance.get<dynamic>(boxName: walletId, key: 'labels') as Map? ??
-  //           {};
-  //
-  //   _outputsList = [];
-  //
-  //   for (var i = 0; i < utxos.length; i++) {
-  //     if (labels[utxos[i].txid] != null) {
-  //       utxos[i].txName = labels[utxos[i].txid] as String? ?? "";
-  //     } else {
-  //       utxos[i].txName = 'Output #$i';
-  //     }
-  //
-  //     if (utxos[i].status.confirmed == false) {
-  //       _outputsList.add(utxos[i]);
-  //     } else {
-  //       if (lst.contains(utxos[i].txid)) {
-  //         utxos[i].blocked = true;
-  //         _outputsList.add(utxos[i]);
-  //       } else if (!lst.contains(utxos[i].txid)) {
-  //         _outputsList.add(utxos[i]);
-  //       }
-  //     }
-  //   }
-  // }
 
   @override
   Future<void> fullRescan(
