@@ -3266,7 +3266,7 @@ class MockMainDB extends _i1.Mock implements _i14.MainDB {
         returnValueForMissingStub: _i19.Future<void>.value(),
       ) as _i19.Future<void>);
   @override
-  _i19.Future<void> updateUTXOs(
+  _i19.Future<bool> updateUTXOs(
     String? walletId,
     List<_i22.UTXO>? utxos,
   ) =>
@@ -3280,7 +3280,7 @@ class MockMainDB extends _i1.Mock implements _i14.MainDB {
         ),
         returnValue: _i19.Future<void>.value(),
         returnValueForMissingStub: _i19.Future<void>.value(),
-      ) as _i19.Future<void>);
+      ) as _i19.Future<bool>);
   @override
   _i19.Stream<_i22.UTXO?> watchUTXO({
     required int? id,
