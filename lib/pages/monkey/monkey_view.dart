@@ -7,11 +7,13 @@ import 'package:stackwallet/pages/monkey/sub_widgets/fetch_monkey_dialog.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 
 class MonkeyView extends ConsumerStatefulWidget {
   const MonkeyView({
@@ -50,6 +52,7 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
   @override
   Widget build(BuildContext context) {
     final Coin coin = ref.watch(managerProvider.select((value) => value.coin));
+    bool isMonkey = false;
 
     return Background(
       child: Stack(
@@ -65,60 +68,131 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                 "MonKey",
                 style: STextStyles.navBarTitle(context),
               ),
+              actions: [
+                AspectRatio(
+                  aspectRatio: 1,
+                  child: AppBarIconButton(
+                      icon: SvgPicture.asset(Assets.svg.circleQuestion),
+                      onPressed: () {
+                        showDialog<dynamic>(
+                            context: context,
+                            useSafeArea: false,
+                            barrierDismissible: true,
+                            builder: (context) {
+                              return Dialog(
+                                child: Material(
+                                  borderRadius: BorderRadius.circular(
+                                    20,
+                                  ),
+                                  child: Container(
+                                    height: 200,
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .popupBG,
+                                      borderRadius: BorderRadius.circular(
+                                        20,
+                                      ),
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        Center(
+                                          child: Text(
+                                            "Help",
+                                            style: STextStyles.pageTitleH2(
+                                                context),
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            });
+                      }),
+                )
+              ],
             ),
-            body: Column(
-              // mainAxisAlignment: MainAxisAlignment.center,
-              // crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Spacer(),
-                Center(
-                  child: Column(
+            body: isMonkey
+                ? Column(
                     children: [
-                      SvgPicture.file(
-                        File(
-                          ref.watch(coinIconProvider(coin)),
+                      Spacer(),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          children: [
+                            SecondaryButton(
+                              label: "Download as SVG",
+                              onPressed: () {},
+                            ),
+                            const SizedBox(height: 12),
+                            SecondaryButton(
+                              label: "Download as PNG",
+                              onPressed: () {},
+                            ),
+                          ],
                         ),
-                        width: 164,
-                        height: 164,
                       ),
-                      const SizedBox(
-                        height: 40,
+                    ],
+                  )
+                : Column(
+                    children: [
+                      const Spacer(
+                        flex: 4,
                       ),
-                      Text(
-                        "You do not have a MonKey yet. \nFetch yours now!",
-                        style: STextStyles.smallMed14(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textDark3,
+                      Center(
+                        child: Column(
+                          children: [
+                            Opacity(
+                              opacity: 0.2,
+                              child: SvgPicture.file(
+                                File(
+                                  ref.watch(coinIconProvider(coin)),
+                                ),
+                                width: 200,
+                                height: 200,
+                              ),
+                            ),
+                            const SizedBox(
+                              height: 40,
+                            ),
+                            Text(
+                              "You do not have a MonKey yet. \nFetch yours now!",
+                              style: STextStyles.smallMed14(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark3,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
                         ),
-                        textAlign: TextAlign.center,
+                      ),
+                      const Spacer(
+                        flex: 6,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: PrimaryButton(
+                          label: "Fetch MonKey",
+                          onPressed: () {
+                            showDialog<dynamic>(
+                              context: context,
+                              useSafeArea: false,
+                              barrierDismissible: false,
+                              builder: (context) {
+                                return FetchMonkeyDialog(
+                                  onCancel: () async {
+                                    Navigator.of(context).pop();
+                                  },
+                                );
+                              },
+                            );
+                          },
+                        ),
                       ),
                     ],
                   ),
-                ),
-                const Spacer(),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: PrimaryButton(
-                    label: "Fetch MonKey",
-                    onPressed: () {
-                      showDialog<dynamic>(
-                        context: context,
-                        useSafeArea: false,
-                        barrierDismissible: false,
-                        builder: (context) {
-                          return FetchMonkeyDialog(
-                            onCancel: () async {
-                              Navigator.of(context).pop();
-                            },
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
           ),
         ],
       ),
