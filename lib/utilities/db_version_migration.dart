@@ -388,7 +388,8 @@ class DbVersionMigrator with WalletDB {
 
         final List<isar_models.LelantusCoin> coins = [];
         for (final e in hiveLCoins) {
-          final lcoin = e as LelantusCoin;
+          final map = e as Map;
+          final lcoin = map.values.first as LelantusCoin;
 
           final coin = isar_models.LelantusCoin(
             walletId: walletId,
