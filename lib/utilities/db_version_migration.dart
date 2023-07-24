@@ -386,19 +386,28 @@ class DbVersionMigrator with WalletDB {
             ) as List? ??
             [];
 
+        final jindexes = (DB.instance
+                    .get<dynamic>(boxName: walletId, key: "jindex") as List? ??
+                [])
+            .cast<int>();
+
         final List<isar_models.LelantusCoin> coins = [];
         for (final e in hiveLCoins) {
           final map = e as Map;
           final lcoin = map.values.first as LelantusCoin;
+
+          final isJMint = jindexes.contains(lcoin.index);
 
           final coin = isar_models.LelantusCoin(
             walletId: walletId,
             publicCoin: lcoin.publicCoin,
             txid: lcoin.txId,
             value: lcoin.value.toString(),
-            index: lcoin.index,
+            mintIndex: lcoin.index,
             anonymitySetId: lcoin.anonymitySetId,
             isUsed: lcoin.isUsed,
+            isJMint: isJMint,
+            otherData: null,
           );
 
           coins.add(coin);

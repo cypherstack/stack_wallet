@@ -269,18 +269,20 @@ Future<Map<String, dynamic>> isolateRestore(
 
             lelantusCoins.removeWhere((e) =>
                 e.txid == txId &&
-                e.index == currentIndex &&
+                e.mintIndex == currentIndex &&
                 e.anonymitySetId != setId);
 
             lelantusCoins.add(
               isar_models.LelantusCoin(
                 walletId: walletId,
-                index: currentIndex,
+                mintIndex: currentIndex,
                 value: amount.toString(),
                 publicCoin: publicCoin,
                 txid: txId,
                 anonymitySetId: setId,
                 isUsed: isUsed,
+                isJMint: false,
+                otherData: null,
               ),
             );
             Logging.instance.log(
@@ -317,18 +319,20 @@ Future<Map<String, dynamic>> isolateRestore(
               bool isUsed = usedSerialNumbersSet.contains(serialNumber);
               lelantusCoins.removeWhere((e) =>
                   e.txid == txId &&
-                  e.index == currentIndex &&
+                  e.mintIndex == currentIndex &&
                   e.anonymitySetId != setId);
 
               lelantusCoins.add(
                 isar_models.LelantusCoin(
                   walletId: walletId,
-                  index: currentIndex,
+                  mintIndex: currentIndex,
                   value: amount.toString(),
                   publicCoin: publicCoin,
                   txid: txId,
                   anonymitySetId: setId,
                   isUsed: isUsed,
+                  isJMint: true,
+                  otherData: null,
                 ),
               );
               jindexes.add(currentIndex);
@@ -2325,7 +2329,7 @@ class FiroWallet extends CoinServiceAPI
       final derivePath = constructDerivePath(
         networkWIF: _network.wif,
         chain: MINT_INDEX,
-        index: coin.index,
+        index: coin.mintIndex,
       );
       final keyPair = await Bip32Utils.getBip32NodeFromRoot(root, derivePath);
 
@@ -2335,7 +2339,7 @@ class FiroWallet extends CoinServiceAPI
       }
       final String privateKey = Format.uint8listToString(keyPair.privateKey!);
       return DartLelantusEntry(coin.isUsed ? 1 : 0, 0, coin.anonymitySetId,
-          int.parse(coin.value), coin.index, privateKey);
+          int.parse(coin.value), coin.mintIndex, privateKey);
     }).toList();
 
     final lelantusEntries = await Future.wait(waitLelantusEntries);
@@ -3054,12 +3058,14 @@ class FiroWallet extends CoinServiceAPI
         // if a jmint was made add it to the unspent coin index
         final jmint = isar_models.LelantusCoin(
           walletId: walletId,
-          index: index,
+          mintIndex: nextFreeMintIndex,
           value: (transactionInfo['jmintValue'] as int? ?? 0).toString(),
           publicCoin: transactionInfo['publicCoin'] as String,
           txid: transactionInfo['txid'] as String,
           anonymitySetId: latestSetId,
           isUsed: false,
+          isJMint: true,
+          otherData: null,
         );
         if (int.parse(jmint.value) > 0) {
           updatedCoins.add(jmint);
@@ -3143,12 +3149,14 @@ class FiroWallet extends CoinServiceAPI
           final index = mintMap['index'] as int;
           final mint = isar_models.LelantusCoin(
             walletId: walletId,
-            index: index,
+            mintIndex: index,
             value: (mintMap['value'] as int).toString(),
             publicCoin: mintMap['publicCoin'] as String,
             txid: transactionInfo['txid'] as String,
             anonymitySetId: latestSetId,
             isUsed: false,
+            isJMint: false,
+            otherData: null,
           );
           if (int.parse(mint.value) > 0) {
             updatedCoins.add(mint);

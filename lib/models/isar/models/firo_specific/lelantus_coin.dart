@@ -23,20 +23,33 @@ class LelantusCoin {
 
   final String value; // can't use BigInt in isar :shrug:
 
-  final int index;
+  @Index(
+    unique: true,
+    replace: false,
+    composite: [
+      CompositeIndex("walletId"),
+    ],
+  )
+  final int mintIndex;
 
   final int anonymitySetId;
 
   final bool isUsed;
+
+  final bool isJMint;
+
+  final String? otherData;
 
   LelantusCoin({
     required this.walletId,
     required this.publicCoin,
     required this.txid,
     required this.value,
-    required this.index,
+    required this.mintIndex,
     required this.anonymitySetId,
     required this.isUsed,
+    required this.isJMint,
+    required this.otherData,
   });
 
   LelantusCoin copyWith({
@@ -44,18 +57,22 @@ class LelantusCoin {
     String? publicCoin,
     String? txid,
     String? value,
-    int? index,
+    int? mintIndex,
     int? anonymitySetId,
     bool? isUsed,
+    bool? isJMint,
+    String? otherData,
   }) {
     return LelantusCoin(
       walletId: walletId ?? this.walletId,
       publicCoin: publicCoin ?? this.publicCoin,
       txid: txid ?? this.txid,
       value: value ?? this.value,
-      index: index ?? this.index,
+      mintIndex: mintIndex ?? this.mintIndex,
       anonymitySetId: anonymitySetId ?? this.anonymitySetId,
       isUsed: isUsed ?? this.isUsed,
+      isJMint: isJMint ?? this.isJMint,
+      otherData: otherData ?? this.otherData,
     );
   }
 
@@ -67,8 +84,10 @@ class LelantusCoin {
         'publicCoin: $publicCoin, '
         'txid: $txid, '
         'value: $value, '
-        'index: $index, '
+        'mintIndex: $mintIndex, '
         'anonymitySetId: $anonymitySetId, '
+        'otherData: $otherData, '
+        'isJMint: $isJMint, '
         'isUsed: $isUsed'
         '}';
   }

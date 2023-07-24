@@ -14,7 +14,6 @@ import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i5;
 import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i4;
 import 'package:stackwallet/models/balance.dart' as _i6;
 import 'package:stackwallet/models/isar/models/isar_models.dart' as _i13;
-import 'package:stackwallet/models/lelantus_coin.dart' as _i15;
 import 'package:stackwallet/models/paymint/fee_object_model.dart' as _i3;
 import 'package:stackwallet/models/signing_data.dart' as _i14;
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart' as _i10;
@@ -589,15 +588,6 @@ class MockFiroWallet extends _i1.Mock implements _i10.FiroWallet {
         returnValueForMissingStub: _i11.Future<void>.value(),
       ) as _i11.Future<void>);
   @override
-  List<Map<dynamic, _i15.LelantusCoin>> getLelantusCoinMap() =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getLelantusCoinMap,
-          [],
-        ),
-        returnValue: <Map<dynamic, _i15.LelantusCoin>>[],
-      ) as List<Map<dynamic, _i15.LelantusCoin>>);
-  @override
   _i11.Future<void> anonymizeAllPublicFunds() => (super.noSuchMethod(
         Invocation.method(
           #anonymizeAllPublicFunds,
@@ -1061,51 +1051,6 @@ class MockFiroWallet extends _i1.Mock implements _i10.FiroWallet {
         ),
         returnValueForMissingStub: null,
       );
-  @override
-  void initFiroHive(String? walletId) => super.noSuchMethod(
-        Invocation.method(
-          #initFiroHive,
-          [walletId],
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  _i11.Future<void> firoUpdateJIndex(List<dynamic>? jIndex) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #firoUpdateJIndex,
-          [jIndex],
-        ),
-        returnValue: _i11.Future<void>.value(),
-        returnValueForMissingStub: _i11.Future<void>.value(),
-      ) as _i11.Future<void>);
-  @override
-  _i11.Future<void> firoUpdateLelantusCoins(List<dynamic>? lelantusCoins) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #firoUpdateLelantusCoins,
-          [lelantusCoins],
-        ),
-        returnValue: _i11.Future<void>.value(),
-        returnValueForMissingStub: _i11.Future<void>.value(),
-      ) as _i11.Future<void>);
-  @override
-  int firoGetMintIndex() => (super.noSuchMethod(
-        Invocation.method(
-          #firoGetMintIndex,
-          [],
-        ),
-        returnValue: 0,
-      ) as int);
-  @override
-  _i11.Future<void> firoUpdateMintIndex(int? mintIndex) => (super.noSuchMethod(
-        Invocation.method(
-          #firoUpdateMintIndex,
-          [mintIndex],
-        ),
-        returnValue: _i11.Future<void>.value(),
-        returnValueForMissingStub: _i11.Future<void>.value(),
-      ) as _i11.Future<void>);
 }
 
 /// A class which mocks [ElectrumX].

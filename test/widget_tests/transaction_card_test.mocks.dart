@@ -1602,15 +1602,6 @@ class MockFiroWallet extends _i1.Mock implements _i23.FiroWallet {
         returnValueForMissingStub: _i19.Future<void>.value(),
       ) as _i19.Future<void>);
   @override
-  List<Map<dynamic, _i8.LelantusCoin>> getLelantusCoinMap() =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getLelantusCoinMap,
-          [],
-        ),
-        returnValue: <Map<dynamic, _i8.LelantusCoin>>[],
-      ) as List<Map<dynamic, _i8.LelantusCoin>>);
-  @override
   _i19.Future<void> anonymizeAllPublicFunds() => (super.noSuchMethod(
         Invocation.method(
           #anonymizeAllPublicFunds,
@@ -2075,51 +2066,6 @@ class MockFiroWallet extends _i1.Mock implements _i23.FiroWallet {
         ),
         returnValueForMissingStub: null,
       );
-  @override
-  void initFiroHive(String? walletId) => super.noSuchMethod(
-        Invocation.method(
-          #initFiroHive,
-          [walletId],
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  _i19.Future<void> firoUpdateJIndex(List<dynamic>? jIndex) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #firoUpdateJIndex,
-          [jIndex],
-        ),
-        returnValue: _i19.Future<void>.value(),
-        returnValueForMissingStub: _i19.Future<void>.value(),
-      ) as _i19.Future<void>);
-  @override
-  _i19.Future<void> firoUpdateLelantusCoins(List<dynamic>? lelantusCoins) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #firoUpdateLelantusCoins,
-          [lelantusCoins],
-        ),
-        returnValue: _i19.Future<void>.value(),
-        returnValueForMissingStub: _i19.Future<void>.value(),
-      ) as _i19.Future<void>);
-  @override
-  int firoGetMintIndex() => (super.noSuchMethod(
-        Invocation.method(
-          #firoGetMintIndex,
-          [],
-        ),
-        returnValue: 0,
-      ) as int);
-  @override
-  _i19.Future<void> firoUpdateMintIndex(int? mintIndex) => (super.noSuchMethod(
-        Invocation.method(
-          #firoUpdateMintIndex,
-          [mintIndex],
-        ),
-        returnValue: _i19.Future<void>.value(),
-        returnValueForMissingStub: _i19.Future<void>.value(),
-      ) as _i19.Future<void>);
 }
 
 /// A class which mocks [LocaleService].
