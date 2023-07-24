@@ -14,6 +14,7 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/exceptions/main_db/main_db_exception.dart';
 import 'package:stackwallet/models/isar/models/block_explorer.dart';
 import 'package:stackwallet/models/isar/models/contact_entry.dart';
+import 'package:stackwallet/models/isar/models/firo_specific/lelantus_coin.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -54,6 +55,7 @@ class MainDB {
         TransactionBlockExplorerSchema,
         StackThemeSchema,
         ContactEntrySchema,
+        LelantusCoinSchema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
       // inspector: kDebugMode,
