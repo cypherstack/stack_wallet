@@ -2349,60 +2349,19 @@ class FiroWallet extends CoinServiceAPI
   }
 
   Future<List<isar_models.LelantusCoin>> _getUnspentCoins() async {
-    // final jindexes = firoGetJIndex() ?? [];
-
     final lelantusCoinsList = await db.isar.lelantusCoins
         .where()
         .walletIdEqualTo(walletId)
         .filter()
-        .isUsedEqualTo(false) // TODO add this?
+        .isUsedEqualTo(false)
         .not()
-        .valueEqualTo("0")
+        .group((q) => q
+            .valueEqualTo("0")
+            .or()
+            .anonymitySetIdEqualTo(ANONYMITY_SET_EMPTY_ID))
         .findAll();
 
     return lelantusCoinsList;
-
-    // List<isar_models.LelantusCoin> coins = [];
-    //
-    // final currentChainHeight = await chainHeight;
-    //
-    // for (int i = 0; i < lelantusCoinsList.length; i++) {
-    //   // Logging.instance.log("lelantusCoinsList[$i]: ${lelantusCoinsList[i]}");
-    //   final coin = lelantusCoinsList[i];
-    //
-    //   final tx = await db.getTransaction(walletId, coin.txid);
-    //
-    //   // TODO check if sane default
-    //   bool isUnconfirmed = false;
-    //
-    //   if (tx != null) {
-    //     bool isConfirmed = tx.isConfirmed(
-    //       currentChainHeight,
-    //       MINIMUM_CONFIRMATIONS,
-    //     );
-    //     if (!jindexes.contains(coin.index) &&
-    //         tx.isLelantus == true &&
-    //         !isConfirmed) {
-    //       isUnconfirmed = true;
-    //     } else if (!isConfirmed) {
-    //       continue;
-    //     }
-    //   } else {
-    //     final txn = await cachedElectrumXClient.getTransaction(
-    //       txHash: coin.txid,
-    //       verbose: true,
-    //       coin: this.coin,
-    //     );
-    //     final confirmations = txn["confirmations"];
-    //     isUnconfirmed = confirmations is int && confirmations < 1;
-    //   }
-    //   if (!coin.isUsed &&
-    //       coin.anonymitySetId != ANONYMITY_SET_EMPTY_ID &&
-    //       !isUnconfirmed) {
-    //     coins.add(coin);
-    //   }
-    // }
-    // return coins;
   }
 
   // index 0 and 1 for the funds available to spend.
