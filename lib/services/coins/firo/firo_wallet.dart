@@ -35,7 +35,6 @@ import 'package:stackwallet/services/event_bus/events/global/refresh_percent_cha
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/services/mixins/firo_hive.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/mixins/xpubable.dart';
@@ -752,7 +751,7 @@ Future<void> _setTestnetWrapper(bool isTestnet) async {
 
 /// Handles a single instance of a firo wallet
 class FiroWallet extends CoinServiceAPI
-    with WalletCache, WalletDB, FiroHive
+    with WalletCache, WalletDB
     implements XPubAble {
   // Constructor
   FiroWallet({
@@ -773,7 +772,6 @@ class FiroWallet extends CoinServiceAPI
     _cachedElectrumXClient = cachedClient;
     _secureStore = secureStore;
     initCache(walletId, coin);
-    initFiroHive(walletId);
     initWalletDB(mockableOverride: mockableOverride);
 
     Logging.instance.log("$walletName isolates length: ${isolates.length}",
@@ -2181,7 +2179,6 @@ class FiroWallet extends CoinServiceAPI
       value: "",
     );
 
-    await firoUpdateJIndex(<dynamic>[]);
     // Generate and add addresses to relevant arrays
     final initialReceivingAddress = await _generateAddressForChain(0, 0);
     final initialChangeAddress = await _generateAddressForChain(1, 0);
@@ -2352,57 +2349,60 @@ class FiroWallet extends CoinServiceAPI
   }
 
   Future<List<isar_models.LelantusCoin>> _getUnspentCoins() async {
-    final jindexes = firoGetJIndex() ?? [];
+    // final jindexes = firoGetJIndex() ?? [];
 
     final lelantusCoinsList = await db.isar.lelantusCoins
         .where()
         .walletIdEqualTo(walletId)
         .filter()
+        .isUsedEqualTo(false) // TODO add this?
         .not()
         .valueEqualTo("0")
         .findAll();
 
-    List<isar_models.LelantusCoin> coins = [];
+    return lelantusCoinsList;
 
-    final currentChainHeight = await chainHeight;
-
-    for (int i = 0; i < lelantusCoinsList.length; i++) {
-      // Logging.instance.log("lelantusCoinsList[$i]: ${lelantusCoinsList[i]}");
-      final coin = lelantusCoinsList[i];
-
-      final tx = await db.getTransaction(walletId, coin.txid);
-
-      // TODO check if sane default
-      bool isUnconfirmed = false;
-
-      if (tx != null) {
-        bool isConfirmed = tx.isConfirmed(
-          currentChainHeight,
-          MINIMUM_CONFIRMATIONS,
-        );
-        if (!jindexes.contains(coin.index) &&
-            tx.isLelantus == true &&
-            !isConfirmed) {
-          isUnconfirmed = true;
-        } else if (!isConfirmed) {
-          continue;
-        }
-      } else {
-        final txn = await cachedElectrumXClient.getTransaction(
-          txHash: coin.txid,
-          verbose: true,
-          coin: this.coin,
-        );
-        final confirmations = txn["confirmations"];
-        isUnconfirmed = confirmations is int && confirmations < 1;
-      }
-      if (!coin.isUsed &&
-          coin.anonymitySetId != ANONYMITY_SET_EMPTY_ID &&
-          !isUnconfirmed) {
-        coins.add(coin);
-      }
-    }
-    return coins;
+    // List<isar_models.LelantusCoin> coins = [];
+    //
+    // final currentChainHeight = await chainHeight;
+    //
+    // for (int i = 0; i < lelantusCoinsList.length; i++) {
+    //   // Logging.instance.log("lelantusCoinsList[$i]: ${lelantusCoinsList[i]}");
+    //   final coin = lelantusCoinsList[i];
+    //
+    //   final tx = await db.getTransaction(walletId, coin.txid);
+    //
+    //   // TODO check if sane default
+    //   bool isUnconfirmed = false;
+    //
+    //   if (tx != null) {
+    //     bool isConfirmed = tx.isConfirmed(
+    //       currentChainHeight,
+    //       MINIMUM_CONFIRMATIONS,
+    //     );
+    //     if (!jindexes.contains(coin.index) &&
+    //         tx.isLelantus == true &&
+    //         !isConfirmed) {
+    //       isUnconfirmed = true;
+    //     } else if (!isConfirmed) {
+    //       continue;
+    //     }
+    //   } else {
+    //     final txn = await cachedElectrumXClient.getTransaction(
+    //       txHash: coin.txid,
+    //       verbose: true,
+    //       coin: this.coin,
+    //     );
+    //     final confirmations = txn["confirmations"];
+    //     isUnconfirmed = confirmations is int && confirmations < 1;
+    //   }
+    //   if (!coin.isUsed &&
+    //       coin.anonymitySetId != ANONYMITY_SET_EMPTY_ID &&
+    //       !isUnconfirmed) {
+    //     coins.add(coin);
+    //   }
+    // }
+    // return coins;
   }
 
   // index 0 and 1 for the funds available to spend.
@@ -2415,12 +2415,12 @@ class FiroWallet extends CoinServiceAPI
           .where()
           .walletIdEqualTo(walletId)
           .filter()
+          .isUsedEqualTo(false)
           .not()
           .valueEqualTo(0.toString())
           .findAll();
 
       final currentChainHeight = await chainHeight;
-      final jindexes = firoGetJIndex();
       int intLelantusBalance = 0;
       int unconfirmedLelantusBalance = 0;
 
@@ -2440,33 +2440,17 @@ class FiroWallet extends CoinServiceAPI
             level: LogLevel.Fatal,
           );
         } else {
-          bool isLelantus = txn.isLelantus == true;
-          if (!jindexes!.contains(lelantusCoin.index) && isLelantus) {
-            if (!lelantusCoin.isUsed &&
-                txn.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) {
-              // mint tx, add value to balance
-              intLelantusBalance += int.parse(lelantusCoin.value);
-            } /* else {
-            // This coin is not confirmed and may be replaced
-            }*/
-          } else if (jindexes.contains(lelantusCoin.index) &&
-              isLelantus &&
-              !lelantusCoin.isUsed &&
-              !txn.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) {
-            unconfirmedLelantusBalance += int.parse(lelantusCoin.value);
-          } else if (jindexes.contains(lelantusCoin.index) &&
-              !lelantusCoin.isUsed) {
+          if (txn.isLelantus != true) {
+            Logging.instance.log(
+              "Bad database state found in $walletName $walletId for _refreshBalance lelantus",
+              level: LogLevel.Fatal,
+            );
+          }
+
+          if (txn.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) {
+            // mint tx, add value to balance
             intLelantusBalance += int.parse(lelantusCoin.value);
-          } else if (!lelantusCoin.isUsed &&
-              (txn.isLelantus == true
-                  ? true
-                  : txn.isConfirmed(
-                          currentChainHeight, MINIMUM_CONFIRMATIONS) !=
-                      false)) {
-            intLelantusBalance += int.parse(lelantusCoin.value);
-          } else if (!isLelantus &&
-              txn.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS) ==
-                  false) {
+          } else {
             unconfirmedLelantusBalance += int.parse(lelantusCoin.value);
           }
         }
@@ -2615,10 +2599,16 @@ class FiroWallet extends CoinServiceAPI
   }
 
   Future<List<Map<String, dynamic>>> createMintsFromAmount(int total) async {
-    var tmpTotal = total;
-    var index = 1;
-    var mints = <Map<String, dynamic>>[];
-    final nextFreeMintIndex = firoGetMintIndex();
+    int tmpTotal = total;
+    int index = 0;
+    final mints = <Map<String, dynamic>>[];
+    final lastUsedIndex = await db.isar.lelantusCoins
+        .where()
+        .walletIdEqualTo(walletId)
+        .sortByMintIndexDesc()
+        .mintIndexProperty()
+        .findFirst();
+    final nextFreeMintIndex = (lastUsedIndex ?? 0) + 1;
     while (tmpTotal > 0) {
       final mintValue = min(tmpTotal, MINT_LIMIT);
       final mint = await _getMintHex(
@@ -2783,9 +2773,6 @@ class FiroWallet extends CoinServiceAPI
       amount += utxosToUse[i].value;
     }
 
-    final index = firoGetMintIndex();
-    Logging.instance.log("index of mint $index", level: LogLevel.Info);
-
     for (var mintsElement in mintsMap) {
       Logging.instance.log("using $mintsElement", level: LogLevel.Info);
       Uint8List mintu8 =
@@ -2837,45 +2824,39 @@ class FiroWallet extends CoinServiceAPI
         .where()
         .walletIdEqualTo(walletId)
         .filter()
+        .isUsedEqualTo(false)
+        .and()
+        .isJMintEqualTo(true)
         .not()
         .valueEqualTo(0.toString())
         .findAll();
 
-    final jindexes = firoGetJIndex();
-
     // Get all joinsplit transaction ids
 
-    final listLelantusTxData = await db
+    final lelantusJoinSplitTxns = await db
         .getTransactions(walletId)
         .filter()
         .isLelantusEqualTo(true)
+        .and()
+        .subTypeEqualTo(isar_models.TransactionSubType.join)
         .findAll();
-    List<String> joinsplits = [];
 
-    for (final tx in listLelantusTxData) {
-      if (tx.subType == isar_models.TransactionSubType.join) {
-        joinsplits.add(tx.txid);
-      }
-    }
+    Set<String> joinSplitTXIDs = {};
+
+    // for (final tx in lelantusJoinSplitTxns) {
+    //   joinSplitTXIDs.add(tx.txid);
+    // }
     for (final coin in lelantusCoins) {
-      if (jindexes != null) {
-        if (jindexes.contains(coin.index) && !joinsplits.contains(coin.txid)) {
-          joinsplits.add(coin.txid);
-        }
-      }
+      joinSplitTXIDs.add(coin.txid);
     }
 
-    Map<String, Tuple2<isar_models.Address?, isar_models.Transaction>> data =
-        {};
-    for (final entry in listLelantusTxData) {
-      data[entry.txid] = Tuple2(entry.address.value, entry);
-    }
+    Map<String, Tuple2<isar_models.Address?, isar_models.Transaction>>
+        updatedData = {};
 
     // Grab the most recent information on all the joinsplits
-
     final updatedJSplit = await getJMintTransactions(
       cachedElectrumXClient,
-      joinsplits,
+      joinSplitTXIDs.toList(),
       coin,
     );
 
@@ -2887,7 +2868,7 @@ class FiroWallet extends CoinServiceAPI
 
       try {
         currentTx =
-            listLelantusTxData.firstWhere((e) => e.txid == tx.value.txid);
+            lelantusJoinSplitTxns.firstWhere((e) => e.txid == tx.value.txid);
       } catch (_) {
         currentTx = null;
       }
@@ -2895,45 +2876,14 @@ class FiroWallet extends CoinServiceAPI
       if (currentTx == null) {
         // this send was accidentally not included in the list
         tx.value.isLelantus = true;
-        data[tx.value.txid] =
+        updatedData[tx.value.txid] =
             Tuple2(tx.value.address.value ?? tx.key, tx.value);
-
-        continue;
-      }
-      if (currentTx.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS) !=
+      } else if (currentTx.isConfirmed(
+              currentChainHeight, MINIMUM_CONFIRMATIONS) !=
           tx.value.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) {
         tx.value.isLelantus = true;
-        data[tx.value.txid] =
+        updatedData[tx.value.txid] =
             Tuple2(tx.value.address.value ?? tx.key, tx.value);
-      }
-    }
-
-    // Logging.instance.log(txData.txChunks);
-    final listTxData = await _txnData;
-    for (final value in listTxData) {
-      // ignore change addresses
-      // bool hasAtLeastOneReceive = false;
-      // int howManyReceiveInputs = 0;
-      // for (var element in value.inputs) {
-      //   if (listLelantusTxData.containsKey(element.txid) &&
-      //           listLelantusTxData[element.txid]!.txType == "Received"
-      //       // &&
-      //       // listLelantusTxData[element.txid].subType != "mint"
-      //       ) {
-      //     // hasAtLeastOneReceive = true;
-      //     // howManyReceiveInputs++;
-      //   }
-      // }
-
-      if (value.type == isar_models.TransactionType.incoming &&
-          value.subType != isar_models.TransactionSubType.mint) {
-        // Every receive other than a mint should be shown. Mints will be collected and shown from the send side
-        value.isLelantus = true;
-        data[value.txid] = Tuple2(value.address.value, value);
-      } else if (value.type == isar_models.TransactionType.outgoing) {
-        // all sends should be shown, mints will be displayed correctly in the ui
-        value.isLelantus = true;
-        data[value.txid] = Tuple2(value.address.value, value);
       }
     }
 
@@ -2942,7 +2892,7 @@ class FiroWallet extends CoinServiceAPI
     final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txnsData =
         [];
 
-    for (final value in data.values) {
+    for (final value in updatedData.values) {
       // allow possible null address on mints as we don't display address
       // this should normally never be null anyways but old (dbVersion up to 4)
       // migrated transactions may not have had an address (full rescan should
@@ -2967,15 +2917,6 @@ class FiroWallet extends CoinServiceAPI
     }
 
     await db.addNewTransactionData(txnsData, walletId);
-
-    // // update the _lelantusTransactionData
-    // final models.TransactionData newTxData =
-    //     models.TransactionData.fromMap(listLelantusTxData);
-    // // Logging.instance.log(newTxData.txChunks);
-    // _lelantusTransactionData = Future(() => newTxData);
-    // await DB.instance.put<dynamic>(
-    //     boxName: walletId, key: 'latest_lelantus_tx_model', value: newTxData);
-    // return newTxData;
   }
 
   Future<String> _getMintHex(int amount, int index) async {
@@ -3025,7 +2966,13 @@ class FiroWallet extends CoinServiceAPI
         level: LogLevel.Info);
 
     if (txid == transactionInfo['txid']) {
-      final index = firoGetMintIndex();
+      final lastUsedIndex = await db.isar.lelantusCoins
+          .where()
+          .walletIdEqualTo(walletId)
+          .sortByMintIndexDesc()
+          .mintIndexProperty()
+          .findFirst();
+      final nextFreeMintIndex = (lastUsedIndex ?? 0) + 1;
 
       if (transactionInfo['spendCoinIndexes'] != null) {
         // This is a joinsplit
@@ -3041,7 +2988,7 @@ class FiroWallet extends CoinServiceAPI
               .where()
               .walletIdEqualTo(walletId)
               .filter()
-              .indexEqualTo(index)
+              .mintIndexEqualTo(index)
               .findAll();
 
           if (possibleCoins.isNotEmpty) {
@@ -3069,22 +3016,26 @@ class FiroWallet extends CoinServiceAPI
         );
         if (int.parse(jmint.value) > 0) {
           updatedCoins.add(jmint);
-          final jindexes = firoGetJIndex()!;
-          jindexes.add(index);
-          await firoUpdateJIndex(jindexes);
-          await firoUpdateMintIndex(index + 1);
         }
 
-        await db.isar.writeTxn(() async {
-          for (final c in updatedCoins) {
-            await db.isar.lelantusCoins.deleteByPublicCoinWalletIdTxid(
-              c.publicCoin,
-              c.walletId,
-              c.txid,
-            );
-          }
-          await db.isar.lelantusCoins.putAll(updatedCoins);
-        });
+        try {
+          await db.isar.writeTxn(() async {
+            for (final c in updatedCoins) {
+              await db.isar.lelantusCoins.deleteByPublicCoinWalletIdTxid(
+                c.publicCoin,
+                c.walletId,
+                c.txid,
+              );
+            }
+            await db.isar.lelantusCoins.putAll(updatedCoins);
+          });
+        } catch (e, s) {
+          Logging.instance.log(
+            "$e\n$s",
+            level: LogLevel.Fatal,
+          );
+          rethrow;
+        }
 
         final amount = Amount.fromDecimal(
           Decimal.parse(transactionInfo["amount"].toString()),
@@ -3160,13 +3111,20 @@ class FiroWallet extends CoinServiceAPI
           );
           if (int.parse(mint.value) > 0) {
             updatedCoins.add(mint);
-            await firoUpdateMintIndex(index + 1);
           }
         }
         // Logging.instance.log(coins);
-        await db.isar.writeTxn(() async {
-          await db.isar.lelantusCoins.putAll(updatedCoins);
-        });
+        try {
+          await db.isar.writeTxn(() async {
+            await db.isar.lelantusCoins.putAll(updatedCoins);
+          });
+        } catch (e, s) {
+          Logging.instance.log(
+            "$e\n$s",
+            level: LogLevel.Fatal,
+          );
+          rethrow;
+        }
       }
       return true;
     } else {
@@ -3933,7 +3891,6 @@ class FiroWallet extends CoinServiceAPI
             coin: coin,
           );
 
-          // todo check here if we should mark as blocked
           final utxo = isar_models.UTXO(
             walletId: walletId,
             txid: txn["txid"] as String,
@@ -4586,14 +4543,19 @@ class FiroWallet extends CoinServiceAPI
       await chainHeight,
     );
 
-    await Future.wait([
-      firoUpdateMintIndex(message['mintIndex'] as int),
-      db.isar.writeTxn(() async {
-        await db.isar.lelantusCoins.putAll(
-            message['_lelantus_coins'] as List<isar_models.LelantusCoin>);
-      }),
-      firoUpdateJIndex(message['jindex'] as List),
-    ]);
+    final coins = message['_lelantus_coins'] as List<isar_models.LelantusCoin>;
+
+    try {
+      await db.isar.writeTxn(() async {
+        await db.isar.lelantusCoins.putAll(coins);
+      });
+    } catch (e, s) {
+      Logging.instance.log(
+        "$e\n$s",
+        level: LogLevel.Fatal,
+      );
+      rethrow;
+    }
 
     final transactionMap =
         message["newTxMap"] as Map<String, isar_models.Transaction>;
@@ -4677,7 +4639,13 @@ class FiroWallet extends CoinServiceAPI
       int spendAmount, String address, bool subtractFeeFromAmount) async {
     final _mnemonic = await mnemonicString;
     final _mnemonicPassphrase = await mnemonicPassphrase;
-    final index = firoGetMintIndex();
+    final lastUsedIndex = await db.isar.lelantusCoins
+        .where()
+        .walletIdEqualTo(walletId)
+        .sortByMintIndexDesc()
+        .mintIndexProperty()
+        .findFirst();
+    final nextFreeMintIndex = (lastUsedIndex ?? 0) + 1;
     final lelantusEntry = await _getLelantusEntry();
     final anonymitySets = await fetchAnonymitySets();
     final locktime = await getBlockHead(electrumXClient);
@@ -4691,7 +4659,7 @@ class FiroWallet extends CoinServiceAPI
       "subtractFeeFromAmount": subtractFeeFromAmount,
       "mnemonic": _mnemonic,
       "mnemonicPassphrase": _mnemonicPassphrase,
-      "index": index,
+      "index": nextFreeMintIndex,
       // "price": price,
       "lelantusEntries": lelantusEntry,
       "locktime": locktime,
