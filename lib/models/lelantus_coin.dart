@@ -12,6 +12,7 @@ import 'package:hive/hive.dart';
 
 part 'type_adaptors/lelantus_coin.g.dart';
 
+@Deprecated("Use Isar object instead")
 // @HiveType(typeId: 9)
 class LelantusCoin {
   // @HiveField(0)
@@ -27,6 +28,7 @@ class LelantusCoin {
   // @HiveField(5)
   bool isUsed;
 
+  @Deprecated("Use Isar object instead")
   LelantusCoin(
     this.index,
     this.value,

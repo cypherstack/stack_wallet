@@ -180,7 +180,6 @@ class DbVersionMigrator with WalletDB {
         // clear possible broken firo cache
         await DB.instance.clearSharedTransactionCache(coin: Coin.firo);
 
-
         // update version
         await DB.instance.put<dynamic>(
             boxName: DB.boxNameDBInfo, key: "hive_data_version", value: 4);
@@ -343,9 +342,73 @@ class DbVersionMigrator with WalletDB {
         // try to continue migrating
         return await migrate(10, secureStore: secureStore);
 
+      case 10:
+        // migrate
+        await _v10(secureStore);
+
+        // update version
+        await DB.instance.put<dynamic>(
+            boxName: DB.boxNameDBInfo, key: "hive_data_version", value: 11);
+
+        // try to continue migrating
+        return await migrate(11, secureStore: secureStore);
+
       default:
         // finally return
         return;
+    }
+  }
+
+  Future<void> _v10(SecureStorageInterface secureStore) async {
+    await Hive.openBox<dynamic>(DB.boxNameAllWalletsData);
+    await Hive.openBox<dynamic>(DB.boxNamePrefs);
+    final walletsService = WalletsService(secureStorageInterface: secureStore);
+    final prefs = Prefs.instance;
+    final walletInfoList = await walletsService.walletNames;
+    await prefs.init();
+    await MainDB.instance.initMainDB();
+
+    for (final walletId in walletInfoList.keys) {
+      final info = walletInfoList[walletId]!;
+      assert(info.walletId == walletId);
+
+      if (info.coin == Coin.firo &&
+          MainDB.instance.isar.lelantusCoins
+                  .where()
+                  .walletIdEqualTo(walletId)
+                  .countSync() ==
+              0) {
+        final walletBox = await Hive.openBox<dynamic>(walletId);
+
+        final hiveLCoins = DB.instance.get<dynamic>(
+              boxName: walletId,
+              key: "_lelantus_coins",
+            ) as List? ??
+            [];
+
+        final List<isar_models.LelantusCoin> coins = [];
+        for (final e in hiveLCoins) {
+          final lcoin = e as LelantusCoin;
+
+          final coin = isar_models.LelantusCoin(
+            walletId: walletId,
+            publicCoin: lcoin.publicCoin,
+            txid: lcoin.txId,
+            value: lcoin.value.toString(),
+            index: lcoin.index,
+            anonymitySetId: lcoin.anonymitySetId,
+            isUsed: lcoin.isUsed,
+          );
+
+          coins.add(coin);
+        }
+
+        if (coins.isNotEmpty) {
+          await MainDB.instance.isar.writeTxn(() async {
+            await MainDB.instance.isar.lelantusCoins.putAll(coins);
+          });
+        }
+      }
     }
   }
 
