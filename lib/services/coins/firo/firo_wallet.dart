@@ -3046,10 +3046,9 @@ class FiroWallet extends CoinServiceAPI
         try {
           await db.isar.writeTxn(() async {
             for (final c in updatedCoins) {
-              await db.isar.lelantusCoins.deleteByPublicCoinWalletIdTxid(
-                c.publicCoin,
+              await db.isar.lelantusCoins.deleteByMintIndexWalletId(
+                c.mintIndex,
                 c.walletId,
-                c.txid,
               );
             }
             await db.isar.lelantusCoins.putAll(updatedCoins);
