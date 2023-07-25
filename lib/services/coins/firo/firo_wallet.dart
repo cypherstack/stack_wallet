@@ -1224,18 +1224,6 @@ class FiroWallet extends CoinServiceAPI
       try {
         final txid = txData["txid"] as String;
 
-        // temporarily update apdate available balance until a full refresh is done
-
-        // TODO: something here causes an exception to be thrown giving user false info that the tx failed
-        // Decimal sendTotal =
-        //     Format.satoshisToAmount(txData["value"] as int, coin: coin);
-        // sendTotal += Decimal.parse(txData["fees"].toString());
-
-        // TODO: is this needed?
-        // final bals = await balances;
-        // bals[0] -= sendTotal;
-        // _balances = Future(() => bals);
-
         return txid;
       } catch (e, s) {
         //todo: come back to this
@@ -2409,7 +2397,6 @@ class FiroWallet extends CoinServiceAPI
             .findFirstSync();
 
         if (txn == null) {
-          // TODO: ??????????????????????????????????????
           Logging.instance.log(
             "Transaction not found in DB for lelantus coin: $lelantusCoin",
             level: LogLevel.Fatal,
@@ -2686,8 +2673,6 @@ class FiroWallet extends CoinServiceAPI
     int satoshisPerRecipient,
     List<Map<String, dynamic>> mintsMap,
   ) async {
-    //todo: check if print needed
-    // debugPrint(utxosToUse.toString());
     List<String> addressStringsToGet = [];
 
     // Populating the addresses to derive
@@ -3966,7 +3951,6 @@ class FiroWallet extends CoinServiceAPI
       Logging.instance
           .log('Outputs fetched: $outputArray', level: LogLevel.Info);
 
-      // TODO move this out of here and into IDB
       await db.isar.writeTxn(() async {
         await db.isar.utxos.where().walletIdEqualTo(walletId).deleteAll();
         await db.isar.utxos.putAll(outputArray);
@@ -4816,36 +4800,6 @@ class FiroWallet extends CoinServiceAPI
     Logging.instance.log('Closing estimateJoinSplit!', level: LogLevel.Info);
     return (message as LelantusFeeData).fee;
   }
-  // int fee;
-  // int size;
-  //
-  // for (fee = 0;;) {
-  //   int currentRequired = spendAmount;
-  //
-  // TODO: investigate the bug here
-  //   var map = await getCoinsToJoinSplit(currentRequired);
-  //   if (map is bool && !map) {
-  //     return 0;
-  //   }
-  //
-  //   List<DartLelantusEntry> coinsToBeSpent =
-  //       map['coinsToSpend'] as List<DartLelantusEntry>;
-  //
-  //   // 1054 is constant part, mainly Schnorr and Range proofs, 2560 is for each sigma/aux data
-  //   // 179 other parts of tx, assuming 1 utxo and 1 jmint
-  //   size = 1054 + 2560 * coinsToBeSpent.length + 180;
-  //   //        uint64_t feeNeeded = GetMinimumFee(size, DEFAULT_TX_CONFIRM_TARGET);
-  //   int feeNeeded =
-  //       size; //TODO(Levon) temporary, use real estimation methods here
-  //
-  //   if (fee >= feeNeeded) {
-  //     break;
-  //   }
-  //
-  //   fee = feeNeeded;
-  // }
-  //
-  // return fee;
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
@@ -4908,7 +4862,6 @@ class FiroWallet extends CoinServiceAPI
     }
   }
 
-  // TODO: correct formula for firo?
   Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
     return Amount(
       rawValue: BigInt.from(((181 * inputCount) + (34 * outputCount) + 10) *
