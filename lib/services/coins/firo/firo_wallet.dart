@@ -4592,7 +4592,8 @@ class FiroWallet extends CoinServiceAPI
         "$e\n$s",
         level: LogLevel.Fatal,
       );
-      rethrow;
+      // don't just rethrow since isar likes to strip stack traces for some reason
+      throw Exception("e=$e & s=$s");
     }
 
     final transactionMap =
