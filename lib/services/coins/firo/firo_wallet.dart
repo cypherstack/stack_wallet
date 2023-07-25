@@ -2981,9 +2981,6 @@ class FiroWallet extends CoinServiceAPI
           isJMint: true,
           otherData: null,
         );
-        if (int.parse(jmint.value) > 0) {
-          updatedCoins.add(jmint);
-        }
 
         try {
           await db.isar.writeTxn(() async {
@@ -2994,6 +2991,10 @@ class FiroWallet extends CoinServiceAPI
               );
             }
             await db.isar.lelantusCoins.putAll(updatedCoins);
+
+            if (int.parse(jmint.value) > 0) {
+              await db.isar.lelantusCoins.put(jmint);
+            }
           });
         } catch (e, s) {
           Logging.instance.log(
