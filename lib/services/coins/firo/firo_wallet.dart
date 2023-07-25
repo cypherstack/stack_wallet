@@ -1138,7 +1138,8 @@ class FiroWallet extends CoinServiceAPI
             }
           }
         } catch (e, s) {
-          Logging.instance.log("Exception rethrown from prepareSend(): $e\n$s",
+          Logging.instance.log(
+              "Exception rethrown from prepareSendPublic(): $e\n$s",
               level: LogLevel.Error);
           rethrow;
         }
@@ -1146,7 +1147,8 @@ class FiroWallet extends CoinServiceAPI
         throw ArgumentError("Invalid fee rate argument provided!");
       }
     } catch (e, s) {
-      Logging.instance.log("Exception rethrown from prepareSend(): $e\n$s",
+      Logging.instance.log(
+          "Exception rethrown from prepareSendPublic(): $e\n$s",
           level: LogLevel.Error);
       rethrow;
     }
@@ -2346,6 +2348,8 @@ class FiroWallet extends CoinServiceAPI
     final lelantusEntries = await Future.wait(waitLelantusEntries);
 
     if (lelantusEntries.isNotEmpty) {
+      // should be redundant as _getUnspentCoins() should
+      // already remove all where value=0
       lelantusEntries.removeWhere((element) => element.amount == 0);
     }
 
