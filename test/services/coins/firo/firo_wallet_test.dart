@@ -72,6 +72,7 @@ void main() {
         setData,
         List<String>.from(usedSerials),
         firoNetwork,
+        "walletId",
       );
       const currentHeight = 100000000000;
 
@@ -133,6 +134,7 @@ void main() {
                 setData,
                 List<String>.from(usedSerials),
                 firoNetwork,
+                "walletId",
               ),
           throwsA(isA<Error>()));
     });
