@@ -276,12 +276,12 @@ Future<Map<String, dynamic>> isolateRestore(
                 walletId: walletId,
                 mintIndex: currentIndex,
                 value: amount.toString(),
-                // publicCoin: publicCoin,
                 txid: txId,
                 anonymitySetId: setId,
                 isUsed: isUsed,
                 isJMint: false,
-                otherData: null,
+                otherData:
+                    publicCoin, // not really needed but saved just in case
               ),
             );
             Logging.instance.log(
@@ -326,12 +326,12 @@ Future<Map<String, dynamic>> isolateRestore(
                   walletId: walletId,
                   mintIndex: currentIndex,
                   value: amount.toString(),
-                  // publicCoin: publicCoin,
                   txid: txId,
                   anonymitySetId: setId,
                   isUsed: isUsed,
                   isJMint: true,
-                  otherData: null,
+                  otherData:
+                      publicCoin, // not really needed but saved just in case
                 ),
               );
               jindexes.add(currentIndex);
@@ -370,7 +370,6 @@ Future<Map<String, dynamic>> isolateRestore(
   // Logging.instance.log("jmints $spendTxIds", addToDebugMessagesDB: false);
 
   result['_lelantus_coins'] = lelantusCoins;
-  result['mintIndex'] = lastFoundIndex + 1;
   result['jindex'] = jindexes;
   result['spendTxIds'] = spendTxIds;
 
@@ -682,7 +681,6 @@ Future<dynamic> isolateCreateJoinSplitTransaction(
     "fee": fee,
     "vSize": extTx.virtualSize(),
     "jmintValue": changeToMint,
-    // "publicCoin": "jmintData.publicCoin",
     "spendCoinIndexes": spendCoinIndexes,
     "height": locktime,
     "txType": "Sent",
@@ -1240,53 +1238,6 @@ class FiroWallet extends CoinServiceAPI
       throw Exception("Transaction failed.");
     }
   }
-
-  // /// returns txid on successful send
-  // ///
-  // /// can throw
-  // @override
-  // Future<String> send({
-  //   required String toAddress,
-  //   required int amount,
-  //   Map<String, String> args = const {},
-  // }) async {
-  //   try {
-  //     dynamic txHexOrError =
-  //         await _createJoinSplitTransaction(amount, toAddress, false);
-  //     Logging.instance.log("txHexOrError $txHexOrError", level: LogLevel.Error);
-  //     if (txHexOrError is int) {
-  //       // Here, we assume that transaction crafting returned an error
-  //       switch (txHexOrError) {
-  //         case 1:
-  //           throw Exception("Insufficient balance!");
-  //         default:
-  //           throw Exception("Error Creating Transaction!");
-  //       }
-  //     } else {
-  //       if (await _submitLelantusToNetwork(
-  //           txHexOrError as Map<String, dynamic>)) {
-  //         final txid = txHexOrError["txid"] as String;
-  //
-  //         // temporarily update apdate available balance until a full refresh is done
-  //         Decimal sendTotal =
-  //             Format.satoshisToAmount(txHexOrError["value"] as int, coin: coin);
-  //         sendTotal += Decimal.parse(txHexOrError["fees"].toString());
-  //         final bals = await balances;
-  //         bals[0] -= sendTotal;
-  //         _balances = Future(() => bals);
-  //
-  //         return txid;
-  //       } else {
-  //         //TODO provide more info
-  //         throw Exception("Transaction failed.");
-  //       }
-  //     }
-  //   } catch (e, s) {
-  //     Logging.instance.log("Exception rethrown in firo send(): $e\n$s",
-  //         level: LogLevel.Error);
-  //     rethrow;
-  //   }
-  // }
 
   Future<List<String>> _getMnemonicList() async {
     final _mnemonicString = await mnemonicString;
@@ -2642,12 +2593,10 @@ class FiroWallet extends CoinServiceAPI
           index,
         );
 
-        // TODO publicCoin prob shouldn't be empty?
         mints.add({
           "value": mintValue,
           "script": mint,
           "index": index,
-          // "publicCoin": "",
         });
         tmpTotal = tmpTotal -
             (coin == Coin.firoTestNet ? MINT_LIMIT_TESTNET : MINT_LIMIT);
@@ -2834,7 +2783,6 @@ class FiroWallet extends CoinServiceAPI
         rawValue: BigInt.from(fee),
         fractionDigits: coin.decimals,
       ).decimal.toDouble(),
-      // "publicCoin": "",
       "height": height,
       "txType": "Sent",
       "confirmed_status": false,
@@ -2848,6 +2796,7 @@ class FiroWallet extends CoinServiceAPI
     };
   }
 
+  // TODO: verify this function does what we think it does
   Future<void> _refreshLelantusData() async {
     final lelantusCoins = await db.isar.lelantusCoins
         .where()
@@ -2915,8 +2864,6 @@ class FiroWallet extends CoinServiceAPI
             Tuple2(tx.value.address.value ?? tx.key, tx.value);
       }
     }
-
-    // TODO: optimize this whole lelantus process
 
     final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txnsData =
         [];
@@ -3013,21 +2960,13 @@ class FiroWallet extends CoinServiceAPI
         // Update all of the coins that have been spent.
 
         for (final index in spentCoinIndexes) {
-          final possibleCoins = await db.isar.lelantusCoins
+          final possibleCoin = await db.isar.lelantusCoins
               .where()
-              .walletIdEqualTo(walletId)
-              .filter()
-              .mintIndexEqualTo(index)
-              .findAll();
+              .mintIndexWalletIdEqualTo(index, walletId)
+              .findFirst();
 
-          if (possibleCoins.isNotEmpty) {
-            if (possibleCoins.length > 1) {
-              print(
-                  "======================= possibleCoins.length > 1 !!! =================================");
-            } else {
-              final spentCoin = possibleCoins.first;
-              updatedCoins.add(spentCoin.copyWith(isUsed: true));
-            }
+          if (possibleCoin != null) {
+            updatedCoins.add(possibleCoin.copyWith(isUsed: true));
           }
         }
 
@@ -3036,7 +2975,6 @@ class FiroWallet extends CoinServiceAPI
           walletId: walletId,
           mintIndex: nextFreeMintIndex,
           value: (transactionInfo['jmintValue'] as int? ?? 0).toString(),
-          // publicCoin: transactionInfo['publicCoin'] as String,
           txid: transactionInfo['txid'] as String,
           anonymitySetId: latestSetId,
           isUsed: false,
@@ -3122,7 +3060,6 @@ class FiroWallet extends CoinServiceAPI
 
         final List<isar_models.LelantusCoin> updatedCoins = [];
 
-        // TODO: transactionInfo['mintsMap']
         for (final mintMap
             in transactionInfo['mintsMap'] as List<Map<String, dynamic>>) {
           final index = mintMap['index'] as int;
@@ -3130,7 +3067,6 @@ class FiroWallet extends CoinServiceAPI
             walletId: walletId,
             mintIndex: index,
             value: (mintMap['value'] as int).toString(),
-            // publicCoin: mintMap['publicCoin'] as String,
             txid: transactionInfo['txid'] as String,
             anonymitySetId: latestSetId,
             isUsed: false,
