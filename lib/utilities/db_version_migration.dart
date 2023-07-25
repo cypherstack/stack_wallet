@@ -400,7 +400,6 @@ class DbVersionMigrator with WalletDB {
 
           final coin = isar_models.LelantusCoin(
             walletId: walletId,
-            publicCoin: lcoin.publicCoin,
             txid: lcoin.txId,
             value: lcoin.value.toString(),
             mintIndex: lcoin.index,

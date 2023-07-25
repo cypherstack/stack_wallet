@@ -9,16 +9,6 @@ class LelantusCoin {
   @Index()
   final String walletId;
 
-  @Index(
-    unique: true,
-    composite: [
-      CompositeIndex("walletId"),
-      CompositeIndex("txid"),
-    ],
-    replace: false,
-  )
-  final String publicCoin;
-
   final String txid;
 
   final String value; // can't use BigInt in isar :shrug:
@@ -42,7 +32,6 @@ class LelantusCoin {
 
   LelantusCoin({
     required this.walletId,
-    required this.publicCoin,
     required this.txid,
     required this.value,
     required this.mintIndex,
@@ -65,7 +54,6 @@ class LelantusCoin {
   }) {
     return LelantusCoin(
       walletId: walletId ?? this.walletId,
-      publicCoin: publicCoin ?? this.publicCoin,
       txid: txid ?? this.txid,
       value: value ?? this.value,
       mintIndex: mintIndex ?? this.mintIndex,
@@ -81,7 +69,6 @@ class LelantusCoin {
     return 'LelantusCoin{'
         'id: $id, '
         'walletId: $walletId, '
-        'publicCoin: $publicCoin, '
         'txid: $txid, '
         'value: $value, '
         'mintIndex: $mintIndex, '

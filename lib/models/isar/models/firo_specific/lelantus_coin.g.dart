@@ -42,23 +42,18 @@ const LelantusCoinSchema = CollectionSchema(
       name: r'otherData',
       type: IsarType.string,
     ),
-    r'publicCoin': PropertySchema(
-      id: 5,
-      name: r'publicCoin',
-      type: IsarType.string,
-    ),
     r'txid': PropertySchema(
-      id: 6,
+      id: 5,
       name: r'txid',
       type: IsarType.string,
     ),
     r'value': PropertySchema(
-      id: 7,
+      id: 6,
       name: r'value',
       type: IsarType.string,
     ),
     r'walletId': PropertySchema(
-      id: 8,
+      id: 7,
       name: r'walletId',
       type: IsarType.string,
     )
@@ -77,29 +72,6 @@ const LelantusCoinSchema = CollectionSchema(
       properties: [
         IndexPropertySchema(
           name: r'walletId',
-          type: IndexType.hash,
-          caseSensitive: true,
-        )
-      ],
-    ),
-    r'publicCoin_walletId_txid': IndexSchema(
-      id: 5610740154835640070,
-      name: r'publicCoin_walletId_txid',
-      unique: true,
-      replace: false,
-      properties: [
-        IndexPropertySchema(
-          name: r'publicCoin',
-          type: IndexType.hash,
-          caseSensitive: true,
-        ),
-        IndexPropertySchema(
-          name: r'walletId',
-          type: IndexType.hash,
-          caseSensitive: true,
-        ),
-        IndexPropertySchema(
-          name: r'txid',
           type: IndexType.hash,
           caseSensitive: true,
         )
@@ -144,7 +116,6 @@ int _lelantusCoinEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
-  bytesCount += 3 + object.publicCoin.length * 3;
   bytesCount += 3 + object.txid.length * 3;
   bytesCount += 3 + object.value.length * 3;
   bytesCount += 3 + object.walletId.length * 3;
@@ -162,10 +133,9 @@ void _lelantusCoinSerialize(
   writer.writeBool(offsets[2], object.isUsed);
   writer.writeLong(offsets[3], object.mintIndex);
   writer.writeString(offsets[4], object.otherData);
-  writer.writeString(offsets[5], object.publicCoin);
-  writer.writeString(offsets[6], object.txid);
-  writer.writeString(offsets[7], object.value);
-  writer.writeString(offsets[8], object.walletId);
+  writer.writeString(offsets[5], object.txid);
+  writer.writeString(offsets[6], object.value);
+  writer.writeString(offsets[7], object.walletId);
 }
 
 LelantusCoin _lelantusCoinDeserialize(
@@ -180,10 +150,9 @@ LelantusCoin _lelantusCoinDeserialize(
     isUsed: reader.readBool(offsets[2]),
     mintIndex: reader.readLong(offsets[3]),
     otherData: reader.readStringOrNull(offsets[4]),
-    publicCoin: reader.readString(offsets[5]),
-    txid: reader.readString(offsets[6]),
-    value: reader.readString(offsets[7]),
-    walletId: reader.readString(offsets[8]),
+    txid: reader.readString(offsets[5]),
+    value: reader.readString(offsets[6]),
+    walletId: reader.readString(offsets[7]),
   );
   object.id = id;
   return object;
@@ -212,8 +181,6 @@ P _lelantusCoinDeserializeProp<P>(
       return (reader.readString(offset)) as P;
     case 7:
       return (reader.readString(offset)) as P;
-    case 8:
-      return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -233,106 +200,6 @@ void _lelantusCoinAttach(
 }
 
 extension LelantusCoinByIndex on IsarCollection<LelantusCoin> {
-  Future<LelantusCoin?> getByPublicCoinWalletIdTxid(
-      String publicCoin, String walletId, String txid) {
-    return getByIndex(
-        r'publicCoin_walletId_txid', [publicCoin, walletId, txid]);
-  }
-
-  LelantusCoin? getByPublicCoinWalletIdTxidSync(
-      String publicCoin, String walletId, String txid) {
-    return getByIndexSync(
-        r'publicCoin_walletId_txid', [publicCoin, walletId, txid]);
-  }
-
-  Future<bool> deleteByPublicCoinWalletIdTxid(
-      String publicCoin, String walletId, String txid) {
-    return deleteByIndex(
-        r'publicCoin_walletId_txid', [publicCoin, walletId, txid]);
-  }
-
-  bool deleteByPublicCoinWalletIdTxidSync(
-      String publicCoin, String walletId, String txid) {
-    return deleteByIndexSync(
-        r'publicCoin_walletId_txid', [publicCoin, walletId, txid]);
-  }
-
-  Future<List<LelantusCoin?>> getAllByPublicCoinWalletIdTxid(
-      List<String> publicCoinValues,
-      List<String> walletIdValues,
-      List<String> txidValues) {
-    final len = publicCoinValues.length;
-    assert(walletIdValues.length == len && txidValues.length == len,
-        'All index values must have the same length');
-    final values = <List<dynamic>>[];
-    for (var i = 0; i < len; i++) {
-      values.add([publicCoinValues[i], walletIdValues[i], txidValues[i]]);
-    }
-
-    return getAllByIndex(r'publicCoin_walletId_txid', values);
-  }
-
-  List<LelantusCoin?> getAllByPublicCoinWalletIdTxidSync(
-      List<String> publicCoinValues,
-      List<String> walletIdValues,
-      List<String> txidValues) {
-    final len = publicCoinValues.length;
-    assert(walletIdValues.length == len && txidValues.length == len,
-        'All index values must have the same length');
-    final values = <List<dynamic>>[];
-    for (var i = 0; i < len; i++) {
-      values.add([publicCoinValues[i], walletIdValues[i], txidValues[i]]);
-    }
-
-    return getAllByIndexSync(r'publicCoin_walletId_txid', values);
-  }
-
-  Future<int> deleteAllByPublicCoinWalletIdTxid(List<String> publicCoinValues,
-      List<String> walletIdValues, List<String> txidValues) {
-    final len = publicCoinValues.length;
-    assert(walletIdValues.length == len && txidValues.length == len,
-        'All index values must have the same length');
-    final values = <List<dynamic>>[];
-    for (var i = 0; i < len; i++) {
-      values.add([publicCoinValues[i], walletIdValues[i], txidValues[i]]);
-    }
-
-    return deleteAllByIndex(r'publicCoin_walletId_txid', values);
-  }
-
-  int deleteAllByPublicCoinWalletIdTxidSync(List<String> publicCoinValues,
-      List<String> walletIdValues, List<String> txidValues) {
-    final len = publicCoinValues.length;
-    assert(walletIdValues.length == len && txidValues.length == len,
-        'All index values must have the same length');
-    final values = <List<dynamic>>[];
-    for (var i = 0; i < len; i++) {
-      values.add([publicCoinValues[i], walletIdValues[i], txidValues[i]]);
-    }
-
-    return deleteAllByIndexSync(r'publicCoin_walletId_txid', values);
-  }
-
-  Future<Id> putByPublicCoinWalletIdTxid(LelantusCoin object) {
-    return putByIndex(r'publicCoin_walletId_txid', object);
-  }
-
-  Id putByPublicCoinWalletIdTxidSync(LelantusCoin object,
-      {bool saveLinks = true}) {
-    return putByIndexSync(r'publicCoin_walletId_txid', object,
-        saveLinks: saveLinks);
-  }
-
-  Future<List<Id>> putAllByPublicCoinWalletIdTxid(List<LelantusCoin> objects) {
-    return putAllByIndex(r'publicCoin_walletId_txid', objects);
-  }
-
-  List<Id> putAllByPublicCoinWalletIdTxidSync(List<LelantusCoin> objects,
-      {bool saveLinks = true}) {
-    return putAllByIndexSync(r'publicCoin_walletId_txid', objects,
-        saveLinks: saveLinks);
-  }
-
   Future<LelantusCoin?> getByMintIndexWalletId(int mintIndex, String walletId) {
     return getByIndex(r'mintIndex_walletId', [mintIndex, walletId]);
   }
@@ -537,144 +404,6 @@ extension LelantusCoinQueryWhere
               indexName: r'walletId',
               lower: [],
               upper: [walletId],
-              includeUpper: false,
-            ));
-      }
-    });
-  }
-
-  QueryBuilder<LelantusCoin, LelantusCoin, QAfterWhereClause>
-      publicCoinEqualToAnyWalletIdTxid(String publicCoin) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'publicCoin_walletId_txid',
-        value: [publicCoin],
-      ));
-    });
-  }
-
-  QueryBuilder<LelantusCoin, LelantusCoin, QAfterWhereClause>
-      publicCoinNotEqualToAnyWalletIdTxid(String publicCoin) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'publicCoin_walletId_txid',
-              lower: [],
-              upper: [publicCoin],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'publicCoin_walletId_txid',
-              lower: [publicCoin],
-              includeLower: false,
-              upper: [],
-            ));
-      } else {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'publicCoin_walletId_txid',
-              lower: [publicCoin],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'publicCoin_walletId_txid',
-              lower: [],
-              upper: [publicCoin],
-              includeUpper: false,
-            ));
-      }
-    });
-  }
-
-  QueryBuilder<LelantusCoin, LelantusCoin, QAfterWhereClause>
-      publicCoinWalletIdEqualToAnyTxid(String publicCoin, String walletId) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'publicCoin_walletId_txid',
-        value: [publicCoin, walletId],
-      ));
-    });
-  }
-
-  QueryBuilder<LelantusCoin, LelantusCoin, QAfterWhereClause>
-      publicCoinEqualToWalletIdNotEqualToAnyTxid(
-          String publicCoin, String walletId) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'publicCoin_walletId_txid',
-              lower: [publicCoin],
-              upper: [publicCoin, walletId],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'publicCoin_walletId_txid',
-              lower: [publicCoin, walletId],
-              includeLower: false,
-              upper: [publicCoin],
-            ));
-      } else {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'publicCoin_walletId_txid',
-              lower: [publicCoin, walletId],
-              includeLower: false,
-              upper: [publicCoin],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'publicCoin_walletId_txid',
-              lower: [publicCoin],
-              upper: [publicCoin, walletId],
-              includeUpper: false,
-            ));
-      }
-    });
-  }
-
-  QueryBuilder<LelantusCoin, LelantusCoin, QAfterWhereClause>
-      publicCoinWalletIdTxidEqualTo(
-          String publicCoin, String walletId, String txid) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'publicCoin_walletId_txid',
-        value: [publicCoin, walletId, txid],
-      ));
-    });
-  }
-
-  QueryBuilder<LelantusCoin, LelantusCoin, QAfterWhereClause>
-      publicCoinWalletIdEqualToTxidNotEqualTo(
-          String publicCoin, String walletId, String txid) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'publicCoin_walletId_txid',
-              lower: [publicCoin, walletId],
-              upper: [publicCoin, walletId, txid],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'publicCoin_walletId_txid',
-              lower: [publicCoin, walletId, txid],
-              includeLower: false,
-              upper: [publicCoin, walletId],
-            ));
-      } else {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'publicCoin_walletId_txid',
-              lower: [publicCoin, walletId, txid],
-              includeLower: false,
-              upper: [publicCoin, walletId],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'publicCoin_walletId_txid',
-              lower: [publicCoin, walletId],
-              upper: [publicCoin, walletId, txid],
               includeUpper: false,
             ));
       }
@@ -1161,142 +890,6 @@ extension LelantusCoinQueryFilter
     });
   }
 
-  QueryBuilder<LelantusCoin, LelantusCoin, QAfterFilterCondition>
-      publicCoinEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'publicCoin',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LelantusCoin, LelantusCoin, QAfterFilterCondition>
-      publicCoinGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'publicCoin',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LelantusCoin, LelantusCoin, QAfterFilterCondition>
-      publicCoinLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'publicCoin',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LelantusCoin, LelantusCoin, QAfterFilterCondition>
-      publicCoinBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'publicCoin',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LelantusCoin, LelantusCoin, QAfterFilterCondition>
-      publicCoinStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'publicCoin',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LelantusCoin, LelantusCoin, QAfterFilterCondition>
-      publicCoinEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'publicCoin',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LelantusCoin, LelantusCoin, QAfterFilterCondition>
-      publicCoinContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'publicCoin',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LelantusCoin, LelantusCoin, QAfterFilterCondition>
-      publicCoinMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'publicCoin',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LelantusCoin, LelantusCoin, QAfterFilterCondition>
-      publicCoinIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'publicCoin',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<LelantusCoin, LelantusCoin, QAfterFilterCondition>
-      publicCoinIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'publicCoin',
-        value: '',
-      ));
-    });
-  }
-
   QueryBuilder<LelantusCoin, LelantusCoin, QAfterFilterCondition> txidEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1772,19 +1365,6 @@ extension LelantusCoinQuerySortBy
     });
   }
 
-  QueryBuilder<LelantusCoin, LelantusCoin, QAfterSortBy> sortByPublicCoin() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'publicCoin', Sort.asc);
-    });
-  }
-
-  QueryBuilder<LelantusCoin, LelantusCoin, QAfterSortBy>
-      sortByPublicCoinDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'publicCoin', Sort.desc);
-    });
-  }
-
   QueryBuilder<LelantusCoin, LelantusCoin, QAfterSortBy> sortByTxid() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'txid', Sort.asc);
@@ -1898,19 +1478,6 @@ extension LelantusCoinQuerySortThenBy
     });
   }
 
-  QueryBuilder<LelantusCoin, LelantusCoin, QAfterSortBy> thenByPublicCoin() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'publicCoin', Sort.asc);
-    });
-  }
-
-  QueryBuilder<LelantusCoin, LelantusCoin, QAfterSortBy>
-      thenByPublicCoinDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'publicCoin', Sort.desc);
-    });
-  }
-
   QueryBuilder<LelantusCoin, LelantusCoin, QAfterSortBy> thenByTxid() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'txid', Sort.asc);
@@ -1982,13 +1549,6 @@ extension LelantusCoinQueryWhereDistinct
     });
   }
 
-  QueryBuilder<LelantusCoin, LelantusCoin, QDistinct> distinctByPublicCoin(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'publicCoin', caseSensitive: caseSensitive);
-    });
-  }
-
   QueryBuilder<LelantusCoin, LelantusCoin, QDistinct> distinctByTxid(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2046,12 +1606,6 @@ extension LelantusCoinQueryProperty
   QueryBuilder<LelantusCoin, String?, QQueryOperations> otherDataProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'otherData');
-    });
-  }
-
-  QueryBuilder<LelantusCoin, String, QQueryOperations> publicCoinProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'publicCoin');
     });
   }
 
