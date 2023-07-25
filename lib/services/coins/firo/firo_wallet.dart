@@ -1429,16 +1429,32 @@ class FiroWallet extends CoinServiceAPI
               feeRatePerKB: selectedTxFeeRate,
             );
 
-      if (feeForOneOutput < vSizeForOneOutput + 1) {
-        feeForOneOutput = vSizeForOneOutput + 1;
-      }
-
-      final int amount = satoshiAmountToSend - feeForOneOutput;
+      int amount = satoshiAmountToSend - feeForOneOutput;
       dynamic txn = await buildTransaction(
         utxoSigningData: utxoSigningData,
         recipients: recipientsArray,
         satoshiAmounts: [amount],
       );
+
+      int count = 0;
+      int fee = feeForOneOutput;
+      int vsize = txn["vSize"] as int;
+
+      while (fee < vsize && count < 10) {
+        // 10 being some reasonable max
+        count++;
+        fee += count;
+        amount = satoshiAmountToSend - fee;
+
+        txn = await buildTransaction(
+          utxoSigningData: utxoSigningData,
+          recipients: recipientsArray,
+          satoshiAmounts: [amount],
+        );
+
+        vsize = txn["vSize"] as int;
+      }
+
       Map<String, dynamic> transactionObject = {
         "hex": txn["hex"],
         "recipient": recipientsArray[0],
