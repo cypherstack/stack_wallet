@@ -2559,8 +2559,7 @@ class FiroWallet extends CoinServiceAPI
 
   Future<List<Map<String, dynamic>>> createMintsFromAmount(int total) async {
     int tmpTotal = total;
-    int index = 0;
-    final mints = <Map<String, dynamic>>[];
+    int counter = 0;
     final lastUsedIndex = await db.isar.lelantusCoins
         .where()
         .walletIdEqualTo(walletId)
@@ -2568,20 +2567,82 @@ class FiroWallet extends CoinServiceAPI
         .mintIndexProperty()
         .findFirst();
     final nextFreeMintIndex = (lastUsedIndex ?? 0) + 1;
+
+    final root = await Bip32Utils.getBip32Root(
+      (await mnemonic).join(" "),
+      (await mnemonicPassphrase)!,
+      _network,
+    );
+
+    final mints = <Map<String, dynamic>>[];
     while (tmpTotal > 0) {
-      final mintValue = min(tmpTotal, MINT_LIMIT);
-      final mint = await _getMintHex(
-        mintValue,
-        nextFreeMintIndex + index,
+      final index = nextFreeMintIndex + counter;
+
+      final bip32.BIP32 mintKeyPair = await Bip32Utils.getBip32NodeFromRoot(
+        root,
+        constructDerivePath(
+          networkWIF: _network.wif,
+          chain: MINT_INDEX,
+          index: index,
+        ),
       );
-      mints.add({
-        "value": mintValue,
-        "script": mint,
-        "index": nextFreeMintIndex + index,
-        "publicCoin": "",
-      });
-      tmpTotal = tmpTotal - MINT_LIMIT;
-      index++;
+
+      final String mintTag = CreateTag(
+        Format.uint8listToString(mintKeyPair.privateKey!),
+        index,
+        Format.uint8listToString(mintKeyPair.identifier),
+        isTestnet: coin == Coin.firoTestNet,
+      );
+      final List<Map<String, dynamic>> anonymitySets;
+      try {
+        anonymitySets = await fetchAnonymitySets();
+      } catch (e, s) {
+        Logging.instance.log(
+          "Firo needs better internet to create mints: $e\n$s",
+          level: LogLevel.Fatal,
+        );
+        rethrow;
+      }
+
+      bool isUsedMintTag = false;
+
+      // stupid dynamic maps
+      for (final set in anonymitySets) {
+        final setCoins = set["coins"] as List;
+        for (final coin in setCoins) {
+          if (coin[1] == mintTag) {
+            isUsedMintTag = true;
+            break;
+          }
+        }
+        if (isUsedMintTag) {
+          break;
+        }
+      }
+
+      if (isUsedMintTag) {
+        Logging.instance.log(
+          "Found used index when minting",
+          level: LogLevel.Warning,
+        );
+      }
+
+      if (!isUsedMintTag) {
+        final mintValue = min(tmpTotal, MINT_LIMIT);
+        final mint = await _getMintHex(
+          mintValue,
+          index,
+        );
+        mints.add({
+          "value": mintValue,
+          "script": mint,
+          "index": index,
+          "publicCoin": "",
+        });
+        tmpTotal = tmpTotal - MINT_LIMIT;
+      }
+
+      counter++;
     }
     return mints;
   }
