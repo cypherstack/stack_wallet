@@ -58,8 +58,8 @@ import 'package:uuid/uuid.dart';
 
 const DUST_LIMIT = 1000;
 const MINIMUM_CONFIRMATIONS = 1;
-const MINT_LIMIT = 100100000000;
-const int LELANTUS_VALUE_SPEND_LIMIT_PER_TRANSACTION = 5001 * 100000000;
+const MINT_LIMIT = 5001 * 100000000;
+const MINT_LIMIT_TESTNET = 1001 * 100000000;
 
 const JMINT_INDEX = 5;
 const MINT_INDEX = 2;
@@ -2628,7 +2628,8 @@ class FiroWallet extends CoinServiceAPI
       }
 
       if (!isUsedMintTag) {
-        final mintValue = min(tmpTotal, MINT_LIMIT);
+        final mintValue = min(tmpTotal,
+            (coin == Coin.firoTestNet ? MINT_LIMIT_TESTNET : MINT_LIMIT));
         final mint = await _getMintHex(
           mintValue,
           index,
@@ -2639,7 +2640,8 @@ class FiroWallet extends CoinServiceAPI
           "index": index,
           "publicCoin": "",
         });
-        tmpTotal = tmpTotal - MINT_LIMIT;
+        tmpTotal = tmpTotal -
+            (coin == Coin.firoTestNet ? MINT_LIMIT_TESTNET : MINT_LIMIT);
       }
 
       counter++;
