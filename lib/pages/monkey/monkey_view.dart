@@ -50,11 +50,35 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
 
     final http.Response response = await http
         .get(Uri.parse('https://monkey.banano.cc/api/v1/monkey/$address'));
+
     if (response.statusCode == 200) {
       final decodedResponse = response.bodyBytes;
-      final directory = await getApplicationDocumentsDirectory();
-      // Directory appDir = await getTemporaryDirectory();
-      final docPath = directory.path;
+      Directory directory = await getApplicationDocumentsDirectory();
+      late Directory sampleFolder;
+
+      if (Platform.isAndroid) {
+        directory = Directory("/storage/emulated/0/");
+        sampleFolder = Directory('${directory!.path}Documents');
+      } else if (Platform.isIOS) {
+        sampleFolder = Directory(directory!.path);
+      } else if (Platform.isLinux) {
+        sampleFolder = Directory('${directory!.path}Documents');
+      } else if (Platform.isWindows) {
+        sampleFolder = Directory('${directory!.path}Documents');
+      } else if (Platform.isMacOS) {
+        sampleFolder = Directory('${directory!.path}Documents');
+      }
+
+      try {
+        if (!sampleFolder.existsSync()) {
+          sampleFolder.createSync(recursive: true);
+        }
+      } catch (e, s) {
+        // todo: come back to this
+        debugPrint("$e $s");
+      }
+
+      final docPath = sampleFolder.path;
       final filePath = "$docPath/monkey.svg";
 
       File imgFile = File(filePath);
@@ -85,6 +109,14 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
 
       if (Platform.isAndroid) {
         directory = Directory("/storage/emulated/0/");
+        sampleFolder = Directory('${directory!.path}Documents');
+      } else if (Platform.isIOS) {
+        sampleFolder = Directory(directory!.path);
+      } else if (Platform.isLinux) {
+        sampleFolder = Directory('${directory!.path}Documents');
+      } else if (Platform.isWindows) {
+        sampleFolder = Directory('${directory!.path}Documents');
+      } else if (Platform.isMacOS) {
         sampleFolder = Directory('${directory!.path}Documents');
       }
 
