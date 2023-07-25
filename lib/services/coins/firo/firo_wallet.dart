@@ -370,7 +370,6 @@ Future<Map<String, dynamic>> isolateRestore(
   // Logging.instance.log("jmints $spendTxIds", addToDebugMessagesDB: false);
 
   result['_lelantus_coins'] = lelantusCoins;
-  result['jindex'] = jindexes;
   result['spendTxIds'] = spendTxIds;
 
   return result;
@@ -2992,9 +2991,7 @@ class FiroWallet extends CoinServiceAPI
             }
             await db.isar.lelantusCoins.putAll(updatedCoins);
 
-            if (int.parse(jmint.value) > 0) {
-              await db.isar.lelantusCoins.put(jmint);
-            }
+            await db.isar.lelantusCoins.put(jmint);
           });
         } catch (e, s) {
           Logging.instance.log(
@@ -3074,9 +3071,8 @@ class FiroWallet extends CoinServiceAPI
             isJMint: false,
             otherData: null,
           );
-          if (int.parse(mint.value) > 0) {
-            updatedCoins.add(mint);
-          }
+
+          updatedCoins.add(mint);
         }
         // Logging.instance.log(coins);
         try {
