@@ -2637,6 +2637,8 @@ class FiroWallet extends CoinServiceAPI
           mintValue,
           index,
         );
+
+        // TODO publicCoin prob shouldn't be empty?
         mints.add({
           "value": mintValue,
           "script": mint,
