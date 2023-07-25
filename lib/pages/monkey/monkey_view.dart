@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:stackwallet/pages/monkey/sub_widgets/fetch_monkey_dialog.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/coins/manager.dart';
@@ -49,10 +50,19 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
 
     final http.Response response = await http
         .get(Uri.parse('https://monkey.banano.cc/api/v1/monkey/$address'));
-    final decodedResponse = SvgPicture.memory(response.bodyBytes);
-    // final decodedResponse = json.decode(response.body);
-    // return decodedResponse;
-    debugPrint("$decodedResponse");
+    if (response.statusCode == 200) {
+      final decodedResponse = response.bodyBytes;
+      final directory = await getApplicationDocumentsDirectory();
+      // Directory appDir = await getTemporaryDirectory();
+      final docPath = directory.path;
+      final filePath = "$docPath/monkey.svg";
+
+      File imgFile = File(filePath);
+      await imgFile.writeAsBytes(decodedResponse);
+      print("$imgFile");
+    } else {
+      throw Exception("Failed to get MonKey");
+    }
   }
 
   void getMonkeyPNG(String address) async {
@@ -65,10 +75,29 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
         'https://monkey.banano.cc/api/v1/monkey/${address}?format=png&size=512&background=false'));
 
     if (response.statusCode == 200) {
+      if (Platform.isAndroid) {
+        await Permission.storage.request();
+      }
+
       final decodedResponse = response.bodyBytes;
-      final directory = await getApplicationDocumentsDirectory();
-      // Directory appDir = await getTemporaryDirectory();
-      final docPath = directory.path;
+      Directory directory = await getApplicationDocumentsDirectory();
+      late Directory sampleFolder;
+
+      if (Platform.isAndroid) {
+        directory = Directory("/storage/emulated/0/");
+        sampleFolder = Directory('${directory!.path}Documents');
+      }
+
+      try {
+        if (!sampleFolder.existsSync()) {
+          sampleFolder.createSync(recursive: true);
+        }
+      } catch (e, s) {
+        // todo: come back to this
+        debugPrint("$e $s");
+      }
+
+      final docPath = sampleFolder.path;
       final filePath = "$docPath/monkey.png";
 
       File imgFile = File(filePath);
@@ -81,10 +110,6 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
     } else {
       throw Exception("Failed to get MonKey");
     }
-
-    // final decodedResponse = json.decode(response.body);
-    // return decodedResponse;
-    // debugPrint("$decodedResponse");
   }
 
   @override
@@ -177,13 +202,13 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
             body: isMonkey
                 ? Column(
                     children: [
-                      Spacer(
+                      const Spacer(
                         flex: 1,
                       ),
                       Image.network(
                         'https://monkey.banano.cc/api/v1/monkey/$receivingAddress?format=png&size=512',
                       ),
-                      Spacer(
+                      const Spacer(
                         flex: 1,
                       ),
                       Padding(
@@ -192,7 +217,9 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                           children: [
                             SecondaryButton(
                               label: "Download as SVG",
-                              onPressed: () async {},
+                              onPressed: () async {
+                                getMonkeySVG(receivingAddress);
+                              },
                             ),
                             const SizedBox(height: 12),
                             SecondaryButton(
