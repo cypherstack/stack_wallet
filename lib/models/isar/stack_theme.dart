@@ -1498,6 +1498,8 @@ class StackTheme {
   // cheat build runner into adding this at end of property id list in isar
   @Name("zAssetsV3")
   late final ThemeAssetsV3? assetsV3;
+  @Name("zAssetsV4")
+  late final ThemeAssetsV4? assetsV4;
 
   @ignore
   IThemeAssets get assets => assetsV3 ?? assetsV2 ?? assetsV1!;
@@ -1532,6 +1534,12 @@ class StackTheme {
               json: Map<String, dynamic>.from(json["assets"] as Map),
               themeId: json["id"] as String,
             )
+          : null
+      ..assetsV4 = version >= 4
+          ? ThemeAssetsV4.fromJson(
+        json: Map<String, dynamic>.from(json["assets"] as Map),
+        themeId: json["id"] as String,
+      )
           : null
       ..themeId = json["id"] as String
       ..name = json["name"] as String
@@ -1921,6 +1929,7 @@ class ThemeAssets implements IThemeAssets {
   late final String wownero;
   late final String namecoin;
   late final String particl;
+  late final String stellar;
   late final String bitcoinImage;
   late final String bitcoincashImage;
   late final String dogecoinImage;
@@ -1932,6 +1941,7 @@ class ThemeAssets implements IThemeAssets {
   late final String wowneroImage;
   late final String namecoinImage;
   late final String particlImage;
+  late final String stellarImage;
   late final String bitcoinImageSecondary;
   late final String bitcoincashImageSecondary;
   late final String dogecoinImageSecondary;
@@ -1943,6 +1953,7 @@ class ThemeAssets implements IThemeAssets {
   late final String wowneroImageSecondary;
   late final String namecoinImageSecondary;
   late final String particlImageSecondary;
+  late final String stellarImageSecondary;
   @override
   late final String? loadingGif;
   @override
@@ -1988,6 +1999,7 @@ class ThemeAssets implements IThemeAssets {
       ..wownero = "$themeId/assets/${json["wownero"] as String}"
       ..namecoin = "$themeId/assets/${json["namecoin"] as String}"
       ..particl = "$themeId/assets/${json["particl"] as String}"
+      ..stellar = "$themeId/assets/${json["stellar"] as String}"
       ..bitcoinImage = "$themeId/assets/${json["bitcoin_image"] as String}"
       ..bitcoincashImage =
           "$themeId/assets/${json["bitcoincash_image"] as String}"
@@ -2000,6 +2012,7 @@ class ThemeAssets implements IThemeAssets {
       ..wowneroImage = "$themeId/assets/${json["wownero_image"] as String}"
       ..namecoinImage = "$themeId/assets/${json["namecoin_image"] as String}"
       ..particlImage = "$themeId/assets/${json["particl_image"] as String}"
+      ..stellarImage = "$themeId/assets/${json["stellar_image"] as String}"
       ..bitcoinImageSecondary =
           "$themeId/assets/${json["bitcoin_image_secondary"] as String}"
       ..bitcoincashImageSecondary =
@@ -2022,6 +2035,8 @@ class ThemeAssets implements IThemeAssets {
           "$themeId/assets/${json["namecoin_image_secondary"] as String}"
       ..particlImageSecondary =
           "$themeId/assets/${json["particl_image_secondary"] as String}"
+      ..stellarImageSecondary =
+          "$themeId/assets/${json["stellar_image_secondary"] as String}"
       ..loadingGif = json["loading_gif"] is String
           ? "$themeId/assets/${json["loading_gif"] as String}"
           : null
@@ -2519,6 +2534,345 @@ class ThemeAssetsV3 implements IThemeAssets {
   @override
   String toString() {
     return 'ThemeAssetsV3('
+        'bellNew: $bellNew, '
+        'buy: $buy, '
+        'exchange: $exchange, '
+        'personaIncognito: $personaIncognito, '
+        'personaEasy: $personaEasy, '
+        'stack: $stack, '
+        'stackIcon: $stackIcon, '
+        'receive: $receive, '
+        'receivePending: $receivePending, '
+        'receiveCancelled: $receiveCancelled, '
+        'send: $send, '
+        'sendPending: $sendPending, '
+        'sendCancelled: $sendCancelled, '
+        'themeSelector: $themeSelector, '
+        'themePreview: $themePreview, '
+        'txExchange: $txExchange, '
+        'txExchangePending: $txExchangePending, '
+        'txExchangeFailed: $txExchangeFailed, '
+        'loadingGif: $loadingGif, '
+        'background: $background, '
+        'coinPlaceholder: $coinPlaceholder, '
+        'coinIcons: $coinIcons, '
+        'coinImages: $coinImages, '
+        'coinSecondaryImages: $coinSecondaryImages, '
+        'coinCardImages: $coinCardImages'
+        'coinCardFavoritesImages: $coinCardFavoritesImages'
+        ')';
+  }
+}
+
+@Embedded(inheritance: false)
+class ThemeAssetsV4 implements IThemeAssets {
+  @Name("bellNew")
+  late final String bellNewRelative;
+  @override
+  @ignore
+  String get bellNew => prependIfNeeded(bellNewRelative);
+
+  @Name("buy")
+  late final String buyRelative;
+  @override
+  @ignore
+  String get buy => prependIfNeeded(buyRelative);
+
+  @Name("exchange")
+  late final String exchangeRelative;
+  @override
+  @ignore
+  String get exchange => prependIfNeeded(exchangeRelative);
+
+  @Name("personaIncognito")
+  late final String personaIncognitoRelative;
+  @override
+  @ignore
+  String get personaIncognito => prependIfNeeded(personaIncognitoRelative);
+
+  @Name("personaEasy")
+  late final String personaEasyRelative;
+  @override
+  @ignore
+  String get personaEasy => prependIfNeeded(personaEasyRelative);
+
+  @Name("stack")
+  late final String stackRelative;
+  @override
+  @ignore
+  String get stack => prependIfNeeded(stackRelative);
+
+  @Name("stackIcon")
+  late final String stackIconRelative;
+  @override
+  @ignore
+  String get stackIcon => prependIfNeeded(stackIconRelative);
+
+  @Name("receive")
+  late final String receiveRelative;
+  @override
+  @ignore
+  String get receive => prependIfNeeded(receiveRelative);
+
+  @Name("receivePending")
+  late final String receivePendingRelative;
+  @override
+  @ignore
+  String get receivePending => prependIfNeeded(receivePendingRelative);
+
+  @Name("receiveCancelled")
+  late final String receiveCancelledRelative;
+  @override
+  @ignore
+  String get receiveCancelled => prependIfNeeded(receiveCancelledRelative);
+
+  @Name("send")
+  late final String sendRelative;
+  @override
+  @ignore
+  String get send => prependIfNeeded(sendRelative);
+
+  @Name("sendPending")
+  late final String sendPendingRelative;
+  @override
+  @ignore
+  String get sendPending => prependIfNeeded(sendPendingRelative);
+
+  @Name("sendCancelled")
+  late final String sendCancelledRelative;
+  @override
+  @ignore
+  String get sendCancelled => prependIfNeeded(sendCancelledRelative);
+
+  @Name("themeSelector")
+  late final String themeSelectorRelative;
+  @override
+  @ignore
+  String get themeSelector => prependIfNeeded(themeSelectorRelative);
+
+  @Name("themePreview")
+  late final String themePreviewRelative;
+  @override
+  @ignore
+  String get themePreview => prependIfNeeded(themePreviewRelative);
+
+  @Name("txExchange")
+  late final String txExchangeRelative;
+  @override
+  @ignore
+  String get txExchange => prependIfNeeded(txExchangeRelative);
+
+  @Name("txExchangePending")
+  late final String txExchangePendingRelative;
+  @override
+  @ignore
+  String get txExchangePending => prependIfNeeded(txExchangePendingRelative);
+
+  @Name("txExchangeFailed")
+  late final String txExchangeFailedRelative;
+  @override
+  @ignore
+  String get txExchangeFailed => prependIfNeeded(txExchangeFailedRelative);
+
+  @Name("loadingGif")
+  late final String? loadingGifRelative;
+  @override
+  @ignore
+  String? get loadingGif =>
+      loadingGifRelative != null ? prependIfNeeded(loadingGifRelative!) : null;
+
+  @Name("background")
+  late final String? backgroundRelative;
+  @override
+  @ignore
+  String? get background =>
+      backgroundRelative != null ? prependIfNeeded(backgroundRelative!) : null;
+
+  @Name("coinPlaceholder")
+  late final String coinPlaceholderRelative;
+  @ignore
+  String get coinPlaceholder => prependIfNeeded(coinPlaceholderRelative);
+
+  // Added some future proof params in case we want to add anything else
+  // This should provide some buffer in stead of creating assetsV4 etc
+  @Name("otherStringParam2")
+  late final String? dummy2;
+  @Name("otherStringParam3")
+  late final String? dummy3;
+
+  @ignore
+  Map<Coin, String> get coinIcons => _coinIcons ??= parseCoinAssetsString(
+    coinIconsString,
+    placeHolder: coinPlaceholder,
+  );
+  @ignore
+  Map<Coin, String>? _coinIcons;
+  late final String coinIconsString;
+
+  @ignore
+  Map<Coin, String> get coinImages => _coinImages ??= parseCoinAssetsString(
+    coinImagesString,
+    placeHolder: coinPlaceholder,
+  );
+  @ignore
+  Map<Coin, String>? _coinImages;
+  late final String coinImagesString;
+
+  @ignore
+  Map<Coin, String> get coinSecondaryImages =>
+      _coinSecondaryImages ??= parseCoinAssetsString(
+        coinSecondaryImagesString,
+        placeHolder: coinPlaceholder,
+      );
+  @ignore
+  Map<Coin, String>? _coinSecondaryImages;
+  late final String coinSecondaryImagesString;
+
+  @ignore
+  Map<Coin, String>? get coinCardImages =>
+      _coinCardImages ??= coinCardImagesString == null
+          ? null
+          : parseCoinAssetsString(
+        coinCardImagesString!,
+        placeHolder: coinPlaceholder,
+      );
+  @ignore
+  Map<Coin, String>? _coinCardImages;
+  late final String? coinCardImagesString;
+
+  @ignore
+  Map<Coin, String>? get coinCardFavoritesImages =>
+      _coinCardFavoritesImages ??= coinCardFavoritesImagesString == null
+          ? null
+          : parseCoinAssetsString(
+        coinCardFavoritesImagesString!,
+        placeHolder: coinPlaceholder,
+      );
+  @ignore
+  Map<Coin, String>? _coinCardFavoritesImages;
+  @Name("otherStringParam1")
+  late final String? coinCardFavoritesImagesString;
+
+  ThemeAssetsV4();
+
+  factory ThemeAssetsV4.fromJson({
+    required Map<String, dynamic> json,
+    required String themeId,
+  }) {
+    return ThemeAssetsV4()
+      ..bellNewRelative = "$themeId/assets/${json["bell_new"] as String}"
+      ..buyRelative = "$themeId/assets/${json["buy"] as String}"
+      ..exchangeRelative = "$themeId/assets/${json["exchange"] as String}"
+      ..personaIncognitoRelative =
+          "$themeId/assets/${json["persona_incognito"] as String}"
+      ..personaEasyRelative =
+          "$themeId/assets/${json["persona_easy"] as String}"
+      ..stackRelative = "$themeId/assets/${json["stack"] as String}"
+      ..stackIconRelative = "$themeId/assets/${json["stack_icon"] as String}"
+      ..receiveRelative = "$themeId/assets/${json["receive"] as String}"
+      ..receivePendingRelative =
+          "$themeId/assets/${json["receive_pending"] as String}"
+      ..receiveCancelledRelative =
+          "$themeId/assets/${json["receive_cancelled"] as String}"
+      ..sendRelative = "$themeId/assets/${json["send"] as String}"
+      ..sendPendingRelative =
+          "$themeId/assets/${json["send_pending"] as String}"
+      ..sendCancelledRelative =
+          "$themeId/assets/${json["send_cancelled"] as String}"
+      ..themeSelectorRelative =
+          "$themeId/assets/${json["theme_selector"] as String}"
+      ..themePreviewRelative =
+          "$themeId/assets/${json["theme_preview"] as String}"
+      ..txExchangeRelative = "$themeId/assets/${json["tx_exchange"] as String}"
+      ..txExchangePendingRelative =
+          "$themeId/assets/${json["tx_exchange_pending"] as String}"
+      ..txExchangeFailedRelative =
+          "$themeId/assets/${json["tx_exchange_failed"] as String}"
+      ..coinPlaceholderRelative =
+          "$themeId/assets/${json["coin_placeholder"] as String}"
+      ..coinIconsString = createCoinAssetsString(
+        "$themeId/assets",
+        Map<String, dynamic>.from(json["coins"]["icons"] as Map),
+      )
+      ..coinImagesString = createCoinAssetsString(
+        "$themeId/assets",
+        Map<String, dynamic>.from(json["coins"]["images"] as Map),
+      )
+      ..coinSecondaryImagesString = createCoinAssetsString(
+        "$themeId/assets",
+        Map<String, dynamic>.from(json["coins"]["secondaries"] as Map),
+      )
+      ..coinCardImagesString = json["coins"]["cards"] is Map
+          ? createCoinAssetsString(
+        "$themeId/assets",
+        Map<String, dynamic>.from(json["coins"]["cards"] as Map),
+      )
+          : null
+      ..coinCardFavoritesImagesString = json["coins"]["favoriteCards"] is Map
+          ? createCoinAssetsString(
+        "$themeId/assets",
+        Map<String, dynamic>.from(json["coins"]["favoriteCards"] as Map),
+      )
+          : null
+      ..loadingGifRelative = json["loading_gif"] is String
+          ? "$themeId/assets/${json["loading_gif"] as String}"
+          : null
+      ..backgroundRelative = json["background"] is String
+          ? "$themeId/assets/${json["background"] as String}"
+          : null
+      ..dummy2 = null
+      ..dummy3 = null;
+  }
+
+  static String prependIfNeeded(String relativePath) {
+    final path = StackFileSystem.themesDir!.path;
+
+    if (relativePath.startsWith(path)) {
+      return relativePath;
+    } else {
+      if (Platform.isIOS) {
+        const pattern = "/var/mobile/Containers/Data/Application/";
+        if (relativePath.startsWith(pattern)) {
+          final parts = relativePath.split("/Library/themes/");
+          if (parts.isNotEmpty) {
+            return "$path/${parts.last}";
+          }
+        }
+      }
+
+      return "$path/$relativePath";
+    }
+  }
+
+  static String createCoinAssetsString(String path, Map<String, dynamic> json) {
+    final Map<String, dynamic> map = {};
+    for (final entry in json.entries) {
+      map[entry.key] = "$path/${entry.value as String}";
+    }
+    return jsonEncode(map);
+  }
+
+  static Map<Coin, String> parseCoinAssetsString(
+      String jsonString, {
+        required String placeHolder,
+      }) {
+    final json = jsonDecode(jsonString) as Map;
+    final map = Map<String, dynamic>.from(json);
+
+    final Map<Coin, String> result = {};
+
+    for (final coin in Coin.values) {
+      result[coin] = map[coin.name] as String? ?? placeHolder;
+
+      result[coin] = prependIfNeeded(result[coin]!);
+    }
+
+    return result;
+  }
+
+  @override
+  String toString() {
+    return 'ThemeAssetsV4('
         'bellNew: $bellNew, '
         'buy: $buy, '
         'exchange: $exchange, '

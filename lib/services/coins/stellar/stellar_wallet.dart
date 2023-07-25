@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:decimal/decimal.dart';
@@ -485,6 +486,7 @@ class StellarWallet extends CoinServiceAPI
           .execute().onError((error, stackTrace) =>
           throw("Could not fetch transactions")
       );
+
       for (OperationResponse response in payments.records!) {
         // PaymentOperationResponse por;
         if (response is PaymentOperationResponse) {
@@ -493,27 +495,28 @@ class StellarWallet extends CoinServiceAPI
           Logging.instance.log(
               "ALL TRANSACTIONS IS ${por.transactionSuccessful}",
               level: LogLevel.Info);
+
+          Logging.instance.log(
+              "THIS TX HASH IS ${por.transactionHash}",
+              level: LogLevel.Info);
+
           SWTransaction.TransactionType type;
           if (por.sourceAccount == await getAddressSW()) {
             type = SWTransaction.TransactionType.outgoing;
           } else {
             type = SWTransaction.TransactionType.incoming;
           }
-        final amount = Amount(
-            rawValue: BigInt.parse(float.parse(por.amount!).toStringAsFixed(coin.decimals).replaceAll(".", "")),
-            fractionDigits: coin.decimals,
-          );
+          final amount = Amount(
+              rawValue: BigInt.parse(float.parse(por.amount!).toStringAsFixed(coin.decimals).replaceAll(".", "")),
+              fractionDigits: coin.decimals,
+            );
           int fee = 0;
           int height = 0;
-          TransactionResponse? transaction = por.transaction;
-
-          Logging.instance.log(
-              "THIS TRANSACTION IS ${transaction?.hash}",
-              level: LogLevel.Info);
           //Query the transaction linked to the payment,
           // por.transaction returns a null sometimes
           TransactionResponse tx = await stellarSdk.transactions.transaction(por.transactionHash!);
-          if (tx.hash != "") {
+
+          if (tx.hash.isNotEmpty) {
             fee = tx.feeCharged!;
             height = tx.ledger;
           }
@@ -551,7 +554,7 @@ class StellarWallet extends CoinServiceAPI
           Tuple2<SWTransaction.Transaction, SWAddress.Address> tuple = Tuple2(theTransaction, address);
           transactionList.add(tuple);
         } else if (response is CreateAccountOperationResponse) {
-          var caor = response;
+          CreateAccountOperationResponse caor = response;
           SWTransaction.TransactionType type;
           if (caor.sourceAccount == await getAddressSW()) {
             type = SWTransaction.TransactionType.outgoing;
@@ -564,10 +567,10 @@ class StellarWallet extends CoinServiceAPI
           );
           int fee = 0;
           int height = 0;
-          var transaction = caor.transaction;
-          if (transaction != null) {
-            fee = transaction.feeCharged!;
-            height = transaction.ledger;
+          TransactionResponse tx = await stellarSdk.transactions.transaction(caor.transactionHash!);
+          if (tx.hash.isNotEmpty) {
+            fee = tx.feeCharged!;
+            height = tx.ledger;
           }
           var theTransaction = SWTransaction.Transaction(
             walletId: walletId,
