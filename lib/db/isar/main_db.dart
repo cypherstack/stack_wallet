@@ -371,6 +371,7 @@ class MainDB {
     final transactionCount = await getTransactions(walletId).count();
     final addressCount = await getAddresses(walletId).count();
     final utxoCount = await getUTXOs(walletId).count();
+    final lelantusCoinCount = await isar.lelantusCoins.where().walletIdEqualTo(walletId).count();
 
     await isar.writeTxn(() async {
       const paginateLimit = 50;
@@ -403,6 +404,16 @@ class MainDB {
             .idProperty()
             .findAll();
         await isar.utxos.deleteAll(utxoIds);
+      }
+
+      // lelantusCoins
+      for (int i = 0; i < lelantusCoinCount; i += paginateLimit) {
+        final lelantusCoinIds = await isar.lelantusCoins.where().walletIdEqualTo(walletId)
+            .offset(i)
+            .limit(paginateLimit)
+            .idProperty()
+            .findAll();
+        await isar.lelantusCoins.deleteAll(lelantusCoinIds);
       }
     });
   }
