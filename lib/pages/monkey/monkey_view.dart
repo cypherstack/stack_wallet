@@ -3,7 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 import 'package:stackwallet/pages/monkey/sub_widgets/fetch_monkey_dialog.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -36,10 +39,68 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
   late final String walletId;
   late final ChangeNotifierProvider<Manager> managerProvider;
 
+  String receivingAddress = "";
+
+  void getMonkeySVG(String address) async {
+    if (address.isEmpty) {
+      //address shouldn't be empty
+      return;
+    }
+
+    final http.Response response = await http
+        .get(Uri.parse('https://monkey.banano.cc/api/v1/monkey/$address'));
+    final decodedResponse = SvgPicture.memory(response.bodyBytes);
+    // final decodedResponse = json.decode(response.body);
+    // return decodedResponse;
+    debugPrint("$decodedResponse");
+  }
+
+  void getMonkeyPNG(String address) async {
+    if (address.isEmpty) {
+      //address shouldn't be empty
+      return;
+    }
+
+    final http.Response response = await http.get(Uri.parse(
+        'https://monkey.banano.cc/api/v1/monkey/${address}?format=png&size=512&background=false'));
+
+    if (response.statusCode == 200) {
+      final decodedResponse = response.bodyBytes;
+      final directory = await getApplicationDocumentsDirectory();
+      // Directory appDir = await getTemporaryDirectory();
+      final docPath = directory.path;
+      final filePath = "$docPath/monkey.png";
+
+      File imgFile = File(filePath);
+      await imgFile.writeAsBytes(decodedResponse);
+      print("$imgFile");
+
+      // final directory = await getApplicationDocumentsDirectory();
+      // final docPath = directory.path;
+      // final filePath = "$do/monkey.png";
+    } else {
+      throw Exception("Failed to get MonKey");
+    }
+
+    // final decodedResponse = json.decode(response.body);
+    // return decodedResponse;
+    // debugPrint("$decodedResponse");
+  }
+
   @override
   void initState() {
     walletId = widget.walletId;
     managerProvider = widget.managerProvider;
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      final address = await ref
+          .read(walletsChangeNotifierProvider)
+          .getManager(walletId)
+          .currentReceivingAddress;
+      setState(() {
+        receivingAddress = address;
+      });
+    });
 
     super.initState();
   }
@@ -52,7 +113,7 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
   @override
   Widget build(BuildContext context) {
     final Coin coin = ref.watch(managerProvider.select((value) => value.coin));
-    bool isMonkey = false;
+    bool isMonkey = true;
 
     return Background(
       child: Stack(
@@ -116,19 +177,29 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
             body: isMonkey
                 ? Column(
                     children: [
-                      Spacer(),
+                      Spacer(
+                        flex: 1,
+                      ),
+                      Image.network(
+                        'https://monkey.banano.cc/api/v1/monkey/$receivingAddress?format=png&size=512',
+                      ),
+                      Spacer(
+                        flex: 1,
+                      ),
                       Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
                           children: [
                             SecondaryButton(
                               label: "Download as SVG",
-                              onPressed: () {},
+                              onPressed: () async {},
                             ),
                             const SizedBox(height: 12),
                             SecondaryButton(
                               label: "Download as PNG",
-                              onPressed: () {},
+                              onPressed: () {
+                                getMonkeyPNG(receivingAddress);
+                              },
                             ),
                           ],
                         ),
