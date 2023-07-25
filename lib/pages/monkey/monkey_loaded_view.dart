@@ -81,7 +81,6 @@ class _MonkeyLoadedViewState extends ConsumerState<MonkeyLoadedView> {
 
       File imgFile = File(filePath);
       await imgFile.writeAsBytes(decodedResponse);
-      print("$imgFile");
     } else {
       throw Exception("Failed to get MonKey");
     }
@@ -132,11 +131,6 @@ class _MonkeyLoadedViewState extends ConsumerState<MonkeyLoadedView> {
 
       File imgFile = File(filePath);
       await imgFile.writeAsBytes(decodedResponse);
-      print("$imgFile");
-
-      // final directory = await getApplicationDocumentsDirectory();
-      // final docPath = directory.path;
-      // final filePath = "$do/monkey.png";
     } else {
       throw Exception("Failed to get MonKey");
     }
@@ -168,7 +162,6 @@ class _MonkeyLoadedViewState extends ConsumerState<MonkeyLoadedView> {
   @override
   Widget build(BuildContext context) {
     final Coin coin = ref.watch(managerProvider.select((value) => value.coin));
-    bool isMonkey = false;
 
     return Background(
       child: Stack(
