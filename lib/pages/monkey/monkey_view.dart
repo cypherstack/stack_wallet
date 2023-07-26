@@ -240,18 +240,22 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                   const SizedBox(
                     width: 15,
                   ),
-                  Text(
+                  SvgPicture.asset(Assets.svg.monkey),
+                      const SizedBox(
+                        width: 12,
+                      ),Text(
                     "MonKey",
                     style: STextStyles.navBarTitle(context),
                   ),
                 ],
               ),
             ),
-            trailing: AspectRatio(
-              aspectRatio: 1,
-              child: AppBarIconButton(
-                  icon: SvgPicture.asset(Assets.svg.circleQuestion),
-                  onPressed: () {
+            trailing: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                    child: GestureDetector(
+                  onTap: () {
                     showDialog<dynamic>(
                         context: context,
                         useSafeArea: false,
@@ -263,7 +267,29 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                                 "A MonKey is a visual representation of your Banano address.",
                           );
                         });
-                  }),
+                  },
+                      child: Row(
+                        children: [
+                          SvgPicture.asset(
+                            Assets.svg.circleQuestion,
+                            color: Colors.blue[800],
+                          ),
+                          SizedBox(
+                            width: 6,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Text(
+                              "What is MonKey?",
+                              style: STextStyles.desktopTextSmall(context)
+                                  .copyWith(
+                                color: Colors.blue[800],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),),
             ),
             useSpacers: false,
             isCompactHeight: true,
@@ -289,9 +315,7 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                   child: AppBarIconButton(
                       icon: SvgPicture.asset(
                         Assets.svg.circleQuestion,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .infoItemText,
+
                       ),
                       onPressed: () {
                         showDialog<dynamic>(
