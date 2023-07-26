@@ -65,60 +65,73 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
     }
   }
 
-  void getMonkeySVG(String address) async {
-    if (address.isEmpty) {
-      //address shouldn't be empty
-      return;
-    }
+  // void getMonkeySVG(String address) async {
+  //   if (address.isEmpty) {
+  //     //address shouldn't be empty
+  //     return;
+  //   }
+  //
+  //   final http.Response response = await http
+  //       .get(Uri.parse('https://monkey.banano.cc/api/v1/monkey/$address'));
+  //
+  //   if (response.statusCode == 200) {
+  //     final decodedResponse = response.bodyBytes;
+  //     Directory directory = await getApplicationDocumentsDirectory();
+  //     late Directory sampleFolder;
+  //
+  //     if (Platform.isAndroid) {
+  //       directory = Directory("/storage/emulated/0/");
+  //       sampleFolder = Directory('${directory!.path}Documents');
+  //     } else if (Platform.isIOS) {
+  //       sampleFolder = Directory(directory!.path);
+  //     } else if (Platform.isLinux) {
+  //       sampleFolder = Directory('${directory!.path}Documents');
+  //     } else if (Platform.isWindows) {
+  //       sampleFolder = Directory('${directory!.path}Documents');
+  //     } else if (Platform.isMacOS) {
+  //       sampleFolder = Directory('${directory!.path}Documents');
+  //     }
+  //
+  //     try {
+  //       if (!sampleFolder.existsSync()) {
+  //         sampleFolder.createSync(recursive: true);
+  //       }
+  //     } catch (e, s) {
+  //       // todo: come back to this
+  //       debugPrint("$e $s");
+  //     }
+  //
+  //     final docPath = sampleFolder.path;
+  //     final filePath = "$docPath/monkey.svg";
+  //
+  //     File imgFile = File(filePath);
+  //     await imgFile.writeAsBytes(decodedResponse);
+  //   } else {
+  //     throw Exception("Failed to get MonKey");
+  //   }
+  // }
 
-    final http.Response response = await http
-        .get(Uri.parse('https://monkey.banano.cc/api/v1/monkey/$address'));
-
-    if (response.statusCode == 200) {
-      final decodedResponse = response.bodyBytes;
-      Directory directory = await getApplicationDocumentsDirectory();
-      late Directory sampleFolder;
-
-      if (Platform.isAndroid) {
-        directory = Directory("/storage/emulated/0/");
-        sampleFolder = Directory('${directory!.path}Documents');
-      } else if (Platform.isIOS) {
-        sampleFolder = Directory(directory!.path);
-      } else if (Platform.isLinux) {
-        sampleFolder = Directory('${directory!.path}Documents');
-      } else if (Platform.isWindows) {
-        sampleFolder = Directory('${directory!.path}Documents');
-      } else if (Platform.isMacOS) {
-        sampleFolder = Directory('${directory!.path}Documents');
-      }
-
-      try {
-        if (!sampleFolder.existsSync()) {
-          sampleFolder.createSync(recursive: true);
-        }
-      } catch (e, s) {
-        // todo: come back to this
-        debugPrint("$e $s");
-      }
-
-      final docPath = sampleFolder.path;
-      final filePath = "$docPath/monkey.svg";
-
-      File imgFile = File(filePath);
-      await imgFile.writeAsBytes(decodedResponse);
-    } else {
-      throw Exception("Failed to get MonKey");
+  Future<Directory?> getDocsDir() async {
+    try {
+      return await getApplicationDocumentsDirectory();
+    } catch (_) {
+      return null;
     }
   }
 
-  void getMonkeyPNG(String address) async {
+  Future<void> downloadMonkey(String address, bool isPNG) async {
     if (address.isEmpty) {
       //address shouldn't be empty
       return;
     }
 
-    final http.Response response = await http.get(Uri.parse(
-        'https://monkey.banano.cc/api/v1/monkey/${address}?format=png&size=512&background=false'));
+    String url = "https://monkey.banano.cc/api/v1/monkey/$address";
+
+    if (isPNG) {
+      url += '?format=png&size=512&background=false';
+    }
+
+    final http.Response response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
       if (Platform.isAndroid) {
@@ -126,33 +139,30 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
       }
 
       final decodedResponse = response.bodyBytes;
-      Directory directory = await getApplicationDocumentsDirectory();
-      late Directory sampleFolder;
+      final Directory? sampleFolder = await getDocsDir();
 
-      if (Platform.isAndroid) {
-        directory = Directory("/storage/emulated/0/");
-        sampleFolder = Directory('${directory!.path}Documents');
-      } else if (Platform.isIOS) {
-        sampleFolder = Directory(directory!.path);
-      } else if (Platform.isLinux) {
-        sampleFolder = Directory('${directory!.path}Documents');
-      } else if (Platform.isWindows) {
-        sampleFolder = Directory('${directory!.path}Documents');
-      } else if (Platform.isMacOS) {
-        sampleFolder = Directory('${directory!.path}Documents');
+      print("PATH: ${sampleFolder?.path}");
+
+      if (sampleFolder == null) {
+        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+        return;
       }
 
-      try {
-        if (!sampleFolder.existsSync()) {
-          sampleFolder.createSync(recursive: true);
-        }
-      } catch (e, s) {
-        // todo: come back to this
-        debugPrint("$e $s");
-      }
+      // try {
+      //   if (!sampleFolder.existsSync()) {
+      //     sampleFolder.createSync(recursive: true);
+      //   }
+      // } catch (e, s) {
+      //   // todo: come back to this
+      //   debugPrint("$e $s");
+      // }
 
       final docPath = sampleFolder.path;
-      final filePath = "$docPath/monkey.png";
+      String filePath = "$docPath/monkey_$address";
+
+      filePath += isPNG ? ".png" : ".svg";
+
+      // todo check if monkey.png exists
 
       File imgFile = File(filePath);
       await imgFile.writeAsBytes(decodedResponse);
@@ -318,11 +328,11 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                         flex: 1,
                       ),
                       if (imageBytes != null)
-                        Container(
-                          child: SvgPicture.memory(
-                              Uint8List.fromList(imageBytes!)),
+                        SizedBox(
                           width: 300,
                           height: 300,
+                          child:
+                              SvgPicture.memory(Uint8List.fromList(imageBytes)),
                         ),
                       const Spacer(
                         flex: 1,
@@ -332,16 +342,28 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                         child: Column(
                           children: [
                             SecondaryButton(
-                              label: "Download as SVG",
+                              label: "Save as SVG",
                               onPressed: () async {
-                                getMonkeySVG(receivingAddress);
+                                await showLoading(
+                                  whileFuture:
+                                      downloadMonkey(receivingAddress, false),
+                                  context: context,
+                                  isDesktop: Util.isDesktop,
+                                  message: "Saving MonKey svg",
+                                );
                               },
                             ),
                             const SizedBox(height: 12),
                             SecondaryButton(
                               label: "Download as PNG",
-                              onPressed: () {
-                                getMonkeyPNG(receivingAddress);
+                              onPressed: () async {
+                                await showLoading(
+                                  whileFuture:
+                                      downloadMonkey(receivingAddress, true),
+                                  context: context,
+                                  isDesktop: Util.isDesktop,
+                                  message: "Downloading MonKey png",
+                                );
                               },
                             ),
                           ],
