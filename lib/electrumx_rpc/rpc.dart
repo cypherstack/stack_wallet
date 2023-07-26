@@ -79,7 +79,7 @@ class JsonRPC {
 
         // TODO different timeout length?
         req.initiateTimeout(
-          const Duration(seconds: 10),
+          Duration(seconds: connectionTimeout.inSeconds ~/ 2),
           onTimedOut: () {
             _requestQueue.remove(req);
           },
