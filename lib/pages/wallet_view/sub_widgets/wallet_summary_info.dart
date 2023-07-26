@@ -10,6 +10,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,6 +20,7 @@ import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_refresh_button.
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
+import 'package:stackwallet/services/coins/banano/banano_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/balance_refreshed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -101,10 +103,12 @@ class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
 
     bool isMonkey = true;
 
+    final manager = ref.watch(walletsChangeNotifierProvider
+        .select((value) => value.getManager(widget.walletId)));
+
     final externalCalls = ref.watch(
         prefsChangeNotifierProvider.select((value) => value.externalCalls));
-    final coin = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(widget.walletId).coin));
+    final coin = manager.coin;
     final balance = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManager(widget.walletId).balance));
 
@@ -141,18 +145,24 @@ class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
       title = _showAvailable ? "Available balance" : "Full balance";
     }
 
+    List<int>? imageBytes;
+
+    if (coin == Coin.banano) {
+      imageBytes = (manager.wallet as BananoWallet).getMonkeyImageBytes();
+    }
+
     return ConditionalParent(
-      condition: isMonkey && Coin == Coin.banano,
-      builder: (child) => Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            alignment: Alignment.centerRight,
-            image: NetworkImage(
-              'https://monkey.banano.cc/api/v1/monkey/$receivingAddress?format=png&size=512',
+      condition: imageBytes != null,
+      builder: (child) => Stack(
+        children: [
+          Positioned.fill(
+            left: 150.0,
+            child: SvgPicture.memory(
+              Uint8List.fromList(imageBytes!),
             ),
           ),
-        ),
-        child: child,
+          child,
+        ],
       ),
       child: Row(
         children: [
