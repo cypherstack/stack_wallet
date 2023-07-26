@@ -349,11 +349,6 @@ Future<Map<String, dynamic>> isolateRestore(
               level: LogLevel.Warning,
             );
           }
-        } else {
-          Logging.instance.log(
-            "Coin not found in data with the mint tag: $mintTag",
-            level: LogLevel.Warning,
-          );
         }
       }
 
