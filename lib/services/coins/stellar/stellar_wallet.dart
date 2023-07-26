@@ -61,7 +61,7 @@ class StellarWallet extends CoinServiceAPI
   late final TransactionNotificationTracker txTracker;
   late SecureStorageInterface _secureStore;
 
-  final StellarSDK stellarSdk = StellarSDK.TESTNET;
+  final StellarSDK stellarSdk = StellarSDK.PUBLIC;
 
   @override
   bool get isFavorite => _isFavorite ??= getCachedIsFavorite();
@@ -199,7 +199,7 @@ class StellarWallet extends CoinServiceAPI
           .build()
       ).build();
     }
-    transaction.sign(senderKeyPair, Network.TESTNET);
+    transaction.sign(senderKeyPair, Network.PUBLIC);
     try {
       SubmitTransactionResponse response = await stellarSdk.submitTransaction(transaction);
 
@@ -256,9 +256,11 @@ class StellarWallet extends CoinServiceAPI
   }
 
   @override
-  Future<void> exit() {
-    // TODO: implement exit
-    throw UnimplementedError();
+  Future<void> exit() async {
+    _hasCalledExit = true;
+    timer?.cancel();
+    timer = null;
+    stopNetworkAlivePinging();
   }
 
   NodeModel? _xlmNode;
@@ -427,7 +429,13 @@ class StellarWallet extends CoinServiceAPI
   }
 
   @override
-  Future<void> recoverFromMnemonic({required String mnemonic, String? mnemonicPassphrase, required int maxUnusedAddressGap, required int maxNumberOfIndexesToCheck, required int height}) async {
+  Future<void> recoverFromMnemonic({
+    required String mnemonic,
+    String? mnemonicPassphrase,
+    required int maxUnusedAddressGap,
+    required int maxNumberOfIndexesToCheck,
+    required int height
+  }) async {
     if ((await mnemonicString) != null ||
         (await this.mnemonicPassphrase) != null) {
       throw Exception("Attempted to overwrite mnemonic on restore!");
@@ -472,7 +480,8 @@ class StellarWallet extends CoinServiceAPI
         .order(RequestBuilderOrder.DESC)
         .limit(1)
         .execute()
-        .then((value) => value.records!.first.sequence);
+        .then((value) => value.records!.first.sequence).onError((error, stackTrace) =>
+    throw("Error getting chain height"));
     await updateCachedChainHeight(height);
   }
 
@@ -484,8 +493,7 @@ class StellarWallet extends CoinServiceAPI
       Page<OperationResponse> payments = await stellarSdk.payments
           .forAccount(await getAddressSW()).order(RequestBuilderOrder.DESC)
           .execute().onError((error, stackTrace) =>
-          throw("Could not fetch transactions")
-      );
+          throw("Could not fetch transactions"));
 
       for (OperationResponse response in payments.records!) {
         // PaymentOperationResponse por;
