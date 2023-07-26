@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/monkey/monkey_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/coin_control/desktop_coin_control_view.dart';
@@ -41,6 +42,7 @@ import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
+import 'package:tuple/tuple.dart';
 
 class DesktopWalletFeatures extends ConsumerStatefulWidget {
   const DesktopWalletFeatures({
@@ -80,6 +82,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         onCoinControlPressed: _onCoinControlPressed,
         onAnonymizeAllPressed: _onAnonymizeAllPressed,
         onWhirlpoolPressed: _onWhirlpoolPressed,
+        onMonkeyPressed: _onMonkeyPressed,
       ),
     );
   }
@@ -313,6 +316,21 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     }
   }
 
+  Future<void> _onMonkeyPressed() async {
+    Navigator.of(context, rootNavigator: true).pop();
+    final managerProvider = ref
+        .read(walletsChangeNotifierProvider)
+        .getManagerProvider(widget.walletId);
+
+    await (Navigator.of(context).pushNamed(
+      MonkeyView.routeName,
+      arguments: Tuple2(
+        widget.walletId,
+        managerProvider,
+      ),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final manager = ref.watch(
@@ -330,8 +348,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
             )) ||
         manager.coin == Coin.firo ||
         manager.coin == Coin.firoTestNet ||
+        manager.coin == Coin.banano ||
         manager.hasWhirlpoolSupport;
-
     return Row(
       children: [
         if (Constants.enableExchange)
