@@ -29626,7 +29626,7 @@ int _themeAssetsV3EstimateSize(
     }
   }
   {
-    final value = object.dummy1;
+    final value = object.coinCardFavoritesImagesString;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
@@ -29677,7 +29677,7 @@ void _themeAssetsV3Serialize(
   writer.writeString(offsets[7], object.coinSecondaryImagesString);
   writer.writeString(offsets[8], object.exchangeRelative);
   writer.writeString(offsets[9], object.loadingGifRelative);
-  writer.writeString(offsets[10], object.dummy1);
+  writer.writeString(offsets[10], object.coinCardFavoritesImagesString);
   writer.writeString(offsets[11], object.dummy2);
   writer.writeString(offsets[12], object.dummy3);
   writer.writeString(offsets[13], object.personaEasyRelative);
@@ -29714,7 +29714,7 @@ ThemeAssetsV3 _themeAssetsV3Deserialize(
   object.coinSecondaryImagesString = reader.readString(offsets[7]);
   object.exchangeRelative = reader.readString(offsets[8]);
   object.loadingGifRelative = reader.readStringOrNull(offsets[9]);
-  object.dummy1 = reader.readStringOrNull(offsets[10]);
+  object.coinCardFavoritesImagesString = reader.readStringOrNull(offsets[10]);
   object.dummy2 = reader.readStringOrNull(offsets[11]);
   object.dummy3 = reader.readStringOrNull(offsets[12]);
   object.personaEasyRelative = reader.readString(offsets[13]);
@@ -31224,7 +31224,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      dummy1IsNull() {
+      coinCardFavoritesImagesStringIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
         property: r'otherStringParam1',
@@ -31233,7 +31233,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      dummy1IsNotNull() {
+      coinCardFavoritesImagesStringIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'otherStringParam1',
@@ -31242,7 +31242,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      dummy1EqualTo(
+      coinCardFavoritesImagesStringEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -31256,7 +31256,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      dummy1GreaterThan(
+      coinCardFavoritesImagesStringGreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -31272,7 +31272,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      dummy1LessThan(
+      coinCardFavoritesImagesStringLessThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -31288,7 +31288,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      dummy1Between(
+      coinCardFavoritesImagesStringBetween(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -31308,7 +31308,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      dummy1StartsWith(
+      coinCardFavoritesImagesStringStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -31322,7 +31322,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      dummy1EndsWith(
+      coinCardFavoritesImagesStringEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -31336,7 +31336,8 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      dummy1Contains(String value, {bool caseSensitive = true}) {
+      coinCardFavoritesImagesStringContains(String value,
+          {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'otherStringParam1',
@@ -31347,7 +31348,8 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      dummy1Matches(String pattern, {bool caseSensitive = true}) {
+      coinCardFavoritesImagesStringMatches(String pattern,
+          {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'otherStringParam1',
@@ -31358,7 +31360,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      dummy1IsEmpty() {
+      coinCardFavoritesImagesStringIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'otherStringParam1',
@@ -31368,7 +31370,7 @@ extension ThemeAssetsV3QueryFilter
   }
 
   QueryBuilder<ThemeAssetsV3, ThemeAssetsV3, QAfterFilterCondition>
-      dummy1IsNotEmpty() {
+      coinCardFavoritesImagesStringIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'otherStringParam1',

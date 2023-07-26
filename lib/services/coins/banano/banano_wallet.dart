@@ -14,9 +14,9 @@ import 'package:stackwallet/services/event_bus/events/global/node_connection_sta
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/services/mixins/coin_control_interface.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
+import 'package:stackwallet/services/nano_api.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -32,8 +32,7 @@ const int MINIMUM_CONFIRMATIONS = 1;
 const String DEFAULT_REPRESENTATIVE =
     "ban_1ka1ium4pfue3uxtntqsrib8mumxgazsjf58gidh1xeo5te3whsq8z476goo";
 
-class BananoWallet extends CoinServiceAPI
-    with WalletCache, WalletDB, CoinControlInterface {
+class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
   BananoWallet({
     required String walletId,
     required String walletName,
@@ -924,5 +923,52 @@ class BananoWallet extends CoinServiceAPI
       infoData["confirmation_height"].toString(),
     );
     await updateCachedChainHeight(height ?? 0);
+  }
+
+  Future<String> getCurrentRepresentative() async {
+    final serverURI = Uri.parse(getCurrentNode().host);
+    final address = await currentReceivingAddress;
+
+    final response = await NanoAPI.getAccountInfo(
+      server: serverURI,
+      representative: true,
+      account: address,
+    );
+
+    return response.accountInfo?.representative ?? DEFAULT_REPRESENTATIVE;
+  }
+
+  Future<bool> changeRepresentative(String newRepresentative) async {
+    try {
+      final serverURI = Uri.parse(getCurrentNode().host);
+      final balance = this.balance.spendable.raw.toString();
+      final String privateKey = await getPrivateKeyFromMnemonic();
+      final address = await currentReceivingAddress;
+
+      final response = await NanoAPI.getAccountInfo(
+        server: serverURI,
+        representative: true,
+        account: address,
+      );
+
+      if (response.accountInfo == null) {
+        throw response.exception ?? Exception("Failed to get account info");
+      }
+
+      final work = await requestWork(response.accountInfo!.frontier);
+
+      return await NanoAPI.changeRepresentative(
+        server: serverURI,
+        accountType: NanoAccountType.BANANO,
+        account: address,
+        newRepresentative: newRepresentative,
+        previousBlock: response.accountInfo!.frontier,
+        balance: balance,
+        privateKey: privateKey,
+        work: work!,
+      );
+    } catch (_) {
+      rethrow;
+    }
   }
 }

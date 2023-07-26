@@ -1,6 +1,4 @@
 PODS:
-  - "app_settings (3.0.0+1)":
-    - Flutter
   - barcode_scan2 (0.0.1):
     - Flutter
     - MTBBarcodeScanner
@@ -112,7 +110,7 @@ PODS:
     - Flutter
   - flutter_native_splash (0.0.1):
     - Flutter
-  - flutter_secure_storage (3.3.1):
+  - flutter_secure_storage (6.0.0):
     - Flutter
   - integration_test (0.0.1):
     - Flutter
@@ -149,7 +147,6 @@ PODS:
     - Flutter
 
 DEPENDENCIES:
-  - app_settings (from `.symlinks/plugins/app_settings/ios`)
   - barcode_scan2 (from `.symlinks/plugins/barcode_scan2/ios`)
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
   - cw_monero (from `.symlinks/plugins/cw_monero/ios`)
@@ -169,10 +166,10 @@ DEPENDENCIES:
   - lelantus (from `.symlinks/plugins/lelantus/ios`)
   - local_auth (from `.symlinks/plugins/local_auth/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
-  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/ios`)
+  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
-  - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/ios`)
+  - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - stack_wallet_backup (from `.symlinks/plugins/stack_wallet_backup/ios`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
   - wakelock (from `.symlinks/plugins/wakelock/ios`)
@@ -188,8 +185,6 @@ SPEC REPOS:
     - SwiftyGif
 
 EXTERNAL SOURCES:
-  app_settings:
-    :path: ".symlinks/plugins/app_settings/ios"
   barcode_scan2:
     :path: ".symlinks/plugins/barcode_scan2/ios"
   connectivity_plus:
@@ -229,13 +224,13 @@ EXTERNAL SOURCES:
   package_info_plus:
     :path: ".symlinks/plugins/package_info_plus/ios"
   path_provider_foundation:
-    :path: ".symlinks/plugins/path_provider_foundation/ios"
+    :path: ".symlinks/plugins/path_provider_foundation/darwin"
   permission_handler_apple:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
   share_plus:
     :path: ".symlinks/plugins/share_plus/ios"
   shared_preferences_foundation:
-    :path: ".symlinks/plugins/shared_preferences_foundation/ios"
+    :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
   stack_wallet_backup:
     :path: ".symlinks/plugins/stack_wallet_backup/ios"
   url_launcher_ios:
@@ -244,13 +239,12 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/wakelock/ios"
 
 SPEC CHECKSUMS:
-  app_settings: d103828c9f5d515c4df9ee754dabd443f7cedcf3
   barcode_scan2: 0af2bb63c81b4565aab6cd78278e4c0fa136dbb0
-  connectivity_plus: 413a8857dd5d9f1c399a39130850d02fe0feaf7e
+  connectivity_plus: 07c49e96d7fc92bc9920617b83238c4d178b446a
   cw_monero: 9816991daff0e3ad0a8be140e31933b5526babd4
   cw_shared_external: 2972d872b8917603478117c9957dfca611845a92
   cw_wownero: ac53899fa5c6ff46b3fb490aa3b7ca36301fa832
-  device_info_plus: e5c5da33f982a436e103237c0c85f9031142abed
+  device_info_plus: 7545d84d8d1b896cb16a4ff98c19f07ec4b298ea
   devicelocale: b22617f40038496deffba44747101255cee005b0
   DKImagePickerController: b512c28220a2b8ac7419f21c491fc8534b7601ac
   DKPhotoGallery: fdfad5125a9fdda9cc57df834d49df790dbb4179
@@ -260,23 +254,23 @@ SPEC CHECKSUMS:
   flutter_libmonero: da68a616b73dd0374a8419c684fa6b6df2c44ffe
   flutter_local_notifications: 0c0b1ae97e741e1521e4c1629a459d04b9aec743
   flutter_native_splash: 52501b97d1c0a5f898d687f1646226c1f93c56ef
-  flutter_secure_storage: 7953c38a04c3fdbb00571bcd87d8e3b5ceb9daec
-  integration_test: a1e7d09bd98eca2fc37aefd79d4f41ad37bdbbe5
+  flutter_secure_storage: 23fc622d89d073675f2eaa109381aefbcf5a49be
+  integration_test: 13825b8a9334a850581300559b8839134b124670
   isar_flutter_libs: b69f437aeab9c521821c3f376198c4371fa21073
   lelantus: 417f0221260013dfc052cae9cf4b741b6479edba
   local_auth: 1740f55d7af0a2e2a8684ce225fe79d8931e808c
   MTBBarcodeScanner: f453b33c4b7dfe545d8c6484ed744d55671788cb
-  package_info_plus: 6c92f08e1f853dc01228d6f553146438dafcd14e
-  path_provider_foundation: 37748e03f12783f9de2cb2c4eadfaa25fe6d4852
+  package_info_plus: fd030dabf36271f146f1f3beacd48f564b0f17f7
+  path_provider_foundation: eaf5b3e458fc0e5fbb9940fb09980e853fe058b8
   permission_handler_apple: 44366e37eaf29454a1e7b1b7d736c2cceaeb17ce
   ReachabilitySwift: 985039c6f7b23a1da463388634119492ff86c825
   SDWebImage: 72f86271a6f3139cc7e4a89220946489d4b9a866
-  share_plus: 056a1e8ac890df3e33cb503afffaf1e9b4fbae68
-  shared_preferences_foundation: 297b3ebca31b34ec92be11acd7fb0ba932c822ca
+  share_plus: 599aa54e4ea31d4b4c0e9c911bcc26c55e791028
+  shared_preferences_foundation: e2dae3258e06f44cc55f49d42024fd8dd03c590c
   stack_wallet_backup: 5b8563aba5d8ffbf2ce1944331ff7294a0ec7c03
   SwiftProtobuf: 6ef3f0e422ef90d6605ca20b21a94f6c1324d6b3
   SwiftyGif: 6c3eafd0ce693cad58bb63d2b2fb9bacb8552780
-  url_launcher_ios: fb12c43172927bb5cf75aeebd073f883801f1993
+  url_launcher_ios: 08a3dfac5fb39e8759aeb0abbd5d9480f30fc8b4
   wakelock: d0fc7c864128eac40eba1617cb5264d9c940b46f
 
 PODFILE CHECKSUM: 57c8aed26fba39d3ec9424816221f294a07c58eb

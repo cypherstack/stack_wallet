@@ -8,6 +8,8 @@
  *
  */
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:stackwallet/pages/add_wallet_views/name_your_wallet_view/name_your_wallet_view.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -32,35 +34,37 @@ class CreateWalletButtonGroup extends StatelessWidget {
       crossAxisAlignment:
           isDesktop ? CrossAxisAlignment.center : CrossAxisAlignment.stretch,
       children: [
-        ConstrainedBox(
-          constraints: BoxConstraints(
-            minHeight: isDesktop ? 70 : 0,
-            minWidth: isDesktop ? 480 : 0,
-          ),
-          child: TextButton(
-            style: Theme.of(context)
-                .extension<StackColors>()!
-                .getPrimaryEnabledButtonStyle(context),
-            onPressed: () {
-              Navigator.of(context).pushNamed(
-                NameYourWalletView.routeName,
-                arguments: Tuple2(
-                  AddWalletType.New,
-                  coin,
-                ),
-              );
-            },
-            child: Text(
-              "Create new wallet",
-              style: isDesktop
-                  ? STextStyles.desktopButtonEnabled(context)
-                  : STextStyles.button(context),
+        if (Platform.isAndroid || coin != Coin.wownero)
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: isDesktop ? 70 : 0,
+              minWidth: isDesktop ? 480 : 0,
+            ),
+            child: TextButton(
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getPrimaryEnabledButtonStyle(context),
+              onPressed: () {
+                Navigator.of(context).pushNamed(
+                  NameYourWalletView.routeName,
+                  arguments: Tuple2(
+                    AddWalletType.New,
+                    coin,
+                  ),
+                );
+              },
+              child: Text(
+                "Create new wallet",
+                style: isDesktop
+                    ? STextStyles.desktopButtonEnabled(context)
+                    : STextStyles.button(context),
+              ),
             ),
           ),
-        ),
-        SizedBox(
-          height: isDesktop ? 16 : 12,
-        ),
+        if (Platform.isAndroid || coin != Coin.wownero)
+          SizedBox(
+            height: isDesktop ? 16 : 12,
+          ),
         ConstrainedBox(
           constraints: BoxConstraints(
             minHeight: isDesktop ? 70 : 0,

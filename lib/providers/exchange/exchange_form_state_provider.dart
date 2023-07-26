@@ -13,8 +13,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/exchange/active_pair.dart';
 import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
 import 'package:stackwallet/models/exchange/response_objects/range.dart';
+import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/amount/amount_unit.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
 import 'package:tuple/tuple.dart';
 
@@ -44,7 +48,22 @@ final efSendAmountStringProvider = StateProvider<String>((ref) {
   if (refreshing && reversed) {
     return "-";
   } else {
-    return ref.watch(efSendAmountProvider)?.toString() ?? "";
+    final decimal = ref.watch(efSendAmountProvider);
+    String string = "";
+    if (decimal != null) {
+      final amount = Amount.fromDecimal(decimal, fractionDigits: decimal.scale);
+      final locale = ref.watch(localeServiceChangeNotifierProvider).locale;
+      string = AmountUnit.normal.displayAmount(
+        amount: amount,
+        locale: locale,
+        coin: Coin
+            .nano, // use nano just to ensure decimal.scale < Coin.value.decimals
+        withUnitName: false,
+        maxDecimalPlaces: decimal.scale,
+      );
+    }
+
+    return string;
   }
 });
 final efReceiveAmountStringProvider = StateProvider<String>((ref) {
@@ -54,7 +73,22 @@ final efReceiveAmountStringProvider = StateProvider<String>((ref) {
   if (refreshing && reversed == false) {
     return "-";
   } else {
-    return ref.watch(efReceiveAmountProvider)?.toString() ?? "";
+    final decimal = ref.watch(efReceiveAmountProvider);
+    String string = "";
+    if (decimal != null) {
+      final amount = Amount.fromDecimal(decimal, fractionDigits: decimal.scale);
+      final locale = ref.watch(localeServiceChangeNotifierProvider).locale;
+      string = AmountUnit.normal.displayAmount(
+        amount: amount,
+        locale: locale,
+        coin: Coin
+            .nano, // use nano just to ensure decimal.scale < Coin.value.decimals
+        withUnitName: false,
+        maxDecimalPlaces: decimal.scale,
+      );
+    }
+
+    return string;
   }
 });
 

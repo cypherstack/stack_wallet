@@ -358,7 +358,6 @@ class _TransactionDetailsViewState
     final currentHeight = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManager(walletId).currentHeight));
 
-
     print("THIS TRANSACTION IS $_transaction");
 
     return ConditionalParent(
@@ -474,7 +473,9 @@ class _TransactionDetailsViewState
                                             ),
                                             SelectableText(
                                               _transaction.isCancelled
-                                                  ? "Cancelled"
+                                                  ? coin == Coin.ethereum
+                                                      ? "Failed"
+                                                      : "Cancelled"
                                                   : whatIsIt(
                                                       _transaction,
                                                       currentHeight,
@@ -585,7 +586,9 @@ class _TransactionDetailsViewState
                                   //     child:
                                   SelectableText(
                                     _transaction.isCancelled
-                                        ? "Cancelled"
+                                        ? coin == Coin.ethereum
+                                            ? "Failed"
+                                            : "Cancelled"
                                         : whatIsIt(
                                             _transaction,
                                             currentHeight,
@@ -781,8 +784,8 @@ class _TransactionDetailsViewState
                               isDesktop
                                   ? const _Divider()
                                   : const SizedBox(
-                                height: 12,
-                              ),
+                                      height: 12,
+                                    ),
                             if (coin == Coin.epicCash)
                               RoundedWhiteContainer(
                                 padding: isDesktop
@@ -790,22 +793,22 @@ class _TransactionDetailsViewState
                                     : const EdgeInsets.all(12),
                                 child: Row(
                                   mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
+                                      MainAxisAlignment.spaceBetween,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             "On chain note",
                                             style: isDesktop
                                                 ? STextStyles
-                                                .desktopTextExtraExtraSmall(
-                                                context)
+                                                    .desktopTextExtraExtraSmall(
+                                                        context)
                                                 : STextStyles.itemSubtitle(
-                                                context),
+                                                    context),
                                           ),
                                           const SizedBox(
                                             height: 8,
@@ -814,18 +817,16 @@ class _TransactionDetailsViewState
                                             _transaction.otherData ?? "",
                                             style: isDesktop
                                                 ? STextStyles
-                                                .desktopTextExtraExtraSmall(
-                                                context)
-                                                .copyWith(
-                                              color: Theme.of(
-                                                  context)
-                                                  .extension<
-                                                  StackColors>()!
-                                                  .textDark,
-                                            )
-                                                : STextStyles
-                                                .itemSubtitle12(
-                                                context),
+                                                        .desktopTextExtraExtraSmall(
+                                                            context)
+                                                    .copyWith(
+                                                    color: Theme.of(context)
+                                                        .extension<
+                                                            StackColors>()!
+                                                        .textDark,
+                                                  )
+                                                : STextStyles.itemSubtitle12(
+                                                    context),
                                           ),
                                         ],
                                       ),
@@ -854,7 +855,9 @@ class _TransactionDetailsViewState
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        (coin == Coin.epicCash) ? "Local Note" : "Note ",
+                                        (coin == Coin.epicCash)
+                                            ? "Local Note"
+                                            : "Note ",
                                         style: isDesktop
                                             ? STextStyles
                                                 .desktopTextExtraExtraSmall(
@@ -923,7 +926,9 @@ class _TransactionDetailsViewState
                                         notesServiceChangeNotifierProvider(
                                                 walletId)
                                             .select((value) => value.getNoteFor(
-                                                txid: (coin == Coin.epicCash)? _transaction.slateId! : _transaction.txid ))),
+                                                txid: (coin == Coin.epicCash)
+                                                    ? _transaction.slateId!
+                                                    : _transaction.txid))),
                                     builder: (builderContext,
                                         AsyncSnapshot<String> snapshot) {
                                       if (snapshot.connectionState ==

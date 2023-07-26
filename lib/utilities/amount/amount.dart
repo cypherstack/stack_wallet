@@ -11,8 +11,7 @@
 import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
-import 'package:intl/number_symbols.dart';
-import 'package:intl/number_symbols_data.dart';
+import 'package:stackwallet/utilities/util.dart';
 
 class Amount {
   Amount({
@@ -52,8 +51,7 @@ class Amount {
     }
 
     // get number symbols for decimal place and group separator
-    final numberSymbols = numberFormatSymbols[locale] as NumberSymbols? ??
-        numberFormatSymbols[locale.substring(0, 2)] as NumberSymbols?;
+    final numberSymbols = Util.getSymbolsFor(locale: locale);
 
     final groupSeparator = numberSymbols?.GROUP_SEP ?? ",";
     final decimalSeparator = numberSymbols?.DECIMAL_SEP ?? ".";
@@ -101,8 +99,7 @@ class Amount {
     final wholeNumber = decimal.truncate();
 
     // get number symbols for decimal place and group separator
-    final numberSymbols = numberFormatSymbols[locale] as NumberSymbols? ??
-        numberFormatSymbols[locale.substring(0, 2)] as NumberSymbols?;
+    final numberSymbols = Util.getSymbolsFor(locale: locale);
 
     final String separator = numberSymbols?.DECIMAL_SEP ?? ".";
 
