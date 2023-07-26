@@ -121,62 +121,63 @@ class _DesktopOrdinals extends ConsumerState<DesktopOrdinalsView> {
           children: [
             Row(
               children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius,
-                    ),
-                    child: TextField(
-                      autocorrect: Util.isDesktop ? false : true,
-                      enableSuggestions: Util.isDesktop ? false : true,
-                      controller: searchController,
-                      focusNode: searchFocusNode,
-                      onChanged: (value) {
-                        setState(() {
-                          _searchTerm = value;
-                        });
-                      },
-                      style: STextStyles.field(context),
-                      decoration: standardInputDecoration(
-                        "Search",
-                        searchFocusNode,
-                        context,
-                      ).copyWith(
-                        prefixIcon: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 20,
-                          ),
-                          child: SvgPicture.asset(
-                            Assets.svg.search,
-                            width: 16,
-                            height: 16,
-                          ),
-                        ),
-                        suffixIcon: searchController.text.isNotEmpty
-                            ? Padding(
-                                padding: const EdgeInsets.only(right: 0),
-                                child: UnconstrainedBox(
-                                  child: Row(
-                                    children: [
-                                      TextFieldIconButton(
-                                        child: const XIcon(),
-                                        onTap: () async {
-                                          setState(() {
-                                            searchController.text = "";
-                                            _searchTerm = "";
-                                          });
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            : null,
-                      ),
-                    ),
-                  ),
-                ),
+                const Spacer(),
+                // Expanded(
+                //   child: ClipRRect(
+                //     borderRadius: BorderRadius.circular(
+                //       Constants.size.circularBorderRadius,
+                //     ),
+                //     child: TextField(
+                //       autocorrect: Util.isDesktop ? false : true,
+                //       enableSuggestions: Util.isDesktop ? false : true,
+                //       controller: searchController,
+                //       focusNode: searchFocusNode,
+                //       onChanged: (value) {
+                //         setState(() {
+                //           _searchTerm = value;
+                //         });
+                //       },
+                //       style: STextStyles.field(context),
+                //       decoration: standardInputDecoration(
+                //         "Search",
+                //         searchFocusNode,
+                //         context,
+                //       ).copyWith(
+                //         prefixIcon: Padding(
+                //           padding: const EdgeInsets.symmetric(
+                //             horizontal: 10,
+                //             vertical: 20,
+                //           ),
+                //           child: SvgPicture.asset(
+                //             Assets.svg.search,
+                //             width: 16,
+                //             height: 16,
+                //           ),
+                //         ),
+                //         suffixIcon: searchController.text.isNotEmpty
+                //             ? Padding(
+                //                 padding: const EdgeInsets.only(right: 0),
+                //                 child: UnconstrainedBox(
+                //                   child: Row(
+                //                     children: [
+                //                       TextFieldIconButton(
+                //                         child: const XIcon(),
+                //                         onTap: () async {
+                //                           setState(() {
+                //                             searchController.text = "";
+                //                             _searchTerm = "";
+                //                           });
+                //                         },
+                //                       ),
+                //                     ],
+                //                   ),
+                //                 ),
+                //               )
+                //             : null,
+                //       ),
+                //     ),
+                //   ),
+                // ),
                 // const SizedBox(
                 //   width: 16,
                 // ),

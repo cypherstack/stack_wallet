@@ -19,7 +19,6 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class DesktopOrdinalDetailsView extends ConsumerStatefulWidget {
@@ -175,23 +174,23 @@ class _DesktopOrdinalDetailsViewState
                             // const SizedBox(
                             //   width: 16,
                             // ),
-                            SecondaryButton(
-                              width: 150,
-                              label: "Download",
-                              icon: SvgPicture.asset(
-                                Assets.svg.arrowDown,
-                                width: 13,
-                                height: 18,
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .buttonTextSecondary,
-                              ),
-                              buttonHeight: ButtonHeight.l,
-                              iconSpacing: 8,
-                              onPressed: () {
-                                // TODO: save and download image to device
-                              },
-                            ),
+                            // SecondaryButton(
+                            //   width: 150,
+                            //   label: "Download",
+                            //   icon: SvgPicture.asset(
+                            //     Assets.svg.arrowDown,
+                            //     width: 13,
+                            //     height: 18,
+                            //     color: Theme.of(context)
+                            //         .extension<StackColors>()!
+                            //         .buttonTextSecondary,
+                            //   ),
+                            //   buttonHeight: ButtonHeight.l,
+                            //   iconSpacing: 8,
+                            //   onPressed: () {
+                            //     // TODO: save and download image to device
+                            //   },
+                            // ),
                           ],
                         ),
                       ),
