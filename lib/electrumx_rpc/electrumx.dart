@@ -159,8 +159,8 @@ class ElectrumX {
         throw Exception(
           "JSONRPC response\n"
           "     command: $command\n"
-          "     args: $args\n"
-          "     error: ${response.data}",
+          "     error: ${response.data}"
+          "     args: $args\n",
         );
       }
 

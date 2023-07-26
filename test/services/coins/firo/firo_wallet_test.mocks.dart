@@ -1151,4 +1151,14 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
+  @override
+  _i5.Future<int?> getHighestUsedMintIndex({required String? walletId}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getHighestUsedMintIndex,
+          [],
+          {#walletId: walletId},
+        ),
+        returnValue: _i5.Future<int?>.value(),
+      ) as _i5.Future<int?>);
 }
