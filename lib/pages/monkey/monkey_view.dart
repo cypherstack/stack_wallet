@@ -206,60 +206,100 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
 
     //edit for desktop
     return Background(
-      child: Stack(
-        children: [
-          ConditionalParent(
-            condition: isDesktop,
-            builder: (child) => DesktopScaffold(
-              appBar: DesktopAppBar(
-                background: Theme.of(context).extension<StackColors>()!.popupBG,
-                leading: Expanded(
-                  child: Row(
-                    children: [
-                      const SizedBox(
-                        width: 32,
-                      ),
-                      AppBarIconButton(
-                        size: 32,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textFieldDefaultBG,
-                        shadows: const [],
-                        icon: SvgPicture.asset(
-                          Assets.svg.arrowLeft,
-                          width: 18,
-                          height: 18,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .topNavIconPrimary,
-                        ),
-                        onPressed: () {
-                          if (mounted) {
-                            Navigator.of(context).pop();
-                          }
-                        },
-                      ),
-                      const SizedBox(
-                        width: 15,
-                      ),
-                      Text(
-                        "MonKey",
-                        style: STextStyles.navBarTitle(context),
-                      ),
-                    ],
+      child: ConditionalParent(
+        condition: isDesktop,
+        builder: (child) => DesktopScaffold(
+          appBar: DesktopAppBar(
+            background: Theme.of(context).extension<StackColors>()!.popupBG,
+            leading: Expanded(
+              child: Row(
+                children: [
+                  const SizedBox(
+                    width: 32,
                   ),
-                ),
-                trailing: AspectRatio(
+                  AppBarIconButton(
+                    size: 32,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
+                    shadows: const [],
+                    icon: SvgPicture.asset(
+                      Assets.svg.arrowLeft,
+                      width: 18,
+                      height: 18,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .topNavIconPrimary,
+                    ),
+                    onPressed: () {
+                      if (mounted) {
+                        Navigator.of(context).pop();
+                      }
+                    },
+                  ),
+                  const SizedBox(
+                    width: 15,
+                  ),
+                  Text(
+                    "MonKey",
+                    style: STextStyles.navBarTitle(context),
+                  ),
+                ],
+              ),
+            ),
+            trailing: AspectRatio(
+              aspectRatio: 1,
+              child: AppBarIconButton(
+                  icon: SvgPicture.asset(Assets.svg.circleQuestion),
+                  onPressed: () {
+                    showDialog<dynamic>(
+                        context: context,
+                        useSafeArea: false,
+                        barrierDismissible: true,
+                        builder: (context) {
+                          return const StackDialog(
+                            title: "About MonKeys",
+                            message:
+                                "A MonKey is a visual representation of your Banano address.",
+                          );
+                        });
+                  }),
+            ),
+            useSpacers: false,
+            isCompactHeight: true,
+          ),
+          body: child,
+        ),
+        child: ConditionalParent(
+          condition: !isDesktop,
+          builder: (child) => Scaffold(
+            appBar: AppBar(
+              leading: AppBarBackButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              title: Text(
+                "MonKey",
+                style: STextStyles.navBarTitle(context),
+              ),
+              actions: [
+                AspectRatio(
                   aspectRatio: 1,
                   child: AppBarIconButton(
-                      icon: SvgPicture.asset(Assets.svg.circleQuestion),
+                      icon: SvgPicture.asset(
+                        Assets.svg.circleQuestion,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .infoItemText,
+                      ),
                       onPressed: () {
                         showDialog<dynamic>(
                             context: context,
                             useSafeArea: false,
                             barrierDismissible: true,
                             builder: (context) {
-                              return const StackDialog(
+                              return const StackOkDialog(
                                 title: "About MonKeys",
                                 message:
                                     "A MonKey is a visual representation of your Banano address.",
@@ -267,185 +307,155 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                             });
                       }),
                 ),
-                useSpacers: false,
-                isCompactHeight: true,
-              ),
-              body: child,
+              ],
+            ),
+            body: child,
+          ),
+          child: ConditionalParent(
+            condition: isDesktop,
+            builder: (child) => SizedBox(
+              width: 318,
+              child: child,
             ),
             child: ConditionalParent(
-              condition: !isDesktop,
-              builder: (child) => Scaffold(
-                appBar: AppBar(
-                  leading: AppBarBackButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  title: Text(
-                    "MonKey",
-                    style: STextStyles.navBarTitle(context),
-                  ),
-                  actions: [
-                    AspectRatio(
-                      aspectRatio: 1,
-                      child: AppBarIconButton(
-                          icon: SvgPicture.asset(
-                            Assets.svg.circleQuestion,
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .infoItemText,
-                          ),
-                          onPressed: () {
-                            showDialog<dynamic>(
-                                context: context,
-                                useSafeArea: false,
-                                barrierDismissible: true,
-                                builder: (context) {
-                                  return const StackOkDialog(
-                                    title: "About MonKeys",
-                                    message:
-                                        "A MonKey is a visual representation of your Banano address.",
-                                  );
-                                });
-                          }),
+              condition: imageBytes != null,
+              builder: (_) => Column(
+                children: [
+                  isDesktop
+                      ? const SizedBox(
+                          height: 50,
+                        )
+                      : const Spacer(
+                          flex: 1,
+                        ),
+                  if (imageBytes != null)
+                    SizedBox(
+                      width: 300,
+                      height: 300,
+                      child: SvgPicture.memory(Uint8List.fromList(imageBytes)),
                     ),
-                  ],
-                ),
-                body: child,
-              ),
-              child: ConditionalParent(
-                condition: isDesktop,
-                builder: (child) => SizedBox(
-                  width: 300,
-                  height: 300,
-                  child: child,
-                ),
-                child: ConditionalParent(
-                  condition: imageBytes != null,
-                  builder: (child) => Column(
-                    children: [
-                      const Spacer(
-                        flex: 1,
-                      ),
-                      if (imageBytes != null)
-                        SizedBox(
-                          width: 300,
-                          height: 300,
-                          child:
-                              SvgPicture.memory(Uint8List.fromList(imageBytes)),
+                  isDesktop
+                      ? const SizedBox(
+                          height: 50,
+                        )
+                      : const Spacer(
+                          flex: 1,
                         ),
-                      const Spacer(
-                        flex: 1,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          children: [
-                            SecondaryButton(
-                              label: "Save as SVG",
-                              onPressed: () async {
-                                await showLoading(
-                                  whileFuture:
-                                      downloadMonkey(receivingAddress, false),
-                                  context: context,
-                                  isDesktop: Util.isDesktop,
-                                  message: "Saving MonKey svg",
-                                );
-                              },
-                            ),
-                            const SizedBox(height: 12),
-                            SecondaryButton(
-                              label: "Download as PNG",
-                              onPressed: () async {
-                                await showLoading(
-                                  whileFuture:
-                                      downloadMonkey(receivingAddress, true),
-                                  context: context,
-                                  isDesktop: Util.isDesktop,
-                                  message: "Downloading MonKey png",
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      // child,
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      const Spacer(
-                        flex: 4,
-                      ),
-                      Center(
-                        child: Column(
-                          children: [
-                            Opacity(
-                              opacity: 0.2,
-                              child: SvgPicture.file(
-                                File(
-                                  ref.watch(coinIconProvider(coin)),
-                                ),
-                                width: 200,
-                                height: 200,
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 40,
-                            ),
-                            Text(
-                              "You do not have a MonKey yet. \nFetch yours now!",
-                              style: STextStyles.smallMed14(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark3,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Spacer(
-                        flex: 6,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: PrimaryButton(
-                          label: "Fetch MonKey",
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        SecondaryButton(
+                          label: "Save as SVG",
                           onPressed: () async {
-                            final future = Future.wait([
-                              getMonkeyImage(receivingAddress),
-                              Future<void>.delayed(const Duration(seconds: 2)),
-                            ]);
-
                             await showLoading(
-                              whileFuture: future,
+                              whileFuture:
+                                  downloadMonkey(receivingAddress, false),
                               context: context,
                               isDesktop: Util.isDesktop,
-                              message: "Fetching MonKey",
-                              subMessage: "We are fetching your MonKey",
+                              message: "Saving MonKey svg",
                             );
-
-                            // if (isDesktop) {
-                            //   Navigator.of(context).popUntil(
-                            //     ModalRoute.withName(
-                            //         DesktopWalletView.routeName),
-                            //   );
-                            // } else {
-                            //   Navigator.of(context).popUntil(
-                            //     ModalRoute.withName(WalletView.routeName),
-                            //   );
-                            // }
                           },
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 12),
+                        SecondaryButton(
+                          label: "Download as PNG",
+                          onPressed: () async {
+                            await showLoading(
+                              whileFuture:
+                                  downloadMonkey(receivingAddress, true),
+                              context: context,
+                              isDesktop: Util.isDesktop,
+                              message: "Downloading MonKey png",
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                  // child,
+                ],
+              ),
+              child: Column(
+                children: [
+                  isDesktop
+                      ? const SizedBox(
+                          height: 100,
+                        )
+                      : const Spacer(
+                          flex: 4,
+                        ),
+                  Center(
+                    child: Column(
+                      children: [
+                        Opacity(
+                          opacity: 0.2,
+                          child: SvgPicture.file(
+                            File(
+                              ref.watch(coinIconProvider(coin)),
+                            ),
+                            width: 200,
+                            height: 200,
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 70,
+                        ),
+                        Text(
+                          "You do not have a MonKey yet. \nFetch yours now!",
+                          style: STextStyles.smallMed14(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark3,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                  isDesktop
+                      ? const SizedBox(
+                          height: 50,
+                        )
+                      : const Spacer(
+                          flex: 6,
+                        ),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: PrimaryButton(
+                      label: "Fetch MonKey",
+                      onPressed: () async {
+                        final future = Future.wait([
+                          getMonkeyImage(receivingAddress),
+                          Future<void>.delayed(const Duration(seconds: 2)),
+                        ]);
+
+                        await showLoading(
+                          whileFuture: future,
+                          context: context,
+                          isDesktop: Util.isDesktop,
+                          message: "Fetching MonKey",
+                          subMessage: "We are fetching your MonKey",
+                        );
+
+                        // if (isDesktop) {
+                        //   Navigator.of(context).popUntil(
+                        //     ModalRoute.withName(
+                        //         DesktopWalletView.routeName),
+                        //   );
+                        // } else {
+                        //   Navigator.of(context).popUntil(
+                        //     ModalRoute.withName(WalletView.routeName),
+                        //   );
+                        // }
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
