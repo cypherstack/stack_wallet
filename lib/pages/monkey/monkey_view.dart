@@ -7,40 +7,34 @@ import 'package:flutter_svg/svg.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:stackwallet/pages/monkey/sub_widgets/fetch_monkey_dialog.dart';
-import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/coins/banano/banano_wallet.dart';
-import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
+import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
-
-import '../../widgets/desktop/desktop_app_bar.dart';
-import '../../widgets/desktop/desktop_scaffold.dart';
 
 class MonkeyView extends ConsumerStatefulWidget {
   const MonkeyView({
     Key? key,
     required this.walletId,
-    required this.managerProvider,
   }) : super(key: key);
 
   static const String routeName = "/monkey";
   static const double navBarHeight = 65.0;
 
   final String walletId;
-  final ChangeNotifierProvider<Manager> managerProvider;
 
   @override
   ConsumerState<MonkeyView> createState() => _MonkeyViewState();
@@ -48,23 +42,21 @@ class MonkeyView extends ConsumerStatefulWidget {
 
 class _MonkeyViewState extends ConsumerState<MonkeyView> {
   late final String walletId;
-  late final ChangeNotifierProvider<Manager> managerProvider;
 
   String receivingAddress = "";
 
-  void getMonkeyImage(String address) async {
+  Future<void> getMonkeyImage(String address) async {
     if (address.isEmpty) {
       //address shouldn't be empty
       return;
     }
 
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId)));
-
     final http.Response response = await http
         .get(Uri.parse('https://monkey.banano.cc/api/v1/monkey/$address'));
 
     if (response.statusCode == 200) {
+      final manager =
+          ref.read(walletsChangeNotifierProvider).getManager(walletId);
       final decodedResponse = response.bodyBytes;
       await (manager.wallet as BananoWallet)
           .updateMonkeyImageBytes(decodedResponse);
@@ -172,7 +164,6 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
   @override
   void initState() {
     walletId = widget.walletId;
-    managerProvider = widget.managerProvider;
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       final address = await ref
@@ -194,9 +185,9 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
 
   @override
   Widget build(BuildContext context) {
-    final Coin coin = ref.watch(managerProvider.select((value) => value.coin));
     final manager = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManager(widget.walletId)));
+    final Coin coin = manager.coin;
 
     final bool isDesktop = Util.isDesktop;
 
@@ -400,34 +391,29 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                         child: PrimaryButton(
                           label: "Fetch MonKey",
                           onPressed: () async {
-                            getMonkeyImage(receivingAddress);
+                            final future = Future.wait([
+                              getMonkeyImage(receivingAddress),
+                              Future<void>.delayed(const Duration(seconds: 2)),
+                            ]);
 
-                            showDialog<dynamic>(
+                            await showLoading(
+                              whileFuture: future,
                               context: context,
-                              useSafeArea: false,
-                              barrierDismissible: false,
-                              builder: (context) {
-                                return FetchMonkeyDialog(
-                                  onCancel: () async {
-                                    Navigator.of(context).pop();
-                                  },
-                                );
-                              },
+                              isDesktop: Util.isDesktop,
+                              message: "Fetching MonKey",
+                              subMessage: "We are fetching your MonKey",
                             );
 
-                            await Future<void>.delayed(
-                                const Duration(seconds: 2));
-
-                            if (isDesktop) {
-                              Navigator.of(context).popUntil(
-                                ModalRoute.withName(
-                                    DesktopWalletView.routeName),
-                              );
-                            } else {
-                              Navigator.of(context).popUntil(
-                                ModalRoute.withName(WalletView.routeName),
-                              );
-                            }
+                            // if (isDesktop) {
+                            //   Navigator.of(context).popUntil(
+                            //     ModalRoute.withName(
+                            //         DesktopWalletView.routeName),
+                            //   );
+                            // } else {
+                            //   Navigator.of(context).popUntil(
+                            //     ModalRoute.withName(WalletView.routeName),
+                            //   );
+                            // }
                           },
                         ),
                       ),

@@ -378,12 +378,11 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case MonkeyView.routeName:
-        if (args is Tuple2<String, ChangeNotifierProvider<Manager>>) {
+        if (args is String) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => MonkeyView(
-              walletId: args.item1,
-              managerProvider: args.item2,
+              walletId: args,
             ),
             settings: RouteSettings(
               name: settings.name,

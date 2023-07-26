@@ -42,7 +42,6 @@ import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
-import 'package:tuple/tuple.dart';
 
 class DesktopWalletFeatures extends ConsumerStatefulWidget {
   const DesktopWalletFeatures({
@@ -318,16 +317,10 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
   Future<void> _onMonkeyPressed() async {
     Navigator.of(context, rootNavigator: true).pop();
-    final managerProvider = ref
-        .read(walletsChangeNotifierProvider)
-        .getManagerProvider(widget.walletId);
 
     await (Navigator.of(context).pushNamed(
       MonkeyView.routeName,
-      arguments: Tuple2(
-        widget.walletId,
-        managerProvider,
-      ),
+      arguments: widget.walletId,
     ));
   }
 
