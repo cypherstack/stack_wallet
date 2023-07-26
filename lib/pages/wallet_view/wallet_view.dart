@@ -938,10 +938,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       onTap: () {
                         Navigator.of(context).pushNamed(
                           MonkeyView.routeName,
-                          arguments: Tuple2(
-                            widget.walletId,
-                            widget.managerProvider,
-                          ),
+                          arguments: widget.walletId,
                         );
                       }),
                   if (ref.watch(
