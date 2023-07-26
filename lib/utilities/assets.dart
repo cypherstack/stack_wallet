@@ -92,6 +92,7 @@ class _SVG {
 
   final coinControl = const _COIN_CONTROL();
 
+  String get monkey => "assets/svg/monkey.svg";
   String get circleSliders => "assets/svg/configuration.svg";
   String get circlePlus => "assets/svg/plus-circle.svg";
   String get circlePlusFilled => "assets/svg/circle-plus-filled.svg";

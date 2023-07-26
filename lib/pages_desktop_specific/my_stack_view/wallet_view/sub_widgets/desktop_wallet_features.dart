@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/monkey/monkey_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/coin_control/desktop_coin_control_view.dart';
@@ -82,6 +83,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         onAnonymizeAllPressed: _onAnonymizeAllPressed,
         onWhirlpoolPressed: _onWhirlpoolPressed,
         onOrdinalsPressed: _onOrdinalsPressed,
+        onMonkeyPressed: _onMonkeyPressed,
       ),
     );
   }
@@ -315,6 +317,15 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     }
   }
 
+  Future<void> _onMonkeyPressed() async {
+    Navigator.of(context, rootNavigator: true).pop();
+
+    await (Navigator.of(context).pushNamed(
+      MonkeyView.routeName,
+      arguments: widget.walletId,
+    ));
+  }
+
   void _onOrdinalsPressed() {
     Navigator.of(context, rootNavigator: true).pop();
 
@@ -342,8 +353,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         manager.coin == Coin.firo ||
         manager.coin == Coin.firoTestNet ||
         manager.hasWhirlpoolSupport ||
-        manager.hasOrdinalsSupport;
-
+        manager.coin == Coin.banano ||
+        manager.hasWhirlpoolSupport;
     return Row(
       children: [
         if (Constants.enableExchange)
