@@ -925,33 +925,25 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         );
                       },
                     ),
-                  if (ref.watch(
-                        walletsChangeNotifierProvider.select(
-                          (value) => value
-                              .getManager(widget.walletId)
-                              .hasCoinControlSupport,
-                        ),
-                      ) &&
-                      ref.watch(
-                        prefsChangeNotifierProvider.select(
-                          (value) => value.enableCoinControl,
-                        ),
-                      ))
-                    WalletNavigationBarItemData(
-                        icon: SvgPicture.asset(Assets.svg.monkey,
-                          height: 20,
-                          width: 20,
-                          color: Theme.of(context).extension<StackColors>()!.bottomNavIconIcon,),
-                        label: "MonKey",
-                        onTap: () {
-                          Navigator.of(context).pushNamed(
-                            MonkeyView.routeName,
-                            arguments: Tuple2(
-                              widget.walletId,
-                              widget.managerProvider,
-                            ),
-                          );
-                        }),
+                  WalletNavigationBarItemData(
+                      icon: SvgPicture.asset(
+                        Assets.svg.monkey,
+                        height: 20,
+                        width: 20,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .bottomNavIconIcon,
+                      ),
+                      label: "MonKey",
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          MonkeyView.routeName,
+                          arguments: Tuple2(
+                            widget.walletId,
+                            widget.managerProvider,
+                          ),
+                        );
+                      }),
                   if (ref.watch(
                         walletsChangeNotifierProvider.select(
                           (value) => value

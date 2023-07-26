@@ -22,6 +22,7 @@ import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class MonkeyView extends ConsumerStatefulWidget {
   const MonkeyView({
@@ -220,34 +221,10 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                             useSafeArea: false,
                             barrierDismissible: true,
                             builder: (context) {
-                              return Dialog(
-                                child: Material(
-                                  borderRadius: BorderRadius.circular(
-                                    20,
-                                  ),
-                                  child: Container(
-                                    height: 200,
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .popupBG,
-                                      borderRadius: BorderRadius.circular(
-                                        20,
-                                      ),
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Center(
-                                          child: Text(
-                                            "Help",
-                                            style: STextStyles.pageTitleH2(
-                                                context),
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                ),
+                              return const StackOkDialog(
+                                title: "About MonKeys",
+                                message:
+                                    "A MonKey is a visual representation of your Banano address.",
                               );
                             });
                       }),
