@@ -2797,96 +2797,68 @@ class FiroWallet extends CoinServiceAPI
         .walletIdEqualTo(walletId)
         .filter()
         .isUsedEqualTo(false)
-        .and()
-        .isJMintEqualTo(true)
         .not()
         .valueEqualTo(0.toString())
         .findAll();
 
-    // Get all joinsplit transaction ids
+    final List<isar_models.LelantusCoin> updatedCoins = [];
 
-    final lelantusJoinSplitTxns = await db
-        .getTransactions(walletId)
-        .filter()
-        .isLelantusEqualTo(true)
-        .and()
-        .subTypeEqualTo(isar_models.TransactionSubType.join)
-        .findAll();
+    final usedSerialNumbersSet = (await getUsedCoinSerials()).toSet();
 
-    Set<String> joinSplitTXIDs = {};
-
-    // for (final tx in lelantusJoinSplitTxns) {
-    //   joinSplitTXIDs.add(tx.txid);
-    // }
-    for (final coin in lelantusCoins) {
-      joinSplitTXIDs.add(coin.txid);
-    }
-
-    Map<String, Tuple2<isar_models.Address?, isar_models.Transaction>>
-        updatedData = {};
-
-    // Grab the most recent information on all the joinsplits
-    final updatedJSplit = await getJMintTransactions(
-      cachedElectrumXClient,
-      joinSplitTXIDs.toList(),
-      coin,
+    final root = await Bip32Utils.getBip32Root(
+      (await mnemonic).join(" "),
+      (await mnemonicPassphrase)!,
+      _network,
     );
 
-    final currentChainHeight = await chainHeight;
+    for (final coin in lelantusCoins) {
+      final _derivePath = constructDerivePath(
+        networkWIF: _network.wif,
+        chain: MINT_INDEX,
+        index: coin.mintIndex,
+      );
+      final bip32.BIP32 mintKeyPair = await Bip32Utils.getBip32NodeFromRoot(
+        root,
+        _derivePath,
+      );
 
-    // update all of joinsplits that are now confirmed.
-    for (final tx in updatedJSplit.entries) {
-      isar_models.Transaction? currentTx;
+      final String serialNumber = GetSerialNumber(
+        int.parse(coin.value),
+        Format.uint8listToString(mintKeyPair.privateKey!),
+        coin.mintIndex,
+        isTestnet: this.coin == Coin.firoTestNet,
+      );
+      final bool isUsed = usedSerialNumbersSet.contains(serialNumber);
 
-      try {
-        currentTx =
-            lelantusJoinSplitTxns.firstWhere((e) => e.txid == tx.value.txid);
-      } catch (_) {
-        currentTx = null;
+      if (isUsed) {
+        updatedCoins.add(coin.copyWith(isUsed: isUsed));
       }
 
-      if (currentTx == null) {
-        // this send was accidentally not included in the list
-        tx.value.isLelantus = true;
-        updatedData[tx.value.txid] =
-            Tuple2(tx.value.address.value ?? tx.key, tx.value);
-      } else if (currentTx.isConfirmed(
-              currentChainHeight, MINIMUM_CONFIRMATIONS) !=
-          tx.value.isConfirmed(currentChainHeight, MINIMUM_CONFIRMATIONS)) {
-        tx.value.isLelantus = true;
-        updatedData[tx.value.txid] =
-            Tuple2(tx.value.address.value ?? tx.key, tx.value);
+      final tx = await db.getTransaction(walletId, coin.txid);
+      if (tx == null) {
+        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
       }
     }
 
-    final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txnsData =
-        [];
-
-    for (final value in updatedData.values) {
-      // allow possible null address on mints as we don't display address
-      // this should normally never be null anyways but old (dbVersion up to 4)
-      // migrated transactions may not have had an address (full rescan should
-      // fix this)
-      isar_models.Address? transactionAddress;
+    if (updatedCoins.isNotEmpty) {
       try {
-        transactionAddress =
-            value.item2.subType == isar_models.TransactionSubType.mint
-                ? value.item1
-                : value.item1!;
-      } catch (_) {
-        Logging.instance
-            .log("_refreshLelantusData value: $value", level: LogLevel.Fatal);
+        await db.isar.writeTxn(() async {
+          for (final c in updatedCoins) {
+            await db.isar.lelantusCoins.deleteByMintIndexWalletId(
+              c.mintIndex,
+              c.walletId,
+            );
+          }
+          await db.isar.lelantusCoins.putAll(updatedCoins);
+        });
+      } catch (e, s) {
+        Logging.instance.log(
+          "$e\n$s",
+          level: LogLevel.Fatal,
+        );
+        rethrow;
       }
-      final outs =
-          value.item2.outputs.where((_) => true).toList(growable: false);
-      final ins = value.item2.inputs.where((_) => true).toList(growable: false);
-
-      txnsData.add(Tuple2(
-          value.item2.copyWith(inputs: ins, outputs: outs).item1,
-          transactionAddress));
     }
-
-    await db.addNewTransactionData(txnsData, walletId);
   }
 
   Future<String> _getMintHex(int amount, int index) async {
