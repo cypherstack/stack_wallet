@@ -276,10 +276,7 @@ class DB {
 
   Future<void> deleteAll<T>({required String boxName}) async {
     await mutex.protect(() async {
-      Box<T> box = Hive.box<T>(boxName);
-      if (!box.isOpen) {
-        box = await Hive.openBox(boxName);
-      }
+      final box = await Hive.openBox<T>(boxName);
       await box.clear();
     });
   }
