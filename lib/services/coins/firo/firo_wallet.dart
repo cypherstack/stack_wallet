@@ -3538,11 +3538,21 @@ class FiroWallet extends CoinServiceAPI
             ),
           );
         }
+        final txid = txObject["txid"] as String;
 
         const subType = isar_models.TransactionSubType.join;
+
         final type = nonWalletAddressFoundInOutputs
             ? isar_models.TransactionType.outgoing
-            : isar_models.TransactionType.incoming;
+            : (await db.isar.lelantusCoins
+                        .where()
+                        .walletIdEqualTo(walletId)
+                        .filter()
+                        .txidEqualTo(txid)
+                        .findFirst()) ==
+                    null
+                ? isar_models.TransactionType.incoming
+                : isar_models.TransactionType.sentToSelf;
 
         final amount = nonWalletAddressFoundInOutputs
             ? totalOutputValue
@@ -3569,7 +3579,7 @@ class FiroWallet extends CoinServiceAPI
 
         final tx = isar_models.Transaction(
           walletId: walletId,
-          txid: txObject["txid"] as String,
+          txid: txid,
           timestamp: txObject["blocktime"] as int? ??
               (DateTime.now().millisecondsSinceEpoch ~/ 1000),
           type: type,
