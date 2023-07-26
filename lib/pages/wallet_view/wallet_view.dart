@@ -22,6 +22,7 @@ import 'package:stackwallet/pages/buy_view/buy_in_wallet_view.dart';
 import 'package:stackwallet/pages/coin_control/coin_control_view.dart';
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
+import 'package:stackwallet/pages/monkey/monkey_view.dart';
 import 'package:stackwallet/pages/notification_views/notifications_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
@@ -924,6 +925,22 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         );
                       },
                     ),
+                  WalletNavigationBarItemData(
+                      icon: SvgPicture.asset(
+                        Assets.svg.monkey,
+                        height: 20,
+                        width: 20,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .bottomNavIconIcon,
+                      ),
+                      label: "MonKey",
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          MonkeyView.routeName,
+                          arguments: widget.walletId,
+                        );
+                      }),
                   if (ref.watch(
                         walletsChangeNotifierProvider.select(
                           (value) => value
