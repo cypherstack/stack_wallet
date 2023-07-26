@@ -232,6 +232,10 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                       const SizedBox(
                         width: 15,
                       ),
+                      SvgPicture.asset(Assets.svg.monkey),
+                      const SizedBox(
+                        width: 12,
+                      ),
                       Text(
                         "MonKey",
                         style: STextStyles.navBarTitle(context),
