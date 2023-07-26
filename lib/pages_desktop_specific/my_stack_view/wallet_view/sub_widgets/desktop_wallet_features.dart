@@ -19,10 +19,10 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/coin_control/desktop_coin_control_view.dart';
-import 'package:stackwallet/pages_desktop_specific/ordinals/desktop_ordinals_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_menu.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/more_features/more_features_dialog.dart';
+import 'package:stackwallet/pages_desktop_specific/ordinals/desktop_ordinals_view.dart';
 import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
 import 'package:stackwallet/providers/global/paynym_api_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
@@ -341,7 +341,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
             )) ||
         manager.coin == Coin.firo ||
         manager.coin == Coin.firoTestNet ||
-        manager.hasWhirlpoolSupport;
+        manager.hasWhirlpoolSupport ||
+        manager.hasOrdinalsSupport;
 
     return Row(
       children: [
