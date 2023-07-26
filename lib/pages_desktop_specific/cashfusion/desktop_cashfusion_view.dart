@@ -11,6 +11,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/services/mixins/fusion_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -93,21 +95,26 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
           ),
         ),
       ),
-      body: const Padding(
-        padding: EdgeInsets.all(24),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  // child: FusionParticipantList(
-                  //   walletId: widget.walletId,
-                  // ),
-                  child: Text("TODO FusionParticipantList"),
-                ),
-              ),
-            ],
+          const Text("TODO FusionParticipantList"),
+          const SizedBox(
+            height: 16,
           ),
+          TextButton(
+            onPressed: () => {
+              (ref
+                      .read(walletsChangeNotifierProvider)
+                      .getManager(widget.walletId)
+                      .wallet as FusionInterface)
+                  .fuse()
+            },
+            child: Text(
+              "Fuse",
+              style: STextStyles.desktopTextMedium(context),
+            ),
+          )
         ]),
       ),
     );

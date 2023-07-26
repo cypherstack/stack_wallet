@@ -109,7 +109,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
             _MoreFeaturesItem(
               label: "CashFusion",
               detail: "Decentralized Bitcoin Cash mixing protocol",
-              iconAsset: Assets.svg.robotHead,
+              iconAsset: Assets.svg.cashFusion,
               onPressed: () => widget.onFusionPressed?.call(),
             ),
           const SizedBox(
