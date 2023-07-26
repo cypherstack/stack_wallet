@@ -31,6 +31,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 
 class WalletSummaryInfo extends ConsumerStatefulWidget {
   const WalletSummaryInfo({
@@ -48,6 +49,8 @@ class WalletSummaryInfo extends ConsumerStatefulWidget {
 
 class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
   late StreamSubscription<BalanceRefreshedEvent> _balanceUpdated;
+
+  String receivingAddress = "";
 
   void showSheet() {
     showModalBottomSheet<dynamic>(
@@ -72,6 +75,17 @@ class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
         }
       },
     );
+
+    // managerProvider = widget.managerProvider;
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      final address = await ref
+          .read(walletsChangeNotifierProvider)
+          .getManager(widget.walletId)
+          .currentReceivingAddress;
+      setState(() {
+        receivingAddress = address;
+      });
+    });
     super.initState();
   }
 
@@ -84,6 +98,8 @@ class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
+
+    bool isMonkey = true;
 
     final externalCalls = ref.watch(
         prefsChangeNotifierProvider.select((value) => value.externalCalls));
@@ -125,84 +141,98 @@ class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
       title = _showAvailable ? "Available balance" : "Full balance";
     }
 
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              GestureDetector(
-                onTap: showSheet,
-                child: Row(
-                  children: [
-                    Text(
-                      title,
-                      style: STextStyles.subtitle500(context).copyWith(
+    return ConditionalParent(
+      condition: isMonkey && Coin == Coin.banano,
+      builder: (child) => Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            alignment: Alignment.centerRight,
+            image: NetworkImage(
+              'https://monkey.banano.cc/api/v1/monkey/$receivingAddress?format=png&size=512',
+            ),
+          ),
+        ),
+        child: child,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                GestureDetector(
+                  onTap: showSheet,
+                  child: Row(
+                    children: [
+                      Text(
+                        title,
+                        style: STextStyles.subtitle500(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFavoriteCard,
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 4,
+                      ),
+                      SvgPicture.asset(
+                        Assets.svg.chevronDown,
                         color: Theme.of(context)
                             .extension<StackColors>()!
                             .textFavoriteCard,
+                        width: 8,
+                        height: 4,
                       ),
-                    ),
-                    const SizedBox(
-                      width: 4,
-                    ),
-                    SvgPicture.asset(
-                      Assets.svg.chevronDown,
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: SelectableText(
+                    ref.watch(pAmountFormatter(coin)).format(balanceToShow),
+                    style: STextStyles.pageTitleH1(context).copyWith(
+                      fontSize: 24,
                       color: Theme.of(context)
                           .extension<StackColors>()!
                           .textFavoriteCard,
-                      width: 8,
-                      height: 4,
                     ),
-                  ],
+                  ),
                 ),
+                if (externalCalls)
+                  Text(
+                    "${(priceTuple.item1 * balanceToShow.decimal).toAmount(
+                          fractionDigits: 2,
+                        ).fiatString(
+                          locale: locale,
+                        )} $baseCurrency",
+                    style: STextStyles.subtitle500(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFavoriteCard,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          Column(
+            children: [
+              SvgPicture.file(
+                File(
+                  ref.watch(coinIconProvider(coin)),
+                ),
+                width: 24,
+                height: 24,
               ),
               const Spacer(),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: SelectableText(
-                  ref.watch(pAmountFormatter(coin)).format(balanceToShow),
-                  style: STextStyles.pageTitleH1(context).copyWith(
-                    fontSize: 24,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFavoriteCard,
-                  ),
-                ),
+              WalletRefreshButton(
+                walletId: widget.walletId,
+                initialSyncStatus: widget.initialSyncStatus,
               ),
-              if (externalCalls)
-                Text(
-                  "${(priceTuple.item1 * balanceToShow.decimal).toAmount(
-                        fractionDigits: 2,
-                      ).fiatString(
-                        locale: locale,
-                      )} $baseCurrency",
-                  style: STextStyles.subtitle500(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFavoriteCard,
-                  ),
-                ),
             ],
-          ),
-        ),
-        Column(
-          children: [
-            SvgPicture.file(
-              File(
-                ref.watch(coinIconProvider(coin)),
-              ),
-              width: 24,
-              height: 24,
-            ),
-            const Spacer(),
-            WalletRefreshButton(
-              walletId: widget.walletId,
-              initialSyncStatus: widget.initialSyncStatus,
-            ),
-          ],
-        )
-      ],
+          )
+        ],
+      ),
     );
   }
 }
