@@ -2512,12 +2512,7 @@ class FiroWallet extends CoinServiceAPI
   Future<List<Map<String, dynamic>>> createMintsFromAmount(int total) async {
     int tmpTotal = total;
     int counter = 0;
-    final lastUsedIndex = await db.isar.lelantusCoins
-        .where()
-        .walletIdEqualTo(walletId)
-        .sortByMintIndexDesc()
-        .mintIndexProperty()
-        .findFirst();
+    final lastUsedIndex = await db.getHighestUsedMintIndex(walletId: walletId);
     final nextFreeMintIndex = (lastUsedIndex ?? 0) + 1;
 
     final root = await Bip32Utils.getBip32Root(
@@ -2908,12 +2903,8 @@ class FiroWallet extends CoinServiceAPI
         level: LogLevel.Info);
 
     if (txid == transactionInfo['txid']) {
-      final lastUsedIndex = await db.isar.lelantusCoins
-          .where()
-          .walletIdEqualTo(walletId)
-          .sortByMintIndexDesc()
-          .mintIndexProperty()
-          .findFirst();
+      final lastUsedIndex =
+          await db.getHighestUsedMintIndex(walletId: walletId);
       final nextFreeMintIndex = (lastUsedIndex ?? 0) + 1;
 
       if (transactionInfo['spendCoinIndexes'] != null) {
@@ -4577,12 +4568,7 @@ class FiroWallet extends CoinServiceAPI
       int spendAmount, String address, bool subtractFeeFromAmount) async {
     final _mnemonic = await mnemonicString;
     final _mnemonicPassphrase = await mnemonicPassphrase;
-    final lastUsedIndex = await db.isar.lelantusCoins
-        .where()
-        .walletIdEqualTo(walletId)
-        .sortByMintIndexDesc()
-        .mintIndexProperty()
-        .findFirst();
+    final lastUsedIndex = await db.getHighestUsedMintIndex(walletId: walletId);
     final nextFreeMintIndex = (lastUsedIndex ?? 0) + 1;
     final lelantusEntry = await _getLelantusEntry();
     final anonymitySets = await fetchAnonymitySets();

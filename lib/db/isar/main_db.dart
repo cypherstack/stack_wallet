@@ -512,4 +512,15 @@ class MainDB {
       isar.writeTxn(() async {
         await isar.ethContracts.putAll(contracts);
       });
+
+  // ========== Lelantus =======================================================
+
+  Future<int?> getHighestUsedMintIndex({required String walletId}) async {
+    return await isar.lelantusCoins
+        .where()
+        .walletIdEqualTo(walletId)
+        .sortByMintIndexDesc()
+        .mintIndexProperty()
+        .findFirst();
+  }
 }
