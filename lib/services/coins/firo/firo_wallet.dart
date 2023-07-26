@@ -1169,6 +1169,11 @@ class FiroWallet extends CoinServiceAPI
     required Amount amount,
     Map<String, dynamic>? args,
   }) async {
+    if (amount.raw > BigInt.from(MINT_LIMIT)) {
+      throw Exception(
+          "Lelantus sends of more than 5001 are currently disabled");
+    }
+
     try {
       // check for send all
       bool isSendAll = false;
@@ -2510,6 +2515,11 @@ class FiroWallet extends CoinServiceAPI
   }
 
   Future<List<Map<String, dynamic>>> createMintsFromAmount(int total) async {
+    if (total > MINT_LIMIT) {
+      throw Exception(
+          "Lelantus mints of more than 5001 are currently disabled");
+    }
+
     int tmpTotal = total;
     int counter = 0;
     final lastUsedIndex = await db.getHighestUsedMintIndex(walletId: walletId);
