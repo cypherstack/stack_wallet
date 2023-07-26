@@ -42,6 +42,7 @@ class MonkeyView extends ConsumerStatefulWidget {
 
 class _MonkeyViewState extends ConsumerState<MonkeyView> {
   late final String walletId;
+  List<int>? imageBytes;
 
   String receivingAddress = "";
 
@@ -205,8 +206,7 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
 
     final bool isDesktop = Util.isDesktop;
 
-    List<int>? imageBytes;
-    imageBytes = (manager.wallet as BananoWallet).getMonkeyImageBytes();
+    imageBytes ??= (manager.wallet as BananoWallet).getMonkeyImageBytes();
 
     //edit for desktop
     return Background(
@@ -360,7 +360,7 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                     SizedBox(
                       width: 300,
                       height: 300,
-                      child: SvgPicture.memory(Uint8List.fromList(imageBytes)),
+                      child: SvgPicture.memory(Uint8List.fromList(imageBytes!)),
                     ),
                   isDesktop
                       ? const SizedBox(
@@ -465,6 +465,13 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                           message: "Fetching MonKey",
                           subMessage: "We are fetching your MonKey",
                         );
+
+                        imageBytes = (manager.wallet as BananoWallet)
+                            .getMonkeyImageBytes();
+
+                        if (imageBytes != null) {
+                          setState(() {});
+                        }
 
                         // if (isDesktop) {
                         //   Navigator.of(context).popUntil(
