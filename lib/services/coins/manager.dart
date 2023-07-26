@@ -21,6 +21,7 @@ import 'package:stackwallet/services/event_bus/events/global/node_connection_sta
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/coin_control_interface.dart';
+import 'package:stackwallet/services/mixins/fusion_interface.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/services/mixins/xpubable.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -247,6 +248,8 @@ class Manager with ChangeNotifier {
   bool get hasTokenSupport => _currentWallet.coin == Coin.ethereum;
 
   bool get hasWhirlpoolSupport => false;
+
+  bool get hasFusionSupport => _currentWallet is FusionInterface;
 
   int get rescanOnOpenVersion =>
       DB.instance.get<dynamic>(
