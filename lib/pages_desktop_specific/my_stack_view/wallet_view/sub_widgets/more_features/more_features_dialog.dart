@@ -108,7 +108,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
           if (manager.hasFusionSupport)
             _MoreFeaturesItem(
               label: "CashFusion",
-              detail: "Decentralized Bitcoin mixing protocol",
+              detail: "Decentralized Bitcoin Cash mixing protocol",
               iconAsset: Assets.svg.robotHead,
               onPressed: () => widget.onFusionPressed?.call(),
             ),
