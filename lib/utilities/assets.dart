@@ -206,6 +206,8 @@ class _SVG {
   String get messageQuestion => "assets/svg/message-question-1.svg";
   String get list => "assets/svg/list-ul.svg";
   String get unclaimedPaynym => "assets/svg/unclaimed.svg";
+  String get send => "assets/svg/send.svg";
+  String get ordinal => "assets/svg/ordinal.svg";
 
   String get trocadorRatingA => "assets/svg/trocador_rating_a.svg";
   String get trocadorRatingB => "assets/svg/trocador_rating_b.svg";

@@ -2198,6 +2198,11 @@ class MockManager extends _i1.Mock implements _i6.Manager {
         returnValue: false,
       ) as bool);
   @override
+  bool get hasOrdinalsSupport => (super.noSuchMethod(
+        Invocation.getter(#hasOrdinalsSupport),
+        returnValue: false,
+      ) as bool);
+  @override
   bool get hasTokenSupport => (super.noSuchMethod(
         Invocation.getter(#hasTokenSupport),
         returnValue: false,

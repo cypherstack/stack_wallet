@@ -15,6 +15,7 @@ import 'package:stackwallet/exceptions/main_db/main_db_exception.dart';
 import 'package:stackwallet/models/isar/models/block_explorer.dart';
 import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/models/isar/ordinal.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -54,6 +55,7 @@ class MainDB {
         TransactionBlockExplorerSchema,
         StackThemeSchema,
         ContactEntrySchema,
+        OrdinalSchema,
         LelantusCoinSchema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
@@ -247,7 +249,8 @@ class MainDB {
         await isar.utxos.putAll(utxos);
       });
 
-  Future<void> updateUTXOs(String walletId, List<UTXO> utxos) async {
+  Future<bool> updateUTXOs(String walletId, List<UTXO> utxos) async {
+    bool newUTXO = false;
     await isar.writeTxn(() async {
       final set = utxos.toSet();
       for (final utxo in utxos) {
@@ -269,12 +272,16 @@ class MainDB {
               blockHash: utxo.blockHash,
             ),
           );
+        } else {
+          newUTXO = true;
         }
       }
 
       await isar.utxos.where().walletIdEqualTo(walletId).deleteAll();
       await isar.utxos.putAll(set.toList());
     });
+
+    return newUTXO;
   }
 
   Stream<UTXO?> watchUTXO({
