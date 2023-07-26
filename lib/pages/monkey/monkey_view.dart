@@ -114,7 +114,7 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
   Future<Directory?> getDocsDir() async {
     try {
       if (Platform.isAndroid) {
-        return Directory("/storage/emulated/0/");
+        return Directory("/storage/emulated/0/Documents");
       }
 
       return await getApplicationDocumentsDirectory();
