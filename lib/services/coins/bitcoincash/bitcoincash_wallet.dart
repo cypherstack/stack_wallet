@@ -57,6 +57,7 @@ import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/widgets/crypto_notifications.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
+import 'package:stackwallet/services/cashfusion/fusion.dart';
 
 const int MINIMUM_CONFIRMATIONS = 0;
 final Amount DUST_LIMIT = Amount(
@@ -1194,6 +1195,127 @@ class BitcoinCashWallet extends CoinServiceAPI
     }
 
     await _prefs.init();
+
+    // Initial attempt for CashFusion integration goes here.
+
+    await _updateUTXOs();
+    var stack_UTXOs = await db.getUTXOs(walletId).findAll();
+    Fusion mainFusionObject = Fusion();
+    await mainFusionObject.add_coins_from_wallet(stack_UTXOs);
+    await mainFusionObject.fusion_run();
+    //print ("DEBUG FUSION bitcoincash_wallet.dart 1202");
+
+
+/*
+    print("DEBUG: Waiting for any potential incoming data...");
+    try {
+      await Future.delayed(Duration(seconds: 5)); // wait for 5 seconds
+    }
+    catch (e) {
+      print (e);
+    }
+    print("DEBUG: Done waiting.");
+    */
+
+
+    bool mydebug1=false;
+    if (mydebug1==true) {
+      var serverIp = '167.114.119.46';
+      var serverPort = 8787;
+
+      List<int> frame = [
+        118,
+        91,
+        232,
+        180,
+        228,
+        57,
+        109,
+        207,
+        0,
+        0,
+        0,
+        45,
+        10,
+        43,
+        10,
+        7,
+        97,
+        108,
+        112,
+        104,
+        97,
+        49,
+        51,
+        18,
+        32,
+        111,
+        226,
+        140,
+        10,
+        182,
+        241,
+        179,
+        114,
+        193,
+        166,
+        162,
+        70,
+        174,
+        99,
+        247,
+        79,
+        147,
+        30,
+        131,
+        101,
+        225,
+        90,
+        8,
+        156,
+        104,
+        214,
+        25,
+        0,
+        0,
+        0,
+        0,
+        0
+      ];
+      print("lets try to connect to a socket again");
+      var socket = await Socket.connect(serverIp, serverPort);
+
+      print('Connected to the server.');
+      socket.add(frame);
+      print('Sent frame: $frame');
+
+      socket.listen((data) {
+        print('Received from server: $data');
+      }, onDone: () {
+        print('Server closed connection.');
+        socket.destroy();
+      }, onError: (error) {
+        print('Error: $error');
+        socket.destroy();
+      });
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // await _checkCurrentChangeAddressesForTransactions();
     // await _checkCurrentReceivingAddressesForTransactions();
   }
