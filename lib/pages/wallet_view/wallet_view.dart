@@ -19,6 +19,7 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/buy_view/buy_in_wallet_view.dart';
+import 'package:stackwallet/pages/cashfusion/cashfusion_view.dart';
 import 'package:stackwallet/pages/coin_control/coin_control_view.dart';
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
@@ -78,6 +79,8 @@ import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/send_
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/wallet_navigation_bar_item.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/wallet_navigation_bar.dart';
 import 'package:tuple/tuple.dart';
+
+import '../../widgets/wallet_navigation_bar/components/icons/fusion_nav_icon.dart';
 
 /// [eventBus] should only be set during testing
 class WalletView extends ConsumerStatefulWidget {
@@ -1005,6 +1008,22 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             );
                           }
                         }
+                      },
+                    ),
+                  if (ref.watch(
+                    walletsChangeNotifierProvider.select(
+                      (value) =>
+                          value.getManager(widget.walletId).hasFusionSupport,
+                    ),
+                  ))
+                    WalletNavigationBarItemData(
+                      label: "Fusion",
+                      icon: const FusionNavIcon(),
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          CashFusionView.routeName,
+                          arguments: walletId,
+                        );
                       },
                     ),
                 ],
