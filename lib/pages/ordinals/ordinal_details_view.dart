@@ -3,15 +3,22 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/models/isar/ordinal.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -19,7 +26,7 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
-class OrdinalDetailsView extends StatefulWidget {
+class OrdinalDetailsView extends ConsumerStatefulWidget {
   const OrdinalDetailsView({
     Key? key,
     required this.walletId,
@@ -32,14 +39,25 @@ class OrdinalDetailsView extends StatefulWidget {
   static const routeName = "/ordinalDetailsView";
 
   @override
-  State<OrdinalDetailsView> createState() => _OrdinalDetailsViewState();
+  ConsumerState<OrdinalDetailsView> createState() => _OrdinalDetailsViewState();
 }
 
-class _OrdinalDetailsViewState extends State<OrdinalDetailsView> {
+class _OrdinalDetailsViewState extends ConsumerState<OrdinalDetailsView> {
   static const _spacing = 12.0;
+
+  late final UTXO? utxo;
+
+  @override
+  void initState() {
+    utxo = widget.ordinal.getUTXO(ref.read(mainDBProvider));
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final coin = ref.watch(walletsChangeNotifierProvider
+        .select((value) => value.getManager(widget.walletId).coin));
+
     return Background(
       child: SafeArea(
         child: Scaffold(
@@ -77,26 +95,33 @@ class _OrdinalDetailsViewState extends State<OrdinalDetailsView> {
                     height: _spacing,
                   ),
                   _DetailsItemWCopy(
-                    title: "ID",
+                    title: "Inscription ID",
                     data: widget.ordinal.inscriptionId,
                   ),
+                  // const SizedBox(
+                  //   height: _spacing,
+                  // ),
+                  // // todo: add utxo status
                   const SizedBox(
                     height: _spacing,
                   ),
-                  // todo: add utxo status
-                  const SizedBox(
-                    height: _spacing,
-                  ),
-                  const _DetailsItemWCopy(
+                  _DetailsItemWCopy(
                     title: "Amount",
-                    data: "TODO", // TODO infer from utxo utxoTXID:utxoVOUT
+                    data: utxo == null
+                        ? "ERROR"
+                        : ref.watch(pAmountFormatter(coin)).format(
+                              Amount(
+                                rawValue: BigInt.from(utxo!.value),
+                                fractionDigits: coin.decimals,
+                              ),
+                            ),
                   ),
                   const SizedBox(
                     height: _spacing,
                   ),
-                  const _DetailsItemWCopy(
+                  _DetailsItemWCopy(
                     title: "Owner address",
-                    data: "TODO", // infer from address associated w utxoTXID
+                    data: utxo?.address ?? "ERROR",
                   ),
                   const SizedBox(
                     height: _spacing,
@@ -154,11 +179,27 @@ class _DetailsItemWCopy extends StatelessWidget {
                     );
                   }
                 },
-                child: SvgPicture.asset(
-                  Assets.svg.copy,
-                  color:
-                      Theme.of(context).extension<StackColors>()!.infoItemIcons,
-                  width: 12,
+                child: Row(
+                  children: [
+                    SvgPicture.asset(
+                      Assets.svg.copy,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .infoItemIcons,
+                      width: 12,
+                    ),
+                    const SizedBox(
+                      width: 6,
+                    ),
+                    Text(
+                      "Copy",
+                      style: STextStyles.infoSmall(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .infoItemIcons,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
