@@ -16,17 +16,12 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/mixins/ordinals_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
 class DesktopOrdinalsView extends ConsumerStatefulWidget {
   const DesktopOrdinalsView({
@@ -102,6 +97,8 @@ class _DesktopOrdinals extends ConsumerState<DesktopOrdinalsView> {
                 Assets.svg.ordinal,
                 width: 32,
                 height: 32,
+                color:
+                    Theme.of(context).extension<StackColors>()!.textSubtitle1,
               ),
               const SizedBox(
                 width: 12,
