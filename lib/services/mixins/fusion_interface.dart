@@ -27,7 +27,9 @@ mixin FusionInterface {
     // await _updateUTXOs();
     List<UTXO> utxos = await _db.getUTXOs(_walletId).findAll();
     Fusion mainFusionObject = Fusion();
-    await mainFusionObject.add_coins_from_wallet(utxos);
+    await mainFusionObject.add_coins_from_wallet(utxos
+        .map((e) => (txid: e.txid, vout: e.vout, value: e.value))
+        .toList());
     await mainFusionObject.fusion_run();
     //print ("DEBUG FUSION bitcoincash_wallet.dart 1202");
 
