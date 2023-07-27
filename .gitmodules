@@ -3,7 +3,7 @@
 	url = https://github.com/cypherstack/flutter_libepiccash.git
 [submodule "crypto_plugins/flutter_libmonero"]
 	path = crypto_plugins/flutter_libmonero
-	url = git@github.com:cypherstack/flutter_libmonero.git
+	url = https://github.com/cypherstack/flutter_libmonero.git
 [submodule "crypto_plugins/flutter_liblelantus"]
 	path = crypto_plugins/flutter_liblelantus
 	url = https://github.com/cypherstack/flutter_liblelantus.git
