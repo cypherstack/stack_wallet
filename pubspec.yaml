@@ -139,6 +139,9 @@ dependencies:
   nanodart: ^2.0.0
   basic_utils: ^5.5.4
   stellar_flutter_sdk: ^1.6.0
+  fusiondart:
+    path: ./fusiondart
+
 
 dev_dependencies:
   flutter_test:

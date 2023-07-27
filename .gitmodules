@@ -7,3 +7,6 @@
 [submodule "crypto_plugins/flutter_liblelantus"]
 	path = crypto_plugins/flutter_liblelantus
 	url = https://github.com/cypherstack/flutter_liblelantus.git
+[submodule "fusiondart"]
+	path = fusiondart
+	url = https://github.com/cypherstack/fusiondart
