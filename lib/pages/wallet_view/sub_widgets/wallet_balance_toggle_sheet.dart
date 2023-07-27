@@ -121,7 +121,8 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 height: 24,
               ),
               BalanceSelector(
-                title: "Available balance",
+                title:
+                    "Available${balanceSecondary != null ? " public" : ""} balance",
                 coin: coin,
                 balance: balance.spendable,
                 onPressed: () {
@@ -139,6 +140,31 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                   Navigator.of(context).pop();
                 },
                 value: _BalanceType.available,
+                groupValue: _bal,
+              ),
+              const SizedBox(
+                height: 12,
+              ),
+              BalanceSelector(
+                title:
+                    "Full${balanceSecondary != null ? " public" : ""} balance",
+                coin: coin,
+                balance: balance.total,
+                onPressed: () {
+                  ref.read(walletBalanceToggleStateProvider.state).state =
+                      WalletBalanceToggleState.full;
+                  ref.read(publicPrivateBalanceStateProvider.state).state =
+                      "Public";
+                  Navigator.of(context).pop();
+                },
+                onChanged: (_) {
+                  ref.read(walletBalanceToggleStateProvider.state).state =
+                      WalletBalanceToggleState.full;
+                  ref.read(publicPrivateBalanceStateProvider.state).state =
+                      "Public";
+                  Navigator.of(context).pop();
+                },
+                value: _BalanceType.full,
                 groupValue: _bal,
               ),
               if (balanceSecondary != null)
@@ -167,30 +193,6 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                   value: _BalanceType.privateAvailable,
                   groupValue: _bal,
                 ),
-              const SizedBox(
-                height: 12,
-              ),
-              BalanceSelector(
-                title: "Full balance",
-                coin: coin,
-                balance: balance.total,
-                onPressed: () {
-                  ref.read(walletBalanceToggleStateProvider.state).state =
-                      WalletBalanceToggleState.full;
-                  ref.read(publicPrivateBalanceStateProvider.state).state =
-                      "Public";
-                  Navigator.of(context).pop();
-                },
-                onChanged: (_) {
-                  ref.read(walletBalanceToggleStateProvider.state).state =
-                      WalletBalanceToggleState.full;
-                  ref.read(publicPrivateBalanceStateProvider.state).state =
-                      "Public";
-                  Navigator.of(context).pop();
-                },
-                value: _BalanceType.full,
-                groupValue: _bal,
-              ),
               if (balanceSecondary != null)
                 const SizedBox(
                   height: 12,

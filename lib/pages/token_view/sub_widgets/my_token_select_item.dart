@@ -100,7 +100,7 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
       message: "Loading ${widget.token.name}",
     );
 
-    if (!success) {
+    if (!success!) {
       return;
     }
 

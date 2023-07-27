@@ -15,6 +15,7 @@ import 'package:stackwallet/exceptions/main_db/main_db_exception.dart';
 import 'package:stackwallet/models/isar/models/block_explorer.dart';
 import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/models/isar/ordinal.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -54,6 +55,8 @@ class MainDB {
         TransactionBlockExplorerSchema,
         StackThemeSchema,
         ContactEntrySchema,
+        OrdinalSchema,
+        LelantusCoinSchema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
       // inspector: kDebugMode,
@@ -246,7 +249,8 @@ class MainDB {
         await isar.utxos.putAll(utxos);
       });
 
-  Future<void> updateUTXOs(String walletId, List<UTXO> utxos) async {
+  Future<bool> updateUTXOs(String walletId, List<UTXO> utxos) async {
+    bool newUTXO = false;
     await isar.writeTxn(() async {
       final set = utxos.toSet();
       for (final utxo in utxos) {
@@ -268,12 +272,16 @@ class MainDB {
               blockHash: utxo.blockHash,
             ),
           );
+        } else {
+          newUTXO = true;
         }
       }
 
       await isar.utxos.where().walletIdEqualTo(walletId).deleteAll();
       await isar.utxos.putAll(set.toList());
     });
+
+    return newUTXO;
   }
 
   Stream<UTXO?> watchUTXO({
@@ -370,6 +378,8 @@ class MainDB {
     final transactionCount = await getTransactions(walletId).count();
     final addressCount = await getAddresses(walletId).count();
     final utxoCount = await getUTXOs(walletId).count();
+    final lelantusCoinCount =
+        await isar.lelantusCoins.where().walletIdEqualTo(walletId).count();
 
     await isar.writeTxn(() async {
       const paginateLimit = 50;
@@ -402,6 +412,18 @@ class MainDB {
             .idProperty()
             .findAll();
         await isar.utxos.deleteAll(utxoIds);
+      }
+
+      // lelantusCoins
+      for (int i = 0; i < lelantusCoinCount; i += paginateLimit) {
+        final lelantusCoinIds = await isar.lelantusCoins
+            .where()
+            .walletIdEqualTo(walletId)
+            .offset(i)
+            .limit(paginateLimit)
+            .idProperty()
+            .findAll();
+        await isar.lelantusCoins.deleteAll(lelantusCoinIds);
       }
     });
   }
@@ -497,4 +519,15 @@ class MainDB {
       isar.writeTxn(() async {
         await isar.ethContracts.putAll(contracts);
       });
+
+  // ========== Lelantus =======================================================
+
+  Future<int?> getHighestUsedMintIndex({required String walletId}) async {
+    return await isar.lelantusCoins
+        .where()
+        .walletIdEqualTo(walletId)
+        .sortByMintIndexDesc()
+        .mintIndexProperty()
+        .findFirst();
+  }
 }

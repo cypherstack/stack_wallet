@@ -170,6 +170,7 @@ extension AmountUnitExt on AmountUnit {
     required String locale,
     required Coin coin,
     EthContract? tokenContract,
+    bool overrideWithDecimalPlacesFromString = false,
   }) {
     final precisionLost = value.startsWith("~");
 
@@ -203,7 +204,9 @@ extension AmountUnitExt on AmountUnit {
       return null;
     }
 
-    final decimalPlaces = tokenContract?.decimals ?? coin.decimals;
+    final decimalPlaces = overrideWithDecimalPlacesFromString
+        ? decimal.scale
+        : tokenContract?.decimals ?? coin.decimals;
     final realShift = math.min(shift, decimalPlaces);
 
     return decimal.shift(0 - realShift).toAmount(fractionDigits: decimalPlaces);

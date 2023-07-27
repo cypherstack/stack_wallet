@@ -92,6 +92,7 @@ class _SVG {
 
   final coinControl = const _COIN_CONTROL();
 
+  String get monkey => "assets/svg/monkey.svg";
   String get circleSliders => "assets/svg/configuration.svg";
   String get circlePlus => "assets/svg/plus-circle.svg";
   String get circlePlusFilled => "assets/svg/circle-plus-filled.svg";
@@ -205,6 +206,8 @@ class _SVG {
   String get messageQuestion => "assets/svg/message-question-1.svg";
   String get list => "assets/svg/list-ul.svg";
   String get unclaimedPaynym => "assets/svg/unclaimed.svg";
+  String get send => "assets/svg/send.svg";
+  String get ordinal => "assets/svg/ordinal.svg";
 
   String get trocadorRatingA => "assets/svg/trocador_rating_a.svg";
   String get trocadorRatingB => "assets/svg/trocador_rating_b.svg";
