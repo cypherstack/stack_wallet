@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:isar/isar.dart';
 import 'package:nanodart/nanodart.dart';
+import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
@@ -923,6 +924,21 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
       infoData["confirmation_height"].toString(),
     );
     await updateCachedChainHeight(height ?? 0);
+  }
+
+  Future<void> updateMonkeyImageBytes(List<int> bytes) async {
+    await DB.instance.put<dynamic>(
+      boxName: _walletId,
+      key: "monkeyImageBytesKey",
+      value: bytes,
+    );
+  }
+
+  List<int>? getMonkeyImageBytes() {
+    return DB.instance.get<dynamic>(
+      boxName: _walletId,
+      key: "monkeyImageBytesKey",
+    ) as List<int>?;
   }
 
   Future<String> getCurrentRepresentative() async {
