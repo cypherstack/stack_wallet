@@ -767,7 +767,7 @@ packages:
       path: fusiondart
       relative: true
     source: path
-    version: "0.0.1"
+    version: "1.0.0"
   glob:
     dependency: transitive
     description:
@@ -1877,5 +1877,5 @@ packages:
     source: hosted
     version: "1.0.0"
 sdks:
-  dart: ">=3.0.3 <4.0.0"
+  dart: ">=3.0.6 <4.0.0"
   flutter: ">=3.10.3"

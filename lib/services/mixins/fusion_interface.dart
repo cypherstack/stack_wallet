@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:fusiondart/fusion.dart';
+import 'package:fusiondart/fusiondart.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
