@@ -23,7 +23,9 @@ import 'validation.dart';
 
 class FusionError implements Exception {
   final String message;
+
   FusionError(this.message);
+
   String toString() => "FusionError: $message";
 }
 
@@ -215,6 +217,7 @@ class Fusion {
   Fusion() {
     //initializeConnection(host, port)
   }
+
   /*
   Future<void> initializeConnection(String host, int port) async {
     Socket socket = await Socket.connect(host, port);
@@ -785,8 +788,7 @@ class Fusion {
   }
 
   Future<void> registerAndWait(SocketWrapper socketwrapper) async {
-
-    print ("DEBUG register and wait top.");
+    print("DEBUG register and wait top.");
     // msg can be different classes depending on which protobuf msg is sent.
     dynamic? msg;
 
@@ -826,8 +828,9 @@ class Fusion {
     };
 
     while (true) {
-      print ("RECEIVE LOOP 870............DEBUG");
-      var msg = await recv2(socketwrapper,['tierstatusupdate', 'fusionbegin'], timeout: Duration(seconds: 10));
+      print("RECEIVE LOOP 870............DEBUG");
+      var msg = await recv2(socketwrapper, ['tierstatusupdate', 'fusionbegin'],
+          timeout: Duration(seconds: 10));
 
       var fieldInfoFusionBegin = msg.info_.byName["fusionbegin"];
       if (fieldInfoFusionBegin != null &&
@@ -865,7 +868,8 @@ class Fusion {
       int? besttime;
       int? besttimetier;
       for (var entry in statuses.entries) {
-        double frac = entry.value.players.toInt() / entry.value.minPlayers.toInt();
+        double frac =
+            entry.value.players.toInt() / entry.value.minPlayers.toInt();
         if (frac >= maxfraction) {
           if (frac > maxfraction) {
             maxfraction = frac;
@@ -876,11 +880,11 @@ class Fusion {
 
         var fieldInfoTimeRemaining = entry.value.info_.byName["timeRemaining"];
         if (fieldInfoTimeRemaining == null) {
-          throw FusionError('Expected field not found in message: timeRemaining');
+          throw FusionError(
+              'Expected field not found in message: timeRemaining');
         }
 
         if (entry.value.hasField(fieldInfoTimeRemaining.tagNumber)) {
-
           int tr = entry.value.timeRemaining.toInt();
           if (besttime == null || tr < besttime) {
             besttime = tr;
@@ -888,7 +892,6 @@ class Fusion {
           }
         }
       }
-
 
       var displayBest = <String>[];
       var displayMid = <String>[];

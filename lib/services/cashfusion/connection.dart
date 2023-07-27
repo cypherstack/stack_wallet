@@ -53,7 +53,9 @@ class Connection {
   static final Uint8List magic =
       Uint8List.fromList([0x76, 0x5b, 0xe8, 0xb4, 0xe4, 0x39, 0x6d, 0xcf]);
   final Uint8List recvbuf = Uint8List(0);
+
   Connection({required this.socket, this.timeout = const Duration(seconds: 1)});
+
   Connection.withoutSocket({this.timeout = const Duration(seconds: 1)});
 
   Future<void> sendMessageWithSocketWrapper(
@@ -198,9 +200,9 @@ class Connection {
     return recvBuf;
   }
 
-
-  Future<List<int>> recv_message2(SocketWrapper socketwrapper, {Duration? timeout}) async {
-    print ("START OF RECV2");
+  Future<List<int>> recv_message2(SocketWrapper socketwrapper,
+      {Duration? timeout}) async {
+    print("START OF RECV2");
     if (timeout == null) {
       timeout = this.timeout;
     }
@@ -264,7 +266,7 @@ class Connection {
 
             //print("DEBUG recv_message2 4 - message received, length: ${message.length}");
             //print("DEBUG recv_message2 5 - message content: $message");
-            print ("END OF RECV2");
+            print("END OF RECV2");
             return message;
           } else {
             // Throwing exception if the length doesn't match
