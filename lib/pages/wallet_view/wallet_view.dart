@@ -930,22 +930,23 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         );
                       },
                     ),
-                  WalletNavigationBarItemData(
-                      icon: SvgPicture.asset(
-                        Assets.svg.monkey,
-                        height: 20,
-                        width: 20,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .bottomNavIconIcon,
-                      ),
-                      label: "MonKey",
-                      onTap: () {
-                        Navigator.of(context).pushNamed(
-                          MonkeyView.routeName,
-                          arguments: widget.walletId,
-                        );
-                      }),
+                  if (coin == Coin.banano)
+                    WalletNavigationBarItemData(
+                        icon: SvgPicture.asset(
+                          Assets.svg.monkey,
+                          height: 20,
+                          width: 20,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .bottomNavIconIcon,
+                        ),
+                        label: "MonKey",
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            MonkeyView.routeName,
+                            arguments: widget.walletId,
+                          );
+                        }),
                   if (ref.watch(
                         walletsChangeNotifierProvider.select(
                           (value) => value

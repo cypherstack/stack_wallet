@@ -365,7 +365,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         manager.coin == Coin.firoTestNet ||
         manager.hasWhirlpoolSupport ||
         manager.coin == Coin.banano ||
-        manager.hasWhirlpoolSupport ||
+        manager.hasOrdinalsSupport ||
         manager.hasFusionSupport;
 
     return Row(

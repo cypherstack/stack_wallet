@@ -66,6 +66,8 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
     }
   }
 
+  String _monkeyPath = "";
+
   Future<void> _saveMonKeyToFile({
     required Uint8List bytes,
     bool isPNG = false,
@@ -96,6 +98,7 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
     }
 
     await imgFile.writeAsBytes(bytes);
+    _monkeyPath = filePath;
   }
 
   @override
@@ -369,7 +372,8 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                             if (!didError && mounted) {
                               await showFloatingFlushBar(
                                 type: FlushBarType.success,
-                                message: "SVG MonKey image saved",
+                                message:
+                                    "SVG MonKey image saved to $_monkeyPath",
                                 context: context,
                               );
                             }
@@ -421,7 +425,8 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                             if (!didError && mounted) {
                               await showFloatingFlushBar(
                                 type: FlushBarType.success,
-                                message: "PNG MonKey image saved",
+                                message:
+                                    "PNG MonKey image saved to $_monkeyPath",
                                 context: context,
                               );
                             }
