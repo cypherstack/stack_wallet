@@ -195,6 +195,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
       case Coin.nano:
       case Coin.banano:
       case Coin.stellar:
+      case Coin.stellarTestnet:
         throw UnimplementedError();
         //TODO: check network/node
     }

@@ -34,6 +34,7 @@ abstract class DefaultNodes {
         bitcoincashTestnet,
         dogecoinTestnet,
         firoTestnet,
+        stellarTestnet,
       ];
 
   static NodeModel get bitcoin => NodeModel(
@@ -275,6 +276,18 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
+  static NodeModel get stellarTestnet => NodeModel(
+    host: "https://horizon-testnet.stellar.org/",
+    port: 50022,
+    name: defaultName,
+    id: _nodeId(Coin.stellarTestnet),
+    useSSL: true,
+    enabled: true,
+    coinName: Coin.stellarTestnet.name,
+    isFailover: true,
+    isDown: false,
+  );
+
   static NodeModel getNodeFor(Coin coin) {
     switch (coin) {
       case Coin.bitcoin:
@@ -336,6 +349,9 @@ abstract class DefaultNodes {
 
       case Coin.dogecoinTestNet:
         return dogecoinTestnet;
+
+      case Coin.stellarTestnet:
+        return stellarTestnet;
     }
   }
 }

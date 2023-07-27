@@ -285,6 +285,15 @@ abstract class CoinServiceAPI {
           cachedClient: cachedClient,
           tracker: tracker,
         );
+
+      case Coin.stellarTestnet:
+        return StellarWallet(
+          walletId: walletId,
+          walletName: walletName,
+          coin: coin,
+          secureStore: secureStorageInterface,
+          tracker: tracker,
+        );
     }
   }
 

@@ -58,6 +58,7 @@ enum Coin {
   dogecoinTestNet,
   firoTestNet,
   litecoinTestNet,
+  stellarTestnet,
 }
 
 final int kTestNetCoinCount = 4; // Util.isDesktop ? 5 : 4;
@@ -106,6 +107,8 @@ extension CoinExt on Coin {
         return "tFiro";
       case Coin.dogecoinTestNet:
         return "tDogecoin";
+      case Coin.stellarTestnet:
+        return "tStellar";
     }
   }
 
@@ -151,6 +154,8 @@ extension CoinExt on Coin {
         return "tFIRO";
       case Coin.dogecoinTestNet:
         return "tDOGE";
+      case Coin.stellarTestnet:
+        return "tXLM";
     }
   }
 
@@ -197,6 +202,8 @@ extension CoinExt on Coin {
         return "firo";
       case Coin.dogecoinTestNet:
         return "dogecoin";
+      case Coin.stellarTestnet:
+        return "stellar";
     }
   }
 
@@ -224,6 +231,7 @@ extension CoinExt on Coin {
       case Coin.nano:
       case Coin.banano:
       case Coin.stellar:
+      case Coin.stellarTestnet:
         return false;
     }
   }
@@ -252,6 +260,7 @@ extension CoinExt on Coin {
       case Coin.nano:
       case Coin.banano:
       case Coin.stellar:
+      case Coin.stellarTestnet:
         return false;
     }
   }
@@ -280,6 +289,7 @@ extension CoinExt on Coin {
       case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
+      case Coin.stellarTestnet:
         return true;
     }
   }
@@ -317,6 +327,9 @@ extension CoinExt on Coin {
 
       case Coin.firoTestNet:
         return Coin.firo;
+
+      case Coin.stellarTestnet:
+        return Coin.stellar;
     }
   }
 
@@ -358,6 +371,7 @@ extension CoinExt on Coin {
         return particl.MINIMUM_CONFIRMATIONS;
 
       case Coin.stellar:
+      case Coin.stellarTestnet:
         return xlm.MINIMUM_CONFIRMATIONS;
 
       case Coin.wownero:
@@ -467,6 +481,11 @@ Coin coinFromPrettyName(String name) {
     case "banano":
       return Coin.banano;
 
+    case "Stellar Testnet":
+    case "stellarTestnet":
+    case "tStellar":
+      return Coin.stellarTestnet;
+
     default:
       throw ArgumentError.value(
         name,
@@ -518,6 +537,8 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
       return Coin.nano;
     case "ban":
       return Coin.banano;
+    case "txlm":
+      return Coin.stellarTestnet;
     default:
       throw ArgumentError.value(
           ticker, "name", "No Coin enum value with that ticker");

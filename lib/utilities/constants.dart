@@ -100,6 +100,7 @@ abstract class Constants {
         return _satsPerCoinECash;
 
       case Coin.stellar:
+      case Coin.stellarTestnet:
         return _satsPerCoinStellar;
     }
   }
@@ -140,6 +141,7 @@ abstract class Constants {
         return _decimalPlacesECash;
 
       case Coin.stellar:
+      case Coin.stellarTestnet:
         return _decimalPlacesStellar;
     }
   }
@@ -164,6 +166,7 @@ abstract class Constants {
       case Coin.particl:
       case Coin.nano:
       case Coin.stellar:
+      case Coin.stellarTestnet:
         values.addAll([24, 12]);
         break;
       case Coin.banano:
@@ -225,6 +228,7 @@ abstract class Constants {
         return 1;
 
       case Coin.stellar:
+      case Coin.stellarTestnet:
         return 5;
     }
   }
@@ -254,6 +258,7 @@ abstract class Constants {
       case Coin.nano:
       case Coin.banano:
       case Coin.stellar:
+      case Coin.stellarTestnet:
         return 24;
 
       case Coin.monero:

@@ -41,6 +41,9 @@ const int MINIMUM_CONFIRMATIONS = 1;
 class StellarWallet extends CoinServiceAPI
     with WalletCache, WalletDB, CoinControlInterface {
 
+  late StellarSDK stellarSdk;
+  late Network stellarNetwork;
+
   StellarWallet({
     required String walletId,
     required String walletName,
@@ -56,12 +59,20 @@ class StellarWallet extends CoinServiceAPI
     _secureStore = secureStore;
     initCache(walletId, coin);
     initWalletDB(mockableOverride: mockableOverride);
+
+    if (coin.name == "stellarTestnet") {
+      stellarSdk = StellarSDK.TESTNET;
+      stellarNetwork = Network.TESTNET;
+    } else {
+      stellarSdk = StellarSDK.PUBLIC;
+      stellarNetwork = Network.PUBLIC;
+    }
   }
 
   late final TransactionNotificationTracker txTracker;
   late SecureStorageInterface _secureStore;
 
-  final StellarSDK stellarSdk = StellarSDK.PUBLIC;
+  // final StellarSDK stellarSdk = StellarSDK.PUBLIC;
 
   @override
   bool get isFavorite => _isFavorite ??= getCachedIsFavorite();
@@ -199,7 +210,7 @@ class StellarWallet extends CoinServiceAPI
           .build()
       ).build();
     }
-    transaction.sign(senderKeyPair, Network.PUBLIC);
+    transaction.sign(senderKeyPair, stellarNetwork);
     try {
       SubmitTransactionResponse response = await stellarSdk.submitTransaction(transaction);
 
