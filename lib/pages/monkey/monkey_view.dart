@@ -4,11 +4,12 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/coins/banano/banano_wallet.dart';
+import 'package:stackwallet/services/monkey_service.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -44,75 +45,14 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
   late final String walletId;
   List<int>? imageBytes;
 
-  String receivingAddress = "";
-
-  Future<void> getMonkeyImage(String address) async {
-    if (address.isEmpty) {
-      //address shouldn't be empty
-      return;
-    }
-
-    final http.Response response = await http
-        .get(Uri.parse('https://monkey.banano.cc/api/v1/monkey/$address'));
-
-    if (response.statusCode == 200) {
-      final manager =
-          ref.read(walletsChangeNotifierProvider).getManager(walletId);
-      final decodedResponse = response.bodyBytes;
-      await (manager.wallet as BananoWallet)
-          .updateMonkeyImageBytes(decodedResponse);
-    } else {
-      throw Exception("Failed to get MonKey");
-    }
+  Future<void> _updateWalletMonKey(Uint8List monKeyBytes) async {
+    final manager =
+        ref.read(walletsChangeNotifierProvider).getManager(walletId);
+    await (manager.wallet as BananoWallet)
+        .updateMonkeyImageBytes(monKeyBytes.toList());
   }
 
-  // void getMonkeySVG(String address) async {
-  //   if (address.isEmpty) {
-  //     //address shouldn't be empty
-  //     return;
-  //   }
-  //
-  //   final http.Response response = await http
-  //       .get(Uri.parse('https://monkey.banano.cc/api/v1/monkey/$address'));
-  //
-  //   if (response.statusCode == 200) {
-  //     final decodedResponse = response.bodyBytes;
-  //     Directory directory = await getApplicationDocumentsDirectory();
-  //     late Directory sampleFolder;
-  //
-  //     if (Platform.isAndroid) {
-  //       directory = Directory("/storage/emulated/0/");
-  //       sampleFolder = Directory('${directory!.path}Documents');
-  //     } else if (Platform.isIOS) {
-  //       sampleFolder = Directory(directory!.path);
-  //     } else if (Platform.isLinux) {
-  //       sampleFolder = Directory('${directory!.path}Documents');
-  //     } else if (Platform.isWindows) {
-  //       sampleFolder = Directory('${directory!.path}Documents');
-  //     } else if (Platform.isMacOS) {
-  //       sampleFolder = Directory('${directory!.path}Documents');
-  //     }
-  //
-  //     try {
-  //       if (!sampleFolder.existsSync()) {
-  //         sampleFolder.createSync(recursive: true);
-  //       }
-  //     } catch (e, s) {
-  //       // todo: come back to this
-  //       debugPrint("$e $s");
-  //     }
-  //
-  //     final docPath = sampleFolder.path;
-  //     final filePath = "$docPath/monkey.svg";
-  //
-  //     File imgFile = File(filePath);
-  //     await imgFile.writeAsBytes(decodedResponse);
-  //   } else {
-  //     throw Exception("Failed to get MonKey");
-  //   }
-  // }
-
-  Future<Directory?> getDocsDir() async {
+  Future<Directory?> _getDocsDir() async {
     try {
       if (Platform.isAndroid) {
         return Directory("/storage/emulated/0/Documents");
@@ -124,78 +64,43 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
     }
   }
 
-  Future<void> downloadMonkey(String address, bool isPNG) async {
-    if (address.isEmpty) {
-      //address shouldn't be empty
-      return;
+  Future<void> _saveMonKeyToFile({
+    required Uint8List bytes,
+    bool isPNG = false,
+    bool overwrite = false,
+  }) async {
+    if (Platform.isAndroid) {
+      await Permission.storage.request();
     }
 
-    String url = "https://monkey.banano.cc/api/v1/monkey/$address";
-
-    if (isPNG) {
-      url += '?format=png&size=512&background=false';
+    final dir = await _getDocsDir();
+    if (dir == null) {
+      throw Exception("Failed to get documents directory to save monKey image");
     }
 
-    final http.Response response = await http.get(Uri.parse(url));
+    final address = await ref
+        .read(walletsChangeNotifierProvider)
+        .getManager(walletId)
+        .currentReceivingAddress;
+    final docPath = dir.path;
+    String filePath = "$docPath/monkey_$address";
 
-    if (response.statusCode == 200) {
-      if (Platform.isAndroid) {
-        await Permission.storage.request();
-      }
+    filePath += isPNG ? ".png" : ".svg";
 
-      final decodedResponse = response.bodyBytes;
-      final Directory? sampleFolder = await getDocsDir();
+    File imgFile = File(filePath);
 
-      print("PATH: ${sampleFolder?.path}");
-
-      if (sampleFolder == null) {
-        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-        return;
-      }
-
-      // try {
-      //   if (!sampleFolder.existsSync()) {
-      //     sampleFolder.createSync(recursive: true);
-      //   }
-      // } catch (e, s) {
-      //   // todo: come back to this
-      //   debugPrint("$e $s");
-      // }
-
-      final docPath = sampleFolder.path;
-      String filePath = "$docPath/monkey_$address";
-
-      filePath += isPNG ? ".png" : ".svg";
-
-      // todo check if monkey.png exists
-
-      File imgFile = File(filePath);
-      await imgFile.writeAsBytes(decodedResponse);
-    } else {
-      throw Exception("Failed to get MonKey");
+    if (imgFile.existsSync() && !overwrite) {
+      throw Exception("File already exists");
     }
+
+    await imgFile.writeAsBytes(bytes);
   }
 
   @override
   void initState() {
     walletId = widget.walletId;
 
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      final address = await ref
-          .read(walletsChangeNotifierProvider)
-          .getManager(walletId)
-          .currentReceivingAddress;
-      setState(() {
-        receivingAddress = address;
-      });
-    });
-
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   @override
@@ -318,22 +223,24 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                 AspectRatio(
                   aspectRatio: 1,
                   child: AppBarIconButton(
-                      icon: SvgPicture.asset(
-                        Assets.svg.circleQuestion,
-                      ),
-                      onPressed: () {
-                        showDialog<dynamic>(
-                            context: context,
-                            useSafeArea: false,
-                            barrierDismissible: true,
-                            builder: (context) {
-                              return const StackOkDialog(
-                                title: "About MonKeys",
-                                message:
-                                    "A MonKey is a visual representation of your Banano address.",
-                              );
-                            });
-                      }),
+                    icon: SvgPicture.asset(
+                      Assets.svg.circleQuestion,
+                    ),
+                    onPressed: () {
+                      showDialog<dynamic>(
+                        context: context,
+                        useSafeArea: false,
+                        barrierDismissible: true,
+                        builder: (context) {
+                          return const StackOkDialog(
+                            title: "About MonKeys",
+                            message:
+                                "A MonKey is a visual representation of your Banano address.",
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
@@ -376,26 +283,95 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                         SecondaryButton(
                           label: "Save as SVG",
                           onPressed: () async {
+                            bool didError = false;
                             await showLoading(
-                              whileFuture:
-                                  downloadMonkey(receivingAddress, false),
+                              whileFuture: Future.wait([
+                                _saveMonKeyToFile(
+                                  bytes: Uint8List.fromList(
+                                      (manager.wallet as BananoWallet)
+                                          .getMonkeyImageBytes()!),
+                                ),
+                                Future<void>.delayed(
+                                  const Duration(seconds: 2),
+                                ),
+                              ]),
                               context: context,
                               isDesktop: Util.isDesktop,
                               message: "Saving MonKey svg",
+                              onException: (e) {
+                                didError = true;
+                                String msg = e.toString();
+                                while (msg.isNotEmpty &&
+                                    msg.startsWith("Exception:")) {
+                                  msg = msg.substring(10).trim();
+                                }
+                                showFloatingFlushBar(
+                                  type: FlushBarType.warning,
+                                  message: msg,
+                                  context: context,
+                                );
+                              },
                             );
+
+                            if (!didError && mounted) {
+                              await showFloatingFlushBar(
+                                type: FlushBarType.success,
+                                message: "SVG MonKey image saved",
+                                context: context,
+                              );
+                            }
                           },
                         ),
                         const SizedBox(height: 12),
                         SecondaryButton(
                           label: "Download as PNG",
                           onPressed: () async {
+                            bool didError = false;
                             await showLoading(
-                              whileFuture:
-                                  downloadMonkey(receivingAddress, true),
+                              whileFuture: Future.wait([
+                                manager.currentReceivingAddress.then(
+                                  (address) async => await ref
+                                      .read(pMonKeyService)
+                                      .fetchMonKey(
+                                        address: address,
+                                        png: true,
+                                      )
+                                      .then(
+                                        (monKeyBytes) async =>
+                                            await _saveMonKeyToFile(
+                                          bytes: monKeyBytes,
+                                          isPNG: true,
+                                        ),
+                                      ),
+                                ),
+                                Future<void>.delayed(
+                                    const Duration(seconds: 2)),
+                              ]),
                               context: context,
                               isDesktop: Util.isDesktop,
                               message: "Downloading MonKey png",
+                              onException: (e) {
+                                didError = true;
+                                String msg = e.toString();
+                                while (msg.isNotEmpty &&
+                                    msg.startsWith("Exception:")) {
+                                  msg = msg.substring(10).trim();
+                                }
+                                showFloatingFlushBar(
+                                  type: FlushBarType.warning,
+                                  message: msg,
+                                  context: context,
+                                );
+                              },
                             );
+
+                            if (!didError && mounted) {
+                              await showFloatingFlushBar(
+                                type: FlushBarType.success,
+                                message: "PNG MonKey image saved",
+                                context: context,
+                              );
+                            }
                           },
                         ),
                       ],
@@ -453,17 +429,37 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                     child: PrimaryButton(
                       label: "Fetch MonKey",
                       onPressed: () async {
-                        final future = Future.wait([
-                          getMonkeyImage(receivingAddress),
-                          Future<void>.delayed(const Duration(seconds: 2)),
-                        ]);
-
                         await showLoading(
-                          whileFuture: future,
+                          whileFuture: Future.wait([
+                            manager.currentReceivingAddress.then(
+                              (address) async => await ref
+                                  .read(pMonKeyService)
+                                  .fetchMonKey(address: address)
+                                  .then(
+                                    (monKeyBytes) async =>
+                                        await _updateWalletMonKey(
+                                      monKeyBytes,
+                                    ),
+                                  ),
+                            ),
+                            Future<void>.delayed(const Duration(seconds: 2)),
+                          ]),
                           context: context,
                           isDesktop: Util.isDesktop,
                           message: "Fetching MonKey",
                           subMessage: "We are fetching your MonKey",
+                          onException: (e) {
+                            String msg = e.toString();
+                            while (msg.isNotEmpty &&
+                                msg.startsWith("Exception:")) {
+                              msg = msg.substring(10).trim();
+                            }
+                            showFloatingFlushBar(
+                              type: FlushBarType.warning,
+                              message: msg,
+                              context: context,
+                            );
+                          },
                         );
 
                         imageBytes = (manager.wallet as BananoWallet)
@@ -472,17 +468,6 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                         if (imageBytes != null) {
                           setState(() {});
                         }
-
-                        // if (isDesktop) {
-                        //   Navigator.of(context).popUntil(
-                        //     ModalRoute.withName(
-                        //         DesktopWalletView.routeName),
-                        //   );
-                        // } else {
-                        //   Navigator.of(context).popUntil(
-                        //     ModalRoute.withName(WalletView.routeName),
-                        //   );
-                        // }
                       },
                     ),
                   ),
