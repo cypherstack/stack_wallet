@@ -82,7 +82,7 @@ class CovertConnection {
   int? slotNum;
   DateTime? tPing;
   int? connNumber;
-  Completer wakeup = Completer();
+  Completer<bool> wakeup = Completer();
   double? delay;
 
   Future<bool> waitWakeupOrTime(DateTime? t) async {
@@ -258,7 +258,8 @@ class CovertSubmitter extends PrintError {
     }
   }
 
-  void scheduleSubmit(int slotNum, DateTime tStart, dynamic subMsg) {
+  void scheduleSubmit(
+      int slotNum, DateTime tStart, pb.GeneratedMessage subMsg) {
     var slot = slots[slotNum];
 
     assert(slot.done, "tried to set new work when prior work not done");
@@ -290,7 +291,7 @@ class CovertSubmitter extends PrintError {
     // Then, notify the slots that there is a message to submit.
     for (var i = 0; i < slots.length; i++) {
       var slot = slots[i];
-      var subMsg = slotMessages[i];
+      var subMsg = slotMessages[i] as pb.GeneratedMessage;
       var covConn = slot.covConn;
 
       if (covConn != null) {

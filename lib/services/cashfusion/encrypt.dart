@@ -121,16 +121,16 @@ Future<Tuple<Uint8List, Uint8List>> decrypt(
   // DOUBLE CHECK THIS IS RIGHT IDEA MATCHING PYTHON.
 
   ECPoint G = params.G;
-  var key;
+  final List<int> key;
 
-  if (privkey.d != null && noncePoint != null) {
+  if (privkey.d != null) {
     var point = (G * privkey.d)! + noncePoint;
     key = crypto.sha256.convert(Util.point_to_ser(point!, true)).bytes;
     // ...
+    var decryptedData = await decryptWithSymmkey(data, Uint8List.fromList(key));
+    return Tuple(decryptedData, Uint8List.fromList(key));
   } else {
     // Handle the situation where privkey.d or noncePoint is null
+    throw Exception("FIXME");
   }
-
-  var decryptedData = await decryptWithSymmkey(data, Uint8List.fromList(key));
-  return Tuple(decryptedData, Uint8List.fromList(key));
 }
