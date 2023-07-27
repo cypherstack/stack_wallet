@@ -199,6 +199,7 @@ class Connection {
 
 
   Future<List<int>> recv_message2(SocketWrapper socketwrapper, {Duration? timeout}) async {
+    print ("START OF RECV2");
     if (timeout == null) {
       timeout = this.timeout;
     }
@@ -244,6 +245,7 @@ class Connection {
             throw BadFrameError('Got a frame with msg_length=$messageLength > $MAX_MSG_LENGTH (max)');
           }
 
+          /*
           print("DEBUG recv_message2 3 - about to read the message body, messageLength: $messageLength");
 
           print ("DEBUG recvfbuf len is ");
@@ -252,12 +254,14 @@ class Connection {
           print (bytesRead);
           print ("message length is ");
           print(messageLength);
+
+           */
           if (recvBuf.length == bytesRead && bytesRead == 12 + messageLength) {
             final message = recvBuf.sublist(12, 12 + messageLength);
 
-            print("DEBUG recv_message2 4 - message received, length: ${message.length}");
-            print("DEBUG recv_message2 5 - message content: $message");
-
+            //print("DEBUG recv_message2 4 - message received, length: ${message.length}");
+            //print("DEBUG recv_message2 5 - message content: $message");
+            print ("END OF RECV2");
             return message;
           } else {
             // Throwing exception if the length doesn't match
