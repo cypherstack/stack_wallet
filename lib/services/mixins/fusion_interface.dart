@@ -1,9 +1,9 @@
 import 'dart:io';
 
+import 'package:fusiondart/fusion.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
-import 'package:stackwallet/services/cashfusion/fusion.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 mixin FusionInterface {
@@ -130,6 +130,7 @@ mixin FusionInterface {
 
   Future<void> refreshFusion() {
     // TODO
-    throw UnimplementedError("TODO refreshFusion eg look up number of fusion participants connected/coordinating");
+    throw UnimplementedError(
+        "TODO refreshFusion eg look up number of fusion participants connected/coordinating");
   }
 }
