@@ -229,7 +229,7 @@ class _OrdinalImageGroup extends StatelessWidget {
 
   static const _spacing = 12.0;
 
-  Future<void> _savePngToFile() async {
+  Future<String> _savePngToFile() async {
     final response = await get(Uri.parse(ordinal.content));
 
     if (response.statusCode != 200) {
@@ -257,6 +257,7 @@ class _OrdinalImageGroup extends StatelessWidget {
     }
 
     await imgFile.writeAsBytes(bytes);
+    return filePath;
   }
 
   @override
@@ -309,11 +310,8 @@ class _OrdinalImageGroup extends StatelessWidget {
                 iconSpacing: 4,
                 onPressed: () async {
                   bool didError = false;
-                  await showLoading(
-                    whileFuture: Future.wait([
-                      _savePngToFile(),
-                      Future<void>.delayed(const Duration(seconds: 2)),
-                    ]),
+                  final filePath = await showLoading<String>(
+                    whileFuture: _savePngToFile(),
                     context: context,
                     isDesktop: true,
                     message: "Saving ordinal image",
@@ -334,7 +332,7 @@ class _OrdinalImageGroup extends StatelessWidget {
                   if (!didError && context.mounted) {
                     await showFloatingFlushBar(
                       type: FlushBarType.success,
-                      message: "Image saved",
+                      message: "Image saved to $filePath",
                       context: context,
                     );
                   }

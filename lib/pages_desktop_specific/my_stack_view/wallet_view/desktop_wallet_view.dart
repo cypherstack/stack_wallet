@@ -10,6 +10,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +29,7 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
+import 'package:stackwallet/services/coins/banano/banano_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
@@ -152,6 +154,10 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
     final coin = manager.coin;
     final managerProvider = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManagerProvider(widget.walletId)));
+
+    final monke = coin == Coin.banano
+        ? (manager.wallet as BananoWallet).getMonkeyImageBytes()
+        : null;
 
     return ConditionalParent(
       condition: _rescanningOnOpen,
@@ -334,13 +340,20 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                 padding: const EdgeInsets.all(20),
                 child: Row(
                   children: [
-                    SvgPicture.file(
-                      File(
-                        ref.watch(coinIconProvider(coin)),
+                    if (monke != null)
+                      SvgPicture.memory(
+                        Uint8List.fromList(monke!),
+                        width: 60,
+                        height: 60,
                       ),
-                      width: 40,
-                      height: 40,
-                    ),
+                    if (monke == null)
+                      SvgPicture.file(
+                        File(
+                          ref.watch(coinIconProvider(coin)),
+                        ),
+                        width: 40,
+                        height: 40,
+                      ),
                     const SizedBox(
                       width: 10,
                     ),

@@ -49,7 +49,7 @@ class _DesktopOrdinalDetailsViewState
 
   late final UTXO? utxo;
 
-  Future<void> _savePngToFile() async {
+  Future<String> _savePngToFile() async {
     final response = await get(Uri.parse(widget.ordinal.content));
 
     if (response.statusCode != 200) {
@@ -77,6 +77,7 @@ class _DesktopOrdinalDetailsViewState
     }
 
     await imgFile.writeAsBytes(bytes);
+    return filePath;
   }
 
   @override
@@ -224,12 +225,8 @@ class _DesktopOrdinalDetailsViewState
                               iconSpacing: 8,
                               onPressed: () async {
                                 bool didError = false;
-                                await showLoading(
-                                  whileFuture: Future.wait([
-                                    _savePngToFile(),
-                                    Future<void>.delayed(
-                                        const Duration(seconds: 2)),
-                                  ]),
+                                final path = await showLoading<String>(
+                                  whileFuture: _savePngToFile(),
                                   context: context,
                                   isDesktop: true,
                                   message: "Saving ordinal image",
@@ -251,7 +248,7 @@ class _DesktopOrdinalDetailsViewState
                                 if (!didError && mounted) {
                                   await showFloatingFlushBar(
                                     type: FlushBarType.success,
-                                    message: "Image saved",
+                                    message: "Image saved to $path",
                                     context: context,
                                   );
                                 }
