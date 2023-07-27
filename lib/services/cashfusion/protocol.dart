@@ -1,10 +1,7 @@
-  
-
 class Protocol {
   static const VERSION = 'alpha13';
 
   static const FUSE_ID = 'FUZ\x00';
-
 
 // Safety limits to prevent loss of funds / limit fees:
   //(Note that if we enter multiply into the same fusion, our limits apply
@@ -56,4 +53,3 @@ class Protocol {
   static const STANDARD_TIMEOUT = 3.0;
   static const BLAME_VERIFY_TIME = 5.0;
 }
-

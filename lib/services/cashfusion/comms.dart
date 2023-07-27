@@ -1,12 +1,12 @@
-
-import 'util.dart';
-import 'connection.dart';
-import 'fusion.dart';
-import 'fusion.pb.dart';
-import 'dart:io';
 import 'dart:async';
+import 'dart:io';
+
 import 'package:protobuf/protobuf.dart';
-import 'socketwrapper.dart';
+import 'package:stackwallet/services/cashfusion/connection.dart';
+import 'package:stackwallet/services/cashfusion/fusion.dart';
+import 'package:stackwallet/services/cashfusion/fusion.pb.dart';
+import 'package:stackwallet/services/cashfusion/socketwrapper.dart';
+import 'package:stackwallet/services/cashfusion/util.dart';
 
 typedef PbCreateFunc = GeneratedMessage Function();
 
@@ -23,33 +23,31 @@ Map<Type, PbCreateFunc> pbClassCreators = {
   ServerHello: () => ServerHello(),
   JoinPools: () => JoinPools(),
   TierStatusUpdate: () => TierStatusUpdate(),
-  FusionBegin: ()=> FusionBegin(),
-  StartRound: ()=> StartRound(),
-  PlayerCommit: ()=> PlayerCommit(),
-  BlindSigResponses: ()=> BlindSigResponses(),
-  AllCommitments: ()=> AllCommitments(),
-  CovertComponent: ()=> CovertComponent(),
-  ShareCovertComponents: ()=> ShareCovertComponents(),
-  CovertTransactionSignature: ()=> CovertTransactionSignature(),
-  FusionResult: ()=> FusionResult(),
-  MyProofsList: ()=> MyProofsList(),
-  TheirProofsList: ()=> TheirProofsList(),
-  Blames: ()=> Blames(),
-  RestartRound: ()=> RestartRound(),
-  Error: ()=> Error(),
-  Ping: ()=> Ping(),
-  OK: ()=> OK(),
-  ClientMessage: ()=> ClientMessage(),
-  ServerMessage: ()=> ServerMessage(),
-  CovertMessage: ()=> CovertMessage(),
-  CovertResponse: ()=> CovertResponse()
-
+  FusionBegin: () => FusionBegin(),
+  StartRound: () => StartRound(),
+  PlayerCommit: () => PlayerCommit(),
+  BlindSigResponses: () => BlindSigResponses(),
+  AllCommitments: () => AllCommitments(),
+  CovertComponent: () => CovertComponent(),
+  ShareCovertComponents: () => ShareCovertComponents(),
+  CovertTransactionSignature: () => CovertTransactionSignature(),
+  FusionResult: () => FusionResult(),
+  MyProofsList: () => MyProofsList(),
+  TheirProofsList: () => TheirProofsList(),
+  Blames: () => Blames(),
+  RestartRound: () => RestartRound(),
+  Error: () => Error(),
+  Ping: () => Ping(),
+  OK: () => OK(),
+  ClientMessage: () => ClientMessage(),
+  ServerMessage: () => ServerMessage(),
+  CovertMessage: () => CovertMessage(),
+  CovertResponse: () => CovertResponse()
 };
 
-
-
-Future<void> sendPb(Connection connection, Type pbClass, GeneratedMessage subMsg, {Duration? timeout}) async {
-
+Future<void> sendPb(
+    Connection connection, Type pbClass, GeneratedMessage subMsg,
+    {Duration? timeout}) async {
   // Construct the outer message with the submessage.
 
   if (pbClassCreators[pbClass] == null) {
@@ -70,11 +68,9 @@ Future<void> sendPb(Connection connection, Type pbClass, GeneratedMessage subMsg
   }
 }
 
-
-
-Future<void> sendPb2(SocketWrapper socketwrapper, Connection connection, Type pbClass, GeneratedMessage subMsg, {Duration? timeout}) async {
-
-
+Future<void> sendPb2(SocketWrapper socketwrapper, Connection connection,
+    Type pbClass, GeneratedMessage subMsg,
+    {Duration? timeout}) async {
   // Construct the outer message with the submessage.
 
   if (pbClassCreators[pbClass] == null) {
@@ -85,7 +81,8 @@ Future<void> sendPb2(SocketWrapper socketwrapper, Connection connection, Type pb
   var pbMessage = pbClassCreators[pbClass]!()..mergeFromMessage(subMsg);
   final msgBytes = pbMessage.writeToBuffer();
   try {
-    await connection.sendMessageWithSocketWrapper(socketwrapper, msgBytes, timeout: timeout);
+    await connection.sendMessageWithSocketWrapper(socketwrapper, msgBytes,
+        timeout: timeout);
   } on SocketException {
     throw FusionError('Connection closed by remote');
   } on TimeoutException {
@@ -95,13 +92,12 @@ Future<void> sendPb2(SocketWrapper socketwrapper, Connection connection, Type pb
   }
 }
 
-
-
-
-Future<Tuple<GeneratedMessage, String>> recvPb2(SocketWrapper socketwrapper, Connection connection, Type pbClass, List<String> expectedFieldNames, {Duration? timeout}) async {
+Future<Tuple<GeneratedMessage, String>> recvPb2(SocketWrapper socketwrapper,
+    Connection connection, Type pbClass, List<String> expectedFieldNames,
+    {Duration? timeout}) async {
   try {
-
-    List<int> blob = await connection.recv_message2(socketwrapper, timeout: timeout);
+    List<int> blob =
+        await connection.recv_message2(socketwrapper, timeout: timeout);
 
     var pbMessage = pbClassCreators[pbClass]!()..mergeFromBuffer(blob);
 
@@ -121,8 +117,8 @@ Future<Tuple<GeneratedMessage, String>> recvPb2(SocketWrapper socketwrapper, Con
       }
     }
 
-    throw FusionError('None of the expected fields found in the received message');
-
+    throw FusionError(
+        'None of the expected fields found in the received message');
   } catch (e) {
     // Handle different exceptions here
     if (e is SocketException) {
@@ -134,15 +130,16 @@ Future<Tuple<GeneratedMessage, String>> recvPb2(SocketWrapper socketwrapper, Con
     } else if (e is OSError && e.errorCode == 9) {
       throw FusionError('Connection closed by local');
     } else {
-      throw FusionError('Communications error: ${e.runtimeType}: ${e.toString()}');
+      throw FusionError(
+          'Communications error: ${e.runtimeType}: ${e.toString()}');
     }
   }
 }
 
-
-Future<Tuple<GeneratedMessage, String>> recvPb(Connection connection, Type pbClass, List<String> expectedFieldNames, {Duration? timeout}) async {
+Future<Tuple<GeneratedMessage, String>> recvPb(
+    Connection connection, Type pbClass, List<String> expectedFieldNames,
+    {Duration? timeout}) async {
   try {
-
     List<int> blob = await connection.recv_message(timeout: timeout);
 
     var pbMessage = pbClassCreators[pbClass]!()..mergeFromBuffer(blob);
@@ -163,8 +160,8 @@ Future<Tuple<GeneratedMessage, String>> recvPb(Connection connection, Type pbCla
       }
     }
 
-    throw FusionError('None of the expected fields found in the received message');
-
+    throw FusionError(
+        'None of the expected fields found in the received message');
   } catch (e) {
     // Handle different exceptions here
     if (e is SocketException) {
@@ -176,8 +173,8 @@ Future<Tuple<GeneratedMessage, String>> recvPb(Connection connection, Type pbCla
     } else if (e is OSError && e.errorCode == 9) {
       throw FusionError('Connection closed by local');
     } else {
-      throw FusionError('Communications error: ${e.runtimeType}: ${e.toString()}');
+      throw FusionError(
+          'Communications error: ${e.runtimeType}: ${e.toString()}');
     }
   }
 }
-

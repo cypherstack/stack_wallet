@@ -5,16 +5,19 @@ class SocketWrapper {
   final String serverIP;
   final int serverPort;
 
-  late Stream<List<int>> _receiveStream;  // create a field for the broadcast stream
+  late Stream<List<int>>
+      _receiveStream; // create a field for the broadcast stream
 
   SocketWrapper(this.serverIP, this.serverPort);
   Socket get socket => _socket;
 
-  Stream<List<int>> get receiveStream => _receiveStream;  // expose the stream with a getter
+  Stream<List<int>> get receiveStream =>
+      _receiveStream; // expose the stream with a getter
 
   Future<void> connect() async {
     _socket = await Socket.connect(serverIP, serverPort);
-    _receiveStream = _socket.asBroadcastStream();  // initialize the broadcast stream
+    _receiveStream =
+        _socket.asBroadcastStream(); // initialize the broadcast stream
     _socket.done.then((_) {
       print('......Socket has been closed');
     });
@@ -25,7 +28,8 @@ class SocketWrapper {
 
   void status() {
     if (_socket != null) {
-      print("Socket connected to ${_socket.remoteAddress.address}:${_socket.remotePort}");
+      print(
+          "Socket connected to ${_socket.remoteAddress.address}:${_socket.remotePort}");
     } else {
       print("Socket is not connected");
     }

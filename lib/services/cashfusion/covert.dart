@@ -1,16 +1,17 @@
-import 'dart:math';
 import 'dart:async';
-import 'dart:io';
 import 'dart:collection';
-import 'connection.dart';
-import 'package:protobuf/protobuf.dart' as pb;
-import 'comms.dart';
-import 'fusion.pb.dart';
 import 'dart:convert';
+import 'dart:io';
+import 'dart:math';
+
+import 'package:protobuf/protobuf.dart' as pb;
+
+import 'comms.dart';
+import 'connection.dart';
+import 'fusion.pb.dart';
 
 const int TOR_COOLDOWN_TIME = 660;
 const int TIMEOUT_INACTIVE_CONNECTION = 120;
-
 
 class FusionError implements Exception {
   String cause;
@@ -18,10 +19,8 @@ class FusionError implements Exception {
 }
 
 class Unrecoverable extends FusionError {
-  Unrecoverable(String cause): super(cause);
+  Unrecoverable(String cause) : super(cause);
 }
-
-
 
 Future<bool> isTorPort(String host, int port) async {
   if (port < 0 || port > 65535) {
@@ -29,7 +28,8 @@ Future<bool> isTorPort(String host, int port) async {
   }
 
   try {
-    Socket sock = await Socket.connect(host, port, timeout: Duration(milliseconds: 100));
+    Socket sock =
+        await Socket.connect(host, port, timeout: Duration(milliseconds: 100));
     sock.write("GET\n");
     List<int> data = await sock.first;
     sock.destroy();
@@ -43,13 +43,11 @@ Future<bool> isTorPort(String host, int port) async {
   return false;
 }
 
-
-
 class TorLimiter {
   Queue<DateTime> deque = Queue<DateTime>();
   int lifetime;
   // Declare a lock here, may need a special Dart package for this
-  int _count=0;
+  int _count = 0;
 
   TorLimiter(this.lifetime);
 
@@ -65,7 +63,6 @@ class TorLimiter {
 
 TorLimiter limiter = TorLimiter(TOR_COOLDOWN_TIME);
 
-
 double randTrap(Random rng) {
   final sixth = 1.0 / 6;
   final f = rng.nextDouble();
@@ -79,8 +76,6 @@ double randTrap(Random rng) {
     return 0.75 * f + 0.125;
   }
 }
-
-
 
 class CovertConnection {
   Connection? connection; // replace dynamic with the type of your connection
@@ -124,7 +119,8 @@ class CovertSlot {
   int submitTimeout;
   pb.GeneratedMessage? subMsg; // The work to be done.
   bool done; // Whether last work requested is done.
-  CovertConnection? covConn; // which CovertConnection is assigned to work on this slot
+  CovertConnection?
+      covConn; // which CovertConnection is assigned to work on this slot
   CovertSlot(this.submitTimeout) : done = true;
   DateTime? t_submit;
 
@@ -138,24 +134,20 @@ class CovertSlot {
       throw Unrecoverable('connection is null');
     }
 
-    await sendPb(connection, CovertMessage, subMsg!, timeout: Duration(seconds: submitTimeout));
-    var result = await recvPb(connection, CovertResponse, ['ok', 'error'], timeout: Duration(seconds: submitTimeout));
+    await sendPb(connection, CovertMessage, subMsg!,
+        timeout: Duration(seconds: submitTimeout));
+    var result = await recvPb(connection, CovertResponse, ['ok', 'error'],
+        timeout: Duration(seconds: submitTimeout));
 
     if (result.item1 == 'error') {
       throw Unrecoverable('error from server: ${result.item2}');
     }
     done = true;
     t_submit = DateTime.fromMillisecondsSinceEpoch(0);
-    covConn?.tPing = DateTime.fromMillisecondsSinceEpoch(0); // if a submission is done, no ping is needed.
+    covConn?.tPing = DateTime.fromMillisecondsSinceEpoch(
+        0); // if a submission is done, no ping is needed.
   }
-
-
-
 }
-
-
-
-
 
 class PrintError {
   // Declare properties here
@@ -165,7 +157,7 @@ class CovertSubmitter extends PrintError {
   // Declare properties here
   List<CovertSlot> slots;
   bool done = true;
-  String failure_exception= "";
+  String failure_exception = "";
   int num_slots;
 
   bool stopping = false;
@@ -177,13 +169,13 @@ class CovertSubmitter extends PrintError {
   Object lock = Object();
   int countFailed = 0;
   int countEstablished = 0;
-  int countAttempted=0;
+  int countAttempted = 0;
   Random rng = Random.secure();
   int? randSpan;
   DateTime? stopTStart;
-  List<CovertConnection> spareConnections= [];
+  List<CovertConnection> spareConnections = [];
   String? failureException;
-  int submit_timeout=0;
+  int submit_timeout = 0;
 
   CovertSubmitter(
       String dest_addr,
@@ -194,11 +186,10 @@ class CovertSubmitter extends PrintError {
       this.num_slots,
       double randSpan, // changed from int to double
       double submit_timeout) // changed from int to double
-      : slots = List<CovertSlot>.generate(num_slots, (index) => CovertSlot(submit_timeout.toInt())) {
-
+      : slots = List<CovertSlot>.generate(
+            num_slots, (index) => CovertSlot(submit_timeout.toInt())) {
     // constructor body...
   }
-
 
   void wakeAll() {
     for (var s in slots) {
@@ -218,7 +209,6 @@ class CovertSubmitter extends PrintError {
     }
   }
 
-
   void stop([Exception? exception]) {
     if (this.stopping) {
       // already requested!
@@ -226,13 +216,16 @@ class CovertSubmitter extends PrintError {
     }
     this.failureException = exception?.toString();
     this.stopping = true;
-    var timeRemaining = this.stopTStart?.difference(DateTime.now()).inSeconds ?? 0;
-    print("Stopping; connections will close in approximately $timeRemaining seconds");
+    var timeRemaining =
+        this.stopTStart?.difference(DateTime.now()).inSeconds ?? 0;
+    print(
+        "Stopping; connections will close in approximately $timeRemaining seconds");
     this.wakeAll();
   }
 
 // PYTHON USES MULTITHREADING, WHICH ISNT IMPLEMENTED HERE YET
-  void scheduleConnections(DateTime tStart, Duration tSpan, {int numSpares = 0, int connectTimeout = 10}) {
+  void scheduleConnections(DateTime tStart, Duration tSpan,
+      {int numSpares = 0, int connectTimeout = 10}) {
     var newConns = <CovertConnection>[];
 
     for (var sNum = 0; sNum < this.slots.length; sNum++) {
@@ -244,8 +237,6 @@ class CovertSubmitter extends PrintError {
         if (myCovConn != null) {
           newConns.add(myCovConn);
         }
-
-
       }
     }
 
@@ -258,15 +249,14 @@ class CovertSubmitter extends PrintError {
     for (var covConn in newConns) {
       covConn.connNumber = this.countAttempted;
       this.countAttempted++;
-      var connTime = tStart.add(Duration(seconds: (tSpan.inSeconds * randTrap(this.rng)).round()));
-      var randDelay =  (this.randSpan ?? 0) * randTrap(this.rng);
+      var connTime = tStart.add(
+          Duration(seconds: (tSpan.inSeconds * randTrap(this.rng)).round()));
+      var randDelay = (this.randSpan ?? 0) * randTrap(this.rng);
 
-      runConnection(covConn, connTime.millisecondsSinceEpoch, randDelay, connectTimeout);
-
+      runConnection(
+          covConn, connTime.millisecondsSinceEpoch, randDelay, connectTimeout);
     }
   }
-
-
 
   void scheduleSubmit(int slotNum, DateTime tStart, dynamic subMsg) {
     var slot = slots[slotNum];
@@ -275,13 +265,12 @@ class CovertSubmitter extends PrintError {
 
     slot.subMsg = subMsg;
     slot.done = false;
-    slot.t_submit= tStart;
+    slot.t_submit = tStart;
     var covConn = slot.covConn;
     if (covConn != null) {
       covConn.wakeup.complete();
     }
   }
-
 
   void scheduleSubmissions(DateTime tStart, List<dynamic> slotMessages) {
     // Convert to list (Dart does not have tuples)
@@ -317,11 +306,11 @@ class CovertSubmitter extends PrintError {
     }
   }
 
-
-  Future runConnection(
-      CovertConnection covConn, int connTime, double randDelay, int connectTimeout) async {
+  Future runConnection(CovertConnection covConn, int connTime, double randDelay,
+      int connectTimeout) async {
     // Main loop for connection thread
-    DateTime connDateTime = DateTime.fromMillisecondsSinceEpoch(connTime * 1000);
+    DateTime connDateTime =
+        DateTime.fromMillisecondsSinceEpoch(connTime * 1000);
     while (await covConn.waitWakeupOrTime(connDateTime)) {
       // if we are woken up before connection and stopping is happening, then just don't make a connection at all
       if (this.stopping) {
@@ -350,11 +339,11 @@ class CovertSubmitter extends PrintError {
         try {
           final connection = await openConnection(
               this.destAddr!, this.destPort!,
-              connTimeout: connectTimeout.toDouble(), ssl: this.ssl, socksOpts: proxyOpts);
+              connTimeout: connectTimeout.toDouble(),
+              ssl: this.ssl,
+              socksOpts: proxyOpts);
           covConn.connection = connection;
-        }
-
-        catch (e) {
+        } catch (e) {
           this.countFailed++;
 
           final tEnd = DateTime.now().millisecondsSinceEpoch;
@@ -364,14 +353,12 @@ class CovertSubmitter extends PrintError {
           rethrow;
         }
 
-
-          this.countEstablished++;
+        this.countEstablished++;
 
         final tEnd = DateTime.now().millisecondsSinceEpoch;
 
         print(
             '[${covConn.connNumber}] connection established after ${((tEnd - tBegin) / 1000).toStringAsFixed(3)}s');
-
 
         covConn.delay = (randTrap(this.rng) ?? 0) * (this.randSpan ?? 0);
 
@@ -381,7 +368,7 @@ class CovertSubmitter extends PrintError {
         while (!this.stopping) {
           DateTime? nextTime;
           final slotNum = covConn.slotNum;
-          Function()? action;  // callback to hold the action function
+          Function()? action; // callback to hold the action function
 
           // Second preference: submit something
           if (slotNum != null) {
@@ -396,7 +383,8 @@ class CovertSubmitter extends PrintError {
           }
           // Last preference: wait doing nothing
           if (nextTime == null) {
-            nextTime = DateTime.now().add(Duration(seconds: TIMEOUT_INACTIVE_CONNECTION));
+            nextTime = DateTime.now()
+                .add(Duration(seconds: TIMEOUT_INACTIVE_CONNECTION));
             action = covConn.inactive;
           }
 
@@ -423,7 +411,9 @@ class CovertSubmitter extends PrintError {
 
         // STATE 3 - stopping
         while (true) {
-          final stopTime = this.stopTStart?.add(Duration(seconds: randDelay.toInt())) ?? DateTime.now();
+          final stopTime =
+              this.stopTStart?.add(Duration(seconds: randDelay.toInt())) ??
+                  DateTime.now();
 
           if (!(await covConn.waitWakeupOrTime(stopTime))) {
             break;
@@ -435,33 +425,32 @@ class CovertSubmitter extends PrintError {
         // in case of any problem, record the exception and if we have a slot, reassign it.
         final exception = e;
 
-          final slotNum = covConn.slotNum;
-          if (slotNum != null) {
-            try {
-              final spare = this.spareConnections.removeLast();
-              // Found a spare.
-              this.slots[slotNum].covConn = spare;
-              spare.slotNum = slotNum;
-              spare.wakeup.complete();  // python code is using set, possibly dealing wiht multi thread...double check this is ok.
+        final slotNum = covConn.slotNum;
+        if (slotNum != null) {
+          try {
+            final spare = this.spareConnections.removeLast();
+            // Found a spare.
+            this.slots[slotNum].covConn = spare;
+            spare.slotNum = slotNum;
+            spare.wakeup
+                .complete(); // python code is using set, possibly dealing wiht multi thread...double check this is ok.
 
-              covConn.slotNum = null;
-            } catch (e) {
-              // We failed, and there are no spares. Party is over!
+            covConn.slotNum = null;
+          } catch (e) {
+            // We failed, and there are no spares. Party is over!
 
-              if (exception is Exception) {
-                this.stop(exception);
-              } else {
-                // Handle the case where the exception is not an instance of Exception
-              }
-
+            if (exception is Exception) {
+              this.stop(exception);
+            } else {
+              // Handle the case where the exception is not an instance of Exception
             }
           }
+        }
       } finally {
         covConn.connection?.close();
       }
     }
   }
-
 
   void checkOk() {
     // Implement checkOk logic here
@@ -474,26 +463,21 @@ class CovertSubmitter extends PrintError {
   void checkConnected() {
     // Implement checkConnected logic here
     this.checkOk();
-    var numMissing = this.slots
-        .where((s) => s.covConn?.connection == null)
-        .length;
+    var numMissing =
+        this.slots.where((s) => s.covConn?.connection == null).length;
     if (numMissing > 0) {
       throw FusionError(
-          "Covert connections were too slow ($numMissing incomplete out of ${this
-              .slots.length}).");
+          "Covert connections were too slow ($numMissing incomplete out of ${this.slots.length}).");
     }
   }
 
   void checkDone() {
     // Implement checkDone logic here
     this.checkOk();
-    var numMissing = this.slots
-        .where((s) => !s.done)
-        .length;
+    var numMissing = this.slots.where((s) => !s.done).length;
     if (numMissing > 0) {
       throw FusionError(
-          "Covert submissions were too slow ($numMissing incomplete out of ${this
-              .slots.length}).");
+          "Covert submissions were too slow ($numMissing incomplete out of ${this.slots.length}).");
     }
   }
 }

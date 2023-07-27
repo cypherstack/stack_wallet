@@ -1,10 +1,10 @@
-import 'socketwrapper.dart';
-import 'dart:io';
 import 'dart:async';
-import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
-import 'package:convert/convert.dart';
+
 import 'package:collection/collection.dart';
+import 'package:convert/convert.dart';
+import 'package:stackwallet/services/cashfusion/socketwrapper.dart';
 
 /*
 This file might need some fixing up because each time we call fillBuf, we're trying to
@@ -22,14 +22,14 @@ class BadFrameError extends Error {
   String toString() => message;
 }
 
-
-
-Future<Connection> openConnection(String host, int port,
-    {double connTimeout = 5.0,
-      double defaultTimeout = 5.0,
-      bool ssl = false,
-      dynamic socksOpts}) async {
-
+Future<Connection> openConnection(
+  String host,
+  int port, {
+  double connTimeout = 5.0,
+  double defaultTimeout = 5.0,
+  bool ssl = false,
+  dynamic socksOpts,
+}) async {
   try {
     // Dart's Socket class handles connection timeout internally.
     Socket socket = await Socket.connect(host, port);
@@ -38,28 +38,30 @@ Future<Connection> openConnection(String host, int port,
       socket = await SecureSocket.secure(socket);
     }
 
-    return Connection(socket: socket, timeout: Duration(seconds: defaultTimeout.toInt()));
-
+    return Connection(
+        socket: socket, timeout: Duration(seconds: defaultTimeout.toInt()));
   } catch (e) {
     throw 'Failed to open connection: $e';
   }
 }
 
-
 class Connection {
   Duration timeout = Duration(seconds: 1);
   Socket? socket;
 
-  static const int MAX_MSG_LENGTH = 200*1024;
-  static final Uint8List magic = Uint8List.fromList([0x76, 0x5b, 0xe8, 0xb4, 0xe4, 0x39, 0x6d, 0xcf]);
+  static const int MAX_MSG_LENGTH = 200 * 1024;
+  static final Uint8List magic =
+      Uint8List.fromList([0x76, 0x5b, 0xe8, 0xb4, 0xe4, 0x39, 0x6d, 0xcf]);
   final Uint8List recvbuf = Uint8List(0);
   Connection({required this.socket, this.timeout = const Duration(seconds: 1)});
   Connection.withoutSocket({this.timeout = const Duration(seconds: 1)});
 
-  Future<void> sendMessageWithSocketWrapper(SocketWrapper socketwrapper, List<int> msg, {Duration? timeout}) async {
+  Future<void> sendMessageWithSocketWrapper(
+      SocketWrapper socketwrapper, List<int> msg,
+      {Duration? timeout}) async {
     timeout ??= this.timeout;
-    print ("DEBUG sendmessage msg sending ");
-    print (msg);
+    print("DEBUG sendmessage msg sending ");
+    print(msg);
     final lengthBytes = Uint8List(4);
     final byteData = ByteData.view(lengthBytes.buffer);
     byteData.setUint32(0, msg.length, Endian.big);
@@ -76,24 +78,20 @@ class Connection {
     }
   }
 
-
-
   Future<void> sendMessage(List<int> msg, {Duration? timeout}) async {
-
     timeout ??= this.timeout;
 
     final lengthBytes = Uint8List(4);
     final byteData = ByteData.view(lengthBytes.buffer);
     byteData.setUint32(0, msg.length, Endian.big);
 
-    print (Connection.magic);
+    print(Connection.magic);
     final frame = <int>[]
       ..addAll(Connection.magic)
       ..addAll(lengthBytes)
       ..addAll(msg);
 
     try {
-
       StreamController<List<int>> controller = StreamController();
 
       controller.stream.listen((data) {
@@ -109,19 +107,18 @@ class Connection {
       } finally {
         controller.close();
       }
-
     } on SocketException catch (e) {
       throw TimeoutException('Socket write timed out', timeout);
     }
-
   }
-
 
   void close() {
     socket?.close();
   }
 
-  Future<List<int>> fillBuf2(SocketWrapper socketwrapper, List<int> recvBuf, int n, {Duration? timeout}) async {
+  Future<List<int>> fillBuf2(
+      SocketWrapper socketwrapper, List<int> recvBuf, int n,
+      {Duration? timeout}) async {
     final maxTime = timeout != null ? DateTime.now().add(timeout) : null;
 
     await for (var data in socketwrapper.socket!.cast<List<int>>()) {
@@ -139,7 +136,8 @@ class Connection {
       }
 
       recvBuf.addAll(data);
-      print("DEBUG fillBuf2 2 - data added to recvBuf, new length: ${recvBuf.length}");
+      print(
+          "DEBUG fillBuf2 2 - data added to recvBuf, new length: ${recvBuf.length}");
 
       if (recvBuf.length >= n) {
         print("DEBUG fillBuf2 3 - breaking loop, recvBuf is big enough");
@@ -163,11 +161,9 @@ class Connection {
     });
     return recvBuf;
 
-
-
     StreamSubscription<List<int>>? subscription; // Declaration moved here
     subscription = socket!.listen(
-          (List<int> data) {
+      (List<int> data) {
         recvBuf.addAll(data);
         if (recvBuf.length >= n) {
           subscription?.cancel();
@@ -178,9 +174,10 @@ class Connection {
         throw e;
       },
       onDone: () {
-            print ("DEBUG ON DONE");
+        print("DEBUG ON DONE");
         if (recvBuf.length < n) {
-          throw SocketException('Connection closed before enough data was received');
+          throw SocketException(
+              'Connection closed before enough data was received');
         }
       },
     );
@@ -197,8 +194,8 @@ class Connection {
     return recvBuf;
   }
 
-
-  Future<List<int>> recv_message2(SocketWrapper socketwrapper, {Duration? timeout}) async {
+  Future<List<int>> recv_message2(SocketWrapper socketwrapper,
+      {Duration? timeout}) async {
     if (timeout == null) {
       timeout = this.timeout;
     }
@@ -237,31 +234,36 @@ class Connection {
             throw BadFrameError('Bad magic in frame: ${hex.encode(magic)}');
           }
 
-          final byteData = ByteData.view(Uint8List.fromList(recvBuf.sublist(8, 12)).buffer);
+          final byteData =
+              ByteData.view(Uint8List.fromList(recvBuf.sublist(8, 12)).buffer);
           final messageLength = byteData.getUint32(0, Endian.big);
 
           if (messageLength > MAX_MSG_LENGTH) {
-            throw BadFrameError('Got a frame with msg_length=$messageLength > $MAX_MSG_LENGTH (max)');
+            throw BadFrameError(
+                'Got a frame with msg_length=$messageLength > $MAX_MSG_LENGTH (max)');
           }
 
-          print("DEBUG recv_message2 3 - about to read the message body, messageLength: $messageLength");
+          print(
+              "DEBUG recv_message2 3 - about to read the message body, messageLength: $messageLength");
 
-          print ("DEBUG recvfbuf len is ");
-          print (recvBuf.length);
-          print ("bytes read is ");
-          print (bytesRead);
-          print ("message length is ");
+          print("DEBUG recvfbuf len is ");
+          print(recvBuf.length);
+          print("bytes read is ");
+          print(bytesRead);
+          print("message length is ");
           print(messageLength);
           if (recvBuf.length == bytesRead && bytesRead == 12 + messageLength) {
             final message = recvBuf.sublist(12, 12 + messageLength);
 
-            print("DEBUG recv_message2 4 - message received, length: ${message.length}");
+            print(
+                "DEBUG recv_message2 4 - message received, length: ${message.length}");
             print("DEBUG recv_message2 5 - message content: $message");
 
             return message;
           } else {
             // Throwing exception if the length doesn't match
-            throw Exception('Message length mismatch: expected ${12 + messageLength} bytes, received ${recvBuf.length} bytes.');
+            throw Exception(
+                'Message length mismatch: expected ${12 + messageLength} bytes, received ${recvBuf.length} bytes.');
           }
         }
       }
@@ -273,13 +275,8 @@ class Connection {
     return [];
   }
 
-
   Future<List<int>> recv_message({Duration? timeout}) async {
-
-
     // DEPRECATED
     return [];
   }
-
-
 } // END OF CLASS

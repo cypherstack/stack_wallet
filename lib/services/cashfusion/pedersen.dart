@@ -1,7 +1,7 @@
-import 'package:pointycastle/ecc/api.dart';
-import 'util.dart';
-import 'dart:math';
 import 'dart:typed_data';
+
+import 'package:pointycastle/ecc/api.dart';
+import 'package:stackwallet/services/cashfusion/util.dart';
 
 ECDomainParameters getDefaultParams() {
   return ECDomainParameters("secp256k1");
@@ -11,10 +11,10 @@ class NullPointError implements Exception {
   String errMsg() => 'NullPointError: Either Hpoint or HGpoint is null.';
 }
 
-
 class NonceRangeError implements Exception {
   final String message;
-  NonceRangeError([this.message = "Nonce value must be in the range 0 < nonce < order"]);
+  NonceRangeError(
+      [this.message = "Nonce value must be in the range 0 < nonce < order"]);
   String toString() => "NonceRangeError: $message";
 }
 
@@ -26,11 +26,11 @@ class ResultAtInfinity implements Exception {
 
 class InsecureHPoint implements Exception {
   final String message;
-  InsecureHPoint([this.message = "The H point has a known discrete logarithm, which means the commitment setup is broken"]);
+  InsecureHPoint(
+      [this.message =
+          "The H point has a known discrete logarithm, which means the commitment setup is broken"]);
   String toString() => "InsecureHPoint: $message";
 }
-
-
 
 class PedersenSetup {
   late ECPoint _H;
@@ -53,7 +53,6 @@ class PedersenSetup {
   Commitment commit(BigInt amount, {BigInt? nonce, Uint8List? PUncompressed}) {
     return Commitment(this, amount, nonce: nonce, PUncompressed: PUncompressed);
   }
-
 }
 
 class Commitment {
@@ -62,8 +61,8 @@ class Commitment {
   late BigInt nonce;
   late Uint8List PUncompressed;
 
-
-  Commitment(this.setup, BigInt amount, {BigInt? nonce, Uint8List? PUncompressed}) {
+  Commitment(this.setup, BigInt amount,
+      {BigInt? nonce, Uint8List? PUncompressed}) {
     this.nonce = nonce ?? Util.secureRandomBigInt(setup.params.n.bitLength);
     amountMod = amount % setup.params.n;
 
@@ -84,13 +83,16 @@ class Commitment {
     ECPoint? HpointMultiplied = Hpoint * multiplier1;
     ECPoint? HGpointMultiplied = HGpoint * multiplier2;
 
-    ECPoint? Ppoint = HpointMultiplied != null && HGpointMultiplied != null ? HpointMultiplied + HGpointMultiplied : null;
+    ECPoint? Ppoint = HpointMultiplied != null && HGpointMultiplied != null
+        ? HpointMultiplied + HGpointMultiplied
+        : null;
 
     if (Ppoint == setup.params.curve.infinity) {
       throw ResultAtInfinity();
     }
 
-    this.PUncompressed = PUncompressed ?? Ppoint?.getEncoded(false) ?? Uint8List(0);
+    this.PUncompressed =
+        PUncompressed ?? Ppoint?.getEncoded(false) ?? Uint8List(0);
   }
 
   void calcInitial(PedersenSetup setup, BigInt amount) {
@@ -114,7 +116,9 @@ class Commitment {
     ECPoint? HpointMultiplied = Hpoint * multiplier1;
     ECPoint? HGpointMultiplied = HGpoint * multiplier2;
 
-    ECPoint? Ppoint = HpointMultiplied != null && HGpointMultiplied != null ? HpointMultiplied + HGpointMultiplied : null;
+    ECPoint? Ppoint = HpointMultiplied != null && HGpointMultiplied != null
+        ? HpointMultiplied + HGpointMultiplied
+        : null;
 
     if (Ppoint == setup.params.curve.infinity) {
       throw ResultAtInfinity();
@@ -124,14 +128,17 @@ class Commitment {
   }
 
   static Uint8List add_points(Iterable<Uint8List> pointsIterable) {
-    ECDomainParameters params = getDefaultParams(); // Using helper function here
-    var pointList = pointsIterable.map((pser) => Util.ser_to_point(pser, params)).toList();
+    ECDomainParameters params =
+        getDefaultParams(); // Using helper function here
+    var pointList =
+        pointsIterable.map((pser) => Util.ser_to_point(pser, params)).toList();
 
     if (pointList.isEmpty) {
       throw ArgumentError('Empty list');
     }
 
-    ECPoint pSum = pointList.first; // Initialize pSum with the first point in the list
+    ECPoint pSum =
+        pointList.first; // Initialize pSum with the first point in the list
 
     for (var i = 1; i < pointList.length; i++) {
       pSum = (pSum + pointList[i])!;
@@ -143,7 +150,6 @@ class Commitment {
 
     return Util.point_to_ser(pSum, false);
   }
-
 
   Commitment addCommitments(Iterable<Commitment> commitmentIterable) {
     BigInt ktotal = BigInt.zero; // Changed to BigInt from int
@@ -168,7 +174,8 @@ class Commitment {
 
     ktotal = ktotal % setup.params.n; // Changed order to setup.params.n
 
-    if (ktotal == BigInt.zero) { // Changed comparison from 0 to BigInt.zero
+    if (ktotal == BigInt.zero) {
+      // Changed comparison from 0 to BigInt.zero
       throw Exception('Nonce range error');
     }
 
@@ -182,6 +189,7 @@ class Commitment {
     } else {
       PUncompressed = null;
     }
-    return Commitment(setup, atotal, nonce: ktotal, PUncompressed: PUncompressed);
+    return Commitment(setup, atotal,
+        nonce: ktotal, PUncompressed: PUncompressed);
   }
 }
