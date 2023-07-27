@@ -105,6 +105,8 @@ class AddressUtils {
         return Address.validateAddress(address, namecoin, namecoin.bech32!);
       case Coin.particl:
         return Address.validateAddress(address, particl);
+      case Coin.stellar:
+        return RegExp(r"^[G][A-Z0-9]{55}$").hasMatch(address);
       case Coin.nano:
         return NanoAccounts.isValid(NanoAccountType.NANO, address);
       case Coin.banano:
@@ -139,6 +141,8 @@ class AddressUtils {
         return Address.validateAddress(address, firoTestNetwork);
       case Coin.dogecoinTestNet:
         return Address.validateAddress(address, dogecointestnet);
+      case Coin.stellarTestnet:
+        return RegExp(r"^[G][A-Z0-9]{55}$").hasMatch(address);
     }
   }
 
