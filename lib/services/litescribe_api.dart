@@ -46,12 +46,15 @@ class LitescribeAPI {
         '/address/inscriptions?address=$address&cursor=$cursor&size=$size');
 
     // Check if the number of returned inscriptions equals the limit
-    final list = response.data['result']['list'];
     final int total = response.data['result']['total'] as int;
+
     int currentSize = 0;
-    if (list != null) {
-      currentSize = list.length as int;
+    if (total == 0) {
+      return <InscriptionData>[];
     }
+
+    final list = response.data['result']!['list'];
+    currentSize = list.length as int;
 
     if (currentSize == size && currentSize < total) {
       // If the number of returned inscriptions equals the limit and there are more inscriptions available,
