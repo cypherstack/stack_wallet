@@ -779,14 +779,14 @@ class Fusion {
 
     print('Possible tiers: $tierOutputs');
 
-    print("CHECK socketwrapper 839");
-    socketwrapper.status();
     safety_sum_in = sumInputsValue;
     safety_exess_fees = excessFees;
     return;
   }
 
   Future<void> registerAndWait(SocketWrapper socketwrapper) async {
+
+    print ("DEBUG register and wait top.");
     // msg can be different classes depending on which protobuf msg is sent.
     dynamic? msg;
 
@@ -826,8 +826,8 @@ class Fusion {
     };
 
     while (true) {
-      var msg = await recv2(socketwrapper, ['tierstatusupdate', 'fusionbegin'],
-          timeout: Duration(seconds: 10));
+      print ("RECEIVE LOOP 870............DEBUG");
+      var msg = await recv2(socketwrapper,['tierstatusupdate', 'fusionbegin'], timeout: Duration(seconds: 10));
 
       var fieldInfoFusionBegin = msg.info_.byName["fusionbegin"];
       if (fieldInfoFusionBegin != null &&
@@ -865,22 +865,30 @@ class Fusion {
       int? besttime;
       int? besttimetier;
       for (var entry in statuses.entries) {
-        double frac = entry.value.players / entry.value.min_players;
+        double frac = entry.value.players.toInt() / entry.value.minPlayers.toInt();
         if (frac >= maxfraction) {
           if (frac > maxfraction) {
             maxfraction = frac;
             maxtiers.clear();
           }
-          maxtiers.add(entry.key);
+          maxtiers.add(entry.key.toInt());
         }
-        if (entry.value.hasField('time_remaining')) {
-          int tr = entry.value.time_remaining;
+
+        var fieldInfoTimeRemaining = entry.value.info_.byName["timeRemaining"];
+        if (fieldInfoTimeRemaining == null) {
+          throw FusionError('Expected field not found in message: timeRemaining');
+        }
+
+        if (entry.value.hasField(fieldInfoTimeRemaining.tagNumber)) {
+
+          int tr = entry.value.timeRemaining.toInt();
           if (besttime == null || tr < besttime) {
             besttime = tr;
-            besttimetier = entry.key;
+            besttimetier = entry.key.toInt();
           }
         }
       }
+
 
       var displayBest = <String>[];
       var displayMid = <String>[];
