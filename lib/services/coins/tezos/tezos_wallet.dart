@@ -292,8 +292,8 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   Future<void> updateBalance() async {
-    var api = "https://api.mainnet.tzkt.io/v1/accounts/${await currentReceivingAddress}/balance"; // TODO: Can we use current node instead of this?
-    var theBalance = await get(Uri.parse(api)).then((value) => value.body);
+    var api = "${getCurrentNode().host}:${getCurrentNode().port}/chains/main/blocks/head/context/contracts/${await currentReceivingAddress}/balance";
+    var theBalance = (await get(Uri.parse(api)).then((value) => value.body)).substring(1, (await get(Uri.parse(api)).then((value) => value.body)).length - 2);
     Logging.instance.log("Balance for ${await currentReceivingAddress}: $theBalance", level: LogLevel.Info);
     var balanceInAmount = Amount(rawValue: BigInt.parse(theBalance.toString()), fractionDigits: 6);
     _balance = Balance(
@@ -355,9 +355,10 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   Future<void> updateChainHeight() async {
-    var api = "https://api.tzkt.io/v1/blocks/count"; // TODO: Can we use current node instead of this?
-    var returnedHeight = await get(Uri.parse(api)).then((value) => value.body);
-    final int intHeight = int.parse(returnedHeight.toString());
+    var api = "${getCurrentNode().host}:${getCurrentNode().port}/chains/main/blocks/head/header/shell";
+    var jsonParsedResponse = jsonDecode(await get(Uri.parse(api)).then((value) => value.body));
+    final int intHeight = int.parse(jsonParsedResponse["level"].toString());
+    Logging.instance.log("Chain height: $intHeight", level: LogLevel.Info);
     await updateCachedChainHeight(intHeight);
   }
 
@@ -375,7 +376,7 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<bool> testNetworkConnection() async{
     try {
-      await get(Uri.parse("https://api.mainnet.tzkt.io/v1/accounts/${await currentReceivingAddress}/balance"));
+      await get(Uri.parse("${getCurrentNode().host}:${getCurrentNode().port}/chains/main/blocks/head/header/shell"));
       return true;
     } catch (e) {
       return false;
