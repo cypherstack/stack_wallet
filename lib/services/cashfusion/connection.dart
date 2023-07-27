@@ -171,7 +171,11 @@ class Connection {
       },
       onError: (e) {
         subscription?.cancel();
-        throw e;
+        if (e is Exception) {
+          throw e;
+        } else {
+          throw Exception('Unknown error');
+        }
       },
       onDone: () {
         print("DEBUG ON DONE");
