@@ -274,8 +274,12 @@ class DB {
           {required dynamic key, required String boxName}) async =>
       await mutex.protect(() async => await Hive.box<T>(boxName).delete(key));
 
-  Future<void> deleteAll<T>({required String boxName}) async =>
-      await mutex.protect(() async => await Hive.box<T>(boxName).clear());
+  Future<void> deleteAll<T>({required String boxName}) async {
+    await mutex.protect(() async {
+      final box = await Hive.openBox<T>(boxName);
+      await box.clear();
+    });
+  }
 
   Future<void> deleteBoxFromDisk({required String boxName}) async =>
       await mutex.protect(() async => await Hive.deleteBoxFromDisk(boxName));

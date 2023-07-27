@@ -23,7 +23,9 @@ import 'package:stackwallet/pages/cashfusion/cashfusion_view.dart';
 import 'package:stackwallet/pages/coin_control/coin_control_view.dart';
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
+import 'package:stackwallet/pages/monkey/monkey_view.dart';
 import 'package:stackwallet/pages/notification_views/notifications_view.dart';
+import 'package:stackwallet/pages/ordinals/ordinals_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages/receive_view/receive_view.dart';
@@ -73,6 +75,7 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/buy_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/coin_control_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/exchange_nav_icon.dart';
+import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/ordinals_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/paynym_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/receive_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/send_nav_icon.dart';
@@ -927,6 +930,22 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         );
                       },
                     ),
+                  WalletNavigationBarItemData(
+                      icon: SvgPicture.asset(
+                        Assets.svg.monkey,
+                        height: 20,
+                        width: 20,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .bottomNavIconIcon,
+                      ),
+                      label: "MonKey",
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          MonkeyView.routeName,
+                          arguments: widget.walletId,
+                        );
+                      }),
                   if (ref.watch(
                         walletsChangeNotifierProvider.select(
                           (value) => value
@@ -1008,6 +1027,22 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             );
                           }
                         }
+                      },
+                    ),
+                  if (ref.watch(
+                    walletsChangeNotifierProvider.select(
+                      (value) =>
+                          value.getManager(widget.walletId).hasOrdinalsSupport,
+                    ),
+                  ))
+                    WalletNavigationBarItemData(
+                      label: "Ordinals",
+                      icon: const OrdinalsNavIcon(),
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          OrdinalsView.routeName,
+                          arguments: widget.walletId,
+                        );
                       },
                     ),
                   if (ref.watch(

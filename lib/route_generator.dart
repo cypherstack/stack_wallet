@@ -17,7 +17,9 @@ import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/eth_token_
 import 'package:stackwallet/models/buy/response_objects/quote.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
+import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/models/isar/ordinal.dart';
 import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/add_custom_token_view.dart';
@@ -57,7 +59,11 @@ import 'package:stackwallet/pages/generic/single_field_edit_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages/intro_view.dart';
 import 'package:stackwallet/pages/manage_favorites_view/manage_favorites_view.dart';
+import 'package:stackwallet/pages/monkey/monkey_view.dart';
 import 'package:stackwallet/pages/notification_views/notifications_view.dart';
+import 'package:stackwallet/pages/ordinals/ordinal_details_view.dart';
+import 'package:stackwallet/pages/ordinals/ordinals_filter_view.dart';
+import 'package:stackwallet/pages/ordinals/ordinals_view.dart';
 import 'package:stackwallet/pages/paynym/add_new_paynym_follow_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
@@ -143,6 +149,8 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/unlock_wallet_keys_desktop.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/wallet_keys_desktop_popup.dart';
 import 'package:stackwallet/pages_desktop_specific/notifications/desktop_notifications_view.dart';
+import 'package:stackwallet/pages_desktop_specific/ordinals/desktop_ordinal_details_view.dart';
+import 'package:stackwallet/pages_desktop_specific/ordinals/desktop_ordinals_view.dart';
 import 'package:stackwallet/pages_desktop_specific/password/create_password_view.dart';
 import 'package:stackwallet/pages_desktop_specific/password/delete_password_warning_view.dart';
 import 'package:stackwallet/pages_desktop_specific/password/forgot_password_desktop_view.dart';
@@ -166,8 +174,6 @@ import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/widgets/choose_coin_view.dart';
 import 'package:tuple/tuple.dart';
-
-import 'models/isar/models/contact_entry.dart';
 
 /*
  * This file contains all the routes for the app.
@@ -378,6 +384,35 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      case MonkeyView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => MonkeyView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      // case MonkeyLoadedView.routeName:
+      //   if (args is Tuple2<String, ChangeNotifierProvider<Manager>>) {
+      //     return getRoute(
+      //       shouldUseMaterialRoute: useMaterialPageRoute,
+      //       builder: (_) => MonkeyLoadedView(
+      //         walletId: args.item1,
+      //         managerProvider: args.item2,
+      //       ),
+      //       settings: RouteSettings(
+      //         name: settings.name,
+      //       ),
+      //     );
+      //   }
+      //   return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       case CoinControlView.routeName:
         if (args is Tuple2<String, CoinControlViewType>) {
           return getRoute(
@@ -406,6 +441,70 @@ class RouteGenerator {
           );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case OrdinalsView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => OrdinalsView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case DesktopOrdinalsView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => DesktopOrdinalsView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case OrdinalDetailsView.routeName:
+        if (args is ({Ordinal ordinal, String walletId})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => OrdinalDetailsView(
+              walletId: args.walletId,
+              ordinal: args.ordinal,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case DesktopOrdinalDetailsView.routeName:
+        if (args is ({Ordinal ordinal, String walletId})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => DesktopOrdinalDetailsView(
+              walletId: args.walletId,
+              ordinal: args.ordinal,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case OrdinalsFilterView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const OrdinalsFilterView(),
+            settings: RouteSettings(name: settings.name));
 
       case UtxoDetailsView.routeName:
         if (args is Tuple2<Id, String>) {

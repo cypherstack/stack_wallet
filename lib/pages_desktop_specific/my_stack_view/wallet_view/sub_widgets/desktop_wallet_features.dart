@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/monkey/monkey_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/cashfusion/desktop_cashfusion_view.dart';
@@ -23,6 +24,7 @@ import 'package:stackwallet/pages_desktop_specific/coin_control/desktop_coin_con
 import 'package:stackwallet/pages_desktop_specific/desktop_menu.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/more_features/more_features_dialog.dart';
+import 'package:stackwallet/pages_desktop_specific/ordinals/desktop_ordinals_view.dart';
 import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
 import 'package:stackwallet/providers/global/paynym_api_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
@@ -81,6 +83,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         onCoinControlPressed: _onCoinControlPressed,
         onAnonymizeAllPressed: _onAnonymizeAllPressed,
         onWhirlpoolPressed: _onWhirlpoolPressed,
+        onOrdinalsPressed: _onOrdinalsPressed,
+        onMonkeyPressed: _onMonkeyPressed,
         onFusionPressed: _onFusionPressed,
       ),
     );
@@ -315,6 +319,24 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     }
   }
 
+  Future<void> _onMonkeyPressed() async {
+    Navigator.of(context, rootNavigator: true).pop();
+
+    await (Navigator.of(context).pushNamed(
+      MonkeyView.routeName,
+      arguments: widget.walletId,
+    ));
+  }
+
+  void _onOrdinalsPressed() {
+    Navigator.of(context, rootNavigator: true).pop();
+
+    Navigator.of(context).pushNamed(
+      DesktopOrdinalsView.routeName,
+      arguments: widget.walletId,
+    );
+  }
+
   void _onFusionPressed() {
     Navigator.of(context, rootNavigator: true).pop();
 
@@ -341,6 +363,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
             )) ||
         manager.coin == Coin.firo ||
         manager.coin == Coin.firoTestNet ||
+        manager.hasWhirlpoolSupport ||
+        manager.coin == Coin.banano ||
         manager.hasWhirlpoolSupport ||
         manager.hasFusionSupport;
 
