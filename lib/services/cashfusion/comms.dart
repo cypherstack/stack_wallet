@@ -39,10 +39,8 @@ Map<Type, PbCreateFunc> pbClassCreators = {
   Error: () => Error(),
   Ping: () => Ping(),
   OK: () => OK(),
-  ClientMessage: () => ClientMessage(),
   ServerMessage: () => ServerMessage(),
   CovertMessage: () => CovertMessage(),
-  CovertResponse: () => CovertResponse()
 };
 
 Future<void> sendPb(
