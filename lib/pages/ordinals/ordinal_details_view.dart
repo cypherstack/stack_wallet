@@ -1,17 +1,21 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:http/http.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:stackwallet/models/isar/ordinal.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/ordinals/widgets/dialogs.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -184,6 +188,36 @@ class _OrdinalImageGroup extends StatelessWidget {
 
   static const _spacing = 12.0;
 
+  Future<void> _savePngToFile() async {
+    final response = await get(Uri.parse(ordinal.content));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+          "statusCode=${response.statusCode} body=${response.bodyBytes}");
+    }
+
+    final bytes = response.bodyBytes;
+
+    if (Platform.isAndroid) {
+      await Permission.storage.request();
+    }
+
+    final dir = Platform.isAndroid
+        ? Directory("/storage/emulated/0/Documents")
+        : await getApplicationDocumentsDirectory();
+
+    final docPath = dir.path;
+    final filePath = "$docPath/ordinal_${ordinal.inscriptionNumber}.png";
+
+    File imgFile = File(filePath);
+
+    if (imgFile.existsSync()) {
+      throw Exception("File already exists");
+    }
+
+    await imgFile.writeAsBytes(bytes);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -197,15 +231,20 @@ class _OrdinalImageGroup extends StatelessWidget {
         // const SizedBox(
         //   height: _spacing,
         // ),
-        AspectRatio(
-          aspectRatio: 1,
-          child: Container(
-            color: Colors.transparent,
-            child: Image.network(
-              ordinal.content, // Use the preview URL as the image source
-              fit: BoxFit.cover,
-              filterQuality:
-                  FilterQuality.none, // Set the filter mode to nearest
+        ClipRRect(
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius,
+          ),
+          child: AspectRatio(
+            aspectRatio: 1,
+            child: Container(
+              color: Colors.transparent,
+              child: Image.network(
+                ordinal.content, // Use the preview URL as the image source
+                fit: BoxFit.cover,
+                filterQuality:
+                    FilterQuality.none, // Set the filter mode to nearest
+              ),
             ),
           ),
         ),
@@ -227,8 +266,37 @@ class _OrdinalImageGroup extends StatelessWidget {
                 ),
                 buttonHeight: ButtonHeight.l,
                 iconSpacing: 4,
-                onPressed: () {
-                  // TODO: save and download image to device
+                onPressed: () async {
+                  bool didError = false;
+                  await showLoading(
+                    whileFuture: Future.wait([
+                      _savePngToFile(),
+                      Future<void>.delayed(const Duration(seconds: 2)),
+                    ]),
+                    context: context,
+                    isDesktop: true,
+                    message: "Saving ordinal image",
+                    onException: (e) {
+                      didError = true;
+                      String msg = e.toString();
+                      while (msg.isNotEmpty && msg.startsWith("Exception:")) {
+                        msg = msg.substring(10).trim();
+                      }
+                      showFloatingFlushBar(
+                        type: FlushBarType.warning,
+                        message: msg,
+                        context: context,
+                      );
+                    },
+                  );
+
+                  if (!didError && context.mounted) {
+                    await showFloatingFlushBar(
+                      type: FlushBarType.success,
+                      message: "Image saved",
+                      context: context,
+                    );
+                  }
                 },
               ),
             ),

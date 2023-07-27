@@ -1,8 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:http/http.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/models/isar/ordinal.dart';
+import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
@@ -12,10 +18,12 @@ import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class DesktopOrdinalDetailsView extends ConsumerStatefulWidget {
@@ -40,6 +48,36 @@ class _DesktopOrdinalDetailsViewState
   static const _spacing = 12.0;
 
   late final UTXO? utxo;
+
+  Future<void> _savePngToFile() async {
+    final response = await get(Uri.parse(widget.ordinal.content));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+          "statusCode=${response.statusCode} body=${response.bodyBytes}");
+    }
+
+    final bytes = response.bodyBytes;
+
+    if (Platform.isAndroid) {
+      await Permission.storage.request();
+    }
+
+    final dir = Platform.isAndroid
+        ? Directory("/storage/emulated/0/Documents")
+        : await getApplicationDocumentsDirectory();
+
+    final docPath = dir.path;
+    final filePath = "$docPath/ordinal_${widget.ordinal.inscriptionNumber}.png";
+
+    File imgFile = File(filePath);
+
+    if (imgFile.existsSync()) {
+      throw Exception("File already exists");
+    }
+
+    await imgFile.writeAsBytes(bytes);
+  }
 
   @override
   void initState() {
@@ -171,23 +209,54 @@ class _DesktopOrdinalDetailsViewState
                             // const SizedBox(
                             //   width: 16,
                             // ),
-                            // SecondaryButton(
-                            //   width: 150,
-                            //   label: "Download",
-                            //   icon: SvgPicture.asset(
-                            //     Assets.svg.arrowDown,
-                            //     width: 13,
-                            //     height: 18,
-                            //     color: Theme.of(context)
-                            //         .extension<StackColors>()!
-                            //         .buttonTextSecondary,
-                            //   ),
-                            //   buttonHeight: ButtonHeight.l,
-                            //   iconSpacing: 8,
-                            //   onPressed: () {
-                            //     // TODO: save and download image to device
-                            //   },
-                            // ),
+                            SecondaryButton(
+                              width: 150,
+                              label: "Download",
+                              icon: SvgPicture.asset(
+                                Assets.svg.arrowDown,
+                                width: 13,
+                                height: 18,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .buttonTextSecondary,
+                              ),
+                              buttonHeight: ButtonHeight.l,
+                              iconSpacing: 8,
+                              onPressed: () async {
+                                bool didError = false;
+                                await showLoading(
+                                  whileFuture: Future.wait([
+                                    _savePngToFile(),
+                                    Future<void>.delayed(
+                                        const Duration(seconds: 2)),
+                                  ]),
+                                  context: context,
+                                  isDesktop: true,
+                                  message: "Saving ordinal image",
+                                  onException: (e) {
+                                    didError = true;
+                                    String msg = e.toString();
+                                    while (msg.isNotEmpty &&
+                                        msg.startsWith("Exception:")) {
+                                      msg = msg.substring(10).trim();
+                                    }
+                                    showFloatingFlushBar(
+                                      type: FlushBarType.warning,
+                                      message: msg,
+                                      context: context,
+                                    );
+                                  },
+                                );
+
+                                if (!didError && mounted) {
+                                  await showFloatingFlushBar(
+                                    type: FlushBarType.success,
+                                    message: "Image saved",
+                                    context: context,
+                                  );
+                                }
+                              },
+                            ),
                           ],
                         ),
                       ),
