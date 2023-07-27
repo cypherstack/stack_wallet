@@ -174,7 +174,7 @@ class Connection {
         if (e is Exception) {
           throw e;
         } else {
-          throw Exception('Unknown error');
+          throw Exception(e ?? 'Error in `subscription` socket!.listen');
         }
       },
       onDone: () {
