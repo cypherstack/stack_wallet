@@ -1,12 +1,9 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/models/isar/ordinal.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -137,7 +134,7 @@ class _DesktopOrdinalDetailsViewState
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
+                                  SelectableText(
                                     "INSC. ${widget.ordinal.inscriptionNumber}",
                                     style: STextStyles.w600_20(context),
                                   ),
@@ -197,51 +194,48 @@ class _DesktopOrdinalDetailsViewState
                       const SizedBox(
                         height: 16,
                       ),
-                      _DetailsItemWCopy(
-                        title: "Inscription number",
-                        data: widget.ordinal.inscriptionNumber.toString(),
-                      ),
-                      const SizedBox(
-                        height: _spacing,
-                      ),
-                      _DetailsItemWCopy(
-                        title: "Inscription ID",
-                        data: widget.ordinal.inscriptionId,
-                      ),
-                      const SizedBox(
-                        height: _spacing,
-                      ),
-                      // todo: add utxo status
-                      const SizedBox(
-                        height: _spacing,
-                      ),
-                      _DetailsItemWCopy(
-                        title: "Amount",
-                        data: utxo == null
-                            ? "ERROR"
-                            : ref.watch(pAmountFormatter(coin)).format(
-                                  Amount(
-                                    rawValue: BigInt.from(utxo!.value),
-                                    fractionDigits: coin.decimals,
-                                  ),
-                                ),
-                      ),
-                      const SizedBox(
-                        height: _spacing,
-                      ),
-                      _DetailsItemWCopy(
-                        title: "Owner address",
-                        data: utxo?.address ?? "ERROR",
-                      ),
-                      const SizedBox(
-                        height: _spacing,
-                      ),
-                      _DetailsItemWCopy(
-                        title: "Transaction ID",
-                        data: widget.ordinal.utxoTXID,
-                      ),
-                      const SizedBox(
-                        height: _spacing,
+                      RoundedWhiteContainer(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _DetailsItemWCopy(
+                              title: "Inscription number",
+                              data: widget.ordinal.inscriptionNumber.toString(),
+                            ),
+                            const _Divider(),
+                            _DetailsItemWCopy(
+                              title: "Inscription ID",
+                              data: widget.ordinal.inscriptionId,
+                            ),
+                            // const SizedBox(
+                            //   height: _spacing,
+                            // ),
+                            // // todo: add utxo status
+                            const _Divider(),
+                            _DetailsItemWCopy(
+                              title: "Amount",
+                              data: utxo == null
+                                  ? "ERROR"
+                                  : ref.watch(pAmountFormatter(coin)).format(
+                                        Amount(
+                                          rawValue: BigInt.from(utxo!.value),
+                                          fractionDigits: coin.decimals,
+                                        ),
+                                      ),
+                            ),
+                            const _Divider(),
+                            _DetailsItemWCopy(
+                              title: "Owner address",
+                              data: utxo?.address ?? "ERROR",
+                            ),
+                            const _Divider(),
+                            _DetailsItemWCopy(
+                              title: "Transaction ID",
+                              data: widget.ordinal.utxoTXID,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -250,6 +244,23 @@ class _DesktopOrdinalDetailsViewState
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _Divider extends StatelessWidget {
+  const _Divider({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        vertical: 16,
+      ),
+      child: Container(
+        height: 1,
+        color: Theme.of(context).extension<StackColors>()!.backgroundAppBar,
       ),
     );
   }
@@ -267,48 +278,29 @@ class _DetailsItemWCopy extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RoundedWhiteContainer(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: STextStyles.itemSubtitle(context),
-              ),
-              GestureDetector(
-                onTap: () async {
-                  await Clipboard.setData(ClipboardData(text: data));
-                  if (context.mounted) {
-                    unawaited(
-                      showFloatingFlushBar(
-                        type: FlushBarType.info,
-                        message: "Copied to clipboard",
-                        context: context,
-                      ),
-                    );
-                  }
-                },
-                child: SvgPicture.asset(
-                  Assets.svg.copy,
-                  color:
-                      Theme.of(context).extension<StackColors>()!.infoItemIcons,
-                  width: 12,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(
-            height: 4,
-          ),
-          SelectableText(
-            data,
-            style: STextStyles.itemSubtitle12(context),
-          ),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: STextStyles.itemSubtitle(context),
+            ),
+            IconCopyButton(
+              data: data,
+            ),
+          ],
+        ),
+        const SizedBox(
+          height: 4,
+        ),
+        SelectableText(
+          data,
+          style: STextStyles.itemSubtitle12(context),
+        ),
+      ],
     );
   }
 }
