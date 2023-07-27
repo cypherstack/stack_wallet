@@ -21,6 +21,8 @@ import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
@@ -113,7 +115,6 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
 
     imageBytes ??= (manager.wallet as BananoWallet).getMonkeyImageBytes();
 
-    //edit for desktop
     return Background(
       child: ConditionalParent(
         condition: isDesktop,
@@ -140,64 +141,116 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                           .extension<StackColors>()!
                           .topNavIconPrimary,
                     ),
-                    onPressed: () {
-                      if (mounted) {
-                        Navigator.of(context).pop();
-                      }
-                    },
+                    onPressed: Navigator.of(context).pop,
                   ),
                   const SizedBox(
                     width: 15,
                   ),
-                  SvgPicture.asset(Assets.svg.monkey),
+                  SvgPicture.asset(
+                    Assets.svg.monkey,
+                    width: 32,
+                    height: 32,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle1,
+                  ),
                   const SizedBox(
                     width: 12,
                   ),
                   Text(
                     "MonKey",
-                    style: STextStyles.navBarTitle(context),
+                    style: STextStyles.desktopH3(context),
                   ),
                 ],
               ),
             ),
-            trailing: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: MouseRegion(
-                cursor: SystemMouseCursors.click,
-                child: GestureDetector(
-                  onTap: () {
-                    showDialog<dynamic>(
-                        context: context,
-                        useSafeArea: false,
-                        barrierDismissible: true,
-                        builder: (context) {
-                          return const StackDialog(
-                            title: "About MonKeys",
-                            message:
-                                "A MonKey is a visual representation of your Banano address.",
-                          );
-                        });
-                  },
-                  child: Row(
-                    children: [
-                      SvgPicture.asset(
-                        Assets.svg.circleQuestion,
-                        color: Colors.blue[800],
-                      ),
-                      const SizedBox(
-                        width: 6,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: Text(
-                          "What is MonKey?",
-                          style: STextStyles.desktopTextSmall(context).copyWith(
-                            color: Colors.blue[800],
+            trailing: RawMaterialButton(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(1000),
+              ),
+              onPressed: () {
+                showDialog<void>(
+                  context: context,
+                  useSafeArea: false,
+                  barrierDismissible: true,
+                  builder: (context) {
+                    return DesktopDialog(
+                      maxHeight: double.infinity,
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(left: 32),
+                                child: Text(
+                                  "About MonKeys",
+                                  style: STextStyles.desktopH3(context),
+                                ),
+                              ),
+                              const DesktopDialogCloseButton(),
+                            ],
                           ),
-                        ),
+                          Text(
+                            "A MonKey is a visual representation of your Banano address.",
+                            style:
+                                STextStyles.desktopTextMedium(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark3,
+                            ),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(
+                                  32,
+                                ),
+                                child: PrimaryButton(
+                                  width: 272.5,
+                                  label: "OK",
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    );
+                  },
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 19,
+                  horizontal: 32,
+                ),
+                child: Row(
+                  children: [
+                    SvgPicture.asset(
+                      Assets.svg.circleQuestion,
+                      width: 20,
+                      height: 20,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .customTextButtonEnabledText,
+                    ),
+                    const SizedBox(
+                      width: 8,
+                    ),
+                    Text(
+                      "What is MonKey?",
+                      style:
+                          STextStyles.desktopMenuItemSelected(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .customTextButtonEnabledText,
+                      ),
+                    )
+                  ],
                 ),
               ),
             ),
