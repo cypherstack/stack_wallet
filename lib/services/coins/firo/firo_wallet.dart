@@ -1896,11 +1896,7 @@ class FiroWallet extends CoinServiceAPI
     await Future.wait([
       updateCachedId(walletId),
       updateCachedIsFavorite(false),
-      DB.instance.put<dynamic>(
-        boxName: walletId,
-        key: _lelantusCoinIsarRescanRequired,
-        value: false,
-      ),
+      setLelantusCoinIsarRescanRequiredDone(),
     ]);
   }
 
@@ -4133,6 +4129,7 @@ class FiroWallet extends CoinServiceAPI
         maxNumberOfIndexesToCheck,
         false,
       );
+      await setLelantusCoinIsarRescanRequiredDone();
 
       await compute(
         _setTestnetWrapper,
