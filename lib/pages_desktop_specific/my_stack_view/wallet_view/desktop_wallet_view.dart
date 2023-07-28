@@ -17,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
+import 'package:stackwallet/pages/special/firo_rescan_recovery_error_dialog.dart';
 import 'package:stackwallet/pages/token_view/my_tokens_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/transactions_list.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
@@ -30,6 +31,7 @@ import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/services/coins/banano/banano_wallet.dart';
+import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
@@ -78,6 +80,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
 
   late final bool _shouldDisableAutoSyncOnLogOut;
   bool _rescanningOnOpen = false;
+  bool _lelantusRescanRecovery = false;
 
   Future<void> onBackPressed() async {
     await _logout();
@@ -103,6 +106,38 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
     ref.read(managerProvider.notifier).isActiveWallet = false;
   }
 
+  Future<void> _firoRescanRecovery() async {
+    final success = await (ref
+            .read(walletsChangeNotifierProvider)
+            .getManager(widget.walletId)
+            .wallet as FiroWallet)
+        .firoRescanRecovery();
+
+    if (success) {
+      // go into wallet
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => setState(() {
+          _rescanningOnOpen = false;
+          _lelantusRescanRecovery = false;
+        }),
+      );
+    } else {
+      // show error message dialog w/ options
+      if (mounted) {
+        final shouldRetry = await Navigator.of(context).pushNamed(
+          FiroRescanRecoveryErrorView.routeName,
+          arguments: widget.walletId,
+        );
+
+        if (shouldRetry is bool && shouldRetry) {
+          await _firoRescanRecovery();
+        }
+      } else {
+        return await _firoRescanRecovery();
+      }
+    }
+  }
+
   @override
   void initState() {
     controller = TextEditingController();
@@ -124,7 +159,13 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
       _shouldDisableAutoSyncOnLogOut = false;
     }
 
-    if (ref.read(managerProvider).coin != Coin.ethereum &&
+    if (ref.read(managerProvider).coin == Coin.firo &&
+        (ref.read(managerProvider).wallet as FiroWallet)
+            .lelantusCoinIsarRescanRequired) {
+      _rescanningOnOpen = true;
+      _lelantusRescanRecovery = true;
+      _firoRescanRecovery();
+    } else if (ref.read(managerProvider).coin != Coin.ethereum &&
         ref.read(managerProvider).rescanOnOpenVersion == Constants.rescanV1) {
       _rescanningOnOpen = true;
       ref.read(managerProvider).fullRescan(20, 1000).then(
@@ -172,83 +213,86 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                 subMessage: "This only needs to run once per wallet",
                 eventBus: null,
                 textColor: Theme.of(context).extension<StackColors>()!.textDark,
-                actionButton: SecondaryButton(
-                  label: "Skip",
-                  buttonHeight: ButtonHeight.l,
-                  onPressed: () async {
-                    await showDialog<void>(
-                      context: context,
-                      builder: (context) => DesktopDialog(
-                        maxWidth: 500,
-                        maxHeight: double.infinity,
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(left: 32),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                actionButton: _lelantusRescanRecovery
+                    ? null
+                    : SecondaryButton(
+                        label: "Skip",
+                        buttonHeight: ButtonHeight.l,
+                        onPressed: () async {
+                          await showDialog<void>(
+                            context: context,
+                            builder: (context) => DesktopDialog(
+                              maxWidth: 500,
+                              maxHeight: double.infinity,
+                              child: Column(
                                 children: [
-                                  Text(
-                                    "Warning!",
-                                    style: STextStyles.desktopH3(context),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 32),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Warning!",
+                                          style: STextStyles.desktopH3(context),
+                                        ),
+                                        const DesktopDialogCloseButton(),
+                                      ],
+                                    ),
                                   ),
-                                  const DesktopDialogCloseButton(),
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 32),
-                              child: Text(
-                                "Skipping this process can completely"
-                                " break your wallet. It is only meant to be done in"
-                                " emergency situations where the migration fails"
-                                " and will not let you continue. Still skip?",
-                                style: STextStyles.desktopTextSmall(context),
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 32,
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(32),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: SecondaryButton(
-                                      label: "Cancel",
-                                      buttonHeight: ButtonHeight.l,
-                                      onPressed: Navigator.of(context,
-                                              rootNavigator: true)
-                                          .pop,
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 32),
+                                    child: Text(
+                                      "Skipping this process can completely"
+                                      " break your wallet. It is only meant to be done in"
+                                      " emergency situations where the migration fails"
+                                      " and will not let you continue. Still skip?",
+                                      style:
+                                          STextStyles.desktopTextSmall(context),
                                     ),
                                   ),
                                   const SizedBox(
-                                    width: 16,
+                                    height: 32,
                                   ),
-                                  Expanded(
-                                    child: PrimaryButton(
-                                      label: "Ok",
-                                      buttonHeight: ButtonHeight.l,
-                                      onPressed: () {
-                                        Navigator.of(context,
-                                                rootNavigator: true)
-                                            .pop();
-                                        setState(
-                                            () => _rescanningOnOpen = false);
-                                      },
+                                  Padding(
+                                    padding: const EdgeInsets.all(32),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: SecondaryButton(
+                                            label: "Cancel",
+                                            buttonHeight: ButtonHeight.l,
+                                            onPressed: Navigator.of(context,
+                                                    rootNavigator: true)
+                                                .pop,
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          width: 16,
+                                        ),
+                                        Expanded(
+                                          child: PrimaryButton(
+                                            label: "Ok",
+                                            buttonHeight: ButtonHeight.l,
+                                            onPressed: () {
+                                              Navigator.of(context,
+                                                      rootNavigator: true)
+                                                  .pop();
+                                              setState(() =>
+                                                  _rescanningOnOpen = false);
+                                            },
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
+                                  )
                                 ],
                               ),
-                            )
-                          ],
-                        ),
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
               ),
             )
           ],

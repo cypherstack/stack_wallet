@@ -4,6 +4,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_backup_views/wallet_backup_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_warning_view.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_delete_wallet_dialog.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/unlock_wallet_keys_desktop.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -13,6 +15,9 @@ import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
+import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -48,7 +53,47 @@ class _FiroRescanRecoveryErrorViewState
       child: ConditionalParent(
         condition: Util.isDesktop,
         builder: (child) {
-          return child;
+          return DesktopScaffold(
+            appBar: DesktopAppBar(
+              background: Theme.of(context).extension<StackColors>()!.popupBG,
+              isCompactHeight: true,
+              // useSpacers: false,
+              trailing: Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: CustomTextButton(
+                  text: "Delete wallet",
+                  onTap: () async {
+                    final result = await showDialog<bool?>(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) => Navigator(
+                        initialRoute: DesktopDeleteWalletDialog.routeName,
+                        onGenerateRoute: RouteGenerator.generateRoute,
+                        onGenerateInitialRoutes: (_, __) {
+                          return [
+                            RouteGenerator.generateRoute(
+                              RouteSettings(
+                                name: DesktopDeleteWalletDialog.routeName,
+                                arguments: widget.walletId,
+                              ),
+                            ),
+                          ];
+                        },
+                      ),
+                    );
+
+                    if (result == true) {
+                      if (context.mounted) {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop();
+                      }
+                    }
+                  },
+                ),
+              ),
+            ),
+            body: SizedBox(width: 328, child: child),
+          );
         },
         child: ConditionalParent(
           condition: !Util.isDesktop,
@@ -164,13 +209,50 @@ class _FiroRescanRecoveryErrorViewState
                 "Failed to rescan firo wallet",
                 style: STextStyles.pageTitleH2(context),
               ),
-              if (!Util.isDesktop) const Spacer(),
-              Row(
+              Util.isDesktop
+                  ? const SizedBox(
+                      height: 60,
+                    )
+                  : const Spacer(),
+              BranchedParent(
+                condition: Util.isDesktop,
+                conditionBranchBuilder: (children) => Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: children,
+                ),
+                otherBranchBuilder: (children) => Row(
+                  children: [
+                    Expanded(child: children[0]),
+                    children[1],
+                    Expanded(child: children[2]),
+                  ],
+                ),
                 children: [
-                  Expanded(
-                    child: SecondaryButton(
-                      label: "Show mnemonic",
-                      onPressed: () async {
+                  SecondaryButton(
+                    label: "Show mnemonic",
+                    buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
+                    onPressed: () async {
+                      if (Util.isDesktop) {
+                        await showDialog<void>(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => Navigator(
+                            initialRoute: UnlockWalletKeysDesktop.routeName,
+                            onGenerateRoute: RouteGenerator.generateRoute,
+                            onGenerateInitialRoutes: (_, __) {
+                              return [
+                                RouteGenerator.generateRoute(
+                                  RouteSettings(
+                                    name: UnlockWalletKeysDesktop.routeName,
+                                    arguments: widget.walletId,
+                                  ),
+                                )
+                              ];
+                            },
+                          ),
+                        );
+                      } else {
                         final mnemonic = await ref
                             .read(walletsChangeNotifierProvider)
                             .getManager(widget.walletId)
@@ -198,24 +280,24 @@ class _FiroRescanRecoveryErrorViewState
                             ),
                           );
                         }
-                      },
-                    ),
+                      }
+                    },
                   ),
                   const SizedBox(
                     width: 16,
+                    height: 16,
                   ),
-                  Expanded(
-                    child: PrimaryButton(
-                      label: "Retry",
-                      onPressed: () {
-                        Navigator.of(context).pop(
-                          true,
-                        );
-                      },
-                    ),
+                  PrimaryButton(
+                    label: "Retry",
+                    buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
+                    onPressed: () {
+                      Navigator.of(context).pop(
+                        true,
+                      );
+                    },
                   ),
                 ],
-              )
+              ),
             ],
           ),
         ),
