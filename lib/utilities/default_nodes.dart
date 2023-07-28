@@ -292,10 +292,10 @@ abstract class DefaultNodes {
     host: "https://horizon-testnet.stellar.org/",
     port: 50022,
     name: defaultName,
-    id: _nodeId(Coin.stellarTestnet),
+    id: _nodeId(Coin.stellarTestNet),
     useSSL: true,
     enabled: true,
-    coinName: Coin.stellarTestnet.name,
+    coinName: Coin.stellarTestNet.name,
     isFailover: true,
     isDown: false,
   );
@@ -365,7 +365,7 @@ abstract class DefaultNodes {
       case Coin.dogecoinTestNet:
         return dogecoinTestnet;
 
-      case Coin.stellarTestnet:
+      case Coin.stellarTestNet:
         return stellarTestnet;
     }
   }

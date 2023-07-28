@@ -60,7 +60,7 @@ Uri getDefaultBlockExplorerUrlFor({
       return Uri.parse("https://www.nanolooker.com/block/$txid");
     case Coin.banano:
       return Uri.parse("https://www.bananolooker.com/block/$txid");
-    case Coin.stellarTestnet:
+    case Coin.stellarTestNet:
       return Uri.parse("https://testnet.stellarchain.io/transactions/$txid");
     case Coin.tezos:
       return Uri.parse("https://tzstats.com/$txid");

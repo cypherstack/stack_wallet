@@ -179,7 +179,7 @@ class NodeOptionsSheet extends ConsumerWidget {
       case Coin.banano:
       case Coin.tezos:
       case Coin.stellar:
-      case Coin.stellarTestnet:
+      case Coin.stellarTestNet:
         throw UnimplementedError();
       //TODO: check network/node
     }

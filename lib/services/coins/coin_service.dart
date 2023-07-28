@@ -229,6 +229,15 @@ abstract class CoinServiceAPI {
           tracker: tracker,
         );
 
+      case Coin.stellarTestNet:
+        return StellarWallet(
+          walletId: walletId,
+          walletName: walletName,
+          coin: coin,
+          secureStore: secureStorageInterface,
+          tracker: tracker,
+        );
+
       case Coin.tezos:
         return TezosWallet(
           walletId: walletId,

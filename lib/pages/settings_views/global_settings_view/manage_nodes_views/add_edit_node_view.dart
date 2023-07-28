@@ -197,7 +197,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
       case Coin.nano:
       case Coin.banano:
       case Coin.stellar:
-      case Coin.stellarTestnet:
+      case Coin.stellarTestNet:
         throw UnimplementedError();
       //TODO: check network/node
       case Coin.tezos:
@@ -732,11 +732,14 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       case Coin.namecoin:
       case Coin.bitcoincash:
       case Coin.particl:
+      case Coin.stellar:
+      case Coin.tezos:
       case Coin.bitcoinTestNet:
       case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
+      case Coin.stellarTestNet:
       case Coin.epicCash:
       case Coin.nano:
       case Coin.banano:
