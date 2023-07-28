@@ -27,13 +27,10 @@ import 'package:stackwallet/pages/notification_views/notifications_view.dart';
 import 'package:stackwallet/pages/ordinals/ordinals_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
-import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/receive_view/receive_view.dart';
 import 'package:stackwallet/pages/send_view/send_view.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_backup_views/wallet_backup_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_view.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_warning_view.dart';
 import 'package:stackwallet/pages/special/firo_rescan_recovery_error_dialog.dart';
 import 'package:stackwallet/pages/token_view/my_tokens_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/transactions_list.dart';
@@ -47,7 +44,6 @@ import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
-import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
@@ -141,101 +137,13 @@ class _WalletViewState extends ConsumerState<WalletView> {
     } else {
       // show error message dialog w/ options
       if (mounted) {
-        final result = await showDialog<FiroRescanRecoveryErrorDialogOption>(
-          context: context,
-          builder: (_) => FiroRescanRecoveryErrorDialog(
-            walletId: widget.walletId,
-          ),
+        final shouldRetry = await Navigator.of(context).pushNamed(
+          FiroRescanRecoveryErrorView.routeName,
+          arguments: walletId,
         );
 
-        switch (result!) {
-          case FiroRescanRecoveryErrorDialogOption.showMnemonic:
-            final mnemonic = await ref
-                .read(walletsChangeNotifierProvider)
-                .getManager(widget.walletId)
-                .mnemonic;
-
-            if (mounted) {
-              await Navigator.push(
-                context,
-                RouteGenerator.getRoute(
-                  shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-                  builder: (_) => LockscreenView(
-                    routeOnSuccessArguments: Tuple2(widget.walletId, mnemonic),
-                    showBackButton: true,
-                    routeOnSuccess: WalletBackupView.routeName,
-                    biometricsCancelButtonString: "CANCEL",
-                    biometricsLocalizedReason:
-                        "Authenticate to view recovery phrase",
-                    biometricsAuthenticationTitle: "View recovery phrase",
-                  ),
-                  settings:
-                      const RouteSettings(name: "/viewRecoverPhraseLockscreen"),
-                ),
-              );
-            }
-            return;
-
-          case FiroRescanRecoveryErrorDialogOption.deleteWallet:
-            if (mounted) {
-              await showDialog<void>(
-                barrierDismissible: true,
-                context: context,
-                builder: (_) => StackDialog(
-                  title:
-                      "Do you want to delete ${ref.read(walletsChangeNotifierProvider).getManager(walletId).walletName}?",
-                  leftButton: TextButton(
-                    style: Theme.of(context)
-                        .extension<StackColors>()!
-                        .getSecondaryEnabledButtonStyle(context),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: Text(
-                      "Cancel",
-                      style: STextStyles.button(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .accentColorDark),
-                    ),
-                  ),
-                  rightButton: TextButton(
-                    style: Theme.of(context)
-                        .extension<StackColors>()!
-                        .getPrimaryEnabledButtonStyle(context),
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        RouteGenerator.getRoute(
-                          shouldUseMaterialRoute:
-                              RouteGenerator.useMaterialPageRoute,
-                          builder: (_) => LockscreenView(
-                            routeOnSuccessArguments: walletId,
-                            showBackButton: true,
-                            routeOnSuccess: DeleteWalletWarningView.routeName,
-                            biometricsCancelButtonString: "CANCEL",
-                            biometricsLocalizedReason:
-                                "Authenticate to delete wallet",
-                            biometricsAuthenticationTitle: "Delete wallet",
-                          ),
-                          settings: const RouteSettings(
-                              name: "/deleteWalletLockscreen"),
-                        ),
-                      );
-                    },
-                    child: Text(
-                      "Delete",
-                      style: STextStyles.button(context),
-                    ),
-                  ),
-                ),
-              );
-            }
-            return;
-
-          case FiroRescanRecoveryErrorDialogOption.retry:
-            return await _firoRescanRecovery();
+        if (shouldRetry is bool && shouldRetry) {
+          await _firoRescanRecovery();
         }
       } else {
         return await _firoRescanRecovery();
@@ -262,14 +170,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
             .lelantusCoinIsarRescanRequired) {
       _rescanningOnOpen = true;
       _lelantusRescanRecovery = true;
-      _firoRescanRecovery().then(
-        (_) => WidgetsBinding.instance.addPostFrameCallback(
-          (_) => setState(() {
-            _rescanningOnOpen = false;
-            _lelantusRescanRecovery = false;
-          }),
-        ),
-      );
+      _firoRescanRecovery();
     } else if (ref.read(managerProvider).rescanOnOpenVersion ==
         Constants.rescanV1) {
       _rescanningOnOpen = true;
