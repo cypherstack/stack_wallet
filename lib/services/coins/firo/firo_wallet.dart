@@ -21,6 +21,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 import 'package:lelantus/lelantus.dart';
+import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
@@ -1895,14 +1896,48 @@ class FiroWallet extends CoinServiceAPI
     await Future.wait([
       updateCachedId(walletId),
       updateCachedIsFavorite(false),
+      DB.instance.put<dynamic>(
+        boxName: walletId,
+        key: _lelantusCoinIsarRescanRequired,
+        value: false,
+      ),
     ]);
+  }
+
+  static const String _lelantusCoinIsarRescanRequired =
+      "lelantusCoinIsarRescanRequired";
+
+  Future<void> setLelantusCoinIsarRescanRequiredDone() async {
+    await DB.instance.put<dynamic>(
+      boxName: walletId,
+      key: _lelantusCoinIsarRescanRequired,
+      value: false,
+    );
+  }
+
+  bool get lelantusCoinIsarRescanRequired =>
+      DB.instance.get(
+        boxName: walletId,
+        key: _lelantusCoinIsarRescanRequired,
+      ) as bool? ??
+      true;
+
+  Future<bool> firoRescanRecovery() async {
+    try {
+      await fullRescan(50, 1000);
+      await setLelantusCoinIsarRescanRequiredDone();
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   @override
   Future<void> initializeExisting() async {
     Logging.instance.log(
-        "initializeExisting() $_walletId ${coin.prettyName} wallet.",
-        level: LogLevel.Info);
+      "initializeExisting() $_walletId ${coin.prettyName} wallet.",
+      level: LogLevel.Info,
+    );
 
     if (getCachedId() == null) {
       throw Exception(

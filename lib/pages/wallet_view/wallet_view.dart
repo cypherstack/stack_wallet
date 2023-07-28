@@ -27,10 +27,14 @@ import 'package:stackwallet/pages/notification_views/notifications_view.dart';
 import 'package:stackwallet/pages/ordinals/ordinals_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
+import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/receive_view/receive_view.dart';
 import 'package:stackwallet/pages/send_view/send_view.dart';
+import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_backup_views/wallet_backup_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_view.dart';
+import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_warning_view.dart';
+import 'package:stackwallet/pages/special/firo_rescan_recovery_error_dialog.dart';
 import 'package:stackwallet/pages/token_view/my_tokens_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/transactions_list.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_summary.dart';
@@ -43,6 +47,7 @@ import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
+import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
@@ -119,6 +124,124 @@ class _WalletViewState extends ConsumerState<WalletView> {
   late StreamSubscription<dynamic> _nodeStatusSubscription;
 
   bool _rescanningOnOpen = false;
+  bool _lelantusRescanRecovery = false;
+
+  Future<void> _firoRescanRecovery() async {
+    final success = await (ref.read(managerProvider).wallet as FiroWallet)
+        .firoRescanRecovery();
+
+    if (success) {
+      // go into wallet
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => setState(() {
+          _rescanningOnOpen = false;
+          _lelantusRescanRecovery = false;
+        }),
+      );
+    } else {
+      // show error message dialog w/ options
+      if (mounted) {
+        final result = await showDialog<FiroRescanRecoveryErrorDialogOption>(
+          context: context,
+          builder: (_) => FiroRescanRecoveryErrorDialog(
+            walletId: widget.walletId,
+          ),
+        );
+
+        switch (result!) {
+          case FiroRescanRecoveryErrorDialogOption.showMnemonic:
+            final mnemonic = await ref
+                .read(walletsChangeNotifierProvider)
+                .getManager(widget.walletId)
+                .mnemonic;
+
+            if (mounted) {
+              await Navigator.push(
+                context,
+                RouteGenerator.getRoute(
+                  shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
+                  builder: (_) => LockscreenView(
+                    routeOnSuccessArguments: Tuple2(widget.walletId, mnemonic),
+                    showBackButton: true,
+                    routeOnSuccess: WalletBackupView.routeName,
+                    biometricsCancelButtonString: "CANCEL",
+                    biometricsLocalizedReason:
+                        "Authenticate to view recovery phrase",
+                    biometricsAuthenticationTitle: "View recovery phrase",
+                  ),
+                  settings:
+                      const RouteSettings(name: "/viewRecoverPhraseLockscreen"),
+                ),
+              );
+            }
+            return;
+
+          case FiroRescanRecoveryErrorDialogOption.deleteWallet:
+            if (mounted) {
+              await showDialog<void>(
+                barrierDismissible: true,
+                context: context,
+                builder: (_) => StackDialog(
+                  title:
+                      "Do you want to delete ${ref.read(walletsChangeNotifierProvider).getManager(walletId).walletName}?",
+                  leftButton: TextButton(
+                    style: Theme.of(context)
+                        .extension<StackColors>()!
+                        .getSecondaryEnabledButtonStyle(context),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text(
+                      "Cancel",
+                      style: STextStyles.button(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorDark),
+                    ),
+                  ),
+                  rightButton: TextButton(
+                    style: Theme.of(context)
+                        .extension<StackColors>()!
+                        .getPrimaryEnabledButtonStyle(context),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        RouteGenerator.getRoute(
+                          shouldUseMaterialRoute:
+                              RouteGenerator.useMaterialPageRoute,
+                          builder: (_) => LockscreenView(
+                            routeOnSuccessArguments: walletId,
+                            showBackButton: true,
+                            routeOnSuccess: DeleteWalletWarningView.routeName,
+                            biometricsCancelButtonString: "CANCEL",
+                            biometricsLocalizedReason:
+                                "Authenticate to delete wallet",
+                            biometricsAuthenticationTitle: "Delete wallet",
+                          ),
+                          settings: const RouteSettings(
+                              name: "/deleteWalletLockscreen"),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      "Delete",
+                      style: STextStyles.button(context),
+                    ),
+                  ),
+                ),
+              );
+            }
+            return;
+
+          case FiroRescanRecoveryErrorDialogOption.retry:
+            return await _firoRescanRecovery();
+        }
+      } else {
+        return await _firoRescanRecovery();
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -134,7 +257,21 @@ class _WalletViewState extends ConsumerState<WalletView> {
       _shouldDisableAutoSyncOnLogOut = false;
     }
 
-    if (ref.read(managerProvider).rescanOnOpenVersion == Constants.rescanV1) {
+    if (ref.read(managerProvider).coin == Coin.firo &&
+        (ref.read(managerProvider).wallet as FiroWallet)
+            .lelantusCoinIsarRescanRequired) {
+      _rescanningOnOpen = true;
+      _lelantusRescanRecovery = true;
+      _firoRescanRecovery().then(
+        (_) => WidgetsBinding.instance.addPostFrameCallback(
+          (_) => setState(() {
+            _rescanningOnOpen = false;
+            _lelantusRescanRecovery = false;
+          }),
+        ),
+      );
+    } else if (ref.read(managerProvider).rescanOnOpenVersion ==
+        Constants.rescanV1) {
       _rescanningOnOpen = true;
       ref.read(managerProvider).fullRescan(20, 1000).then(
             (_) => ref.read(managerProvider).resetRescanOnOpen().then(
@@ -212,6 +349,10 @@ class _WalletViewState extends ConsumerState<WalletView> {
   DateTime? _cachedTime;
 
   Future<bool> _onWillPop() async {
+    if (_rescanningOnOpen || _lelantusRescanRecovery) {
+      return false;
+    }
+
     final now = DateTime.now();
     const timeout = Duration(milliseconds: 1500);
     if (_cachedTime == null || now.difference(_cachedTime!) > timeout) {
@@ -434,33 +575,37 @@ class _WalletViewState extends ConsumerState<WalletView> {
                   eventBus: null,
                   textColor:
                       Theme.of(context).extension<StackColors>()!.textDark,
-                  actionButton: SecondaryButton(
-                    label: "Cancel",
-                    onPressed: () async {
-                      await showDialog<void>(
-                        context: context,
-                        builder: (context) => StackDialog(
-                          title: "Warning!",
-                          message: "Skipping this process can completely"
-                              " break your wallet. It is only meant to be done in"
-                              " emergency situations where the migration fails"
-                              " and will not let you continue. Still skip?",
-                          leftButton: SecondaryButton(
-                            label: "Cancel",
-                            onPressed:
-                                Navigator.of(context, rootNavigator: true).pop,
-                          ),
-                          rightButton: SecondaryButton(
-                            label: "Ok",
-                            onPressed: () {
-                              Navigator.of(context, rootNavigator: true).pop();
-                              setState(() => _rescanningOnOpen = false);
-                            },
-                          ),
+                  actionButton: _lelantusRescanRecovery
+                      ? null
+                      : SecondaryButton(
+                          label: "Cancel",
+                          onPressed: () async {
+                            await showDialog<void>(
+                              context: context,
+                              builder: (context) => StackDialog(
+                                title: "Warning!",
+                                message: "Skipping this process can completely"
+                                    " break your wallet. It is only meant to be done in"
+                                    " emergency situations where the migration fails"
+                                    " and will not let you continue. Still skip?",
+                                leftButton: SecondaryButton(
+                                  label: "Cancel",
+                                  onPressed:
+                                      Navigator.of(context, rootNavigator: true)
+                                          .pop,
+                                ),
+                                rightButton: SecondaryButton(
+                                  label: "Ok",
+                                  onPressed: () {
+                                    Navigator.of(context, rootNavigator: true)
+                                        .pop();
+                                    setState(() => _rescanningOnOpen = false);
+                                  },
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
                 ),
               )
             ],
