@@ -306,52 +306,53 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   Future<void> updateTransactions() async {
-    var api = "https://api.mainnet.tzkt.io/v1/accounts/${await currentReceivingAddress}/balance_history"; // TODO: Can we use current node instead of this?
-    var returnedTxs = await get(Uri.parse(api)).then((value) => value.body);
-    Logging.instance.log(
-        "Transactions for ${await currentReceivingAddress}: $returnedTxs",
-        level: LogLevel.Info);
+    // TODO: Use node RPC instead of tzstats API
+    var api = "https://api.tzstats.com/tables/op?address=${await currentReceivingAddress}";
+    var jsonResponse = jsonDecode(await get(Uri.parse(api)).then((value) => value.body));
     List<Tuple2<Transaction, Address>> txs = [];
-    Object? jsonTxs = jsonDecode(returnedTxs);
-    if (jsonTxs == null) {
-      await db.addNewTransactionData(txs, walletId);
-    } else {
-      for (var tx in jsonTxs as List) {
-        var theTx = Transaction(
-            walletId: walletId,
-            txid: "",
-            timestamp: DateTime.parse(tx["timestamp"].toString()).toUtc().millisecondsSinceEpoch ~/ 1000,
-            type: TransactionType.unknown,
-            subType: TransactionSubType.none,
-            amount: int.parse(tx["balance"].toString()),
-            amountString: Amount(
-                rawValue: BigInt.parse(tx["balance"].toString()),
-                fractionDigits: 6
-            ).toJsonString(),
-            fee: 0,
-            height: int.parse(tx["level"].toString()),
-            isCancelled: false,
-            isLelantus: false,
-            slateId: "",
-            otherData: "",
-            inputs: [],
-            outputs: [],
-            nonce: 0,
-            numberOfMessages: null,
-        );
-        var theAddress = Address(
-            walletId: walletId,
-            value: await currentReceivingAddress,
-            publicKey: [], // TODO: Add public key
-            derivationIndex: 0,
-            derivationPath: null,
-            type: AddressType.unknown,
-            subType: AddressSubType.unknown,
-        );
-        txs.add(Tuple2(theTx, theAddress));
+    for (var tx in jsonResponse as List) {
+      var txApi = "https://api.tzstats.com/explorer/op/${tx["hash"]}";
+      var txJsonResponse = jsonDecode(await get(Uri.parse(txApi)).then((value) => value.body))[0];
+      TransactionType txType;
+      if (txJsonResponse["sender"] == (await currentReceivingAddress)) {
+        txType = TransactionType.outgoing;
+      } else {
+        txType = TransactionType.incoming;
       }
-      await db.addNewTransactionData(txs, walletId);
+      var theTx = Transaction(
+          walletId: walletId,
+          txid: txJsonResponse["hash"].toString(),
+          timestamp: DateTime.parse(txJsonResponse["time"].toString()).toUtc().millisecondsSinceEpoch ~/ 1000,
+          type: txType,
+          subType: TransactionSubType.none,
+          amount: (float.parse(txJsonResponse["volume"].toString()) * 1000000).toInt(),
+          amountString: Amount(
+              rawValue: BigInt.parse((float.parse(txJsonResponse["volume"].toString()) * 1000000).toString()),
+              fractionDigits: 6
+          ).toJsonString(),
+          fee: (float.parse(txJsonResponse["fee"].toString()) * 1000000).toInt(),
+          height: int.parse(txJsonResponse["height"].toString()),
+          isCancelled: false,
+          isLelantus: false,
+          slateId: "",
+          otherData: "",
+          inputs: [],
+          outputs: [],
+          nonce: 0,
+          numberOfMessages: null,
+      );
+      var theAddress = Address(
+          walletId: walletId,
+          value: txJsonResponse["receiver"].toString(),
+          publicKey: [], // TODO: Add public key
+          derivationIndex: 0,
+          derivationPath: null,
+          type: AddressType.unknown,
+          subType: AddressSubType.unknown,
+      );
+      txs.add(Tuple2(theTx, theAddress));
     }
+    await db.addNewTransactionData(txs, walletId);
   }
 
   Future<void> updateChainHeight() async {
