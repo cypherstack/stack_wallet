@@ -1,32 +1,29 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:ffi';
 
 import 'package:http/http.dart';
 import 'package:isar/isar.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
+import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
+import 'package:stackwallet/services/mixins/wallet_cache.dart';
+import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
+import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
-
+import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
+import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tezart/tezart.dart';
 import 'package:tuple/tuple.dart';
-
-import '../../../db/isar/main_db.dart';
-import '../../../models/node_model.dart';
-import '../../../utilities/flutter_secure_storage_interface.dart';
-import '../../../utilities/logger.dart';
-import '../../../utilities/prefs.dart';
-import '../../mixins/wallet_cache.dart';
-import '../../mixins/wallet_db.dart';
-import '../../transaction_notification_tracker.dart';
 
 const int MINIMUM_CONFIRMATIONS = 1;
 
@@ -51,7 +48,10 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   NodeModel? _xtzNode;
 
   NodeModel getCurrentNode() {
-    return _xtzNode ?? NodeService(secureStorageInterface: _secureStore).getPrimaryNodeFor(coin: Coin.tezos) ?? DefaultNodes.getNodeFor(Coin.tezos);
+    return _xtzNode ??
+        NodeService(secureStorageInterface: _secureStore)
+            .getPrimaryNodeFor(coin: Coin.tezos) ??
+        DefaultNodes.getNodeFor(Coin.tezos);
   }
 
   Future<Keystore> getKeystore() async {
@@ -111,12 +111,18 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Balance? _balance;
 
   @override
-  Future<Map<String, dynamic>> prepareSend({required String address, required Amount amount, Map<String, dynamic>? args}) async {
+  Future<Map<String, dynamic>> prepareSend(
+      {required String address,
+      required Amount amount,
+      Map<String, dynamic>? args}) async {
     try {
       if (amount.decimals != coin.decimals) {
         throw Exception("Amount decimals do not match coin decimals!");
       }
-      var fee = int.parse((await estimateFeeFor(amount, (args!["feeRate"] as FeeRateType).index)).raw.toString());
+      var fee = int.parse((await estimateFeeFor(
+              amount, (args!["feeRate"] as FeeRateType).index))
+          .raw
+          .toString());
       Map<String, dynamic> txData = {
         "fee": fee,
         "address": address,
@@ -132,7 +138,10 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
     try {
       final node = getCurrentNode().host + getCurrentNode().port.toString();
-      final int amountInMicroTez = ((int.parse((txData["recipientAmt"] as Amount).raw.toString()) * 1000000)).round();
+      final int amountInMicroTez =
+          ((int.parse((txData["recipientAmt"] as Amount).raw.toString()) *
+                  1000000))
+              .round();
       final int feeInMicroTez = int.parse(txData["fee"].toString());
       final String destinationAddress = txData["address"] as String;
       final String sourceAddress = await currentReceivingAddress;
@@ -155,7 +164,9 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) {
     return Future.value(
-      Amount(rawValue: BigInt.parse(100000.toString()), fractionDigits: coin.decimals),
+      Amount(
+          rawValue: BigInt.parse(100000.toString()),
+          fractionDigits: coin.decimals),
     );
   }
 
@@ -169,17 +180,18 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Future<FeeObject> get fees async {
     // TODO: Change this to get fees from node and fix numberOfBlocks
     return FeeObject(
-        numberOfBlocksFast: 1,
-        numberOfBlocksAverage: 1,
-        numberOfBlocksSlow: 1,
-        fast: 1000000,
-        medium: 100000,
-        slow: 10000,
+      numberOfBlocksFast: 1,
+      numberOfBlocksAverage: 1,
+      numberOfBlocksSlow: 1,
+      fast: 1000000,
+      medium: 100000,
+      slow: 10000,
     );
   }
 
   @override
-  Future<void> fullRescan(int maxUnusedAddressGap, int maxNumberOfIndexesToCheck) {
+  Future<void> fullRescan(
+      int maxUnusedAddressGap, int maxNumberOfIndexesToCheck) {
     refresh();
     return Future.value();
   }
@@ -212,13 +224,13 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
     );
 
     final address = Address(
-        walletId: walletId,
-        value: newKeystore.address,
-        publicKey: [], // TODO: Add public key
-        derivationIndex: 0,
-        derivationPath: null,
-        type: AddressType.unknown,
-        subType: AddressSubType.unknown,
+      walletId: walletId,
+      value: newKeystore.address,
+      publicKey: [], // TODO: Add public key
+      derivationIndex: 0,
+      derivationPath: null,
+      type: AddressType.unknown,
+      subType: AddressSubType.unknown,
     );
 
     await db.putAddress(address);
@@ -255,13 +267,20 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   @override
-  Future<String?> get mnemonicPassphrase => _secureStore.read(key: '${_walletId}_mnemonicPassphrase');
+  Future<String?> get mnemonicPassphrase =>
+      _secureStore.read(key: '${_walletId}_mnemonicPassphrase');
 
   @override
-  Future<String?> get mnemonicString => _secureStore.read(key: '${_walletId}_mnemonic');
+  Future<String?> get mnemonicString =>
+      _secureStore.read(key: '${_walletId}_mnemonic');
 
   @override
-  Future<void> recoverFromMnemonic({required String mnemonic, String? mnemonicPassphrase, required int maxUnusedAddressGap, required int maxNumberOfIndexesToCheck, required int height}) async {
+  Future<void> recoverFromMnemonic(
+      {required String mnemonic,
+      String? mnemonicPassphrase,
+      required int maxUnusedAddressGap,
+      required int maxNumberOfIndexesToCheck,
+      required int height}) async {
     if ((await mnemonicString) != null ||
         (await this.mnemonicPassphrase) != null) {
       throw Exception("Attempted to overwrite mnemonic on restore!");
@@ -274,13 +293,13 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
     );
 
     final address = Address(
-        walletId: walletId,
-        value: Keystore.fromMnemonic(mnemonic).address,
-        publicKey: [], // TODO: Add public key
-        derivationIndex: 0,
-        derivationPath: null,
-        type: AddressType.unknown,
-        subType: AddressSubType.unknown,
+      walletId: walletId,
+      value: Keystore.fromMnemonic(mnemonic).address,
+      publicKey: [], // TODO: Add public key
+      derivationIndex: 0,
+      derivationPath: null,
+      type: AddressType.unknown,
+      subType: AddressSubType.unknown,
     );
 
     await db.putAddress(address);
@@ -292,10 +311,16 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   Future<void> updateBalance() async {
-    var api = "${getCurrentNode().host}:${getCurrentNode().port}/chains/main/blocks/head/context/contracts/${await currentReceivingAddress}/balance";
-    var theBalance = (await get(Uri.parse(api)).then((value) => value.body)).substring(1, (await get(Uri.parse(api)).then((value) => value.body)).length - 2);
-    Logging.instance.log("Balance for ${await currentReceivingAddress}: $theBalance", level: LogLevel.Info);
-    var balanceInAmount = Amount(rawValue: BigInt.parse(theBalance.toString()), fractionDigits: 6);
+    var api =
+        "${getCurrentNode().host}:${getCurrentNode().port}/chains/main/blocks/head/context/contracts/${await currentReceivingAddress}/balance";
+    var theBalance = (await get(Uri.parse(api)).then((value) => value.body))
+        .substring(1,
+            (await get(Uri.parse(api)).then((value) => value.body)).length - 2);
+    Logging.instance.log(
+        "Balance for ${await currentReceivingAddress}: $theBalance",
+        level: LogLevel.Info);
+    var balanceInAmount = Amount(
+        rawValue: BigInt.parse(theBalance.toString()), fractionDigits: 6);
     _balance = Balance(
       total: balanceInAmount,
       spendable: balanceInAmount,
@@ -307,12 +332,15 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   Future<void> updateTransactions() async {
     // TODO: Use node RPC instead of tzstats API
-    var api = "https://api.tzstats.com/tables/op?address=${await currentReceivingAddress}";
-    var jsonResponse = jsonDecode(await get(Uri.parse(api)).then((value) => value.body));
+    var api =
+        "https://api.tzstats.com/tables/op?address=${await currentReceivingAddress}";
+    var jsonResponse =
+        jsonDecode(await get(Uri.parse(api)).then((value) => value.body));
     List<Tuple2<Transaction, Address>> txs = [];
     for (var tx in jsonResponse as List) {
       var txApi = "https://api.tzstats.com/explorer/op/${tx["hash"]}";
-      var txJsonResponse = jsonDecode(await get(Uri.parse(txApi)).then((value) => value.body))[0];
+      var txJsonResponse = jsonDecode(
+          await get(Uri.parse(txApi)).then((value) => value.body))[0];
       TransactionType txType;
       if (txJsonResponse["sender"] == (await currentReceivingAddress)) {
         txType = TransactionType.outgoing;
@@ -320,35 +348,41 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
         txType = TransactionType.incoming;
       }
       var theTx = Transaction(
-          walletId: walletId,
-          txid: txJsonResponse["hash"].toString(),
-          timestamp: DateTime.parse(txJsonResponse["time"].toString()).toUtc().millisecondsSinceEpoch ~/ 1000,
-          type: txType,
-          subType: TransactionSubType.none,
-          amount: (float.parse(txJsonResponse["volume"].toString()) * 1000000).toInt(),
-          amountString: Amount(
-              rawValue: BigInt.parse((float.parse(txJsonResponse["volume"].toString()) * 1000000).toString()),
-              fractionDigits: 6
-          ).toJsonString(),
-          fee: (float.parse(txJsonResponse["fee"].toString()) * 1000000).toInt(),
-          height: int.parse(txJsonResponse["height"].toString()),
-          isCancelled: false,
-          isLelantus: false,
-          slateId: "",
-          otherData: "",
-          inputs: [],
-          outputs: [],
-          nonce: 0,
-          numberOfMessages: null,
+        walletId: walletId,
+        txid: txJsonResponse["hash"].toString(),
+        timestamp: DateTime.parse(txJsonResponse["time"].toString())
+                .toUtc()
+                .millisecondsSinceEpoch ~/
+            1000,
+        type: txType,
+        subType: TransactionSubType.none,
+        amount: (float.parse(txJsonResponse["volume"].toString()) * 1000000)
+            .toInt(),
+        amountString: Amount(
+                rawValue: BigInt.parse(
+                    (float.parse(txJsonResponse["volume"].toString()) * 1000000)
+                        .toString()),
+                fractionDigits: 6)
+            .toJsonString(),
+        fee: (float.parse(txJsonResponse["fee"].toString()) * 1000000).toInt(),
+        height: int.parse(txJsonResponse["height"].toString()),
+        isCancelled: false,
+        isLelantus: false,
+        slateId: "",
+        otherData: "",
+        inputs: [],
+        outputs: [],
+        nonce: 0,
+        numberOfMessages: null,
       );
       var theAddress = Address(
-          walletId: walletId,
-          value: txJsonResponse["receiver"].toString(),
-          publicKey: [], // TODO: Add public key
-          derivationIndex: 0,
-          derivationPath: null,
-          type: AddressType.unknown,
-          subType: AddressSubType.unknown,
+        walletId: walletId,
+        value: txJsonResponse["receiver"].toString(),
+        publicKey: [], // TODO: Add public key
+        derivationIndex: 0,
+        derivationPath: null,
+        type: AddressType.unknown,
+        subType: AddressSubType.unknown,
       );
       txs.add(Tuple2(theTx, theAddress));
     }
@@ -356,8 +390,10 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   Future<void> updateChainHeight() async {
-    var api = "${getCurrentNode().host}:${getCurrentNode().port}/chains/main/blocks/head/header/shell";
-    var jsonParsedResponse = jsonDecode(await get(Uri.parse(api)).then((value) => value.body));
+    var api =
+        "${getCurrentNode().host}:${getCurrentNode().port}/chains/main/blocks/head/header/shell";
+    var jsonParsedResponse =
+        jsonDecode(await get(Uri.parse(api)).then((value) => value.body));
     final int intHeight = int.parse(jsonParsedResponse["level"].toString());
     Logging.instance.log("Chain height: $intHeight", level: LogLevel.Info);
     await updateCachedChainHeight(intHeight);
@@ -375,9 +411,10 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   int get storedChainHeight => getCachedChainHeight();
 
   @override
-  Future<bool> testNetworkConnection() async{
+  Future<bool> testNetworkConnection() async {
     try {
-      await get(Uri.parse("${getCurrentNode().host}:${getCurrentNode().port}/chains/main/blocks/head/header/shell"));
+      await get(Uri.parse(
+          "${getCurrentNode().host}:${getCurrentNode().port}/chains/main/blocks/head/header/shell"));
       return true;
     } catch (e) {
       return false;
@@ -385,11 +422,14 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   @override
-  Future<List<Transaction>> get transactions => db.getTransactions(walletId).findAll();
+  Future<List<Transaction>> get transactions =>
+      db.getTransactions(walletId).findAll();
 
   @override
   Future<void> updateNode(bool shouldRefresh) async {
-    _xtzNode = NodeService(secureStorageInterface: _secureStore).getPrimaryNodeFor(coin: coin) ?? DefaultNodes.getNodeFor(coin);
+    _xtzNode = NodeService(secureStorageInterface: _secureStore)
+            .getPrimaryNodeFor(coin: coin) ??
+        DefaultNodes.getNodeFor(coin);
 
     if (shouldRefresh) {
       await refresh();

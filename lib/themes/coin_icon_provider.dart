@@ -43,8 +43,6 @@ final coinIconProvider = Provider.family<String, Coin>((ref, coin) {
         return assets.namecoin;
       case Coin.particl:
         return assets.particl;
-      case Coin.tezos:
-        return assets.tezos;
       case Coin.ethereum:
         return assets.ethereum;
       default:

@@ -179,10 +179,10 @@ abstract class DefaultNodes {
       enabled: true,
       coinName: Coin.particl.name,
       isFailover: true,
-      isDown: false
-  );
+      isDown: false);
 
-  static NodeModel get tezos => NodeModel( // TODO: Change this to stack wallet one
+  static NodeModel get tezos => NodeModel(
+      // TODO: Change this to stack wallet one
       host: "https://mainnet.api.tez.ie",
       port: 443,
       name: defaultName,
@@ -191,8 +191,7 @@ abstract class DefaultNodes {
       enabled: true,
       coinName: Coin.tezos.name,
       isFailover: true,
-      isDown: false
-  );
+      isDown: false);
 
   static NodeModel get nano => NodeModel(
       host: "https://rainstorm.city/api",
@@ -318,6 +317,7 @@ abstract class DefaultNodes {
 
       case Coin.banano:
         return banano;
+
       case Coin.tezos:
         return tezos;
 
