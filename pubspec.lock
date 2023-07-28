@@ -459,7 +459,7 @@ packages:
     source: hosted
     version: "0.6.0"
   dio:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
       name: dio
       sha256: "7d328c4d898a61efc3cd93655a0955858e29a0aa647f0f9e02d59b3bb275e2e8"
@@ -1297,10 +1297,10 @@ packages:
     dependency: transitive
     description:
       name: pretty_dio_logger
-      sha256: "00b80053063935cf9a6190da344c5373b9d0e92da4c944c878ff2fbef0ef6dc2"
+      sha256: "948f7eeb36e7aa0760b51c1a8e3331d4b21e36fabd39efca81f585ed93893544"
       url: "https://pub.dev"
     source: hosted
-    version: "1.3.1"
+    version: "1.2.0-beta-1"
   process:
     dependency: transitive
     description:
@@ -1519,10 +1519,10 @@ packages:
     dependency: "direct main"
     description:
       name: stellar_flutter_sdk
-      sha256: "7a9b7dc76018bbd0b9c828045cf0e26e07ec44208fb1a1733273de2390205475"
+      sha256: "4c55b1b6dfbde7f89bba59a422754280715fa3b5726cff5e7eeaed454d2c4b89"
       url: "https://pub.dev"
     source: hosted
-    version: "1.6.0"
+    version: "1.5.3"
   stream_channel:
     dependency: transitive
     description:
