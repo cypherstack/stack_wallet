@@ -332,60 +332,61 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   Future<void> updateTransactions() async {
     // TODO: Use node RPC instead of tzstats API
-    var api =
-        "https://api.tzstats.com/tables/op?address=${await currentReceivingAddress}";
-    var jsonResponse =
-        jsonDecode(await get(Uri.parse(api)).then((value) => value.body));
+    var api = "https://api.tzstats.com/tables/op?address=${await currentReceivingAddress}";
+    var jsonResponse = jsonDecode(await get(Uri.parse(api)).then((value) => value.body));
     List<Tuple2<Transaction, Address>> txs = [];
     for (var tx in jsonResponse as List) {
-      var txApi = "https://api.tzstats.com/explorer/op/${tx["hash"]}";
-      var txJsonResponse = jsonDecode(
-          await get(Uri.parse(txApi)).then((value) => value.body))[0];
-      TransactionType txType;
-      if (txJsonResponse["sender"] == (await currentReceivingAddress)) {
-        txType = TransactionType.outgoing;
-      } else {
-        txType = TransactionType.incoming;
+      if (tx[1] == "transaction") {
+        var txApi = "https://api.tzstats.com/explorer/op/${tx[2]}";
+        var txJsonResponse = jsonDecode(await get(Uri.parse(txApi)).then((value) => value.body));
+        // Check if list is larger than 1 (if it is, it's a batch transaction)
+        if (!((txJsonResponse as List).length > 1)) {
+          for (var (opJson as Map) in txJsonResponse) {
+            if (opJson.containsKey("volume")) { // This is to check if transaction is a token transfer
+              TransactionType txType;
+              if (opJson["sender"] == (await currentReceivingAddress)) {
+                txType = TransactionType.outgoing;
+              } else {
+                txType = TransactionType.incoming;
+              }
+              var theTx = Transaction(
+                walletId: walletId,
+                txid: opJson["hash"].toString(),
+                timestamp: DateTime.parse(opJson["time"].toString()).toUtc().millisecondsSinceEpoch ~/ 1000,
+                type: txType,
+                subType: TransactionSubType.none,
+                amount: (float.parse(opJson["volume"].toString()) * 1000000).toInt(),
+                amountString: Amount(
+                    rawValue: BigInt.parse((float.parse(opJson["volume"].toString()) * 1000000).toInt().toString()),
+                    fractionDigits: 6
+                ).toJsonString(),
+                fee: (float.parse(opJson["fee"].toString()) * 1000000).toInt(),
+                height: int.parse(opJson["height"].toString()),
+                isCancelled: false,
+                isLelantus: false,
+                slateId: "",
+                otherData: "",
+                inputs: [],
+                outputs: [],
+                nonce: 0,
+                numberOfMessages: null,
+              );
+              var theAddress = Address(
+                walletId: walletId,
+                value: opJson["receiver"].toString(),
+                publicKey: [], // TODO: Add public key
+                derivationIndex: 0,
+                derivationPath: null,
+                type: AddressType.unknown,
+                subType: AddressSubType.unknown,
+              );
+              txs.add(Tuple2(theTx, theAddress));
+            }
+          }
+        }
       }
-      var theTx = Transaction(
-        walletId: walletId,
-        txid: txJsonResponse["hash"].toString(),
-        timestamp: DateTime.parse(txJsonResponse["time"].toString())
-                .toUtc()
-                .millisecondsSinceEpoch ~/
-            1000,
-        type: txType,
-        subType: TransactionSubType.none,
-        amount: (float.parse(txJsonResponse["volume"].toString()) * 1000000)
-            .toInt(),
-        amountString: Amount(
-                rawValue: BigInt.parse(
-                    (float.parse(txJsonResponse["volume"].toString()) * 1000000)
-                        .toString()),
-                fractionDigits: 6)
-            .toJsonString(),
-        fee: (float.parse(txJsonResponse["fee"].toString()) * 1000000).toInt(),
-        height: int.parse(txJsonResponse["height"].toString()),
-        isCancelled: false,
-        isLelantus: false,
-        slateId: "",
-        otherData: "",
-        inputs: [],
-        outputs: [],
-        nonce: 0,
-        numberOfMessages: null,
-      );
-      var theAddress = Address(
-        walletId: walletId,
-        value: txJsonResponse["receiver"].toString(),
-        publicKey: [], // TODO: Add public key
-        derivationIndex: 0,
-        derivationPath: null,
-        type: AddressType.unknown,
-        subType: AddressSubType.unknown,
-      );
-      txs.add(Tuple2(theTx, theAddress));
     }
+    Logging.instance.log("Transactions: $txs", level: LogLevel.Info);
     await db.addNewTransactionData(txs, walletId);
   }
 
