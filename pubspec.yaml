@@ -202,6 +202,8 @@ dependency_overrides:
 
   crypto: 3.0.2
   analyzer: ^5.2.0
+  pinenacl: ^0.3.3
+  dio : ^4.0.0
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
