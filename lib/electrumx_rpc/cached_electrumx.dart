@@ -167,8 +167,8 @@ class CachedElectrumX {
       Set<String> cachedSerials =
           _list == null ? {} : List<String>.from(_list).toSet();
 
-      // startNumber is broken currently
-      final startNumber = 0; // cachedSerials.length;
+      final startNumber =
+          cachedSerials.length - 10; // 10 being some arbitrary buffer
 
       final serials = await electrumXClient.getUsedCoinSerials(
         startNumber: startNumber,
