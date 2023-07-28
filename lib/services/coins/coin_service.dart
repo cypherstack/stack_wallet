@@ -1,6 +1,6 @@
-/* 
+/*
  * This file is part of Stack Wallet.
- * 
+ *
  * Copyright (c) 2023 Cypher Stack
  * All Rights Reserved.
  * The code is distributed under GPLv3 license, see LICENSE file for details.
@@ -27,6 +27,7 @@ import 'package:stackwallet/services/coins/monero/monero_wallet.dart';
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
 import 'package:stackwallet/services/coins/nano/nano_wallet.dart';
 import 'package:stackwallet/services/coins/particl/particl_wallet.dart';
+import 'package:stackwallet/services/coins/stellar/stellar_wallet.dart';
 import 'package:stackwallet/services/coins/tezos/tezos_wallet.dart';
 import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
@@ -218,6 +219,15 @@ abstract class CoinServiceAPI {
             client: client,
             cachedClient: cachedClient,
             tracker: tracker);
+
+      case Coin.stellar:
+        return StellarWallet(
+          walletId: walletId,
+          walletName: walletName,
+          coin: coin,
+          secureStore: secureStorageInterface,
+          tracker: tracker,
+        );
 
       case Coin.tezos:
         return TezosWallet(

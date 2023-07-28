@@ -1,6 +1,6 @@
-/* 
+/*
  * This file is part of Stack Wallet.
- * 
+ *
  * Copyright (c) 2023 Cypher Stack
  * All Rights Reserved.
  * The code is distributed under GPLv3 license, see LICENSE file for details.
@@ -196,6 +196,10 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 
       case Coin.nano:
       case Coin.banano:
+      case Coin.stellar:
+      case Coin.stellarTestnet:
+        throw UnimplementedError();
+        //TODO: check network/node
       case Coin.tezos:
       //TODO: check network/node
     }
@@ -728,7 +732,6 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       case Coin.namecoin:
       case Coin.bitcoincash:
       case Coin.particl:
-      case Coin.tezos:
       case Coin.bitcoinTestNet:
       case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:

@@ -1,6 +1,6 @@
-/* 
+/*
  * This file is part of Stack Wallet.
- * 
+ *
  * Copyright (c) 2023 Cypher Stack
  * All Rights Reserved.
  * The code is distributed under GPLv3 license, see LICENSE file for details.
@@ -27,6 +27,7 @@ import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart'
 import 'package:stackwallet/services/coins/nano/nano_wallet.dart' as nano;
 import 'package:stackwallet/services/coins/particl/particl_wallet.dart'
     as particl;
+import 'package:stackwallet/services/coins/stellar/stellar_wallet.dart' as xlm;
 import 'package:stackwallet/services/coins/tezos/tezos_wallet.dart' as tezos;
 import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart' as wow;
 import 'package:stackwallet/utilities/constants.dart';
@@ -45,6 +46,7 @@ enum Coin {
   namecoin,
   nano,
   particl,
+  stellar,
   tezos,
   wownero,
 
@@ -86,6 +88,8 @@ extension CoinExt on Coin {
         return "Monero";
       case Coin.particl:
         return "Particl";
+      case Coin.stellar:
+        return "Stellar";
       case Coin.tezos:
         return "Tezos";
       case Coin.wownero:
@@ -131,6 +135,8 @@ extension CoinExt on Coin {
         return "XMR";
       case Coin.particl:
         return "PART";
+      case Coin.stellar:
+        return "XLM";
       case Coin.tezos:
         return "XTZ";
       case Coin.wownero:
@@ -151,6 +157,8 @@ extension CoinExt on Coin {
         return "tFIRO";
       case Coin.dogecoinTestNet:
         return "tDOGE";
+      case Coin.stellarTestnet:
+        return "tXLM";
     }
   }
 
@@ -177,6 +185,8 @@ extension CoinExt on Coin {
         return "monero";
       case Coin.particl:
         return "particl";
+      case Coin.stellar:
+        return "stellar";
       case Coin.tezos:
         return "tezos";
       case Coin.wownero:
@@ -197,6 +207,8 @@ extension CoinExt on Coin {
         return "firo";
       case Coin.dogecoinTestNet:
         return "dogecoin";
+      case Coin.stellarTestnet:
+        return "stellar";
     }
   }
 
@@ -224,6 +236,8 @@ extension CoinExt on Coin {
       case Coin.wownero:
       case Coin.nano:
       case Coin.banano:
+      case Coin.stellar:
+      case Coin.stellarTestnet:
         return false;
     }
   }
@@ -252,6 +266,8 @@ extension CoinExt on Coin {
       case Coin.firoTestNet:
       case Coin.nano:
       case Coin.banano:
+      case Coin.stellar:
+      case Coin.stellarTestnet:
         return false;
     }
   }
@@ -273,6 +289,7 @@ extension CoinExt on Coin {
       case Coin.nano:
       case Coin.banano:
       case Coin.eCash:
+      case Coin.stellar:
         return false;
 
       case Coin.dogecoinTestNet:
@@ -280,6 +297,7 @@ extension CoinExt on Coin {
       case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
+      case Coin.stellarTestnet:
         return true;
     }
   }
@@ -301,6 +319,7 @@ extension CoinExt on Coin {
       case Coin.nano:
       case Coin.banano:
       case Coin.eCash:
+      case Coin.stellar:
         return this;
 
       case Coin.dogecoinTestNet:
@@ -317,6 +336,9 @@ extension CoinExt on Coin {
 
       case Coin.firoTestNet:
         return Coin.firo;
+
+      case Coin.stellarTestnet:
+        return Coin.stellar;
     }
   }
 
@@ -356,6 +378,10 @@ extension CoinExt on Coin {
 
       case Coin.particl:
         return particl.MINIMUM_CONFIRMATIONS;
+
+      case Coin.stellar:
+      case Coin.stellarTestnet:
+        return xlm.MINIMUM_CONFIRMATIONS;
 
       case Coin.tezos:
         return tezos.MINIMUM_CONFIRMATIONS;
@@ -419,6 +445,10 @@ Coin coinFromPrettyName(String name) {
     case "particl":
       return Coin.particl;
 
+    case "Stellar":
+    case "stellar":
+      return Coin.stellar;
+
     case "Tezos":
     case "tezos":
       return Coin.tezos;
@@ -467,6 +497,11 @@ Coin coinFromPrettyName(String name) {
     case "banano":
       return Coin.banano;
 
+    case "Stellar Testnet":
+    case "stellarTestnet":
+    case "tStellar":
+      return Coin.stellarTestnet;
+
     default:
       throw ArgumentError.value(
         name,
@@ -500,6 +535,8 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
       return Coin.namecoin;
     case "part":
       return Coin.particl;
+    case "xlm":
+      return Coin.stellar;
     case "xtz":
       return Coin.tezos;
     case "tltc":
@@ -518,6 +555,8 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
       return Coin.nano;
     case "ban":
       return Coin.banano;
+    case "txlm":
+      return Coin.stellarTestnet;
     default:
       throw ArgumentError.value(
           ticker, "name", "No Coin enum value with that ticker");
