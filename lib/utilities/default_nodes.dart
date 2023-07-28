@@ -182,8 +182,8 @@ abstract class DefaultNodes {
       isDown: false
   );
 
-  static NodeModel get tezos => NodeModel( // TODO: Change this to original one
-      host: "mainnet.api.tez.ie",
+  static NodeModel get tezos => NodeModel( // TODO: Change this to stack wallet one
+      host: "https://mainnet.api.tez.ie",
       port: 443,
       name: defaultName,
       id: _nodeId(Coin.tezos),
