@@ -42,7 +42,8 @@ abstract class Constants {
       BigInt.parse("1000000000000000000000000000000"); // 1*10^30
   static final BigInt _satsPerCoinBanano =
       BigInt.parse("100000000000000000000000000000"); // 1*10^29
-  static final BigInt _satsPerCoinStellar = BigInt.from(10000000); // https://developers.stellar.org/docs/fundamentals-and-concepts/stellar-data-structures/assets#amount-precision
+  static final BigInt _satsPerCoinStellar = BigInt.from(
+      10000000); // https://developers.stellar.org/docs/fundamentals-and-concepts/stellar-data-structures/assets#amount-precision
   static final BigInt _satsPerCoin = BigInt.from(100000000);
   static final BigInt _satsPerCoinTezos = BigInt.from(1000000);
   static const int _decimalPlaces = 8;

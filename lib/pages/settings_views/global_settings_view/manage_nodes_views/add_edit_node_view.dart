@@ -199,7 +199,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
       case Coin.stellar:
       case Coin.stellarTestnet:
         throw UnimplementedError();
-        //TODO: check network/node
+      //TODO: check network/node
       case Coin.tezos:
       //TODO: check network/node
     }
