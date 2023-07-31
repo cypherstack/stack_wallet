@@ -3632,6 +3632,81 @@ class FiroWallet extends CoinServiceAPI
 
         txnsData.add(Tuple2(tx, transactionAddress));
 
+        // Master node payment =====================================
+      } else if (inputList.length == 1 &&
+          inputList.first["coinbase"] is String) {
+        List<isar_models.Input> ins = [
+          isar_models.Input(
+            txid: inputList.first["coinbase"] as String,
+            vout: -1,
+            scriptSig: null,
+            scriptSigAsm: null,
+            isCoinbase: true,
+            sequence: inputList.first['sequence'] as int?,
+            innerRedeemScriptAsm: null,
+          ),
+        ];
+
+        // parse outputs
+        List<isar_models.Output> outs = [];
+        for (final output in outputList) {
+          // get value
+          final value = Amount.fromDecimal(
+            Decimal.parse(output["value"].toString()),
+            fractionDigits: coin.decimals,
+          );
+
+          // get output address
+          final address = output["scriptPubKey"]?["addresses"]?[0] as String? ??
+              output["scriptPubKey"]?["address"] as String?;
+          if (address != null) {
+            outputAddresses.add(address);
+
+            // if output was to my wallet, add value to amount received
+            if (receivingAddresses.contains(address)) {
+              amountReceivedInWallet += value;
+            }
+          }
+
+          outs.add(
+            isar_models.Output(
+              scriptPubKey: output['scriptPubKey']?['hex'] as String?,
+              scriptPubKeyAsm: output['scriptPubKey']?['asm'] as String?,
+              scriptPubKeyType: output['scriptPubKey']?['type'] as String?,
+              scriptPubKeyAddress: address ?? "",
+              value: value.raw.toInt(),
+            ),
+          );
+        }
+
+        // this is the address initially used to fetch the txid
+        isar_models.Address transactionAddress =
+            txObject["address"] as isar_models.Address;
+
+        final tx = isar_models.Transaction(
+          walletId: walletId,
+          txid: txObject["txid"] as String,
+          timestamp: txObject["blocktime"] as int? ??
+              (DateTime.now().millisecondsSinceEpoch ~/ 1000),
+          type: isar_models.TransactionType.incoming,
+          subType: isar_models.TransactionSubType.none,
+          // amount may overflow. Deprecated. Use amountString
+          amount: amountReceivedInWallet.raw.toInt(),
+          amountString: amountReceivedInWallet.toJsonString(),
+          fee: 0,
+          height: txObject["height"] as int?,
+          isCancelled: false,
+          isLelantus: false,
+          slateId: null,
+          otherData: null,
+          nonce: null,
+          inputs: ins,
+          outputs: outs,
+          numberOfMessages: null,
+        );
+
+        txnsData.add(Tuple2(tx, transactionAddress));
+
         // Assume non lelantus transaction =====================================
       } else {
         // parse inputs
