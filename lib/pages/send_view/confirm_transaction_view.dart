@@ -89,6 +89,11 @@ class _ConfirmTransactionViewState
   late final FocusNode _noteFocusNode;
   late final TextEditingController noteController;
 
+
+  late final FocusNode _onChainNoteFocusNode;
+  late final TextEditingController onChainNoteController;
+
+
   Future<void> _attemptSend(BuildContext context) async {
     final manager =
         ref.read(walletsChangeNotifierProvider).getManager(walletId);
@@ -138,6 +143,9 @@ class _ConfirmTransactionViewState
           txidFuture = (manager.wallet as FiroWallet)
               .confirmSendPublic(txData: transactionInfo);
         } else {
+          if (coin == Coin.epicCash) {
+            transactionInfo["onChainNote"] = onChainNoteController.text;
+          }
           txidFuture = manager.confirmSend(txData: transactionInfo);
         }
       }
@@ -272,14 +280,21 @@ class _ConfirmTransactionViewState
     _noteFocusNode = FocusNode();
     noteController = TextEditingController();
     noteController.text = transactionInfo["note"] as String? ?? "";
+
+    _onChainNoteFocusNode = FocusNode();
+    onChainNoteController = TextEditingController();
+    onChainNoteController.text = transactionInfo["onChainNote"] as String? ?? "";
+
     super.initState();
   }
 
   @override
   void dispose() {
     noteController.dispose();
+    onChainNoteController.dispose();
 
     _noteFocusNode.dispose();
+    _onChainNoteFocusNode.dispose();
     super.dispose();
   }
 
@@ -840,8 +855,64 @@ class _ConfirmTransactionViewState
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (coin == Coin.epicCash)
+                      Text(
+                        "On chain Note (optional)",
+                        style: STextStyles.smallMed12(context),
+                        textAlign: TextAlign.left,
+                      ),
+                    if (coin == Coin.epicCash)
+                      const SizedBox(
+                        height: 8,
+                      ),
+                    if (coin == Coin.epicCash)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
+                        child: TextField(
+                          autocorrect: Util.isDesktop ? false : true,
+                          enableSuggestions: Util.isDesktop ? false : true,
+                          maxLength: 256,
+                          controller: onChainNoteController,
+                          focusNode: _onChainNoteFocusNode,
+                          style: STextStyles.field(context),
+                          onChanged: (_) => setState(() {}),
+                          decoration: standardInputDecoration(
+                            "Type something...",
+                            _onChainNoteFocusNode,
+                            context,
+                          ).copyWith(
+                            suffixIcon: onChainNoteController.text.isNotEmpty
+                                ? Padding(
+                              padding:
+                              const EdgeInsets.only(right: 0),
+                              child: UnconstrainedBox(
+                                child: Row(
+                                  children: [
+                                    TextFieldIconButton(
+                                      child: const XIcon(),
+                                      onTap: () async {
+                                        setState(() {
+                                          onChainNoteController.text = "";
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                                : null,
+                          ),
+                        ),
+                      ),
+                    if (coin == Coin.epicCash)
+                      const SizedBox(
+                        height: 12,
+                      ),
                     Text(
-                      "Note (optional)",
+                      (coin == Coin.epicCash) ? "Local Note (optional)"
+                          : "Note (optional)",
                       style:
                           STextStyles.desktopTextExtraSmall(context).copyWith(
                         color: Theme.of(context)
