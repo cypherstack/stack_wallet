@@ -54,10 +54,14 @@ Uri getDefaultBlockExplorerUrlFor({
       return Uri.parse("https://chainz.cryptoid.info/nmc/tx.dws?$txid.htm");
     case Coin.particl:
       return Uri.parse("https://chainz.cryptoid.info/part/tx.dws?$txid.htm");
+    case Coin.stellar:
+      return Uri.parse("https://stellarchain.io/tx/$txid");
     case Coin.nano:
       return Uri.parse("https://www.nanolooker.com/block/$txid");
     case Coin.banano:
       return Uri.parse("https://www.bananolooker.com/block/$txid");
+    case Coin.stellarTestnet:
+      return Uri.parse("https://testnet.stellarchain.io/transactions/$txid");
   }
 }
 

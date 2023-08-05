@@ -177,7 +177,10 @@ class NodeOptionsSheet extends ConsumerWidget {
 
       case Coin.nano:
       case Coin.banano:
-      //TODO: check network/node
+      case Coin.stellar:
+      case Coin.stellarTestnet:
+        throw UnimplementedError();
+        //TODO: check network/node
     }
 
     if (testPassed) {

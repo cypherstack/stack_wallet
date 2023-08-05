@@ -1,12 +1,15 @@
-import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:http/http.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/models/isar/ordinal.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -15,10 +18,12 @@ import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class DesktopOrdinalDetailsView extends ConsumerStatefulWidget {
@@ -43,6 +48,37 @@ class _DesktopOrdinalDetailsViewState
   static const _spacing = 12.0;
 
   late final UTXO? utxo;
+
+  Future<String> _savePngToFile() async {
+    final response = await get(Uri.parse(widget.ordinal.content));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+          "statusCode=${response.statusCode} body=${response.bodyBytes}");
+    }
+
+    final bytes = response.bodyBytes;
+
+    if (Platform.isAndroid) {
+      await Permission.storage.request();
+    }
+
+    final dir = Platform.isAndroid
+        ? Directory("/storage/emulated/0/Documents")
+        : await getApplicationDocumentsDirectory();
+
+    final docPath = dir.path;
+    final filePath = "$docPath/ordinal_${widget.ordinal.inscriptionNumber}.png";
+
+    File imgFile = File(filePath);
+
+    if (imgFile.existsSync()) {
+      throw Exception("File already exists");
+    }
+
+    await imgFile.writeAsBytes(bytes);
+    return filePath;
+  }
 
   @override
   void initState() {
@@ -137,7 +173,7 @@ class _DesktopOrdinalDetailsViewState
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
+                                  SelectableText(
                                     "INSC. ${widget.ordinal.inscriptionNumber}",
                                     style: STextStyles.w600_20(context),
                                   ),
@@ -174,74 +210,98 @@ class _DesktopOrdinalDetailsViewState
                             // const SizedBox(
                             //   width: 16,
                             // ),
-                            // SecondaryButton(
-                            //   width: 150,
-                            //   label: "Download",
-                            //   icon: SvgPicture.asset(
-                            //     Assets.svg.arrowDown,
-                            //     width: 13,
-                            //     height: 18,
-                            //     color: Theme.of(context)
-                            //         .extension<StackColors>()!
-                            //         .buttonTextSecondary,
-                            //   ),
-                            //   buttonHeight: ButtonHeight.l,
-                            //   iconSpacing: 8,
-                            //   onPressed: () {
-                            //     // TODO: save and download image to device
-                            //   },
-                            // ),
+                            SecondaryButton(
+                              width: 150,
+                              label: "Download",
+                              icon: SvgPicture.asset(
+                                Assets.svg.arrowDown,
+                                width: 13,
+                                height: 18,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .buttonTextSecondary,
+                              ),
+                              buttonHeight: ButtonHeight.l,
+                              iconSpacing: 8,
+                              onPressed: () async {
+                                bool didError = false;
+                                final path = await showLoading<String>(
+                                  whileFuture: _savePngToFile(),
+                                  context: context,
+                                  isDesktop: true,
+                                  message: "Saving ordinal image",
+                                  onException: (e) {
+                                    didError = true;
+                                    String msg = e.toString();
+                                    while (msg.isNotEmpty &&
+                                        msg.startsWith("Exception:")) {
+                                      msg = msg.substring(10).trim();
+                                    }
+                                    showFloatingFlushBar(
+                                      type: FlushBarType.warning,
+                                      message: msg,
+                                      context: context,
+                                    );
+                                  },
+                                );
+
+                                if (!didError && mounted) {
+                                  await showFloatingFlushBar(
+                                    type: FlushBarType.success,
+                                    message: "Image saved to $path",
+                                    context: context,
+                                  );
+                                }
+                              },
+                            ),
                           ],
                         ),
                       ),
                       const SizedBox(
                         height: 16,
                       ),
-                      _DetailsItemWCopy(
-                        title: "Inscription number",
-                        data: widget.ordinal.inscriptionNumber.toString(),
-                      ),
-                      const SizedBox(
-                        height: _spacing,
-                      ),
-                      _DetailsItemWCopy(
-                        title: "Inscription ID",
-                        data: widget.ordinal.inscriptionId,
-                      ),
-                      const SizedBox(
-                        height: _spacing,
-                      ),
-                      // todo: add utxo status
-                      const SizedBox(
-                        height: _spacing,
-                      ),
-                      _DetailsItemWCopy(
-                        title: "Amount",
-                        data: utxo == null
-                            ? "ERROR"
-                            : ref.watch(pAmountFormatter(coin)).format(
-                                  Amount(
-                                    rawValue: BigInt.from(utxo!.value),
-                                    fractionDigits: coin.decimals,
-                                  ),
-                                ),
-                      ),
-                      const SizedBox(
-                        height: _spacing,
-                      ),
-                      _DetailsItemWCopy(
-                        title: "Owner address",
-                        data: utxo?.address ?? "ERROR",
-                      ),
-                      const SizedBox(
-                        height: _spacing,
-                      ),
-                      _DetailsItemWCopy(
-                        title: "Transaction ID",
-                        data: widget.ordinal.utxoTXID,
-                      ),
-                      const SizedBox(
-                        height: _spacing,
+                      RoundedWhiteContainer(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _DetailsItemWCopy(
+                              title: "Inscription number",
+                              data: widget.ordinal.inscriptionNumber.toString(),
+                            ),
+                            const _Divider(),
+                            _DetailsItemWCopy(
+                              title: "Inscription ID",
+                              data: widget.ordinal.inscriptionId,
+                            ),
+                            // const SizedBox(
+                            //   height: _spacing,
+                            // ),
+                            // // todo: add utxo status
+                            const _Divider(),
+                            _DetailsItemWCopy(
+                              title: "Amount",
+                              data: utxo == null
+                                  ? "ERROR"
+                                  : ref.watch(pAmountFormatter(coin)).format(
+                                        Amount(
+                                          rawValue: BigInt.from(utxo!.value),
+                                          fractionDigits: coin.decimals,
+                                        ),
+                                      ),
+                            ),
+                            const _Divider(),
+                            _DetailsItemWCopy(
+                              title: "Owner address",
+                              data: utxo?.address ?? "ERROR",
+                            ),
+                            const _Divider(),
+                            _DetailsItemWCopy(
+                              title: "Transaction ID",
+                              data: widget.ordinal.utxoTXID,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -250,6 +310,23 @@ class _DesktopOrdinalDetailsViewState
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _Divider extends StatelessWidget {
+  const _Divider({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        vertical: 16,
+      ),
+      child: Container(
+        height: 1,
+        color: Theme.of(context).extension<StackColors>()!.backgroundAppBar,
       ),
     );
   }
@@ -267,48 +344,29 @@ class _DetailsItemWCopy extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RoundedWhiteContainer(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: STextStyles.itemSubtitle(context),
-              ),
-              GestureDetector(
-                onTap: () async {
-                  await Clipboard.setData(ClipboardData(text: data));
-                  if (context.mounted) {
-                    unawaited(
-                      showFloatingFlushBar(
-                        type: FlushBarType.info,
-                        message: "Copied to clipboard",
-                        context: context,
-                      ),
-                    );
-                  }
-                },
-                child: SvgPicture.asset(
-                  Assets.svg.copy,
-                  color:
-                      Theme.of(context).extension<StackColors>()!.infoItemIcons,
-                  width: 12,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(
-            height: 4,
-          ),
-          SelectableText(
-            data,
-            style: STextStyles.itemSubtitle12(context),
-          ),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: STextStyles.itemSubtitle(context),
+            ),
+            IconCopyButton(
+              data: data,
+            ),
+          ],
+        ),
+        const SizedBox(
+          height: 4,
+        ),
+        SelectableText(
+          data,
+          style: STextStyles.itemSubtitle12(context),
+        ),
+      ],
     );
   }
 }

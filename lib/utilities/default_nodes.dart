@@ -34,6 +34,7 @@ abstract class DefaultNodes {
         bitcoincashTestnet,
         dogecoinTestnet,
         firoTestnet,
+        stellarTestnet,
       ];
 
   static NodeModel get bitcoin => NodeModel(
@@ -181,6 +182,18 @@ abstract class DefaultNodes {
       isFailover: true,
       isDown: false);
 
+  static NodeModel get stellar => NodeModel(
+      host: "https://horizon.stellar.org",
+      port: 443,
+      name: defaultName,
+      id: _nodeId(Coin.stellar),
+      useSSL: false,
+      enabled: true,
+      coinName: Coin.stellar.name,
+      isFailover: true,
+      isDown: false
+  );
+
   static NodeModel get nano => NodeModel(
       host: "https://rainstorm.city/api",
       port: 443,
@@ -263,6 +276,18 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
+  static NodeModel get stellarTestnet => NodeModel(
+    host: "https://horizon-testnet.stellar.org/",
+    port: 50022,
+    name: defaultName,
+    id: _nodeId(Coin.stellarTestnet),
+    useSSL: true,
+    enabled: true,
+    coinName: Coin.stellarTestnet.name,
+    isFailover: true,
+    isDown: false,
+  );
+
   static NodeModel getNodeFor(Coin coin) {
     switch (coin) {
       case Coin.bitcoin:
@@ -301,6 +326,9 @@ abstract class DefaultNodes {
       case Coin.particl:
         return particl;
 
+      case Coin.stellar:
+        return stellar;
+
       case Coin.nano:
         return nano;
 
@@ -321,6 +349,9 @@ abstract class DefaultNodes {
 
       case Coin.dogecoinTestNet:
         return dogecoinTestnet;
+
+      case Coin.stellarTestnet:
+        return stellarTestnet;
     }
   }
 }
