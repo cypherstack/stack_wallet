@@ -144,8 +144,13 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
               .round();
       final int feeInMicroTez = int.parse(txData["fee"].toString());
       final String destinationAddress = txData["address"] as String;
-      final String sourceAddress = await currentReceivingAddress;
-      return Future.value(""); // TODO: return tx hash
+      final secretKey = Keystore.fromMnemonic((await mnemonicString)!).secretKey;
+      Logging.instance.log(secretKey, level: LogLevel.Info);
+      final sourceKeyStore = Keystore.fromSecretKey(secretKey);
+      final client = TezartClient("${getCurrentNode().host}:${getCurrentNode().port}");
+      final operation = await client.transferOperation(source: sourceKeyStore, destination: destinationAddress, amount: amountInMicroTez, customFee: feeInMicroTez);
+      await operation.executeAndMonitor(); // This line gives an error
+      return Future.value("");
     } catch (e) {
       Logging.instance.log(e.toString(), level: LogLevel.Error);
       return Future.error(e);
@@ -162,12 +167,29 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   @override
-  Future<Amount> estimateFeeFor(Amount amount, int feeRate) {
-    return Future.value(
-      Amount(
-          rawValue: BigInt.parse(100000.toString()),
-          fractionDigits: coin.decimals),
-    );
+  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
+    // TODO: Check if this is correct
+    var api = "https://api.tzstats.com/series/op?start_date=today&collapse=10d";
+    var response = jsonDecode((await get(Uri.parse(api))).body)[0];
+    double totalFees = response[4] as double;
+    int totalTxs = response[8] as int;
+    int feePerTx = (totalFees / totalTxs * 1000000).floor();
+    int estimatedFee = 0;
+    Logging.instance.log("feePerTx:$feePerTx", level: LogLevel.Info);
+    Logging.instance.log("feeRate:$feeRate", level: LogLevel.Info);
+    switch (feeRate) {
+      case 0:
+        estimatedFee = feePerTx * 2;
+      case 1:
+        estimatedFee = feePerTx;
+      case 2:
+      case 3:
+        estimatedFee = (feePerTx / 2).floor();
+      default:
+        estimatedFee = feeRate;
+    }
+    Logging.instance.log("estimatedFee:$estimatedFee", level: LogLevel.Info);
+    return Amount(rawValue: BigInt.from(estimatedFee), fractionDigits: 6);
   }
 
   @override
@@ -178,14 +200,21 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<FeeObject> get fees async {
-    // TODO: Change this to get fees from node and fix numberOfBlocks
+    // TODO: Check if this is correct
+    var api = "https://api.tzstats.com/series/op?start_date=today&collapse=10d";
+    var response = jsonDecode((await get(Uri.parse(api))).body);
+    double totalFees = response[0][4] as double;
+    int totalTxs = response[0][8] as int;
+    int feePerTx = (totalFees / totalTxs * 1000000).floor();
+    Logging.instance.log("feePerTx:$feePerTx", level: LogLevel.Info);
+    // TODO: fix numberOfBlocks
     return FeeObject(
-      numberOfBlocksFast: 1,
-      numberOfBlocksAverage: 1,
-      numberOfBlocksSlow: 1,
-      fast: 1000000,
-      medium: 100000,
-      slow: 10000,
+      numberOfBlocksFast: 3,
+      numberOfBlocksAverage: 10,
+      numberOfBlocksSlow: 30,
+      fast: (feePerTx * 2),
+      medium: feePerTx,
+      slow: (feePerTx / 2).floor(),
     );
   }
 
@@ -213,6 +242,13 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<void> initializeNew() async {
+    if ((await mnemonicString) != null || (await mnemonicPassphrase) != null) {
+      throw Exception(
+          "Attempted to overwrite mnemonic on generate new wallet!");
+    }
+
+    await _prefs.init();
+
     var newKeystore = Keystore.random();
     await _secureStore.write(
       key: '${_walletId}_mnemonic',
