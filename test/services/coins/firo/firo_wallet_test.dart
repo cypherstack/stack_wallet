@@ -11,9 +11,7 @@ import 'package:mockito/mockito.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
-import 'package:stackwallet/models/lelantus_coin.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/lelantus_fee_data.dart';
 import 'package:stackwallet/models/paymint/transactions_model.dart' as old;
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
@@ -72,6 +70,7 @@ void main() {
         setData,
         List<String>.from(usedSerials),
         firoNetwork,
+        "walletId",
       );
       const currentHeight = 100000000000;
 
@@ -113,10 +112,7 @@ void main() {
       final result = await staticProcessRestore(txData, message, currentHeight);
 
       expect(result, isA<Map<String, dynamic>>());
-      expect(result["mintIndex"], 8);
-      expect(result["jindex"], [2, 4, 6]);
-      expect(
-          result["_lelantus_coins"], isA<List<Map<dynamic, LelantusCoin>>>());
+      expect(result["_lelantus_coins"], isA<List<LelantusCoin>>());
       expect(result["newTxMap"], isA<Map<String, Transaction>>());
     });
 
@@ -133,6 +129,7 @@ void main() {
                 setData,
                 List<String>.from(usedSerials),
                 firoNetwork,
+                "walletId",
               ),
           throwsA(isA<Error>()));
     });
@@ -530,17 +527,9 @@ void main() {
   group("FiroWallet service class functions that depend on shared storage", () {
     const testWalletId = "testWalletID";
     const testWalletName = "Test Wallet";
-    bool hiveAdaptersRegistered = false;
 
     setUp(() async {
       await setUpTestHive();
-
-      if (!hiveAdaptersRegistered) {
-        hiveAdaptersRegistered = true;
-
-        // Registering Lelantus Model Adapters
-        Hive.registerAdapter(LelantusCoinAdapter());
-      }
 
       final wallets = await Hive.openBox<dynamic>('wallets');
       await wallets.put('currentWalletName', testWalletName);
@@ -1202,12 +1191,32 @@ void main() {
         txHash: BuildMintTxTestParams.utxoInfo["txid"] as String,
         coin: Coin.firo,
       )).thenAnswer((_) async => BuildMintTxTestParams.cachedClientResponse);
+      when(cachedClient.getAnonymitySet(
+        groupId: "1",
+        coin: Coin.firo,
+      )).thenAnswer(
+        (_) async => GetAnonymitySetSampleData.data,
+      );
+      when(cachedClient.getAnonymitySet(
+        groupId: "2",
+        coin: Coin.firo,
+      )).thenAnswer(
+        (_) async => GetAnonymitySetSampleData.data,
+      );
 
       when(client.getBlockHeadTip()).thenAnswer(
           (_) async => {"height": 455873, "hex": "this value not used here"});
+      when(client.getLatestCoinId()).thenAnswer((_) async => 2);
 
       when(mainDB.getAddress("${testWalletId}buildMintTransaction", any))
           .thenAnswer((realInvocation) async => null);
+
+      when(mainDB.getHighestUsedMintIndex(
+              walletId: "${testWalletId}submitHexToNetwork"))
+          .thenAnswer((_) async => null);
+      when(mainDB.getHighestUsedMintIndex(
+              walletId: "testWalletIDbuildMintTransaction"))
+          .thenAnswer((_) async => null);
 
       final firo = FiroWallet(
         walletName: testWalletName,

@@ -43,6 +43,7 @@ abstract class Constants {
       BigInt.parse("1000000000000000000000000000000"); // 1*10^30
   static final BigInt _satsPerCoinBanano =
       BigInt.parse("100000000000000000000000000000"); // 1*10^29
+  static final BigInt _satsPerCoinStellar = BigInt.from(10000000); // https://developers.stellar.org/docs/fundamentals-and-concepts/stellar-data-structures/assets#amount-precision
   static final BigInt _satsPerCoin = BigInt.from(100000000);
   static const int _decimalPlaces = 8;
   static const int _decimalPlacesNano = 30;
@@ -51,6 +52,7 @@ abstract class Constants {
   static const int _decimalPlacesMonero = 12;
   static const int _decimalPlacesEthereum = 18;
   static const int _decimalPlacesECash = 2;
+  static const int _decimalPlacesStellar = 7;
 
   static const int notificationsMax = 0xFFFFFFFF;
   static const Duration networkAliveTimerDuration = Duration(seconds: 10);
@@ -58,7 +60,7 @@ abstract class Constants {
   // Enable Logger.print statements
   static const bool disableLogger = false;
 
-  static const int currentDataVersion = 10;
+  static const int currentDataVersion = 11;
 
   static const int rescanV1 = 1;
 
@@ -96,6 +98,10 @@ abstract class Constants {
 
       case Coin.eCash:
         return _satsPerCoinECash;
+
+      case Coin.stellar:
+      case Coin.stellarTestnet:
+        return _satsPerCoinStellar;
     }
   }
 
@@ -133,6 +139,10 @@ abstract class Constants {
 
       case Coin.eCash:
         return _decimalPlacesECash;
+
+      case Coin.stellar:
+      case Coin.stellarTestnet:
+        return _decimalPlacesStellar;
     }
   }
 
@@ -155,6 +165,8 @@ abstract class Constants {
       case Coin.namecoin:
       case Coin.particl:
       case Coin.nano:
+      case Coin.stellar:
+      case Coin.stellarTestnet:
         values.addAll([24, 12]);
         break;
       case Coin.banano:
@@ -214,6 +226,10 @@ abstract class Constants {
       case Coin.nano: // TODO: Verify this
       case Coin.banano: // TODO: Verify this
         return 1;
+
+      case Coin.stellar:
+      case Coin.stellarTestnet:
+        return 5;
     }
   }
 
@@ -241,6 +257,8 @@ abstract class Constants {
 
       case Coin.nano:
       case Coin.banano:
+      case Coin.stellar:
+      case Coin.stellarTestnet:
         return 24;
 
       case Coin.monero:

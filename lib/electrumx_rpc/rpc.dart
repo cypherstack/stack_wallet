@@ -79,7 +79,6 @@ class JsonRPC {
 
         // TODO different timeout length?
         req.initiateTimeout(
-          const Duration(seconds: 10),
           onTimedOut: () {
             _requestQueue.remove(req);
           },
@@ -88,7 +87,10 @@ class JsonRPC {
     });
   }
 
-  Future<JsonRPCResponse> request(String jsonRpcRequest) async {
+  Future<JsonRPCResponse> request(
+    String jsonRpcRequest,
+    Duration requestTimeout,
+  ) async {
     await _requestMutex.protect(() async {
       if (_socket == null) {
         Logging.instance.log(
@@ -101,6 +103,7 @@ class JsonRPC {
 
     final req = _JsonRPCRequest(
       jsonRequest: jsonRpcRequest,
+      requestTimeout: requestTimeout,
       completer: Completer<JsonRPCResponse>(),
     );
 
@@ -243,9 +246,14 @@ class _JsonRPCRequest {
 
   final String jsonRequest;
   final Completer<JsonRPCResponse> completer;
+  final Duration requestTimeout;
   final List<int> _responseData = [];
 
-  _JsonRPCRequest({required this.jsonRequest, required this.completer});
+  _JsonRPCRequest({
+    required this.jsonRequest,
+    required this.completer,
+    required this.requestTimeout,
+  });
 
   void appendDataAndCheckIfComplete(List<int> data) {
     _responseData.addAll(data);
@@ -263,11 +271,10 @@ class _JsonRPCRequest {
     }
   }
 
-  void initiateTimeout(
-    Duration timeout, {
+  void initiateTimeout({
     VoidCallback? onTimedOut,
   }) {
-    Future<void>.delayed(timeout).then((_) {
+    Future<void>.delayed(requestTimeout).then((_) {
       if (!isComplete) {
         try {
           throw Exception("_JsonRPCRequest timed out: $jsonRequest");

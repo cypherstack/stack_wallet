@@ -127,16 +127,16 @@ class EthTxDTO {
     map['timestamp'] = timestamp;
     map['from'] = from;
     map['to'] = to;
-    map['value'] = value;
-    map['gas'] = gas;
-    map['gasPrice'] = gasPrice;
-    map['maxFeePerGas'] = maxFeePerGas;
-    map['maxPriorityFeePerGas'] = maxPriorityFeePerGas;
+    map['value'] = value.toString();
+    map['gas'] = gas.toString();
+    map['gasPrice'] = gasPrice.toString();
+    map['maxFeePerGas'] = maxFeePerGas.toString();
+    map['maxPriorityFeePerGas'] = maxPriorityFeePerGas.toString();
     map['isError'] = isError;
     map['hasToken'] = hasToken;
     map['compressedTx'] = compressedTx;
-    map['gasCost'] = gasCost;
-    map['gasUsed'] = gasUsed;
+    map['gasCost'] = gasCost.toString();
+    map['gasUsed'] = gasUsed.toString();
     return map;
   }
 

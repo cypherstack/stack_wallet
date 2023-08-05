@@ -15,7 +15,10 @@ void main() {
 
     const jsonRequestString =
         '{"jsonrpc": "2.0", "id": "some id","method": "server.ping","params": []}';
-    final result = await jsonRPC.request(jsonRequestString);
+    final result = await jsonRPC.request(
+      jsonRequestString,
+      const Duration(seconds: 1),
+    );
 
     expect(result.data, {"jsonrpc": "2.0", "result": null, "id": "some id"});
   });
@@ -30,7 +33,11 @@ void main() {
     const jsonRequestString =
         '{"jsonrpc": "2.0", "id": "some id","method": "server.ping","params": []}';
 
-    expect(() => jsonRPC.request(jsonRequestString),
+    expect(
+        () => jsonRPC.request(
+              jsonRequestString,
+              const Duration(seconds: 1),
+            ),
         throwsA(isA<SocketException>()));
   });
 
@@ -45,7 +52,11 @@ void main() {
     const jsonRequestString =
         '{"jsonrpc": "2.0", "id": "some id","method": "server.ping","params": []}';
 
-    expect(() => jsonRPC.request(jsonRequestString),
+    expect(
+        () => jsonRPC.request(
+              jsonRequestString,
+              const Duration(seconds: 1),
+            ),
         throwsA(isA<SocketException>()));
   });
 }

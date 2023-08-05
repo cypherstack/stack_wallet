@@ -59,6 +59,7 @@ void main() {
       mockClient.request(
         '{"jsonrpc": "2.0", "id": "some requestId",'
         '"method": "$command","params": $jsonArgs}',
+        const Duration(seconds: 60),
       ),
     ).thenAnswer(
       (_) async => JsonRPCResponse(data: {
@@ -97,6 +98,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
         ),
       ).thenAnswer(
         (_) async => JsonRPCResponse(data: {
@@ -132,6 +134,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
         ),
       ).thenThrow(Exception());
 
@@ -161,6 +164,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 2),
         ),
       ).thenAnswer(
         (_) async => JsonRPCResponse(data: {
@@ -195,6 +199,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 2),
         ),
       ).thenThrow(Exception());
 
@@ -224,6 +229,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
         ),
       ).thenAnswer(
         (_) async => JsonRPCResponse(data: {
@@ -281,6 +287,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
         ),
       ).thenThrow(Exception());
 
@@ -310,6 +317,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
         ),
       ).thenAnswer(
         (_) async => JsonRPCResponse(data: {
@@ -345,6 +353,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
         ),
       ).thenThrow(Exception());
 
@@ -377,6 +386,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
         ),
       ).thenAnswer(
         (_) async => JsonRPCResponse(data: {
@@ -415,6 +425,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
         ),
       ).thenThrow(Exception());
 
@@ -446,6 +457,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(minutes: 5),
         ),
       ).thenAnswer(
         (_) async => JsonRPCResponse(data: {
@@ -503,6 +515,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(minutes: 5),
         ),
       ).thenThrow(Exception());
 
@@ -534,6 +547,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
         ),
       ).thenAnswer(
         (_) async => JsonRPCResponse(data: {
@@ -599,6 +613,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
         ),
       ).thenThrow(Exception());
 
@@ -630,6 +645,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
         ),
       ).thenAnswer(
         (_) async => JsonRPCResponse(data: {
@@ -667,6 +683,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
         ),
       ).thenThrow(Exception());
 
@@ -699,6 +716,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
         ),
       ).thenAnswer(
         (_) async => JsonRPCResponse(data: {
@@ -734,6 +752,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
         ),
       ).thenThrow(Exception());
 
@@ -765,6 +784,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
         ),
       ).thenAnswer(
         (_) async => JsonRPCResponse(data: {
@@ -800,6 +820,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
         ),
       ).thenThrow(Exception());
 
@@ -831,6 +852,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(minutes: 2),
         ),
       ).thenAnswer(
         (_) async => JsonRPCResponse(data: {
@@ -866,6 +888,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(minutes: 2),
         ),
       ).thenThrow(Exception());
 
@@ -897,6 +920,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
         ),
       ).thenAnswer(
         (_) async => JsonRPCResponse(data: {
@@ -931,6 +955,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
         ),
       ).thenThrow(Exception());
 
@@ -963,6 +988,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
         ),
       ).thenAnswer(
         (_) async => JsonRPCResponse(data: {
@@ -998,6 +1024,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
         ),
       ).thenThrow(Exception());
 
@@ -1031,6 +1058,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
         ),
       ).thenAnswer(
         (_) async => JsonRPCResponse(data: {
@@ -1066,6 +1094,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
         ),
       ).thenThrow(Exception());
 
@@ -1099,6 +1128,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(minutes: 2),
         ),
       ).thenAnswer(
         (_) async => JsonRPCResponse(data: {
@@ -1134,6 +1164,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(minutes: 2),
         ),
       ).thenThrow(Exception());
 
@@ -1165,6 +1196,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
         ),
       ).thenAnswer(
         (_) async => JsonRPCResponse(data: {
@@ -1199,6 +1231,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
         ),
       ).thenThrow(Exception());
 
@@ -1228,6 +1261,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
         ),
       ).thenAnswer(
         (_) async => JsonRPCResponse(data: {
@@ -1264,6 +1298,7 @@ void main() {
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
           '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
         ),
       ).thenThrow(Exception());
 

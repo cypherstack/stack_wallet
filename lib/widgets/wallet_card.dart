@@ -140,7 +140,7 @@ class SimpleWalletCard extends ConsumerWidget {
           isDesktop: Util.isDesktop,
         );
 
-        if (!success) {
+        if (!success!) {
           // TODO: show error dialog here?
           Logging.instance.log(
             "Failed to load token wallet for $contract",
