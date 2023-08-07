@@ -1,13 +1,12 @@
 import 'dart:io';
 
 import 'package:fusiondart/fusiondart.dart';
-import 'package:fusiondart/src/models/address.dart' as fusion_address;
+import 'package:fusiondart/src/models/address.dart' as cash_fusion;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
 
 const String kReservedFusionAddress = "reserved_fusion_address";
 
@@ -40,7 +39,7 @@ mixin FusionInterface {
     _generateAddressForChain = generateAddressForChain;
   }
 
-  Future<Address> createNewReservedChangeAddress() async {
+  Future<cash_fusion.Address> createNewReservedChangeAddress() async {
     int? highestChangeIndex = await _db
         .getAddresses(_walletId)
         .filter()
@@ -62,7 +61,7 @@ mixin FusionInterface {
 
     await _db.putAddress(address);
 
-    return address;
+    return address.toFusionAddress();
   }
 
   Future<List<Address>> getUnusedReservedChangeAddresses(
@@ -104,8 +103,8 @@ mixin FusionInterface {
 
   void fuse() async {
     // Initial attempt for CashFusion integration goes here.
-    Fusion mainFusionObject =
-        Fusion(generateChangeAddress: () => _getNextChangeAddress());
+    Fusion mainFusionObject = Fusion(
+        createNewReservedChangeAddress: () => createNewReservedChangeAddress());
 
     // add stack utxos
     List<UTXO> utxos = await _db.getUTXOs(_walletId).findAll();
@@ -113,19 +112,20 @@ mixin FusionInterface {
         .map((e) => (txid: e.txid, vout: e.vout, value: e.value))
         .toList());
 
-    // add stack change address
-    final String currentChangeAddress = await _getCurrentChangeAddress();
-    // cast from String to Address
-    final Address? changeAddress =
-        await _db.getAddress(_walletId, currentChangeAddress);
-    // cast from Stack's Address to Fusiondart's Address
-    final fusion_address.Address fusionChangeAddress =
-        changeAddress!.toFusionAddress();
-    await mainFusionObject.addChangeAddress(fusionChangeAddress);
-    Logging.instance.log(
-      "FusionInterface fuse() changeAddress: $changeAddress",
-      level: LogLevel.Info,
-    );
+    // TODO rework
+    // // add stack change address
+    // final String currentChangeAddress = await _getCurrentChangeAddress();
+    // // cast from String to Address
+    // final Address? changeAddress =
+    //     await _db.getAddress(_walletId, currentChangeAddress);
+    // // cast from Stack's Address to Fusiondart's Address
+    // final fusion_address.Address fusionChangeAddress =
+    //     changeAddress!.toFusionAddress();
+    // await mainFusionObject.addChangeAddress(fusionChangeAddress);
+    // Logging.instance.log(
+    //   "FusionInterface fuse() changeAddress: $changeAddress",
+    //   level: LogLevel.Info,
+    // );
 
     // fuse utxos
     await mainFusionObject.fusion_run();
