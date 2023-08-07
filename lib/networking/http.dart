@@ -54,14 +54,12 @@ abstract class HTTP {
     final httpClient = HttpClient();
     try {
       if (routeOverTor) {
-        if (routeOverTor) {
-          SocksTCPClient.assignToHttpClient(httpClient, [
-            ProxySettings(
-              InternetAddress.loopbackIPv4,
-              TorService.sharedInstance.port,
-            ),
-          ]);
-        }
+        SocksTCPClient.assignToHttpClient(httpClient, [
+          ProxySettings(
+            InternetAddress.loopbackIPv4,
+            TorService.sharedInstance.port,
+          ),
+        ]);
       }
       final HttpClientRequest request = await httpClient.postUrl(
         url,
