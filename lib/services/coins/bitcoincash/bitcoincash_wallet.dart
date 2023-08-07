@@ -26,7 +26,8 @@ import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/address.dart'
+    as stack_address;
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/signing_data.dart';
@@ -197,8 +198,25 @@ class BitcoinCashWallet extends CoinServiceAPI
           .findFirst()) ??
       await _generateAddressForChain(0, 0, DerivePathTypeExt.primaryFor(coin));
 
-  Future<String> get currentChangeAddress async =>
-      (await _currentChangeAddress).value;
+  Future<String> get currentChangeAddress async => (await _currentChangeAddress)
+      .value; // could return Address to cast Stack's Address to Fusiondart's Address like `(await _currentChangeAddress).toFusionAddress();`
+
+  Future<String> get nextChangeAddress async {
+    // get change <Address>
+    final currentChange = await _currentChangeAddress;
+    // use <Address>.derivationmIndex + 1 to get next change address derivation path
+    final int nextChangeIndex = currentChange.derivationIndex + 1;
+    // generate next change address
+    final stack_address.Address newChangeAddress =
+        await _generateAddressForChain(
+            1,
+            nextChangeIndex,
+            DerivePathTypeExt.primaryFor(
+                coin)); // may need to pick other derive path type, eg 44, 49, 84
+
+    return newChangeAddress
+        .value; // could return Address to cast Stack's Address to Fusiondart's Address like `newChangeAddress.toFusionAddress();`
+  }
 
   Future<isar_models.Address> get _currentChangeAddress async =>
       (await db
@@ -2147,10 +2165,10 @@ class BitcoinCashWallet extends CoinServiceAPI
             walletId: walletId,
             value: possible,
             publicKey: [],
-            type: AddressType.nonWallet,
+            type: stack_address.AddressType.nonWallet,
             derivationIndex: -1,
             derivationPath: null,
-            subType: AddressSubType.nonWallet,
+            subType: stack_address.AddressSubType.nonWallet,
           );
         }
       } else {

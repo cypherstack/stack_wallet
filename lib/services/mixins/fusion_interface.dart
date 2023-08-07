@@ -30,6 +30,18 @@ mixin FusionInterface {
     _getCurrentChangeAddress = getCurrentChangeAddress;
   }
 
+  static List<Address> reserve_change_addresses(int number_addresses) {
+    // TODO
+    // get current change address
+    // get int number_addresses next addresses
+    return [];
+  }
+
+  static List<Address> unreserve_change_address(Address addr) {
+    //implement later based on wallet.
+    return [];
+  }
+
   void fuse() async {
     // Initial attempt for CashFusion integration goes here.
     Fusion mainFusionObject = Fusion();
