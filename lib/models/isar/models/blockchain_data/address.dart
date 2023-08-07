@@ -218,7 +218,6 @@ extension ToFusionAddress on Address {
   FusionAddress.Address toFusionAddress() {
     return FusionAddress.Address(
         addr: value,
-        id: id.toString(), // Assuming id can be converted to a String
         publicKey:
             publicKey, // Assuming List<byte> and List<int> are compatible
         derivationPath:
