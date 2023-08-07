@@ -9,4 +9,4 @@
 	url = https://github.com/cypherstack/flutter_liblelantus.git
 [submodule "crypto_plugins/tor"]
 	path = crypto_plugins/tor
-	url = https://github.com/sneurlax/tor.git
+	url = https://github.com/cypherstack/flutter_libtor.git
