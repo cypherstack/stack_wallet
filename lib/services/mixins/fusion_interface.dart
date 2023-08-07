@@ -17,17 +17,20 @@ mixin FusionInterface {
 
   // passed in wallet functions
   late final Future<String> Function() _getCurrentChangeAddress;
+  late final Future<String> Function() _getNextChangeAddress;
 
   void initFusionInterface({
     required String walletId,
     required Coin coin,
     required MainDB db,
     required Future<String> Function() getCurrentChangeAddress,
+    required Future<String> Function() getNextChangeAddress,
   }) {
     _walletId = walletId;
     _coin = coin;
     _db = db;
     _getCurrentChangeAddress = getCurrentChangeAddress;
+    _getNextChangeAddress = getNextChangeAddress;
   }
 
   static List<Address> reserve_change_addresses(int number_addresses) {
@@ -44,7 +47,8 @@ mixin FusionInterface {
 
   void fuse() async {
     // Initial attempt for CashFusion integration goes here.
-    Fusion mainFusionObject = Fusion();
+    Fusion mainFusionObject =
+        Fusion(generateChangeAddress: () => _getNextChangeAddress());
 
     // add stack utxos
     List<UTXO> utxos = await _db.getUTXOs(_walletId).findAll();

@@ -139,7 +139,8 @@ class BitcoinCashWallet extends CoinServiceAPI
         walletId: walletId,
         coin: coin,
         db: db,
-        getCurrentChangeAddress: () => currentChangeAddress);
+        getCurrentChangeAddress: () => currentChangeAddress,
+        getNextChangeAddress: () => nextChangeAddress);
     initCoinControlInterface(
       walletId: walletId,
       walletName: walletName,
