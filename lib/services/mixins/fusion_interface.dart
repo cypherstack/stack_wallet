@@ -3,37 +3,57 @@ import 'dart:io';
 import 'package:fusiondart/fusiondart.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/logger.dart';
 
 mixin FusionInterface {
+  // passed in wallet data
   late final String _walletId;
   late final Coin _coin;
   late final MainDB _db;
+
+  // passed in wallet functions
+  late final Future<String> Function() _getCurrentChangeAddress;
 
   void initFusionInterface({
     required String walletId,
     required Coin coin,
     required MainDB db,
+    required Future<String> Function() getCurrentChangeAddress,
   }) {
     _walletId = walletId;
     _coin = coin;
     _db = db;
+    _getCurrentChangeAddress = getCurrentChangeAddress;
   }
 
   void fuse() async {
     // Initial attempt for CashFusion integration goes here.
-
-    // await _updateUTXOs();
-    List<UTXO> utxos = await _db.getUTXOs(_walletId).findAll();
     Fusion mainFusionObject = Fusion();
+
+    // add stack utxos
+    List<UTXO> utxos = await _db.getUTXOs(_walletId).findAll();
     await mainFusionObject.add_coins_from_wallet(utxos
         .map((e) => (txid: e.txid, vout: e.vout, value: e.value))
         .toList());
+
+    // add stack change address
+    final String currentChangeAddress = await _getCurrentChangeAddress();
+    // await mainFusionObject.addChangeAddress(currentChangeAddress);
+    final Address? changeAddress =
+        await _db.getAddress(_walletId, currentChangeAddress);
+    Logging.instance.log(
+      "FusionInterface fuse() changeAddress: $changeAddress",
+      level: LogLevel.Info,
+    );
+
+    // fuse utxos
     await mainFusionObject.fusion_run();
     //print ("DEBUG FUSION bitcoincash_wallet.dart 1202");
 
-/*
+    /*
     print("DEBUG: Waiting for any potential incoming data...");
     try {
       await Future.delayed(Duration(seconds: 5)); // wait for 5 seconds

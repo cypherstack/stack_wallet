@@ -134,7 +134,11 @@ class BitcoinCashWallet extends CoinServiceAPI
     _secureStore = secureStore;
     initCache(walletId, coin);
     initWalletDB(mockableOverride: mockableOverride);
-    initFusionInterface(walletId: walletId, coin: coin, db: db);
+    initFusionInterface(
+        walletId: walletId,
+        coin: coin,
+        db: db,
+        getCurrentChangeAddress: () => currentChangeAddress);
     initCoinControlInterface(
       walletId: walletId,
       walletName: walletName,
