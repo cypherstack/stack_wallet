@@ -10,6 +10,7 @@
 
 import 'dart:convert';
 
+import 'package:fusiondart/src/models/address.dart' as FusionAddress;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/exceptions/address/address_exception.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/crypto_currency_address.dart';
@@ -211,4 +212,16 @@ class DerivationPath {
   @ignore
   @override
   int get hashCode => value.hashCode;
+}
+
+extension ToFusionAddress on Address {
+  FusionAddress.Address toFusionAddress() {
+    return FusionAddress.Address(
+        addr: value,
+        id: id.toString(), // Assuming id can be converted to a String
+        publicKey:
+            publicKey, // Assuming List<byte> and List<int> are compatible
+        derivationPath:
+            FusionAddress.DerivationPath(derivationPath?.value ?? ""));
+  }
 }

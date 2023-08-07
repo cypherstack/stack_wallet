@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:fusiondart/fusiondart.dart';
+import 'package:fusiondart/src/models/address.dart' as fusion_address;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
@@ -41,9 +42,13 @@ mixin FusionInterface {
 
     // add stack change address
     final String currentChangeAddress = await _getCurrentChangeAddress();
-    // await mainFusionObject.addChangeAddress(currentChangeAddress);
+    // cast from String to Address
     final Address? changeAddress =
         await _db.getAddress(_walletId, currentChangeAddress);
+    // cast from Stack's Address to Fusiondart's Address
+    final fusion_address.Address fusionChangeAddress =
+        changeAddress!.toFusionAddress();
+    await mainFusionObject.addChangeAddress(fusionChangeAddress);
     Logging.instance.log(
       "FusionInterface fuse() changeAddress: $changeAddress",
       level: LogLevel.Info,
