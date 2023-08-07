@@ -64,7 +64,7 @@ mixin FusionInterface {
     return address.toFusionAddress();
   }
 
-  Future<List<Address>> getUnusedReservedChangeAddresses(
+  Future<List<cash_fusion.Address>> getUnusedReservedChangeAddresses(
     int numberOfAddresses,
   ) async {
     final txns = await _db
@@ -84,11 +84,11 @@ mixin FusionInterface {
         .otherDataEqualTo(kReservedFusionAddress)
         .findAll();
 
-    final List<Address> unusedAddresses = [];
+    final List<cash_fusion.Address> unusedAddresses = [];
 
     for (final address in addresses) {
       if (!usedAddresses.contains(address.value)) {
-        unusedAddresses.add(address);
+        unusedAddresses.add(address.toFusionAddress());
       }
     }
 
