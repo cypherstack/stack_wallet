@@ -21,7 +21,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_libmonero/monero/monero.dart';
 import 'package:flutter_libmonero/wownero/wownero.dart';
-import 'package:tor/tor.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -39,6 +38,7 @@ import 'package:stackwallet/models/models.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/notification_model.dart';
 import 'package:stackwallet/models/trade_wallet_lookup.dart';
+import 'package:stackwallet/networking/tor_service.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages/intro_view.dart';
 import 'package:stackwallet/pages/loading_view.dart';
@@ -168,6 +168,12 @@ void main() async {
   await Hive.openBox<dynamic>(DB.boxNamePrefs);
   await Prefs.instance.init();
 
+  // TODO create tor pref in Prefs
+  const useTor = true; // get from prefs
+  if (useTor) {
+    await TorService.sharedInstance.start();
+  }
+
   await StackFileSystem.initThemesDir();
 
   // Desktop migrate handled elsewhere (currently desktop_login_view.dart)
@@ -197,9 +203,6 @@ void main() async {
   if (!Platform.isLinux && !Platform.isWindows) {
     wownero.onStartup();
   }
-
-  dynamic tor = Tor();
-  tor.start();
 
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
   //     overlays: [SystemUiOverlay.bottom]);

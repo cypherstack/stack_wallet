@@ -1402,6 +1402,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.99"
+  socks5_proxy:
+    dependency: "direct main"
+    description:
+      name: socks5_proxy
+      sha256: e0cba6917cd374de6f6cb0ce081e50e6efc24c61644b8e9f20c8bf8b91bb0b75
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.3+dev.3"
   source_gen:
     dependency: transitive
     description:

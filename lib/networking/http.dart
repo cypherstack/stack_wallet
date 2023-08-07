@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:socks5_proxy/socks_client.dart';
+import 'package:stackwallet/networking/tor_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 // WIP wrapper layer
@@ -14,20 +16,23 @@ abstract class HTTP {
     final httpClient = HttpClient();
     try {
       if (routeOverTor) {
-        // TODO
-        throw UnimplementedError();
-      } else {
-        final HttpClientRequest request = await httpClient.getUrl(
-          url,
-        );
-
-        request.headers.clear();
-        if (headers != null) {
-          headers.forEach((key, value) => request.headers.add);
-        }
-
-        return request.close();
+        SocksTCPClient.assignToHttpClient(httpClient, [
+          ProxySettings(
+            InternetAddress.loopbackIPv4,
+            TorService.sharedInstance.port,
+          ),
+        ]);
       }
+      final HttpClientRequest request = await httpClient.getUrl(
+        url,
+      );
+
+      request.headers.clear();
+      if (headers != null) {
+        headers.forEach((key, value) => request.headers.add);
+      }
+
+      return request.close();
     } catch (e, s) {
       Logging.instance.log(
         "HTTP.get() rethrew: $e\n$s",
@@ -49,23 +54,28 @@ abstract class HTTP {
     final httpClient = HttpClient();
     try {
       if (routeOverTor) {
-        // TODO
-        throw UnimplementedError();
-      } else {
-        final HttpClientRequest request = await httpClient.postUrl(
-          url,
-        );
-
-        request.headers.clear();
-
-        if (headers != null) {
-          headers.forEach((key, value) => request.headers.add);
+        if (routeOverTor) {
+          SocksTCPClient.assignToHttpClient(httpClient, [
+            ProxySettings(
+              InternetAddress.loopbackIPv4,
+              TorService.sharedInstance.port,
+            ),
+          ]);
         }
-
-        request.write(body);
-
-        return request.close();
       }
+      final HttpClientRequest request = await httpClient.postUrl(
+        url,
+      );
+
+      request.headers.clear();
+
+      if (headers != null) {
+        headers.forEach((key, value) => request.headers.add);
+      }
+
+      request.write(body);
+
+      return request.close();
     } catch (e, s) {
       Logging.instance.log(
         "HTTP.post() rethrew: $e\n$s",

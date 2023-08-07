@@ -142,6 +142,7 @@ dependencies:
   nanodart: ^2.0.0
   basic_utils: ^5.5.4
   stellar_flutter_sdk: ^1.6.0
+  socks5_proxy: ^1.0.3+dev.3
 
 dev_dependencies:
   flutter_test:
