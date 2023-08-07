@@ -36,6 +36,7 @@ import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/coin_control_interface.dart';
 import 'package:stackwallet/services/mixins/electrum_x_parsing.dart';
+import 'package:stackwallet/services/mixins/ordinals_interface.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/mixins/xpubable.dart';
@@ -109,7 +110,12 @@ String constructDerivePath({
 }
 
 class LitecoinWallet extends CoinServiceAPI
-    with WalletCache, WalletDB, ElectrumXParsing, CoinControlInterface
+    with
+        WalletCache,
+        WalletDB,
+        ElectrumXParsing,
+        CoinControlInterface,
+        OrdinalsInterface
     implements XPubAble {
   LitecoinWallet({
     required String walletId,
@@ -130,6 +136,7 @@ class LitecoinWallet extends CoinServiceAPI
     _secureStore = secureStore;
     initCache(walletId, coin);
     initWalletDB(mockableOverride: mockableOverride);
+    initOrdinalsInterface(walletId: walletId, coin: coin, db: db);
     initCoinControlInterface(
       walletId: walletId,
       walletName: walletName,
@@ -1864,14 +1871,6 @@ class LitecoinWallet extends CoinServiceAPI
           String? blockReason;
           String? label;
 
-          final utxoAmount = jsonUTXO["value"] as int;
-
-          if (utxoAmount <= 10000) {
-            shouldBlock = true;
-            blockReason = "May contain ordinal";
-            label = "Possible ordinal";
-          }
-
           final vout = jsonUTXO["tx_pos"] as int;
 
           final outputs = txn["vout"] as List;
@@ -1883,6 +1882,25 @@ class LitecoinWallet extends CoinServiceAPI
               utxoOwnerAddress =
                   output["scriptPubKey"]?["addresses"]?[0] as String? ??
                       output["scriptPubKey"]?["address"] as String?;
+            }
+          }
+
+          final utxoAmount = jsonUTXO["value"] as int;
+
+          // TODO check the specific output, not just the address in general
+          // TODO optimize by freezing output in OrdinalsInterface, so one ordinal API calls is made (or at least many less)
+          if (utxoOwnerAddress != null) {
+            if (await inscriptionInAddress(utxoOwnerAddress!)) {
+              shouldBlock = true;
+              blockReason = "Ordinal";
+              label = "Ordinal detected at address";
+            }
+          } else {
+            // TODO implement inscriptionInOutput
+            if (utxoAmount <= 10000) {
+              shouldBlock = true;
+              blockReason = "May contain ordinal";
+              label = "Possible ordinal";
             }
           }
 
@@ -1910,7 +1928,12 @@ class LitecoinWallet extends CoinServiceAPI
         level: LogLevel.Info,
       );
 
-      await db.updateUTXOs(walletId, outputArray);
+      bool inscriptionsRefreshNeeded =
+          await db.updateUTXOs(walletId, outputArray);
+
+      if (inscriptionsRefreshNeeded) {
+        await refreshInscriptions();
+      }
 
       // finally update balance
       await _updateBalance();

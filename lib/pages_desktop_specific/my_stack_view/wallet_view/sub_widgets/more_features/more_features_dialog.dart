@@ -29,6 +29,8 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
     required this.onCoinControlPressed,
     required this.onAnonymizeAllPressed,
     required this.onWhirlpoolPressed,
+    required this.onOrdinalsPressed,
+    required this.onMonkeyPressed,
   }) : super(key: key);
 
   final String walletId;
@@ -36,6 +38,8 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
   final VoidCallback? onCoinControlPressed;
   final VoidCallback? onAnonymizeAllPressed;
   final VoidCallback? onWhirlpoolPressed;
+  final VoidCallback? onOrdinalsPressed;
+  final VoidCallback? onMonkeyPressed;
 
   @override
   ConsumerState<MoreFeaturesDialog> createState() => _MoreFeaturesDialogState();
@@ -102,6 +106,20 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               detail: "Increased address privacy using BIP47",
               iconAsset: Assets.svg.robotHead,
               onPressed: () => widget.onPaynymPressed?.call(),
+            ),
+          if (manager.hasOrdinalsSupport)
+            _MoreFeaturesItem(
+              label: "Ordinals",
+              detail: "View and control your ordinals in Stack",
+              iconAsset: Assets.svg.ordinal,
+              onPressed: () => widget.onOrdinalsPressed?.call(),
+            ),
+          if (manager.coin == Coin.banano)
+            _MoreFeaturesItem(
+              label: "MonKey",
+              detail: "Generate Banano MonKey",
+              iconAsset: Assets.svg.monkey,
+              onPressed: () => widget.onMonkeyPressed?.call(),
             ),
           const SizedBox(
             height: 28,

@@ -69,13 +69,18 @@ class ElectrumX {
   List<ElectrumXNode>? failovers;
   int currentFailoverIndex = -1;
 
-  ElectrumX(
-      {required String host,
-      required int port,
-      required bool useSSL,
-      required Prefs prefs,
-      required List<ElectrumXNode> failovers,
-      JsonRPC? client}) {
+  final Duration connectionTimeoutForSpecialCaseJsonRPCClients;
+
+  ElectrumX({
+    required String host,
+    required int port,
+    required bool useSSL,
+    required Prefs prefs,
+    required List<ElectrumXNode> failovers,
+    JsonRPC? client,
+    this.connectionTimeoutForSpecialCaseJsonRPCClients =
+        const Duration(seconds: 60),
+  }) {
     _prefs = prefs;
     _host = host;
     _port = port;
@@ -108,9 +113,9 @@ class ElectrumX {
   Future<dynamic> request({
     required String command,
     List<dynamic> args = const [],
-    Duration connectionTimeout = const Duration(seconds: 60),
     String? requestID,
     int retries = 2,
+    Duration requestTimeout = const Duration(seconds: 60),
   }) async {
     if (!(await _allow())) {
       throw WifiOnlyException();
@@ -121,26 +126,31 @@ class ElectrumX {
         host: host,
         port: port,
         useSSL: useSSL,
-        connectionTimeout: connectionTimeout,
+        connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
       );
     } else {
       _rpcClient = JsonRPC(
         host: failovers![currentFailoverIndex].address,
         port: failovers![currentFailoverIndex].port,
         useSSL: failovers![currentFailoverIndex].useSSL,
-        connectionTimeout: connectionTimeout,
+        connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
       );
     }
 
     try {
       final requestId = requestID ?? const Uuid().v1();
       final jsonArgs = json.encode(args);
-      final jsonRequestString =
-          '{"jsonrpc": "2.0", "id": "$requestId","method": "$command","params": $jsonArgs}';
+      final jsonRequestString = '{"jsonrpc": "2.0", '
+          '"id": "$requestId",'
+          '"method": "$command",'
+          '"params": $jsonArgs}';
 
       // Logging.instance.log("ElectrumX jsonRequestString: $jsonRequestString");
 
-      final response = await _rpcClient!.request(jsonRequestString);
+      final response = await _rpcClient!.request(
+        jsonRequestString,
+        requestTimeout,
+      );
 
       if (response.exception != null) {
         throw response.exception!;
@@ -159,8 +169,8 @@ class ElectrumX {
         throw Exception(
           "JSONRPC response\n"
           "     command: $command\n"
-          "     args: $args\n"
-          "     error: ${response.data}",
+          "     error: ${response.data}"
+          "     args: $args\n",
         );
       }
 
@@ -174,7 +184,7 @@ class ElectrumX {
         return request(
           command: command,
           args: args,
-          connectionTimeout: connectionTimeout,
+          requestTimeout: requestTimeout,
           requestID: requestID,
           retries: retries - 1,
         );
@@ -187,7 +197,7 @@ class ElectrumX {
         return request(
           command: command,
           args: args,
-          connectionTimeout: connectionTimeout,
+          requestTimeout: requestTimeout,
           requestID: requestID,
         );
       } else {
@@ -204,7 +214,7 @@ class ElectrumX {
   Future<List<Map<String, dynamic>>> batchRequest({
     required String command,
     required Map<String, List<dynamic>> args,
-    Duration connectionTimeout = const Duration(seconds: 60),
+    Duration requestTimeout = const Duration(seconds: 60),
     int retries = 2,
   }) async {
     if (!(await _allow())) {
@@ -216,14 +226,14 @@ class ElectrumX {
         host: host,
         port: port,
         useSSL: useSSL,
-        connectionTimeout: connectionTimeout,
+        connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
       );
     } else {
       _rpcClient = JsonRPC(
         host: failovers![currentFailoverIndex].address,
         port: failovers![currentFailoverIndex].port,
         useSSL: failovers![currentFailoverIndex].useSSL,
-        connectionTimeout: connectionTimeout,
+        connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
       );
     }
 
@@ -246,7 +256,8 @@ class ElectrumX {
       // Logging.instance.log("batch request: $request");
 
       // send batch request
-      final jsonRpcResponse = (await _rpcClient!.request(request));
+      final jsonRpcResponse =
+          (await _rpcClient!.request(request, requestTimeout));
 
       if (jsonRpcResponse.exception != null) {
         throw jsonRpcResponse.exception!;
@@ -281,7 +292,7 @@ class ElectrumX {
         return batchRequest(
           command: command,
           args: args,
-          connectionTimeout: connectionTimeout,
+          requestTimeout: requestTimeout,
           retries: retries - 1,
         );
       } else {
@@ -293,7 +304,7 @@ class ElectrumX {
         return batchRequest(
           command: command,
           args: args,
-          connectionTimeout: connectionTimeout,
+          requestTimeout: requestTimeout,
         );
       } else {
         currentFailoverIndex = -1;
@@ -310,7 +321,7 @@ class ElectrumX {
       final response = await request(
         requestID: requestID,
         command: 'server.ping',
-        connectionTimeout: const Duration(seconds: 2),
+        requestTimeout: const Duration(seconds: 2),
         retries: retryCount,
       ).timeout(const Duration(seconds: 2)) as Map<String, dynamic>;
       return response.keys.contains("result") && response["result"] == null;
@@ -442,7 +453,7 @@ class ElectrumX {
       final response = await request(
         requestID: requestID,
         command: 'blockchain.scripthash.get_history',
-        connectionTimeout: const Duration(minutes: 5),
+        requestTimeout: const Duration(minutes: 5),
         args: [
           scripthash,
         ],
@@ -666,11 +677,13 @@ class ElectrumX {
   }) async {
     try {
       final response = await request(
-          requestID: requestID,
-          command: 'lelantus.getusedcoinserials',
-          args: [
-            "$startNumber",
-          ]);
+        requestID: requestID,
+        command: 'lelantus.getusedcoinserials',
+        args: [
+          "$startNumber",
+        ],
+        requestTimeout: const Duration(minutes: 2),
+      );
       return Map<String, dynamic>.from(response["result"] as Map);
     } catch (e) {
       Logging.instance.log(e, level: LogLevel.Error);

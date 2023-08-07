@@ -72,11 +72,11 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
   }
 
   Future<void> _downloadPressed() async {
-    final result = await showLoading(
+    final result = (await showLoading(
       whileFuture: _downloadAndInstall(),
       context: context,
       message: "Downloading and installing theme...",
-    );
+    ))!;
 
     if (mounted) {
       final message = result

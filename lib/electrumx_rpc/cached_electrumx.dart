@@ -164,14 +164,16 @@ class CachedElectrumX {
 
       final _list = box.get("serials") as List?;
 
-      List<String> cachedSerials =
-          _list == null ? [] : List<String>.from(_list);
+      Set<String> cachedSerials =
+          _list == null ? {} : List<String>.from(_list).toSet();
 
-      final startNumber = cachedSerials.length;
+      final startNumber =
+          cachedSerials.length - 10; // 10 being some arbitrary buffer
 
-      final serials =
-          await electrumXClient.getUsedCoinSerials(startNumber: startNumber);
-      List<String> newSerials = [];
+      final serials = await electrumXClient.getUsedCoinSerials(
+        startNumber: startNumber,
+      );
+      Set<String> newSerials = {};
 
       for (final element in (serials["serials"] as List)) {
         if (!isHexadecimal(element as String)) {
@@ -182,12 +184,14 @@ class CachedElectrumX {
       }
       cachedSerials.addAll(newSerials);
 
+      final resultingList = cachedSerials.toList();
+
       await box.put(
         "serials",
-        cachedSerials,
+        resultingList,
       );
 
-      return cachedSerials;
+      return resultingList;
     } catch (e, s) {
       Logging.instance.log(
           "Failed to process CachedElectrumX.getTransaction(): $e\n$s",

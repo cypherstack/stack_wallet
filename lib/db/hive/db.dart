@@ -177,6 +177,9 @@ class DB {
   }
 
   Future<Box<dynamic>> getTxCacheBox({required Coin coin}) async {
+    if (_txCacheBoxes[coin]?.isOpen != true) {
+      _txCacheBoxes.remove(coin);
+    }
     return _txCacheBoxes[coin] ??=
         await Hive.openBox<dynamic>(_boxNameTxCache(coin: coin));
   }
@@ -186,6 +189,9 @@ class DB {
   }
 
   Future<Box<dynamic>> getAnonymitySetCacheBox({required Coin coin}) async {
+    if (_setCacheBoxes[coin]?.isOpen != true) {
+      _setCacheBoxes.remove(coin);
+    }
     return _setCacheBoxes[coin] ??=
         await Hive.openBox<dynamic>(_boxNameSetCache(coin: coin));
   }
@@ -195,6 +201,9 @@ class DB {
   }
 
   Future<Box<dynamic>> getUsedSerialsCacheBox({required Coin coin}) async {
+    if (_usedSerialsCacheBoxes[coin]?.isOpen != true) {
+      _usedSerialsCacheBoxes.remove(coin);
+    }
     return _usedSerialsCacheBoxes[coin] ??=
         await Hive.openBox<dynamic>(_boxNameUsedSerialsCache(coin: coin));
   }
@@ -265,8 +274,12 @@ class DB {
           {required dynamic key, required String boxName}) async =>
       await mutex.protect(() async => await Hive.box<T>(boxName).delete(key));
 
-  Future<void> deleteAll<T>({required String boxName}) async =>
-      await mutex.protect(() async => await Hive.box<T>(boxName).clear());
+  Future<void> deleteAll<T>({required String boxName}) async {
+    await mutex.protect(() async {
+      final box = await Hive.openBox<T>(boxName);
+      await box.clear();
+    });
+  }
 
   Future<void> deleteBoxFromDisk({required String boxName}) async =>
       await mutex.protect(() async => await Hive.deleteBoxFromDisk(boxName));

@@ -50,6 +50,8 @@ enum AmountUnit {
       case Coin.dogecoin:
       case Coin.eCash:
       case Coin.epicCash:
+      case Coin.stellar: // TODO: check if this is correct
+      case Coin.stellarTestnet:
         return AmountUnit.values.sublist(0, 4);
 
       case Coin.monero:
@@ -168,6 +170,7 @@ extension AmountUnitExt on AmountUnit {
     required String locale,
     required Coin coin,
     EthContract? tokenContract,
+    bool overrideWithDecimalPlacesFromString = false,
   }) {
     final precisionLost = value.startsWith("~");
 
@@ -201,7 +204,9 @@ extension AmountUnitExt on AmountUnit {
       return null;
     }
 
-    final decimalPlaces = tokenContract?.decimals ?? coin.decimals;
+    final decimalPlaces = overrideWithDecimalPlacesFromString
+        ? decimal.scale
+        : tokenContract?.decimals ?? coin.decimals;
     final realShift = math.min(shift, decimalPlaces);
 
     return decimal.shift(0 - realShift).toAmount(fractionDigits: decimalPlaces);

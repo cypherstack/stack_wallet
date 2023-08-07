@@ -22,13 +22,16 @@ import 'package:stackwallet/pages/buy_view/buy_in_wallet_view.dart';
 import 'package:stackwallet/pages/coin_control/coin_control_view.dart';
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
+import 'package:stackwallet/pages/monkey/monkey_view.dart';
 import 'package:stackwallet/pages/notification_views/notifications_view.dart';
+import 'package:stackwallet/pages/ordinals/ordinals_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages/receive_view/receive_view.dart';
 import 'package:stackwallet/pages/send_view/send_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_view.dart';
+import 'package:stackwallet/pages/special/firo_rescan_recovery_error_dialog.dart';
 import 'package:stackwallet/pages/token_view/my_tokens_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/transactions_list.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_summary.dart';
@@ -72,6 +75,7 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/buy_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/coin_control_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/exchange_nav_icon.dart';
+import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/ordinals_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/paynym_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/receive_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/send_nav_icon.dart';
@@ -116,6 +120,36 @@ class _WalletViewState extends ConsumerState<WalletView> {
   late StreamSubscription<dynamic> _nodeStatusSubscription;
 
   bool _rescanningOnOpen = false;
+  bool _lelantusRescanRecovery = false;
+
+  Future<void> _firoRescanRecovery() async {
+    final success = await (ref.read(managerProvider).wallet as FiroWallet)
+        .firoRescanRecovery();
+
+    if (success) {
+      // go into wallet
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => setState(() {
+          _rescanningOnOpen = false;
+          _lelantusRescanRecovery = false;
+        }),
+      );
+    } else {
+      // show error message dialog w/ options
+      if (mounted) {
+        final shouldRetry = await Navigator.of(context).pushNamed(
+          FiroRescanRecoveryErrorView.routeName,
+          arguments: walletId,
+        );
+
+        if (shouldRetry is bool && shouldRetry) {
+          await _firoRescanRecovery();
+        }
+      } else {
+        return await _firoRescanRecovery();
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -131,7 +165,14 @@ class _WalletViewState extends ConsumerState<WalletView> {
       _shouldDisableAutoSyncOnLogOut = false;
     }
 
-    if (ref.read(managerProvider).rescanOnOpenVersion == Constants.rescanV1) {
+    if (ref.read(managerProvider).coin == Coin.firo &&
+        (ref.read(managerProvider).wallet as FiroWallet)
+            .lelantusCoinIsarRescanRequired) {
+      _rescanningOnOpen = true;
+      _lelantusRescanRecovery = true;
+      _firoRescanRecovery();
+    } else if (ref.read(managerProvider).rescanOnOpenVersion ==
+        Constants.rescanV1) {
       _rescanningOnOpen = true;
       ref.read(managerProvider).fullRescan(20, 1000).then(
             (_) => ref.read(managerProvider).resetRescanOnOpen().then(
@@ -209,6 +250,10 @@ class _WalletViewState extends ConsumerState<WalletView> {
   DateTime? _cachedTime;
 
   Future<bool> _onWillPop() async {
+    if (_rescanningOnOpen || _lelantusRescanRecovery) {
+      return false;
+    }
+
     final now = DateTime.now();
     const timeout = Duration(milliseconds: 1500);
     if (_cachedTime == null || now.difference(_cachedTime!) > timeout) {
@@ -431,33 +476,37 @@ class _WalletViewState extends ConsumerState<WalletView> {
                   eventBus: null,
                   textColor:
                       Theme.of(context).extension<StackColors>()!.textDark,
-                  actionButton: SecondaryButton(
-                    label: "Cancel",
-                    onPressed: () async {
-                      await showDialog<void>(
-                        context: context,
-                        builder: (context) => StackDialog(
-                          title: "Warning!",
-                          message: "Skipping this process can completely"
-                              " break your wallet. It is only meant to be done in"
-                              " emergency situations where the migration fails"
-                              " and will not let you continue. Still skip?",
-                          leftButton: SecondaryButton(
-                            label: "Cancel",
-                            onPressed:
-                                Navigator.of(context, rootNavigator: true).pop,
-                          ),
-                          rightButton: SecondaryButton(
-                            label: "Ok",
-                            onPressed: () {
-                              Navigator.of(context, rootNavigator: true).pop();
-                              setState(() => _rescanningOnOpen = false);
-                            },
-                          ),
+                  actionButton: _lelantusRescanRecovery
+                      ? null
+                      : SecondaryButton(
+                          label: "Cancel",
+                          onPressed: () async {
+                            await showDialog<void>(
+                              context: context,
+                              builder: (context) => StackDialog(
+                                title: "Warning!",
+                                message: "Skipping this process can completely"
+                                    " break your wallet. It is only meant to be done in"
+                                    " emergency situations where the migration fails"
+                                    " and will not let you continue. Still skip?",
+                                leftButton: SecondaryButton(
+                                  label: "Cancel",
+                                  onPressed:
+                                      Navigator.of(context, rootNavigator: true)
+                                          .pop,
+                                ),
+                                rightButton: SecondaryButton(
+                                  label: "Ok",
+                                  onPressed: () {
+                                    Navigator.of(context, rootNavigator: true)
+                                        .pop();
+                                    setState(() => _rescanningOnOpen = false);
+                                  },
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
                 ),
               )
             ],
@@ -924,6 +973,23 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         );
                       },
                     ),
+                  if (coin == Coin.banano)
+                    WalletNavigationBarItemData(
+                        icon: SvgPicture.asset(
+                          Assets.svg.monkey,
+                          height: 20,
+                          width: 20,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .bottomNavIconIcon,
+                        ),
+                        label: "MonKey",
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            MonkeyView.routeName,
+                            arguments: widget.walletId,
+                          );
+                        }),
                   if (ref.watch(
                         walletsChangeNotifierProvider.select(
                           (value) => value
@@ -1005,6 +1071,22 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             );
                           }
                         }
+                      },
+                    ),
+                  if (ref.watch(
+                    walletsChangeNotifierProvider.select(
+                      (value) =>
+                          value.getManager(widget.walletId).hasOrdinalsSupport,
+                    ),
+                  ))
+                    WalletNavigationBarItemData(
+                      label: "Ordinals",
+                      icon: const OrdinalsNavIcon(),
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          OrdinalsView.routeName,
+                          arguments: widget.walletId,
+                        );
                       },
                     ),
                 ],
