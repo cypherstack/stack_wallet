@@ -4,10 +4,12 @@ import 'package:fusiondart/fusiondart.dart';
 import 'package:fusiondart/src/models/address.dart' as fusion_address;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
+
+const String kReservedFusionAddress = "reserved_fusion_address";
 
 mixin FusionInterface {
   // passed in wallet data
@@ -16,33 +18,88 @@ mixin FusionInterface {
   late final MainDB _db;
 
   // passed in wallet functions
-  late final Future<String> Function() _getCurrentChangeAddress;
-  late final Future<String> Function() _getNextChangeAddress;
+  late final Future<Address> Function(
+    int chain,
+    int index,
+    DerivePathType derivePathType,
+  ) _generateAddressForChain;
 
   void initFusionInterface({
     required String walletId,
     required Coin coin,
     required MainDB db,
-    required Future<String> Function() getCurrentChangeAddress,
-    required Future<String> Function() getNextChangeAddress,
+    required Future<Address> Function(
+      int,
+      int,
+      DerivePathType,
+    ) generateAddressForChain,
   }) {
     _walletId = walletId;
     _coin = coin;
     _db = db;
-    _getCurrentChangeAddress = getCurrentChangeAddress;
-    _getNextChangeAddress = getNextChangeAddress;
+    _generateAddressForChain = generateAddressForChain;
   }
 
-  static List<Address> reserve_change_addresses(int number_addresses) {
-    // TODO
-    // get current change address
-    // get int number_addresses next addresses
-    return [];
+  Future<Address> createNewReservedChangeAddress() async {
+    int? highestChangeIndex = await _db
+        .getAddresses(_walletId)
+        .filter()
+        .typeEqualTo(AddressType.p2pkh)
+        .subTypeEqualTo(AddressSubType.change)
+        .derivationPath((q) => q.not().valueStartsWith("m/44'/0'"))
+        .sortByDerivationIndexDesc()
+        .derivationIndexProperty()
+        .findFirst();
+
+    Address address = await _generateAddressForChain(
+      1, // change chain
+      highestChangeIndex ?? 0,
+      DerivePathTypeExt.primaryFor(_coin),
+    );
+    address = address.copyWith(otherData: kReservedFusionAddress);
+
+    // TODO if we really want to be sure its not used, call electrumx and check it
+
+    await _db.putAddress(address);
+
+    return address;
   }
 
-  static List<Address> unreserve_change_address(Address addr) {
-    //implement later based on wallet.
-    return [];
+  Future<List<Address>> getUnusedReservedChangeAddresses(
+    int numberOfAddresses,
+  ) async {
+    final txns = await _db
+        .getTransactions(_walletId)
+        .filter()
+        .address((q) => q.otherDataEqualTo(kReservedFusionAddress))
+        .findAll();
+
+    final List<String> usedAddresses = txns
+        .where((e) => e.address.value != null)
+        .map((e) => e.address.value!.value)
+        .toList(growable: false);
+
+    final List<Address> addresses = await _db
+        .getAddresses(_walletId)
+        .filter()
+        .otherDataEqualTo(kReservedFusionAddress)
+        .findAll();
+
+    final List<Address> unusedAddresses = [];
+
+    for (final address in addresses) {
+      if (!usedAddresses.contains(address.value)) {
+        unusedAddresses.add(address);
+      }
+    }
+
+    if (unusedAddresses.length < numberOfAddresses) {
+      for (int i = unusedAddresses.length; i < numberOfAddresses; i++) {
+        unusedAddresses.add(await createNewReservedChangeAddress());
+      }
+    }
+
+    return unusedAddresses;
   }
 
   void fuse() async {

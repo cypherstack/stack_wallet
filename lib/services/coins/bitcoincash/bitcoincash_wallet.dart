@@ -136,11 +136,11 @@ class BitcoinCashWallet extends CoinServiceAPI
     initCache(walletId, coin);
     initWalletDB(mockableOverride: mockableOverride);
     initFusionInterface(
-        walletId: walletId,
-        coin: coin,
-        db: db,
-        getCurrentChangeAddress: () => currentChangeAddress,
-        getNextChangeAddress: () => nextChangeAddress);
+      walletId: walletId,
+      coin: coin,
+      db: db,
+      generateAddressForChain: _generateAddressForChain,
+    );
     initCoinControlInterface(
       walletId: walletId,
       walletName: walletName,
@@ -1569,6 +1569,8 @@ class BitcoinCashWallet extends CoinServiceAPI
         .typeEqualTo(type)
         .subTypeEqualTo(subType)
         .derivationPath((q) => q.valueStartsWith("m/$purpose'/$coinType"))
+        .not()
+        .otherDataEqualTo(kReservedFusionAddress)
         .sortByDerivationIndexDesc()
         .findFirst();
     return address!.value;
@@ -1829,8 +1831,10 @@ class BitcoinCashWallet extends CoinServiceAPI
           // Add that new change address
           await db.putAddress(newChangeAddress);
         } else {
-          // we need to update the address
-          await db.updateAddress(existing, newChangeAddress);
+          if (existing.otherData != kReservedFusionAddress) {
+            // we need to update the address
+            await db.updateAddress(existing, newChangeAddress);
+          }
         }
         // keep checking until address with no tx history is set as current
         await _checkChangeAddressForTransactions();
