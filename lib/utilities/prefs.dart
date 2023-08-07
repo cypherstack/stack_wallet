@@ -60,6 +60,7 @@ class Prefs extends ChangeNotifier {
       _systemBrightnessDarkThemeId = await _getSystemBrightnessDarkTheme();
       await _setAmountUnits();
       await _setMaxDecimals();
+      _useTor = await _getUseTor();
 
       _initialized = true;
     }
@@ -868,5 +869,29 @@ class Prefs extends ChangeNotifier {
       // use some sane max rather than up to 30 that nano uses
       _amountDecimals[coin] = decimals;
     }
+  }
+
+  // enabled tor
+
+  bool _useTor = false;
+
+  bool get useTor => _useTor;
+
+  set useTor(bool useTor) {
+    if (_useTor != useTor) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "useTor",
+        value: useTor,
+      );
+      _useTor = useTor;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _getUseTor() async {
+    return await DB.instance
+            .get<dynamic>(boxName: DB.boxNamePrefs, key: "useTor") as bool? ??
+        false;
   }
 }

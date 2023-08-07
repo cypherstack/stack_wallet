@@ -168,9 +168,10 @@ void main() async {
   await Hive.openBox<dynamic>(DB.boxNamePrefs);
   await Prefs.instance.init();
 
-  // TODO create tor pref in Prefs
-  const useTor = true; // get from prefs
-  if (useTor) {
+  // TODO remove this!!!!
+  Prefs.instance.useTor = true;
+
+  if (Prefs.instance.useTor) {
     await TorService.sharedInstance.start();
   }
 
