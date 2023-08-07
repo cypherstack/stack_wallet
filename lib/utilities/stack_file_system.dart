@@ -60,6 +60,19 @@ abstract class StackFileSystem {
     }
   }
 
+  static Future<Directory> applicationTorDirectory() async {
+    final root = await applicationRootDirectory();
+    if (Util.isDesktop) {
+      final dir = Directory("${root.path}/tor");
+      if (!dir.existsSync()) {
+        await dir.create();
+      }
+      return dir;
+    } else {
+      return root;
+    }
+  }
+
   static Future<Directory> applicationHiveDirectory() async {
     final root = await applicationRootDirectory();
     if (Util.isDesktop) {
