@@ -106,7 +106,7 @@ class ElectrumX {
           port: TorService.sharedInstance.port
         );
         Logging.instance.log(
-            "ElectrumX.batchRequest(): no tor proxy info, read $proxyInfo",
+            "ElectrumX.from(): no tor proxy info, read $proxyInfo",
             level: LogLevel.Warning);
       }
       return ElectrumX(
@@ -157,7 +157,7 @@ class ElectrumX {
           port: TorService.sharedInstance.port
         );
         Logging.instance.log(
-            "ElectrumX.batchRequest(): no tor proxy info, read $proxyInfo",
+            "ElectrumX.request(): no tor proxy info, read $proxyInfo",
             level: LogLevel.Warning);
       }
       if (currentFailoverIndex == -1) {
