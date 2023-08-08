@@ -15,7 +15,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:mutex/mutex.dart';
 import 'package:socks5_proxy/socks.dart';
-import 'package:socks5_proxy/src/client/socks_client.dart';
+import 'package:socks5_proxy/src/client/socks_client.dart'; // for SocksSocket
 import 'package:stackwallet/networking/tor_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
@@ -38,6 +38,7 @@ class JsonRPC {
   final _requestMutex = Mutex();
   final _JsonRPCRequestQueue _requestQueue = _JsonRPCRequestQueue();
   Socket? _socket;
+  SocksSocket? _socksSocket;
   StreamSubscription<Uint8List>? _subscription;
 
   void _dataHandler(List<int> data) {
@@ -81,7 +82,11 @@ class JsonRPC {
     _requestQueue.nextIncompleteReq.then((req) {
       if (req != null) {
         // \r\n required by electrumx server
-        _socket!.write('${req.jsonRequest}\r\n');
+        if (_socksSocket != null) {
+          _socksSocket!.write('${req.jsonRequest}\r\n');
+        } else {
+          _socket!.write('${req.jsonRequest}\r\n');
+        }
 
         // TODO different timeout length?
         req.initiateTimeout(
@@ -192,7 +197,7 @@ class JsonRPC {
       // );
       final InternetAddress _host =
           await InternetAddress.lookup(host).then((value) => value.first);
-      var _socket = await SocksSocket.initialize(
+      _socksSocket = await SocksTCPClient.connect(
         [
           ProxySettings(
             InternetAddress.loopbackIPv4,
@@ -201,9 +206,8 @@ class JsonRPC {
         ],
         _host,
         port,
-        SocksConnectionType.connect,
       );
-      if (_socket == null) {
+      if (_socksSocket == null) {
         Logging.instance.log(
             "JsonRPC.connect(): failed to connect to $host over tor proxy at $proxyInfo",
             level: LogLevel.Error);
@@ -213,6 +217,13 @@ class JsonRPC {
             "JsonRPC.connect(): connected to $host over tor proxy at $proxyInfo",
             level: LogLevel.Info);
       }
+
+      _subscription = _socksSocket!.listen(
+        _dataHandler,
+        onError: _errorHandler,
+        onDone: _doneHandler,
+        cancelOnError: true,
+      );
     } else {
       if (useSSL) {
         _socket = await SecureSocket.connect(
@@ -228,14 +239,14 @@ class JsonRPC {
           timeout: connectionTimeout,
         );
       }
-    }
 
-    _subscription = _socket!.listen(
-      _dataHandler,
-      onError: _errorHandler,
-      onDone: _doneHandler,
-      cancelOnError: true,
-    );
+      _subscription = _socket!.listen(
+        _dataHandler,
+        onError: _errorHandler,
+        onDone: _doneHandler,
+        cancelOnError: true,
+      );
+    }
   }
 }
 
