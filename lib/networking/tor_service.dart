@@ -1,6 +1,6 @@
+import 'package:flutter_libtor/flutter_libtor.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
-import 'package:tor/tor.dart';
 
 final pTorService = Provider((_) => TorService.sharedInstance);
 
