@@ -104,7 +104,10 @@ mixin FusionInterface {
   void fuse() async {
     // Initial attempt for CashFusion integration goes here.
     Fusion mainFusionObject = Fusion(
-        createNewReservedChangeAddress: () => createNewReservedChangeAddress());
+      createNewReservedChangeAddress: () => createNewReservedChangeAddress(),
+      getUnusedReservedChangeAddresses: (int numberOfAddresses) =>
+          getUnusedReservedChangeAddresses(numberOfAddresses),
+    );
 
     // add stack utxos
     List<UTXO> utxos = await _db.getUTXOs(_walletId).findAll();
