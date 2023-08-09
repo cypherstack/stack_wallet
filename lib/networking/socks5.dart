@@ -275,6 +275,7 @@ class SOCKSSocket {
           break;
         case RawSocketEvent.write:
           // TODO: Handle this case.
+
           Logging.instance.log(
               "SOCKSSocket._start(): unhandled event RawSocketEvent.write",
               level: LogLevel.Warning);
