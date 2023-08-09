@@ -114,7 +114,7 @@ class JsonRPC {
       } else {
         if (_socksSocket == null) {
           Logging.instance.log(
-            "JsonRPC request: opening SOCKS socket $host:$port",
+            "JsonRPC request: opening SOCKS socket to $host:$port",
             level: LogLevel.Info,
           );
           await connect();
@@ -235,6 +235,9 @@ class JsonRPC {
       }
 
       try {
+        Logging.instance.log(
+            "JsonRPC.connect(): connecting to $host:$port over SOCKS socket at $proxyInfo...",
+            level: LogLevel.Info);
         if (!isIpAddress(host)) {
           await _socksSocket!.connect("$host:$port");
         } else {
