@@ -79,11 +79,7 @@ class JsonRPC {
     _requestQueue.nextIncompleteReq.then((req) {
       if (req != null) {
         // \r\n required by electrumx server
-        if (_socksSocket != null) {
-          _socksSocket!.write('${req.jsonRequest}\r\n');
-        } else {
-          _socket!.write('${req.jsonRequest}\r\n');
-        }
+        _socket!.write('${req.jsonRequest}\r\n');
 
         // TODO different timeout length?
         req.initiateTimeout(
@@ -100,7 +96,7 @@ class JsonRPC {
     Duration requestTimeout,
   ) async {
     await _requestMutex.protect(() async {
-      if (_socket == null && _socksSocket == null) {
+      if (_socket == null) {
         Logging.instance.log(
           "JsonRPC request: opening socket $host:$port",
           level: LogLevel.Info,
@@ -154,49 +150,11 @@ class JsonRPC {
   }
 
   Future<void> connect() async {
-    if (Prefs.instance.useTor) {
-      if (_socksSocket != null) {
-        Logging.instance.log(
-            "JsonRPC.connect(): JsonRPC attempted to connect to an already existing tor socket!",
-            level: LogLevel.Error);
-        throw Exception(
-          "JsonRPC attempted to connect to an already existing tor socket!",
-        );
-      }
-
-      if (proxyInfo == null) {
-        // TODO await tor / make sure it's running
-        proxyInfo = (
-          host: InternetAddress.loopbackIPv4.address,
-          port: TorService.sharedInstance.port
-        );
-        Logging.instance.log(
-            "ElectrumX.connect(): no tor proxy info, read $proxyInfo",
-            level: LogLevel.Warning);
-      }
-
-      final InternetAddress _host =
-          await InternetAddress.lookup(host).then((value) => value.first);
-      _socksSocket = await SocksTCPClient.connect(
-        [
-          ProxySettings(
-            InternetAddress.loopbackIPv4,
-            proxyInfo!.port,
-          )
-        ],
-        _host,
-        port,
+    if (_socket != null) {
+      throw Exception(
+        "JsonRPC attempted to connect to an already existing socket!",
       );
-      if (_socksSocket == null) {
-        Logging.instance.log(
-            "JsonRPC.connect(): failed to connect to $host over tor proxy at $proxyInfo",
-            level: LogLevel.Error);
-        throw Exception("JsonRPC.connect(): failed to connect to tor proxy");
-      } else {
-        Logging.instance.log(
-            "JsonRPC.connect(): connected to $host over tor proxy at $proxyInfo",
-            level: LogLevel.Info);
-      }
+    }
 
     if (Prefs.instance.useTor) {
       if (proxyInfo == null) {
@@ -269,6 +227,13 @@ class JsonRPC {
         );
       }
     }
+
+    _subscription = _socket!.listen(
+      _dataHandler,
+      onError: _errorHandler,
+      onDone: _doneHandler,
+      cancelOnError: true,
+    );
   }
 }
 
