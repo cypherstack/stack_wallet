@@ -103,7 +103,7 @@ class JsonRPC {
     Duration requestTimeout,
   ) async {
     await _requestMutex.protect(() async {
-      if (_socket == null) {
+      if (_socket == null && _socksSocket == null) {
         Logging.instance.log(
           "JsonRPC request: opening socket $host:$port",
           level: LogLevel.Info,
@@ -157,13 +157,16 @@ class JsonRPC {
   }
 
   Future<void> connect() async {
-    if (_socket != null) {
-      throw Exception(
-        "JsonRPC attempted to connect to an already existing socket!",
-      );
-    }
-
     if (Prefs.instance.useTor) {
+      if (_socksSocket != null) {
+        Logging.instance.log(
+            "JsonRPC.connect(): JsonRPC attempted to connect to an already existing tor socket!",
+            level: LogLevel.Error);
+        throw Exception(
+          "JsonRPC attempted to connect to an already existing tor socket!",
+        );
+      }
+
       if (proxyInfo == null) {
         // TODO await tor / make sure it's running
         proxyInfo = (
@@ -174,27 +177,7 @@ class JsonRPC {
             "ElectrumX.connect(): no tor proxy info, read $proxyInfo",
             level: LogLevel.Warning);
       }
-      // TODO connect to proxy socket...
-      // https://github.com/LacticWhale/socks_dart/blob/master/lib/src/client/socks_client.dart#L50C46-L50C56
 
-      // TODO implement ssl over tor
-      // if (useSSL) {
-      //   _socket = await SecureSocket.connect(
-      //     host,
-      //     port,
-      //     timeout: connectionTimeout,
-      //     onBadCertificate: (_) => true,
-      //   ); // TODO do not automatically trust bad certificates
-      //   final _client = SocksSocket.protected(_socket, type);
-      // } else {
-      // _socket = await Socket.connect(
-      //   proxyInfo!.host,
-      //   proxyInfo!.port,
-      //   timeout: connectionTimeout,
-      // );
-      // final _client = SocksSocket.protected(
-      //   _socket!, SocksConnectionType.connect
-      // );
       final InternetAddress _host =
           await InternetAddress.lookup(host).then((value) => value.first);
       _socksSocket = await SocksTCPClient.connect(
@@ -225,6 +208,15 @@ class JsonRPC {
         cancelOnError: true,
       );
     } else {
+      if (_socket != null) {
+        Logging.instance.log(
+            "JsonRPC.connect(): JsonRPC attempted to connect to an already existing socket!",
+            level: LogLevel.Error);
+        throw Exception(
+          "JsonRPC attempted to connect to an already existing socket!",
+        );
+      }
+
       if (useSSL) {
         _socket = await SecureSocket.connect(
           host,

@@ -169,7 +169,7 @@ class ElectrumX {
           proxyInfo: proxyInfo,
         );
       } else {
-        _rpcClient = JsonRPC(
+        _rpcClient ??= JsonRPC(
           host: failovers![currentFailoverIndex].address,
           port: failovers![currentFailoverIndex].port,
           useSSL: failovers![currentFailoverIndex].useSSL,
@@ -187,7 +187,7 @@ class ElectrumX {
           proxyInfo: null,
         );
       } else {
-        _rpcClient = JsonRPC(
+        _rpcClient ??= JsonRPC(
           host: failovers![currentFailoverIndex].address,
           port: failovers![currentFailoverIndex].port,
           useSSL: failovers![currentFailoverIndex].useSSL,
