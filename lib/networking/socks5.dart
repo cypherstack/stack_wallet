@@ -7,6 +7,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:stackwallet/utilities/logger.dart';
+
 /// https://tools.ietf.org/html/rfc1928
 /// https://tools.ietf.org/html/rfc1929
 
@@ -267,9 +269,15 @@ class SOCKSSocket {
           }
         case RawSocketEvent.readClosed:
           // TODO: Handle this case.
+          Logging.instance.log(
+              "SOCKSSocket._start(): unhandled event RawSocketEvent.readClosed",
+              level: LogLevel.Warning);
           break;
         case RawSocketEvent.write:
           // TODO: Handle this case.
+          Logging.instance.log(
+              "SOCKSSocket._start(): unhandled event RawSocketEvent.write",
+              level: LogLevel.Warning);
           break;
       }
     });
