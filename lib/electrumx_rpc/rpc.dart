@@ -211,16 +211,26 @@ class JsonRPC {
       final sock = await RawSocket.connect(
           InternetAddress.loopbackIPv4, proxyInfo!.port);
 
-      _socksSocket = SOCKSSocket(sock);
       if (_socksSocket == null) {
         Logging.instance.log(
-            "JsonRPC.connect(): failed to create SOCKS socket at $proxyInfo",
-            level: LogLevel.Error);
-        throw Exception(
-            "JsonRPC.connect(): failed to create SOCKS socket at $proxyInfo");
+            "JsonRPC.connect(): creating SOCKS socket at $proxyInfo",
+            level: LogLevel.Info);
+        _socksSocket = SOCKSSocket(sock);
+        if (_socksSocket == null) {
+          Logging.instance.log(
+              "JsonRPC.connect(): failed to create SOCKS socket at $proxyInfo",
+              level: LogLevel.Error);
+          throw Exception(
+              "JsonRPC.connect(): failed to create SOCKS socket at $proxyInfo");
+        } else {
+          Logging.instance.log(
+              "JsonRPC.connect(): created SOCKS socket at $proxyInfo",
+              level: LogLevel.Info);
+        }
       } else {
+        // TODO also check if sock == previous sock, eg. if RawSocket is different
         Logging.instance.log(
-            "JsonRPC.connect(): created SOCKS socket at $proxyInfo",
+            "JsonRPC.connect(): using pre-existing SOCKS socket at $proxyInfo",
             level: LogLevel.Info);
       }
 
