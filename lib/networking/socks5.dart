@@ -377,4 +377,9 @@ class SOCKSSocket {
       throw "Must be in RequestReady state, current state $_state";
     }
   }
+
+  void write(Object? object) {
+    _sock.write(utf8.encode(object.toString()));
+    // TODO make sure the is correct; see _writeRequest above, may need to construct a SOCKSRequest from the data coming in
+  }
 }
