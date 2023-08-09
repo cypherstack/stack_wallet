@@ -14,8 +14,6 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:mutex/mutex.dart';
-import 'package:socks5_proxy/socks.dart';
-import 'package:socks5_proxy/src/client/socks_client.dart'; // for SocksSocket
 import 'package:stackwallet/networking/tor_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
@@ -37,8 +35,7 @@ class JsonRPC {
 
   final _requestMutex = Mutex();
   final _JsonRPCRequestQueue _requestQueue = _JsonRPCRequestQueue();
-  Socket? _socket;
-  SocksSocket? _socksSocket;
+  Socket? _socket; // TODO make a SocksSocket extension/wrapper or similar
   StreamSubscription<Uint8List>? _subscription;
 
   void _dataHandler(List<int> data) {
@@ -201,22 +198,62 @@ class JsonRPC {
             level: LogLevel.Info);
       }
 
-      _subscription = _socksSocket!.listen(
-        _dataHandler,
-        onError: _errorHandler,
-        onDone: _doneHandler,
-        cancelOnError: true,
-      );
-    } else {
-      if (_socket != null) {
-        Logging.instance.log(
-            "JsonRPC.connect(): JsonRPC attempted to connect to an already existing socket!",
-            level: LogLevel.Error);
-        throw Exception(
-          "JsonRPC attempted to connect to an already existing socket!",
+    if (Prefs.instance.useTor) {
+      if (proxyInfo == null) {
+        // TODO await tor / make sure it's running
+        proxyInfo = (
+          host: InternetAddress.loopbackIPv4.address,
+          port: TorService.sharedInstance.port
         );
+        Logging.instance.log(
+            "ElectrumX.connect(): no tor proxy info, read $proxyInfo",
+            level: LogLevel.Warning);
       }
+      // TODO connect to proxy socket...
+      // https://github.com/LacticWhale/socks_dart/blob/master/lib/src/client/socks_client.dart#L50C46-L50C56
 
+      // TODO implement ssl over tor
+      // if (useSSL) {
+      //   _socket = await SecureSocket.connect(
+      //     host,
+      //     port,
+      //     timeout: connectionTimeout,
+      //     onBadCertificate: (_) => true,
+      //   ); // TODO do not automatically trust bad certificates
+      //   final _client = SocksSocket.protected(_socket, type);
+      // } else {
+      _socket = await Socket.connect(
+        proxyInfo!.host,
+        proxyInfo!.port,
+        timeout: connectionTimeout,
+      );
+      // final _client = SocksSocket.protected(
+      //   _socket!, SocksConnectionType.connect
+      // );
+      // final InternetAddress _host =
+      //     await InternetAddress.lookup(host).then((value) => value.first);
+      // var _socket = await SocksSocket.initialize(
+      //   [
+      //     ProxySettings(
+      //       InternetAddress.loopbackIPv4,
+      //       proxyInfo!.port,
+      //     )
+      //   ],
+      //   _host,
+      //   port,
+      //   SocksConnectionType.connect,
+      // );
+      if (_socket == null) {
+        Logging.instance.log(
+            "JsonRPC.connect(): failed to connect to $host over tor proxy at $proxyInfo",
+            level: LogLevel.Error);
+        throw Exception("JsonRPC.connect(): failed to connect to tor proxy");
+      } else {
+        Logging.instance.log(
+            "JsonRPC.connect(): connected to $host over tor proxy at $proxyInfo",
+            level: LogLevel.Info);
+      }
+    } else {
       if (useSSL) {
         _socket = await SecureSocket.connect(
           host,
@@ -231,13 +268,6 @@ class JsonRPC {
           timeout: connectionTimeout,
         );
       }
-
-      _subscription = _socket!.listen(
-        _dataHandler,
-        onError: _errorHandler,
-        onDone: _doneHandler,
-        cancelOnError: true,
-      );
     }
   }
 }
