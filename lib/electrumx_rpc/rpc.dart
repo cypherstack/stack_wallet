@@ -14,7 +14,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:mutex/mutex.dart';
-import 'package:stackwallet/networking/socks5.dart';
+import 'package:stackwallet/networking/socks_socket.dart';
 import 'package:stackwallet/networking/tor_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
@@ -38,7 +38,6 @@ class JsonRPC {
   final _JsonRPCRequestQueue _requestQueue = _JsonRPCRequestQueue();
   Socket? _socket;
   SOCKSSocket? _socksSocket;
-  SOCKS5Proxy? _socksProxy;
   StreamSubscription<Uint8List>? _subscription;
 
   void _dataHandler(List<int> data) {
@@ -81,21 +80,17 @@ class JsonRPC {
   void _sendNextAvailableRequest() {
     _requestQueue.nextIncompleteReq.then((req) {
       if (req != null) {
+        // TODO check if useTor to determine socket to which to write
         // \r\n required by electrumx server
         if (_socket != null) {
           _socket!.write('${req.jsonRequest}\r\n');
         }
         if (_socksSocket != null) {
-          print('writing to _socksSocket: ${req.jsonRequest}');
-          print(req.jsonRequest);
-          print(req);
+          Logging.instance.log(
+            "writing to _socksSocket: ${req.jsonRequest}",
+            level: LogLevel.Info,
+          );
           _socksSocket!.write('${req.jsonRequest}\r\n');
-        }
-        if (_socksProxy != null) {
-          print('writing to _socksProxy: ${req.jsonRequest}');
-          print(req.jsonRequest);
-          print(req);
-          _socksProxy!.write('${req.jsonRequest}\r\n');
         }
 
         // TODO different timeout length?
@@ -116,22 +111,15 @@ class JsonRPC {
       if (!Prefs.instance.useTor) {
         if (_socket == null) {
           Logging.instance.log(
-            "JsonRPC request: opening socket $host:$port",
+            "JsonRPC request: opening direct socket $host:$port",
             level: LogLevel.Info,
           );
-          // await connect();
+          await connect();
         }
       } else {
-        // if (_socksSocket == null) {
-        //   Logging.instance.log(
-        //     "JsonRPC request: opening SOCKS socket to $host:$port",
-        //     level: LogLevel.Info,
-        //   );
-        //   await connect();
-        // }
-        if (_socksProxy == null) {
+        if (_socksSocket == null) {
           Logging.instance.log(
-            "JsonRPC request: opening SOCKS proxy to $host:$port",
+            "JsonRPC request: opening SOCKS socket to $host:$port",
             level: LogLevel.Info,
           );
           await connect();
@@ -175,8 +163,8 @@ class JsonRPC {
       _subscription = null;
       _socket?.destroy();
       _socket = null;
-      unawaited(_socksSocket?.close(keepOpen: false));
-      // TODO check that it's ok to not await this
+      unawaited(_socksSocket?.close());
+      // TODO check that we can safely unawaited this
       _socksSocket = null;
 
       // clean up remaining queue
@@ -210,155 +198,95 @@ class JsonRPC {
         cancelOnError: true,
       );
     } else {
-      if (_socksProxy == null) {
-        print(1111111);
-        _socksProxy = SOCKS5Proxy();
-        // TODO check if null
-        await _socksProxy!.connect();
-        print(222222);
-        // TODO check if null
-        await _socksProxy!.connectTo('bitcoincash.stackwallet.com', 50002);
-
-        print(333333);
-
-        // TODO check if null
-        _subscription = _socksProxy!.socket.listen(
-          _dataHandler,
-          onError: _errorHandler,
-          onDone: _doneHandler,
-          cancelOnError: true,
+      if (proxyInfo == null) {
+        // TODO await tor / make sure it's running
+        proxyInfo = (
+          host: InternetAddress.loopbackIPv4.address,
+          port: TorService.sharedInstance.port
         );
-      } else {
-        print('0000000');
+        Logging.instance.log(
+            "ElectrumX.connect(): no tor proxy info, read $proxyInfo",
+            level: LogLevel.Warning);
       }
-      // if (proxyInfo == null) {
-      //   // TODO await tor / make sure it's running
-      //   proxyInfo = (
-      //     host: InternetAddress.loopbackIPv4.address,
-      //     port: TorService.sharedInstance.port
-      //   );
-      //   Logging.instance.log(
-      //       "ElectrumX.connect(): no tor proxy info, read $proxyInfo",
-      //       level: LogLevel.Warning);
-      // }
-      // // TODO connect to proxy socket...
-      //
-      // // TODO implement ssl over tor
-      // // if (useSSL) {
-      // //   _socket = await SecureSocket.connect(
-      // //     host,
-      // //     port,
-      // //     timeout: connectionTimeout,
-      // //     onBadCertificate: (_) => true,
-      // //   ); // TODO do not automatically trust bad certificates
-      // //   final _client = SocksSocket.protected(_socket, type);
-      // // } else {
-      // final sock = await RawSocket.connect(
-      //     InternetAddress.loopbackIPv4, proxyInfo!.port);
-      //
-      // if (_socksSocket == null) {
-      //   Logging.instance.log(
-      //       "JsonRPC.connect(): creating SOCKS socket at $proxyInfo",
-      //       level: LogLevel.Info);
-      //   _socksSocket = SOCKSSocket(sock);
-      //   if (_socksSocket == null) {
-      //     Logging.instance.log(
-      //         "JsonRPC.connect(): failed to create SOCKS socket at $proxyInfo",
-      //         level: LogLevel.Error);
-      //     throw Exception(
-      //         "JsonRPC.connect(): failed to create SOCKS socket at $proxyInfo");
-      //   } else {
-      //     Logging.instance.log(
-      //         "JsonRPC.connect(): created SOCKS socket at $proxyInfo",
-      //         level: LogLevel.Info);
-      //   }
+      // TODO connect to proxy socket...
+
+      // TODO implement ssl over tor
+      // if (useSSL) {
+      //   _socket = await SecureSocket.connect(
+      //     host,
+      //     port,
+      //     timeout: connectionTimeout,
+      //     onBadCertificate: (_) => true,
+      //   ); // TODO do not automatically trust bad certificates
+      //   final _client = SocksSocket.protected(_socket, type);
       // } else {
-      //   // TODO also check if sock == previous sock, eg. if RawSocket is different
-      //   Logging.instance.log(
-      //       "JsonRPC.connect(): using pre-existing SOCKS socket at $proxyInfo",
-      //       level: LogLevel.Info);
-      // }
-      //
-      // try {
-      //   Logging.instance.log(
-      //       "JsonRPC.connect(): connecting to $host:$port over SOCKS socket at $proxyInfo...",
-      //       level: LogLevel.Info);
-      //   if (!isIpAddress(host)) {
-      //     await _socksSocket!.connect("$host:$port");
-      //   } else {
-      //     await _socksSocket!.connectIp(InternetAddress(host), port);
-      //   }
-      //   Logging.instance.log(
-      //       "JsonRPC.connect(): connected to $host:$port over SOCKS socket at $proxyInfo",
-      //       level: LogLevel.Info);
-      // } catch (e) {
-      //   Logging.instance.log(
-      //       "JsonRPC.connect(): failed to connect to $host over tor proxy at $proxyInfo, $e",
-      //       level: LogLevel.Error);
-      //   throw Exception(
-      //       "JsonRPC.connect(): failed to connect to tor proxy, $e");
-      // }
+      // set up socks socket
+      if (_socksSocket == null) {
+        Logging.instance.log(
+            "JsonRPC.connect(): creating SOCKS socket at $proxyInfo",
+            level: LogLevel.Info);
+        _socksSocket =
+            SOCKSSocket(host: proxyInfo!.host, port: proxyInfo!.port);
+        if (_socksSocket == null) {
+          Logging.instance.log(
+              "JsonRPC.connect(): failed to create SOCKS socket at $proxyInfo",
+              level: LogLevel.Error);
+          throw Exception(
+              "JsonRPC.connect(): failed to create SOCKS socket at $proxyInfo");
+        } else {
+          Logging.instance.log(
+              "JsonRPC.connect(): created SOCKS socket at $proxyInfo",
+              level: LogLevel.Info);
+        }
+      } else {
+        // TODO also check if sock == previous sock, eg. if RawSocket is different, and if _socksSocket is valid
+        Logging.instance.log(
+            "JsonRPC.connect(): using pre-existing SOCKS socket at $proxyInfo",
+            level: LogLevel.Info);
+      }
+
+      // connect to socks socket
+      try {
+        Logging.instance.log(
+            "JsonRPC.connect(): connecting to SOCKS socket at $proxyInfo...",
+            level: LogLevel.Info);
+        await _socksSocket!.connect();
+        Logging.instance.log(
+            "JsonRPC.connect(): connected to SOCKS socket at $proxyInfo",
+            level: LogLevel.Info);
+      } catch (e) {
+        Logging.instance.log(
+            "JsonRPC.connect(): failed to connect to SOCKS socket at $proxyInfo, $e",
+            level: LogLevel.Error);
+        throw Exception(
+            "JsonRPC.connect(): failed to connect to SOCKS socket, $e");
+      }
+
+      // connect to node through socks socket
+      try {
+        Logging.instance.log(
+            "JsonRPC.connect(): connecting to $host:$port over SOCKS socket at $proxyInfo...",
+            level: LogLevel.Info);
+        await _socksSocket!.connectTo(host, port);
+        Logging.instance.log(
+            "JsonRPC.connect(): connected to $host:$port over SOCKS socket at $proxyInfo",
+            level: LogLevel.Info);
+      } catch (e) {
+        Logging.instance.log(
+            "JsonRPC.connect(): failed to connect to $host over SOCKS socket at $proxyInfo, $e",
+            level: LogLevel.Error);
+        throw Exception(
+            "JsonRPC.connect(): failed to connect to $host over SOCKS socket, $e");
+      }
+
+      // TODO check if null
+      _subscription = _socksSocket!.socket.listen(
+        _dataHandler,
+        onError: _errorHandler,
+        onDone: _doneHandler,
+        cancelOnError: true,
+      );
     }
-  }
-}
-
-class SOCKS5Proxy {
-  final String host;
-  final int port;
-
-  late Socket _socks5Socket;
-  Socket get socket => _socks5Socket;
-
-  SOCKS5Proxy({String? host, int? port})
-      : host = host ?? InternetAddress.loopbackIPv4.address,
-        port = port ?? TorService.sharedInstance.port;
-
-  Future<void> connect() async {
-    _socks5Socket = await Socket.connect(host, port);
-
-    // Greeting and method selection
-    _socks5Socket.add([0x05, 0x01, 0x00]);
-
-    // Wait for server response
-    var response = await _socks5Socket.first;
-    if (response[1] != 0x00) {
-      throw Exception('Failed to connect to SOCKS5 proxy.');
-    }
-  }
-
-  // This is just a basic example for domain-based addresses.
-  Future<void> connectTo(String domain, int port) async {
-    // Command, Reserved, Address Type, Address, Port
-    var request = [
-      0x05,
-      0x01,
-      0x00,
-      0x03,
-      domain.length,
-      ...domain.codeUnits,
-      (port >> 8) & 0xFF,
-      port & 0xFF
-    ];
-
-    _socks5Socket.add(request);
-    print(444444);
-
-    // Wait for server response
-    // var response = await _socks5Socket.first;
-    // if (response[1] != 0x00) {
-    //   throw Exception('Failed to connect to target through SOCKS5 proxy.');
-    // }
-    // print(response);
-    print(55555);
-  }
-
-  /// Converts [object] to a String by invoking [Object.toString] and
-  /// sends the encoding of the result to the socket.
-  void write(Object? object) {
-    if (object == null) return;
-
-    List<int> data = utf8.encode(object.toString());
-    _socks5Socket.add(data);
   }
 }
 
