@@ -168,6 +168,7 @@ class SOCKSRequest {
 class SOCKSSocket {
   late List<AuthMethods> _auth;
   late RawSocket _sock;
+  RawSocket get socket => _sock;
   late SOCKSRequest _request;
 
   late StreamSubscription<RawSocketEvent> _sockSub;
@@ -380,15 +381,16 @@ class SOCKSSocket {
         req.port & 0xF0,
       ];
 
-      //print(">> Version: ${req.version}, Command: ${req.command}, AddrType: ${req.addressType}, Addr: ${req.getAddressString()}, Port: ${req.port}");
+      print(
+          ">> Version: ${req.version}, Command: ${req.command}, AddrType: ${req.addressType}, Addr: ${req.getAddressString()}, Port: ${req.port}");
       _sock.write(data);
     } else {
       throw "Must be in RequestReady state, current state $_state";
     }
   }
 
-  void write(Object? object) {
-    _sock.write(utf8.encode(object.toString()));
+  void write(String data) {
+    _sock.write(utf8.encode(data));
     // TODO make sure the is correct; see _writeRequest above, may need to construct a SOCKSRequest from the data coming in
   }
 }

@@ -39,6 +39,7 @@ class JsonRPC {
   Socket? _socket;
   SOCKSSocket? _socksSocket;
   StreamSubscription<Uint8List>? _subscription;
+  StreamSubscription<Uint8List>? get subscription => _subscription;
 
   void _dataHandler(List<int> data) {
     _requestQueue.nextIncompleteReq.then((req) {
@@ -85,6 +86,7 @@ class JsonRPC {
           _socket!.write('${req.jsonRequest}\r\n');
         }
         if (_socksSocket != null) {
+          print(33333333);
           _socksSocket!.write('${req.jsonRequest}\r\n');
         }
 
@@ -185,6 +187,13 @@ class JsonRPC {
           timeout: connectionTimeout,
         );
       }
+
+      _subscription = _socket!.listen(
+        _dataHandler,
+        onError: _errorHandler,
+        onDone: _doneHandler,
+        cancelOnError: true,
+      );
     } else {
       if (proxyInfo == null) {
         // TODO await tor / make sure it's running
@@ -210,29 +219,7 @@ class JsonRPC {
       // } else {
       final sock = await RawSocket.connect(
           InternetAddress.loopbackIPv4, proxyInfo!.port);
-
-      if (_socksSocket == null) {
-        Logging.instance.log(
-            "JsonRPC.connect(): creating SOCKS socket at $proxyInfo",
-            level: LogLevel.Info);
-        _socksSocket = SOCKSSocket(sock);
-        if (_socksSocket == null) {
-          Logging.instance.log(
-              "JsonRPC.connect(): failed to create SOCKS socket at $proxyInfo",
-              level: LogLevel.Error);
-          throw Exception(
-              "JsonRPC.connect(): failed to create SOCKS socket at $proxyInfo");
-        } else {
-          Logging.instance.log(
-              "JsonRPC.connect(): created SOCKS socket at $proxyInfo",
-              level: LogLevel.Info);
-        }
-      } else {
-        // TODO also check if sock == previous sock, eg. if RawSocket is different
-        Logging.instance.log(
-            "JsonRPC.connect(): using pre-existing SOCKS socket at $proxyInfo",
-            level: LogLevel.Info);
-      }
+      _socksSocket = SOCKSSocket(sock);
 
       try {
         Logging.instance.log(
@@ -253,14 +240,24 @@ class JsonRPC {
         throw Exception(
             "JsonRPC.connect(): failed to connect to tor proxy, $e");
       }
-    }
 
-    _subscription = _socket!.listen(
-      _dataHandler,
-      onError: _errorHandler,
-      onDone: _doneHandler,
-      cancelOnError: true,
-    );
+      // _subscription = _socksSocket!.socket.listen(
+      //   _dataHandler,
+      //   onError: _errorHandler,
+      //   onDone: _doneHandler,
+      //   cancelOnError: true,
+      // ) as StreamSubscription<Uint8List>?;
+
+      _socksSocket!.subscription.onData((RawSocketEvent event) {
+        /// [RawSocketEvent] messages are here
+        /// read from here..
+        if (event == RawSocketEvent.read) {
+          final data = sock.read(sock.available());
+          print(11111);
+          print(data);
+        }
+      });
+    }
   }
 }
 
