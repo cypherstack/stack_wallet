@@ -115,21 +115,6 @@ mixin FusionInterface {
         .map((e) => (txid: e.txid, vout: e.vout, value: e.value))
         .toList());
 
-    // TODO rework
-    // // add stack change address
-    // final String currentChangeAddress = await _getCurrentChangeAddress();
-    // // cast from String to Address
-    // final Address? changeAddress =
-    //     await _db.getAddress(_walletId, currentChangeAddress);
-    // // cast from Stack's Address to Fusiondart's Address
-    // final fusion_address.Address fusionChangeAddress =
-    //     changeAddress!.toFusionAddress();
-    // await mainFusionObject.addChangeAddress(fusionChangeAddress);
-    // Logging.instance.log(
-    //   "FusionInterface fuse() changeAddress: $changeAddress",
-    //   level: LogLevel.Info,
-    // );
-
     // fuse utxos
     await mainFusionObject.fusion_run();
     //print ("DEBUG FUSION bitcoincash_wallet.dart 1202");
