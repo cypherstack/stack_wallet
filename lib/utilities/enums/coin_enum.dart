@@ -502,6 +502,7 @@ Coin coinFromPrettyName(String name) {
 
     case "Stellar Testnet":
     case "stellarTestnet":
+    case "stellarTestNet":
     case "tStellar":
       return Coin.stellarTestNet;
 
