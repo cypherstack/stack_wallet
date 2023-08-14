@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:decimal/decimal.dart';
 import 'package:http/http.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
@@ -137,18 +138,26 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
     try {
-      final node = getCurrentNode().host + getCurrentNode().port.toString();
-      final int amountInMicroTez =
-          ((int.parse((txData["recipientAmt"] as Amount).raw.toString()) *
-                  1000000))
-              .round();
+
+      final amount = txData["recipientAmt"] as Amount;
+      final amountInMicroTez =
+          amount.decimal * Decimal.fromInt(1000000);
+      final microtezToInt = int.parse(amountInMicroTez.toString());
+
       final int feeInMicroTez = int.parse(txData["fee"].toString());
       final String destinationAddress = txData["address"] as String;
       final secretKey = Keystore.fromMnemonic((await mnemonicString)!).secretKey;
       Logging.instance.log(secretKey, level: LogLevel.Info);
       final sourceKeyStore = Keystore.fromSecretKey(secretKey);
-      final client = TezartClient("${getCurrentNode().host}:${getCurrentNode().port}");
-      final operation = await client.transferOperation(source: sourceKeyStore, destination: destinationAddress, amount: amountInMicroTez, customFee: feeInMicroTez);
+      final client = TezartClient(getCurrentNode().host);
+      //TODO - Update gas Limit
+      final operation = await client.transferOperation(
+          source: sourceKeyStore,
+          destination: destinationAddress,
+          amount: microtezToInt,
+          customFee: feeInMicroTez,
+          customGasLimit: 400
+      );
       await operation.executeAndMonitor(); // This line gives an error
       return Future.value("");
     } catch (e) {
@@ -189,7 +198,7 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
         estimatedFee = feeRate;
     }
     Logging.instance.log("estimatedFee:$estimatedFee", level: LogLevel.Info);
-    return Amount(rawValue: BigInt.from(estimatedFee), fractionDigits: 6);
+    return Amount(rawValue: BigInt.from(estimatedFee), fractionDigits: coin.decimals);
   }
 
   @override
@@ -347,33 +356,43 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   Future<void> updateBalance() async {
-    var api =
-        "${getCurrentNode().host}:${getCurrentNode().port}/chains/main/blocks/head/context/contracts/${await currentReceivingAddress}/balance";
-    var theBalance = (await get(Uri.parse(api)).then((value) => value.body))
-        .substring(1,
-            (await get(Uri.parse(api)).then((value) => value.body)).length - 2);
-    Logging.instance.log(
-        "Balance for ${await currentReceivingAddress}: $theBalance",
-        level: LogLevel.Info);
-    var balanceInAmount = Amount(
-        rawValue: BigInt.parse(theBalance.toString()), fractionDigits: 6);
-    _balance = Balance(
-      total: balanceInAmount,
-      spendable: balanceInAmount,
-      blockedTotal: Amount(rawValue: BigInt.parse("0"), fractionDigits: 6),
-      pendingSpendable: Amount(rawValue: BigInt.parse("0"), fractionDigits: 6),
-    );
-    await updateCachedBalance(_balance!);
+
+    try {
+      var api =
+          "${getCurrentNode().host}/chains/main/blocks/head/context/contracts/${await currentReceivingAddress}/balance";
+      var theBalance = (await get(Uri.parse(api)).then((value) => value.body))
+          .substring(1,
+          (await get(Uri.parse(api)).then((value) => value.body)).length - 2);
+      Logging.instance.log(
+          "Balance for ${await currentReceivingAddress}: $theBalance",
+          level: LogLevel.Info);
+      var balanceInAmount = Amount(
+          rawValue: BigInt.parse(theBalance.toString()), fractionDigits: coin.decimals);
+      _balance = Balance(
+        total: balanceInAmount,
+        spendable: balanceInAmount,
+        blockedTotal: Amount(rawValue: BigInt.parse("0"), fractionDigits: coin.decimals),
+        pendingSpendable: Amount(rawValue: BigInt.parse("0"), fractionDigits: coin.decimals),
+      );
+      await updateCachedBalance(_balance!);
+    } catch (e, s) {
+      Logging.instance.log("ERROR GETTING BALANCE ${e.toString()}", level: LogLevel.Error);
+    }
+
   }
 
   Future<void> updateTransactions() async {
+
     // TODO: Use node RPC instead of tzstats API
     var api = "https://api.tzstats.com/tables/op?address=${await currentReceivingAddress}";
     var jsonResponse = jsonDecode(await get(Uri.parse(api)).then((value) => value.body));
+
     List<Tuple2<Transaction, Address>> txs = [];
+
     for (var tx in jsonResponse as List) {
+
       if (tx[1] == "transaction") {
-        var txApi = "https://api.tzstats.com/explorer/op/${tx[2]}";
+        var txApi = "https://api.tzstats.com/explorer/op/${tx[0]}"; //Get transactions by Unique Id, this way we will only get txs
         var txJsonResponse = jsonDecode(await get(Uri.parse(txApi)).then((value) => value.body));
         // Check if list is larger than 1 (if it is, it's a batch transaction)
         if (!((txJsonResponse as List).length > 1)) {
@@ -394,7 +413,7 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
                 amount: (float.parse(opJson["volume"].toString()) * 1000000).toInt(),
                 amountString: Amount(
                     rawValue: BigInt.parse((float.parse(opJson["volume"].toString()) * 1000000).toInt().toString()),
-                    fractionDigits: 6
+                    fractionDigits: coin.decimals
                 ).toJsonString(),
                 fee: (float.parse(opJson["fee"].toString()) * 1000000).toInt(),
                 height: int.parse(opJson["height"].toString()),
@@ -427,13 +446,18 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   Future<void> updateChainHeight() async {
-    var api =
-        "${getCurrentNode().host}:${getCurrentNode().port}/chains/main/blocks/head/header/shell";
-    var jsonParsedResponse =
-        jsonDecode(await get(Uri.parse(api)).then((value) => value.body));
-    final int intHeight = int.parse(jsonParsedResponse["level"].toString());
-    Logging.instance.log("Chain height: $intHeight", level: LogLevel.Info);
-    await updateCachedChainHeight(intHeight);
+    try {
+      var api =
+          "${getCurrentNode().host}/chains/main/blocks/head/header/shell";
+      var jsonParsedResponse =
+      jsonDecode(await get(Uri.parse(api)).then((value) => value.body));
+      final int intHeight = int.parse(jsonParsedResponse["level"].toString());
+      Logging.instance.log("Chain height: $intHeight", level: LogLevel.Info);
+      await updateCachedChainHeight(intHeight);
+    } catch (e, s) {
+      Logging.instance.log("GET CHAIN HEIGHT ERROR ${e.toString()}", level: LogLevel.Error);
+    }
+
   }
 
   @override
