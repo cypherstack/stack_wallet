@@ -12,11 +12,14 @@ import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
+import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
@@ -90,6 +93,7 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   Timer? timer;
   bool _shouldAutoSync = false;
+  Timer? _networkAliveTimer;
 
   @override
   bool get shouldAutoSync => _shouldAutoSync;
@@ -101,8 +105,51 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
       if (!shouldAutoSync) {
         timer?.cancel();
         timer = null;
+        stopNetworkAlivePinging();
       } else {
+        startNetworkAlivePinging();
         refresh();
+      }
+    }
+  }
+
+  void startNetworkAlivePinging() {
+    // call once on start right away
+    _periodicPingCheck();
+
+    // then periodically check
+    _networkAliveTimer = Timer.periodic(
+      Constants.networkAliveTimerDuration,
+      (_) async {
+        _periodicPingCheck();
+      },
+    );
+  }
+
+  void stopNetworkAlivePinging() {
+    _networkAliveTimer?.cancel();
+    _networkAliveTimer = null;
+  }
+
+  void _periodicPingCheck() async {
+    bool hasNetwork = await testNetworkConnection();
+
+    if (_isConnected != hasNetwork) {
+      NodeConnectionStatus status = hasNetwork
+          ? NodeConnectionStatus.connected
+          : NodeConnectionStatus.disconnected;
+
+      GlobalEventBus.instance.fire(
+        NodeConnectionStatusChangedEvent(
+          status,
+          walletId,
+          coin,
+        ),
+      );
+
+      _isConnected = hasNetwork;
+      if (hasNetwork) {
+        unawaited(refresh());
       }
     }
   }
@@ -138,15 +185,14 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
     try {
-
       final amount = txData["recipientAmt"] as Amount;
-      final amountInMicroTez =
-          amount.decimal * Decimal.fromInt(1000000);
+      final amountInMicroTez = amount.decimal * Decimal.fromInt(1000000);
       final microtezToInt = int.parse(amountInMicroTez.toString());
 
       final int feeInMicroTez = int.parse(txData["fee"].toString());
       final String destinationAddress = txData["address"] as String;
-      final secretKey = Keystore.fromMnemonic((await mnemonicString)!).secretKey;
+      final secretKey =
+          Keystore.fromMnemonic((await mnemonicString)!).secretKey;
       Logging.instance.log(secretKey, level: LogLevel.Info);
       final sourceKeyStore = Keystore.fromSecretKey(secretKey);
       final client = TezartClient(getCurrentNode().host);
@@ -156,8 +202,7 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
           destination: destinationAddress,
           amount: microtezToInt,
           customFee: feeInMicroTez,
-          customGasLimit: 400
-      );
+          customGasLimit: 400);
       await operation.executeAndMonitor(); // This line gives an error
       return Future.value("");
     } catch (e) {
@@ -198,7 +243,8 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
         estimatedFee = feeRate;
     }
     Logging.instance.log("estimatedFee:$estimatedFee", level: LogLevel.Info);
-    return Amount(rawValue: BigInt.from(estimatedFee), fractionDigits: coin.decimals);
+    return Amount(
+        rawValue: BigInt.from(estimatedFee), fractionDigits: coin.decimals);
   }
 
   @override
@@ -356,48 +402,55 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   Future<void> updateBalance() async {
-
     try {
       var api =
           "${getCurrentNode().host}/chains/main/blocks/head/context/contracts/${await currentReceivingAddress}/balance";
       var theBalance = (await get(Uri.parse(api)).then((value) => value.body))
-          .substring(1,
-          (await get(Uri.parse(api)).then((value) => value.body)).length - 2);
+          .substring(
+              1,
+              (await get(Uri.parse(api)).then((value) => value.body)).length -
+                  2);
       Logging.instance.log(
           "Balance for ${await currentReceivingAddress}: $theBalance",
           level: LogLevel.Info);
       var balanceInAmount = Amount(
-          rawValue: BigInt.parse(theBalance.toString()), fractionDigits: coin.decimals);
+          rawValue: BigInt.parse(theBalance.toString()),
+          fractionDigits: coin.decimals);
       _balance = Balance(
         total: balanceInAmount,
         spendable: balanceInAmount,
-        blockedTotal: Amount(rawValue: BigInt.parse("0"), fractionDigits: coin.decimals),
-        pendingSpendable: Amount(rawValue: BigInt.parse("0"), fractionDigits: coin.decimals),
+        blockedTotal:
+            Amount(rawValue: BigInt.parse("0"), fractionDigits: coin.decimals),
+        pendingSpendable:
+            Amount(rawValue: BigInt.parse("0"), fractionDigits: coin.decimals),
       );
       await updateCachedBalance(_balance!);
     } catch (e, s) {
-      Logging.instance.log("ERROR GETTING BALANCE ${e.toString()}", level: LogLevel.Error);
+      Logging.instance
+          .log("ERROR GETTING BALANCE ${e.toString()}", level: LogLevel.Error);
     }
-
   }
 
   Future<void> updateTransactions() async {
-
     // TODO: Use node RPC instead of tzstats API
-    var api = "https://api.tzstats.com/tables/op?address=${await currentReceivingAddress}";
-    var jsonResponse = jsonDecode(await get(Uri.parse(api)).then((value) => value.body));
+    var api =
+        "https://api.tzstats.com/tables/op?address=${await currentReceivingAddress}";
+    var jsonResponse =
+        jsonDecode(await get(Uri.parse(api)).then((value) => value.body));
 
     List<Tuple2<Transaction, Address>> txs = [];
 
     for (var tx in jsonResponse as List) {
-
       if (tx[1] == "transaction") {
-        var txApi = "https://api.tzstats.com/explorer/op/${tx[0]}"; //Get transactions by Unique Id, this way we will only get txs
-        var txJsonResponse = jsonDecode(await get(Uri.parse(txApi)).then((value) => value.body));
+        var txApi =
+            "https://api.tzstats.com/explorer/op/${tx[0]}"; //Get transactions by Unique Id, this way we will only get txs
+        var txJsonResponse =
+            jsonDecode(await get(Uri.parse(txApi)).then((value) => value.body));
         // Check if list is larger than 1 (if it is, it's a batch transaction)
         if (!((txJsonResponse as List).length > 1)) {
           for (var (opJson as Map) in txJsonResponse) {
-            if (opJson.containsKey("volume")) { // This is to check if transaction is a token transfer
+            if (opJson.containsKey("volume")) {
+              // This is to check if transaction is a token transfer
               TransactionType txType;
               if (opJson["sender"] == (await currentReceivingAddress)) {
                 txType = TransactionType.outgoing;
@@ -407,14 +460,21 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
               var theTx = Transaction(
                 walletId: walletId,
                 txid: opJson["hash"].toString(),
-                timestamp: DateTime.parse(opJson["time"].toString()).toUtc().millisecondsSinceEpoch ~/ 1000,
+                timestamp: DateTime.parse(opJson["time"].toString())
+                        .toUtc()
+                        .millisecondsSinceEpoch ~/
+                    1000,
                 type: txType,
                 subType: TransactionSubType.none,
-                amount: (float.parse(opJson["volume"].toString()) * 1000000).toInt(),
+                amount: (float.parse(opJson["volume"].toString()) * 1000000)
+                    .toInt(),
                 amountString: Amount(
-                    rawValue: BigInt.parse((float.parse(opJson["volume"].toString()) * 1000000).toInt().toString()),
-                    fractionDigits: coin.decimals
-                ).toJsonString(),
+                        rawValue: BigInt.parse(
+                            (float.parse(opJson["volume"].toString()) * 1000000)
+                                .toInt()
+                                .toString()),
+                        fractionDigits: coin.decimals)
+                    .toJsonString(),
                 fee: (float.parse(opJson["fee"].toString()) * 1000000).toInt(),
                 height: int.parse(opJson["height"].toString()),
                 isCancelled: false,
@@ -447,17 +507,16 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   Future<void> updateChainHeight() async {
     try {
-      var api =
-          "${getCurrentNode().host}/chains/main/blocks/head/header/shell";
+      var api = "${getCurrentNode().host}/chains/main/blocks/head/header/shell";
       var jsonParsedResponse =
-      jsonDecode(await get(Uri.parse(api)).then((value) => value.body));
+          jsonDecode(await get(Uri.parse(api)).then((value) => value.body));
       final int intHeight = int.parse(jsonParsedResponse["level"].toString());
       Logging.instance.log("Chain height: $intHeight", level: LogLevel.Info);
       await updateCachedChainHeight(intHeight);
     } catch (e, s) {
-      Logging.instance.log("GET CHAIN HEIGHT ERROR ${e.toString()}", level: LogLevel.Error);
+      Logging.instance
+          .log("GET CHAIN HEIGHT ERROR ${e.toString()}", level: LogLevel.Error);
     }
-
   }
 
   @override
