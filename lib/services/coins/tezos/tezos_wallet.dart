@@ -198,7 +198,7 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
       Logging.instance.log(secretKey, level: LogLevel.Info);
       final sourceKeyStore = Keystore.fromSecretKey(secretKey);
       final client = TezartClient(getCurrentNode().host);
-      //TODO - Update gas Limit
+
       final operation = await client.transferOperation(
           source: sourceKeyStore,
           destination: destinationAddress,
@@ -431,72 +431,64 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   Future<void> updateTransactions() async {
     // TODO: Use node RPC instead of tzstats API
-    var api =
-        "https://api.tzstats.com/tables/op?address=${await currentReceivingAddress}";
-    var jsonResponse =
-        jsonDecode(await get(Uri.parse(api)).then((value) => value.body));
-
+    String transactionsCall = "https://api.mainnet.tzkt.io/v1/accounts/${await currentReceivingAddress}/operations";
+    var response = jsonDecode(await get(Uri.parse(transactionsCall)).then((value) => value.body));
     List<Tuple2<Transaction, Address>> txs = [];
-
-    for (var tx in jsonResponse as List) {
-      if (tx[1] == "transaction") {
-        var txApi =
-            "https://api.tzstats.com/explorer/op/${tx[0]}"; //Get transactions by Unique Id, this way we will only get txs
-        var txJsonResponse =
-            jsonDecode(await get(Uri.parse(txApi)).then((value) => value.body));
-        // Check if list is larger than 1 (if it is, it's a batch transaction)
-        if (!((txJsonResponse as List).length > 1)) {
-          for (var (opJson as Map) in txJsonResponse) {
-            if (opJson.containsKey("volume")) {
-              // This is to check if transaction is a token transfer
-              TransactionType txType;
-              if (opJson["sender"] == (await currentReceivingAddress)) {
-                txType = TransactionType.outgoing;
-              } else {
-                txType = TransactionType.incoming;
-              }
-              var theTx = Transaction(
-                walletId: walletId,
-                txid: opJson["hash"].toString(),
-                timestamp: DateTime.parse(opJson["time"].toString())
-                        .toUtc()
-                        .millisecondsSinceEpoch ~/
-                    1000,
-                type: txType,
-                subType: TransactionSubType.none,
-                amount: (float.parse(opJson["volume"].toString()) * 1000000)
-                    .toInt(),
-                amountString: Amount(
-                        rawValue: BigInt.parse(
-                            (float.parse(opJson["volume"].toString()) * 1000000)
-                                .toInt()
-                                .toString()),
-                        fractionDigits: coin.decimals)
-                    .toJsonString(),
-                fee: (float.parse(opJson["fee"].toString()) * 1000000).toInt(),
-                height: int.parse(opJson["height"].toString()),
-                isCancelled: false,
-                isLelantus: false,
-                slateId: "",
-                otherData: "",
-                inputs: [],
-                outputs: [],
-                nonce: 0,
-                numberOfMessages: null,
-              );
-              var theAddress = Address(
-                walletId: walletId,
-                value: opJson["receiver"].toString(),
-                publicKey: [], // TODO: Add public key
-                derivationIndex: 0,
-                derivationPath: null,
-                type: AddressType.unknown,
-                subType: AddressSubType.unknown,
-              );
-              txs.add(Tuple2(theTx, theAddress));
-            }
-          }
+    for (var tx in response as List) {
+      if (tx["type"] == "transaction") {
+        TransactionType txType;
+        if (tx["sender"]["address"] == (await currentReceivingAddress)) {
+          txType = TransactionType.outgoing;
+        } else {
+          txType = TransactionType.incoming;
         }
+
+        final amount = tx["amount"] as int;
+        final fee = tx["bakerFee"] as int;
+        final amountInMicroTez =
+            amount / 1000000;
+
+        final feeInMicroTez =
+            fee / 1000000;
+
+        var theTx = Transaction(
+          walletId: walletId,
+          txid: tx["hash"].toString(),
+          timestamp: DateTime.parse(tx["timestamp"].toString())
+              .toUtc()
+              .millisecondsSinceEpoch ~/
+              1000,
+          type: txType,
+          subType: TransactionSubType.none,
+          amount: tx["amount"] as int,
+          amountString: Amount(
+              rawValue: BigInt.parse(
+                  (tx["amount"] as int)
+                      .toInt()
+                      .toString()),
+              fractionDigits: coin.decimals)
+              .toJsonString(),
+          fee: tx["bakerFee"] as int,
+          height: int.parse(tx["level"].toString()),
+          isCancelled: false,
+          isLelantus: false,
+          slateId: "",
+          otherData: "",
+          inputs: [],
+          outputs: [],
+          nonce: 0,
+          numberOfMessages: null,
+        );
+        var theAddress = Address(
+          walletId: walletId,
+          value: tx["target"]["address"].toString(),
+          publicKey: [], // TODO: Add public key
+          derivationIndex: 0,
+          derivationPath: null,
+          type: AddressType.unknown,
+          subType: AddressSubType.unknown,
+        );
+        txs.add(Tuple2(theTx, theAddress));
       }
     }
     Logging.instance.log("Transactions: $txs", level: LogLevel.Info);
@@ -505,7 +497,6 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   Future<void> updateChainHeight() async {
     try {
-      final client = TezartClient(getCurrentNode().host);
       var api = "${getCurrentNode().host}/chains/main/blocks/head/header/shell";
       var jsonParsedResponse =
           jsonDecode(await get(Uri.parse(api)).then((value) => value.body));
