@@ -185,14 +185,16 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
     try {
+
       final amount = txData["recipientAmt"] as Amount;
-      final amountInMicroTez = amount.decimal * Decimal.fromInt(1000000);
+      final amountInMicroTez =
+          amount.decimal * Decimal.fromInt(1000000);
       final microtezToInt = int.parse(amountInMicroTez.toString());
 
       final int feeInMicroTez = int.parse(txData["fee"].toString());
       final String destinationAddress = txData["address"] as String;
-      final secretKey =
-          Keystore.fromMnemonic((await mnemonicString)!).secretKey;
+      final secretKey = Keystore.fromMnemonic((await mnemonicString)!)
+          .secretKey;
       Logging.instance.log(secretKey, level: LogLevel.Info);
       final sourceKeyStore = Keystore.fromSecretKey(secretKey);
       final client = TezartClient(getCurrentNode().host);
@@ -202,7 +204,9 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
           destination: destinationAddress,
           amount: microtezToInt,
           customFee: feeInMicroTez,
-          customGasLimit: 400);
+          customGasLimit: feeInMicroTez
+      );
+
       await operation.executeAndMonitor(); // This line gives an error
       return Future.value("");
     } catch (e) {
@@ -403,18 +407,12 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   Future<void> updateBalance() async {
     try {
-      var api =
-          "${getCurrentNode().host}/chains/main/blocks/head/context/contracts/${await currentReceivingAddress}/balance";
-      var theBalance = (await get(Uri.parse(api)).then((value) => value.body))
-          .substring(
-              1,
-              (await get(Uri.parse(api)).then((value) => value.body)).length -
-                  2);
-      Logging.instance.log(
-          "Balance for ${await currentReceivingAddress}: $theBalance",
-          level: LogLevel.Info);
-      var balanceInAmount = Amount(
-          rawValue: BigInt.parse(theBalance.toString()),
+      final client = TezartClient(getCurrentNode().host);
+      final thisBalance = await client.getBalance(
+          address: await currentReceivingAddress
+      );
+      Amount balanceInAmount = Amount(
+          rawValue: BigInt.parse(thisBalance.toString()),
           fractionDigits: coin.decimals);
       _balance = Balance(
         total: balanceInAmount,
@@ -507,6 +505,7 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   Future<void> updateChainHeight() async {
     try {
+      final client = TezartClient(getCurrentNode().host);
       var api = "${getCurrentNode().host}/chains/main/blocks/head/header/shell";
       var jsonParsedResponse =
           jsonDecode(await get(Uri.parse(api)).then((value) => value.body));
