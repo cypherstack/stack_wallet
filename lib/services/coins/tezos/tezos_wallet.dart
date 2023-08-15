@@ -195,14 +195,20 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
       final String destinationAddress = txData["address"] as String;
       final secretKey = Keystore.fromMnemonic((await mnemonicString)!)
           .secretKey;
+
       Logging.instance.log(secretKey, level: LogLevel.Info);
       final sourceKeyStore = Keystore.fromSecretKey(secretKey);
       final client = TezartClient(getCurrentNode().host);
 
+      int? sendAmount = microtezToInt;
+      if (balance.spendable == txData["recipientAmt"] as Amount) {
+         sendAmount = microtezToInt - feeInMicroTez;
+      }
+
       final operation = await client.transferOperation(
           source: sourceKeyStore,
           destination: destinationAddress,
-          amount: microtezToInt,
+          amount: sendAmount,
           customFee: feeInMicroTez,
           customGasLimit: feeInMicroTez
       );
@@ -430,7 +436,6 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   Future<void> updateTransactions() async {
-    // TODO: Use node RPC instead of tzstats API
     String transactionsCall = "https://api.mainnet.tzkt.io/v1/accounts/${await currentReceivingAddress}/operations";
     var response = jsonDecode(await get(Uri.parse(transactionsCall)).then((value) => value.body));
     List<Tuple2<Transaction, Address>> txs = [];
@@ -442,14 +447,6 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
         } else {
           txType = TransactionType.incoming;
         }
-
-        final amount = tx["amount"] as int;
-        final fee = tx["bakerFee"] as int;
-        final amountInMicroTez =
-            amount / 1000000;
-
-        final feeInMicroTez =
-            fee / 1000000;
 
         var theTx = Transaction(
           walletId: walletId,
