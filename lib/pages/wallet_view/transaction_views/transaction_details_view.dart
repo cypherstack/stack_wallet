@@ -358,6 +358,8 @@ class _TransactionDetailsViewState
     final currentHeight = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManager(walletId).currentHeight));
 
+    print("THIS TRANSACTION IS $_transaction");
+
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
@@ -1582,7 +1584,8 @@ class _TransactionDetailsViewState
                       coin.requiredConfirmations,
                     ) ==
                     false &&
-                _transaction.isCancelled == false)
+                _transaction.isCancelled == false &&
+                _transaction.type == TransactionType.outgoing)
             ? ConditionalParent(
                 condition: isDesktop,
                 builder: (child) => Padding(

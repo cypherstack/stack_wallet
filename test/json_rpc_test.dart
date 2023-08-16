@@ -11,7 +11,6 @@ void main() {
       port: DefaultNodes.bitcoin.port,
       useSSL: true,
       connectionTimeout: const Duration(seconds: 40),
-      proxyInfo: null, // TODO test for proxyInfo
     );
 
     const jsonRequestString =
@@ -28,8 +27,7 @@ void main() {
     final jsonRPC = JsonRPC(
       host: "some.bad.address.thingdsfsdfsdaf",
       port: 3000,
-      connectionTimeout: const Duration(seconds: 10),
-      proxyInfo: null,
+      connectionTimeout: Duration(seconds: 10),
     );
 
     const jsonRequestString =
@@ -49,7 +47,6 @@ void main() {
       port: 3000,
       useSSL: false,
       connectionTimeout: const Duration(seconds: 1),
-      proxyInfo: null,
     );
 
     const jsonRequestString =
