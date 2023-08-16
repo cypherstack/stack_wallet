@@ -12,7 +12,8 @@ class TorService {
 
   Future<void> start() async {
     final dir = await StackFileSystem.applicationTorDirectory();
-    return await _tor.start(torDir: dir);
+    await _tor.start(torDir: dir);
+    return;
   }
 
   Future<void> stop() async {
