@@ -15,6 +15,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:decimal/decimal.dart';
 import 'package:stackwallet/electrumx_rpc/rpc.dart';
 import 'package:stackwallet/exceptions/electrumx/no_such_transaction.dart';
+import 'package:stackwallet/networking/tor_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:uuid/uuid.dart';
@@ -71,6 +72,8 @@ class ElectrumX {
 
   final Duration connectionTimeoutForSpecialCaseJsonRPCClients;
 
+  ({String host, int port})? proxyInfo;
+
   ElectrumX({
     required String host,
     required int port,
@@ -80,6 +83,7 @@ class ElectrumX {
     JsonRPC? client,
     this.connectionTimeoutForSpecialCaseJsonRPCClients =
         const Duration(seconds: 60),
+    ({String host, int port})? proxyInfo,
   }) {
     _prefs = prefs;
     _host = host;
@@ -92,14 +96,38 @@ class ElectrumX {
     required ElectrumXNode node,
     required Prefs prefs,
     required List<ElectrumXNode> failovers,
-  }) =>
-      ElectrumX(
+    ({String host, int port})? proxyInfo,
+  }) {
+    if (Prefs.instance.useTor) {
+      if (proxyInfo == null) {
+        // TODO await tor / make sure it's running
+        proxyInfo = (
+          host: InternetAddress.loopbackIPv4.address,
+          port: TorService.sharedInstance.port
+        );
+        Logging.instance.log(
+            "ElectrumX.from(): no tor proxy info, read $proxyInfo",
+            level: LogLevel.Warning);
+      }
+      return ElectrumX(
         host: node.address,
         port: node.port,
         useSSL: node.useSSL,
         prefs: prefs,
         failovers: failovers,
+        proxyInfo: proxyInfo,
       );
+    } else {
+      return ElectrumX(
+        host: node.address,
+        port: node.port,
+        useSSL: node.useSSL,
+        prefs: prefs,
+        failovers: failovers,
+        proxyInfo: null,
+      );
+    }
+  }
 
   Future<bool> _allow() async {
     if (_prefs.wifiOnly) {
@@ -121,20 +149,52 @@ class ElectrumX {
       throw WifiOnlyException();
     }
 
-    if (currentFailoverIndex == -1) {
-      _rpcClient ??= JsonRPC(
-        host: host,
-        port: port,
-        useSSL: useSSL,
-        connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-      );
+    if (Prefs.instance.useTor) {
+      if (proxyInfo == null) {
+        // TODO await tor / make sure Tor is running
+        proxyInfo = (
+          host: InternetAddress.loopbackIPv4.address,
+          port: TorService.sharedInstance.port
+        );
+        Logging.instance.log(
+            "ElectrumX.request(): no tor proxy info, read $proxyInfo",
+            level: LogLevel.Warning);
+      }
+      if (currentFailoverIndex == -1) {
+        _rpcClient ??= JsonRPC(
+          host: host,
+          port: port,
+          useSSL: useSSL,
+          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
+          proxyInfo: proxyInfo,
+        );
+      } else {
+        _rpcClient ??= JsonRPC(
+          host: failovers![currentFailoverIndex].address,
+          port: failovers![currentFailoverIndex].port,
+          useSSL: failovers![currentFailoverIndex].useSSL,
+          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
+          proxyInfo: proxyInfo,
+        );
+      }
     } else {
-      _rpcClient = JsonRPC(
-        host: failovers![currentFailoverIndex].address,
-        port: failovers![currentFailoverIndex].port,
-        useSSL: failovers![currentFailoverIndex].useSSL,
-        connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-      );
+      if (currentFailoverIndex == -1) {
+        _rpcClient ??= JsonRPC(
+          host: host,
+          port: port,
+          useSSL: useSSL,
+          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
+          proxyInfo: null,
+        );
+      } else {
+        _rpcClient ??= JsonRPC(
+          host: failovers![currentFailoverIndex].address,
+          port: failovers![currentFailoverIndex].port,
+          useSSL: failovers![currentFailoverIndex].useSSL,
+          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
+          proxyInfo: null,
+        );
+      }
     }
 
     try {
@@ -153,7 +213,8 @@ class ElectrumX {
       );
 
       if (response.exception != null) {
-        throw response.exception!;
+        throw response.exception!
+            as Object; // TODO properly check that .exception is an Object
       }
 
       if (response.data is Map && response.data["error"] != null) {
@@ -221,20 +282,53 @@ class ElectrumX {
       throw WifiOnlyException();
     }
 
-    if (currentFailoverIndex == -1) {
-      _rpcClient ??= JsonRPC(
-        host: host,
-        port: port,
-        useSSL: useSSL,
-        connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-      );
+    if (Prefs.instance.useTor) {
+      // TODO await tor / make sure Tor is initialized
+      if (proxyInfo == null) {
+        proxyInfo = (
+          host: InternetAddress.loopbackIPv4.address,
+          port: TorService.sharedInstance.port
+        );
+        Logging.instance.log(
+            "ElectrumX.batchRequest(): no tor proxy info, read $proxyInfo",
+            level: LogLevel.Warning);
+      }
+
+      if (currentFailoverIndex == -1) {
+        _rpcClient ??= JsonRPC(
+          host: host,
+          port: port,
+          useSSL: useSSL,
+          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
+          proxyInfo: proxyInfo,
+        );
+      } else {
+        _rpcClient = JsonRPC(
+          host: failovers![currentFailoverIndex].address,
+          port: failovers![currentFailoverIndex].port,
+          useSSL: failovers![currentFailoverIndex].useSSL,
+          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
+          proxyInfo: proxyInfo,
+        );
+      }
     } else {
-      _rpcClient = JsonRPC(
-        host: failovers![currentFailoverIndex].address,
-        port: failovers![currentFailoverIndex].port,
-        useSSL: failovers![currentFailoverIndex].useSSL,
-        connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-      );
+      if (currentFailoverIndex == -1) {
+        _rpcClient ??= JsonRPC(
+          host: host,
+          port: port,
+          useSSL: useSSL,
+          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
+          proxyInfo: null,
+        );
+      } else {
+        _rpcClient = JsonRPC(
+          host: failovers![currentFailoverIndex].address,
+          port: failovers![currentFailoverIndex].port,
+          useSSL: failovers![currentFailoverIndex].useSSL,
+          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
+          proxyInfo: null,
+        );
+      }
     }
 
     try {
@@ -260,7 +354,8 @@ class ElectrumX {
           (await _rpcClient!.request(request, requestTimeout));
 
       if (jsonRpcResponse.exception != null) {
-        throw jsonRpcResponse.exception!;
+        throw jsonRpcResponse.exception!
+            as Object; // TODO properly check that .exception is an Object
       }
 
       final response = jsonRpcResponse.data as List;
