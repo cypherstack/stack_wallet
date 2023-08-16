@@ -239,29 +239,17 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
-    // TODO: Check if this is correct
-    var api = "https://api.tzstats.com/series/op?start_date=today&collapse=10d";
+
+    var api = "https://api.tzstats.com/series/op?start_date=today&collapse=1d";
     var response = jsonDecode((await get(Uri.parse(api))).body)[0];
     double totalFees = response[4] as double;
     int totalTxs = response[8] as int;
     int feePerTx = (totalFees / totalTxs * 1000000).floor();
-    int estimatedFee = 0;
-    Logging.instance.log("feePerTx:$feePerTx", level: LogLevel.Info);
-    Logging.instance.log("feeRate:$feeRate", level: LogLevel.Info);
-    switch (feeRate) {
-      case 0:
-        estimatedFee = feePerTx * 2;
-      case 1:
-        estimatedFee = feePerTx;
-      case 2:
-      case 3:
-        estimatedFee = (feePerTx / 2).floor();
-      default:
-        estimatedFee = feeRate;
-    }
-    Logging.instance.log("estimatedFee:$estimatedFee", level: LogLevel.Info);
+
     return Amount(
-        rawValue: BigInt.from(estimatedFee), fractionDigits: coin.decimals);
+      rawValue: BigInt.from(feePerTx),
+      fractionDigits: coin.decimals,
+    );
   }
 
   @override
@@ -272,21 +260,20 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<FeeObject> get fees async {
-    // TODO: Check if this is correct
     var api = "https://api.tzstats.com/series/op?start_date=today&collapse=10d";
     var response = jsonDecode((await get(Uri.parse(api))).body);
     double totalFees = response[0][4] as double;
     int totalTxs = response[0][8] as int;
     int feePerTx = (totalFees / totalTxs * 1000000).floor();
     Logging.instance.log("feePerTx:$feePerTx", level: LogLevel.Info);
-    // TODO: fix numberOfBlocks
+    // TODO: fix numberOfBlocks - Since there is only one fee no need to set blocks
     return FeeObject(
-      numberOfBlocksFast: 3,
+      numberOfBlocksFast: 10,
       numberOfBlocksAverage: 10,
-      numberOfBlocksSlow: 30,
-      fast: (feePerTx * 2),
+      numberOfBlocksSlow: 10,
+      fast: feePerTx,
       medium: feePerTx,
-      slow: (feePerTx / 2).floor(),
+      slow: feePerTx,
     );
   }
 
