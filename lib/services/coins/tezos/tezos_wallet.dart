@@ -30,6 +30,7 @@ import 'package:tezart/tezart.dart';
 import 'package:tuple/tuple.dart';
 
 const int MINIMUM_CONFIRMATIONS = 1;
+const int _gasLimit = 10200;
 
 class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   TezosWallet({
@@ -201,8 +202,15 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
       final client = TezartClient(getCurrentNode().host);
 
       int? sendAmount = microtezToInt;
+      int gasLimit = _gasLimit;
+      int thisFee = feeInMicroTez;
+
       if (balance.spendable == txData["recipientAmt"] as Amount) {
-         sendAmount = microtezToInt - feeInMicroTez;
+        //Fee guides for emptying a tz account
+        // https://github.com/TezTech/eztz/blob/master/PROTO_004_FEES.md
+         thisFee = thisFee + 32;
+         sendAmount = microtezToInt - thisFee;
+         gasLimit = _gasLimit + 320;
       }
 
       final operation = await client.transferOperation(
@@ -210,11 +218,10 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
           destination: destinationAddress,
           amount: sendAmount,
           customFee: feeInMicroTez,
-          customGasLimit: feeInMicroTez
+          customGasLimit: gasLimit
       );
-
-      await operation.executeAndMonitor(); // This line gives an error
-      return Future.value("");
+      await operation.executeAndMonitor();
+      return operation.result.id as String;
     } catch (e) {
       Logging.instance.log(e.toString(), level: LogLevel.Error);
       return Future.error(e);
@@ -413,12 +420,11 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   Future<void> updateBalance() async {
     try {
-      final client = TezartClient(getCurrentNode().host);
-      final thisBalance = await client.getBalance(
-          address: await currentReceivingAddress
-      );
+      String balanceCall = "https://api.mainnet.tzkt.io/v1/accounts/"
+          "${await currentReceivingAddress}/balance";
+      var response = jsonDecode(await get(Uri.parse(balanceCall)).then((value) => value.body));
       Amount balanceInAmount = Amount(
-          rawValue: BigInt.parse(thisBalance.toString()),
+          rawValue: BigInt.parse(response.toString()),
           fractionDigits: coin.decimals);
       _balance = Balance(
         total: balanceInAmount,
@@ -436,7 +442,8 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   Future<void> updateTransactions() async {
-    String transactionsCall = "https://api.mainnet.tzkt.io/v1/accounts/${await currentReceivingAddress}/operations";
+    String transactionsCall = "https://api.mainnet.tzkt.io/v1/accounts/"
+        "${await currentReceivingAddress}/operations";
     var response = jsonDecode(await get(Uri.parse(transactionsCall)).then((value) => value.body));
     List<Tuple2<Transaction, Address>> txs = [];
     for (var tx in response as List) {
@@ -544,9 +551,38 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   @override
-  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) {
-    // TODO: implement updateSentCachedTxData
-    throw UnimplementedError();
+  Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
+    final transaction = Transaction(
+      walletId: walletId,
+      txid: txData["txid"] as String,
+      timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      type: TransactionType.outgoing,
+      subType: TransactionSubType.none,
+      // precision may be lost here hence the following amountString
+      amount: (txData["recipientAmt"] as Amount).raw.toInt(),
+      amountString: (txData["recipientAmt"] as Amount).toJsonString(),
+      fee: txData["fee"] as int,
+      height: null,
+      isCancelled: false,
+      isLelantus: false,
+      otherData: null,
+      slateId: null,
+      nonce: null,
+      inputs: [],
+      outputs: [],
+      numberOfMessages: null,
+    );
+
+    final address = txData["address"] is String
+          ? await db.getAddress(walletId, txData["address"] as String)
+          : null;
+
+    await db.addNewTransactionData(
+        [
+        Tuple2(transaction, address),
+        ],
+        walletId,
+    );
   }
 
   @override
