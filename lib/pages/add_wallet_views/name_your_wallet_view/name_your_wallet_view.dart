@@ -361,6 +361,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
                                     .read(mnemonicWordCountStateProvider.state)
                                     .state =
                                 Constants.possibleLengthsForCoin(coin).last;
+                            ref.read(pNewWalletOptions.notifier).state = null;
 
                             switch (widget.addWalletType) {
                               case AddWalletType.New:
