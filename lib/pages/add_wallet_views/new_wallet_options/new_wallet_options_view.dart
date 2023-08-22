@@ -112,7 +112,7 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
                       ),
                       child: IntrinsicHeight(
                         child: Padding(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: child,
                         ),
                       ),
@@ -130,21 +130,23 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
                 flex: 10,
               ),
             if (!Util.isDesktop)
+              const SizedBox(
+                height: 16,
+              ),
+            if (!Util.isDesktop)
               CoinImage(
                 coin: widget.coin,
                 height: 100,
                 width: 100,
               ),
-            SizedBox(
-              height: Util.isDesktop ? 0 : 16,
-            ),
-            Text(
-              "Wallet options",
-              textAlign: TextAlign.center,
-              style: Util.isDesktop
-                  ? STextStyles.desktopH2(context)
-                  : STextStyles.pageTitleH1(context),
-            ),
+            if (Util.isDesktop)
+              Text(
+                "Wallet options",
+                textAlign: TextAlign.center,
+                style: Util.isDesktop
+                    ? STextStyles.desktopH2(context)
+                    : STextStyles.pageTitleH1(context),
+              ),
             SizedBox(
               height: Util.isDesktop ? 32 : 16,
             ),
