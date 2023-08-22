@@ -307,7 +307,9 @@ class MoneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   @override
-  Future<void> initializeNew() async {
+  Future<void> initializeNew(
+    ({String mnemonicPassphrase, int wordCount})? data,
+  ) async {
     await _prefs.init();
 
     // this should never fail

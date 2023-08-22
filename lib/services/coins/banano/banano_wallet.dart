@@ -600,7 +600,9 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   @override
-  Future<void> initializeNew() async {
+  Future<void> initializeNew(
+    ({String mnemonicPassphrase, int wordCount})? data,
+  ) async {
     if ((await mnemonicString) != null || (await mnemonicPassphrase) != null) {
       throw Exception(
           "Attempted to overwrite mnemonic on generate new wallet!");

@@ -180,7 +180,9 @@ class Manager with ChangeNotifier {
   Future<bool> testNetworkConnection() =>
       _currentWallet.testNetworkConnection();
 
-  Future<void> initializeNew() => _currentWallet.initializeNew();
+  Future<void> initializeNew(
+          ({String mnemonicPassphrase, int wordCount})? data) =>
+      _currentWallet.initializeNew(data);
   Future<void> initializeExisting() => _currentWallet.initializeExisting();
   Future<void> recoverFromMnemonic({
     required String mnemonic,

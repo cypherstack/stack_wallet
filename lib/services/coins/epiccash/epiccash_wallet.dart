@@ -766,7 +766,9 @@ class EpicCashWallet extends CoinServiceAPI
   }
 
   @override
-  Future<void> initializeNew() async {
+  Future<void> initializeNew(
+    ({String mnemonicPassphrase, int wordCount})? data,
+  ) async {
     await _prefs.init();
     await updateNode(false);
     final mnemonic = await _getMnemonicList();
@@ -1738,7 +1740,6 @@ class EpicCashWallet extends CoinServiceAPI
       final isIncoming = (tx["tx_type"] == "TxReceived" ||
           tx["tx_type"] == "TxReceivedCancelled");
 
-
       final txn = isar_models.Transaction(
         walletId: walletId,
         txid: commitId ?? tx["id"].toString(),
@@ -1763,7 +1764,9 @@ class EpicCashWallet extends CoinServiceAPI
         otherData: tx['onChainNote'].toString(),
         inputs: [],
         outputs: [],
-        numberOfMessages: ((tx["numberOfMessages"] == null) ? 0 : tx["numberOfMessages"]) as int,
+        numberOfMessages: ((tx["numberOfMessages"] == null)
+            ? 0
+            : tx["numberOfMessages"]) as int,
       );
 
       // txn.address =
