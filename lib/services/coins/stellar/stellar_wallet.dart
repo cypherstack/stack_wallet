@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:decimal/decimal.dart';
 import 'package:http/http.dart' as http;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
@@ -37,6 +39,7 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
   late StellarSDK stellarSdk;
   late Network stellarNetwork;
 
+
   StellarWallet({
     required String walletId,
     required String walletName,
@@ -53,19 +56,27 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
     initCache(walletId, coin);
     initWalletDB(mockableOverride: mockableOverride);
 
-    if (coin.name == "stellarTestnet") {
+
+    if (coin.isTestNet) {
       stellarSdk = StellarSDK.TESTNET;
       stellarNetwork = Network.TESTNET;
     } else {
       stellarSdk = StellarSDK.PUBLIC;
       stellarNetwork = Network.PUBLIC;
     }
+
+    _updateNode();
+  }
+
+  void _updateNode() {
+    _xlmNode = NodeService(secureStorageInterface: _secureStore)
+        .getPrimaryNodeFor(coin: coin) ??
+        DefaultNodes.getNodeFor(coin);
+    stellarSdk = StellarSDK("${_xlmNode!.host}:${_xlmNode!.port}");
   }
 
   late final TransactionNotificationTracker txTracker;
   late SecureStorageInterface _secureStore;
-
-  // final StellarSDK stellarSdk = StellarSDK.PUBLIC;
 
   @override
   bool get isFavorite => _isFavorite ??= getCachedIsFavorite();
@@ -232,32 +243,14 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
       (await _currentReceivingAddress)?.value ?? await getAddressSW();
 
   Future<int> getBaseFee() async {
-    // final nodeURI = Uri.parse("${getCurrentNode().host}:${getCurrentNode().port}");
-    final nodeURI = Uri.parse(getCurrentNode().host);
-    final httpClient = http.Client();
-    FeeStatsResponse fsp =
-        await FeeStatsRequestBuilder(httpClient, nodeURI).execute();
-    return int.parse(fsp.lastLedgerBaseFee);
+    var fees = await stellarSdk.feeStats.execute();
+    return int.parse(fees.lastLedgerBaseFee);
   }
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
     var baseFee = await getBaseFee();
-    int fee = 100;
-    switch (feeRate) {
-      case 0:
-        fee = baseFee * 10;
-      case 1:
-      case 2:
-        fee = baseFee * 50;
-      case 3:
-        fee = baseFee * 100;
-      case 4:
-        fee = baseFee * 200;
-      default:
-        fee = baseFee * 50;
-    }
-    return Amount(rawValue: BigInt.from(fee), fractionDigits: coin.decimals);
+    return Amount(rawValue: BigInt.from(baseFee), fractionDigits: coin.decimals);
   }
 
   @override
@@ -285,20 +278,13 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<FeeObject> get fees async {
-    // final nodeURI = Uri.parse("${getCurrentNode().host}:${getCurrentNode().port}");
-    final nodeURI = Uri.parse(getCurrentNode().host);
-
-    final httpClient = http.Client();
-    FeeStatsResponse fsp =
-        await FeeStatsRequestBuilder(httpClient, nodeURI).execute();
-
     return FeeObject(
-        numberOfBlocksFast: 0,
-        numberOfBlocksAverage: 0,
-        numberOfBlocksSlow: 0,
-        fast: int.parse(fsp.lastLedgerBaseFee) * 100,
-        medium: int.parse(fsp.lastLedgerBaseFee) * 50,
-        slow: int.parse(fsp.lastLedgerBaseFee) * 10);
+        numberOfBlocksFast: 10,
+        numberOfBlocksAverage: 10,
+        numberOfBlocksSlow: 10,
+        fast: 1,
+        medium: 1,
+        slow: 1);
   }
 
   @override
@@ -399,6 +385,7 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
       {required String address,
       required Amount amount,
       Map<String, dynamic>? args}) async {
+
     try {
       final feeRate = args?["feeRate"];
       var fee = 1000;
@@ -750,10 +737,7 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<void> updateNode(bool shouldRefresh) async {
-    _xlmNode = NodeService(secureStorageInterface: _secureStore)
-            .getPrimaryNodeFor(coin: coin) ??
-        DefaultNodes.getNodeFor(coin);
-
+    _updateNode();
     if (shouldRefresh) {
       unawaited(refresh());
     }

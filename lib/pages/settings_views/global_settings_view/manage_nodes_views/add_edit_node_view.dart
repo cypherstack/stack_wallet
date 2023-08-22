@@ -27,6 +27,7 @@ import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
 import 'package:stackwallet/utilities/test_monero_node_connection.dart';
+import 'package:stackwallet/utilities/test_stellar_node_connection.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -194,10 +195,14 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           // await client.getSyncStatus();
         } catch (_) {}
 
-      case Coin.nano:
-      case Coin.banano:
       case Coin.stellar:
       case Coin.stellarTestnet:
+        try {
+          testPassed = await testStellarNodeConnection(formData.host!);
+        } catch(_) {}
+      case Coin.nano:
+      case Coin.banano:
+
         throw UnimplementedError();
         //TODO: check network/node
     }
