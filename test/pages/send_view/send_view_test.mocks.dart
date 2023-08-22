@@ -1283,10 +1283,12 @@ class MockBitcoinWallet extends _i1.Mock implements _i27.BitcoinWallet {
         returnValueForMissingStub: null,
       );
   @override
-  _i23.Future<void> initializeNew() => (super.noSuchMethod(
+  _i23.Future<void> initializeNew(
+          ({String mnemonicPassphrase, int wordCount})? data) =>
+      (super.noSuchMethod(
         Invocation.method(
           #initializeNew,
-          [],
+          [data],
         ),
         returnValue: _i23.Future<void>.value(),
         returnValueForMissingStub: _i23.Future<void>.value(),
@@ -3062,10 +3064,12 @@ class MockManager extends _i1.Mock implements _i6.Manager {
         returnValue: _i23.Future<bool>.value(false),
       ) as _i23.Future<bool>);
   @override
-  _i23.Future<void> initializeNew() => (super.noSuchMethod(
+  _i23.Future<void> initializeNew(
+          ({String mnemonicPassphrase, int wordCount})? data) =>
+      (super.noSuchMethod(
         Invocation.method(
           #initializeNew,
-          [],
+          [data],
         ),
         returnValue: _i23.Future<void>.value(),
         returnValueForMissingStub: _i23.Future<void>.value(),
@@ -3415,10 +3419,12 @@ class MockCoinServiceAPI extends _i1.Mock implements _i20.CoinServiceAPI {
         returnValueForMissingStub: _i23.Future<void>.value(),
       ) as _i23.Future<void>);
   @override
-  _i23.Future<void> initializeNew() => (super.noSuchMethod(
+  _i23.Future<void> initializeNew(
+          ({String mnemonicPassphrase, int wordCount})? data) =>
+      (super.noSuchMethod(
         Invocation.method(
           #initializeNew,
-          [],
+          [data],
         ),
         returnValue: _i23.Future<void>.value(),
         returnValueForMissingStub: _i23.Future<void>.value(),

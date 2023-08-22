@@ -512,18 +512,12 @@ class MockCachedElectrumX extends _i1.Mock implements _i6.CachedElectrumX {
             _i5.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i5.Future<Map<String, dynamic>>);
   @override
-  _i5.Future<List<String>> getUsedCoinSerials({
-    required _i7.Coin? coin,
-    int? startNumber = 0,
-  }) =>
+  _i5.Future<List<String>> getUsedCoinSerials({required _i7.Coin? coin}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getUsedCoinSerials,
           [],
-          {
-            #coin: coin,
-            #startNumber: startNumber,
-          },
+          {#coin: coin},
         ),
         returnValue: _i5.Future<List<String>>.value(<String>[]),
       ) as _i5.Future<List<String>>);
