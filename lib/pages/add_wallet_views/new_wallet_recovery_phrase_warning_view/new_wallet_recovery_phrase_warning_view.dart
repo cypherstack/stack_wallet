@@ -221,9 +221,7 @@ class _NewWalletRecoveryPhraseWarningViewState
                                 ),
                               ),
                               TextSpan(
-                                text:
-                                    "${Constants.defaultSeedPhraseLengthFor(coin: coin)}"
-                                    " words",
+                                text: "$seedCount words",
                                 style: STextStyles.desktopH3(context).copyWith(
                                   color: Theme.of(context)
                                       .extension<StackColors>()!
