@@ -1161,7 +1161,9 @@ class BitcoinCashWallet extends CoinServiceAPI
   bool get isConnected => _isConnected;
 
   @override
-  Future<void> initializeNew() async {
+  Future<void> initializeNew(
+    ({String mnemonicPassphrase, int wordCount})? data,
+  ) async {
     Logging.instance
         .log("Generating new ${coin.prettyName} wallet.", level: LogLevel.Info);
 
@@ -1171,7 +1173,7 @@ class BitcoinCashWallet extends CoinServiceAPI
     }
     await _prefs.init();
     try {
-      await _generateNewWallet();
+      await _generateNewWallet(data);
     } catch (e, s) {
       Logging.instance.log("Exception rethrown from initializeNew(): $e\n$s",
           level: LogLevel.Fatal);
@@ -1402,7 +1404,9 @@ class BitcoinCashWallet extends CoinServiceAPI
     }
   }
 
-  Future<void> _generateNewWallet() async {
+  Future<void> _generateNewWallet(
+    ({String mnemonicPassphrase, int wordCount})? data,
+  ) async {
     Logging.instance
         .log("IS_INTEGRATION_TEST: $integrationTestFlag", level: LogLevel.Info);
     if (!integrationTestFlag) {
@@ -1436,10 +1440,21 @@ class BitcoinCashWallet extends CoinServiceAPI
       throw Exception(
           "Attempted to overwrite mnemonic on generate new wallet!");
     }
+    final int strength;
+    if (data == null || data.wordCount == 12) {
+      strength = 128;
+    } else if (data.wordCount == 24) {
+      strength = 256;
+    } else {
+      throw Exception("Invalid word count");
+    }
     await _secureStore.write(
         key: '${_walletId}_mnemonic',
-        value: bip39.generateMnemonic(strength: 128));
-    await _secureStore.write(key: '${_walletId}_mnemonicPassphrase', value: "");
+        value: bip39.generateMnemonic(strength: strength));
+    await _secureStore.write(
+      key: '${_walletId}_mnemonicPassphrase',
+      value: data?.mnemonicPassphrase ?? "",
+    );
 
     // Generate and add addresses to relevant arrays
     final initialAddresses = await Future.wait([

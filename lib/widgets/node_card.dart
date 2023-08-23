@@ -1,6 +1,6 @@
-/*
+/* 
  * This file is part of Stack Wallet.
- *
+ * 
  * Copyright (c) 2023 Cypher Stack
  * All Rights Reserved.
  * The code is distributed under GPLv3 license, see LICENSE file for details.
@@ -197,6 +197,15 @@ class _NodeCardState extends ConsumerState<NodeCard> {
       case Coin.tezos:
       case Coin.stellar:
       case Coin.stellarTestNet:
+        try {
+          testPassed = await testStellarNodeConnection(node.host, node.port);
+        } catch(_) {
+          testPassed = false;
+        }
+        break;
+
+      case Coin.nano:
+      case Coin.banano:
         throw UnimplementedError();
         //TODO: check network/node
     }

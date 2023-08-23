@@ -245,6 +245,35 @@ extension CoinExt on Coin {
     }
   }
 
+  bool get hasMnemonicPassphraseSupport {
+    switch (this) {
+      case Coin.bitcoin:
+      case Coin.bitcoinTestNet:
+      case Coin.litecoin:
+      case Coin.litecoinTestNet:
+      case Coin.bitcoincash:
+      case Coin.bitcoincashTestnet:
+      case Coin.dogecoin:
+      case Coin.dogecoinTestNet:
+      case Coin.firo:
+      case Coin.firoTestNet:
+      case Coin.namecoin:
+      case Coin.particl:
+      case Coin.ethereum:
+      case Coin.eCash:
+      case Coin.stellar:
+      case Coin.stellarTestnet:
+        return true;
+
+      case Coin.epicCash:
+      case Coin.monero:
+      case Coin.wownero:
+      case Coin.nano:
+      case Coin.banano:
+        return false;
+    }
+  }
+
   bool get hasBuySupport {
     switch (this) {
       case Coin.bitcoin:
