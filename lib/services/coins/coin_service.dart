@@ -229,7 +229,7 @@ abstract class CoinServiceAPI {
           tracker: tracker,
         );
 
-      case Coin.stellarTestNet:
+      case Coin.stellarTestnet:
         return StellarWallet(
           walletId: walletId,
           walletName: walletName,

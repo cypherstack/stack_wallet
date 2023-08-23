@@ -143,7 +143,7 @@ class AddressUtils {
         return Address.validateAddress(address, firoTestNetwork);
       case Coin.dogecoinTestNet:
         return Address.validateAddress(address, dogecointestnet);
-      case Coin.stellarTestNet:
+      case Coin.stellarTestnet:
         return RegExp(r"^[G][A-Z0-9]{55}$").hasMatch(address);
     }
   }

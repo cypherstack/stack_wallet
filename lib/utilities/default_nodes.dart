@@ -191,8 +191,7 @@ abstract class DefaultNodes {
       enabled: true,
       coinName: Coin.stellar.name,
       isFailover: true,
-      isDown: false
-  );
+      isDown: false);
 
   static NodeModel get tezos => NodeModel(
       // TODO: Change this to stack wallet one
@@ -289,16 +288,16 @@ abstract class DefaultNodes {
       );
 
   static NodeModel get stellarTestnet => NodeModel(
-    host: "https://horizon-testnet.stellar.org/",
-    port: 50022,
-    name: defaultName,
-    id: _nodeId(Coin.stellarTestNet),
-    useSSL: true,
-    enabled: true,
-    coinName: Coin.stellarTestNet.name,
-    isFailover: true,
-    isDown: false,
-  );
+        host: "https://horizon-testnet.stellar.org/",
+        port: 50022,
+        name: defaultName,
+        id: _nodeId(Coin.stellarTestnet),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.stellarTestnet.name,
+        isFailover: true,
+        isDown: false,
+      );
 
   static NodeModel getNodeFor(Coin coin) {
     switch (coin) {
@@ -365,7 +364,7 @@ abstract class DefaultNodes {
       case Coin.dogecoinTestNet:
         return dogecoinTestnet;
 
-      case Coin.stellarTestNet:
+      case Coin.stellarTestnet:
         return stellarTestnet;
     }
   }

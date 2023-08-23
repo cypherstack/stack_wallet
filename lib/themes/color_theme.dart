@@ -65,7 +65,7 @@ class CoinThemeColorDefault {
       case Coin.particl:
         return particl;
       case Coin.stellar:
-      case Coin.stellarTestNet:
+      case Coin.stellarTestnet:
         return stellar;
       case Coin.nano:
         return nano;

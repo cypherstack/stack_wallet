@@ -197,7 +197,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
       case Coin.banano:
       case Coin.tezos:
       case Coin.stellar:
-      case Coin.stellarTestNet:
+      case Coin.stellarTestnet:
         try {
           testPassed = await testStellarNodeConnection(node.host, node.port);
         } catch (_) {

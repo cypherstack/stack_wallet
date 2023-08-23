@@ -174,7 +174,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
       case Coin.nano:
       case Coin.banano:
       case Coin.stellar:
-      case Coin.stellarTestNet:
+      case Coin.stellarTestnet:
         try {
           testPassed = await testStellarNodeConnection(node!.host, node.port);
         } catch (_) {
