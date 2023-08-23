@@ -13,6 +13,8 @@ import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
+import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
@@ -499,11 +501,67 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   @override
-  Future<void> refresh() {
-    updateChainHeight();
-    updateBalance();
-    updateTransactions();
-    return Future.value();
+  Future<void> refresh() async {
+    if (refreshMutex) {
+      Logging.instance.log(
+        "$walletId $walletName refreshMutex denied",
+        level: LogLevel.Info,
+      );
+      return;
+    } else {
+      refreshMutex = true;
+    }
+
+    try {
+      GlobalEventBus.instance.fire(
+        WalletSyncStatusChangedEvent(
+          WalletSyncStatus.syncing,
+          walletId,
+          coin,
+        ),
+      );
+
+      await updateChainHeight();
+      await updateBalance();
+      await updateTransactions();
+      GlobalEventBus.instance.fire(
+        WalletSyncStatusChangedEvent(
+          WalletSyncStatus.synced,
+          walletId,
+          coin,
+        ),
+      );
+
+      if (shouldAutoSync) {
+        timer ??= Timer.periodic(const Duration(seconds: 30), (timer) async {
+          Logging.instance.log(
+              "Periodic refresh check for $walletId $walletName in object instance: $hashCode",
+              level: LogLevel.Info);
+
+          await refresh();
+          GlobalEventBus.instance.fire(
+            UpdatedInBackgroundEvent(
+              "New data found in $walletId $walletName in background!",
+              walletId,
+            ),
+          );
+        });
+      }
+    } catch (e, s) {
+      Logging.instance.log(
+        "Failed to refresh stellar wallet $walletId: '$walletName': $e\n$s",
+        level: LogLevel.Warning,
+      );
+      GlobalEventBus.instance.fire(
+        WalletSyncStatusChangedEvent(
+          WalletSyncStatus.unableToSync,
+          walletId,
+          coin,
+        ),
+      );
+    }
+
+    refreshMutex = false;
   }
 
   @override
