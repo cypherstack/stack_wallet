@@ -276,13 +276,6 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   @override
-  Future<void> fullRescan(
-      int maxUnusedAddressGap, int maxNumberOfIndexesToCheck) {
-    refresh();
-    return Future.value();
-  }
-
-  @override
   Future<bool> generateNewAddress() {
     // TODO: implement generateNewAddress
     throw UnimplementedError();
@@ -321,11 +314,11 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
     final address = Address(
       walletId: walletId,
       value: newKeystore.address,
-      publicKey: [], // TODO: Add public key
+      publicKey: [],
       derivationIndex: 0,
       derivationPath: null,
       type: AddressType.unknown,
-      subType: AddressSubType.unknown,
+      subType: AddressSubType.receiving,
     );
 
     await db.putAddress(address);
@@ -369,40 +362,131 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Future<String?> get mnemonicString =>
       _secureStore.read(key: '${_walletId}_mnemonic');
 
-  @override
-  Future<void> recoverFromMnemonic(
-      {required String mnemonic,
-      String? mnemonicPassphrase,
-      required int maxUnusedAddressGap,
-      required int maxNumberOfIndexesToCheck,
-      required int height}) async {
-    if ((await mnemonicString) != null ||
-        (await this.mnemonicPassphrase) != null) {
-      throw Exception("Attempted to overwrite mnemonic on restore!");
-    }
-    await _secureStore.write(
-        key: '${_walletId}_mnemonic', value: mnemonic.trim());
-    await _secureStore.write(
-      key: '${_walletId}_mnemonicPassphrase',
-      value: mnemonicPassphrase ?? "",
+  Future<void> _recoverWalletFromSeedPhrase({
+    required String mnemonic,
+    required String mnemonicPassphrase,
+    bool isRescan = false,
+  }) async {
+    final keystore = Keystore.fromMnemonic(
+      mnemonic,
+      password: mnemonicPassphrase,
     );
 
     final address = Address(
       walletId: walletId,
-      value: Keystore.fromMnemonic(mnemonic).address,
-      publicKey: [], // TODO: Add public key
+      value: keystore.address,
+      publicKey: [],
       derivationIndex: 0,
       derivationPath: null,
       type: AddressType.unknown,
-      subType: AddressSubType.unknown,
+      subType: AddressSubType.receiving,
     );
 
-    await db.putAddress(address);
+    if (isRescan) {
+      await db.updateOrPutAddresses([address]);
+    } else {
+      await db.putAddress(address);
+    }
+  }
 
-    await Future.wait([
-      updateCachedId(walletId),
-      updateCachedIsFavorite(false),
-    ]);
+  bool longMutex = false;
+  @override
+  Future<void> fullRescan(
+    int maxUnusedAddressGap,
+    int maxNumberOfIndexesToCheck,
+  ) async {
+    try {
+      Logging.instance.log("Starting full rescan!", level: LogLevel.Info);
+      longMutex = true;
+      GlobalEventBus.instance.fire(
+        WalletSyncStatusChangedEvent(
+          WalletSyncStatus.syncing,
+          walletId,
+          coin,
+        ),
+      );
+
+      final _mnemonic = await mnemonicString;
+      final _mnemonicPassphrase = await mnemonicPassphrase;
+
+      await db.deleteWalletBlockchainData(walletId);
+
+      await _recoverWalletFromSeedPhrase(
+        mnemonic: _mnemonic!,
+        mnemonicPassphrase: _mnemonicPassphrase!,
+        isRescan: true,
+      );
+
+      await refresh();
+      Logging.instance.log("Full rescan complete!", level: LogLevel.Info);
+      GlobalEventBus.instance.fire(
+        WalletSyncStatusChangedEvent(
+          WalletSyncStatus.synced,
+          walletId,
+          coin,
+        ),
+      );
+    } catch (e, s) {
+      GlobalEventBus.instance.fire(
+        WalletSyncStatusChangedEvent(
+          WalletSyncStatus.unableToSync,
+          walletId,
+          coin,
+        ),
+      );
+
+      Logging.instance.log(
+        "Exception rethrown from fullRescan(): $e\n$s",
+        level: LogLevel.Error,
+      );
+      rethrow;
+    } finally {
+      longMutex = false;
+    }
+  }
+
+  @override
+  Future<void> recoverFromMnemonic({
+    required String mnemonic,
+    String? mnemonicPassphrase,
+    required int maxUnusedAddressGap,
+    required int maxNumberOfIndexesToCheck,
+    required int height,
+  }) async {
+    longMutex = true;
+    try {
+      if ((await mnemonicString) != null ||
+          (await this.mnemonicPassphrase) != null) {
+        throw Exception("Attempted to overwrite mnemonic on restore!");
+      }
+      await _secureStore.write(
+          key: '${_walletId}_mnemonic', value: mnemonic.trim());
+      await _secureStore.write(
+        key: '${_walletId}_mnemonicPassphrase',
+        value: mnemonicPassphrase ?? "",
+      );
+
+      await _recoverWalletFromSeedPhrase(
+        mnemonic: mnemonic,
+        mnemonicPassphrase: mnemonicPassphrase ?? "",
+        isRescan: false,
+      );
+
+      await Future.wait([
+        updateCachedId(walletId),
+        updateCachedIsFavorite(false),
+      ]);
+
+      await refresh();
+    } catch (e, s) {
+      Logging.instance.log(
+          "Exception rethrown from recoverFromMnemonic(): $e\n$s",
+          level: LogLevel.Error);
+
+      rethrow;
+    } finally {
+      longMutex = false;
+    }
   }
 
   Future<void> updateBalance() async {
@@ -438,10 +522,17 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
     for (var tx in response as List) {
       if (tx["type"] == "transaction") {
         TransactionType txType;
-        if (tx["sender"]["address"] == (await currentReceivingAddress)) {
+        final String myAddress = await currentReceivingAddress;
+        final String senderAddress = tx["sender"]["address"] as String;
+        final String targetAddress = tx["target"]["address"] as String;
+        if (senderAddress == myAddress && targetAddress == myAddress) {
+          txType = TransactionType.sentToSelf;
+        } else if (senderAddress == myAddress) {
           txType = TransactionType.outgoing;
-        } else {
+        } else if (targetAddress == myAddress) {
           txType = TransactionType.incoming;
+        } else {
+          txType = TransactionType.unknown;
         }
 
         var theTx = Transaction(
@@ -470,14 +561,25 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
           nonce: 0,
           numberOfMessages: null,
         );
-        var theAddress = Address(
+        final AddressSubType subType;
+        switch (txType) {
+          case TransactionType.incoming:
+          case TransactionType.sentToSelf:
+            subType = AddressSubType.receiving;
+            break;
+          case TransactionType.outgoing:
+          case TransactionType.unknown:
+            subType = AddressSubType.unknown;
+            break;
+        }
+        final theAddress = Address(
           walletId: walletId,
-          value: tx["target"]["address"].toString(),
-          publicKey: [], // TODO: Add public key
+          value: targetAddress,
+          publicKey: [],
           derivationIndex: 0,
           derivationPath: null,
           type: AddressType.unknown,
-          subType: AddressSubType.unknown,
+          subType: subType,
         );
         txs.add(Tuple2(theTx, theAddress));
       }
