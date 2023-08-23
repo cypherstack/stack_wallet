@@ -1,6 +1,6 @@
 import 'dart:async';
+
 import 'package:bip39/bip39.dart' as bip39;
-import 'package:http/http.dart' as http;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/balance.dart' as SWBalance;
@@ -37,7 +37,6 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
   late StellarSDK stellarSdk;
   late Network stellarNetwork;
 
-
   StellarWallet({
     required String walletId,
     required String walletName,
@@ -54,7 +53,6 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
     initCache(walletId, coin);
     initWalletDB(mockableOverride: mockableOverride);
 
-
     if (coin.isTestNet) {
       stellarNetwork = Network.TESTNET;
     } else {
@@ -66,7 +64,7 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   void _updateNode() {
     _xlmNode = NodeService(secureStorageInterface: _secureStore)
-        .getPrimaryNodeFor(coin: coin) ??
+            .getPrimaryNodeFor(coin: coin) ??
         DefaultNodes.getNodeFor(coin);
     stellarSdk = StellarSDK("${_xlmNode!.host}:${_xlmNode!.port}");
   }
@@ -212,13 +210,12 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
     }
     transaction.sign(senderKeyPair, stellarNetwork);
     try {
-      SubmitTransactionResponse response =
-          await stellarSdk.submitTransaction(transaction).onError((error, stackTrace) => throw (error.toString()));
+      SubmitTransactionResponse response = await stellarSdk
+          .submitTransaction(transaction)
+          .onError((error, stackTrace) => throw (error.toString()));
       if (!response.success) {
-        throw (
-            "${response.extras?.resultCodes?.transactionResultCode}"
-                " ::: ${response.extras?.resultCodes?.operationsResultCodes}"
-        );
+        throw ("${response.extras?.resultCodes?.transactionResultCode}"
+            " ::: ${response.extras?.resultCodes?.operationsResultCodes}");
       }
       return response.hash!;
     } catch (e, s) {
@@ -248,7 +245,8 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
     var baseFee = await getBaseFee();
-    return Amount(rawValue: BigInt.from(baseFee), fractionDigits: coin.decimals);
+    return Amount(
+        rawValue: BigInt.from(baseFee), fractionDigits: coin.decimals);
   }
 
   @override
@@ -276,7 +274,6 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<FeeObject> get fees async {
-
     int fee = await getBaseFee();
     return FeeObject(
         numberOfBlocksFast: 10,
@@ -402,7 +399,6 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
       {required String address,
       required Amount amount,
       Map<String, dynamic>? args}) async {
-
     try {
       final feeRate = args?["feeRate"];
       var fee = 1000;
@@ -433,12 +429,13 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   @override
-  Future<void> recoverFromMnemonic(
-      {required String mnemonic,
-      String? mnemonicPassphrase,
-      required int maxUnusedAddressGap,
-      required int maxNumberOfIndexesToCheck,
-      required int height}) async {
+  Future<void> recoverFromMnemonic({
+    required String mnemonic,
+    String? mnemonicPassphrase,
+    required int maxUnusedAddressGap,
+    required int maxNumberOfIndexesToCheck,
+    required int height,
+  }) async {
     if ((await mnemonicString) != null ||
         (await this.mnemonicPassphrase) != null) {
       throw Exception("Attempted to overwrite mnemonic on restore!");
