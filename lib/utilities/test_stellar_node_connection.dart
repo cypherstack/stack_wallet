@@ -3,10 +3,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:stellar_flutter_sdk/stellar_flutter_sdk.dart';
 
-Future<bool> testStellarNodeConnection(String host) async {
+Future<bool> testStellarNodeConnection(String host, int port) async {
 
   final client = http.Client();
-  Uri uri = Uri.parse(host);
+  Uri uri = Uri.parse("$host:$port");
   final response = await client.get(
     uri,
     headers: {'Content-Type': 'application/json'},

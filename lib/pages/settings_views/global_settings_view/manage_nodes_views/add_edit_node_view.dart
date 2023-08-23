@@ -194,12 +194,15 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         try {
           // await client.getSyncStatus();
         } catch (_) {}
+        break;
 
       case Coin.stellar:
       case Coin.stellarTestnet:
         try {
-          testPassed = await testStellarNodeConnection(formData.host!);
+          testPassed = await testStellarNodeConnection(formData.host!, formData.port!);
         } catch(_) {}
+        break;
+
       case Coin.nano:
       case Coin.banano:
 
