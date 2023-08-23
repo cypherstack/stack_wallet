@@ -689,10 +689,12 @@ class MockManager extends _i1.Mock implements _i6.Manager {
         returnValue: _i19.Future<bool>.value(false),
       ) as _i19.Future<bool>);
   @override
-  _i19.Future<void> initializeNew() => (super.noSuchMethod(
+  _i19.Future<void> initializeNew(
+          ({String mnemonicPassphrase, int wordCount})? data) =>
+      (super.noSuchMethod(
         Invocation.method(
           #initializeNew,
-          [],
+          [data],
         ),
         returnValue: _i19.Future<void>.value(),
         returnValueForMissingStub: _i19.Future<void>.value(),
@@ -1046,10 +1048,12 @@ class MockCoinServiceAPI extends _i1.Mock implements _i7.CoinServiceAPI {
         returnValueForMissingStub: _i19.Future<void>.value(),
       ) as _i19.Future<void>);
   @override
-  _i19.Future<void> initializeNew() => (super.noSuchMethod(
+  _i19.Future<void> initializeNew(
+          ({String mnemonicPassphrase, int wordCount})? data) =>
+      (super.noSuchMethod(
         Invocation.method(
           #initializeNew,
-          [],
+          [data],
         ),
         returnValue: _i19.Future<void>.value(),
         returnValueForMissingStub: _i19.Future<void>.value(),
@@ -1313,6 +1317,11 @@ class MockFiroWallet extends _i1.Mock implements _i23.FiroWallet {
         ),
       ) as _i13.CachedElectrumX);
   @override
+  bool get lelantusCoinIsarRescanRequired => (super.noSuchMethod(
+        Invocation.getter(#lelantusCoinIsarRescanRequired),
+        returnValue: false,
+      ) as bool);
+  @override
   bool get isRefreshing => (super.noSuchMethod(
         Invocation.getter(#isRefreshing),
         returnValue: false,
@@ -1561,14 +1570,34 @@ class MockFiroWallet extends _i1.Mock implements _i23.FiroWallet {
         returnValueForMissingStub: _i19.Future<void>.value(),
       ) as _i19.Future<void>);
   @override
-  _i19.Future<void> initializeNew() => (super.noSuchMethod(
+  _i19.Future<void> initializeNew(
+          ({String mnemonicPassphrase, int wordCount})? data) =>
+      (super.noSuchMethod(
         Invocation.method(
           #initializeNew,
+          [data],
+        ),
+        returnValue: _i19.Future<void>.value(),
+        returnValueForMissingStub: _i19.Future<void>.value(),
+      ) as _i19.Future<void>);
+  @override
+  _i19.Future<void> setLelantusCoinIsarRescanRequiredDone() =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #setLelantusCoinIsarRescanRequiredDone,
           [],
         ),
         returnValue: _i19.Future<void>.value(),
         returnValueForMissingStub: _i19.Future<void>.value(),
       ) as _i19.Future<void>);
+  @override
+  _i19.Future<bool> firoRescanRecovery() => (super.noSuchMethod(
+        Invocation.method(
+          #firoRescanRecovery,
+          [],
+        ),
+        returnValue: _i19.Future<bool>.value(false),
+      ) as _i19.Future<bool>);
   @override
   _i19.Future<void> initializeExisting() => (super.noSuchMethod(
         Invocation.method(

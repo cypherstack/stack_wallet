@@ -483,7 +483,8 @@ void main() {
       await Hive.openBox<dynamic>(testWalletId);
       await Hive.openBox<dynamic>(DB.boxNamePrefs);
 
-      await expectLater(() => doge?.initializeNew(), throwsA(isA<Exception>()))
+      await expectLater(
+              () => doge?.initializeNew(null), throwsA(isA<Exception>()))
           .then((_) {
         expect(secureStore.interactions, 2);
         verifyNever(client?.ping()).called(0);

@@ -817,10 +817,12 @@ class MockBitcoinWallet extends _i1.Mock implements _i24.BitcoinWallet {
         returnValueForMissingStub: null,
       );
   @override
-  _i21.Future<void> initializeNew() => (super.noSuchMethod(
+  _i21.Future<void> initializeNew(
+          ({String mnemonicPassphrase, int wordCount})? data) =>
+      (super.noSuchMethod(
         Invocation.method(
           #initializeNew,
-          [],
+          [data],
         ),
         returnValue: _i21.Future<void>.value(),
         returnValueForMissingStub: _i21.Future<void>.value(),

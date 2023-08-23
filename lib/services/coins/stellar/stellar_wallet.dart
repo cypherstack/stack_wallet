@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
-
-import 'package:decimal/decimal.dart';
+import 'package:bip39/bip39.dart' as bip39;
 import 'package:http/http.dart' as http;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
@@ -314,7 +312,9 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   @override
-  Future<void> initializeNew() async {
+  Future<void> initializeNew(
+    ({String mnemonicPassphrase, int wordCount})? data,
+  ) async {
     if ((await mnemonicString) != null || (await mnemonicPassphrase) != null) {
       throw Exception(
           "Attempted to overwrite mnemonic on generate new wallet!");
@@ -322,11 +322,26 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
     await _prefs.init();
 
-    String mnemonic = await Wallet.generate24WordsMnemonic();
+    final int strength;
+    if (data == null || data.wordCount == 12) {
+      strength = 128;
+    } else if (data.wordCount == 24) {
+      strength = 256;
+    } else {
+      throw Exception("Invalid word count");
+    }
+    final String mnemonic = bip39.generateMnemonic(strength: strength);
+    final String passphrase = data?.mnemonicPassphrase ?? "";
     await _secureStore.write(key: '${_walletId}_mnemonic', value: mnemonic);
-    await _secureStore.write(key: '${_walletId}_mnemonicPassphrase', value: "");
+    await _secureStore.write(
+      key: '${_walletId}_mnemonicPassphrase',
+      value: passphrase,
+    );
 
-    Wallet wallet = await Wallet.from(mnemonic);
+    Wallet wallet = await Wallet.from(
+      mnemonic,
+      passphrase: passphrase,
+    );
     KeyPair keyPair = await wallet.getKeyPair(index: 0);
     String address = keyPair.accountId;
     String secretSeed =
