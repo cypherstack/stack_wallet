@@ -141,6 +141,7 @@ dependencies:
   stellar_flutter_sdk: ^1.6.0
   fusiondart:
     path: ./fusiondart
+  bip340: ^0.2.0
 
 
 dev_dependencies:
