@@ -58,10 +58,8 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
 
     if (coin.isTestNet) {
-      stellarSdk = StellarSDK.TESTNET;
       stellarNetwork = Network.TESTNET;
     } else {
-      stellarSdk = StellarSDK.PUBLIC;
       stellarNetwork = Network.PUBLIC;
     }
 
@@ -217,10 +215,12 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
     transaction.sign(senderKeyPair, stellarNetwork);
     try {
       SubmitTransactionResponse response =
-          await stellarSdk.submitTransaction(transaction);
-
+          await stellarSdk.submitTransaction(transaction).onError((error, stackTrace) => throw (error.toString()));
       if (!response.success) {
-        throw ("Unable to send transaction");
+        throw (
+            "${response.extras?.resultCodes?.transactionResultCode}"
+                " ::: ${response.extras?.resultCodes?.operationsResultCodes}"
+        );
       }
       return response.hash!;
     } catch (e, s) {
@@ -278,13 +278,15 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<FeeObject> get fees async {
+
+    int fee = await getBaseFee();
     return FeeObject(
         numberOfBlocksFast: 10,
         numberOfBlocksAverage: 10,
         numberOfBlocksSlow: 10,
-        fast: 1,
-        medium: 1,
-        slow: 1);
+        fast: fee,
+        medium: fee,
+        slow: fee);
   }
 
   @override
@@ -481,13 +483,6 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
         // PaymentOperationResponse por;
         if (response is PaymentOperationResponse) {
           PaymentOperationResponse por = response;
-
-          Logging.instance.log(
-              "ALL TRANSACTIONS IS ${por.transactionSuccessful}",
-              level: LogLevel.Info);
-
-          Logging.instance.log("THIS TX HASH IS ${por.transactionHash}",
-              level: LogLevel.Info);
 
           SWTransaction.TransactionType type;
           if (por.sourceAccount == await getAddressSW()) {
