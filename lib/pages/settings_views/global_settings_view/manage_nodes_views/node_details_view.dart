@@ -173,6 +173,9 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
 
       case Coin.nano:
       case Coin.banano:
+      case Coin.tezos:
+        throw UnimplementedError();
+      //TODO: check network/node
       case Coin.stellar:
       case Coin.stellarTestnet:
         try {
@@ -181,11 +184,6 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
           testPassed = false;
         }
         break;
-      case Coin.nano:
-      case Coin.banano:
-      case Coin.tezos:
-        throw UnimplementedError();
-      //TODO: check network/node
     }
 
     if (testPassed) {
