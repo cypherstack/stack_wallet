@@ -263,7 +263,6 @@ extension CoinExt on Coin {
       case Coin.eCash:
       case Coin.stellar:
       case Coin.stellarTestnet:
-      case Coin.tezos:
         return true;
 
       case Coin.epicCash:
@@ -271,6 +270,7 @@ extension CoinExt on Coin {
       case Coin.wownero:
       case Coin.nano:
       case Coin.banano:
+      case Coin.tezos:
         return false;
     }
   }
