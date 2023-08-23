@@ -1,6 +1,6 @@
 import 'dart:async';
+
 import 'package:bip39/bip39.dart' as bip39;
-import 'package:http/http.dart' as http;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/balance.dart' as SWBalance;
@@ -28,6 +28,7 @@ import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/utilities/test_stellar_node_connection.dart';
 import 'package:stellar_flutter_sdk/stellar_flutter_sdk.dart';
 import 'package:tuple/tuple.dart';
 
@@ -36,7 +37,6 @@ const int MINIMUM_CONFIRMATIONS = 1;
 class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
   late StellarSDK stellarSdk;
   late Network stellarNetwork;
-
 
   StellarWallet({
     required String walletId,
@@ -54,7 +54,6 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
     initCache(walletId, coin);
     initWalletDB(mockableOverride: mockableOverride);
 
-
     if (coin.isTestNet) {
       stellarNetwork = Network.TESTNET;
     } else {
@@ -66,7 +65,7 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   void _updateNode() {
     _xlmNode = NodeService(secureStorageInterface: _secureStore)
-        .getPrimaryNodeFor(coin: coin) ??
+            .getPrimaryNodeFor(coin: coin) ??
         DefaultNodes.getNodeFor(coin);
     stellarSdk = StellarSDK("${_xlmNode!.host}:${_xlmNode!.port}");
   }
@@ -212,13 +211,12 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
     }
     transaction.sign(senderKeyPair, stellarNetwork);
     try {
-      SubmitTransactionResponse response =
-          await stellarSdk.submitTransaction(transaction).onError((error, stackTrace) => throw (error.toString()));
+      SubmitTransactionResponse response = await stellarSdk
+          .submitTransaction(transaction)
+          .onError((error, stackTrace) => throw (error.toString()));
       if (!response.success) {
-        throw (
-            "${response.extras?.resultCodes?.transactionResultCode}"
-                " ::: ${response.extras?.resultCodes?.operationsResultCodes}"
-        );
+        throw ("${response.extras?.resultCodes?.transactionResultCode}"
+            " ::: ${response.extras?.resultCodes?.operationsResultCodes}");
       }
       return response.hash!;
     } catch (e, s) {
@@ -248,7 +246,8 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
     var baseFee = await getBaseFee();
-    return Amount(rawValue: BigInt.from(baseFee), fractionDigits: coin.decimals);
+    return Amount(
+        rawValue: BigInt.from(baseFee), fractionDigits: coin.decimals);
   }
 
   @override
@@ -276,7 +275,6 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<FeeObject> get fees async {
-
     int fee = await getBaseFee();
     return FeeObject(
         numberOfBlocksFast: 10,
@@ -289,16 +287,62 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<void> fullRescan(
-      int maxUnusedAddressGap, int maxNumberOfIndexesToCheck) async {
-    await _prefs.init();
-    await updateTransactions();
-    await updateChainHeight();
-    await updateBalance();
+    int maxUnusedAddressGap,
+    int maxNumberOfIndexesToCheck,
+  ) async {
+    try {
+      Logging.instance.log("Starting full rescan!", level: LogLevel.Info);
+      longMutex = true;
+      GlobalEventBus.instance.fire(
+        WalletSyncStatusChangedEvent(
+          WalletSyncStatus.syncing,
+          walletId,
+          coin,
+        ),
+      );
+
+      final _mnemonic = await mnemonicString;
+      final _mnemonicPassphrase = await mnemonicPassphrase;
+
+      await db.deleteWalletBlockchainData(walletId);
+
+      await _recoverWalletFromBIP32SeedPhrase(
+        mnemonic: _mnemonic!,
+        mnemonicPassphrase: _mnemonicPassphrase!,
+        isRescan: true,
+      );
+
+      await refresh();
+      Logging.instance.log("Full rescan complete!", level: LogLevel.Info);
+      GlobalEventBus.instance.fire(
+        WalletSyncStatusChangedEvent(
+          WalletSyncStatus.synced,
+          walletId,
+          coin,
+        ),
+      );
+    } catch (e, s) {
+      GlobalEventBus.instance.fire(
+        WalletSyncStatusChangedEvent(
+          WalletSyncStatus.unableToSync,
+          walletId,
+          coin,
+        ),
+      );
+
+      Logging.instance.log(
+        "Exception rethrown from fullRescan(): $e\n$s",
+        level: LogLevel.Error,
+      );
+      rethrow;
+    } finally {
+      longMutex = false;
+    }
   }
 
   @override
   Future<bool> generateNewAddress() {
-    // TODO: implement generateNewAddress
+    // not used for stellar(?)
     throw UnimplementedError();
   }
 
@@ -402,7 +446,6 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
       {required String address,
       required Amount amount,
       Map<String, dynamic>? args}) async {
-
     try {
       final feeRate = args?["feeRate"];
       var fee = 1000;
@@ -432,44 +475,87 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
     }
   }
 
-  @override
-  Future<void> recoverFromMnemonic(
-      {required String mnemonic,
-      String? mnemonicPassphrase,
-      required int maxUnusedAddressGap,
-      required int maxNumberOfIndexesToCheck,
-      required int height}) async {
-    if ((await mnemonicString) != null ||
-        (await this.mnemonicPassphrase) != null) {
-      throw Exception("Attempted to overwrite mnemonic on restore!");
-    }
-
-    var wallet = await Wallet.from(mnemonic);
-    var keyPair = await wallet.getKeyPair(index: 0);
-    var address = keyPair.accountId;
-    var secretSeed = keyPair.secretSeed;
-
-    await _secureStore.write(
-        key: '${_walletId}_mnemonic', value: mnemonic.trim());
-    await _secureStore.write(
-      key: '${_walletId}_mnemonicPassphrase',
-      value: mnemonicPassphrase ?? "",
+  Future<void> _recoverWalletFromBIP32SeedPhrase({
+    required String mnemonic,
+    required String mnemonicPassphrase,
+    bool isRescan = false,
+  }) async {
+    final Wallet wallet = await Wallet.from(
+      mnemonic,
+      passphrase: mnemonicPassphrase,
     );
-    await _secureStore.write(key: '${_walletId}_secretSeed', value: secretSeed);
+    final KeyPair keyPair = await wallet.getKeyPair(index: 0);
+    final String address = keyPair.accountId;
+    String secretSeed =
+        keyPair.secretSeed; //This will be required for sending a tx
+
+    await _secureStore.write(
+      key: '${_walletId}_secretSeed',
+      value: secretSeed,
+    );
 
     final swAddress = SWAddress.Address(
-        walletId: walletId,
-        value: address,
-        publicKey: keyPair.publicKey,
-        derivationIndex: 0,
-        derivationPath: null,
-        type: SWAddress.AddressType.unknown, // TODO: set type
-        subType: SWAddress.AddressSubType.unknown);
+      walletId: walletId,
+      value: address,
+      publicKey: keyPair.publicKey,
+      derivationIndex: 0,
+      derivationPath: null,
+      type: SWAddress.AddressType.unknown,
+      subType: SWAddress.AddressSubType.unknown,
+    );
 
-    await db.putAddress(swAddress);
+    if (isRescan) {
+      await db.updateOrPutAddresses([swAddress]);
+    } else {
+      await db.putAddress(swAddress);
+    }
+  }
 
-    await Future.wait(
-        [updateCachedId(walletId), updateCachedIsFavorite(false)]);
+  bool longMutex = false;
+
+  @override
+  Future<void> recoverFromMnemonic({
+    required String mnemonic,
+    String? mnemonicPassphrase,
+    required int maxUnusedAddressGap,
+    required int maxNumberOfIndexesToCheck,
+    required int height,
+  }) async {
+    longMutex = true;
+    try {
+      if ((await mnemonicString) != null ||
+          (await this.mnemonicPassphrase) != null) {
+        throw Exception("Attempted to overwrite mnemonic on restore!");
+      }
+
+      await _secureStore.write(
+        key: '${_walletId}_mnemonic',
+        value: mnemonic.trim(),
+      );
+      await _secureStore.write(
+        key: '${_walletId}_mnemonicPassphrase',
+        value: mnemonicPassphrase ?? "",
+      );
+
+      await _recoverWalletFromBIP32SeedPhrase(
+        mnemonic: mnemonic,
+        mnemonicPassphrase: mnemonicPassphrase ?? "",
+        isRescan: false,
+      );
+
+      await Future.wait([
+        updateCachedId(walletId),
+        updateCachedIsFavorite(false),
+      ]);
+    } catch (e, s) {
+      Logging.instance.log(
+          "Exception rethrown from recoverFromMnemonic(): $e\n$s",
+          level: LogLevel.Error);
+
+      rethrow;
+    } finally {
+      longMutex = false;
+    }
   }
 
   Future<void> updateChainHeight() async {
@@ -625,6 +711,7 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
       Logging.instance.log(
           "Exception rethrown from updateTransactions(): $e\n$s",
           level: LogLevel.Error);
+      rethrow;
     }
   }
 
@@ -662,6 +749,7 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
         "ERROR GETTING BALANCE $e\n$s",
         level: LogLevel.Info,
       );
+      rethrow;
     }
   }
 
@@ -736,9 +824,8 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
   int get storedChainHeight => getCachedChainHeight();
 
   @override
-  Future<bool> testNetworkConnection() {
-    // TODO: implement testNetworkConnection
-    throw UnimplementedError();
+  Future<bool> testNetworkConnection() async {
+    return await testStellarNodeConnection(_xlmNode!.host, _xlmNode!.port);
   }
 
   @override
@@ -789,7 +876,7 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   @override
-  // TODO: implement utxos
+  // not used
   Future<List<UTXO>> get utxos => throw UnimplementedError();
 
   @override

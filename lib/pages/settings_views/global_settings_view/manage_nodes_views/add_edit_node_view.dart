@@ -195,19 +195,19 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           // await client.getSyncStatus();
         } catch (_) {}
         break;
-
       case Coin.stellar:
       case Coin.stellarTestnet:
         try {
-          testPassed = await testStellarNodeConnection(formData.host!, formData.port!);
-        } catch(_) {}
+          testPassed =
+              await testStellarNodeConnection(formData.host!, formData.port!);
+        } catch (_) {}
         break;
 
       case Coin.nano:
       case Coin.banano:
-
+      case Coin.tezos:
         throw UnimplementedError();
-        //TODO: check network/node
+      //TODO: check network/node
     }
 
     if (showFlushBar && mounted) {
@@ -738,6 +738,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       case Coin.namecoin:
       case Coin.bitcoincash:
       case Coin.particl:
+      case Coin.tezos:
       case Coin.bitcoinTestNet:
       case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:

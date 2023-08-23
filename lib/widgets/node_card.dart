@@ -193,19 +193,19 @@ class _NodeCardState extends ConsumerState<NodeCard> {
         }
         break;
 
+      case Coin.nano:
+      case Coin.banano:
+      case Coin.tezos:
+        //TODO: check network/node
+        throw UnimplementedError();
       case Coin.stellar:
       case Coin.stellarTestnet:
         try {
           testPassed = await testStellarNodeConnection(node.host, node.port);
-        } catch(_) {
+        } catch (_) {
           testPassed = false;
         }
         break;
-
-      case Coin.nano:
-      case Coin.banano:
-        throw UnimplementedError();
-        //TODO: check network/node
     }
 
     if (testPassed) {

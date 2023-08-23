@@ -171,19 +171,19 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
         }
         break;
 
-      case Coin.stellar:
-      case Coin.stellarTestnet:
-      try {
-        testPassed = await testStellarNodeConnection(node!.host, node.port);
-      } catch(_) {
-        testPassed = false;
-      }
-        break;
       case Coin.nano:
       case Coin.banano:
-
+      case Coin.tezos:
         throw UnimplementedError();
-        //TODO: check network/node
+      //TODO: check network/node
+      case Coin.stellar:
+      case Coin.stellarTestnet:
+        try {
+          testPassed = await testStellarNodeConnection(node!.host, node.port);
+        } catch (_) {
+          testPassed = false;
+        }
+        break;
     }
 
     if (testPassed) {

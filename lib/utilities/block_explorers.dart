@@ -1,6 +1,6 @@
-/* 
+/*
  * This file is part of Stack Wallet.
- * 
+ *
  * Copyright (c) 2023 Cypher Stack
  * All Rights Reserved.
  * The code is distributed under GPLv3 license, see LICENSE file for details.
@@ -62,6 +62,8 @@ Uri getDefaultBlockExplorerUrlFor({
       return Uri.parse("https://www.bananolooker.com/block/$txid");
     case Coin.stellarTestnet:
       return Uri.parse("https://testnet.stellarchain.io/transactions/$txid");
+    case Coin.tezos:
+      return Uri.parse("https://tzstats.com/$txid");
   }
 }
 

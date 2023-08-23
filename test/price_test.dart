@@ -28,7 +28,8 @@ void main() {
         Uri.parse(
             "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc&ids"
             "=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,bitcoin-cash"
-            ",namecoin,wownero,ethereum,particl,nano,banano,stellar&order=market_cap_desc&per_page=50"
+            ",namecoin,wownero,ethereum,particl,nano,banano,stellar,tezos"
+            "&order=market_cap_desc&per_page=50"
             "&page=1&sparkline=false"),
         headers: {
           'Content-Type': 'application/json'
@@ -114,6 +115,7 @@ void main() {
       'Coin.nano: [0, 0.0], '
       'Coin.particl: [0, 0.0], '
       'Coin.stellar: [0, 0.0], '
+      'Coin.tezos: [0, 0.0], '
       'Coin.wownero: [0, 0.0], '
       'Coin.bitcoinTestNet: [0, 0.0], '
       'Coin.bitcoincashTestnet: [0, 0.0], '
@@ -128,6 +130,7 @@ void main() {
           "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc"
           "&ids=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
           "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano,stellar"
+          ",tezos"
           "&order=market_cap_desc&per_page=50&page=1&sparkline=false",
         ),
         headers: {'Content-Type': 'application/json'})).called(1);
@@ -143,6 +146,7 @@ void main() {
             "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc&"
             "ids=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
             "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano,stellar"
+            ",tezos"
             "&order=market_cap_desc&per_page=50&page=1&sparkline=false"),
         headers: {
           'Content-Type': 'application/json'
@@ -228,7 +232,10 @@ void main() {
       'Coin.firo: [0.0001096, -0.89304], '
       'Coin.litecoin: [0, 0.0], '
       'Coin.namecoin: [0, 0.0], '
-      'Coin.nano: [0, 0.0], Coin.particl: [0, 0.0], Coin.stellar: [0, 0.0], '
+      'Coin.nano: [0, 0.0], '
+      'Coin.particl: [0, 0.0], '
+      'Coin.stellar: [0, 0.0], '
+      'Coin.tezos: [0, 0.0], '
       'Coin.wownero: [0, 0.0], '
       'Coin.bitcoinTestNet: [0, 0.0], '
       'Coin.bitcoincashTestnet: [0, 0.0], Coin.dogecoinTestNet: [0, 0.0], '
@@ -244,6 +251,7 @@ void main() {
             "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc&ids"
             "=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
             "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano,stellar"
+            ",tezos"
             "&order=market_cap_desc&per_page=50&page=1&sparkline=false"),
         headers: {'Content-Type': 'application/json'})).called(1);
 
@@ -258,6 +266,7 @@ void main() {
             "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc"
             "&ids=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
             "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano,stellar"
+            ",tezos"
             "&order=market_cap_desc&per_page=50&page=1&sparkline=false"),
         headers: {
           'Content-Type': 'application/json'
@@ -343,6 +352,7 @@ void main() {
       'Coin.nano: [0, 0.0], '
       'Coin.particl: [0, 0.0], '
       'Coin.stellar: [0, 0.0], '
+      'Coin.tezos: [0, 0.0], '
       'Coin.wownero: [0, 0.0], '
       'Coin.bitcoinTestNet: [0, 0.0], '
       'Coin.bitcoincashTestnet: [0, 0.0], '
@@ -362,6 +372,7 @@ void main() {
             "https://api.coingecko.com/api/v3/coins/markets?vs_currency=btc"
             "&ids=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
             "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano,stellar"
+            ",tezos"
             "&order=market_cap_desc&per_page=50&page=1&sparkline=false"),
         headers: {
           'Content-Type': 'application/json'
@@ -390,6 +401,7 @@ void main() {
       'Coin.nano: [0, 0.0], '
       'Coin.particl: [0, 0.0], '
       'Coin.stellar: [0, 0.0], '
+      'Coin.tezos: [0, 0.0], '
       'Coin.wownero: [0, 0.0], '
       'Coin.bitcoinTestNet: [0, 0.0], '
       'Coin.bitcoincashTestnet: [0, 0.0], '
