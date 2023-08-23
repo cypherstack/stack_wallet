@@ -330,9 +330,6 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
         ),
       );
 
-      // restore from backup
-      // await _rescanRestore();
-
       Logging.instance.log(
         "Exception rethrown from fullRescan(): $e\n$s",
         level: LogLevel.Error,
