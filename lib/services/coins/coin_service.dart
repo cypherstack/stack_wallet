@@ -348,7 +348,9 @@ abstract class CoinServiceAPI {
     required int height,
   });
 
-  Future<void> initializeNew();
+  Future<void> initializeNew(
+    ({String mnemonicPassphrase, int wordCount})? data,
+  );
   Future<void> initializeExisting();
 
   Future<void> exit();

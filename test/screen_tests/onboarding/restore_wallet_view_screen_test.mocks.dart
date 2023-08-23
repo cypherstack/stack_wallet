@@ -612,10 +612,12 @@ class MockManager extends _i1.Mock implements _i13.Manager {
         returnValue: _i9.Future<bool>.value(false),
       ) as _i9.Future<bool>);
   @override
-  _i9.Future<void> initializeNew() => (super.noSuchMethod(
+  _i9.Future<void> initializeNew(
+          ({String mnemonicPassphrase, int wordCount})? data) =>
+      (super.noSuchMethod(
         Invocation.method(
           #initializeNew,
-          [],
+          [data],
         ),
         returnValue: _i9.Future<void>.value(),
         returnValueForMissingStub: _i9.Future<void>.value(),
