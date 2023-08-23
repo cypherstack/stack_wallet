@@ -288,9 +288,8 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
                   RoundedWhiteContainer(
                     child: Center(
                       child: Text(
-                        "You may protect the wallet seed with an optional passphrase. "
-                        "If you lose this passphrase you will not be able "
-                        "to restore using just your seed words.",
+                        "You may add a BIP39 passphrase. This is optional. "
+                        "You will need BOTH you seed and your passphrase to recover the wallet.",
                         style: Util.isDesktop
                             ? STextStyles.desktopTextExtraSmall(context)
                                 .copyWith(
@@ -322,7 +321,7 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
                       enableSuggestions: false,
                       autocorrect: false,
                       decoration: standardInputDecoration(
-                        "Recovery phrase password",
+                        "BIP39 passphrase",
                         passwordFocusNode,
                         context,
                       ).copyWith(

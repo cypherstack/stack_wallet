@@ -113,7 +113,7 @@ class _VerifyMnemonicPassphraseDialogState
           children: [
             if (!Util.isDesktop)
               Text(
-                "Verify mnemonic passphrase",
+                "Verify BIP39 passphrase",
                 style: STextStyles.pageTitleH2(context),
               ),
             const SizedBox(
@@ -136,7 +136,7 @@ class _VerifyMnemonicPassphraseDialogState
                 enableSuggestions: false,
                 autocorrect: false,
                 decoration: standardInputDecoration(
-                  "Recovery phrase password",
+                  "Enter your BIP39 passphrase",
                   passwordFocusNode,
                   context,
                 ).copyWith(
