@@ -196,10 +196,11 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         } catch (_) {}
         break;
       case Coin.stellar:
-      case Coin.stellarTestnet:
+      case Coin.stellarTestNet:
         try {
-          testPassed = await testStellarNodeConnection(formData.host!, formData.port!);
-        } catch(_) {}
+          testPassed =
+              await testStellarNodeConnection(formData.host!, formData.port!);
+        } catch (_) {}
         break;
 
       case Coin.nano:
@@ -749,7 +750,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       case Coin.banano:
       case Coin.eCash:
       case Coin.stellar:
-      case Coin.stellarTestnet:
+      case Coin.stellarTestNet:
         return false;
 
       case Coin.ethereum:

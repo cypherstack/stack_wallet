@@ -26,6 +26,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
 import 'package:stackwallet/utilities/test_eth_node_connection.dart';
 import 'package:stackwallet/utilities/test_monero_node_connection.dart';
+import 'package:stackwallet/utilities/test_stellar_node_connection.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -172,20 +173,19 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
 
       case Coin.nano:
       case Coin.banano:
-      case Coin.tezos:
       case Coin.stellar:
       case Coin.stellarTestNet:
-      try {
-        testPassed = await testStellarNodeConnection(node!.host, node.port);
-      } catch(_) {
-        testPassed = false;
-      }
+        try {
+          testPassed = await testStellarNodeConnection(node!.host, node.port);
+        } catch (_) {
+          testPassed = false;
+        }
         break;
       case Coin.nano:
       case Coin.banano:
-
+      case Coin.tezos:
         throw UnimplementedError();
-        //TODO: check network/node
+      //TODO: check network/node
     }
 
     if (testPassed) {

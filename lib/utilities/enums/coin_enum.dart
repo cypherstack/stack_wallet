@@ -262,7 +262,8 @@ extension CoinExt on Coin {
       case Coin.ethereum:
       case Coin.eCash:
       case Coin.stellar:
-      case Coin.stellarTestnet:
+      case Coin.stellarTestNet:
+      case Coin.tezos:
         return true;
 
       case Coin.epicCash:
