@@ -186,16 +186,14 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
     try {
-
       final amount = txData["recipientAmt"] as Amount;
-      final amountInMicroTez =
-          amount.decimal * Decimal.fromInt(1000000);
+      final amountInMicroTez = amount.decimal * Decimal.fromInt(1000000);
       final microtezToInt = int.parse(amountInMicroTez.toString());
 
       final int feeInMicroTez = int.parse(txData["fee"].toString());
       final String destinationAddress = txData["address"] as String;
-      final secretKey = Keystore.fromMnemonic((await mnemonicString)!)
-          .secretKey;
+      final secretKey =
+          Keystore.fromMnemonic((await mnemonicString)!).secretKey;
 
       Logging.instance.log(secretKey, level: LogLevel.Info);
       final sourceKeyStore = Keystore.fromSecretKey(secretKey);
@@ -208,9 +206,9 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
       if (balance.spendable == txData["recipientAmt"] as Amount) {
         //Fee guides for emptying a tz account
         // https://github.com/TezTech/eztz/blob/master/PROTO_004_FEES.md
-         thisFee = thisFee + 32;
-         sendAmount = microtezToInt - thisFee;
-         gasLimit = _gasLimit + 320;
+        thisFee = thisFee + 32;
+        sendAmount = microtezToInt - thisFee;
+        gasLimit = _gasLimit + 320;
       }
 
       final operation = await client.transferOperation(
@@ -218,8 +216,7 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
           destination: destinationAddress,
           amount: sendAmount,
           customFee: feeInMicroTez,
-          customGasLimit: gasLimit
-      );
+          customGasLimit: gasLimit);
       await operation.executeAndMonitor();
       return operation.result.id as String;
     } catch (e) {
@@ -239,7 +236,6 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
-
     var api = "https://api.tzstats.com/series/op?start_date=today&collapse=1d";
     var response = jsonDecode((await get(Uri.parse(api))).body)[0];
     double totalFees = response[4] as double;
@@ -300,7 +296,9 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   @override
-  Future<void> initializeNew() async {
+  Future<void> initializeNew(
+    ({String mnemonicPassphrase, int wordCount})? data,
+  ) async {
     if ((await mnemonicString) != null || (await mnemonicPassphrase) != null) {
       throw Exception(
           "Attempted to overwrite mnemonic on generate new wallet!");
@@ -409,7 +407,8 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
     try {
       String balanceCall = "https://api.mainnet.tzkt.io/v1/accounts/"
           "${await currentReceivingAddress}/balance";
-      var response = jsonDecode(await get(Uri.parse(balanceCall)).then((value) => value.body));
+      var response = jsonDecode(
+          await get(Uri.parse(balanceCall)).then((value) => value.body));
       Amount balanceInAmount = Amount(
           rawValue: BigInt.parse(response.toString()),
           fractionDigits: coin.decimals);
@@ -431,7 +430,8 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Future<void> updateTransactions() async {
     String transactionsCall = "https://api.mainnet.tzkt.io/v1/accounts/"
         "${await currentReceivingAddress}/operations";
-    var response = jsonDecode(await get(Uri.parse(transactionsCall)).then((value) => value.body));
+    var response = jsonDecode(
+        await get(Uri.parse(transactionsCall)).then((value) => value.body));
     List<Tuple2<Transaction, Address>> txs = [];
     for (var tx in response as List) {
       if (tx["type"] == "transaction") {
@@ -446,18 +446,16 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
           walletId: walletId,
           txid: tx["hash"].toString(),
           timestamp: DateTime.parse(tx["timestamp"].toString())
-              .toUtc()
-              .millisecondsSinceEpoch ~/
+                  .toUtc()
+                  .millisecondsSinceEpoch ~/
               1000,
           type: txType,
           subType: TransactionSubType.none,
           amount: tx["amount"] as int,
           amountString: Amount(
-              rawValue: BigInt.parse(
-                  (tx["amount"] as int)
-                      .toInt()
-                      .toString()),
-              fractionDigits: coin.decimals)
+                  rawValue:
+                      BigInt.parse((tx["amount"] as int).toInt().toString()),
+                  fractionDigits: coin.decimals)
               .toJsonString(),
           fee: tx["bakerFee"] as int,
           height: int.parse(tx["level"].toString()),
@@ -561,14 +559,14 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
     );
 
     final address = txData["address"] is String
-          ? await db.getAddress(walletId, txData["address"] as String)
-          : null;
+        ? await db.getAddress(walletId, txData["address"] as String)
+        : null;
 
     await db.addNewTransactionData(
-        [
+      [
         Tuple2(transaction, address),
-        ],
-        walletId,
+      ],
+      walletId,
     );
   }
 
