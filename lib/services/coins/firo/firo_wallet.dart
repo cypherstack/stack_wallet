@@ -21,6 +21,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 import 'package:lelantus/lelantus.dart';
+import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
@@ -1169,6 +1170,11 @@ class FiroWallet extends CoinServiceAPI
     required Amount amount,
     Map<String, dynamic>? args,
   }) async {
+    if (amount.raw > BigInt.from(MINT_LIMIT)) {
+      throw Exception(
+          "Lelantus sends of more than 5001 are currently disabled");
+    }
+
     try {
       // check for send all
       bool isSendAll = false;
@@ -1869,7 +1875,9 @@ class FiroWallet extends CoinServiceAPI
   }
 
   @override
-  Future<void> initializeNew() async {
+  Future<void> initializeNew(
+    ({String mnemonicPassphrase, int wordCount})? data,
+  ) async {
     Logging.instance
         .log("Generating new ${coin.prettyName} wallet.", level: LogLevel.Info);
 
@@ -1880,7 +1888,7 @@ class FiroWallet extends CoinServiceAPI
 
     await _prefs.init();
     try {
-      await _generateNewWallet();
+      await _generateNewWallet(data);
     } catch (e, s) {
       Logging.instance.log("Exception rethrown from initializeNew(): $e\n$s",
           level: LogLevel.Fatal);
@@ -1890,14 +1898,44 @@ class FiroWallet extends CoinServiceAPI
     await Future.wait([
       updateCachedId(walletId),
       updateCachedIsFavorite(false),
+      setLelantusCoinIsarRescanRequiredDone(),
     ]);
+  }
+
+  static const String _lelantusCoinIsarRescanRequired =
+      "lelantusCoinIsarRescanRequired";
+
+  Future<void> setLelantusCoinIsarRescanRequiredDone() async {
+    await DB.instance.put<dynamic>(
+      boxName: walletId,
+      key: _lelantusCoinIsarRescanRequired,
+      value: false,
+    );
+  }
+
+  bool get lelantusCoinIsarRescanRequired =>
+      DB.instance.get(
+        boxName: walletId,
+        key: _lelantusCoinIsarRescanRequired,
+      ) as bool? ??
+      true;
+
+  Future<bool> firoRescanRecovery() async {
+    try {
+      await fullRescan(50, 1000);
+      await setLelantusCoinIsarRescanRequiredDone();
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   @override
   Future<void> initializeExisting() async {
     Logging.instance.log(
-        "initializeExisting() $_walletId ${coin.prettyName} wallet.",
-        level: LogLevel.Info);
+      "initializeExisting() $_walletId ${coin.prettyName} wallet.",
+      level: LogLevel.Info,
+    );
 
     if (getCachedId() == null) {
       throw Exception(
@@ -2088,7 +2126,9 @@ class FiroWallet extends CoinServiceAPI
   }
 
   /// Generates initial wallet values such as mnemonic, chain (receive/change) arrays and indexes.
-  Future<void> _generateNewWallet() async {
+  Future<void> _generateNewWallet(
+    ({String mnemonicPassphrase, int wordCount})? data,
+  ) async {
     Logging.instance
         .log("IS_INTEGRATION_TEST: $integrationTestFlag", level: LogLevel.Info);
     if (!integrationTestFlag) {
@@ -2122,12 +2162,20 @@ class FiroWallet extends CoinServiceAPI
       longMutex = false;
       throw Exception("Attempted to overwrite mnemonic on initialize new!");
     }
+    final int strength;
+    if (data == null || data.wordCount == 12) {
+      strength = 128;
+    } else if (data.wordCount == 24) {
+      strength = 256;
+    } else {
+      throw Exception("Invalid word count");
+    }
     await _secureStore.write(
         key: '${_walletId}_mnemonic',
-        value: bip39.generateMnemonic(strength: 128));
+        value: bip39.generateMnemonic(strength: strength));
     await _secureStore.write(
       key: '${_walletId}_mnemonicPassphrase',
-      value: "",
+      value: data?.mnemonicPassphrase ?? "",
     );
 
     // Generate and add addresses to relevant arrays
@@ -2510,6 +2558,11 @@ class FiroWallet extends CoinServiceAPI
   }
 
   Future<List<Map<String, dynamic>>> createMintsFromAmount(int total) async {
+    if (total > MINT_LIMIT) {
+      throw Exception(
+          "Lelantus mints of more than 5001 are currently disabled");
+    }
+
     int tmpTotal = total;
     int counter = 0;
     final lastUsedIndex = await db.getHighestUsedMintIndex(walletId: walletId);
@@ -3591,6 +3644,81 @@ class FiroWallet extends CoinServiceAPI
 
         txnsData.add(Tuple2(tx, transactionAddress));
 
+        // Master node payment =====================================
+      } else if (inputList.length == 1 &&
+          inputList.first["coinbase"] is String) {
+        List<isar_models.Input> ins = [
+          isar_models.Input(
+            txid: inputList.first["coinbase"] as String,
+            vout: -1,
+            scriptSig: null,
+            scriptSigAsm: null,
+            isCoinbase: true,
+            sequence: inputList.first['sequence'] as int?,
+            innerRedeemScriptAsm: null,
+          ),
+        ];
+
+        // parse outputs
+        List<isar_models.Output> outs = [];
+        for (final output in outputList) {
+          // get value
+          final value = Amount.fromDecimal(
+            Decimal.parse(output["value"].toString()),
+            fractionDigits: coin.decimals,
+          );
+
+          // get output address
+          final address = output["scriptPubKey"]?["addresses"]?[0] as String? ??
+              output["scriptPubKey"]?["address"] as String?;
+          if (address != null) {
+            outputAddresses.add(address);
+
+            // if output was to my wallet, add value to amount received
+            if (receivingAddresses.contains(address)) {
+              amountReceivedInWallet += value;
+            }
+          }
+
+          outs.add(
+            isar_models.Output(
+              scriptPubKey: output['scriptPubKey']?['hex'] as String?,
+              scriptPubKeyAsm: output['scriptPubKey']?['asm'] as String?,
+              scriptPubKeyType: output['scriptPubKey']?['type'] as String?,
+              scriptPubKeyAddress: address ?? "",
+              value: value.raw.toInt(),
+            ),
+          );
+        }
+
+        // this is the address initially used to fetch the txid
+        isar_models.Address transactionAddress =
+            txObject["address"] as isar_models.Address;
+
+        final tx = isar_models.Transaction(
+          walletId: walletId,
+          txid: txObject["txid"] as String,
+          timestamp: txObject["blocktime"] as int? ??
+              (DateTime.now().millisecondsSinceEpoch ~/ 1000),
+          type: isar_models.TransactionType.incoming,
+          subType: isar_models.TransactionSubType.none,
+          // amount may overflow. Deprecated. Use amountString
+          amount: amountReceivedInWallet.raw.toInt(),
+          amountString: amountReceivedInWallet.toJsonString(),
+          fee: 0,
+          height: txObject["height"] as int?,
+          isCancelled: false,
+          isLelantus: false,
+          slateId: null,
+          otherData: null,
+          nonce: null,
+          inputs: ins,
+          outputs: outs,
+          numberOfMessages: null,
+        );
+
+        txnsData.add(Tuple2(tx, transactionAddress));
+
         // Assume non lelantus transaction =====================================
       } else {
         // parse inputs
@@ -4088,6 +4216,7 @@ class FiroWallet extends CoinServiceAPI
         maxNumberOfIndexesToCheck,
         false,
       );
+      await setLelantusCoinIsarRescanRequiredDone();
 
       await compute(
         _setTestnetWrapper,

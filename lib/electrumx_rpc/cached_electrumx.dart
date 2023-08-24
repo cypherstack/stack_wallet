@@ -9,6 +9,7 @@
  */
 
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
@@ -157,7 +158,6 @@ class CachedElectrumX {
 
   Future<List<String>> getUsedCoinSerials({
     required Coin coin,
-    int startNumber = 0,
   }) async {
     try {
       final box = await DB.instance.getUsedSerialsCacheBox(coin: coin);
@@ -167,8 +167,8 @@ class CachedElectrumX {
       Set<String> cachedSerials =
           _list == null ? {} : List<String>.from(_list).toSet();
 
-      // startNumber is broken currently
-      final startNumber = 0; // cachedSerials.length;
+      final startNumber =
+          max(0, cachedSerials.length - 100); // 100 being some arbitrary buffer
 
       final serials = await electrumXClient.getUsedCoinSerials(
         startNumber: startNumber,

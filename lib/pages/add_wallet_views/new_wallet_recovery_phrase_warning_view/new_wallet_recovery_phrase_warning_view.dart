@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:stackwallet/pages/add_wallet_views/new_wallet_options/new_wallet_options_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/new_wallet_recovery_phrase_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_warning_view/recovery_phrase_explanation_dialog.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
@@ -38,7 +39,7 @@ import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
 
-class NewWalletRecoveryPhraseWarningView extends StatefulWidget {
+class NewWalletRecoveryPhraseWarningView extends ConsumerStatefulWidget {
   const NewWalletRecoveryPhraseWarningView({
     Key? key,
     required this.coin,
@@ -51,12 +52,12 @@ class NewWalletRecoveryPhraseWarningView extends StatefulWidget {
   final String walletName;
 
   @override
-  State<NewWalletRecoveryPhraseWarningView> createState() =>
+  ConsumerState<NewWalletRecoveryPhraseWarningView> createState() =>
       _NewWalletRecoveryPhraseWarningViewState();
 }
 
 class _NewWalletRecoveryPhraseWarningViewState
-    extends State<NewWalletRecoveryPhraseWarningView> {
+    extends ConsumerState<NewWalletRecoveryPhraseWarningView> {
   late final Coin coin;
   late final String walletName;
   late final bool isDesktop;
@@ -72,6 +73,10 @@ class _NewWalletRecoveryPhraseWarningViewState
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
+    final options = ref.read(pNewWalletOptions.state).state;
+
+    final seedCount = options?.mnemonicWordsCount ??
+        Constants.defaultSeedPhraseLengthFor(coin: coin);
 
     return MasterScaffold(
       isDesktop: isDesktop,
@@ -172,7 +177,7 @@ class _NewWalletRecoveryPhraseWarningViewState
               child: isDesktop
                   ? Text(
                       "On the next screen you will see "
-                      "${Constants.defaultSeedPhraseLengthFor(coin: coin)} "
+                      "$seedCount "
                       "words that make up your recovery phrase.\n\nPlease "
                       "write it down. Keep it safe and never share it with "
                       "anyone. Your recovery phrase is the only way you can"
@@ -216,9 +221,7 @@ class _NewWalletRecoveryPhraseWarningViewState
                                 ),
                               ),
                               TextSpan(
-                                text:
-                                    "${Constants.defaultSeedPhraseLengthFor(coin: coin)}"
-                                    " words",
+                                text: "$seedCount words",
                                 style: STextStyles.desktopH3(context).copyWith(
                                   color: Theme.of(context)
                                       .extension<StackColors>()!
@@ -496,7 +499,24 @@ class _NewWalletRecoveryPhraseWarningViewState
 
                                     final manager = Manager(wallet);
 
-                                    await manager.initializeNew();
+                                    if (coin.hasMnemonicPassphraseSupport &&
+                                        ref
+                                                .read(pNewWalletOptions.state)
+                                                .state !=
+                                            null) {
+                                      await manager.initializeNew((
+                                        mnemonicPassphrase: ref
+                                            .read(pNewWalletOptions.state)
+                                            .state!
+                                            .mnemonicPassphrase,
+                                        wordCount: ref
+                                            .read(pNewWalletOptions.state)
+                                            .state!
+                                            .mnemonicWordsCount,
+                                      ));
+                                    } else {
+                                      await manager.initializeNew(null);
+                                    }
 
                                     // pop progress dialog
                                     if (mounted) {

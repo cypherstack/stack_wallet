@@ -1,6 +1,6 @@
-/* 
+/*
  * This file is part of Stack Wallet.
- * 
+ *
  * Copyright (c) 2023 Cypher Stack
  * All Rights Reserved.
  * The code is distributed under GPLv3 license, see LICENSE file for details.
@@ -34,7 +34,6 @@ abstract class Constants {
   // just use enable exchange flag
   // static bool enableBuy = enableExchange;
   // // true; // true for development,
-
   static final BigInt _satsPerCoinECash = BigInt.from(100);
   static final BigInt _satsPerCoinEthereum = BigInt.from(1000000000000000000);
   static final BigInt _satsPerCoinMonero = BigInt.from(1000000000000);
@@ -43,7 +42,10 @@ abstract class Constants {
       BigInt.parse("1000000000000000000000000000000"); // 1*10^30
   static final BigInt _satsPerCoinBanano =
       BigInt.parse("100000000000000000000000000000"); // 1*10^29
+  static final BigInt _satsPerCoinStellar = BigInt.from(
+      10000000); // https://developers.stellar.org/docs/fundamentals-and-concepts/stellar-data-structures/assets#amount-precision
   static final BigInt _satsPerCoin = BigInt.from(100000000);
+  static final BigInt _satsPerCoinTezos = BigInt.from(1000000);
   static const int _decimalPlaces = 8;
   static const int _decimalPlacesNano = 30;
   static const int _decimalPlacesBanano = 29;
@@ -51,6 +53,8 @@ abstract class Constants {
   static const int _decimalPlacesMonero = 12;
   static const int _decimalPlacesEthereum = 18;
   static const int _decimalPlacesECash = 2;
+  static const int _decimalPlacesStellar = 7;
+  static const int _decimalPlacesTezos = 6;
 
   static const int notificationsMax = 0xFFFFFFFF;
   static const Duration networkAliveTimerDuration = Duration(seconds: 10);
@@ -96,6 +100,13 @@ abstract class Constants {
 
       case Coin.eCash:
         return _satsPerCoinECash;
+
+      case Coin.stellar:
+      case Coin.stellarTestnet:
+        return _satsPerCoinStellar;
+
+      case Coin.tezos:
+        return _satsPerCoinTezos;
     }
   }
 
@@ -133,6 +144,13 @@ abstract class Constants {
 
       case Coin.eCash:
         return _decimalPlacesECash;
+
+      case Coin.stellar:
+      case Coin.stellarTestnet:
+        return _decimalPlacesStellar;
+
+      case Coin.tezos:
+        return _decimalPlacesTezos;
     }
   }
 
@@ -155,11 +173,15 @@ abstract class Constants {
       case Coin.namecoin:
       case Coin.particl:
       case Coin.nano:
+      case Coin.stellar:
+      case Coin.stellarTestnet:
         values.addAll([24, 12]);
         break;
       case Coin.banano:
         values.addAll([24, 12]);
         break;
+      case Coin.tezos:
+        values.addAll([24, 12]);
 
       case Coin.monero:
         values.addAll([25]);
@@ -214,6 +236,13 @@ abstract class Constants {
       case Coin.nano: // TODO: Verify this
       case Coin.banano: // TODO: Verify this
         return 1;
+
+      case Coin.stellar:
+      case Coin.stellarTestnet:
+        return 5;
+
+      case Coin.tezos:
+        return 60;
     }
   }
 
@@ -241,6 +270,9 @@ abstract class Constants {
 
       case Coin.nano:
       case Coin.banano:
+      case Coin.stellar:
+      case Coin.stellarTestnet:
+      case Coin.tezos:
         return 24;
 
       case Coin.monero:

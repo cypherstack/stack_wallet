@@ -105,10 +105,14 @@ class AddressUtils {
         return Address.validateAddress(address, namecoin, namecoin.bech32!);
       case Coin.particl:
         return Address.validateAddress(address, particl);
+      case Coin.stellar:
+        return RegExp(r"^[G][A-Z0-9]{55}$").hasMatch(address);
       case Coin.nano:
         return NanoAccounts.isValid(NanoAccountType.NANO, address);
       case Coin.banano:
         return NanoAccounts.isValid(NanoAccountType.BANANO, address);
+      case Coin.tezos:
+        return RegExp(r"^tz[1-9A-HJ-NP-Za-km-z]{34}$").hasMatch(address);
       case Coin.bitcoinTestNet:
         return Address.validateAddress(address, testnet);
       case Coin.litecoinTestNet:
@@ -139,6 +143,8 @@ class AddressUtils {
         return Address.validateAddress(address, firoTestNetwork);
       case Coin.dogecoinTestNet:
         return Address.validateAddress(address, dogecointestnet);
+      case Coin.stellarTestnet:
+        return RegExp(r"^[G][A-Z0-9]{55}$").hasMatch(address);
     }
   }
 

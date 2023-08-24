@@ -105,6 +105,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   final _baseFocus = FocusNode();
 
   String? _note;
+  String? _onChainNote;
 
   Amount? _amountToSend;
   Amount? _cachedAmountToSend;
@@ -354,6 +355,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         } else {
           txData["address"] = _address;
           txData["note"] = _note ?? "";
+          if (coin == Coin.epicCash) {
+            txData['onChainNote'] = _onChainNote ?? "";
+          }
         }
         // pop building dialog
         Navigator.of(

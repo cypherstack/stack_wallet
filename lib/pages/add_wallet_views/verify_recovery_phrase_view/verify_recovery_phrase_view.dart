@@ -16,9 +16,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
+import 'package:stackwallet/pages/add_wallet_views/new_wallet_options/new_wallet_options_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/new_wallet_recovery_phrase_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/select_wallet_for_token_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/verify_recovery_phrase_view/sub_widgets/word_table.dart';
+import 'package:stackwallet/pages/add_wallet_views/verify_recovery_phrase_view/verify_mnemonic_passphrase_dialog.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
@@ -98,8 +100,25 @@ class _VerifyRecoveryPhraseViewState
   //   }
   // }
 
+  Future<bool> _verifyMnemonicPassphrase() async {
+    final result = await showDialog<String?>(
+      context: context,
+      builder: (_) => const VerifyMnemonicPassphraseDialog(),
+    );
+
+    return result == "verified";
+  }
+
   Future<void> _continue(bool isMatch) async {
     if (isMatch) {
+      if (ref.read(pNewWalletOptions.state).state != null) {
+        final passphraseVerified = await _verifyMnemonicPassphrase();
+
+        if (!passphraseVerified) {
+          return;
+        }
+      }
+
       await ref.read(walletsServiceChangeNotifierProvider).setMnemonicVerified(
             walletId: _manager.walletId,
           );

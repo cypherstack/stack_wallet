@@ -11,7 +11,7 @@ description: Stack Wallet
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.7.16+182
+version: 1.7.19+187
 
 environment:
   sdk: ">=3.0.2 <4.0.0"
@@ -138,6 +138,8 @@ dependencies:
   desktop_drop: ^0.4.1
   nanodart: ^2.0.0
   basic_utils: ^5.5.4
+  stellar_flutter_sdk: ^1.5.3
+  tezart: ^2.0.5
 
 dev_dependencies:
   flutter_test:
@@ -198,7 +200,9 @@ dependency_overrides:
       url: https://github.com/cypherstack/stack-bip39.git
       ref: 0cd6d54e2860bea68fc50c801cb9db2a760192fb
 
-
+  crypto: 3.0.2
+  analyzer: ^5.2.0
+  pinenacl: ^0.3.3
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
