@@ -12,7 +12,8 @@ import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
-import 'package:stackwallet/services/coins/tezos/tezos_api.dart';
+import 'package:stackwallet/services/coins/tezos/api/tezos_api.dart';
+import 'package:stackwallet/services/coins/tezos/api/tezos_transaction.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -241,7 +242,7 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
-    int? feePerTx = await tezosAPI.getFeeEstimation();
+    int? feePerTx = await tezosAPI.getFeeEstimationFromLastDays(1);
     feePerTx ??= 0;
     return Amount(
       rawValue: BigInt.from(feePerTx),
@@ -257,7 +258,7 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<FeeObject> get fees async {
-    int? feePerTx = await tezosAPI.getFeeEstimation();
+    int? feePerTx = await tezosAPI.getFeeEstimationFromLastDays(1);
     feePerTx ??= 0;
     Logging.instance.log("feePerTx:$feePerTx", level: LogLevel.Info);
     return FeeObject(
@@ -486,12 +487,13 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   Future<void> updateBalance() async {
     try {
-      String balanceCall = "${getCurrentNode().host}:${getCurrentNode().port}/chains/main/blocks/head/context/contracts/${await currentReceivingAddress}/balance";
-      var response = await get(Uri.parse(balanceCall)).then((value) => value.body);
+      String balanceCall =
+          "${getCurrentNode().host}:${getCurrentNode().port}/chains/main/blocks/head/context/contracts/${await currentReceivingAddress}/balance";
+      var response =
+          await get(Uri.parse(balanceCall)).then((value) => value.body);
       var balance = response.substring(1, response.length - 2);
       Amount balanceInAmount = Amount(
-          rawValue: BigInt.parse(balance),
-          fractionDigits: coin.decimals);
+          rawValue: BigInt.parse(balance), fractionDigits: coin.decimals);
       _balance = Balance(
         total: balanceInAmount,
         spendable: balanceInAmount,
@@ -508,19 +510,77 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   Future<void> updateTransactions() async {
-    var txs = await tezosAPI.getTransactions(walletId, await currentReceivingAddress);
+    List<TezosTransaction>? txs =
+        await tezosAPI.getTransactions(await currentReceivingAddress);
     Logging.instance.log("Transactions: $txs", level: LogLevel.Info);
     if (txs == null) {
       return;
     } else if (txs.isEmpty) {
       return;
     }
-    await db.addNewTransactionData(txs, walletId);
+    List<Tuple2<Transaction, Address>> transactions = [];
+    for (var theTx in txs) {
+      var txType = TransactionType.unknown;
+      var selfAddress = await currentReceivingAddress;
+      if (selfAddress == theTx.senderAddress) {
+        txType = TransactionType.outgoing;
+      } else if (selfAddress == theTx.receiverAddress) {
+        txType = TransactionType.incoming;
+      } else if (selfAddress == theTx.receiverAddress &&
+          selfAddress == theTx.senderAddress) {
+        txType = TransactionType.sentToSelf;
+      }
+      var transaction = Transaction(
+        walletId: walletId,
+        txid: theTx.hash,
+        timestamp: theTx.timestamp,
+        type: txType,
+        subType: TransactionSubType.none,
+        amount: theTx.amountInMicroTez,
+        amountString: Amount(
+          rawValue: BigInt.parse(theTx.amountInMicroTez.toString()),
+          fractionDigits: coin.decimals,
+        ).toJsonString(),
+        fee: theTx.feeInMicroTez,
+        height: theTx.height,
+        isCancelled: false,
+        isLelantus: false,
+        slateId: "",
+        otherData: "",
+        inputs: [],
+        outputs: [],
+        nonce: 0,
+        numberOfMessages: null,
+      );
+      final AddressSubType subType;
+      switch (txType) {
+        case TransactionType.incoming:
+        case TransactionType.sentToSelf:
+          subType = AddressSubType.receiving;
+          break;
+        case TransactionType.outgoing:
+        case TransactionType.unknown:
+          subType = AddressSubType.unknown;
+          break;
+      }
+      final theAddress = Address(
+        walletId: walletId,
+        value: theTx.receiverAddress,
+        publicKey: [],
+        derivationIndex: 0,
+        derivationPath: null,
+        type: AddressType.unknown,
+        subType: subType,
+      );
+      transactions.add(Tuple2(transaction, theAddress));
+    }
+    await db.addNewTransactionData(transactions, walletId);
   }
 
   Future<void> updateChainHeight() async {
     try {
-      var api = "${getCurrentNode().host}:${getCurrentNode().port}/chains/main/blocks/head/header/shell";
+      var api =
+          "${getCurrentNode().host}:${getCurrentNode().port}/chains/main/blocks/head/header/shell";
       var jsonParsedResponse =
           jsonDecode(await get(Uri.parse(api)).then((value) => value.body));
       final int intHeight = int.parse(jsonParsedResponse["level"].toString());
