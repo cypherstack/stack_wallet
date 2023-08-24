@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/services/mixins/fusion_interface.dart';
+import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
@@ -81,7 +81,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                           (ref
                                   .read(walletsChangeNotifierProvider)
                                   .getManager(widget.walletId)
-                                  .wallet as FusionInterface)
+                                  .wallet as FusionWalletInterface)
                               .refreshFusion()
                         ]),
                         context: context,
@@ -113,7 +113,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                     (ref
                             .read(walletsChangeNotifierProvider)
                             .getManager(widget.walletId)
-                            .wallet as FusionInterface)
+                            .wallet as FusionWalletInterface)
                         .fuse()
                   },
                   child: Text(

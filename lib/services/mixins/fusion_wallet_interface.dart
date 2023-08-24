@@ -10,7 +10,7 @@ import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 
 const String kReservedFusionAddress = "reserved_fusion_address";
 
-mixin FusionInterface {
+mixin FusionWalletInterface {
   // passed in wallet data
   late final String _walletId;
   late final Coin _coin;
