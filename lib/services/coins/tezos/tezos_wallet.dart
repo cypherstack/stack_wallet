@@ -517,7 +517,7 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   Future<void> updateTransactions() async {
-    List<TezosTransaction>? txs =
+    List<TezosOperation>? txs =
         await tezosAPI.getTransactions(await currentReceivingAddress);
     Logging.instance.log("Transactions: $txs", level: LogLevel.Info);
     if (txs == null) {
