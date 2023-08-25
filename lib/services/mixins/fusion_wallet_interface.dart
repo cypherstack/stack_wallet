@@ -111,12 +111,11 @@ mixin FusionWalletInterface {
 
     // add stack utxos
     List<UTXO> utxos = await _db.getUTXOs(_walletId).findAll();
-    await mainFusionObject.add_coins_from_wallet(utxos
-        .map((e) => (txid: e.txid, vout: e.vout, value: e.value))
-        .toList());
+    await mainFusionObject.addCoinsFromWallet(
+        utxos.map((e) => (e.txid, e.vout, e.value)).toList());
 
     // fuse utxos
-    await mainFusionObject.fusion_run();
+    await mainFusionObject.fuse();
     //print ("DEBUG FUSION bitcoincash_wallet.dart 1202");
 
     /*
