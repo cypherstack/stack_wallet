@@ -53,7 +53,7 @@ class TezosAPI {
       return txs;
     } catch (e) {
       Logging.instance.log(
-          "Error occured while getting transactions for $address: $e",
+          "Error occured in tezos_api.dart while getting transactions for $address: $e",
           level: LogLevel.Error);
     }
     return null;
@@ -67,9 +67,47 @@ class TezosAPI {
       int totalTxs = response[0][8] as int;
       return ((totalFees / totalTxs * Coin.tezos.decimals).floor());
     } catch (e) {
-      Logging.instance.log("Error occured while getting fee estimation: $e",
+      Logging.instance.log("Error occured in tezos_api.dart while getting fee estimation for tezos: $e",
           level: LogLevel.Error);
     }
     return null;
+  }
+
+  Future<BigInt?> getBalance(String host, int port, String address) async {
+    try {
+      String balanceCall =
+          "$host:$port/chains/main/blocks/head/context/contracts/$address/balance";
+      var response =
+      await get(Uri.parse(balanceCall)).then((value) => value.body);
+      var balance = BigInt.parse(response.substring(1, response.length - 2));
+      return balance;
+    } catch (e) {
+      Logging.instance.log("Error occured in tezos_api.dart while getting balance for $address: $e",
+          level: LogLevel.Error);
+    }
+    return null;
+  }
+
+  Future<int?> getChainHeight(String host, int port) async {
+    try {
+      var api =
+          "$host:$port/chains/main/blocks/head/header/shell";
+      var jsonParsedResponse = jsonDecode(await get(Uri.parse(api)).then((value) => value.body));
+      return int.parse(jsonParsedResponse["level"].toString());
+    } catch (e) {
+      Logging.instance.log("Error occured in tezos_api.dart while getting chain height for tezos: $e",
+          level: LogLevel.Error);
+    }
+    return null;
+  }
+
+  Future<bool> testNetworkConnection(String host, int port) async {
+    try {
+      await get(Uri.parse(
+          "$host:$port/chains/main/blocks/head/header/shell"));
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 }
