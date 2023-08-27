@@ -34,6 +34,8 @@ import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tezart/tezart.dart';
 import 'package:tuple/tuple.dart';
 
+import 'api/tezos_rpc_api.dart';
+
 const int MINIMUM_CONFIRMATIONS = 1;
 const int _gasLimit = 10200;
 
@@ -58,6 +60,7 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   NodeModel? _xtzNode;
 
   TezosAPI tezosAPI = TezosAPI();
+  TezosRpcAPI tezosRpcAPI = TezosRpcAPI();
 
   NodeModel getCurrentNode() {
     return _xtzNode ??
@@ -491,11 +494,15 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Future<void> updateBalance() async {
     try {
       NodeModel currentNode = getCurrentNode();
-      BigInt? balance = await tezosAPI.getBalance(
-          currentNode.host, currentNode.port, await currentReceivingAddress);
+      BigInt? balance = await tezosRpcAPI.getBalance(
+          nodeInfo: (host: currentNode.host, port: currentNode.port),
+          address: await currentReceivingAddress);
       if (balance == null) {
         return;
       }
+      Logging.instance.log(
+          "Balance for ${await currentReceivingAddress}: $balance",
+          level: LogLevel.Info);
       Amount balanceInAmount =
           Amount(rawValue: balance, fractionDigits: coin.decimals);
       _balance = Balance(
@@ -585,8 +592,8 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Future<void> updateChainHeight() async {
     try {
       NodeModel currentNode = getCurrentNode();
-      int? intHeight =
-          await tezosAPI.getChainHeight(currentNode.host, currentNode.port);
+      int? intHeight = await tezosRpcAPI.getChainHeight(
+          nodeInfo: (host: currentNode.host, port: currentNode.port));
       if (intHeight == null) {
         return;
       }
@@ -670,8 +677,8 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<bool> testNetworkConnection() async {
     NodeModel currentNode = getCurrentNode();
-    return await tezosAPI.testNetworkConnection(
-        currentNode.host, currentNode.port);
+    return await tezosRpcAPI.testNetworkConnection(
+        nodeInfo: (host: currentNode.host, port: currentNode.port));
   }
 
   @override
