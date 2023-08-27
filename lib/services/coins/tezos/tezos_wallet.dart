@@ -487,13 +487,13 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   Future<void> updateBalance() async {
     try {
-      String balanceCall =
-          "${getCurrentNode().host}:${getCurrentNode().port}/chains/main/blocks/head/context/contracts/${await currentReceivingAddress}/balance";
-      var response =
-          await get(Uri.parse(balanceCall)).then((value) => value.body);
-      var balance = response.substring(1, response.length - 2);
+      NodeModel currentNode = getCurrentNode();
+      BigInt? balance = await tezosAPI.getBalance(currentNode.host, currentNode.port, await currentReceivingAddress);
+      if (balance == null) {
+        return;
+      }
       Amount balanceInAmount = Amount(
-          rawValue: BigInt.parse(balance), fractionDigits: coin.decimals);
+          rawValue: balance, fractionDigits: coin.decimals);
       _balance = Balance(
         total: balanceInAmount,
         spendable: balanceInAmount,
@@ -505,7 +505,7 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
       await updateCachedBalance(_balance!);
     } catch (e, s) {
       Logging.instance
-          .log("ERROR GETTING BALANCE ${e.toString()}", level: LogLevel.Error);
+          .log("Error getting balance in tezos_wallet.dart: ${e.toString()}", level: LogLevel.Error);
     }
   }
 
@@ -579,16 +579,16 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   Future<void> updateChainHeight() async {
     try {
-      var api =
-          "${getCurrentNode().host}:${getCurrentNode().port}/chains/main/blocks/head/header/shell";
-      var jsonParsedResponse =
-          jsonDecode(await get(Uri.parse(api)).then((value) => value.body));
-      final int intHeight = int.parse(jsonParsedResponse["level"].toString());
-      Logging.instance.log("Chain height: $intHeight", level: LogLevel.Info);
+      NodeModel currentNode = getCurrentNode();
+      int? intHeight = await tezosAPI.getChainHeight(currentNode.host, currentNode.port);
+      if (intHeight == null) {
+        return;
+      }
+      Logging.instance.log("Chain height for tezos: $intHeight", level: LogLevel.Info);
       await updateCachedChainHeight(intHeight);
     } catch (e, s) {
       Logging.instance
-          .log("GET CHAIN HEIGHT ERROR ${e.toString()}", level: LogLevel.Error);
+          .log("Error occured in tezos_wallet.dart while getting chain height for tezos: ${e.toString()}", level: LogLevel.Error);
     }
   }
 
@@ -661,13 +661,8 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<bool> testNetworkConnection() async {
-    try {
-      await get(Uri.parse(
-          "${getCurrentNode().host}:${getCurrentNode().port}/chains/main/blocks/head/header/shell"));
-      return true;
-    } catch (e) {
-      return false;
-    }
+    NodeModel currentNode = getCurrentNode();
+    return await tezosAPI.testNetworkConnection(currentNode.host, currentNode.port);
   }
 
   @override
