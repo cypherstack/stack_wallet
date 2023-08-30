@@ -241,6 +241,14 @@ class MainDB {
   QueryBuilder<UTXO, UTXO, QAfterWhereClause> getUTXOs(String walletId) =>
       isar.utxos.where().walletIdEqualTo(walletId);
 
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> getUTXOsByAddress(
+          String walletId, String address) =>
+      isar.utxos
+          .where()
+          .walletIdEqualTo(walletId)
+          .filter()
+          .addressEqualTo(address);
+
   Future<void> putUTXO(UTXO utxo) => isar.writeTxn(() async {
         await isar.utxos.put(utxo);
       });

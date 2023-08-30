@@ -11,6 +11,10 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:fusiondart/src/models/address.dart' as fusion_address;
+import 'package:fusiondart/src/models/input.dart' as fusion_input;
+import 'package:fusiondart/src/models/output.dart' as fusion_output;
+import 'package:fusiondart/src/models/transaction.dart' as fusion_tx;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/input.dart';
@@ -22,7 +26,6 @@ part 'transaction.g.dart';
 
 @Collection()
 class Transaction {
-
   Transaction({
     required this.walletId,
     required this.txid,
@@ -231,6 +234,37 @@ class Transaction {
       final address = Address.fromJsonString(json["address"] as String);
       return Tuple2(transaction, address);
     }
+  }
+
+  // Convert to fusiondart's Transaction type.
+  fusion_tx.Transaction toFusionTransaction() {
+    // Initialize Fusion Dart's Transaction object.
+    fusion_tx.Transaction fusionTransaction = fusion_tx.Transaction();
+
+    // Map the Inputs and Outputs to Fusion Dart's format
+    fusionTransaction.Inputs = inputs
+        .map((e) => fusion_input.Input(
+              prevTxid: utf8.encode(e.txid),
+              prevIndex: e.vout,
+              pubKey: utf8.encode(e.witness), // TODO fix
+              amount: 0, // TODO fix
+            ))
+        .toList();
+
+    fusionTransaction.Outputs = outputs
+        .map((e) => fusion_output.Output(
+              addr: fusion_address.Address(
+                addr: e.scriptPubKeyAddress,
+                publicKey: utf8.encode(e.scriptPubKey),
+                derivationPath: fusion_address.DerivationPath(), // TODO fix
+              ),
+              value: e.value,
+            ))
+        .toList();
+
+    // If any other information needs to be altered/added, do so here.
+
+    return fusionTransaction;
   }
 }
 

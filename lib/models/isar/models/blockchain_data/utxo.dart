@@ -8,8 +8,10 @@
  *
  */
 
+import 'dart:convert';
 import 'dart:math';
 
+import 'package:fusiondart/src/models/input.dart' as FusionInput;
 import 'package:isar/isar.dart';
 
 part 'utxo.g.dart';
@@ -144,4 +146,15 @@ class UTXO {
   @override
   @ignore
   int get hashCode => Object.hashAll([walletId, txid, vout]);
+}
+
+extension ToFusionInput on UTXO {
+  FusionInput.Input toFusionInput({required List<int> pubKey}) {
+    return FusionInput.Input(
+      prevTxid: utf8.encode(txid),
+      prevIndex: vout,
+      pubKey: pubKey,
+      amount: value,
+    );
+  }
 }

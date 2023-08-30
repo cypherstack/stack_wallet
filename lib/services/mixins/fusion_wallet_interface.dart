@@ -1,7 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:fusiondart/fusiondart.dart';
-import 'package:fusiondart/src/models/address.dart' as cash_fusion;
+import 'package:fusiondart/src/models/address.dart' as fusion_address;
+import 'package:fusiondart/src/models/input.dart' as fusion_input;
+import 'package:fusiondart/src/models/transaction.dart' as fusion_tx;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
@@ -39,7 +42,30 @@ mixin FusionWalletInterface {
     _generateAddressForChain = generateAddressForChain;
   }
 
-  Future<cash_fusion.Address> createNewReservedChangeAddress() async {
+  Future<List<fusion_address.Address>> getFusionAddresses() async {
+    List<Address> _addresses = await _db.getAddresses(_walletId).findAll();
+    return _addresses.map((address) => address.toFusionAddress()).toList();
+  }
+
+  Future<Set<fusion_tx.Transaction>> getTransactionsByAddress(
+      String address) async {
+    var _txs = await _db.getTransactions(_walletId).findAll();
+
+    return _txs
+        .map((tx) => tx.toFusionTransaction())
+        .toSet(); // TODO feed in proper public key
+  }
+
+  Future<List<fusion_input.Input>> getInputsByAddress(String address) async {
+    var _utxos = await _db.getUTXOsByAddress(_walletId, address).findAll();
+
+    return _utxos
+        .map((utxo) => utxo.toFusionInput(
+            pubKey: utf8.encode('0000'))) // TODO feed in proper public key
+        .toList();
+  }
+
+  Future<fusion_address.Address> createNewReservedChangeAddress() async {
     int? highestChangeIndex = await _db
         .getAddresses(_walletId)
         .filter()
@@ -57,14 +83,20 @@ mixin FusionWalletInterface {
     );
     address = address.copyWith(otherData: kReservedFusionAddress);
 
-    // TODO if we really want to be sure its not used, call electrumx and check it
+    // TODO if we really want to be sure it's not used, call electrumx and check it
 
-    await _db.putAddress(address);
+    Address? _address = await _db.getAddress(_walletId, address.value);
+    if (_address != null) {
+      // throw Exception("Address already exists");
+      await _db.updateAddress(_address, address);
+    } else {
+      await _db.putAddress(address);
+    }
 
     return address.toFusionAddress();
   }
 
-  Future<List<cash_fusion.Address>> getUnusedReservedChangeAddresses(
+  Future<List<fusion_address.Address>> getUnusedReservedChangeAddresses(
     int numberOfAddresses,
   ) async {
     final txns = await _db
@@ -84,7 +116,7 @@ mixin FusionWalletInterface {
         .otherDataEqualTo(kReservedFusionAddress)
         .findAll();
 
-    final List<cash_fusion.Address> unusedAddresses = [];
+    final List<fusion_address.Address> unusedAddresses = [];
 
     for (final address in addresses) {
       if (!usedAddresses.contains(address.value)) {
@@ -104,17 +136,30 @@ mixin FusionWalletInterface {
   void fuse() async {
     // Initial attempt for CashFusion integration goes here.
     Fusion mainFusionObject = Fusion(
-      createNewReservedChangeAddress: () => createNewReservedChangeAddress(),
+      getAddresses: () => getFusionAddresses(),
+      getTransactionsByAddress: (String address) =>
+          getTransactionsByAddress(address),
+      getInputsByAddress: (String address) => getInputsByAddress(address),
+      // createNewReservedChangeAddress: () => createNewReservedChangeAddress(),
       getUnusedReservedChangeAddresses: (int numberOfAddresses) =>
           getUnusedReservedChangeAddresses(numberOfAddresses),
     );
 
-    // add stack utxos
+    // Pass wallet functions to the Fusion object
+    mainFusionObject.initFusion(
+        getAddresses: getFusionAddresses,
+        getTransactionsByAddress: getTransactionsByAddress,
+        getInputsByAddress: getInputsByAddress,
+        /*createNewReservedChangeAddress: createNewReservedChangeAddress,*/
+        getUnusedReservedChangeAddresses: getUnusedReservedChangeAddresses);
+
+    // Add stack UTXOs.
     List<UTXO> utxos = await _db.getUTXOs(_walletId).findAll();
+
     await mainFusionObject.addCoinsFromWallet(
         utxos.map((e) => (e.txid, e.vout, e.value)).toList());
 
-    // fuse utxos
+    // Fuse UTXOs.
     await mainFusionObject.fuse();
     //print ("DEBUG FUSION bitcoincash_wallet.dart 1202");
 
