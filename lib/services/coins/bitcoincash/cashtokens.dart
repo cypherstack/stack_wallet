@@ -16,7 +16,8 @@ enum Capability {
   Minting,
 }
 
-// Used as a "custom tuple"
+// Used as a "custom tuple" for the supporting functions of readCompactSize to return
+// a convenient data structure.
 class CompactSizeResult {
   final int amount;
   final int bytesRead;
@@ -25,12 +26,21 @@ class CompactSizeResult {
 }
 
 
+
+// This class is a data structure representing the entire output, comprised of both the
+// normal Script pub key and the token data.  We get this after we parse/unwrap the raw
+// output.
 class ParsedOutput {
   List<int>? script_pub_key;
   TokenOutputData? token_data;
   ParsedOutput({this.script_pub_key, this.token_data});
 }
 
+
+// This is equivalent to the Electron Cash python's "OutputData" in token.py.
+// Named here specifically as "TokenOutputData" to reflect the fact that
+// it is specifically for tokens, whereas the other class ParsedOutput represents
+// the entire output, comprised of both the normal Script pub key and the token data.
 class TokenOutputData {
   Uint8List? id;
   int? amount;
@@ -45,6 +55,8 @@ class TokenOutputData {
     this.bitfield,
   });
 
+
+  // Get the "capability", see Capability enum.
   int getCapability() {
     if (bitfield != null) {
       return bitfield![0] & 0x0f;
@@ -52,6 +64,7 @@ class TokenOutputData {
     return 0;
   }
 
+  // functions to return attributes of the token bitfield.
   bool hasCommitmentLength() {
     if (bitfield != null) {
       return (bitfield![0] & 0x40) != 0;
@@ -73,6 +86,8 @@ class TokenOutputData {
     return false;
   }
 
+
+  // Functions to return specific attributes based on the Capability.
   bool isMintingNFT() {
     return hasNFT() && getCapability() == Capability.Minting.index;
   }
@@ -85,6 +100,8 @@ class TokenOutputData {
     return hasNFT() && getCapability() == Capability.NoCapability.index;
   }
 
+
+  // This function validates if the bitfield makes sense or violates known rules/logic.
   bool isValidBitfield() {
     if (bitfield == null) {
       return false;
@@ -110,7 +127,8 @@ class TokenOutputData {
   }
 
 
-
+  // The serialze and deserialize functions are the nuts and bolts of how we unpack
+  // and pack outputs.  These are called by the wrap and unwrap functions.
   int deserialize(Uint8List buffer, {int cursor = 0, bool strict = false}) {
     try {
 
@@ -189,8 +207,11 @@ class TokenOutputData {
 
 }  //END OF OUTPUTDATA CLASS
 
+
+// The prefix byte is specified by the CashTokens spec.
 final List<int> PREFIX_BYTE = [0xef];
 
+// This function wraps a "normal" output together with token data.
 ParsedOutput wrap_spk(TokenOutputData? token_data, Uint8List script_pub_key) {
   ParsedOutput parsedOutput = ParsedOutput();
 
@@ -213,7 +234,11 @@ ParsedOutput wrap_spk(TokenOutputData? token_data, Uint8List script_pub_key) {
 
 
 
-
+// This function unwraps any output, either "normal" (containing no token data) 
+// or an output with token data.  If no token data, just the output is returned,
+// and if token data exists, both the output and token data are returned.
+// Note that the data returend in both cases in of ParsedOutput type, which
+// holds both the script pub key and token data.
 ParsedOutput unwrap_spk(Uint8List wrapped_spk) {
   ParsedOutput parsedOutput = ParsedOutput();
 
@@ -248,6 +273,8 @@ ParsedOutput unwrap_spk(Uint8List wrapped_spk) {
 }
 
 
+// Just a testing function which can be called in standalone fashion.
+// Replace "var1" with a hex string containing an output (script pub key)
 void testUnwrapSPK() {
 
 
@@ -283,6 +310,10 @@ void testUnwrapSPK() {
 
 
 // HELPER FUNCTIONS
+
+//These are part of a "length value " scheme where the length (and endianness) are given first
+// and inform the program of how many bytes to grab next.  These are in turn used by the serialize
+// and deserialize functions.-
 CompactSizeResult readCompactSize(Uint8List buffer, int cursor, {bool strict = false}) {
 
 
