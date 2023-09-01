@@ -42,6 +42,7 @@ class Prefs extends ChangeNotifier {
       _lastUnlocked = await _getLastUnlocked();
       _lastUnlockedTimeout = await _getLastUnlockedTimeout();
       _showTestNetCoins = await _getShowTestNetCoins();
+      _torKillswitch = await _getTorKillswitch();
       _isAutoBackupEnabled = await _getIsAutoBackupEnabled();
       _autoBackupLocation = await _getAutoBackupLocation();
       _backupFrequencyType = await _getBackupFrequencyType();
@@ -391,6 +392,27 @@ class Prefs extends ChangeNotifier {
     return await DB.instance.get<dynamic>(
             boxName: DB.boxNamePrefs, key: "familiarity") as int? ??
         0;
+  }
+
+  // tor
+
+  bool _torKillswitch = false;
+
+  bool get torKillswitch => _torKillswitch;
+
+  set torKillswitch(bool torKillswitch) {
+    if (_torKillswitch != showTestNetCoins) {
+      DB.instance.put<dynamic>(
+          boxName: DB.boxNamePrefs, key: "torKillswitch", value: torKillswitch);
+      _torKillswitch = torKillswitch;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _getTorKillswitch() async {
+    return await DB.instance.get<dynamic>(
+            boxName: DB.boxNamePrefs, key: "torKillswitch") as bool? ??
+        false;
   }
 
   // show testnet coins
