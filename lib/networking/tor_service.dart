@@ -1,4 +1,4 @@
-import 'package:flutter_libtor/flutter_libtor.dart';
+import 'package:flutter_libarti/flutter_libarti.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 
