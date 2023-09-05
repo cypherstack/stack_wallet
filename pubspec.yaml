@@ -57,8 +57,8 @@ dependencies:
       url: https://github.com/cypherstack/bip47.git
       ref: 081ca1863c2feba00c35bb5b297902f12f499941
 
-  flutter_libarti:
-    path: ./crypto_plugins/flutter_libarti
+  tor:
+    path: ./crypto_plugins/tor
 
   # Utility plugins
   http: ^0.13.0
