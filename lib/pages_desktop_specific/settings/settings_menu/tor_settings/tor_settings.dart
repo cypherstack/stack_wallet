@@ -46,6 +46,7 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
 
+    /// todo: redo the padding
     return Column(
       children: [
         Padding(
@@ -110,63 +111,73 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                   ),
                 ),
                 const SizedBox(
-                  height: 20,
+                  height: 10,
                 ),
-                SecondaryButton(
-                  label: "Disconnect from Tor",
-                  width: 200,
-                  buttonHeight: ButtonHeight.m,
-                  onPressed: () {},
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: SecondaryButton(
+                    label: "Disconnect from Tor",
+                    width: 200,
+                    buttonHeight: ButtonHeight.m,
+                    onPressed: () {},
+                  ),
                 ),
                 const SizedBox(
-                  height: 40,
+                  height: 30,
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        RichText(
-                          textAlign: TextAlign.start,
-                          text: TextSpan(
-                            children: [
-                              TextSpan(
-                                text: "Tor killswitch",
-                                style: STextStyles.desktopTextExtraExtraSmall(
-                                        context)
-                                    .copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .accentColorDark),
-                              ),
-                              TextSpan(
-                                text: "\nWhat is Tor killswitch?",
-                                style: STextStyles.richLink(context).copyWith(
-                                  fontSize: 14,
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          RichText(
+                            textAlign: TextAlign.start,
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: "Tor killswitch",
+                                  style: STextStyles.desktopTextExtraExtraSmall(
+                                          context)
+                                      .copyWith(
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .accentColorDark),
                                 ),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () {},
-                              ),
-                            ],
+                                TextSpan(
+                                  text: "\nWhat is Tor killswitch?",
+                                  style: STextStyles.richLink(context).copyWith(
+                                    fontSize: 14,
+                                  ),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () {},
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: SizedBox(
+                          height: 20,
+                          width: 40,
+                          child: DraggableSwitchButton(
+                            isOn: ref.watch(
+                              prefsChangeNotifierProvider
+                                  .select((value) => value.torKillswitch),
+                            ),
+                            onValueChanged: (newValue) {
+                              ref
+                                  .read(prefsChangeNotifierProvider)
+                                  .torKillswitch = newValue;
+                            },
                           ),
                         ),
-                      ],
-                    ),
-                    SizedBox(
-                      height: 20,
-                      width: 40,
-                      child: DraggableSwitchButton(
-                        isOn: ref.watch(
-                          prefsChangeNotifierProvider
-                              .select((value) => value.torKillswitch),
-                        ),
-                        onValueChanged: (newValue) {
-                          ref.read(prefsChangeNotifierProvider).torKillswitch =
-                              newValue;
-                        },
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 const SizedBox(
                   height: 10,
