@@ -15,6 +15,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -102,7 +104,66 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                               style: STextStyles.richLink(context).copyWith(
                                 fontSize: 14,
                               ),
-                              recognizer: TapGestureRecognizer()..onTap = () {},
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  showDialog<dynamic>(
+                                      context: context,
+                                      useSafeArea: false,
+                                      barrierDismissible: true,
+                                      builder: (context) {
+                                        return DesktopDialog(
+                                          maxWidth: 580,
+                                          maxHeight: double.infinity,
+                                          child: Column(
+                                            children: [
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.end,
+                                                children: [
+                                                  DesktopDialogCloseButton(
+                                                    onPressedOverride: () =>
+                                                        Navigator.of(context)
+                                                            .pop(true),
+                                                  ),
+                                                ],
+                                              ),
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.all(20),
+                                                child: Column(
+                                                  mainAxisSize:
+                                                      MainAxisSize.max,
+                                                  children: [
+                                                    Text(
+                                                      "What is Tor?",
+                                                      style:
+                                                          STextStyles.desktopH2(
+                                                              context),
+                                                    ),
+                                                    const SizedBox(
+                                                      height: 20,
+                                                    ),
+                                                    Text(
+                                                      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
+                                                      "Sed sit amet nulla accumsan, ornare felis pellentesque, auctor nulla.",
+                                                      style: STextStyles
+                                                              .desktopTextMedium(
+                                                                  context)
+                                                          .copyWith(
+                                                        color: Theme.of(context)
+                                                            .extension<
+                                                                StackColors>()!
+                                                            .textDark3,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      });
+                                },
                             ),
                           ],
                         ),
@@ -151,7 +212,68 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                                     fontSize: 14,
                                   ),
                                   recognizer: TapGestureRecognizer()
-                                    ..onTap = () {},
+                                    ..onTap = () {
+                                      showDialog<dynamic>(
+                                          context: context,
+                                          useSafeArea: false,
+                                          barrierDismissible: true,
+                                          builder: (context) {
+                                            return DesktopDialog(
+                                              maxWidth: 580,
+                                              maxHeight: double.infinity,
+                                              child: Column(
+                                                children: [
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.end,
+                                                    children: [
+                                                      DesktopDialogCloseButton(
+                                                        onPressedOverride: () =>
+                                                            Navigator.of(
+                                                                    context)
+                                                                .pop(true),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            20),
+                                                    child: Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize.max,
+                                                      children: [
+                                                        Text(
+                                                          "What is Tor killswitch?",
+                                                          style: STextStyles
+                                                              .desktopH2(
+                                                                  context),
+                                                        ),
+                                                        const SizedBox(
+                                                          height: 20,
+                                                        ),
+                                                        Text(
+                                                          "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
+                                                          "Sed sit amet nulla accumsan, ornare felis pellentesque, auctor nulla.",
+                                                          style: STextStyles
+                                                                  .desktopTextMedium(
+                                                                      context)
+                                                              .copyWith(
+                                                            color: Theme.of(
+                                                                    context)
+                                                                .extension<
+                                                                    StackColors>()!
+                                                                .textDark3,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          });
+                                    },
                                 ),
                               ],
                             ),
