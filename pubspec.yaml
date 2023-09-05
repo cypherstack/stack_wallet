@@ -343,8 +343,10 @@ flutter:
     - assets/svg/ordinal.svg
     - assets/svg/monkey.svg
     - assets/svg/tor.svg
-    - assets/svg/tor-syncing.svg
-    - assets/svg/tor-synced.svg
+    - assets/svg/tor-circle.svg
+    - assets/svg/connected-button.svg
+    - assets/svg/connecting-button.svg
+    - assets/svg/disconnected-button.svg
 
     # coin control icons
     - assets/svg/coin_control/

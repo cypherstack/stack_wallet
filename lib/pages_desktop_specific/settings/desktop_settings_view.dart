@@ -10,7 +10,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/tor_settings/tor_settings_view.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/advanced_settings/advanced_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/appearance_settings/appearance_settings.dart';
@@ -20,6 +19,7 @@ import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/langua
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/nodes_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/security_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/syncing_preferences_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/tor_settings/tor_settings.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -61,8 +61,8 @@ class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
     const Navigator(
       key: Key("settingsTorDesktopKey"),
       onGenerateRoute: RouteGenerator.generateRoute,
-      initialRoute: TorSettingsView.routeName,
-    ), //language
+      initialRoute: TorSettings.routeName,
+    ), //tor
     const Navigator(
       key: Key("settingsNodesDesktopKey"),
       onGenerateRoute: RouteGenerator.generateRoute,

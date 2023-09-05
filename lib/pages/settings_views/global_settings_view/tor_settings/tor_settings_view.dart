@@ -61,7 +61,7 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
             },
           ),
           title: Text(
-            "Tor Settings",
+            "Tor settings",
             style: STextStyles.navBarTitle(context),
           ),
           actions: [
