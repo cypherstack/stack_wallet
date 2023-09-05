@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/tor_settings/tor_settings_view.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/advanced_settings/advanced_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/appearance_settings/appearance_settings.dart';
@@ -56,6 +57,11 @@ class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
       key: Key("settingsLanguageDesktopKey"),
       onGenerateRoute: RouteGenerator.generateRoute,
       initialRoute: LanguageOptionSettings.routeName,
+    ),
+    const Navigator(
+      key: Key("settingsTorDesktopKey"),
+      onGenerateRoute: RouteGenerator.generateRoute,
+      initialRoute: TorSettingsView.routeName,
     ), //language
     const Navigator(
       key: Key("settingsNodesDesktopKey"),

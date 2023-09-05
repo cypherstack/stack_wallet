@@ -32,6 +32,7 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
     "Security",
     "Currency",
     "Language",
+    "Tor settings",
     "Nodes",
     "Syncing preferences",
     "Appearance",
