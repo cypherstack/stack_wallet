@@ -159,13 +159,33 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
                                   style: STextStyles.titleBold12(context),
                                 ),
                                 const SizedBox(width: 8),
-                                SvgPicture.asset(
-                                  Assets.svg.circleInfo,
-                                  height: 16,
-                                  width: 16,
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .infoItemLabel,
+                                GestureDetector(
+                                  onTap: () {
+                                    showDialog<dynamic>(
+                                      context: context,
+                                      useSafeArea: false,
+                                      barrierDismissible: true,
+                                      builder: (context) {
+                                        return const StackDialog(
+                                          title: "What is Tor killswitch?",
+                                          message:
+                                              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
+                                              "Sed sit amet nulla accumsan, ornare felis pellentesque, auctor nulla.",
+                                          rightButton: SecondaryButton(
+                                            label: "Close",
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
+                                  child: SvgPicture.asset(
+                                    Assets.svg.circleInfo,
+                                    height: 16,
+                                    width: 16,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .infoItemLabel,
+                                  ),
                                 ),
                               ],
                             ),
