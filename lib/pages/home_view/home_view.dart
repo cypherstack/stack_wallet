@@ -17,9 +17,11 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/buy_view/buy_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_view.dart';
 import 'package:stackwallet/pages/home_view/sub_widgets/home_view_button_bar.dart';
+import 'package:stackwallet/pages/home_view/sub_widgets/tor_sync_status_changed_event.dart';
 import 'package:stackwallet/pages/notification_views/notifications_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/global_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/hidden_settings.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/tor_settings/tor_settings_view.dart';
 import 'package:stackwallet/pages/wallets_view/wallets_view.dart';
 import 'package:stackwallet/providers/global/notifications_provider.dart';
 import 'package:stackwallet/providers/ui/home_view_index_provider.dart';
@@ -54,6 +56,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
   DateTime? _cachedTime;
 
   bool _exitEnabled = false;
+
+  late TorSyncStatus _currentSyncStatus;
 
   // final _buyDataLoadingService = BuyDataLoadingService();
 
@@ -113,6 +117,32 @@ class _HomeViewState extends ConsumerState<HomeView> {
     );
   }
 
+  Widget _buildTorIcon(TorSyncStatus status) {
+    switch (status) {
+      case TorSyncStatus.unableToSync:
+        return SvgPicture.asset(
+          Assets.svg.tor,
+          color: Theme.of(context).extension<StackColors>()!.accentColorRed,
+          width: 20,
+          height: 20,
+        );
+      case TorSyncStatus.synced:
+        return SvgPicture.asset(
+          Assets.svg.tor,
+          color: Theme.of(context).extension<StackColors>()!.accentColorGreen,
+          width: 20,
+          height: 20,
+        );
+      case TorSyncStatus.syncing:
+        return SvgPicture.asset(
+          Assets.svg.tor,
+          color: Theme.of(context).extension<StackColors>()!.accentColorYellow,
+          width: 20,
+          height: 20,
+        );
+    }
+  }
+
   @override
   void initState() {
     _pageController = PageController();
@@ -124,6 +154,20 @@ class _HomeViewState extends ConsumerState<HomeView> {
     ];
 
     ref.read(notificationsProvider).startCheckingWatchedNotifications();
+
+    /// todo change to watch tor network
+    // if (ref.read(managerProvider).isRefreshing) {
+    //   _currentSyncStatus = WalletSyncStatus.syncing;
+    //   _currentNodeStatus = NodeConnectionStatus.connected;
+    // } else {
+    //   _currentSyncStatus = WalletSyncStatus.synced;
+    //   if (ref.read(managerProvider).isConnected) {
+    //     _currentNodeStatus = NodeConnectionStatus.connected;
+    //   } else {
+    //     _currentNodeStatus = NodeConnectionStatus.disconnected;
+    //     _currentSyncStatus = WalletSyncStatus.unableToSync;
+    //   }
+    // }
 
     super.initState();
   }
@@ -200,6 +244,31 @@ class _HomeViewState extends ConsumerState<HomeView> {
               ],
             ),
             actions: [
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 10,
+                  bottom: 10,
+                  right: 10,
+                ),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: AppBarIconButton(
+                    semanticsLabel:
+                        "Tor Settings Button. Takes To Tor Settings Page.",
+                    key: const Key("walletsViewTorButton"),
+                    size: 36,
+                    shadows: const [],
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .backgroundAppBar,
+                    icon: _buildTorIcon(TorSyncStatus.syncing),
+                    onPressed: () {
+                      Navigator.of(context)
+                          .pushNamed(TorSettingsView.routeName);
+                    },
+                  ),
+                ),
+              ),
               Padding(
                 padding: const EdgeInsets.only(
                   top: 10,
