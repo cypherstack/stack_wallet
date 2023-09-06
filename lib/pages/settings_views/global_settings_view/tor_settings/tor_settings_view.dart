@@ -35,28 +35,62 @@ class TorSettingsView extends ConsumerStatefulWidget {
 }
 
 class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
+  TorSyncStatus _networkStatus = TorSyncStatus.unableToSync;
+
   Widget _buildTorIcon(TorSyncStatus status) {
     switch (status) {
       case TorSyncStatus.unableToSync:
-        return SvgPicture.asset(
-          Assets.svg.tor,
-          color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
-          width: 200,
-          height: 200,
+        return Stack(
+          alignment: AlignmentDirectional.center,
+          children: [
+            SvgPicture.asset(
+              Assets.svg.tor,
+              color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
+              width: 200,
+              height: 200,
+            ),
+            Text(
+              "CONNECT",
+              style: STextStyles.smallMed14(context).copyWith(
+                  color: Theme.of(context).extension<StackColors>()!.popupBG),
+            )
+          ],
         );
       case TorSyncStatus.synced:
-        return SvgPicture.asset(
-          Assets.svg.tor,
-          color: Theme.of(context).extension<StackColors>()!.accentColorGreen,
-          width: 200,
-          height: 200,
+        return Stack(
+          alignment: AlignmentDirectional.center,
+          children: [
+            SvgPicture.asset(
+              Assets.svg.tor,
+              color:
+                  Theme.of(context).extension<StackColors>()!.accentColorGreen,
+              width: 200,
+              height: 200,
+            ),
+            Text(
+              "CONNECTED",
+              style: STextStyles.smallMed14(context).copyWith(
+                  color: Theme.of(context).extension<StackColors>()!.popupBG),
+            )
+          ],
         );
       case TorSyncStatus.syncing:
-        return SvgPicture.asset(
-          Assets.svg.tor,
-          color: Theme.of(context).extension<StackColors>()!.accentColorYellow,
-          width: 200,
-          height: 200,
+        return Stack(
+          alignment: AlignmentDirectional.center,
+          children: [
+            SvgPicture.asset(
+              Assets.svg.tor,
+              color:
+                  Theme.of(context).extension<StackColors>()!.accentColorYellow,
+              width: 200,
+              height: 200,
+            ),
+            Text(
+              "CONNECTING",
+              style: STextStyles.smallMed14(context).copyWith(
+                  color: Theme.of(context).extension<StackColors>()!.popupBG),
+            )
+          ],
         );
     }
   }
@@ -157,7 +191,7 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(10.0),
-                    child: _buildTorIcon(TorSyncStatus.syncing),
+                    child: _buildTorIcon(_networkStatus),
                   ),
                 ],
               ),
@@ -174,7 +208,7 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
                         style: STextStyles.titleBold12(context),
                       ),
                       const Spacer(),
-                      _buildTorStatus(TorSyncStatus.syncing),
+                      _buildTorStatus(_networkStatus),
                     ],
                   ),
                 ),
