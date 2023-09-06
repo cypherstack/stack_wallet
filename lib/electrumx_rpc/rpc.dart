@@ -200,8 +200,7 @@ class JsonRPC {
           host: InternetAddress.loopbackIPv4.address,
           port: TorService.sharedInstance.port
         );
-        Logging.instance.log(
-            "ElectrumX.connect(): no tor proxy info, read $proxyInfo",
+        Logging.instance.log("ElectrumX.connect(): tor detected at $proxyInfo",
             level: LogLevel.Warning);
       }
 

@@ -105,8 +105,7 @@ class ElectrumX {
           host: InternetAddress.loopbackIPv4.address,
           port: TorService.sharedInstance.port
         );
-        Logging.instance.log(
-            "ElectrumX.from(): no tor proxy info, read $proxyInfo",
+        Logging.instance.log("ElectrumX.from(): tor detected at $proxyInfo",
             level: LogLevel.Warning);
       }
       return ElectrumX(
@@ -156,8 +155,7 @@ class ElectrumX {
           host: InternetAddress.loopbackIPv4.address,
           port: TorService.sharedInstance.port
         );
-        Logging.instance.log(
-            "ElectrumX.request(): no tor proxy info, read $proxyInfo",
+        Logging.instance.log("ElectrumX.request(): tor detected at $proxyInfo",
             level: LogLevel.Warning);
       }
       if (currentFailoverIndex == -1) {
@@ -290,7 +288,7 @@ class ElectrumX {
           port: TorService.sharedInstance.port
         );
         Logging.instance.log(
-            "ElectrumX.batchRequest(): no tor proxy info, read $proxyInfo",
+            "ElectrumX.batchRequest(): tor detected at $proxyInfo",
             level: LogLevel.Warning);
       }
 
