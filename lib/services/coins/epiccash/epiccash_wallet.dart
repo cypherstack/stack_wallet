@@ -492,7 +492,7 @@ class EpicCashWallet extends CoinServiceAPI
             Logging.instance
                 .log("this is a string $message", level: LogLevel.Error);
             stop(receivePort);
-            throw Exception("txHttpSend isolate failed");
+            throw Exception(message);
           }
           stop(receivePort);
           Logging.instance
