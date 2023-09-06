@@ -72,16 +72,22 @@ class SOCKSSocket {
   final StreamController<List<int>> _responseController =
       StreamController.broadcast();
 
+  /// A StreamController that listens to the _secureSocksSocket and broadcasts.
+  final StreamController<List<int>> _secureResponseController =
+      StreamController.broadcast();
+
   /// Getter for the StreamController that listens to the _socksSocket and
   /// broadcasts, or the _secureSocksSocket and broadcasts if SSL is enabled.
   StreamController<List<int>> get responseController =>
       sslEnabled ? _secureResponseController : _responseController;
 
-  StreamSubscription? _subscription;
+  /// A StreamSubscription that listens to the _socksSocket or the
+  /// _secureSocksSocket if SSL is enabled.
+  StreamSubscription<List<int>>? _subscription;
 
-  /// A StreamController that listens to the _secureSocksSocket and broadcasts.
-  final StreamController<List<int>> _secureResponseController =
-      StreamController.broadcast();
+  /// Getter for the StreamSubscription that listens to the _socksSocket or the
+  /// _secureSocksSocket if SSL is enabled.
+  StreamSubscription<List<int>>? get subscription => _subscription;
 
   /// Is SSL enabled?
   final bool sslEnabled;
