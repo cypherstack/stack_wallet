@@ -122,7 +122,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
       case TorSyncStatus.unableToSync:
         return SvgPicture.asset(
           Assets.svg.tor,
-          color: Theme.of(context).extension<StackColors>()!.accentColorRed,
+          color: Theme.of(context).extension<StackColors>()!.infoItemLabel,
           width: 20,
           height: 20,
         );
@@ -261,7 +261,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     color: Theme.of(context)
                         .extension<StackColors>()!
                         .backgroundAppBar,
-                    icon: _buildTorIcon(TorSyncStatus.syncing),
+                    icon: _buildTorIcon(TorSyncStatus.unableToSync),
                     onPressed: () {
                       Navigator.of(context)
                           .pushNamed(TorSettingsView.routeName);
