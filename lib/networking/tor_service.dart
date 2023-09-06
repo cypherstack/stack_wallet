@@ -1,6 +1,6 @@
-import 'package:tor/tor.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
+import 'package:tor/tor.dart';
 
 final pTorService = Provider((_) => TorService.sharedInstance);
 
@@ -12,7 +12,7 @@ class TorService {
 
   Future<void> start() async {
     final dir = await StackFileSystem.applicationTorDirectory();
-    await _tor.start(torDir: dir);
+    await _tor.start();
     return;
   }
 
