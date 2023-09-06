@@ -176,7 +176,7 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
       final selectionStrategyIsAll =
           arguments['selectionStrategyIsAll'] as int?;
       final minimumConfirmations = arguments['minimumConfirmations'] as int?;
-      final message = arguments['onChainNote'] as String?;
+      final message = arguments['message'] as String?;
       final amount = arguments['amount'] as int?;
       final address = arguments['address'] as String?;
 
@@ -1727,7 +1727,6 @@ class EpicCashWallet extends CoinServiceAPI
       String? commitId = slatesToCommits[slateId]?['commitId'] as String?;
       tx['numberOfMessages'] = tx['messages']?['messages']?.length;
       tx['onChainNote'] = tx['messages']?['messages']?[0]?['message'];
-      print("ON CHAIN MESSAGE IS ${tx['onChainNote']}");
 
       int? height;
 
