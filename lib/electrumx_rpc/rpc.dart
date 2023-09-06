@@ -86,7 +86,8 @@ class JsonRPC {
           _socket!.write('${req.jsonRequest}\r\n');
         }
         if (_socksSocket != null) {
-          _socksSocket!.socket.writeln('${req.jsonRequest}\r\n');
+          _socksSocket!.write('${req.jsonRequest}\r\n\n');
+          // _socksSocket!.socket.writeln('${req.jsonRequest}\r\n');
         }
 
         // TODO different timeout length?
@@ -203,27 +204,17 @@ class JsonRPC {
             "ElectrumX.connect(): no tor proxy info, read $proxyInfo",
             level: LogLevel.Warning);
       }
-      // TODO connect to proxy socket...
 
-      // TODO implement ssl over tor
-      // if (useSSL) {
-      //   _socket = await SecureSocket.connect(
-      //     host,
-      //     port,
-      //     timeout: connectionTimeout,
-      //     onBadCertificate: (_) => true,
-      //   ); // TODO do not automatically trust bad certificates
-      //   final _client = SocksSocket.protected(_socket, type);
-      // } else {
       // instantiate a socks socket at localhost and on the port selected by the tor service
       _socksSocket = await SOCKSSocket.create(
         proxyHost: InternetAddress.loopbackIPv4.address,
         proxyPort: TorService.sharedInstance.port,
+        sslEnabled: useSSL,
       );
 
       try {
         Logging.instance.log(
-            "JsonRPC.connect(): connecting to SOCKS socket at $proxyInfo...",
+            "JsonRPC.connect(): connecting to SOCKS socket at $proxyInfo (SSL $useSSL)...",
             level: LogLevel.Info);
 
         await _socksSocket?.connect();
@@ -257,12 +248,12 @@ class JsonRPC {
             "JsonRPC.connect(): failed to connect to tor proxy, $e");
       }
 
-      // _subscription = _socksSocket!.socket.listen(
-      //   _dataHandler,
-      //   onError: _errorHandler,
-      //   onDone: _doneHandler,
-      //   cancelOnError: true,
-      // ) as StreamSubscription<Uint8List>?;
+      _subscription = _socksSocket!.socket.listen(
+        _dataHandler,
+        onError: _errorHandler,
+        onDone: _doneHandler,
+        cancelOnError: true,
+      );
     }
   }
 }
