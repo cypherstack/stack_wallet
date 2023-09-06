@@ -144,8 +144,9 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                                                       height: 20,
                                                     ),
                                                     Text(
-                                                      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
-                                                      "Sed sit amet nulla accumsan, ornare felis pellentesque, auctor nulla.",
+                                                      "Short for \"The Onion Router\", is an open-source software that enables internet communication"
+                                                      " to remain anonymous by routing internet traffic through a series of layered nodes,"
+                                                      " to obscure the origin and destination of data.",
                                                       style: STextStyles
                                                               .desktopTextMedium(
                                                                   context)
@@ -253,8 +254,9 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                                                           height: 20,
                                                         ),
                                                         Text(
-                                                          "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
-                                                          "Sed sit amet nulla accumsan, ornare felis pellentesque, auctor nulla.",
+                                                          "A security feature that protects your information from accidental exposure by"
+                                                          " disconnecting your device from the Tor network if your virtual private network (VPN)"
+                                                          " connection is disrupted or compromised.",
                                                           style: STextStyles
                                                                   .desktopTextMedium(
                                                                       context)

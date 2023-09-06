@@ -80,8 +80,9 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
                       return const StackDialog(
                         title: "What is Tor?",
                         message:
-                            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
-                            "Sed sit amet nulla accumsan, ornare felis pellentesque, auctor nulla.",
+                            "Short for \"The Onion Router\", is an open-source software that enables internet communication"
+                            " to remain anonymous by routing internet traffic through a series of layered nodes,"
+                            " to obscure the origin and destination of data.",
                         rightButton: SecondaryButton(
                           label: "Close",
                         ),
@@ -169,8 +170,9 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
                                         return const StackDialog(
                                           title: "What is Tor killswitch?",
                                           message:
-                                              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
-                                              "Sed sit amet nulla accumsan, ornare felis pellentesque, auctor nulla.",
+                                              "A security feature that protects your information from accidental exposure by"
+                                              " disconnecting your device from the Tor network if your virtual private network (VPN)"
+                                              " connection is disrupted or compromised.",
                                           rightButton: SecondaryButton(
                                             label: "Close",
                                           ),
