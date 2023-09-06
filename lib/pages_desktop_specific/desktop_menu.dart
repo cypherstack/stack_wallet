@@ -66,7 +66,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
           children: [
             SvgPicture.asset(
               Assets.svg.tor,
-              color: Theme.of(context).extension<StackColors>()!.infoItemLabel,
+              color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
               width: 20,
               height: 20,
             ),
@@ -75,7 +75,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
               style: STextStyles.smallMed12(context).copyWith(
                   color: Theme.of(context)
                       .extension<StackColors>()!
-                      .infoItemLabel),
+                      .textSubtitle3),
             )
           ],
         );

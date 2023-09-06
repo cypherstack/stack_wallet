@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:stackwallet/pages/home_view/sub_widgets/tor_sync_status_changed_event.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -34,6 +35,32 @@ class TorSettingsView extends ConsumerStatefulWidget {
 }
 
 class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
+  Widget _buildTorIcon(TorSyncStatus status) {
+    switch (status) {
+      case TorSyncStatus.unableToSync:
+        return SvgPicture.asset(
+          Assets.svg.tor,
+          color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
+          width: 200,
+          height: 200,
+        );
+      case TorSyncStatus.synced:
+        return SvgPicture.asset(
+          Assets.svg.tor,
+          color: Theme.of(context).extension<StackColors>()!.accentColorGreen,
+          width: 200,
+          height: 200,
+        );
+      case TorSyncStatus.syncing:
+        return SvgPicture.asset(
+          Assets.svg.tor,
+          color: Theme.of(context).extension<StackColors>()!.accentColorYellow,
+          width: 200,
+          height: 200,
+        );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -104,11 +131,7 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(10.0),
-                    child: SvgPicture.asset(
-                      Assets.svg.tor,
-                      height: 200,
-                      width: 200,
-                    ),
+                    child: _buildTorIcon(TorSyncStatus.unableToSync),
                   ),
                 ],
               ),

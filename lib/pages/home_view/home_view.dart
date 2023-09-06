@@ -122,7 +122,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
       case TorSyncStatus.unableToSync:
         return SvgPicture.asset(
           Assets.svg.tor,
-          color: Theme.of(context).extension<StackColors>()!.infoItemLabel,
+          color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
           width: 20,
           height: 20,
         );
