@@ -73,9 +73,11 @@ class SOCKSSocket {
       StreamController.broadcast();
 
   /// Getter for the StreamController that listens to the _socksSocket and
-  /// broadcasts.
+  /// broadcasts, or the _secureSocksSocket and broadcasts if SSL is enabled.
   StreamController<List<int>> get responseController =>
       sslEnabled ? _secureResponseController : _responseController;
+
+  StreamSubscription? _subscription;
 
   /// A StreamController that listens to the _secureSocksSocket and broadcasts.
   final StreamController<List<int>> _secureResponseController =
@@ -134,7 +136,7 @@ class SOCKSSocket {
     );
 
     // Listen to the socket.
-    _socksSocket.listen(
+    _subscription = _socksSocket.listen(
       (data) {
         // Add the data to the response controller.
         _responseController.add(data);
@@ -217,7 +219,7 @@ class SOCKSSocket {
       );
 
       // Listen to the secure socket.
-      _secureSocksSocket.listen(
+      _subscription = _secureSocksSocket.listen(
         (data) {
           // Add the data to the response controller.
           _secureResponseController.add(data);
@@ -310,5 +312,26 @@ class SOCKSSocket {
     await _socksSocket.flush();
     await _responseController.close();
     return await _socksSocket.close();
+  }
+
+  StreamSubscription<List<int>> listen(
+    void Function(List<int> data)? onData, {
+    Function? onError,
+    void Function()? onDone,
+    bool? cancelOnError,
+  }) {
+    return sslEnabled
+        ? _secureResponseController.stream.listen(
+            onData,
+            onError: onError,
+            onDone: onDone,
+            cancelOnError: cancelOnError,
+          )
+        : _responseController.stream.listen(
+            onData,
+            onError: onError,
+            onDone: onDone,
+            cancelOnError: cancelOnError,
+          );
   }
 }

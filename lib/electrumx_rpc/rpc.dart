@@ -38,8 +38,8 @@ class JsonRPC {
   final _JsonRPCRequestQueue _requestQueue = _JsonRPCRequestQueue();
   Socket? _socket;
   SOCKSSocket? _socksSocket;
-  StreamSubscription<Uint8List>? _subscription;
-  StreamSubscription<Uint8List>? get subscription => _subscription;
+  StreamSubscription<List<int>>? _subscription;
+  StreamSubscription<List<int>>? get subscription => _subscription;
 
   void _dataHandler(List<int> data) {
     _requestQueue.nextIncompleteReq.then((req) {
@@ -86,7 +86,7 @@ class JsonRPC {
           _socket!.write('${req.jsonRequest}\r\n');
         }
         if (_socksSocket != null) {
-          _socksSocket!.write('${req.jsonRequest}\r\n\n');
+          _socksSocket!.write('${req.jsonRequest}\r\n');
           // _socksSocket!.socket.writeln('${req.jsonRequest}\r\n');
         }
 
@@ -248,7 +248,7 @@ class JsonRPC {
             "JsonRPC.connect(): failed to connect to tor proxy, $e");
       }
 
-      _subscription = _socksSocket!.socket.listen(
+      _subscription = _socksSocket!.listen(
         _dataHandler,
         onError: _errorHandler,
         onDone: _doneHandler,
