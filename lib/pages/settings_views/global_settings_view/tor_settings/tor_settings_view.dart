@@ -61,6 +61,32 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
     }
   }
 
+  Widget _buildTorStatus(TorSyncStatus status) {
+    switch (status) {
+      case TorSyncStatus.unableToSync:
+        return Text(
+          "Disconnected",
+          style: STextStyles.itemSubtitle(context).copyWith(
+              color: Theme.of(context).extension<StackColors>()!.textSubtitle3),
+        );
+      case TorSyncStatus.synced:
+        return Text(
+          "Connected",
+          style: STextStyles.itemSubtitle(context).copyWith(
+              color:
+                  Theme.of(context).extension<StackColors>()!.accentColorGreen),
+        );
+      case TorSyncStatus.syncing:
+        return Text(
+          "Connecting",
+          style: STextStyles.itemSubtitle(context).copyWith(
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .accentColorYellow),
+        );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -131,7 +157,7 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(10.0),
-                    child: _buildTorIcon(TorSyncStatus.unableToSync),
+                    child: _buildTorIcon(TorSyncStatus.syncing),
                   ),
                 ],
               ),
@@ -148,10 +174,7 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
                         style: STextStyles.titleBold12(context),
                       ),
                       const Spacer(),
-                      Text(
-                        "Tor network status",
-                        style: STextStyles.itemSubtitle(context),
-                      ),
+                      _buildTorStatus(TorSyncStatus.syncing),
                     ],
                   ),
                 ),
