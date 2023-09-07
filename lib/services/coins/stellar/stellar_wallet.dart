@@ -572,14 +572,29 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
     try {
       List<Tuple2<SWTransaction.Transaction, SWAddress.Address?>>
           transactionList = [];
-
-      Page<OperationResponse> payments = await stellarSdk.payments
-          .forAccount(await getAddressSW())
-          .order(RequestBuilderOrder.DESC)
-          .execute()
-          .onError(
-              (error, stackTrace) => throw ("Could not fetch transactions"));
-
+      Page<OperationResponse> payments;
+      try {
+        payments = await stellarSdk.payments
+            .forAccount(await getAddressSW())
+            .order(RequestBuilderOrder.DESC)
+            .execute()
+            .onError((error, stackTrace) => throw error!);
+      } catch (e) {
+        if (e is ErrorResponse &&
+            e.body.contains("The resource at the url requested was not found.  "
+                "This usually occurs for one of two reasons:  "
+                "The url requested is not valid, or no data in our database "
+                "could be found with the parameters provided.")) {
+          // probably just doesn't have any history yet or whatever stellar needs
+          return;
+        } else {
+          Logging.instance.log(
+            "Stellar $walletName $walletId failed to fetch transactions",
+            level: LogLevel.Warning,
+          );
+          rethrow;
+        }
+      }
       for (OperationResponse response in payments.records!) {
         // PaymentOperationResponse por;
         if (response is PaymentOperationResponse) {
@@ -717,8 +732,29 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   Future<void> updateBalance() async {
     try {
-      AccountResponse accountResponse =
-          await stellarSdk.accounts.account(await getAddressSW());
+      AccountResponse accountResponse;
+
+      try {
+        accountResponse = await stellarSdk.accounts
+            .account(await getAddressSW())
+            .onError((error, stackTrace) => throw error!);
+      } catch (e) {
+        if (e is ErrorResponse &&
+            e.body.contains("The resource at the url requested was not found.  "
+                "This usually occurs for one of two reasons:  "
+                "The url requested is not valid, or no data in our database "
+                "could be found with the parameters provided.")) {
+          // probably just doesn't have any history yet or whatever stellar needs
+          return;
+        } else {
+          Logging.instance.log(
+            "Stellar $walletName $walletId failed to fetch transactions",
+            level: LogLevel.Warning,
+          );
+          rethrow;
+        }
+      }
+
       for (Balance balance in accountResponse.balances) {
         switch (balance.assetType) {
           case Asset.TYPE_NATIVE:
