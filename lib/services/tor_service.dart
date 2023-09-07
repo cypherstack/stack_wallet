@@ -10,12 +10,29 @@ final pTorService = Provider((_) => TorService.sharedInstance);
 
 class TorService {
   final _tor = Tor();
+
+  /// Flag to indicate that a Tor circuit is thought to have been established.
   bool _enabled = false;
+
+  /// Getter for the enabled flag.
+  bool get enabled => _enabled;
+
+  /// The current status of the Tor connection.
+  TorConnectionStatus _status = TorConnectionStatus.disconnected;
+
+  /// Getter for the status.
+  ///
+  /// Used mostly to indicate "Connected" status in the UI.
+  TorConnectionStatus get status => _status;
 
   TorService._();
 
+  /// Singleton instance of the TorService.
+  ///
+  /// Use this to access the TorService and its properties.
   static final sharedInstance = TorService._();
 
+  /// Getter for the proxyInfo.
   ({
     InternetAddress host,
     int port,
@@ -24,9 +41,17 @@ class TorService {
         port: _tor.port,
       );
 
-  bool get enabled => _enabled;
-
+  /// Start the Tor service.
+  ///
+  /// This will start the Tor service and establish a Tor circuit.
+  ///
+  /// Throws an exception if the Tor service fails to start.
+  ///
+  /// Returns a Future that completes when the Tor service has started.
   Future<void> start() async {
+    // Set the status to connecting.
+    _status = TorConnectionStatus.connecting;
+
     if (_enabled) {
       // already started so just return
       // could throw an exception here or something so the caller
@@ -35,6 +60,7 @@ class TorService {
       return;
     }
 
+    // Start the Tor service.
     try {
       GlobalEventBus.instance.fire(
         TorConnectionStatusChangedEvent(
@@ -69,6 +95,9 @@ class TorService {
   }
 
   Future<void> stop() async {
+    // Set the status to disconnected.
+    _status = TorConnectionStatus.disconnected;
+
     if (!_enabled) {
       // already stopped so just return
       // could throw an exception here or something so the caller
@@ -77,6 +106,7 @@ class TorService {
       return;
     }
 
+    // Stop the Tor service.
     try {
       await _tor.disable();
       // no exception or error so we can (probably?) assume tor
