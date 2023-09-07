@@ -205,7 +205,7 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                                       .copyWith(
                                           color: Theme.of(context)
                                               .extension<StackColors>()!
-                                              .accentColorDark),
+                                              .textDark),
                                 ),
                                 TextSpan(
                                   text: "\nWhat is Tor killswitch?",
