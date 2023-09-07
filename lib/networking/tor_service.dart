@@ -29,6 +29,7 @@ class TorService {
       // already started so just return
       // could throw an exception here or something so the caller
       // is explicitly made aware of this
+      // TODO restart tor after that's been added to the tor-ffi crate
       return;
     }
 
@@ -51,6 +52,7 @@ class TorService {
       // already stopped so just return
       // could throw an exception here or something so the caller
       // is explicitly made aware of this
+      // TODO make sure to kill
       return;
     }
 

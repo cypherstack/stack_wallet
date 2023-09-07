@@ -12,11 +12,11 @@ import 'package:stackwallet/utilities/logger.dart';
 
 enum TorStatus { enabled, disabled }
 
-class TorStatusChangedEvent {
+class TorPreferenceChangedEvent {
   String? message;
   TorStatus status;
 
-  TorStatusChangedEvent({
+  TorPreferenceChangedEvent({
     required this.status,
     this.message,
   }) {

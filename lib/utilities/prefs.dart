@@ -911,7 +911,7 @@ class Prefs extends ChangeNotifier {
       _useTor = useTor;
       notifyListeners();
       GlobalEventBus.instance.fire(
-        TorStatusChangedEvent(
+        TorPreferenceChangedEvent(
           status: useTor ? TorStatus.enabled : TorStatus.disabled,
           message: "useTor updated in prefs",
         ),

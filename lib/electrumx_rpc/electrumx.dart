@@ -82,7 +82,7 @@ class ElectrumX {
   static final Finalizer<ElectrumX> _finalizer = Finalizer(
     (p0) => p0._torStatusListener?.cancel(),
   );
-  StreamSubscription<TorStatusChangedEvent>? _torStatusListener;
+  StreamSubscription<TorPreferenceChangedEvent>? _torStatusListener;
 
   ElectrumX({
     required String host,
@@ -104,7 +104,7 @@ class ElectrumX {
     _rpcClient = client;
 
     final bus = globalEventBusForTesting ?? GlobalEventBus.instance;
-    _torStatusListener = bus.on<TorStatusChangedEvent>().listen(
+    _torStatusListener = bus.on<TorPreferenceChangedEvent>().listen(
       (event) async {
         // not sure if we need to do anything specific here
         // switch (event.status) {
