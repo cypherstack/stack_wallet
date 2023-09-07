@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:socks5_proxy/socks_client.dart';
-import 'package:stackwallet/networking/tor_service.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 // WIP wrapper layer

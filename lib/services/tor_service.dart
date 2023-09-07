@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/pages/home_view/sub_widgets/tor_connection_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:tor/tor.dart';
 
@@ -34,14 +36,33 @@ class TorService {
     }
 
     try {
+      GlobalEventBus.instance.fire(
+        TorConnectionStatusChangedEvent(
+          TorConnectionStatus.connecting,
+          "Tor connection status changed: connecting",
+        ),
+      );
       await _tor.start();
       // no exception or error so we can (probably?) assume tor
       // has started successfully
       _enabled = true;
+      GlobalEventBus.instance.fire(
+        TorConnectionStatusChangedEvent(
+          TorConnectionStatus.connected,
+          "Tor connection status changed: connect ($_enabled)",
+        ),
+      );
     } catch (e, s) {
       Logging.instance.log(
         "TorService.start failed: $e\n$s",
         level: LogLevel.Warning,
+      );
+      // _enabled should already be false
+      GlobalEventBus.instance.fire(
+        TorConnectionStatusChangedEvent(
+          TorConnectionStatus.disconnected,
+          "Tor connection status changed: $_enabled (failed)",
+        ),
       );
       rethrow;
     }
@@ -61,6 +82,12 @@ class TorService {
       // no exception or error so we can (probably?) assume tor
       // has started successfully
       _enabled = false;
+      GlobalEventBus.instance.fire(
+        TorConnectionStatusChangedEvent(
+          TorConnectionStatus.disconnected,
+          "Tor connection status changed: $_enabled (disabled)",
+        ),
+      );
     } catch (e, s) {
       Logging.instance.log(
         "TorService.stop failed: $e\n$s",

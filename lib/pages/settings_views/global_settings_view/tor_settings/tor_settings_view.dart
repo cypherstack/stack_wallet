@@ -35,11 +35,11 @@ class TorSettingsView extends ConsumerStatefulWidget {
 }
 
 class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
-  TorConnectionStatus _networkStatus = TorConnectionStatus.unableToConnect;
+  TorConnectionStatus _networkStatus = TorConnectionStatus.disconnected;
 
   Widget _buildTorIcon(TorConnectionStatus status) {
     switch (status) {
-      case TorConnectionStatus.unableToConnect:
+      case TorConnectionStatus.disconnected:
         return Stack(
           alignment: AlignmentDirectional.center,
           children: [
@@ -97,7 +97,7 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
 
   Widget _buildTorStatus(TorConnectionStatus status) {
     switch (status) {
-      case TorConnectionStatus.unableToConnect:
+      case TorConnectionStatus.disconnected:
         return Text(
           "Disconnected",
           style: STextStyles.itemSubtitle(context).copyWith(

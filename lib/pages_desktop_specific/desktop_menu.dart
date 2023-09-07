@@ -61,7 +61,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
 
   Widget _buildTorIcon(TorConnectionStatus status) {
     switch (status) {
-      case TorConnectionStatus.unableToConnect:
+      case TorConnectionStatus.disconnected:
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -218,7 +218,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                         .watch(selectedSettingsMenuItemStateProvider.state)
                         .state = 4;
                   },
-                  child: _buildTorIcon(TorConnectionStatus.unableToConnect)),
+                  child: _buildTorIcon(TorConnectionStatus.disconnected)),
             ),
             const SizedBox(
               height: 40,

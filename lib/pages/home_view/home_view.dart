@@ -119,7 +119,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   Widget _buildTorIcon(TorConnectionStatus status) {
     switch (status) {
-      case TorConnectionStatus.unableToConnect:
+      case TorConnectionStatus.disconnected:
         return SvgPicture.asset(
           Assets.svg.tor,
           color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
@@ -261,7 +261,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     color: Theme.of(context)
                         .extension<StackColors>()!
                         .backgroundAppBar,
-                    icon: _buildTorIcon(TorConnectionStatus.unableToConnect),
+                    icon: _buildTorIcon(TorConnectionStatus.disconnected),
                     onPressed: () {
                       Navigator.of(context)
                           .pushNamed(TorSettingsView.routeName);
