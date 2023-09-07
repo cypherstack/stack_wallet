@@ -77,6 +77,11 @@ class ElectrumX {
 
   final Duration connectionTimeoutForSpecialCaseJsonRPCClients;
 
+  // add finalizer to cancel stream subscription when all references to an
+  // instance of ElectrumX becomes inaccessible
+  static final Finalizer<ElectrumX> _finalizer = Finalizer(
+    (p0) => p0._torStatusListener?.cancel(),
+  );
   StreamSubscription<TorStatusChangedEvent>? _torStatusListener;
 
   ElectrumX({
