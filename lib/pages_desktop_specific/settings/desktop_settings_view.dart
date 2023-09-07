@@ -19,6 +19,7 @@ import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/langua
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/nodes_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/security_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/syncing_preferences_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/tor_settings/tor_settings.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -56,7 +57,12 @@ class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
       key: Key("settingsLanguageDesktopKey"),
       onGenerateRoute: RouteGenerator.generateRoute,
       initialRoute: LanguageOptionSettings.routeName,
-    ), //language
+    ),
+    const Navigator(
+      key: Key("settingsTorDesktopKey"),
+      onGenerateRoute: RouteGenerator.generateRoute,
+      initialRoute: TorSettings.routeName,
+    ), //tor
     const Navigator(
       key: Key("settingsNodesDesktopKey"),
       onGenerateRoute: RouteGenerator.generateRoute,

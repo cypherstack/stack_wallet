@@ -14,7 +14,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:stackwallet/pages/home_view/sub_widgets/tor_sync_status_changed_event.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_menu_item.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu.dart';
 import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -56,6 +58,70 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
   double _width = expandedWidth;
 
   // final _buyDataLoadingService = BuyDataLoadingService();
+
+  Widget _buildTorIcon(TorSyncStatus status) {
+    switch (status) {
+      case TorSyncStatus.unableToSync:
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SvgPicture.asset(
+              Assets.svg.tor,
+              color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
+              width: 20,
+              height: 20,
+            ),
+            Text(
+              "\tDisconnected",
+              style: STextStyles.smallMed12(context).copyWith(
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textSubtitle3),
+            )
+          ],
+        );
+      case TorSyncStatus.synced:
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SvgPicture.asset(
+              Assets.svg.tor,
+              color:
+                  Theme.of(context).extension<StackColors>()!.accentColorGreen,
+              width: 20,
+              height: 20,
+            ),
+            Text(
+              "\tConnected",
+              style: STextStyles.smallMed12(context).copyWith(
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorGreen),
+            )
+          ],
+        );
+      case TorSyncStatus.syncing:
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SvgPicture.asset(
+              Assets.svg.tor,
+              color:
+                  Theme.of(context).extension<StackColors>()!.accentColorYellow,
+              width: 20,
+              height: 20,
+            ),
+            Text(
+              "\tConnecting",
+              style: STextStyles.smallMed12(context).copyWith(
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorYellow),
+            )
+          ],
+        );
+    }
+  }
 
   void updateSelectedMenuItem(DesktopMenuItemId idKey) {
     widget.onSelectionWillChange?.call(idKey);
@@ -140,7 +206,22 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
               ),
             ),
             const SizedBox(
-              height: 60,
+              height: 5,
+            ),
+            MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                  onTap: () {
+                    ref.read(currentDesktopMenuItemProvider.state).state =
+                        DesktopMenuItemId.settings;
+                    ref
+                        .watch(selectedSettingsMenuItemStateProvider.state)
+                        .state = 4;
+                  },
+                  child: _buildTorIcon(TorSyncStatus.unableToSync)),
+            ),
+            const SizedBox(
+              height: 40,
             ),
             Expanded(
               child: AnimatedContainer(
