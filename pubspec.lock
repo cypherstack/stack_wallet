@@ -25,6 +25,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.12.30"
+  ansicolor:
+    dependency: transitive
+    description:
+      name: ansicolor
+      sha256: "607f8fa9786f392043f169898923e6c59b4518242b68b8862eb8a8b7d9c30b4a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
   archive:
     dependency: "direct main"
     description:
@@ -298,10 +306,10 @@ packages:
     dependency: "direct main"
     description:
       name: crypto
-      sha256: ff625774173754681d66daaf4a448684fb04b78f902da9cb3d308c19cc5e8bab
+      sha256: aa274aa7774f8964e4f4f38cc994db7b6158dd36e9187aaceaddc994b35c6c67
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.3"
+    version: "3.0.2"
   cryptography:
     dependency: transitive
     description:
@@ -454,10 +462,10 @@ packages:
     dependency: transitive
     description:
       name: dio
-      sha256: "3866d67f93523161b643187af65f5ac08bc991a5bcdaf41a2d587fe4ccb49993"
+      sha256: "7d328c4d898a61efc3cd93655a0955858e29a0aa647f0f9e02d59b3bb275e2e8"
       url: "https://pub.dev"
     source: hosted
-    version: "5.3.0"
+    version: "4.0.6"
   dropdown_button2:
     dependency: "direct main"
     description:
@@ -942,6 +950,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.2"
+  json_serializable:
+    dependency: transitive
+    description:
+      name: json_serializable
+      sha256: aa1f5a8912615733e0fdc7a02af03308933c93235bdc8d50d0b0c8a8ccb0b969
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.7.1"
   keyboard_dismisser:
     dependency: "direct main"
     description:
@@ -1005,6 +1021,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.0"
+  memoize:
+    dependency: transitive
+    description:
+      name: memoize
+      sha256: "51481d328c86cbdc59711369179bac88551ca0556569249be5317e66fc796cac"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.0"
   meta:
     dependency: transitive
     description:
@@ -1230,13 +1254,13 @@ packages:
     source: hosted
     version: "5.4.0"
   pinenacl:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: pinenacl
-      sha256: "3a5503637587d635647c93ea9a8fecf48a420cc7deebe6f1fc85c2a5637ab327"
+      sha256: e5fb0bce1717b7f136f35ee98b5c02b3e6383211f8a77ca882fa7812232a07b9
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.1"
+    version: "0.3.4"
   platform:
     dependency: transitive
     description:
@@ -1269,6 +1293,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.1"
+  pretty_dio_logger:
+    dependency: transitive
+    description:
+      name: pretty_dio_logger
+      sha256: "948f7eeb36e7aa0760b51c1a8e3331d4b21e36fabd39efca81f585ed93893544"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.0-beta-1"
   process:
     dependency: transitive
     description:
@@ -1317,6 +1349,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.0"
+  quiver:
+    dependency: transitive
+    description:
+      name: quiver
+      sha256: b1c1ac5ce6688d77f65f3375a9abb9319b3cb32486bdc7a1e0fdf004d7ba4e47
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.2.1"
   rational:
     dependency: transitive
     description:
@@ -1325,6 +1365,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.2"
+  retry:
+    dependency: transitive
+    description:
+      name: retry
+      sha256: "822e118d5b3aafed083109c72d5f484c6dc66707885e07c0fbcb8b986bba7efc"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.2"
   riverpod:
     dependency: transitive
     description:
@@ -1479,10 +1527,10 @@ packages:
     dependency: "direct main"
     description:
       name: stellar_flutter_sdk
-      sha256: "7a9b7dc76018bbd0b9c828045cf0e26e07ec44208fb1a1733273de2390205475"
+      sha256: "4c55b1b6dfbde7f89bba59a422754280715fa3b5726cff5e7eeaed454d2c4b89"
       url: "https://pub.dev"
     source: hosted
-    version: "1.6.0"
+    version: "1.5.3"
   stream_channel:
     dependency: transitive
     description:
@@ -1555,6 +1603,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.5.1"
+  tezart:
+    dependency: "direct main"
+    description:
+      name: tezart
+      sha256: "35d526f2e6ca250c64461ebfb4fa9f64b6599fab8c4242c8e89ae27d4ac2e15a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.5"
   time:
     dependency: transitive
     description:

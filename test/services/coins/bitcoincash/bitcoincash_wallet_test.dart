@@ -626,7 +626,8 @@ void main() async {
       await Hive.openBox<dynamic>(testWalletId);
       await Hive.openBox<dynamic>(DB.boxNamePrefs);
 
-      await expectLater(() => bch?.initializeNew(), throwsA(isA<Exception>()))
+      await expectLater(
+              () => bch?.initializeNew(null), throwsA(isA<Exception>()))
           .then((_) {
         expect(secureStore.interactions, 2);
         verifyNever(client?.ping()).called(0);

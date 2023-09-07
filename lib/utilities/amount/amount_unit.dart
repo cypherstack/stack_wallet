@@ -1,6 +1,6 @@
-/* 
+/*
  * This file is part of Stack Wallet.
- * 
+ *
  * Copyright (c) 2023 Cypher Stack
  * All Rights Reserved.
  * The code is distributed under GPLv3 license, see LICENSE file for details.
@@ -52,6 +52,7 @@ enum AmountUnit {
       case Coin.epicCash:
       case Coin.stellar: // TODO: check if this is correct
       case Coin.stellarTestnet:
+      case Coin.tezos:
         return AmountUnit.values.sublist(0, 4);
 
       case Coin.monero:

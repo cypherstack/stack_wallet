@@ -154,18 +154,12 @@ class MockCachedElectrumX extends _i1.Mock implements _i7.CachedElectrumX {
             _i8.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i8.Future<Map<String, dynamic>>);
   @override
-  _i8.Future<List<String>> getUsedCoinSerials({
-    required _i9.Coin? coin,
-    int? startNumber = 0,
-  }) =>
+  _i8.Future<List<String>> getUsedCoinSerials({required _i9.Coin? coin}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getUsedCoinSerials,
           [],
-          {
-            #coin: coin,
-            #startNumber: startNumber,
-          },
+          {#coin: coin},
         ),
         returnValue: _i8.Future<List<String>>.value(<String>[]),
       ) as _i8.Future<List<String>>);
@@ -792,10 +786,12 @@ class MockManager extends _i1.Mock implements _i15.Manager {
         returnValue: _i8.Future<bool>.value(false),
       ) as _i8.Future<bool>);
   @override
-  _i8.Future<void> initializeNew() => (super.noSuchMethod(
+  _i8.Future<void> initializeNew(
+          ({String mnemonicPassphrase, int wordCount})? data) =>
+      (super.noSuchMethod(
         Invocation.method(
           #initializeNew,
-          [],
+          [data],
         ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
