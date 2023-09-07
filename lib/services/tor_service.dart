@@ -72,6 +72,11 @@ class TorService {
       // no exception or error so we can (probably?) assume tor
       // has started successfully
       _enabled = true;
+
+      // Set the status to connected.
+      _status = TorConnectionStatus.connected;
+
+      // Fire a TorConnectionStatusChangedEvent on the event bus.
       GlobalEventBus.instance.fire(
         TorConnectionStatusChangedEvent(
           TorConnectionStatus.connected,
@@ -84,6 +89,11 @@ class TorService {
         level: LogLevel.Warning,
       );
       // _enabled should already be false
+
+      // Set the status to disconnected.
+      _status = TorConnectionStatus.disconnected;
+
+      // Fire a TorConnectionStatusChangedEvent on the event bus.
       GlobalEventBus.instance.fire(
         TorConnectionStatusChangedEvent(
           TorConnectionStatus.disconnected,

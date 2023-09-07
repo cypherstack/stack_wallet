@@ -8,11 +8,17 @@
  *
  */
 
+import 'dart:async';
+
+import 'package:event_bus/event_bus.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
+import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -22,6 +28,8 @@ import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+import '../../../../utilities/prefs.dart';
 
 class TorSettings extends ConsumerStatefulWidget {
   const TorSettings({Key? key}) : super(key: key);
@@ -33,13 +41,83 @@ class TorSettings extends ConsumerStatefulWidget {
 }
 
 class _TorSettingsState extends ConsumerState<TorSettings> {
+  // The Prefs instance.
+  final Prefs _prefs = Prefs.instance;
+
+  /// The global event bus.
+  EventBus eventBus = GlobalEventBus.instance;
+
+  /// Subscription to the TorConnectionStatusChangedEvent.
+  late StreamSubscription<TorConnectionStatusChangedEvent>
+      _torConnectionStatusSubscription;
+
+  /// The current status of the Tor connection.
+  TorConnectionStatus _torConnectionStatus = TorConnectionStatus.disconnected;
+
+  Widget _buildConnectButton(TorConnectionStatus status) {
+    switch (status) {
+      case TorConnectionStatus.disconnected:
+        return SecondaryButton(
+          label: "Connect to Tor",
+          width: 200,
+          buttonHeight: ButtonHeight.m,
+          onPressed: () {
+            // Toggle the useTor preference.
+            _prefs.useTor = true;
+
+            // Start the Tor service.
+            TorService.sharedInstance.start();
+          },
+        );
+      case TorConnectionStatus.connecting:
+        return AbsorbPointer(
+          child: SecondaryButton(
+            label: "Connecting to Tor",
+            width: 200,
+            buttonHeight: ButtonHeight.m,
+            onPressed: () {},
+          ),
+        );
+      case TorConnectionStatus.connected:
+        return SecondaryButton(
+          label: "Disconnect from Tor",
+          width: 200,
+          buttonHeight: ButtonHeight.m,
+          onPressed: () {
+            // Toggle the useTor preference.
+            _prefs.useTor = false;
+
+            // Stop the Tor service.
+            TorService.sharedInstance.stop();
+          },
+        );
+    }
+  }
+
   @override
   void initState() {
+    // Initialize the global event bus.
+    eventBus = GlobalEventBus.instance;
+
+    // Subscribe to the TorConnectionStatusChangedEvent.
+    _torConnectionStatusSubscription =
+        eventBus.on<TorConnectionStatusChangedEvent>().listen(
+      (event) async {
+        // Rebuild the widget.
+        setState(() {
+          _torConnectionStatus = event.newStatus;
+        });
+      },
+    );
+
     super.initState();
   }
 
   @override
   void dispose() {
+    // Clean up the TorConnectionStatusChangedEvent subscription.
+    _torConnectionStatusSubscription.cancel();
+
     super.dispose();
   }
 
@@ -72,7 +150,12 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: SvgPicture.asset(
-                        Assets.svg.disconnectedButton,
+                        _torConnectionStatus == TorConnectionStatus.connected
+                            ? Assets.svg.connectedButton
+                            : _torConnectionStatus ==
+                                    TorConnectionStatus.connecting
+                                ? Assets.svg.connectingButton
+                                : Assets.svg.disconnectedButton,
                         width: 48,
                         height: 48,
                       ),
@@ -176,12 +259,7 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                 ),
                 Padding(
                   padding: const EdgeInsets.all(10.0),
-                  child: SecondaryButton(
-                    label: "Disconnect from Tor",
-                    width: 200,
-                    buttonHeight: ButtonHeight.m,
-                    onPressed: () {},
-                  ),
+                  child: _buildConnectButton(TorService.sharedInstance.status),
                 ),
                 const SizedBox(
                   height: 30,

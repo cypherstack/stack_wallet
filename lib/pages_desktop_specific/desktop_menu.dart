@@ -8,20 +8,25 @@
  *
  */
 
+import 'dart:async';
 import 'dart:io';
 
+import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_menu_item.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu.dart';
 import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
+import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/desktop/living_stack_icon.dart';
+
+import '../services/event_bus/global_event_bus.dart';
 
 enum DesktopMenuItemId {
   myStack,
@@ -59,6 +64,17 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
 
   // final _buyDataLoadingService = BuyDataLoadingService();
 
+  /// The global event bus.
+  late final EventBus eventBus;
+
+  /// The subscription to the TorConnectionStatusChangedEvent.
+  late StreamSubscription<TorConnectionStatusChangedEvent>
+      _torConnectionStatusSubscription;
+
+  /// The current status of the Tor connection.
+  TorConnectionStatus _torConnectionStatus = TorConnectionStatus.disconnected;
+
+  /// Builds the tor icon based on the current status.
   Widget _buildTorIcon(TorConnectionStatus status) {
     switch (status) {
       case TorConnectionStatus.disconnected:
@@ -80,26 +96,6 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
             )
           ],
         );
-      case TorConnectionStatus.connected:
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SvgPicture.asset(
-              Assets.svg.tor,
-              color:
-                  Theme.of(context).extension<StackColors>()!.accentColorGreen,
-              width: 20,
-              height: 20,
-            ),
-            Text(
-              "\tConnected",
-              style: STextStyles.smallMed12(context).copyWith(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .accentColorGreen),
-            )
-          ],
-        );
       case TorConnectionStatus.connecting:
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -117,6 +113,26 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                   color: Theme.of(context)
                       .extension<StackColors>()!
                       .accentColorYellow),
+            )
+          ],
+        );
+      case TorConnectionStatus.connected:
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SvgPicture.asset(
+              Assets.svg.tor,
+              color:
+                  Theme.of(context).extension<StackColors>()!.accentColorGreen,
+              width: 20,
+              height: 20,
+            ),
+            Text(
+              "\tConnected",
+              style: STextStyles.smallMed12(context).copyWith(
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorGreen),
             )
           ],
         );
@@ -157,6 +173,39 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
       DMIController(),
     ];
 
+    // Initialize the global event bus.
+    eventBus = GlobalEventBus.instance;
+
+    // Subscribe to the TorConnectionStatusChangedEvent.
+    _torConnectionStatusSubscription =
+        eventBus.on<TorConnectionStatusChangedEvent>().listen(
+      (event) async {
+        // Rebuild the widget.
+        setState(() {
+          _torConnectionStatus = event.newStatus;
+        });
+
+        // TODO implement spinner or animations and control from here
+        // switch (event.newStatus) {
+        //   case TorConnectionStatus.disconnected:
+        //     // if (_spinController.hasLoadedAnimation) {
+        //     //   _spinController.stop?.call();
+        //     // }
+        //     break;
+        //   case TorConnectionStatus.connecting:
+        //     // if (_spinController.hasLoadedAnimation) {
+        //     //   _spinController.repeat?.call();
+        //     // }
+        //     break;
+        //   case TorConnectionStatus.connected:
+        //     // if (_spinController.hasLoadedAnimation) {
+        //     //   _spinController.stop?.call();
+        //     // }
+        //     break;
+        // }
+      },
+    );
+
     super.initState();
   }
 
@@ -165,6 +214,10 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
     for (var e in controllers) {
       e.dispose();
     }
+
+    // Clean up the subscription to the TorConnectionStatusChangedEvent.
+    _torConnectionStatusSubscription.cancel();
+
     super.dispose();
   }
 
@@ -218,7 +271,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                         .watch(selectedSettingsMenuItemStateProvider.state)
                         .state = 4;
                   },
-                  child: _buildTorIcon(TorConnectionStatus.disconnected)),
+                  child: _buildTorIcon(TorService.sharedInstance.status)),
             ),
             const SizedBox(
               height: 40,
