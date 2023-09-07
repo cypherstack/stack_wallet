@@ -26,13 +26,13 @@ class JsonRPC {
     required this.port,
     this.useSSL = false,
     this.connectionTimeout = const Duration(seconds: 60),
-    required ({String host, int port})? proxyInfo,
+    required ({InternetAddress host, int port})? proxyInfo,
   });
   final bool useSSL;
   final String host;
   final int port;
   final Duration connectionTimeout;
-  ({String host, int port})? proxyInfo;
+  ({InternetAddress host, int port})? proxyInfo;
 
   final _requestMutex = Mutex();
   final _JsonRPCRequestQueue _requestQueue = _JsonRPCRequestQueue();
@@ -195,19 +195,17 @@ class JsonRPC {
       );
     } else {
       if (proxyInfo == null) {
-        // TODO await tor / make sure it's running
-        proxyInfo = (
-          host: InternetAddress.loopbackIPv4.address,
-          port: TorService.sharedInstance.port
+        proxyInfo = TorService.sharedInstance.proxyInfo;
+        Logging.instance.log(
+          "ElectrumX.connect(): tor detected at $proxyInfo",
+          level: LogLevel.Warning,
         );
-        Logging.instance.log("ElectrumX.connect(): tor detected at $proxyInfo",
-            level: LogLevel.Warning);
       }
 
       // instantiate a socks socket at localhost and on the port selected by the tor service
       _socksSocket = await SOCKSSocket.create(
-        proxyHost: InternetAddress.loopbackIPv4.address,
-        proxyPort: TorService.sharedInstance.port,
+        proxyHost: proxyInfo!.host.address,
+        proxyPort: proxyInfo!.port,
         sslEnabled: useSSL,
       );
 

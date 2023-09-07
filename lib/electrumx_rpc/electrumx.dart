@@ -8,14 +8,18 @@
  *
  */
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:decimal/decimal.dart';
+import 'package:event_bus/event_bus.dart';
 import 'package:stackwallet/electrumx_rpc/rpc.dart';
 import 'package:stackwallet/exceptions/electrumx/no_such_transaction.dart';
 import 'package:stackwallet/networking/tor_service.dart';
+import 'package:stackwallet/services/event_bus/events/global/tor_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:uuid/uuid.dart';
@@ -66,13 +70,14 @@ class ElectrumX {
   JsonRPC? _rpcClient;
 
   late Prefs _prefs;
+  late TorService _torService;
 
   List<ElectrumXNode>? failovers;
   int currentFailoverIndex = -1;
 
   final Duration connectionTimeoutForSpecialCaseJsonRPCClients;
 
-  ({String host, int port})? proxyInfo;
+  StreamSubscription<TorStatusChangedEvent>? _torStatusListener;
 
   ElectrumX({
     required String host,
@@ -83,49 +88,60 @@ class ElectrumX {
     JsonRPC? client,
     this.connectionTimeoutForSpecialCaseJsonRPCClients =
         const Duration(seconds: 60),
-    ({String host, int port})? proxyInfo,
+    TorService? torService,
+    EventBus? globalEventBusForTesting,
   }) {
     _prefs = prefs;
+    _torService = torService ?? TorService.sharedInstance;
     _host = host;
     _port = port;
     _useSSL = useSSL;
     _rpcClient = client;
+
+    final bus = globalEventBusForTesting ?? GlobalEventBus.instance;
+    _torStatusListener = bus.on<TorStatusChangedEvent>().listen(
+      (event) async {
+        // not sure if we need to do anything specific here
+        // switch (event.status) {
+        //   case TorStatus.enabled:
+        //   case TorStatus.disabled:
+        // }
+
+        // might be ok to just reset/kill the current _jsonRpcClient
+
+        // since disconnecting is async and we want to ensure instant change over
+        // we will keep temp reference to current rpc client to call disconnect
+        // on before awaiting the disconnection future
+
+        final temp = _rpcClient;
+
+        // setting to null should force the creation of a new json rpc client
+        // on the next request sent through this electrumx instance
+        _rpcClient = null;
+
+        await temp?.disconnect(
+          reason: "Tor status changed to \"${event.status}\"",
+        );
+      },
+    );
   }
 
   factory ElectrumX.from({
     required ElectrumXNode node,
     required Prefs prefs,
     required List<ElectrumXNode> failovers,
-    ({String host, int port})? proxyInfo,
+    TorService? torService,
+    EventBus? globalEventBusForTesting,
   }) {
-    if (Prefs.instance.useTor) {
-      if (proxyInfo == null) {
-        // TODO await tor / make sure it's running
-        proxyInfo = (
-          host: InternetAddress.loopbackIPv4.address,
-          port: TorService.sharedInstance.port
-        );
-        Logging.instance.log("ElectrumX.from(): tor detected at $proxyInfo",
-            level: LogLevel.Warning);
-      }
-      return ElectrumX(
-        host: node.address,
-        port: node.port,
-        useSSL: node.useSSL,
-        prefs: prefs,
-        failovers: failovers,
-        proxyInfo: proxyInfo,
-      );
-    } else {
-      return ElectrumX(
-        host: node.address,
-        port: node.port,
-        useSSL: node.useSSL,
-        prefs: prefs,
-        failovers: failovers,
-        proxyInfo: null,
-      );
-    }
+    return ElectrumX(
+      host: node.address,
+      port: node.port,
+      useSSL: node.useSSL,
+      prefs: prefs,
+      torService: torService,
+      failovers: failovers,
+      globalEventBusForTesting: globalEventBusForTesting,
+    );
   }
 
   Future<bool> _allow() async {
@@ -134,6 +150,59 @@ class ElectrumX {
           ConnectivityResult.wifi;
     }
     return true;
+  }
+
+  void _checkRpcClient() {
+    if (_prefs.useTor) {
+      if (!_torService.enabled) {
+        throw Exception("Tor is not enabled");
+      }
+
+      final proxyInfo = _torService.proxyInfo;
+
+      if (currentFailoverIndex == -1) {
+        _rpcClient ??= JsonRPC(
+          host: host,
+          port: port,
+          useSSL: useSSL,
+          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
+          proxyInfo: proxyInfo,
+        );
+      } else {
+        _rpcClient ??= JsonRPC(
+          host: failovers![currentFailoverIndex].address,
+          port: failovers![currentFailoverIndex].port,
+          useSSL: failovers![currentFailoverIndex].useSSL,
+          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
+          proxyInfo: proxyInfo,
+        );
+      }
+
+      if (_rpcClient!.proxyInfo != proxyInfo) {
+        _rpcClient!.proxyInfo = proxyInfo;
+        _rpcClient!.disconnect(
+          reason: "Tor proxyInfo does not match current info",
+        );
+      }
+    } else {
+      if (currentFailoverIndex == -1) {
+        _rpcClient ??= JsonRPC(
+          host: host,
+          port: port,
+          useSSL: useSSL,
+          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
+          proxyInfo: null,
+        );
+      } else {
+        _rpcClient ??= JsonRPC(
+          host: failovers![currentFailoverIndex].address,
+          port: failovers![currentFailoverIndex].port,
+          useSSL: failovers![currentFailoverIndex].useSSL,
+          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
+          proxyInfo: null,
+        );
+      }
+    }
   }
 
   /// Send raw rpc command
@@ -148,52 +217,7 @@ class ElectrumX {
       throw WifiOnlyException();
     }
 
-    if (Prefs.instance.useTor) {
-      if (proxyInfo == null) {
-        // TODO await tor / make sure Tor is running
-        proxyInfo = (
-          host: InternetAddress.loopbackIPv4.address,
-          port: TorService.sharedInstance.port
-        );
-        Logging.instance.log("ElectrumX.request(): tor detected at $proxyInfo",
-            level: LogLevel.Warning);
-      }
-      if (currentFailoverIndex == -1) {
-        _rpcClient ??= JsonRPC(
-          host: host,
-          port: port,
-          useSSL: useSSL,
-          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-          proxyInfo: proxyInfo,
-        );
-      } else {
-        _rpcClient ??= JsonRPC(
-          host: failovers![currentFailoverIndex].address,
-          port: failovers![currentFailoverIndex].port,
-          useSSL: failovers![currentFailoverIndex].useSSL,
-          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-          proxyInfo: proxyInfo,
-        );
-      }
-    } else {
-      if (currentFailoverIndex == -1) {
-        _rpcClient ??= JsonRPC(
-          host: host,
-          port: port,
-          useSSL: useSSL,
-          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-          proxyInfo: null,
-        );
-      } else {
-        _rpcClient ??= JsonRPC(
-          host: failovers![currentFailoverIndex].address,
-          port: failovers![currentFailoverIndex].port,
-          useSSL: failovers![currentFailoverIndex].useSSL,
-          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-          proxyInfo: null,
-        );
-      }
-    }
+    _checkRpcClient();
 
     try {
       final requestId = requestID ?? const Uuid().v1();
@@ -280,54 +304,7 @@ class ElectrumX {
       throw WifiOnlyException();
     }
 
-    if (Prefs.instance.useTor) {
-      // TODO await tor / make sure Tor is initialized
-      if (proxyInfo == null) {
-        proxyInfo = (
-          host: InternetAddress.loopbackIPv4.address,
-          port: TorService.sharedInstance.port
-        );
-        Logging.instance.log(
-            "ElectrumX.batchRequest(): tor detected at $proxyInfo",
-            level: LogLevel.Warning);
-      }
-
-      if (currentFailoverIndex == -1) {
-        _rpcClient ??= JsonRPC(
-          host: host,
-          port: port,
-          useSSL: useSSL,
-          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-          proxyInfo: proxyInfo,
-        );
-      } else {
-        _rpcClient = JsonRPC(
-          host: failovers![currentFailoverIndex].address,
-          port: failovers![currentFailoverIndex].port,
-          useSSL: failovers![currentFailoverIndex].useSSL,
-          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-          proxyInfo: proxyInfo,
-        );
-      }
-    } else {
-      if (currentFailoverIndex == -1) {
-        _rpcClient ??= JsonRPC(
-          host: host,
-          port: port,
-          useSSL: useSSL,
-          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-          proxyInfo: null,
-        );
-      } else {
-        _rpcClient = JsonRPC(
-          host: failovers![currentFailoverIndex].address,
-          port: failovers![currentFailoverIndex].port,
-          useSSL: failovers![currentFailoverIndex].useSSL,
-          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-          proxyInfo: null,
-        );
-      }
-    }
+    _checkRpcClient();
 
     try {
       final List<String> requestStrings = [];

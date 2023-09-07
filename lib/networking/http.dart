@@ -18,8 +18,8 @@ abstract class HTTP {
       if (routeOverTor) {
         SocksTCPClient.assignToHttpClient(httpClient, [
           ProxySettings(
-            InternetAddress.loopbackIPv4,
-            TorService.sharedInstance.port,
+            TorService.sharedInstance.proxyInfo.host,
+            TorService.sharedInstance.proxyInfo.port,
           ),
         ]);
       }
@@ -56,8 +56,8 @@ abstract class HTTP {
       if (routeOverTor) {
         SocksTCPClient.assignToHttpClient(httpClient, [
           ProxySettings(
-            InternetAddress.loopbackIPv4,
-            TorService.sharedInstance.port,
+            TorService.sharedInstance.proxyInfo.host,
+            TorService.sharedInstance.proxyInfo.port,
           ),
         ]);
       }
