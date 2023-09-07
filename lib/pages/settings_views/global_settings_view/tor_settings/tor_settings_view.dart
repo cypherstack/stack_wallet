@@ -11,7 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/pages/home_view/sub_widgets/tor_sync_status_changed_event.dart';
+import 'package:stackwallet/pages/home_view/sub_widgets/tor_connection_status_changed_event.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -35,11 +35,11 @@ class TorSettingsView extends ConsumerStatefulWidget {
 }
 
 class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
-  TorSyncStatus _networkStatus = TorSyncStatus.unableToSync;
+  TorConnectionStatus _networkStatus = TorConnectionStatus.unableToConnect;
 
-  Widget _buildTorIcon(TorSyncStatus status) {
+  Widget _buildTorIcon(TorConnectionStatus status) {
     switch (status) {
-      case TorSyncStatus.unableToSync:
+      case TorConnectionStatus.unableToConnect:
         return Stack(
           alignment: AlignmentDirectional.center,
           children: [
@@ -56,7 +56,7 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
             )
           ],
         );
-      case TorSyncStatus.synced:
+      case TorConnectionStatus.connected:
         return Stack(
           alignment: AlignmentDirectional.center,
           children: [
@@ -74,7 +74,7 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
             )
           ],
         );
-      case TorSyncStatus.syncing:
+      case TorConnectionStatus.connecting:
         return Stack(
           alignment: AlignmentDirectional.center,
           children: [
@@ -95,22 +95,22 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
     }
   }
 
-  Widget _buildTorStatus(TorSyncStatus status) {
+  Widget _buildTorStatus(TorConnectionStatus status) {
     switch (status) {
-      case TorSyncStatus.unableToSync:
+      case TorConnectionStatus.unableToConnect:
         return Text(
           "Disconnected",
           style: STextStyles.itemSubtitle(context).copyWith(
               color: Theme.of(context).extension<StackColors>()!.textSubtitle3),
         );
-      case TorSyncStatus.synced:
+      case TorConnectionStatus.connected:
         return Text(
           "Connected",
           style: STextStyles.itemSubtitle(context).copyWith(
               color:
                   Theme.of(context).extension<StackColors>()!.accentColorGreen),
         );
-      case TorSyncStatus.syncing:
+      case TorConnectionStatus.connecting:
         return Text(
           "Connecting",
           style: STextStyles.itemSubtitle(context).copyWith(

@@ -9,12 +9,12 @@
  */
 import 'package:stackwallet/utilities/logger.dart';
 
-enum TorSyncStatus { unableToSync, synced, syncing }
+enum TorConnectionStatus { unableToConnect, connected, connecting }
 
-class TorSyncStatusChangedEvent {
-  TorSyncStatus newStatus;
+class TorConnectionStatusChangedEvent {
+  TorConnectionStatus newStatus;
 
-  TorSyncStatusChangedEvent(this.newStatus) {
+  TorConnectionStatusChangedEvent(this.newStatus) {
     Logging.instance.log(
         "TorSyncStatusChangedEvent fired with arg newStatus = $newStatus",
         level: LogLevel.Info);

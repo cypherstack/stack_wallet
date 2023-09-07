@@ -17,7 +17,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/buy_view/buy_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_view.dart';
 import 'package:stackwallet/pages/home_view/sub_widgets/home_view_button_bar.dart';
-import 'package:stackwallet/pages/home_view/sub_widgets/tor_sync_status_changed_event.dart';
+import 'package:stackwallet/pages/home_view/sub_widgets/tor_connection_status_changed_event.dart';
 import 'package:stackwallet/pages/notification_views/notifications_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/global_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/hidden_settings.dart';
@@ -57,7 +57,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   bool _exitEnabled = false;
 
-  late TorSyncStatus _currentSyncStatus;
+  late TorConnectionStatus _currentSyncStatus;
 
   // final _buyDataLoadingService = BuyDataLoadingService();
 
@@ -117,23 +117,23 @@ class _HomeViewState extends ConsumerState<HomeView> {
     );
   }
 
-  Widget _buildTorIcon(TorSyncStatus status) {
+  Widget _buildTorIcon(TorConnectionStatus status) {
     switch (status) {
-      case TorSyncStatus.unableToSync:
+      case TorConnectionStatus.unableToConnect:
         return SvgPicture.asset(
           Assets.svg.tor,
           color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
           width: 20,
           height: 20,
         );
-      case TorSyncStatus.synced:
+      case TorConnectionStatus.connected:
         return SvgPicture.asset(
           Assets.svg.tor,
           color: Theme.of(context).extension<StackColors>()!.accentColorGreen,
           width: 20,
           height: 20,
         );
-      case TorSyncStatus.syncing:
+      case TorConnectionStatus.connecting:
         return SvgPicture.asset(
           Assets.svg.tor,
           color: Theme.of(context).extension<StackColors>()!.accentColorYellow,
@@ -261,7 +261,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     color: Theme.of(context)
                         .extension<StackColors>()!
                         .backgroundAppBar,
-                    icon: _buildTorIcon(TorSyncStatus.unableToSync),
+                    icon: _buildTorIcon(TorConnectionStatus.unableToConnect),
                     onPressed: () {
                       Navigator.of(context)
                           .pushNamed(TorSettingsView.routeName);
