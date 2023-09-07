@@ -235,8 +235,7 @@ class ElectrumX {
       );
 
       if (response.exception != null) {
-        throw response.exception!
-            as Object; // TODO properly check that .exception is an Object
+        throw response.exception!;
       }
 
       if (response.data is Map && response.data["error"] != null) {
@@ -329,8 +328,7 @@ class ElectrumX {
           (await _rpcClient!.request(request, requestTimeout));
 
       if (jsonRpcResponse.exception != null) {
-        throw jsonRpcResponse.exception!
-            as Object; // TODO properly check that .exception is an Object
+        throw jsonRpcResponse.exception!;
       }
 
       final response = jsonRpcResponse.data as List;
