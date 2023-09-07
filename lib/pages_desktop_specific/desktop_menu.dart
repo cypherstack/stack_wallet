@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages/home_view/sub_widgets/tor_sync_status_changed_event.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_menu_item.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu.dart';
 import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -211,11 +212,11 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
               cursor: SystemMouseCursors.click,
               child: GestureDetector(
                   onTap: () {
-                    // ref.watch(selectedSettingsMenuItemStateProvider.state).state =
-                    //     4;
-                    // ref.watch(selectedSettingsMenuItemStateProvider.state).state =
-                    //     5;
-                    // Navigator.of(context).pushNamed(DesktopHomeView.routeName);
+                    ref.read(currentDesktopMenuItemProvider.state).state =
+                        DesktopMenuItemId.settings;
+                    ref
+                        .watch(selectedSettingsMenuItemStateProvider.state)
+                        .state = 4;
                   },
                   child: _buildTorIcon(TorSyncStatus.unableToSync)),
             ),
