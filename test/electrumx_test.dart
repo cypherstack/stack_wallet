@@ -1528,8 +1528,8 @@ void main() {
       );
 
       final mockPrefs = MockPrefs();
-      when(mockPrefs.useTor).thenAnswer((realInvocation) => true);
-      when(mockPrefs.torKillswitch).thenAnswer((realInvocation) => true);
+      when(mockPrefs.useTor).thenAnswer((_) => true);
+      when(mockPrefs.torKillswitch).thenAnswer((_) => true);
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final torService = MockTorService();
       when(torService.enabled).thenAnswer((_) => false);
@@ -1545,25 +1545,26 @@ void main() {
       );
 
       try {
-        var result =
-            client.getTransaction(requestID: "some requestId", txHash: '');
+        var result = await client.getTransaction(
+            requestID: "some requestId", txHash: '');
       } catch (e) {
         expect(e, isA<Exception>());
         expect(
             e.toString(),
             equals(
-                "Tor preference and killswitch set but Tor is not enabled, not connecting to ElectrumX"));
+                "Exception: Tor preference and killswitch set but Tor is not enabled, not connecting to ElectrumX"));
       }
 
       verify(mockPrefs.wifiOnly).called(1);
       verify(mockPrefs.useTor).called(1);
+      verify(mockPrefs.torKillswitch).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
 
     test("killswitch disabled", () async {
       final mockClient = MockJsonRPC();
       const command = "blockchain.transaction.get";
-      const jsonArgs = '["",true]';
+      const jsonArgs = '["${SampleGetTransactionData.txHash0}",true]';
       when(
         mockClient.request(
           '{"jsonrpc": "2.0", "id": "some requestId",'
@@ -1573,17 +1574,14 @@ void main() {
       ).thenAnswer(
         (_) async => JsonRPCResponse(data: {
           "jsonrpc": "2.0",
-          "error": {
-            "code": 1,
-            "message": "None should be a transaction hash",
-          },
-          "id": "some requestId",
+          "result": SampleGetTransactionData.txData0,
+          "id": "some requestId"
         }),
       );
 
       final mockPrefs = MockPrefs();
-      when(mockPrefs.useTor).thenAnswer((realInvocation) => true);
-      when(mockPrefs.torKillswitch).thenAnswer((realInvocation) => true);
+      when(mockPrefs.useTor).thenAnswer((_) => true);
+      when(mockPrefs.torKillswitch).thenAnswer((_) => true);
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final torService = MockTorService();
       when(torService.enabled).thenAnswer((_) => false);
@@ -1609,15 +1607,16 @@ void main() {
       } catch (e) {
         didThrow = true;
         // expect(e, isNotA<Exception>());
-        expect(
-            e.toString(),
-            isNot(equals(
-                "Tor preference and killswitch set but Tor is not enabled, not connecting to ElectrumX")));
+        // expect(
+        //     e.toString(),
+        //     isNot(equals(
+        //         "Exception: Tor preference and killswitch set but Tor is not enabled, not connecting to ElectrumX")));
       }
       expect(didThrow, isFalse);
 
-      // verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.wifiOnly).called(1);
       verify(mockPrefs.useTor).called(1);
+      verify(mockPrefs.torKillswitch).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
   });
