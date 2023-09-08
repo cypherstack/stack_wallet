@@ -35,7 +35,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
@@ -101,9 +101,6 @@ class _WalletNetworkSettingsViewState
   /// The subscription to the TorConnectionStatusChangedEvent.
   late final StreamSubscription<TorConnectionStatusChangedEvent>
       _torConnectionStatusSubscription;
-
-  /// The Prefs instance.
-  final Prefs _prefs = Prefs.instance;
 
   Future<void> _attemptRescan() async {
     if (!Platform.isLinux) await Wakelock.enable();
@@ -784,24 +781,47 @@ class _WalletNetworkSettingsViewState
                     ? STextStyles.desktopTextExtraExtraSmall(context)
                     : STextStyles.smallMed12(context),
               ),
-              if (TorService.sharedInstance.enabled)
+              if (ref.watch(
+                  prefsChangeNotifierProvider.select((value) => value.useTor)))
                 GestureDetector(
-                  onTap: () {
-                    TorService.sharedInstance.stop();
-                    // And toggle preference.
-                    _prefs.useTor = false;
+                  onTap: () async {
+                    // Stop the Tor service.
+                    try {
+                      await ref.read(pTorService).stop();
+
+                      // Toggle the useTor preference on success.
+                      ref.read(prefsChangeNotifierProvider).useTor = false;
+                    } catch (e, s) {
+                      Logging.instance.log(
+                        "Error stopping tor: $e\n$s",
+                        level: LogLevel.Error,
+                      );
+                    }
                   },
                   child: Text(
                     "Disconnect",
                     style: STextStyles.link2(context),
                   ),
                 ),
-              if (!TorService.sharedInstance.enabled)
+              if (!ref.watch(
+                  prefsChangeNotifierProvider.select((value) => value.useTor)))
                 GestureDetector(
-                  onTap: () {
-                    TorService.sharedInstance.start();
-                    // And toggle preference.
-                    _prefs.useTor = true;
+                  onTap: () async {
+                    // Init the Tor service if it hasn't already been.
+                    ref.read(pTorService).init();
+
+                    // Start the Tor service.
+                    try {
+                      await ref.read(pTorService).start();
+
+                      // Toggle the useTor preference on success.
+                      ref.read(prefsChangeNotifierProvider).useTor = true;
+                    } catch (e, s) {
+                      Logging.instance.log(
+                        "Error starting tor: $e\n$s",
+                        level: LogLevel.Error,
+                      );
+                    }
                   },
                   child: Text(
                     "Connect",
@@ -821,7 +841,8 @@ class _WalletNetworkSettingsViewState
                 isDesktop ? const EdgeInsets.all(16) : const EdgeInsets.all(12),
             child: Row(
               children: [
-                if (TorService.sharedInstance.enabled)
+                if (ref.watch(prefsChangeNotifierProvider
+                    .select((value) => value.useTor)))
                   Container(
                     width: _iconSize,
                     height: _iconSize,
@@ -843,7 +864,8 @@ class _WalletNetworkSettingsViewState
                       ),
                     ),
                   ),
-                if (!TorService.sharedInstance.enabled)
+                if (!ref.watch(prefsChangeNotifierProvider
+                    .select((value) => value.useTor)))
                   Container(
                     width: _iconSize,
                     height: _iconSize,

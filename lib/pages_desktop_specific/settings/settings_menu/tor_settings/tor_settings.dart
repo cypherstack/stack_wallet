@@ -59,7 +59,7 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
           width: 200,
           buttonHeight: ButtonHeight.m,
           onPressed: () async {
-            // Start the Tor service.
+            // Init the Tor service if it hasn't already been.
             ref.read(pTorService).init();
 
             // Start the Tor service.
