@@ -182,33 +182,74 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   @override
+  Future<Map<String, dynamic>> prepareSend(
+      {required String address,
+      required Amount amount,
+      Map<String, dynamic>? args}) async {
+    try {
+      final feeRate = args?["feeRate"];
+      var fee = 1000;
+      if (feeRate is FeeRateType) {
+        final theFees = await fees;
+        switch (feeRate) {
+          case FeeRateType.fast:
+            fee = theFees.fast;
+          case FeeRateType.slow:
+            fee = theFees.slow;
+          case FeeRateType.average:
+          default:
+            fee = theFees.medium;
+        }
+      }
+      Map<String, dynamic> txData = {
+        "fee": fee,
+        "address": address,
+        "recipientAmt": amount,
+        "memo": args?["memo"] as String?,
+      };
+
+      Logging.instance.log("prepare send: $txData", level: LogLevel.Info);
+      return txData;
+    } catch (e, s) {
+      Logging.instance.log("Error getting fees $e - $s", level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
+  @override
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
     final secretSeed = await _secureStore.read(key: '${_walletId}_secretSeed');
     KeyPair senderKeyPair = KeyPair.fromSecretSeed(secretSeed!);
     AccountResponse sender =
         await stellarSdk.accounts.account(senderKeyPair.accountId);
     final amountToSend = txData['recipientAmt'] as Amount;
+    final memo = txData["memo"] as String?;
 
     //First check if account exists, can be skipped, but if the account does not exist,
     // the transaction fee will be charged when the transaction fails.
     bool validAccount = await _accountExists(txData['address'] as String);
-    Transaction transaction;
+    TransactionBuilder transactionBuilder;
 
     if (!validAccount) {
       //Fund the account, user must ensure account is correct
       CreateAccountOperationBuilder createAccBuilder =
           CreateAccountOperationBuilder(
               txData['address'] as String, amountToSend.decimal.toString());
-      transaction = TransactionBuilder(sender)
-          .addOperation(createAccBuilder.build())
-          .build();
+      transactionBuilder =
+          TransactionBuilder(sender).addOperation(createAccBuilder.build());
     } else {
-      transaction = TransactionBuilder(sender)
-          .addOperation(PaymentOperationBuilder(txData['address'] as String,
-                  Asset.NATIVE, amountToSend.decimal.toString())
-              .build())
-          .build();
+      transactionBuilder = TransactionBuilder(sender).addOperation(
+          PaymentOperationBuilder(txData['address'] as String, Asset.NATIVE,
+                  amountToSend.decimal.toString())
+              .build());
     }
+
+    if (memo != null) {
+      transactionBuilder.addMemo(MemoText(memo));
+    }
+
+    final transaction = transactionBuilder.build();
+
     transaction.sign(senderKeyPair, stellarNetwork);
     try {
       SubmitTransactionResponse response = await stellarSdk
@@ -441,40 +482,6 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Future<String?> get mnemonicString =>
       _secureStore.read(key: '${_walletId}_mnemonic');
 
-  @override
-  Future<Map<String, dynamic>> prepareSend(
-      {required String address,
-      required Amount amount,
-      Map<String, dynamic>? args}) async {
-    try {
-      final feeRate = args?["feeRate"];
-      var fee = 1000;
-      if (feeRate is FeeRateType) {
-        final theFees = await fees;
-        switch (feeRate) {
-          case FeeRateType.fast:
-            fee = theFees.fast;
-          case FeeRateType.slow:
-            fee = theFees.slow;
-          case FeeRateType.average:
-          default:
-            fee = theFees.medium;
-        }
-      }
-      Map<String, dynamic> txData = {
-        "fee": fee,
-        "address": address,
-        "recipientAmt": amount,
-      };
-
-      Logging.instance.log("prepare send: $txData", level: LogLevel.Info);
-      return txData;
-    } catch (e, s) {
-      Logging.instance.log("Error getting fees $e - $s", level: LogLevel.Error);
-      rethrow;
-    }
-  }
-
   Future<void> _recoverWalletFromBIP32SeedPhrase({
     required String mnemonic,
     required String mnemonicPassphrase,
@@ -572,14 +579,29 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
     try {
       List<Tuple2<SWTransaction.Transaction, SWAddress.Address?>>
           transactionList = [];
-
-      Page<OperationResponse> payments = await stellarSdk.payments
-          .forAccount(await getAddressSW())
-          .order(RequestBuilderOrder.DESC)
-          .execute()
-          .onError(
-              (error, stackTrace) => throw ("Could not fetch transactions"));
-
+      Page<OperationResponse> payments;
+      try {
+        payments = await stellarSdk.payments
+            .forAccount(await getAddressSW())
+            .order(RequestBuilderOrder.DESC)
+            .execute()
+            .onError((error, stackTrace) => throw error!);
+      } catch (e) {
+        if (e is ErrorResponse &&
+            e.body.contains("The resource at the url requested was not found.  "
+                "This usually occurs for one of two reasons:  "
+                "The url requested is not valid, or no data in our database "
+                "could be found with the parameters provided.")) {
+          // probably just doesn't have any history yet or whatever stellar needs
+          return;
+        } else {
+          Logging.instance.log(
+            "Stellar $walletName $walletId failed to fetch transactions",
+            level: LogLevel.Warning,
+          );
+          rethrow;
+        }
+      }
       for (OperationResponse response in payments.records!) {
         // PaymentOperationResponse por;
         if (response is PaymentOperationResponse) {
@@ -717,8 +739,29 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   Future<void> updateBalance() async {
     try {
-      AccountResponse accountResponse =
-          await stellarSdk.accounts.account(await getAddressSW());
+      AccountResponse accountResponse;
+
+      try {
+        accountResponse = await stellarSdk.accounts
+            .account(await getAddressSW())
+            .onError((error, stackTrace) => throw error!);
+      } catch (e) {
+        if (e is ErrorResponse &&
+            e.body.contains("The resource at the url requested was not found.  "
+                "This usually occurs for one of two reasons:  "
+                "The url requested is not valid, or no data in our database "
+                "could be found with the parameters provided.")) {
+          // probably just doesn't have any history yet or whatever stellar needs
+          return;
+        } else {
+          Logging.instance.log(
+            "Stellar $walletName $walletId failed to fetch transactions",
+            level: LogLevel.Warning,
+          );
+          rethrow;
+        }
+      }
+
       for (Balance balance in accountResponse.balances) {
         switch (balance.assetType) {
           case Asset.TYPE_NATIVE:

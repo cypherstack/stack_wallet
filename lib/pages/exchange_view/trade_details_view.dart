@@ -850,6 +850,81 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                 : const SizedBox(
                     height: 12,
                   ),
+            if (trade.payInExtraId.isNotEmpty && !sentFromStack && !hasTx)
+              RoundedWhiteContainer(
+                padding: isDesktop
+                    ? const EdgeInsets.all(16)
+                    : const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Memo",
+                          style: STextStyles.itemSubtitle(context),
+                        ),
+                        isDesktop
+                            ? IconCopyButton(
+                                data: trade.payInExtraId,
+                              )
+                            : GestureDetector(
+                                onTap: () async {
+                                  final address = trade.payInExtraId;
+                                  await Clipboard.setData(
+                                    ClipboardData(
+                                      text: address,
+                                    ),
+                                  );
+                                  if (mounted) {
+                                    unawaited(
+                                      showFloatingFlushBar(
+                                        type: FlushBarType.info,
+                                        message: "Copied to clipboard",
+                                        context: context,
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: Row(
+                                  children: [
+                                    SvgPicture.asset(
+                                      Assets.svg.copy,
+                                      width: 12,
+                                      height: 12,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .infoItemIcons,
+                                    ),
+                                    const SizedBox(
+                                      width: 4,
+                                    ),
+                                    Text(
+                                      "Copy",
+                                      style: STextStyles.link2(context),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 4,
+                    ),
+                    SelectableText(
+                      trade.payInExtraId,
+                      style: STextStyles.itemSubtitle12(context),
+                    ),
+                  ],
+                ),
+              ),
+            if (trade.payInExtraId.isNotEmpty && !sentFromStack && !hasTx)
+              isDesktop
+                  ? const _Divider()
+                  : const SizedBox(
+                      height: 12,
+                    ),
             RoundedWhiteContainer(
               padding: isDesktop
                   ? const EdgeInsets.all(16)
