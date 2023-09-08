@@ -67,6 +67,9 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
             _prefs.useTor = true;
 
             // Start the Tor service.
+            ref.read(pTorService).init();
+
+            // Start the Tor service.
             ref.read(pTorService).start();
           },
         );

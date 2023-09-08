@@ -9,7 +9,7 @@ import 'package:tor/tor.dart';
 final pTorService = Provider((_) => TorService.sharedInstance);
 
 class TorService {
-  final _tor = Tor();
+  Tor? _tor;
 
   /// Flag to indicate that a Tor circuit is thought to have been established.
   bool _enabled = false;
@@ -30,8 +30,14 @@ class TorService {
     int port,
   }) get proxyInfo => (
         host: InternetAddress.loopbackIPv4,
-        port: _tor.port,
+        port: _tor!.port,
       );
+
+  /// Initialize the tor ffi lib instance if it hasn't already been set. Nothing
+  /// changes if _tor is already been set.
+  void init({Tor? mockableOverride}) {
+    _tor ??= mockableOverride ?? Tor();
+  }
 
   /// Start the Tor service.
   ///
@@ -41,6 +47,10 @@ class TorService {
   ///
   /// Returns a Future that completes when the Tor service has started.
   Future<void> start() async {
+    if (_tor == null) {
+      throw Exception("TorService.init has not been called!");
+    }
+
     if (_enabled) {
       // already started so just return
       // could throw an exception here or something so the caller
@@ -58,7 +68,7 @@ class TorService {
           "Tor connection status changed: connecting",
         ),
       );
-      await _tor.start();
+      await _tor!.start();
       // no exception or error so we can (probably?) assume tor
       // has started successfully
       _enabled = true;
@@ -89,6 +99,10 @@ class TorService {
   }
 
   Future<void> stop() async {
+    if (_tor == null) {
+      throw Exception("TorService.init has not been called!");
+    }
+
     if (!_enabled) {
       // already stopped so just return
       // could throw an exception here or something so the caller
@@ -99,7 +113,7 @@ class TorService {
 
     // Stop the Tor service.
     try {
-      await _tor.disable();
+      await _tor!.disable();
       // no exception or error so we can (probably?) assume tor
       // has started successfully
       _enabled = false;

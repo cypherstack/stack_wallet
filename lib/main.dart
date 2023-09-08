@@ -174,6 +174,7 @@ void main() async {
   // Some refactoring will need to be done here to make sure we don't make any
   // network calls before starting up tor
   if (Prefs.instance.useTor) {
+    TorService.sharedInstance.init();
     await TorService.sharedInstance.start();
   }
 
