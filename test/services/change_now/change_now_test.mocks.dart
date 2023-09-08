@@ -4,7 +4,8 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i3;
-import 'dart:convert' as _i4;
+import 'dart:convert' as _i5;
+import 'dart:io' as _i4;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/networking/http.dart' as _i2;
@@ -42,7 +43,7 @@ class MockHTTP extends _i1.Mock implements _i2.HTTP {
   _i3.Future<_i2.Response> get({
     required Uri? url,
     Map<String, String>? headers,
-    required bool? routeOverTor,
+    required ({_i4.InternetAddress host, int port})? proxyInfo,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -51,7 +52,7 @@ class MockHTTP extends _i1.Mock implements _i2.HTTP {
           {
             #url: url,
             #headers: headers,
-            #routeOverTor: routeOverTor,
+            #proxyInfo: proxyInfo,
           },
         ),
         returnValue: _i3.Future<_i2.Response>.value(_FakeResponse_0(
@@ -62,7 +63,7 @@ class MockHTTP extends _i1.Mock implements _i2.HTTP {
             {
               #url: url,
               #headers: headers,
-              #routeOverTor: routeOverTor,
+              #proxyInfo: proxyInfo,
             },
           ),
         )),
@@ -72,8 +73,8 @@ class MockHTTP extends _i1.Mock implements _i2.HTTP {
     required Uri? url,
     Map<String, String>? headers,
     Object? body,
-    _i4.Encoding? encoding,
-    required bool? routeOverTor,
+    _i5.Encoding? encoding,
+    required ({_i4.InternetAddress host, int port})? proxyInfo,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -84,7 +85,7 @@ class MockHTTP extends _i1.Mock implements _i2.HTTP {
             #headers: headers,
             #body: body,
             #encoding: encoding,
-            #routeOverTor: routeOverTor,
+            #proxyInfo: proxyInfo,
           },
         ),
         returnValue: _i3.Future<_i2.Response>.value(_FakeResponse_0(
@@ -97,7 +98,7 @@ class MockHTTP extends _i1.Mock implements _i2.HTTP {
               #headers: headers,
               #body: body,
               #encoding: encoding,
-              #routeOverTor: routeOverTor,
+              #proxyInfo: proxyInfo,
             },
           ),
         )),

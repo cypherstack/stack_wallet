@@ -1,9 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:socks5_proxy/socks_client.dart';
-import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 // WIP wrapper layer
@@ -11,28 +11,29 @@ import 'package:stackwallet/utilities/logger.dart';
 // TODO expand this class
 class Response {
   final int code;
-  final String body;
+  final List<int> bodyBytes;
 
-  Response(this.body, this.code);
+  String get body => utf8.decode(bodyBytes, allowMalformed: true);
+
+  Response(this.bodyBytes, this.code);
 }
 
 class HTTP {
-  /// Visible for testing so we can override with a mock TorService
-  @visibleForTesting
-  TorService torService = TorService.sharedInstance;
-
   Future<Response> get({
     required Uri url,
     Map<String, String>? headers,
-    required bool routeOverTor,
+    required ({
+      InternetAddress host,
+      int port,
+    })? proxyInfo,
   }) async {
     final httpClient = HttpClient();
     try {
-      if (routeOverTor) {
+      if (proxyInfo != null) {
         SocksTCPClient.assignToHttpClient(httpClient, [
           ProxySettings(
-            torService.proxyInfo.host,
-            torService.proxyInfo.port,
+            proxyInfo.host,
+            proxyInfo.port,
           ),
         ]);
       }
@@ -46,8 +47,9 @@ class HTTP {
       }
 
       final response = await request.close();
+
       return Response(
-        await response.transform(utf8.decoder).join(),
+        await _bodyBytes(response),
         response.statusCode,
       );
     } catch (e, s) {
@@ -66,15 +68,18 @@ class HTTP {
     Map<String, String>? headers,
     Object? body,
     Encoding? encoding,
-    required bool routeOverTor,
+    required ({
+      InternetAddress host,
+      int port,
+    })? proxyInfo,
   }) async {
     final httpClient = HttpClient();
     try {
-      if (routeOverTor) {
+      if (proxyInfo != null) {
         SocksTCPClient.assignToHttpClient(httpClient, [
           ProxySettings(
-            torService.proxyInfo.host,
-            torService.proxyInfo.port,
+            proxyInfo.host,
+            proxyInfo.port,
           ),
         ]);
       }
@@ -92,7 +97,7 @@ class HTTP {
 
       final response = await request.close();
       return Response(
-        await response.transform(utf8.decoder).join(),
+        await _bodyBytes(response),
         response.statusCode,
       );
     } catch (e, s) {
@@ -104,5 +109,19 @@ class HTTP {
     } finally {
       httpClient.close(force: true);
     }
+  }
+
+  Future<Uint8List> _bodyBytes(HttpClientResponse response) {
+    final completer = Completer<Uint8List>();
+    final List<int> bytes = [];
+    response.listen(
+      (data) {
+        bytes.addAll(data);
+      },
+      onDone: () => completer.complete(
+        Uint8List.fromList(bytes),
+      ),
+    );
+    return completer.future;
   }
 }

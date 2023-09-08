@@ -802,14 +802,6 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
         ),
       ) as _i2.HTTP);
   @override
-  set client(_i2.HTTP? _client) => super.noSuchMethod(
-        Invocation.setter(
-          #client,
-          _client,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
   _i7.Future<_i3.ExchangeResponse<List<_i15.Currency>>> getAvailableCurrencies({
     bool? fixedRate,
     bool? active,
@@ -1073,8 +1065,8 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
               [],
               {#apiKey: apiKey},
             ),
-            returnValue: _i7.Future<
-                    _i3.ExchangeResponse<List<_i20.FixedRateMarket>>>.value(
+            returnValue: _i7
+                .Future<_i3.ExchangeResponse<List<_i20.FixedRateMarket>>>.value(
                 _FakeExchangeResponse_1<List<_i20.FixedRateMarket>>(
               this,
               Invocation.method(
@@ -1115,8 +1107,8 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
                 #apiKey: apiKey,
               },
             ),
-            returnValue: _i7.Future<
-                    _i3.ExchangeResponse<_i21.ExchangeTransaction>>.value(
+            returnValue: _i7
+                .Future<_i3.ExchangeResponse<_i21.ExchangeTransaction>>.value(
                 _FakeExchangeResponse_1<_i21.ExchangeTransaction>(
               this,
               Invocation.method(
@@ -1172,8 +1164,8 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
                 #apiKey: apiKey,
               },
             ),
-            returnValue: _i7.Future<
-                    _i3.ExchangeResponse<_i21.ExchangeTransaction>>.value(
+            returnValue: _i7
+                .Future<_i3.ExchangeResponse<_i21.ExchangeTransaction>>.value(
                 _FakeExchangeResponse_1<_i21.ExchangeTransaction>(
               this,
               Invocation.method(
@@ -1197,35 +1189,35 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
             )),
           ) as _i7.Future<_i3.ExchangeResponse<_i21.ExchangeTransaction>>);
   @override
-  _i7.Future<_i3.ExchangeResponse<_i22.ExchangeTransactionStatus>>
-      getTransactionStatus({
+  _i7.Future<
+      _i3
+      .ExchangeResponse<_i22.ExchangeTransactionStatus>> getTransactionStatus({
     required String? id,
     String? apiKey,
   }) =>
-          (super.noSuchMethod(
-            Invocation.method(
-              #getTransactionStatus,
-              [],
-              {
-                #id: id,
-                #apiKey: apiKey,
-              },
-            ),
-            returnValue: _i7.Future<
-                    _i3.ExchangeResponse<_i22.ExchangeTransactionStatus>>.value(
-                _FakeExchangeResponse_1<_i22.ExchangeTransactionStatus>(
-              this,
-              Invocation.method(
-                #getTransactionStatus,
-                [],
-                {
-                  #id: id,
-                  #apiKey: apiKey,
-                },
-              ),
-            )),
-          ) as _i7
-              .Future<_i3.ExchangeResponse<_i22.ExchangeTransactionStatus>>);
+      (super.noSuchMethod(
+        Invocation.method(
+          #getTransactionStatus,
+          [],
+          {
+            #id: id,
+            #apiKey: apiKey,
+          },
+        ),
+        returnValue: _i7
+            .Future<_i3.ExchangeResponse<_i22.ExchangeTransactionStatus>>.value(
+            _FakeExchangeResponse_1<_i22.ExchangeTransactionStatus>(
+          this,
+          Invocation.method(
+            #getTransactionStatus,
+            [],
+            {
+              #id: id,
+              #apiKey: apiKey,
+            },
+          ),
+        )),
+      ) as _i7.Future<_i3.ExchangeResponse<_i22.ExchangeTransactionStatus>>);
   @override
   _i7.Future<_i3.ExchangeResponse<List<_i23.Pair>>>
       getAvailableFloatingRatePairs({bool? includePartners = false}) =>

@@ -28,6 +28,7 @@ import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
 import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
@@ -38,10 +39,12 @@ class ChangeNowAPI {
   static const String apiVersion = "/v1";
   static const String apiVersionV2 = "/v2";
 
-  HTTP client = HTTP();
+  final HTTP client;
 
-  ChangeNowAPI._();
-  static final ChangeNowAPI _instance = ChangeNowAPI._();
+  @visibleForTesting
+  ChangeNowAPI({HTTP? http}) : client = http ?? HTTP();
+
+  static final ChangeNowAPI _instance = ChangeNowAPI();
   static ChangeNowAPI get instance => _instance;
 
   Uri _buildUri(String path, Map<String, dynamic>? params) {
@@ -57,7 +60,8 @@ class ChangeNowAPI {
       final response = await client.get(
         url: uri,
         headers: {'Content-Type': 'application/json'},
-        routeOverTor: Prefs.instance.useTor,
+        proxyInfo:
+            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
       );
       String? data;
       try {
@@ -86,7 +90,8 @@ class ChangeNowAPI {
           // 'Content-Type': 'application/json',
           'x-changenow-api-key': apiKey,
         },
-        routeOverTor: Prefs.instance.useTor,
+        proxyInfo:
+            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
       );
 
       final data = response.body;
@@ -109,7 +114,8 @@ class ChangeNowAPI {
         url: uri,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
-        routeOverTor: Prefs.instance.useTor,
+        proxyInfo:
+            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
       );
 
       String? data;

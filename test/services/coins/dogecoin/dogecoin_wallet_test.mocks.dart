@@ -537,7 +537,6 @@ class MockTransactionNotificationTracker extends _i1.Mock
         Invocation.getter(#confirmeds),
         returnValue: <String>[],
       ) as List<String>);
-
   @override
   bool wasNotifiedPending(String? txid) => (super.noSuchMethod(
         Invocation.method(
