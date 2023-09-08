@@ -1505,7 +1505,100 @@ void main() {
     verifyNoMoreInteractions(mockPrefs);
   });
 
-  group("Tor killswitch tests", () {
+  group("Tor tests", () {
+    // useTor is false, so no TorService calls should be made.
+    test("Tor not in use", () async {
+      final mockClient = MockJsonRPC();
+      const command = "blockchain.transaction.get";
+      const jsonArgs = '["${SampleGetTransactionData.txHash0}",true]';
+      when(mockClient.request(
+        '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}',
+        const Duration(seconds: 60),
+      )).thenAnswer((_) async => JsonRPCResponse(data: {
+            "jsonrpc": "2.0",
+            "result": SampleGetTransactionData.txData0,
+            "id": "some requestId",
+          }));
+
+      final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((_) => false);
+      when(mockPrefs.torKillswitch)
+          .thenAnswer((_) => false); // Or true, shouldn't matter.
+      when(mockPrefs.wifiOnly).thenAnswer((_) => false);
+      final mockTorService = MockTorService();
+      when(mockTorService.enabled).thenAnswer((_) => false);
+
+      final client = ElectrumX(
+        host: "some server",
+        port: 0,
+        useSSL: true,
+        client: mockClient,
+        failovers: [],
+        prefs: mockPrefs,
+        torService: mockTorService,
+      );
+
+      final result = await client.getTransaction(
+          txHash: SampleGetTransactionData.txHash0,
+          verbose: true,
+          requestID: "some requestId");
+
+      expect(result, SampleGetTransactionData.txData0);
+
+      verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.useTor).called(1);
+      verifyNever(mockPrefs.torKillswitch);
+      verifyNoMoreInteractions(mockPrefs);
+      verifyNever(mockTorService.enabled);
+      verifyNoMoreInteractions(mockTorService);
+    });
+
+    // useTor is true, but TorService is not enabled and the killswitch is off, so a clearnet call should be made.
+    test("useTor but Tor unavailable but killswitch off", () async {
+      final mockClient = MockJsonRPC();
+      const command = "blockchain.transaction.get";
+      const jsonArgs = '["${SampleGetTransactionData.txHash0}",true]';
+      when(mockClient.request(
+        '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}',
+        const Duration(seconds: 60),
+      )).thenAnswer((_) async => JsonRPCResponse(data: {
+            "jsonrpc": "2.0",
+            "result": SampleGetTransactionData.txData0,
+            "id": "some requestId",
+          }));
+
+      final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((_) => true);
+      when(mockPrefs.torKillswitch).thenAnswer((_) => false);
+      when(mockPrefs.wifiOnly).thenAnswer((_) => false);
+
+      final mockTorService = MockTorService();
+      when(mockTorService.enabled).thenAnswer((_) => false);
+
+      final client = ElectrumX(
+          host: "some server",
+          port: 0,
+          useSSL: true,
+          client: mockClient,
+          prefs: mockPrefs,
+          torService: mockTorService,
+          failovers: []);
+
+      final result = await client.getTransaction(
+          txHash: SampleGetTransactionData.txHash0,
+          verbose: true,
+          requestID: "some requestId");
+
+      expect(result, SampleGetTransactionData.txData0);
+
+      verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.useTor).called(1);
+      verify(mockPrefs.torKillswitch).called(1);
+      verifyNoMoreInteractions(mockPrefs);
+      verify(mockTorService.enabled).called(1);
+      verifyNoMoreInteractions(mockTorService);
+    });
+
     // useTor is true, but TorService is not enabled and the killswitch is on, so no TorService calls should be made.
     test("killswitch enabled", () async {
       final mockClient = MockJsonRPC();
