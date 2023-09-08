@@ -1581,7 +1581,7 @@ void main() {
 
       final mockPrefs = MockPrefs();
       when(mockPrefs.useTor).thenAnswer((_) => true);
-      when(mockPrefs.torKillswitch).thenAnswer((_) => true);
+      when(mockPrefs.torKillswitch).thenAnswer((_) => false);
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final torService = MockTorService();
       when(torService.enabled).thenAnswer((_) => false);
@@ -1596,23 +1596,12 @@ void main() {
         torService: torService,
       );
 
-      bool didThrow = false;
-      try {
-        final result = await client.getTransaction(
-            txHash: SampleGetTransactionData.txHash0,
-            verbose: true,
-            requestID: "some requestId");
+      final result = await client.getTransaction(
+          txHash: SampleGetTransactionData.txHash0,
+          verbose: true,
+          requestID: "some requestId");
 
-        expect(result, SampleGetTransactionData.txData0);
-      } catch (e) {
-        didThrow = true;
-        // expect(e, isNotA<Exception>());
-        // expect(
-        //     e.toString(),
-        //     isNot(equals(
-        //         "Exception: Tor preference and killswitch set but Tor is not enabled, not connecting to ElectrumX")));
-      }
-      expect(didThrow, isFalse);
+      expect(result, SampleGetTransactionData.txData0);
 
       verify(mockPrefs.wifiOnly).called(1);
       verify(mockPrefs.useTor).called(1);
