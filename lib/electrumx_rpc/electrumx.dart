@@ -158,55 +158,71 @@ class ElectrumX {
   }
 
   void _checkRpcClient() {
+    // If we're supposed to use Tor...
     if (_prefs.useTor) {
+      // But Tor isn't enabled...
       if (!_torService.enabled) {
-        throw Exception("Tor is not enabled");
-      }
-
-      final proxyInfo = _torService.proxyInfo;
-
-      if (currentFailoverIndex == -1) {
-        _rpcClient ??= JsonRPC(
-          host: host,
-          port: port,
-          useSSL: useSSL,
-          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-          proxyInfo: proxyInfo,
-        );
+        // And the killswitch isn't set...
+        if (!_prefs.torKillswitch) {
+          // Then we'll just proceed and connect to ElectrumX through clearnet at the bottom of this function.
+          Logging.instance.log(
+            "Tor preference set but Tor is not enabled, killswitch not set, connecting to ElectrumX through clearnet",
+            level: LogLevel.Warning,
+          );
+        } else {
+          // ... But if the killswitch is set, then we throw an exception.
+          throw Exception(
+              "Tor preference and killswitch set but Tor is not enabled, not connecting to ElectrumX");
+        }
       } else {
-        _rpcClient ??= JsonRPC(
-          host: failovers![currentFailoverIndex].address,
-          port: failovers![currentFailoverIndex].port,
-          useSSL: failovers![currentFailoverIndex].useSSL,
-          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-          proxyInfo: proxyInfo,
-        );
-      }
+        // Get the proxy info from the TorService.
+        final proxyInfo = _torService.proxyInfo;
 
-      if (_rpcClient!.proxyInfo != proxyInfo) {
-        _rpcClient!.proxyInfo = proxyInfo;
-        _rpcClient!.disconnect(
-          reason: "Tor proxyInfo does not match current info",
-        );
+        if (currentFailoverIndex == -1) {
+          _rpcClient ??= JsonRPC(
+            host: host,
+            port: port,
+            useSSL: useSSL,
+            connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
+            proxyInfo: proxyInfo,
+          );
+        } else {
+          _rpcClient ??= JsonRPC(
+            host: failovers![currentFailoverIndex].address,
+            port: failovers![currentFailoverIndex].port,
+            useSSL: failovers![currentFailoverIndex].useSSL,
+            connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
+            proxyInfo: proxyInfo,
+          );
+        }
+
+        if (_rpcClient!.proxyInfo != proxyInfo) {
+          _rpcClient!.proxyInfo = proxyInfo;
+          _rpcClient!.disconnect(
+            reason: "Tor proxyInfo does not match current info",
+          );
+        }
+
+        return;
       }
+    }
+
+    if (currentFailoverIndex == -1) {
+      _rpcClient ??= JsonRPC(
+        host: host,
+        port: port,
+        useSSL: useSSL,
+        connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
+        proxyInfo: null,
+      );
     } else {
-      if (currentFailoverIndex == -1) {
-        _rpcClient ??= JsonRPC(
-          host: host,
-          port: port,
-          useSSL: useSSL,
-          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-          proxyInfo: null,
-        );
-      } else {
-        _rpcClient ??= JsonRPC(
-          host: failovers![currentFailoverIndex].address,
-          port: failovers![currentFailoverIndex].port,
-          useSSL: failovers![currentFailoverIndex].useSSL,
-          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-          proxyInfo: null,
-        );
-      }
+      _rpcClient ??= JsonRPC(
+        host: failovers![currentFailoverIndex].address,
+        port: failovers![currentFailoverIndex].port,
+        useSSL: failovers![currentFailoverIndex].useSSL,
+        connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
+        proxyInfo: null,
+      );
     }
   }
 
