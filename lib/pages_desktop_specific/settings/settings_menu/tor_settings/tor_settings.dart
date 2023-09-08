@@ -68,7 +68,7 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
             _prefs.useTor = true;
 
             // Start the Tor service.
-            TorService.sharedInstance.start();
+            ref.read(pTorService).start();
           },
         );
       case TorConnectionStatus.connecting:
@@ -90,7 +90,7 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
             _prefs.useTor = false;
 
             // Stop the Tor service.
-            TorService.sharedInstance.stop();
+            ref.read(pTorService).stop();
           },
         );
     }
@@ -102,7 +102,7 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
     eventBus = GlobalEventBus.instance;
 
     // Set the initial Tor connection status.
-    _torConnectionStatus = TorService.sharedInstance.enabled
+    _torConnectionStatus = ref.read(pTorService).enabled
         ? TorConnectionStatus.connected
         : TorConnectionStatus.disconnected;
 

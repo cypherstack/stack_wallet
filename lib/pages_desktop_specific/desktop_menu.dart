@@ -177,7 +177,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
     eventBus = GlobalEventBus.instance;
 
     // Initialize the TorConnectionStatus.
-    _torConnectionStatus = TorService.sharedInstance.enabled
+    _torConnectionStatus = ref.read(pTorService).enabled
         ? TorConnectionStatus.connected
         : TorConnectionStatus.disconnected;
 
