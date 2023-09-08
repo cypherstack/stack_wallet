@@ -289,7 +289,7 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
                     child: Center(
                       child: Text(
                         "You may add a BIP39 passphrase. This is optional. "
-                        "You will need BOTH you seed and your passphrase to recover the wallet.",
+                        "You will need BOTH your seed and your passphrase to recover the wallet.",
                         style: Util.isDesktop
                             ? STextStyles.desktopTextExtraSmall(context)
                                 .copyWith(
