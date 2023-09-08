@@ -3352,6 +3352,30 @@ class FiroWallet extends CoinServiceAPI
 
     List<Map<String, dynamic>> allTransactions = [];
 
+    // some lelantus transactions aren't fetched via wallet addresses so they
+    // will never show as confirmed in the gui.
+    final unconfirmedTransactions =
+        await db.getTransactions(walletId).filter().heightIsNull().findAll();
+    for (final tx in unconfirmedTransactions) {
+      final txn = await cachedElectrumXClient.getTransaction(
+        txHash: tx.txid,
+        verbose: true,
+        coin: coin,
+      );
+      final height = txn["height"] as int?;
+
+      if (height != null) {
+        // tx was mined
+        // add to allTxHashes
+        final info = {
+          "tx_hash": tx.txid,
+          "height": height,
+          "address": tx.address.value?.value,
+        };
+        allTxHashes.add(info);
+      }
+    }
+
     // final currentHeight = await chainHeight;
 
     for (final txHash in allTxHashes) {

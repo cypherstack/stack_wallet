@@ -155,6 +155,23 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
                 height: 1,
                 color: Theme.of(context).extension<StackColors>()!.background,
               ),
+              if (ref.watch(desktopExchangeModelProvider
+                      .select((value) => value!.trade?.payInExtraId)) !=
+                  null)
+                DesktopStepItem(
+                  vertical: true,
+                  label: "Memo",
+                  value: ref.watch(desktopExchangeModelProvider
+                          .select((value) => value!.trade?.payInExtraId)) ??
+                      "Error",
+                ),
+              if (ref.watch(desktopExchangeModelProvider
+                      .select((value) => value!.trade?.payInExtraId)) !=
+                  null)
+                Container(
+                  height: 1,
+                  color: Theme.of(context).extension<StackColors>()!.background,
+                ),
               DesktopStepItem(
                 label: "Amount",
                 value:
