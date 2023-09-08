@@ -27,8 +27,10 @@ import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/blocks_remaining_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
+import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -91,6 +93,13 @@ class _WalletNetworkSettingsViewState
   late double _percent;
   late int _blocksRemaining;
   bool _advancedIsExpanded = false;
+
+  /// The current status of the Tor connection.
+  late TorConnectionStatus _torConnectionStatus;
+
+  /// The subscription to the TorConnectionStatusChangedEvent.
+  late final StreamSubscription<TorConnectionStatusChangedEvent>
+      _torConnectionStatusSubscription;
 
   Future<void> _attemptRescan() async {
     if (!Platform.isLinux) await Wakelock.enable();
@@ -268,6 +277,25 @@ class _WalletNetworkSettingsViewState
     //     }
     //   },
     // );
+
+    // Initialize the TorConnectionStatus.
+    _torConnectionStatus = ref.read(pTorService).enabled
+        ? TorConnectionStatus.connected
+        : TorConnectionStatus.disconnected;
+
+    // Subscribe to the TorConnectionStatusChangedEvent.
+    _torConnectionStatusSubscription =
+        eventBus.on<TorConnectionStatusChangedEvent>().listen(
+      (event) async {
+        // Rebuild the widget.
+        setState(() {
+          _torConnectionStatus = event.newStatus;
+        });
+
+        // TODO implement spinner or animations and control from here
+      },
+    );
+
     super.initState();
   }
 
@@ -748,6 +776,53 @@ class _WalletNetworkSettingsViewState
             ),
           SizedBox(
             height: isDesktop ? 32 : 20,
+          ),
+          if (TorService.sharedInstance.enabled)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Tor status",
+                  textAlign: TextAlign.left,
+                  style: isDesktop
+                      ? STextStyles.desktopTextExtraExtraSmall(context)
+                      : STextStyles.smallMed12(context),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    TorService.sharedInstance.stop();
+                  },
+                  child: Text(
+                    "Disconnect",
+                    style: STextStyles.link2(context),
+                  ),
+                ),
+              ],
+            ),
+          if (!TorService.sharedInstance.enabled)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Tor status",
+                  textAlign: TextAlign.left,
+                  style: isDesktop
+                      ? STextStyles.desktopTextExtraExtraSmall(context)
+                      : STextStyles.smallMed12(context),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    TorService.sharedInstance.start();
+                  },
+                  child: Text(
+                    "Connect",
+                    style: STextStyles.link2(context),
+                  ),
+                ),
+              ],
+            ),
+          SizedBox(
+            height: isDesktop ? 12 : 9,
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
