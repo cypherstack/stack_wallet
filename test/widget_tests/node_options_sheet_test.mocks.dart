@@ -12,8 +12,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/models/node_model.dart' as _i18;
 import 'package:stackwallet/services/coins/manager.dart' as _i6;
-import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart'
-    as _i20;
 import 'package:stackwallet/services/node_service.dart' as _i3;
 import 'package:stackwallet/services/tor_service.dart' as _i19;
 import 'package:stackwallet/services/wallets.dart' as _i9;
@@ -1030,11 +1028,6 @@ class MockTorService extends _i1.Mock implements _i19.TorService {
         Invocation.getter(#enabled),
         returnValue: false,
       ) as bool);
-  @override
-  _i20.TorConnectionStatus get status => (super.noSuchMethod(
-        Invocation.getter(#status),
-        returnValue: _i20.TorConnectionStatus.disconnected,
-      ) as _i20.TorConnectionStatus);
   @override
   ({_i8.InternetAddress host, int port}) get proxyInfo => (super.noSuchMethod(
         Invocation.getter(#proxyInfo),
