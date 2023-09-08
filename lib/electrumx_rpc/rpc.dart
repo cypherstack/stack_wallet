@@ -14,8 +14,8 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:mutex/mutex.dart';
+import 'package:stackwallet/exceptions/json_rpc/json_rpc_exception.dart';
 import 'package:stackwallet/networking/socks_socket.dart';
-import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 
@@ -136,9 +136,9 @@ class JsonRPC {
           reason: "return req.completer.future.onError: $error\n$stackTrace",
         );
         return JsonRPCResponse(
-          exception: error is Exception
+          exception: error is JsonRpcException
               ? error
-              : Exception(
+              : JsonRpcException(
                   "req.completer.future.onError: $error\n$stackTrace",
                 ),
         );
@@ -195,11 +195,8 @@ class JsonRPC {
       );
     } else {
       if (proxyInfo == null) {
-        proxyInfo = TorService.sharedInstance.proxyInfo;
-        Logging.instance.log(
-          "ElectrumX.connect(): tor detected at $proxyInfo",
-          level: LogLevel.Warning,
-        );
+        throw JsonRpcException(
+            "JsonRPC.connect failed with useTor=${Prefs.instance.useTor} and proxyInfo is null");
       }
 
       // instantiate a socks socket at localhost and on the port selected by the tor service
@@ -223,7 +220,7 @@ class JsonRPC {
         Logging.instance.log(
             "JsonRPC.connect(): failed to connect to SOCKS socket at $proxyInfo, $e",
             level: LogLevel.Error);
-        throw Exception(
+        throw JsonRpcException(
             "JsonRPC.connect(): failed to connect to SOCKS socket at $proxyInfo, $e");
       }
 
@@ -241,7 +238,7 @@ class JsonRPC {
         Logging.instance.log(
             "JsonRPC.connect(): failed to connect to $host over tor proxy at $proxyInfo, $e",
             level: LogLevel.Error);
-        throw Exception(
+        throw JsonRpcException(
             "JsonRPC.connect(): failed to connect to tor proxy, $e");
       }
 
@@ -356,7 +353,7 @@ class _JsonRPCRequest {
     Future<void>.delayed(requestTimeout).then((_) {
       if (!isComplete) {
         try {
-          throw Exception("_JsonRPCRequest timed out: $jsonRequest");
+          throw JsonRpcException("_JsonRPCRequest timed out: $jsonRequest");
         } catch (e, s) {
           completer.completeError(e, s);
           onTimedOut?.call();
@@ -370,7 +367,7 @@ class _JsonRPCRequest {
 
 class JsonRPCResponse {
   final dynamic data;
-  final Exception? exception;
+  final JsonRpcException? exception;
 
   JsonRPCResponse({this.data, this.exception});
 }
