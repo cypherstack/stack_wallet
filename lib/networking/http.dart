@@ -41,7 +41,6 @@ class HTTP {
         url,
       );
 
-      request.headers.clear();
       if (headers != null) {
         headers.forEach((key, value) => request.headers.add);
       }
@@ -86,8 +85,6 @@ class HTTP {
       final HttpClientRequest request = await httpClient.postUrl(
         url,
       );
-
-      request.headers.clear();
 
       if (headers != null) {
         headers.forEach((key, value) => request.headers.add);
