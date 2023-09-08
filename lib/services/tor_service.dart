@@ -17,14 +17,6 @@ class TorService {
   /// Getter for the enabled flag.
   bool get enabled => _enabled;
 
-  /// The current status of the Tor connection.
-  TorConnectionStatus _status = TorConnectionStatus.disconnected;
-
-  /// Getter for the status.
-  ///
-  /// Used mostly to indicate "Connected" status in the UI.
-  TorConnectionStatus get status => _status;
-
   TorService._();
 
   /// Singleton instance of the TorService.
@@ -49,9 +41,6 @@ class TorService {
   ///
   /// Returns a Future that completes when the Tor service has started.
   Future<void> start() async {
-    // Set the status to connecting.
-    _status = TorConnectionStatus.connecting;
-
     if (_enabled) {
       // already started so just return
       // could throw an exception here or something so the caller
@@ -74,9 +63,6 @@ class TorService {
       // has started successfully
       _enabled = true;
 
-      // Set the status to connected.
-      _status = TorConnectionStatus.connected;
-
       // Fire a TorConnectionStatusChangedEvent on the event bus.
       GlobalEventBus.instance.fire(
         TorConnectionStatusChangedEvent(
@@ -91,9 +77,6 @@ class TorService {
       );
       // _enabled should already be false
 
-      // Set the status to disconnected.
-      _status = TorConnectionStatus.disconnected;
-
       // Fire a TorConnectionStatusChangedEvent on the event bus.
       GlobalEventBus.instance.fire(
         TorConnectionStatusChangedEvent(
@@ -106,9 +89,6 @@ class TorService {
   }
 
   Future<void> stop() async {
-    // Set the status to disconnected.
-    _status = TorConnectionStatus.disconnected;
-
     if (!_enabled) {
       // already stopped so just return
       // could throw an exception here or something so the caller

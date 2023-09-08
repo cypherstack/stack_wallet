@@ -72,7 +72,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
       _torConnectionStatusSubscription;
 
   /// The current status of the Tor connection.
-  TorConnectionStatus _torConnectionStatus = TorConnectionStatus.disconnected;
+  late TorConnectionStatus _torConnectionStatus;
 
   /// Builds the tor icon based on the current status.
   Widget _buildTorIcon(TorConnectionStatus status) {
@@ -176,6 +176,11 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
     // Initialize the global event bus.
     eventBus = GlobalEventBus.instance;
 
+    // Initialize the TorConnectionStatus.
+    _torConnectionStatus = TorService.sharedInstance.enabled
+        ? TorConnectionStatus.connected
+        : TorConnectionStatus.disconnected;
+
     // Subscribe to the TorConnectionStatusChangedEvent.
     _torConnectionStatusSubscription =
         eventBus.on<TorConnectionStatusChangedEvent>().listen(
@@ -271,7 +276,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                         .watch(selectedSettingsMenuItemStateProvider.state)
                         .state = 4;
                   },
-                  child: _buildTorIcon(TorService.sharedInstance.status)),
+                  child: _buildTorIcon(_torConnectionStatus)),
             ),
             const SizedBox(
               height: 40,

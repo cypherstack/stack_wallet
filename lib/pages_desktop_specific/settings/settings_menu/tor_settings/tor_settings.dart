@@ -52,8 +52,10 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
       _torConnectionStatusSubscription;
 
   /// The current status of the Tor connection.
-  TorConnectionStatus _torConnectionStatus = TorConnectionStatus.disconnected;
+  late TorConnectionStatus _torConnectionStatus =
+      TorConnectionStatus.disconnected;
 
+  /// Build the connect/disconnect button.
   Widget _buildConnectButton(TorConnectionStatus status) {
     switch (status) {
       case TorConnectionStatus.disconnected:
@@ -98,6 +100,11 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
   void initState() {
     // Initialize the global event bus.
     eventBus = GlobalEventBus.instance;
+
+    // Set the initial Tor connection status.
+    _torConnectionStatus = TorService.sharedInstance.enabled
+        ? TorConnectionStatus.connected
+        : TorConnectionStatus.disconnected;
 
     // Subscribe to the TorConnectionStatusChangedEvent.
     _torConnectionStatusSubscription =
@@ -259,7 +266,7 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                 ),
                 Padding(
                   padding: const EdgeInsets.all(10.0),
-                  child: _buildConnectButton(TorService.sharedInstance.status),
+                  child: _buildConnectButton(_torConnectionStatus),
                 ),
                 const SizedBox(
                   height: 30,
