@@ -39,7 +39,6 @@ class JsonRPC {
   Socket? _socket;
   SOCKSSocket? _socksSocket;
   StreamSubscription<List<int>>? _subscription;
-  StreamSubscription<List<int>>? get subscription => _subscription;
 
   void _dataHandler(List<int> data) {
     _requestQueue.nextIncompleteReq.then((req) {
@@ -87,7 +86,6 @@ class JsonRPC {
         }
         if (_socksSocket != null) {
           _socksSocket!.write('${req.jsonRequest}\r\n');
-          // _socksSocket!.socket.writeln('${req.jsonRequest}\r\n');
         }
 
         // TODO different timeout length?
