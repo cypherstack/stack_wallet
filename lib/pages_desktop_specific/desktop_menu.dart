@@ -8,10 +8,8 @@
  *
  */
 
-import 'dart:async';
 import 'dart:io';
 
-import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,14 +17,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_menu_item.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu.dart';
 import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
-import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
-import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/widgets/desktop/desktop_tor_status_button.dart';
 import 'package:stackwallet/widgets/desktop/living_stack_icon.dart';
-
-import '../services/event_bus/global_event_bus.dart';
 
 enum DesktopMenuItemId {
   myStack,
@@ -59,85 +54,9 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
 
   final Duration duration = const Duration(milliseconds: 250);
   late final List<DMIController> controllers;
+  late final DMIController torButtonController;
 
   double _width = expandedWidth;
-
-  // final _buyDataLoadingService = BuyDataLoadingService();
-
-  /// The global event bus.
-  late final EventBus eventBus;
-
-  /// The subscription to the TorConnectionStatusChangedEvent.
-  late StreamSubscription<TorConnectionStatusChangedEvent>
-      _torConnectionStatusSubscription;
-
-  /// The current status of the Tor connection.
-  late TorConnectionStatus _torConnectionStatus;
-
-  /// Builds the tor icon based on the current status.
-  Widget _buildTorIcon(TorConnectionStatus status) {
-    switch (status) {
-      case TorConnectionStatus.disconnected:
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SvgPicture.asset(
-              Assets.svg.tor,
-              color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
-              width: 20,
-              height: 20,
-            ),
-            Text(
-              "\tDisconnected",
-              style: STextStyles.smallMed12(context).copyWith(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .textSubtitle3),
-            )
-          ],
-        );
-      case TorConnectionStatus.connecting:
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SvgPicture.asset(
-              Assets.svg.tor,
-              color:
-                  Theme.of(context).extension<StackColors>()!.accentColorYellow,
-              width: 20,
-              height: 20,
-            ),
-            Text(
-              "\tConnecting",
-              style: STextStyles.smallMed12(context).copyWith(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .accentColorYellow),
-            )
-          ],
-        );
-      case TorConnectionStatus.connected:
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SvgPicture.asset(
-              Assets.svg.tor,
-              color:
-                  Theme.of(context).extension<StackColors>()!.accentColorGreen,
-              width: 20,
-              height: 20,
-            ),
-            Text(
-              "\tConnected",
-              style: STextStyles.smallMed12(context).copyWith(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .accentColorGreen),
-            )
-          ],
-        );
-    }
-  }
 
   void updateSelectedMenuItem(DesktopMenuItemId idKey) {
     widget.onSelectionWillChange?.call(idKey);
@@ -153,6 +72,8 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
     for (var e in controllers) {
       e.toggle?.call();
     }
+
+    torButtonController.toggle?.call();
 
     setState(() {
       _width = expanded ? minimizedWidth : expandedWidth;
@@ -173,43 +94,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
       DMIController(),
     ];
 
-    // Initialize the global event bus.
-    eventBus = GlobalEventBus.instance;
-
-    // Initialize the TorConnectionStatus.
-    _torConnectionStatus = ref.read(pTorService).enabled
-        ? TorConnectionStatus.connected
-        : TorConnectionStatus.disconnected;
-
-    // Subscribe to the TorConnectionStatusChangedEvent.
-    _torConnectionStatusSubscription =
-        eventBus.on<TorConnectionStatusChangedEvent>().listen(
-      (event) async {
-        // Rebuild the widget.
-        setState(() {
-          _torConnectionStatus = event.newStatus;
-        });
-
-        // TODO implement spinner or animations and control from here
-        // switch (event.newStatus) {
-        //   case TorConnectionStatus.disconnected:
-        //     // if (_spinController.hasLoadedAnimation) {
-        //     //   _spinController.stop?.call();
-        //     // }
-        //     break;
-        //   case TorConnectionStatus.connecting:
-        //     // if (_spinController.hasLoadedAnimation) {
-        //     //   _spinController.repeat?.call();
-        //     // }
-        //     break;
-        //   case TorConnectionStatus.connected:
-        //     // if (_spinController.hasLoadedAnimation) {
-        //     //   _spinController.stop?.call();
-        //     // }
-        //     break;
-        // }
-      },
-    );
+    torButtonController = DMIController();
 
     super.initState();
   }
@@ -219,9 +104,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
     for (var e in controllers) {
       e.dispose();
     }
-
-    // Clean up the subscription to the TorConnectionStatusChangedEvent.
-    _torConnectionStatusSubscription.cancel();
+    torButtonController.dispose();
 
     super.dispose();
   }
@@ -266,17 +149,21 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
             const SizedBox(
               height: 5,
             ),
-            MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                  onTap: () {
-                    ref.read(currentDesktopMenuItemProvider.state).state =
-                        DesktopMenuItemId.settings;
-                    ref
-                        .watch(selectedSettingsMenuItemStateProvider.state)
-                        .state = 4;
-                  },
-                  child: _buildTorIcon(_torConnectionStatus)),
+            AnimatedContainer(
+              duration: duration,
+              width: _width == expandedWidth
+                  ? _width - 32 // 16 padding on either side
+                  : _width - 16, // 8 padding on either side
+              child: DesktopTorStatusButton(
+                transitionDuration: duration,
+                controller: torButtonController,
+                onPressed: () {
+                  ref.read(currentDesktopMenuItemProvider.state).state =
+                      DesktopMenuItemId.settings;
+                  ref.watch(selectedSettingsMenuItemStateProvider.state).state =
+                      4;
+                },
+              ),
             ),
             const SizedBox(
               height: 40,
