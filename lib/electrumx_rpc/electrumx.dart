@@ -123,7 +123,9 @@ class ElectrumX {
 
           case TorConnectionStatus.connected:
           case TorConnectionStatus.disconnected:
-            _torConnectingLock.release();
+            if (_torConnectingLock.isLocked) {
+              _torConnectingLock.release();
+            }
             _requireMutex = false;
             break;
         }
