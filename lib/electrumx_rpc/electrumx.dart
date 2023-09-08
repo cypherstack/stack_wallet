@@ -91,6 +91,7 @@ class ElectrumX {
   StreamSubscription<TorConnectionStatusChangedEvent>? _torStatusListener;
 
   final Mutex _torConnectingLock = Mutex();
+  bool _requireMutex = false;
 
   ElectrumX({
     required String host,
@@ -117,11 +118,13 @@ class ElectrumX {
         switch (event.newStatus) {
           case TorConnectionStatus.connecting:
             await _torConnectingLock.acquire();
+            _requireMutex = true;
             break;
 
           case TorConnectionStatus.connected:
           case TorConnectionStatus.disconnected:
             _torConnectingLock.release();
+            _requireMutex = false;
             break;
         }
       },
@@ -260,7 +263,11 @@ class ElectrumX {
       throw WifiOnlyException();
     }
 
-    await _torConnectingLock.protect(() async => _checkRpcClient());
+    if (_requireMutex) {
+      await _torConnectingLock.protect(() async => _checkRpcClient());
+    } else {
+      _checkRpcClient();
+    }
 
     try {
       final requestId = requestID ?? const Uuid().v1();
@@ -346,7 +353,11 @@ class ElectrumX {
       throw WifiOnlyException();
     }
 
-    await _torConnectingLock.protect(() async => _checkRpcClient());
+    if (_requireMutex) {
+      await _torConnectingLock.protect(() async => _checkRpcClient());
+    } else {
+      _checkRpcClient();
+    }
 
     try {
       final List<String> requestStrings = [];
