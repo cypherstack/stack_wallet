@@ -1,8 +1,10 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
 import 'package:stackwallet/dto/ordinals/inscription_data.dart';
 import 'package:stackwallet/dto/ordinals/litescribe_response.dart';
+import 'package:stackwallet/networking/http.dart';
+import 'package:stackwallet/services/tor_service.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 
 class LitescribeAPI {
   static final LitescribeAPI _instance = LitescribeAPI._internal();
@@ -13,12 +15,17 @@ class LitescribeAPI {
   }
 
   LitescribeAPI._internal();
+  HTTP client = HTTP();
 
   late String baseUrl;
 
   Future<LitescribeResponse> _getResponse(String endpoint) async {
-    final response = await http.get(Uri.parse('$baseUrl$endpoint'));
-    if (response.statusCode == 200) {
+    final response = await client.get(
+      url: Uri.parse('$baseUrl$endpoint'),
+      proxyInfo:
+          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+    );
+    if (response.code == 200) {
       return LitescribeResponse(data: _validateJson(response.body));
     } else {
       throw Exception(

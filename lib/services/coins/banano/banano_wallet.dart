@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
 import 'package:isar/isar.dart';
 import 'package:nanodart/nanodart.dart';
 import 'package:stackwallet/db/hive/db.dart';
@@ -10,6 +9,7 @@ import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
+import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
@@ -19,6 +19,7 @@ import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/nano_api.dart';
 import 'package:stackwallet/services/node_service.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -145,10 +146,12 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Balance get balance => _balance ??= getCachedBalance();
   Balance? _balance;
 
+  HTTP client = HTTP();
+
   Future<String?> requestWork(String hash) async {
-    return http
+    return client
         .post(
-      Uri.parse("https://rpc.nano.to"), // this should be a
+      url: Uri.parse("https://rpc.nano.to"), // this should be a
       headers: {'Content-type': 'application/json'},
       body: json.encode(
         {
@@ -156,17 +159,19 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
           "hash": hash,
         },
       ),
+      proxyInfo:
+          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
     )
-        .then((http.Response response) {
-      if (response.statusCode == 200) {
+        .then((client) {
+      if (client.code == 200) {
         final Map<String, dynamic> decoded =
-            json.decode(response.body) as Map<String, dynamic>;
+            json.decode(client.body) as Map<String, dynamic>;
         if (decoded.containsKey("error")) {
           throw Exception("Received error ${decoded["error"]}");
         }
         return decoded["work"] as String?;
       } else {
-        throw Exception("Received error ${response.statusCode}");
+        throw Exception("Received error ${client.code}");
       }
     });
   }
@@ -185,10 +190,12 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
       final headers = {
         "Content-Type": "application/json",
       };
-      final balanceResponse = await http.post(
-        Uri.parse(getCurrentNode().host),
+      final balanceResponse = await client.post(
+        url: Uri.parse(getCurrentNode().host),
         headers: headers,
         body: balanceBody,
+        proxyInfo:
+            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
       );
       final balanceData = jsonDecode(balanceResponse.body);
 
@@ -203,10 +210,12 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
         "representative": "true",
         "account": publicAddress,
       });
-      final infoResponse = await http.post(
-        Uri.parse(getCurrentNode().host),
+      final infoResponse = await client.post(
+        url: Uri.parse(getCurrentNode().host),
         headers: headers,
         body: infoBody,
+        proxyInfo:
+            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
       );
 
       final String frontier =
@@ -256,10 +265,12 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
         "subtype": "send",
         "block": sendBlock,
       });
-      final processResponse = await http.post(
-        Uri.parse(getCurrentNode().host),
+      final processResponse = await client.post(
+        url: Uri.parse(getCurrentNode().host),
         headers: headers,
         body: processBody,
+        proxyInfo:
+            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
       );
 
       final Map<String, dynamic> decoded =
@@ -328,8 +339,13 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
     final headers = {
       "Content-Type": "application/json",
     };
-    final response = await http.post(Uri.parse(getCurrentNode().host),
-        headers: headers, body: body);
+    final response = await client.post(
+      url: Uri.parse(getCurrentNode().host),
+      headers: headers,
+      body: body,
+      proxyInfo:
+          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+    );
     final data = jsonDecode(response.body);
     _balance = Balance(
       total: Amount(
@@ -367,10 +383,12 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
       "representative": "true",
       "account": publicAddress,
     });
-    final infoResponse = await http.post(
-      Uri.parse(getCurrentNode().host),
+    final infoResponse = await client.post(
+      url: Uri.parse(getCurrentNode().host),
       headers: headers,
       body: infoBody,
+      proxyInfo:
+          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
     );
     final infoData = jsonDecode(infoResponse.body);
 
@@ -385,10 +403,12 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
       "account": publicAddress,
     });
 
-    final balanceResponse = await http.post(
-      Uri.parse(getCurrentNode().host),
+    final balanceResponse = await client.post(
+      url: Uri.parse(getCurrentNode().host),
       headers: headers,
       body: balanceBody,
+      proxyInfo:
+          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
     );
 
     final balanceData = jsonDecode(balanceResponse.body);
@@ -458,10 +478,12 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
       "subtype": "receive",
       "block": receiveBlock,
     });
-    final processResponse = await http.post(
-      Uri.parse(getCurrentNode().host),
+    final processResponse = await client.post(
+      url: Uri.parse(getCurrentNode().host),
       headers: headers,
       body: processBody,
+      proxyInfo:
+          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
     );
 
     final Map<String, dynamic> decoded =
@@ -472,14 +494,18 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   Future<void> confirmAllReceivable() async {
-    final receivableResponse = await http.post(Uri.parse(getCurrentNode().host),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "action": "receivable",
-          "source": "true",
-          "account": await currentReceivingAddress,
-          "count": "-1",
-        }));
+    final receivableResponse = await client.post(
+      url: Uri.parse(getCurrentNode().host),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "action": "receivable",
+        "source": "true",
+        "account": await currentReceivingAddress,
+        "count": "-1",
+      }),
+      proxyInfo:
+          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+    );
 
     final receivableData = await jsonDecode(receivableResponse.body);
     if (receivableData["blocks"] == "") {
@@ -501,13 +527,17 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
     await confirmAllReceivable();
     final receivingAddress = (await _currentReceivingAddress)!;
     final String publicAddress = receivingAddress.value;
-    final response = await http.post(Uri.parse(getCurrentNode().host),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "action": "account_history",
-          "account": publicAddress,
-          "count": "-1",
-        }));
+    final response = await client.post(
+      url: Uri.parse(getCurrentNode().host),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "action": "account_history",
+        "account": publicAddress,
+        "count": "-1",
+      }),
+      proxyInfo:
+          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+    );
     final data = await jsonDecode(response.body);
     final transactions =
         data["history"] is List ? data["history"] as List<dynamic> : [];
@@ -819,17 +849,19 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Future<bool> testNetworkConnection() async {
     final uri = Uri.parse(getCurrentNode().host);
 
-    final response = await http.post(
-      uri,
+    final response = await client.post(
+      url: uri,
       headers: {"Content-Type": "application/json"},
       body: jsonEncode(
         {
           "action": "version",
         },
       ),
+      proxyInfo:
+          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
     );
 
-    return response.statusCode == 200;
+    return response.code == 200;
   }
 
   Timer? _networkAliveTimer;
@@ -915,10 +947,12 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
     final headers = {
       "Content-Type": "application/json",
     };
-    final infoResponse = await http.post(
-      Uri.parse(getCurrentNode().host),
+    final infoResponse = await client.post(
+      url: Uri.parse(getCurrentNode().host),
       headers: headers,
       body: infoBody,
+      proxyInfo:
+          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
     );
     final infoData = jsonDecode(infoResponse.body);
 

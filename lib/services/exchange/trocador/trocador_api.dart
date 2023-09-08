@@ -12,14 +12,16 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_native_splash/cli_commands.dart';
-import 'package:http/http.dart' as http;
 import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
+import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/services/exchange/trocador/response_objects/trocador_coin.dart';
 import 'package:stackwallet/services/exchange/trocador/response_objects/trocador_rate.dart';
 import 'package:stackwallet/services/exchange/trocador/response_objects/trocador_trade.dart';
 import 'package:stackwallet/services/exchange/trocador/response_objects/trocador_trade_new.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 
 const kTrocadorApiKey = "8rFqf7QLxX1mUBiNPEMaLUpV2biz6n";
 const kTrocadorRefCode = "9eHm9BkQfS";
@@ -31,6 +33,7 @@ abstract class TrocadorAPI {
 
   static const String markup = "1";
   static const String minKYCRating = "C";
+  static HTTP client = HTTP();
 
   static Uri _buildUri({
     required String method,
@@ -46,12 +49,14 @@ abstract class TrocadorAPI {
     int code = -1;
     try {
       debugPrint("URI: $uri");
-      final response = await http.get(
-        uri,
+      final response = await client.get(
+        url: uri,
         headers: {'Content-Type': 'application/json'},
+        proxyInfo:
+            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
       );
 
-      code = response.statusCode;
+      code = response.code;
 
       debugPrint("CODE: $code");
       debugPrint("BODY: ${response.body}");

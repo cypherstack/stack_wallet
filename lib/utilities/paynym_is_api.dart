@@ -11,13 +11,15 @@
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
-import 'package:http/http.dart' as http;
 import 'package:stackwallet/models/paynym/created_paynym.dart';
 import 'package:stackwallet/models/paynym/paynym_account.dart';
 import 'package:stackwallet/models/paynym/paynym_claim.dart';
 import 'package:stackwallet/models/paynym/paynym_follow.dart';
 import 'package:stackwallet/models/paynym/paynym_response.dart';
 import 'package:stackwallet/models/paynym/paynym_unfollow.dart';
+import 'package:stackwallet/networking/http.dart';
+import 'package:stackwallet/services/tor_service.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
 
 // todo: better error message parsing (from response itself?)
@@ -25,6 +27,8 @@ import 'package:tuple/tuple.dart';
 class PaynymIsApi {
   static const String baseURL = "https://paynym.is/api";
   static const String version = "/v1";
+
+  HTTP client = HTTP();
 
   Future<Tuple2<Map<String, dynamic>, int>> _post(
     String endpoint,
@@ -38,21 +42,23 @@ class PaynymIsApi {
     final headers = {
       'Content-Type': 'application/json; charset=UTF-8',
     }..addAll(additionalHeaders);
-    final response = await http.post(
-      uri,
+    final response = await client.post(
+      url: uri,
       headers: headers,
       body: jsonEncode(body),
+      proxyInfo:
+          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
     );
 
     debugPrint("Paynym request uri: $uri");
     debugPrint("Paynym request body: $body");
     debugPrint("Paynym request headers: $headers");
-    debugPrint("Paynym response code: ${response.statusCode}");
+    debugPrint("Paynym response code: ${response.code}");
     debugPrint("Paynym response body: ${response.body}");
 
     return Tuple2(
       jsonDecode(response.body) as Map<String, dynamic>,
-      response.statusCode,
+      response.code,
     );
   }
 
