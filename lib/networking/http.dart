@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:socks5_proxy/socks_client.dart';
 import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -16,6 +17,10 @@ class Response {
 }
 
 class HTTP {
+  /// Visible for testing so we can override with a mock TorService
+  @visibleForTesting
+  TorService torService = TorService.sharedInstance;
+
   Future<Response> get({
     required Uri url,
     Map<String, String>? headers,
@@ -26,8 +31,8 @@ class HTTP {
       if (routeOverTor) {
         SocksTCPClient.assignToHttpClient(httpClient, [
           ProxySettings(
-            TorService.sharedInstance.proxyInfo.host,
-            TorService.sharedInstance.proxyInfo.port,
+            torService.proxyInfo.host,
+            torService.proxyInfo.port,
           ),
         ]);
       }
@@ -68,8 +73,8 @@ class HTTP {
       if (routeOverTor) {
         SocksTCPClient.assignToHttpClient(httpClient, [
           ProxySettings(
-            TorService.sharedInstance.proxyInfo.host,
-            TorService.sharedInstance.proxyInfo.port,
+            torService.proxyInfo.host,
+            torService.proxyInfo.port,
           ),
         ]);
       }
