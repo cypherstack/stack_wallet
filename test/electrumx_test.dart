@@ -40,7 +40,6 @@ void main() {
 
       final mockPrefs = MockPrefs();
       when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
-      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
       final torService = MockTorService();
 
       final client = ElectrumX.from(
@@ -1504,5 +1503,122 @@ void main() {
 
     verify(mockPrefs.wifiOnly).called(1);
     verifyNoMoreInteractions(mockPrefs);
+  });
+
+  group("Tor killswitch tests", () {
+    test("killswitch enabled", () async {
+      final mockClient = MockJsonRPC();
+      const command = "blockchain.transaction.get";
+      const jsonArgs = '["",true]';
+      when(
+        mockClient.request(
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
+        ),
+      ).thenAnswer(
+        (_) async => JsonRPCResponse(data: {
+          "jsonrpc": "2.0",
+          "error": {
+            "code": 1,
+            "message": "None should be a transaction hash",
+          },
+          "id": "some requestId",
+        }),
+      );
+
+      final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => true);
+      when(mockPrefs.torKillswitch).thenAnswer((realInvocation) => true);
+      when(mockPrefs.wifiOnly).thenAnswer((_) => false);
+      final torService = MockTorService();
+      when(torService.enabled).thenAnswer((_) => false);
+
+      final client = ElectrumX(
+        host: "some server",
+        port: 0,
+        useSSL: true,
+        client: mockClient,
+        failovers: [],
+        prefs: mockPrefs,
+        torService: torService,
+      );
+
+      try {
+        var result =
+            client.getTransaction(requestID: "some requestId", txHash: '');
+      } catch (e) {
+        expect(e, isA<Exception>());
+        expect(
+            e.toString(),
+            equals(
+                "Tor preference and killswitch set but Tor is not enabled, not connecting to ElectrumX"));
+      }
+
+      verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.useTor).called(1);
+      verifyNoMoreInteractions(mockPrefs);
+    });
+
+    test("killswitch disabled", () async {
+      final mockClient = MockJsonRPC();
+      const command = "blockchain.transaction.get";
+      const jsonArgs = '["",true]';
+      when(
+        mockClient.request(
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
+        ),
+      ).thenAnswer(
+        (_) async => JsonRPCResponse(data: {
+          "jsonrpc": "2.0",
+          "error": {
+            "code": 1,
+            "message": "None should be a transaction hash",
+          },
+          "id": "some requestId",
+        }),
+      );
+
+      final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => true);
+      when(mockPrefs.torKillswitch).thenAnswer((realInvocation) => true);
+      when(mockPrefs.wifiOnly).thenAnswer((_) => false);
+      final torService = MockTorService();
+      when(torService.enabled).thenAnswer((_) => false);
+
+      final client = ElectrumX(
+        host: "some server",
+        port: 0,
+        useSSL: true,
+        client: mockClient,
+        failovers: [],
+        prefs: mockPrefs,
+        torService: torService,
+      );
+
+      bool didThrow = false;
+      try {
+        final result = await client.getTransaction(
+            txHash: SampleGetTransactionData.txHash0,
+            verbose: true,
+            requestID: "some requestId");
+
+        expect(result, SampleGetTransactionData.txData0);
+      } catch (e) {
+        didThrow = true;
+        // expect(e, isNotA<Exception>());
+        expect(
+            e.toString(),
+            isNot(equals(
+                "Tor preference and killswitch set but Tor is not enabled, not connecting to ElectrumX")));
+      }
+      expect(didThrow, isFalse);
+
+      // verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.useTor).called(1);
+      verifyNoMoreInteractions(mockPrefs);
+    });
   });
 }
