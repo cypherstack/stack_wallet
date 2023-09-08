@@ -129,7 +129,6 @@ class _DesktopTorStatusButtonState extends ConsumerState<DesktopTorStatusButton>
     // Clean up the subscription to the TorConnectionStatusChangedEvent.
     _torConnectionStatusSubscription.cancel();
 
-
     controller?.dispose();
     animationController.dispose();
     super.dispose();

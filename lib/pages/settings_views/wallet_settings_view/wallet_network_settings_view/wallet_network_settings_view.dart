@@ -35,6 +35,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
@@ -100,6 +101,9 @@ class _WalletNetworkSettingsViewState
   /// The subscription to the TorConnectionStatusChangedEvent.
   late final StreamSubscription<TorConnectionStatusChangedEvent>
       _torConnectionStatusSubscription;
+
+  /// The Prefs instance.
+  final Prefs _prefs = Prefs.instance;
 
   Future<void> _attemptRescan() async {
     if (!Platform.isLinux) await Wakelock.enable();
@@ -784,6 +788,8 @@ class _WalletNetworkSettingsViewState
                 GestureDetector(
                   onTap: () {
                     TorService.sharedInstance.stop();
+                    // And toggle preference.
+                    _prefs.useTor = false;
                   },
                   child: Text(
                     "Disconnect",
@@ -794,6 +800,8 @@ class _WalletNetworkSettingsViewState
                 GestureDetector(
                   onTap: () {
                     TorService.sharedInstance.start();
+                    // And toggle preference.
+                    _prefs.useTor = true;
                   },
                   child: Text(
                     "Connect",
