@@ -21,6 +21,7 @@ import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
@@ -28,8 +29,6 @@ import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
-
-import '../../../../utilities/prefs.dart';
 
 class TorSettings extends ConsumerStatefulWidget {
   const TorSettings({Key? key}) : super(key: key);
@@ -41,9 +40,6 @@ class TorSettings extends ConsumerStatefulWidget {
 }
 
 class _TorSettingsState extends ConsumerState<TorSettings> {
-  // The Prefs instance.
-  final Prefs _prefs = Prefs.instance;
-
   /// The global event bus.
   EventBus eventBus = GlobalEventBus.instance;
 
@@ -52,8 +48,7 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
       _torConnectionStatusSubscription;
 
   /// The current status of the Tor connection.
-  late TorConnectionStatus _torConnectionStatus =
-      TorConnectionStatus.disconnected;
+  late TorConnectionStatus _torConnectionStatus;
 
   /// Build the connect/disconnect button.
   Widget _buildConnectButton(TorConnectionStatus status) {
@@ -63,12 +58,22 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
           label: "Connect to Tor",
           width: 200,
           buttonHeight: ButtonHeight.m,
-          onPressed: () {
-            // Toggle the useTor preference.
-            _prefs.useTor = true;
+          onPressed: () async {
+            // Init the Tor service if it hasn't already been.
+            ref.read(pTorService).init();
 
             // Start the Tor service.
-            ref.read(pTorService).start();
+            try {
+              await ref.read(pTorService).start();
+
+              // Toggle the useTor preference on success.
+              ref.read(prefsChangeNotifierProvider).useTor = true;
+            } catch (e, s) {
+              Logging.instance.log(
+                "Error starting tor: $e\n$s",
+                level: LogLevel.Error,
+              );
+            }
           },
         );
       case TorConnectionStatus.connecting:
@@ -85,12 +90,19 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
           label: "Disconnect from Tor",
           width: 200,
           buttonHeight: ButtonHeight.m,
-          onPressed: () {
-            // Toggle the useTor preference.
-            _prefs.useTor = false;
-
+          onPressed: () async {
             // Stop the Tor service.
-            ref.read(pTorService).stop();
+            try {
+              await ref.read(pTorService).stop();
+
+              // Toggle the useTor preference on success.
+              ref.read(prefsChangeNotifierProvider).useTor = false;
+            } catch (e, s) {
+              Logging.instance.log(
+                "Error stopping tor: $e\n$s",
+                level: LogLevel.Error,
+              );
+            }
           },
         );
     }
@@ -196,63 +208,62 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                               recognizer: TapGestureRecognizer()
                                 ..onTap = () {
                                   showDialog<dynamic>(
-                                      context: context,
-                                      useSafeArea: false,
-                                      barrierDismissible: true,
-                                      builder: (context) {
-                                        return DesktopDialog(
-                                          maxWidth: 580,
-                                          maxHeight: double.infinity,
-                                          child: Column(
-                                            children: [
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.end,
+                                    context: context,
+                                    useSafeArea: false,
+                                    barrierDismissible: true,
+                                    builder: (context) {
+                                      return DesktopDialog(
+                                        maxWidth: 580,
+                                        maxHeight: double.infinity,
+                                        child: Column(
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.end,
+                                              children: [
+                                                DesktopDialogCloseButton(
+                                                  onPressedOverride: () =>
+                                                      Navigator.of(context)
+                                                          .pop(true),
+                                                ),
+                                              ],
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.all(20),
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.max,
                                                 children: [
-                                                  DesktopDialogCloseButton(
-                                                    onPressedOverride: () =>
-                                                        Navigator.of(context)
-                                                            .pop(true),
+                                                  Text(
+                                                    "What is Tor?",
+                                                    style:
+                                                        STextStyles.desktopH2(
+                                                            context),
+                                                  ),
+                                                  const SizedBox(
+                                                    height: 20,
+                                                  ),
+                                                  Text(
+                                                    "Short for \"The Onion Router\", is an open-source software that enables internet communication"
+                                                    " to remain anonymous by routing internet traffic through a series of layered nodes,"
+                                                    " to obscure the origin and destination of data.",
+                                                    style: STextStyles
+                                                            .desktopTextMedium(
+                                                                context)
+                                                        .copyWith(
+                                                      color: Theme.of(context)
+                                                          .extension<
+                                                              StackColors>()!
+                                                          .textDark3,
+                                                    ),
                                                   ),
                                                 ],
                                               ),
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.all(20),
-                                                child: Column(
-                                                  mainAxisSize:
-                                                      MainAxisSize.max,
-                                                  children: [
-                                                    Text(
-                                                      "What is Tor?",
-                                                      style:
-                                                          STextStyles.desktopH2(
-                                                              context),
-                                                    ),
-                                                    const SizedBox(
-                                                      height: 20,
-                                                    ),
-                                                    Text(
-                                                      "Short for \"The Onion Router\", is an open-source software that enables internet communication"
-                                                      " to remain anonymous by routing internet traffic through a series of layered nodes,"
-                                                      " to obscure the origin and destination of data.",
-                                                      style: STextStyles
-                                                              .desktopTextMedium(
-                                                                  context)
-                                                          .copyWith(
-                                                        color: Theme.of(context)
-                                                            .extension<
-                                                                StackColors>()!
-                                                            .textDark3,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      });
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  );
                                 },
                             ),
                           ],
@@ -299,66 +310,64 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () {
                                       showDialog<dynamic>(
-                                          context: context,
-                                          useSafeArea: false,
-                                          barrierDismissible: true,
-                                          builder: (context) {
-                                            return DesktopDialog(
-                                              maxWidth: 580,
-                                              maxHeight: double.infinity,
-                                              child: Column(
-                                                children: [
-                                                  Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment.end,
+                                        context: context,
+                                        useSafeArea: false,
+                                        barrierDismissible: true,
+                                        builder: (context) {
+                                          return DesktopDialog(
+                                            maxWidth: 580,
+                                            maxHeight: double.infinity,
+                                            child: Column(
+                                              children: [
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.end,
+                                                  children: [
+                                                    DesktopDialogCloseButton(
+                                                      onPressedOverride: () =>
+                                                          Navigator.of(context)
+                                                              .pop(true),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(20),
+                                                  child: Column(
+                                                    mainAxisSize:
+                                                        MainAxisSize.max,
                                                     children: [
-                                                      DesktopDialogCloseButton(
-                                                        onPressedOverride: () =>
-                                                            Navigator.of(
+                                                      Text(
+                                                        "What is Tor killswitch?",
+                                                        style: STextStyles
+                                                            .desktopH2(context),
+                                                      ),
+                                                      const SizedBox(
+                                                        height: 20,
+                                                      ),
+                                                      Text(
+                                                        "A security feature that protects your information from accidental exposure by"
+                                                        " disconnecting your device from the Tor network if your virtual private network (VPN)"
+                                                        " connection is disrupted or compromised.",
+                                                        style: STextStyles
+                                                                .desktopTextMedium(
                                                                     context)
-                                                                .pop(true),
+                                                            .copyWith(
+                                                          color: Theme.of(
+                                                                  context)
+                                                              .extension<
+                                                                  StackColors>()!
+                                                              .textDark3,
+                                                        ),
                                                       ),
                                                     ],
                                                   ),
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            20),
-                                                    child: Column(
-                                                      mainAxisSize:
-                                                          MainAxisSize.max,
-                                                      children: [
-                                                        Text(
-                                                          "What is Tor killswitch?",
-                                                          style: STextStyles
-                                                              .desktopH2(
-                                                                  context),
-                                                        ),
-                                                        const SizedBox(
-                                                          height: 20,
-                                                        ),
-                                                        Text(
-                                                          "A security feature that protects your information from accidental exposure by"
-                                                          " disconnecting your device from the Tor network if your virtual private network (VPN)"
-                                                          " connection is disrupted or compromised.",
-                                                          style: STextStyles
-                                                                  .desktopTextMedium(
-                                                                      context)
-                                                              .copyWith(
-                                                            color: Theme.of(
-                                                                    context)
-                                                                .extension<
-                                                                    StackColors>()!
-                                                                .textDark3,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            );
-                                          });
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      );
                                     },
                                 ),
                               ],

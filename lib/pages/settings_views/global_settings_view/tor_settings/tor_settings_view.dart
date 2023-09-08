@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -35,7 +36,7 @@ class TorSettingsView extends ConsumerStatefulWidget {
 }
 
 class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
-  TorConnectionStatus _networkStatus = TorConnectionStatus.disconnected;
+  late TorConnectionStatus _networkStatus;
 
   Widget _buildTorIcon(TorConnectionStatus status) {
     switch (status) {
@@ -123,6 +124,9 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
 
   @override
   void initState() {
+    _networkStatus = ref.read(pTorService).enabled
+        ? TorConnectionStatus.connected
+        : TorConnectionStatus.disconnected;
     super.initState();
   }
 
@@ -195,7 +199,7 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
                   ),
                 ],
               ),
-              SizedBox(
+              const SizedBox(
                 height: 30,
               ),
               RoundedWhiteContainer(
@@ -213,7 +217,7 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
                   ),
                 ),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 8,
               ),
               RoundedWhiteContainer(

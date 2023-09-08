@@ -35,6 +35,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
@@ -550,14 +551,6 @@ class _WalletNetworkSettingsViewState
                               "Synchronized",
                               style: STextStyles.w600_12(context),
                             ),
-                            Text(
-                              "100%",
-                              style: STextStyles.syncPercent(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorGreen,
-                              ),
-                            ),
                           ],
                         ),
                       ),
@@ -788,20 +781,47 @@ class _WalletNetworkSettingsViewState
                     ? STextStyles.desktopTextExtraExtraSmall(context)
                     : STextStyles.smallMed12(context),
               ),
-              if (TorService.sharedInstance.enabled)
+              if (ref.watch(
+                  prefsChangeNotifierProvider.select((value) => value.useTor)))
                 GestureDetector(
-                  onTap: () {
-                    TorService.sharedInstance.stop();
+                  onTap: () async {
+                    // Stop the Tor service.
+                    try {
+                      await ref.read(pTorService).stop();
+
+                      // Toggle the useTor preference on success.
+                      ref.read(prefsChangeNotifierProvider).useTor = false;
+                    } catch (e, s) {
+                      Logging.instance.log(
+                        "Error stopping tor: $e\n$s",
+                        level: LogLevel.Error,
+                      );
+                    }
                   },
                   child: Text(
                     "Disconnect",
                     style: STextStyles.link2(context),
                   ),
                 ),
-              if (!TorService.sharedInstance.enabled)
+              if (!ref.watch(
+                  prefsChangeNotifierProvider.select((value) => value.useTor)))
                 GestureDetector(
-                  onTap: () {
-                    TorService.sharedInstance.start();
+                  onTap: () async {
+                    // Init the Tor service if it hasn't already been.
+                    ref.read(pTorService).init();
+
+                    // Start the Tor service.
+                    try {
+                      await ref.read(pTorService).start();
+
+                      // Toggle the useTor preference on success.
+                      ref.read(prefsChangeNotifierProvider).useTor = true;
+                    } catch (e, s) {
+                      Logging.instance.log(
+                        "Error starting tor: $e\n$s",
+                        level: LogLevel.Error,
+                      );
+                    }
                   },
                   child: Text(
                     "Connect",
@@ -812,6 +832,99 @@ class _WalletNetworkSettingsViewState
           ),
           SizedBox(
             height: isDesktop ? 12 : 9,
+          ),
+          RoundedWhiteContainer(
+            borderColor: isDesktop
+                ? Theme.of(context).extension<StackColors>()!.background
+                : null,
+            padding:
+                isDesktop ? const EdgeInsets.all(16) : const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                if (ref.watch(prefsChangeNotifierProvider
+                    .select((value) => value.useTor)))
+                  Container(
+                    width: _iconSize,
+                    height: _iconSize,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorGreen
+                          .withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(_iconSize),
+                    ),
+                    child: Center(
+                      child: SvgPicture.asset(
+                        Assets.svg.tor,
+                        height: isDesktop ? 19 : 14,
+                        width: isDesktop ? 19 : 14,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorGreen,
+                      ),
+                    ),
+                  ),
+                if (!ref.watch(prefsChangeNotifierProvider
+                    .select((value) => value.useTor)))
+                  Container(
+                    width: _iconSize,
+                    height: _iconSize,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textDark
+                          .withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(_iconSize),
+                    ),
+                    child: Center(
+                      child: SvgPicture.asset(
+                        Assets.svg.tor,
+                        height: isDesktop ? 19 : 14,
+                        width: isDesktop ? 19 : 14,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark,
+                      ),
+                    ),
+                  ),
+                SizedBox(
+                  width: _boxPadding,
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Tor status",
+                      style: STextStyles.desktopTextExtraExtraSmall(context)
+                          .copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark,
+                      ),
+                    ),
+                    if (_torConnectionStatus == TorConnectionStatus.connected)
+                      Text(
+                        "Connected",
+                        style: STextStyles.desktopTextExtraExtraSmall(context),
+                      ),
+                    if (_torConnectionStatus == TorConnectionStatus.connecting)
+                      Text(
+                        "Connecting...",
+                        style: STextStyles.desktopTextExtraExtraSmall(context),
+                      ),
+                    if (_torConnectionStatus ==
+                        TorConnectionStatus.disconnected)
+                      Text(
+                        "Disconnected",
+                        style: STextStyles.desktopTextExtraExtraSmall(context),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: isDesktop ? 32 : 20,
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
