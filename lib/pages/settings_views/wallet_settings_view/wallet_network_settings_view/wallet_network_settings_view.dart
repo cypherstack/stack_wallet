@@ -872,12 +872,18 @@ class _WalletNetworkSettingsViewState
                             .textDark,
                       ),
                     ),
-                    if (TorService.sharedInstance.enabled)
+                    if (_torConnectionStatus == TorConnectionStatus.connected)
                       Text(
                         "Connected",
                         style: STextStyles.desktopTextExtraExtraSmall(context),
                       ),
-                    if (!TorService.sharedInstance.enabled)
+                    if (_torConnectionStatus == TorConnectionStatus.connecting)
+                      Text(
+                        "Connecting...",
+                        style: STextStyles.desktopTextExtraExtraSmall(context),
+                      ),
+                    if (_torConnectionStatus ==
+                        TorConnectionStatus.disconnected)
                       Text(
                         "Disconnected",
                         style: STextStyles.desktopTextExtraExtraSmall(context),
