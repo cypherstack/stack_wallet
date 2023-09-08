@@ -9,8 +9,6 @@ import 'dart:ui' as _i10;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/electrumx_rpc/rpc.dart' as _i2;
-import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart'
-    as _i12;
 import 'package:stackwallet/services/tor_service.dart' as _i11;
 import 'package:stackwallet/utilities/amount/amount_unit.dart' as _i8;
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i7;
@@ -664,11 +662,6 @@ class MockTorService extends _i1.Mock implements _i11.TorService {
         Invocation.getter(#enabled),
         returnValue: false,
       ) as bool);
-  @override
-  _i12.TorConnectionStatus get status => (super.noSuchMethod(
-        Invocation.getter(#status),
-        returnValue: _i12.TorConnectionStatus.disconnected,
-      ) as _i12.TorConnectionStatus);
   @override
   ({_i3.InternetAddress host, int port}) get proxyInfo => (super.noSuchMethod(
         Invocation.getter(#proxyInfo),
