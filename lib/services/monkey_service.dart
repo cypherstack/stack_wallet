@@ -1,13 +1,16 @@
 import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
+import 'package:stackwallet/networking/http.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 
 final pMonKeyService = Provider((ref) => MonKeyService());
 
 class MonKeyService {
   static const baseURL = "https://monkey.banano.cc/api/v1/monkey/";
+  HTTP client = HTTP();
 
   Future<Uint8List> fetchMonKey({
     required String address,
@@ -20,13 +23,17 @@ class MonKeyService {
         url += '?format=png&size=512&background=false';
       }
 
-      final response = await http.get(Uri.parse(url));
+      final response = await client.get(
+        url: Uri.parse(url),
+        proxyInfo:
+            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+      );
 
-      if (response.statusCode == 200) {
-        return response.bodyBytes;
+      if (response.code == 200) {
+        return Uint8List.fromList(response.bodyBytes);
       } else {
         throw Exception(
-          "statusCode=${response.statusCode} body=${response.body}",
+          "statusCode=${response.code} body=${response.body}",
         );
       }
     } catch (e, s) {

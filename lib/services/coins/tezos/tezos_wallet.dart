@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
-import 'package:http/http.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/balance.dart';
@@ -11,6 +10,7 @@ import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart'
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
+import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
@@ -19,6 +19,7 @@ import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -100,6 +101,8 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   bool get shouldAutoSync => _shouldAutoSync;
+
+  HTTP client = HTTP();
 
   @override
   set shouldAutoSync(bool shouldAutoSync) {
@@ -239,7 +242,12 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
     var api = "https://api.tzstats.com/series/op?start_date=today&collapse=1d";
-    var response = jsonDecode((await get(Uri.parse(api))).body)[0];
+    var response = jsonDecode((await client.get(
+      url: Uri.parse(api),
+      proxyInfo:
+          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+    ))
+        .body)[0];
     double totalFees = response[4] as double;
     int totalTxs = response[8] as int;
     int feePerTx = (totalFees / totalTxs * 1000000).floor();
@@ -259,7 +267,12 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<FeeObject> get fees async {
     var api = "https://api.tzstats.com/series/op?start_date=today&collapse=10d";
-    var response = jsonDecode((await get(Uri.parse(api))).body);
+    var response = jsonDecode((await client.get(
+      url: Uri.parse(api),
+      proxyInfo:
+          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+    ))
+        .body);
     double totalFees = response[0][4] as double;
     int totalTxs = response[0][8] as int;
     int feePerTx = (totalFees / totalTxs * 1000000).floor();
@@ -493,8 +506,14 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
     try {
       String balanceCall = "https://api.mainnet.tzkt.io/v1/accounts/"
           "${await currentReceivingAddress}/balance";
-      var response = jsonDecode(
-          await get(Uri.parse(balanceCall)).then((value) => value.body));
+      var response = jsonDecode(await client
+          .get(
+            url: Uri.parse(balanceCall),
+            proxyInfo: Prefs.instance.useTor
+                ? TorService.sharedInstance.proxyInfo
+                : null,
+          )
+          .then((value) => value.body));
       Amount balanceInAmount = Amount(
           rawValue: BigInt.parse(response.toString()),
           fractionDigits: coin.decimals);
@@ -516,8 +535,14 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Future<void> updateTransactions() async {
     String transactionsCall = "https://api.mainnet.tzkt.io/v1/accounts/"
         "${await currentReceivingAddress}/operations";
-    var response = jsonDecode(
-        await get(Uri.parse(transactionsCall)).then((value) => value.body));
+    var response = jsonDecode(await client
+        .get(
+          url: Uri.parse(transactionsCall),
+          proxyInfo: Prefs.instance.useTor
+              ? TorService.sharedInstance.proxyInfo
+              : null,
+        )
+        .then((value) => value.body));
     List<Tuple2<Transaction, Address>> txs = [];
     for (var tx in response as List) {
       if (tx["type"] == "transaction") {
@@ -591,8 +616,14 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Future<void> updateChainHeight() async {
     try {
       var api = "${getCurrentNode().host}/chains/main/blocks/head/header/shell";
-      var jsonParsedResponse =
-          jsonDecode(await get(Uri.parse(api)).then((value) => value.body));
+      var jsonParsedResponse = jsonDecode(await client
+          .get(
+            url: Uri.parse(api),
+            proxyInfo: Prefs.instance.useTor
+                ? TorService.sharedInstance.proxyInfo
+                : null,
+          )
+          .then((value) => value.body));
       final int intHeight = int.parse(jsonParsedResponse["level"].toString());
       Logging.instance.log("Chain height: $intHeight", level: LogLevel.Info);
       await updateCachedChainHeight(intHeight);
@@ -672,8 +703,12 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<bool> testNetworkConnection() async {
     try {
-      await get(Uri.parse(
-          "${getCurrentNode().host}:${getCurrentNode().port}/chains/main/blocks/head/header/shell"));
+      await client.get(
+        url: Uri.parse(
+            "${getCurrentNode().host}:${getCurrentNode().port}/chains/main/blocks/head/header/shell"),
+        proxyInfo:
+            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+      );
       return true;
     } catch (e) {
       return false;
