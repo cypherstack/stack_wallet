@@ -550,14 +550,6 @@ class _WalletNetworkSettingsViewState
                               "Synchronized",
                               style: STextStyles.w600_12(context),
                             ),
-                            Text(
-                              "100%",
-                              style: STextStyles.syncPercent(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorGreen,
-                              ),
-                            ),
                           ],
                         ),
                       ),
@@ -812,6 +804,91 @@ class _WalletNetworkSettingsViewState
           ),
           SizedBox(
             height: isDesktop ? 12 : 9,
+          ),
+          RoundedWhiteContainer(
+            borderColor: isDesktop
+                ? Theme.of(context).extension<StackColors>()!.background
+                : null,
+            padding:
+                isDesktop ? const EdgeInsets.all(16) : const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                if (TorService.sharedInstance.enabled)
+                  Container(
+                    width: _iconSize,
+                    height: _iconSize,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorGreen
+                          .withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(_iconSize),
+                    ),
+                    child: Center(
+                      child: SvgPicture.asset(
+                        Assets.svg.tor,
+                        height: isDesktop ? 19 : 14,
+                        width: isDesktop ? 19 : 14,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorGreen,
+                      ),
+                    ),
+                  ),
+                if (!TorService.sharedInstance.enabled)
+                  Container(
+                    width: _iconSize,
+                    height: _iconSize,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textDark
+                          .withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(_iconSize),
+                    ),
+                    child: Center(
+                      child: SvgPicture.asset(
+                        Assets.svg.tor,
+                        height: isDesktop ? 19 : 14,
+                        width: isDesktop ? 19 : 14,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark,
+                      ),
+                    ),
+                  ),
+                SizedBox(
+                  width: _boxPadding,
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Tor status",
+                      style: STextStyles.desktopTextExtraExtraSmall(context)
+                          .copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark,
+                      ),
+                    ),
+                    if (TorService.sharedInstance.enabled)
+                      Text(
+                        "Connected",
+                        style: STextStyles.desktopTextExtraExtraSmall(context),
+                      ),
+                    if (!TorService.sharedInstance.enabled)
+                      Text(
+                        "Disconnected",
+                        style: STextStyles.desktopTextExtraExtraSmall(context),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: isDesktop ? 32 : 20,
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
