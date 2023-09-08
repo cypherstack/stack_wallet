@@ -57,6 +57,7 @@ class TorService {
       // could throw an exception here or something so the caller
       // is explicitly made aware of this
       // TODO restart tor after that's been added to the tor-ffi crate
+      // (probably better to have a restart function separately)
       return;
     }
 

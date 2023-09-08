@@ -168,7 +168,11 @@ void main() async {
   await Hive.openBox<dynamic>(DB.boxNamePrefs);
   await Prefs.instance.init();
 
-  // Prefs.instance.useTor = true; // For testing purposes only.
+  // TODO:
+  // This should be moved to happen during the loading animation instead of
+  // showing a blank screen for 4-10 seconds.
+  // Some refactoring will need to be done here to make sure we don't make any
+  // network calls before starting up tor
   if (Prefs.instance.useTor) {
     await TorService.sharedInstance.start();
   }
