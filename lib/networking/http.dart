@@ -7,8 +7,16 @@ import 'package:stackwallet/utilities/logger.dart';
 
 // WIP wrapper layer
 
-abstract class HTTP {
-  static Future<HttpClientResponse> get({
+// TODO expand this class
+class Response {
+  final int code;
+  final String body;
+
+  Response(this.body, this.code);
+}
+
+class HTTP {
+  Future<Response> get({
     required Uri url,
     Map<String, String>? headers,
     required bool routeOverTor,
@@ -32,7 +40,11 @@ abstract class HTTP {
         headers.forEach((key, value) => request.headers.add);
       }
 
-      return request.close();
+      final response = await request.close();
+      return Response(
+        await response.transform(utf8.decoder).join(),
+        response.statusCode,
+      );
     } catch (e, s) {
       Logging.instance.log(
         "HTTP.get() rethrew: $e\n$s",
@@ -44,7 +56,7 @@ abstract class HTTP {
     }
   }
 
-  static Future<HttpClientResponse> post({
+  Future<Response> post({
     required Uri url,
     Map<String, String>? headers,
     Object? body,
@@ -73,7 +85,11 @@ abstract class HTTP {
 
       request.write(body);
 
-      return request.close();
+      final response = await request.close();
+      return Response(
+        await response.transform(utf8.decoder).join(),
+        response.statusCode,
+      );
     } catch (e, s) {
       Logging.instance.log(
         "HTTP.post() rethrew: $e\n$s",

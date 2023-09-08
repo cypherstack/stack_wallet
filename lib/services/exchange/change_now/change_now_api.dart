@@ -38,6 +38,8 @@ class ChangeNowAPI {
   static const String apiVersion = "/v1";
   static const String apiVersionV2 = "/v2";
 
+  HTTP client = HTTP();
+
   ChangeNowAPI._();
   static final ChangeNowAPI _instance = ChangeNowAPI._();
   static ChangeNowAPI get instance => _instance;
@@ -52,14 +54,14 @@ class ChangeNowAPI {
 
   Future<dynamic> _makeGetRequest(Uri uri) async {
     try {
-      final response = await HTTP.get(
+      final response = await client.get(
         url: uri,
         headers: {'Content-Type': 'application/json'},
         routeOverTor: Prefs.instance.useTor,
       );
       String? data;
       try {
-        data = await response.transform(utf8.decoder).join();
+        data = response.body;
         final parsed = jsonDecode(data);
 
         return parsed;
@@ -78,7 +80,7 @@ class ChangeNowAPI {
 
   Future<dynamic> _makeGetRequestV2(Uri uri, String apiKey) async {
     try {
-      final response = await HTTP.get(
+      final response = await client.get(
         url: uri,
         headers: {
           // 'Content-Type': 'application/json',
@@ -87,7 +89,7 @@ class ChangeNowAPI {
         routeOverTor: Prefs.instance.useTor,
       );
 
-      final data = await response.transform(utf8.decoder).join();
+      final data = response.body;
       final parsed = jsonDecode(data);
 
       return parsed;
@@ -103,7 +105,7 @@ class ChangeNowAPI {
     Map<String, String> body,
   ) async {
     try {
-      final response = await HTTP.post(
+      final response = await client.post(
         url: uri,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
@@ -112,7 +114,7 @@ class ChangeNowAPI {
 
       String? data;
       try {
-        data = await response.transform(utf8.decoder).join();
+        data = response.body;
         final parsed = jsonDecode(data);
 
         return parsed;
