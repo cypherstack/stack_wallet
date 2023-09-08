@@ -305,6 +305,7 @@ class _WalletNetworkSettingsViewState
     _syncStatusSubscription.cancel();
     _refreshSubscription.cancel();
     _blocksRemainingSubscription?.cancel();
+    _torConnectionStatusSubscription.cancel();
     super.dispose();
   }
 
@@ -777,17 +778,17 @@ class _WalletNetworkSettingsViewState
           SizedBox(
             height: isDesktop ? 32 : 20,
           ),
-          if (TorService.sharedInstance.enabled)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Tor status",
-                  textAlign: TextAlign.left,
-                  style: isDesktop
-                      ? STextStyles.desktopTextExtraExtraSmall(context)
-                      : STextStyles.smallMed12(context),
-                ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Tor status",
+                textAlign: TextAlign.left,
+                style: isDesktop
+                    ? STextStyles.desktopTextExtraExtraSmall(context)
+                    : STextStyles.smallMed12(context),
+              ),
+              if (TorService.sharedInstance.enabled)
                 GestureDetector(
                   onTap: () {
                     TorService.sharedInstance.stop();
@@ -797,19 +798,7 @@ class _WalletNetworkSettingsViewState
                     style: STextStyles.link2(context),
                   ),
                 ),
-              ],
-            ),
-          if (!TorService.sharedInstance.enabled)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Tor status",
-                  textAlign: TextAlign.left,
-                  style: isDesktop
-                      ? STextStyles.desktopTextExtraExtraSmall(context)
-                      : STextStyles.smallMed12(context),
-                ),
+              if (!TorService.sharedInstance.enabled)
                 GestureDetector(
                   onTap: () {
                     TorService.sharedInstance.start();
@@ -819,8 +808,8 @@ class _WalletNetworkSettingsViewState
                     style: STextStyles.link2(context),
                   ),
                 ),
-              ],
-            ),
+            ],
+          ),
           SizedBox(
             height: isDesktop ? 12 : 9,
           ),
