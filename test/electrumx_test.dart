@@ -1561,6 +1561,7 @@ void main() {
       verifyNoMoreInteractions(mockPrefs);
     });
 
+    // useTor is true but Tor is not enabled, but because the killswitch is off, TorService calls should be made.
     test("killswitch disabled", () async {
       final mockClient = MockJsonRPC();
       const command = "blockchain.transaction.get";
@@ -1583,8 +1584,8 @@ void main() {
       when(mockPrefs.useTor).thenAnswer((_) => true);
       when(mockPrefs.torKillswitch).thenAnswer((_) => false);
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
-      final torService = MockTorService();
-      when(torService.enabled).thenAnswer((_) => false);
+      final mockTorService = MockTorService();
+      when(mockTorService.enabled).thenAnswer((_) => false);
 
       final client = ElectrumX(
         host: "some server",
@@ -1593,7 +1594,7 @@ void main() {
         client: mockClient,
         failovers: [],
         prefs: mockPrefs,
-        torService: torService,
+        torService: mockTorService,
       );
 
       final result = await client.getTransaction(
@@ -1607,6 +1608,8 @@ void main() {
       verify(mockPrefs.useTor).called(1);
       verify(mockPrefs.torKillswitch).called(1);
       verifyNoMoreInteractions(mockPrefs);
+      verify(mockTorService.enabled).called(1);
+      verifyNoMoreInteractions(mockTorService);
     });
   });
 }
