@@ -2236,6 +2236,19 @@ class MockPrefs extends _i1.Mock implements _i24.Prefs {
         returnValueForMissingStub: null,
       );
   @override
+  bool get torKillswitch => (super.noSuchMethod(
+        Invocation.getter(#torKillswitch),
+        returnValue: false,
+      ) as bool);
+  @override
+  set torKillswitch(bool? torKillswitch) => super.noSuchMethod(
+        Invocation.setter(
+          #torKillswitch,
+          torKillswitch,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   bool get showTestNetCoins => (super.noSuchMethod(
         Invocation.getter(#showTestNetCoins),
         returnValue: false,
@@ -2404,6 +2417,19 @@ class MockPrefs extends _i1.Mock implements _i24.Prefs {
         Invocation.setter(
           #systemBrightnessDarkThemeId,
           systemBrightnessDarkThemeId,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  bool get useTor => (super.noSuchMethod(
+        Invocation.getter(#useTor),
+        returnValue: false,
+      ) as bool);
+  @override
+  set useTor(bool? useTor) => super.noSuchMethod(
+        Invocation.setter(
+          #useTor,
+          useTor,
         ),
         returnValueForMissingStub: null,
       );

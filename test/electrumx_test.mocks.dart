@@ -3,16 +3,20 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i3;
-import 'dart:ui' as _i9;
+import 'dart:async' as _i4;
+import 'dart:io' as _i3;
+import 'dart:ui' as _i10;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/electrumx_rpc/rpc.dart' as _i2;
-import 'package:stackwallet/utilities/amount/amount_unit.dart' as _i7;
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i6;
-import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i8;
-import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i5;
-import 'package:stackwallet/utilities/prefs.dart' as _i4;
+import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart'
+    as _i12;
+import 'package:stackwallet/services/tor_service.dart' as _i11;
+import 'package:stackwallet/utilities/amount/amount_unit.dart' as _i8;
+import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i7;
+import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i9;
+import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i6;
+import 'package:stackwallet/utilities/prefs.dart' as _i5;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -38,6 +42,17 @@ class _FakeDuration_0 extends _i1.SmartFake implements Duration {
 class _FakeJsonRPCResponse_1 extends _i1.SmartFake
     implements _i2.JsonRPCResponse {
   _FakeJsonRPCResponse_1(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeInternetAddress_2 extends _i1.SmartFake
+    implements _i3.InternetAddress {
+  _FakeInternetAddress_2(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -78,7 +93,16 @@ class MockJsonRPC extends _i1.Mock implements _i2.JsonRPC {
         ),
       ) as Duration);
   @override
-  _i3.Future<_i2.JsonRPCResponse> request(
+  set proxyInfo(({_i3.InternetAddress host, int port})? _proxyInfo) =>
+      super.noSuchMethod(
+        Invocation.setter(
+          #proxyInfo,
+          _proxyInfo,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i4.Future<_i2.JsonRPCResponse> request(
     String? jsonRpcRequest,
     Duration? requestTimeout,
   ) =>
@@ -91,7 +115,7 @@ class MockJsonRPC extends _i1.Mock implements _i2.JsonRPC {
           ],
         ),
         returnValue:
-            _i3.Future<_i2.JsonRPCResponse>.value(_FakeJsonRPCResponse_1(
+            _i4.Future<_i2.JsonRPCResponse>.value(_FakeJsonRPCResponse_1(
           this,
           Invocation.method(
             #request,
@@ -101,32 +125,32 @@ class MockJsonRPC extends _i1.Mock implements _i2.JsonRPC {
             ],
           ),
         )),
-      ) as _i3.Future<_i2.JsonRPCResponse>);
+      ) as _i4.Future<_i2.JsonRPCResponse>);
   @override
-  _i3.Future<void> disconnect({required String? reason}) => (super.noSuchMethod(
+  _i4.Future<void> disconnect({required String? reason}) => (super.noSuchMethod(
         Invocation.method(
           #disconnect,
           [],
           {#reason: reason},
         ),
-        returnValue: _i3.Future<void>.value(),
-        returnValueForMissingStub: _i3.Future<void>.value(),
-      ) as _i3.Future<void>);
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
   @override
-  _i3.Future<void> connect() => (super.noSuchMethod(
+  _i4.Future<void> connect() => (super.noSuchMethod(
         Invocation.method(
           #connect,
           [],
         ),
-        returnValue: _i3.Future<void>.value(),
-        returnValueForMissingStub: _i3.Future<void>.value(),
-      ) as _i3.Future<void>);
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 }
 
 /// A class which mocks [Prefs].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockPrefs extends _i1.Mock implements _i4.Prefs {
+class MockPrefs extends _i1.Mock implements _i5.Prefs {
   MockPrefs() {
     _i1.throwOnMissingStub(this);
   }
@@ -182,12 +206,12 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i5.SyncingType get syncType => (super.noSuchMethod(
+  _i6.SyncingType get syncType => (super.noSuchMethod(
         Invocation.getter(#syncType),
-        returnValue: _i5.SyncingType.currentWalletOnly,
-      ) as _i5.SyncingType);
+        returnValue: _i6.SyncingType.currentWalletOnly,
+      ) as _i6.SyncingType);
   @override
-  set syncType(_i5.SyncingType? syncType) => super.noSuchMethod(
+  set syncType(_i6.SyncingType? syncType) => super.noSuchMethod(
         Invocation.setter(
           #syncType,
           syncType,
@@ -299,6 +323,19 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
         returnValueForMissingStub: null,
       );
   @override
+  bool get torKillswitch => (super.noSuchMethod(
+        Invocation.getter(#torKillswitch),
+        returnValue: false,
+      ) as bool);
+  @override
+  set torKillswitch(bool? torKillswitch) => super.noSuchMethod(
+        Invocation.setter(
+          #torKillswitch,
+          torKillswitch,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   bool get showTestNetCoins => (super.noSuchMethod(
         Invocation.getter(#showTestNetCoins),
         returnValue: false,
@@ -333,12 +370,12 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i6.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
+  _i7.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
         Invocation.getter(#backupFrequencyType),
-        returnValue: _i6.BackupFrequencyType.everyTenMinutes,
-      ) as _i6.BackupFrequencyType);
+        returnValue: _i7.BackupFrequencyType.everyTenMinutes,
+      ) as _i7.BackupFrequencyType);
   @override
-  set backupFrequencyType(_i6.BackupFrequencyType? backupFrequencyType) =>
+  set backupFrequencyType(_i7.BackupFrequencyType? backupFrequencyType) =>
       super.noSuchMethod(
         Invocation.setter(
           #backupFrequencyType,
@@ -471,66 +508,79 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
         returnValueForMissingStub: null,
       );
   @override
+  bool get useTor => (super.noSuchMethod(
+        Invocation.getter(#useTor),
+        returnValue: false,
+      ) as bool);
+  @override
+  set useTor(bool? useTor) => super.noSuchMethod(
+        Invocation.setter(
+          #useTor,
+          useTor,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
       ) as bool);
   @override
-  _i3.Future<void> init() => (super.noSuchMethod(
+  _i4.Future<void> init() => (super.noSuchMethod(
         Invocation.method(
           #init,
           [],
         ),
-        returnValue: _i3.Future<void>.value(),
-        returnValueForMissingStub: _i3.Future<void>.value(),
-      ) as _i3.Future<void>);
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
   @override
-  _i3.Future<void> incrementCurrentNotificationIndex() => (super.noSuchMethod(
+  _i4.Future<void> incrementCurrentNotificationIndex() => (super.noSuchMethod(
         Invocation.method(
           #incrementCurrentNotificationIndex,
           [],
         ),
-        returnValue: _i3.Future<void>.value(),
-        returnValueForMissingStub: _i3.Future<void>.value(),
-      ) as _i3.Future<void>);
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
   @override
-  _i3.Future<bool> isExternalCallsSet() => (super.noSuchMethod(
+  _i4.Future<bool> isExternalCallsSet() => (super.noSuchMethod(
         Invocation.method(
           #isExternalCallsSet,
           [],
         ),
-        returnValue: _i3.Future<bool>.value(false),
-      ) as _i3.Future<bool>);
+        returnValue: _i4.Future<bool>.value(false),
+      ) as _i4.Future<bool>);
   @override
-  _i3.Future<void> saveUserID(String? userId) => (super.noSuchMethod(
+  _i4.Future<void> saveUserID(String? userId) => (super.noSuchMethod(
         Invocation.method(
           #saveUserID,
           [userId],
         ),
-        returnValue: _i3.Future<void>.value(),
-        returnValueForMissingStub: _i3.Future<void>.value(),
-      ) as _i3.Future<void>);
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
   @override
-  _i3.Future<void> saveSignupEpoch(int? signupEpoch) => (super.noSuchMethod(
+  _i4.Future<void> saveSignupEpoch(int? signupEpoch) => (super.noSuchMethod(
         Invocation.method(
           #saveSignupEpoch,
           [signupEpoch],
         ),
-        returnValue: _i3.Future<void>.value(),
-        returnValueForMissingStub: _i3.Future<void>.value(),
-      ) as _i3.Future<void>);
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
   @override
-  _i7.AmountUnit amountUnit(_i8.Coin? coin) => (super.noSuchMethod(
+  _i8.AmountUnit amountUnit(_i9.Coin? coin) => (super.noSuchMethod(
         Invocation.method(
           #amountUnit,
           [coin],
         ),
-        returnValue: _i7.AmountUnit.normal,
-      ) as _i7.AmountUnit);
+        returnValue: _i8.AmountUnit.normal,
+      ) as _i8.AmountUnit);
   @override
   void updateAmountUnit({
-    required _i8.Coin? coin,
-    required _i7.AmountUnit? amountUnit,
+    required _i9.Coin? coin,
+    required _i8.AmountUnit? amountUnit,
   }) =>
       super.noSuchMethod(
         Invocation.method(
@@ -544,7 +594,7 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  int maxDecimals(_i8.Coin? coin) => (super.noSuchMethod(
+  int maxDecimals(_i9.Coin? coin) => (super.noSuchMethod(
         Invocation.method(
           #maxDecimals,
           [coin],
@@ -553,7 +603,7 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
       ) as int);
   @override
   void updateMaxDecimals({
-    required _i8.Coin? coin,
+    required _i9.Coin? coin,
     required int? maxDecimals,
   }) =>
       super.noSuchMethod(
@@ -568,7 +618,7 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  void addListener(_i9.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i10.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -576,7 +626,7 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  void removeListener(_i9.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i10.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],
@@ -599,4 +649,53 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
         ),
         returnValueForMissingStub: null,
       );
+}
+
+/// A class which mocks [TorService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockTorService extends _i1.Mock implements _i11.TorService {
+  MockTorService() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  bool get enabled => (super.noSuchMethod(
+        Invocation.getter(#enabled),
+        returnValue: false,
+      ) as bool);
+  @override
+  _i12.TorConnectionStatus get status => (super.noSuchMethod(
+        Invocation.getter(#status),
+        returnValue: _i12.TorConnectionStatus.disconnected,
+      ) as _i12.TorConnectionStatus);
+  @override
+  ({_i3.InternetAddress host, int port}) get proxyInfo => (super.noSuchMethod(
+        Invocation.getter(#proxyInfo),
+        returnValue: (
+          host: _FakeInternetAddress_2(
+            this,
+            Invocation.getter(#proxyInfo),
+          ),
+          port: 0
+        ),
+      ) as ({_i3.InternetAddress host, int port}));
+  @override
+  _i4.Future<void> start() => (super.noSuchMethod(
+        Invocation.method(
+          #start,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> stop() => (super.noSuchMethod(
+        Invocation.method(
+          #stop,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 }
