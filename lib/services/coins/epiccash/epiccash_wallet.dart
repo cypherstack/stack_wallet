@@ -1700,26 +1700,13 @@ class EpicCashWallet extends CoinServiceAPI
     final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txnsData =
         [];
 
-    // int latestTxnBlockHeight =
-    //     DB.instance.get<dynamic>(boxName: walletId, key: "storedTxnDataHeight")
-    //             as int? ??
-    //         0;
     final slatesToCommits = await getSlatesToCommits();
 
     for (var tx in jsonTransactions) {
       Logging.instance.log("tx: $tx", level: LogLevel.Info);
       // // TODO: does "confirmed" mean finalized? If so please remove this todo
       final isConfirmed = tx["confirmed"] as bool;
-      // // TODO: since we are now caching tx history in hive are we losing anything by skipping here?
-      // // TODO: we can skip this filtering if it causes issues as the cache is later merged with updated data anyways
-      // // this would just make processing and updating cache more efficient
-      // if (txHeight > 0 &&
-      //     txHeight < latestTxnBlockHeight - MINIMUM_CONFIRMATIONS &&
-      //     isConfirmed) {
-      //   continue;
-      // }
-      // Logging.instance.log("Transactions listed below");
-      // Logging.instance.log(jsonTransactions);
+
       int amt = 0;
       if (tx["tx_type"] == "TxReceived" ||
           tx["tx_type"] == "TxReceivedCancelled") {
@@ -1820,24 +1807,7 @@ class EpicCashWallet extends CoinServiceAPI
         }
       }
 
-      //
-      // midSortedTx["inputSize"] = tx["num_inputs"];
-      // midSortedTx["outputSize"] = tx["num_outputs"];
-      // midSortedTx["aliens"] = <dynamic>[];
-      // midSortedTx["inputs"] = <dynamic>[];
-      // midSortedTx["outputs"] = <dynamic>[];
-
-      // key id not used afaik?
-      // midSortedTx["key_id"] = tx["parent_key_id"];
-
-      // if (txHeight >= latestTxnBlockHeight) {
-      //   latestTxnBlockHeight = txHeight;
-      // }
-
       txnsData.add(Tuple2(txn, transactionAddress));
-      // cachedMap?.remove(tx["id"].toString());
-      // cachedMap?.remove(commitId);
-      // Logging.instance.log("cmap: $cachedMap", level: LogLevel.Info);
     }
 
     await db.addNewTransactionData(txnsData, walletId);
@@ -1852,57 +1822,6 @@ class EpicCashWallet extends CoinServiceAPI
         ),
       );
     }
-
-    // midSortedArray
-    //     .sort((a, b) => (b["timestamp"] as int) - (a["timestamp"] as int));
-    //
-    // final Map<String, dynamic> result = {"dateTimeChunks": <dynamic>[]};
-    // final dateArray = <dynamic>[];
-    //
-    // for (int i = 0; i < midSortedArray.length; i++) {
-    //   final txObject = midSortedArray[i];
-    //   final date = extractDateFromTimestamp(txObject["timestamp"] as int);
-    //
-    //   final txTimeArray = [txObject["timestamp"], date];
-    //
-    //   if (dateArray.contains(txTimeArray[1])) {
-    //     result["dateTimeChunks"].forEach((dynamic chunk) {
-    //       if (extractDateFromTimestamp(chunk["timestamp"] as int) ==
-    //           txTimeArray[1]) {
-    //         if (chunk["transactions"] == null) {
-    //           chunk["transactions"] = <Map<String, dynamic>>[];
-    //         }
-    //         chunk["transactions"].add(txObject);
-    //       }
-    //     });
-    //   } else {
-    //     dateArray.add(txTimeArray[1]);
-    //
-    //     final chunk = {
-    //       "timestamp": txTimeArray[0],
-    //       "transactions": [txObject],
-    //     };sendAll
-    //
-    //     // result["dateTimeChunks"].
-    //     result["dateTimeChunks"].add(chunk);
-    //   }
-    // }
-    // final transactionsMap =
-    //     TransactionData.fromJson(result).getAllTransactions();
-    // if (cachedMap != null) {
-    //   transactionsMap.addAll(cachedMap);
-    // }
-    //
-    // final txModel = TransactionData.fromMap(transactionsMap);
-    //
-    // await DB.instance.put<dynamic>(
-    //     boxName: walletId,
-    //     key: 'storedTxnDataHeight',
-    //     value: latestTxnBlockHeight);
-    // await DB.instance.put<dynamic>(
-    //     boxName: walletId, key: 'latest_tx_model', value: txModel);
-    //
-    // return txModel;
   }
 
   @override
