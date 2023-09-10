@@ -421,34 +421,28 @@ class EpicCashWallet extends CoinServiceAPI
 
   late SecureStorageInterface _secureStore;
 
+  /// returns an empty String on success, error message on failure
   Future<String> cancelPendingTransactionAndPost(String txSlateId) async {
-    String? result;
     try {
-      result = await cancelPendingTransaction(txSlateId);
+      final String wallet = (await _secureStore.read(
+        key: '${_walletId}_wallet',
+      ))!;
+
+      final result = await m.protect(() async {
+        return await compute(
+          _cancelTransactionWrapper,
+          Tuple2(
+            wallet,
+            txSlateId,
+          ),
+        );
+      });
       Logging.instance.log("result?: $result", level: LogLevel.Info);
+      return result;
     } catch (e, s) {
       Logging.instance.log("$e, $s", level: LogLevel.Error);
+      return e.toString();
     }
-    return result!;
-  }
-
-//
-  /// returns an empty String on success, error message on failure
-  Future<String> cancelPendingTransaction(String txSlateId) async {
-    final String wallet =
-        (await _secureStore.read(key: '${_walletId}_wallet'))!;
-
-    String? result;
-    await m.protect(() async {
-      result = await compute(
-        _cancelTransactionWrapper,
-        Tuple2(
-          wallet,
-          txSlateId,
-        ),
-      );
-    });
-    return result!;
   }
 
   @override
