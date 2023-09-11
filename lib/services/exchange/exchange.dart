@@ -91,6 +91,24 @@ abstract class Exchange {
     required bool reversed,
   });
 
-  // Flag to indicate that the exchange supports Tor.
-  bool get supportsTor => false;
+  /// List of exchanges which support Tor.
+  ///
+  /// Add to this list when adding a new exchange which supports Tor.
+  static List<Exchange> get exchangesWithTorSupport => [
+        MajesticBankExchange.instance,
+        TrocadorExchange.instance,
+      ];
+
+  /// List of exchange names which support Tor.
+  ///
+  /// Convenience method for when you just want to check for a String
+  /// .exchangeName instead of Exchange instances. Shouldn't need to be updated
+  /// as long as the above List is updated.
+  static List<String> get exchangeNamesWithTorSupport =>
+      exchangesWithTorSupport.map((exchange) => exchange.name).toList();
+  // Instead of using this, you can do like:
+  // currencies
+  //     .removeWhere((element) => !Exchange.exchangesWithTorSupport.any(
+  //             (e) => e.name == element.exchangeName,
+  //         ));
 }

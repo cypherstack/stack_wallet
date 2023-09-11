@@ -24,6 +24,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -38,6 +39,8 @@ import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
+
+import '../../../services/exchange/exchange.dart';
 
 class ExchangeCurrencySelectionView extends StatefulWidget {
   const ExchangeCurrencySelectionView({
@@ -165,19 +168,24 @@ class _ExchangeCurrencySelectionViewState
                 .rateTypeEqualTo(SupportedRateType.both)
                 .or()
                 .rateTypeEqualTo(SupportedRateType.fixed)
-                .and()
-                .not()
-                .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
             : q
                 .rateTypeEqualTo(SupportedRateType.both)
                 .or()
-                .rateTypeEqualTo(SupportedRateType.estimated)
-                .and()
-                .not()
-                .exchangeNameEqualTo(ChangeNowExchange.exchangeName))
+                .rateTypeEqualTo(SupportedRateType.estimated))
         .sortByIsStackCoin()
         .thenByName()
         .findAll();
+
+    // If using Tor, filter exchanges which do not support Tor.
+    if (Prefs.instance.useTor) {
+      if (Exchange.exchangesWithTorSupport.isNotEmpty) {
+        currencies
+            .removeWhere((element) => !Exchange.exchangesWithTorSupport.any(
+                  (e) => e.name == element.exchangeName,
+                ));
+        // Could have also filtered using the List<String> Exchange.exchangeNamesWithTorSupport.  But I didn't.  This is fancier.
+      }
+    }
 
     return _getDistinctCurrenciesFrom(currencies);
   }
