@@ -1,19 +1,25 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
+import 'package:stackwallet/networking/http.dart' as http;
+import 'package:stackwallet/services/tor_service.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stellar_flutter_sdk/stellar_flutter_sdk.dart';
 
 Future<bool> testStellarNodeConnection(String host, int port) async {
-
-  final client = http.Client();
+  http.HTTP client = http.HTTP();
   Uri uri = Uri.parse("$host:$port");
-  final response = await client.get(
-    uri,
-    headers: {'Content-Type': 'application/json'},
-  ).timeout(const Duration(milliseconds: 2000),
-      onTimeout: () async => http.Response('Error', 408));
 
-  if (response.statusCode == 200) {
+  final response = await client
+      .get(
+        url: uri,
+        headers: {'Content-Type': 'application/json'},
+        proxyInfo:
+            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+      )
+      .timeout(const Duration(milliseconds: 2000),
+          onTimeout: () async => http.Response(utf8.encode('Error'), 408));
+
+  if (response.code == 200) {
     //Get chain height for sdk
     StellarSDK stellarSdk = StellarSDK(host);
     final height = await stellarSdk.ledgers
@@ -24,7 +30,7 @@ Future<bool> testStellarNodeConnection(String host, int port) async {
         .onError((error, stackTrace) => throw ("Error getting chain height"));
 
     if (height > 0) {
-        return true;
+      return true;
     } else {
       return false;
     }

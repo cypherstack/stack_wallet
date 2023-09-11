@@ -19,7 +19,6 @@ import 'package:stackwallet/utilities/prefs.dart';
 Future<bool> _testEpicBoxNodeConnection(Uri uri) async {
   HTTP client = HTTP();
   try {
-    // final client = http.Client();
     final response = await client
         .get(
           url: uri,
