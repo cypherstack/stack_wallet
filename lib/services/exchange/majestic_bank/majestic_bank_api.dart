@@ -47,10 +47,17 @@ class MajesticBankAPI {
     // final client = this.client ?? http.Client();
     int code = -1;
     try {
+      // Use Tor if enabled.
+      //
+      // This section is commented out because Arti does not yet support
+      // onion services by default.  Once it does, we can uncomment the
+      // proxyInfo ternary below.
+      //
+      // TODO: enable onion services in Arti and uncomment the snippet below.
       final response = await client.get(
         url: uri,
         proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+            /*Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo :*/ null,
       );
 
       code = response.code;
