@@ -1577,11 +1577,7 @@ class _TransactionDetailsViewState
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton: (coin == Coin.epicCash &&
-                _transaction.isConfirmed(
-                      currentHeight,
-                      coin.requiredConfirmations,
-                    ) ==
-                    false &&
+                _transaction.getConfirmations(currentHeight) < 1 &&
                 _transaction.isCancelled == false)
             ? ConditionalParent(
                 condition: isDesktop,

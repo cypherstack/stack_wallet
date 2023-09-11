@@ -421,34 +421,31 @@ class EpicCashWallet extends CoinServiceAPI
 
   late SecureStorageInterface _secureStore;
 
+  /// returns an empty String on success, error message on failure
   Future<String> cancelPendingTransactionAndPost(String txSlateId) async {
-    String? result;
     try {
-      result = await cancelPendingTransaction(txSlateId);
-      Logging.instance.log("result?: $result", level: LogLevel.Info);
+      final String wallet = (await _secureStore.read(
+        key: '${_walletId}_wallet',
+      ))!;
+
+      final result = await m.protect(() async {
+        return await compute(
+          _cancelTransactionWrapper,
+          Tuple2(
+            wallet,
+            txSlateId,
+          ),
+        );
+      });
+      Logging.instance.log(
+        "cancel $txSlateId result: $result",
+        level: LogLevel.Info,
+      );
+      return result;
     } catch (e, s) {
       Logging.instance.log("$e, $s", level: LogLevel.Error);
+      return e.toString();
     }
-    return result!;
-  }
-
-//
-  /// returns an empty String on success, error message on failure
-  Future<String> cancelPendingTransaction(String txSlateId) async {
-    final String wallet =
-        (await _secureStore.read(key: '${_walletId}_wallet'))!;
-
-    String? result;
-    await m.protect(() async {
-      result = await compute(
-        _cancelTransactionWrapper,
-        Tuple2(
-          wallet,
-          txSlateId,
-        ),
-      );
-    });
-    return result!;
   }
 
   @override
@@ -667,25 +664,8 @@ class EpicCashWallet extends CoinServiceAPI
 
       await epicUpdateLastScannedBlock(await getRestoreHeight());
 
-      if (!await startScans()) {
-        refreshMutex = false;
-        GlobalEventBus.instance.fire(
-          NodeConnectionStatusChangedEvent(
-            NodeConnectionStatus.disconnected,
-            walletId,
-            coin,
-          ),
-        );
-        GlobalEventBus.instance.fire(
-          WalletSyncStatusChangedEvent(
-            WalletSyncStatus.unableToSync,
-            walletId,
-            coin,
-          ),
-        );
-        return;
-      }
-      await refresh();
+      await _startScans();
+
       GlobalEventBus.instance.fire(
         WalletSyncStatusChangedEvent(
           WalletSyncStatus.synced,
@@ -694,12 +674,23 @@ class EpicCashWallet extends CoinServiceAPI
         ),
       );
     } catch (e, s) {
+      GlobalEventBus.instance.fire(
+        WalletSyncStatusChangedEvent(
+          WalletSyncStatus.unableToSync,
+          walletId,
+          coin,
+        ),
+      );
+
+      Logging.instance.log(
+        "Exception rethrown from fullRescan(): $e\n$s",
+        level: LogLevel.Error,
+        printFullLength: true,
+      );
+      rethrow;
+    } finally {
       refreshMutex = false;
-      Logging.instance
-          .log("$e, $s", level: LogLevel.Error, printFullLength: true);
     }
-    refreshMutex = false;
-    return;
   }
 
   @override
@@ -1165,58 +1156,97 @@ class EpicCashWallet extends CoinServiceAPI
     // TODO: refresh anything that needs to be refreshed/updated due to epicbox info changed
   }
 
-  Future<bool> startScans() async {
+  Future<void> _startScans() async {
     try {
+      //First stop the current listener
       if (ListenerManager.pointer != null) {
+        Logging.instance
+            .log("LISTENER HANDLER IS NOT NULL ....", level: LogLevel.Info);
+        Logging.instance
+            .log("STOPPING ANY WALLET LISTENER ....", level: LogLevel.Info);
         epicboxListenerStop(ListenerManager.pointer!);
       }
-
       final wallet = await _secureStore.read(key: '${_walletId}_wallet');
 
-      var restoreHeight = epicGetRestoreHeight();
-      var chainHeight = await this.chainHeight;
-      if (epicGetLastScannedBlock() == null) {
-        await epicUpdateLastScannedBlock(await getRestoreHeight());
-      }
-      int lastScannedBlock = epicGetLastScannedBlock()!;
-      const MAX_PER_LOOP = 10000;
-      await getSyncPercent;
-      for (; lastScannedBlock < chainHeight;) {
-        chainHeight = await this.chainHeight;
-        lastScannedBlock = epicGetLastScannedBlock()!;
-        Logging.instance.log(
-            "chainHeight: $chainHeight, restoreHeight: $restoreHeight, lastScannedBlock: $lastScannedBlock",
-            level: LogLevel.Info);
-        int? nextScannedBlock;
-        await m.protect(() async {
-          ReceivePort receivePort = await getIsolate({
-            "function": "scanOutPuts",
-            "wallet": wallet!,
-            "startHeight": lastScannedBlock,
-            "numberOfBlocks": MAX_PER_LOOP,
-          }, name: walletName);
+      // max number of blocks to scan per loop iteration
+      const scanChunkSize = 10000;
 
-          var message = await receivePort.first;
-          if (message is String) {
-            Logging.instance
-                .log("this is a string $message", level: LogLevel.Error);
-            stop(receivePort);
-            throw Exception("scanOutPuts isolate failed");
+      // force firing of scan progress event
+      await getSyncPercent;
+
+      // fetch current chain height and last scanned block (should be the
+      // restore height if full rescan or a wallet restore)
+      int chainHeight = await this.chainHeight;
+      int lastScannedBlock =
+          epicGetLastScannedBlock() ?? await getRestoreHeight();
+
+      // loop while scanning in chain in chunks (of blocks?)
+      while (lastScannedBlock < chainHeight) {
+        Logging.instance.log(
+          "chainHeight: $chainHeight, lastScannedBlock: $lastScannedBlock",
+          level: LogLevel.Info,
+        );
+
+        final int nextScannedBlock = await m.protect(() async {
+          ReceivePort? receivePort;
+          try {
+            receivePort = await getIsolate({
+              "function": "scanOutPuts",
+              "wallet": wallet!,
+              "startHeight": lastScannedBlock,
+              "numberOfBlocks": scanChunkSize,
+            }, name: walletName);
+
+            // get response
+            final message = await receivePort.first;
+
+            // check for error message
+            if (message is String) {
+              throw Exception("scanOutPuts isolate failed: $message");
+            }
+
+            // attempt to grab next scanned block number
+            final nextScanned = int.tryParse(message['outputs'] as String);
+            if (nextScanned == null) {
+              throw Exception(
+                "scanOutPuts failed to parse next scanned block number from: $message",
+              );
+            }
+
+            return nextScanned;
+          } catch (_) {
+            rethrow;
+          } finally {
+            if (receivePort != null) {
+              // kill isolate
+              stop(receivePort);
+            }
           }
-          nextScannedBlock = int.parse(message['outputs'] as String);
-          stop(receivePort);
-          Logging.instance
-              .log('Closing scanOutPuts!\n  $message', level: LogLevel.Info);
         });
-        await epicUpdateLastScannedBlock(nextScannedBlock!);
+
+        // update local cache
+        await epicUpdateLastScannedBlock(nextScannedBlock);
+
+        // force firing of scan progress event
         await getSyncPercent;
+
+        // update while loop condition variables
+        chainHeight = await this.chainHeight;
+        lastScannedBlock = nextScannedBlock;
       }
-      Logging.instance.log("successfully at the tip", level: LogLevel.Info);
+
+      Logging.instance.log(
+        "_startScans successfully at the tip",
+        level: LogLevel.Info,
+      );
+      //Once scanner completes restart listener
       await listenToEpicbox();
-      return true;
     } catch (e, s) {
-      Logging.instance.log("$e, $s", level: LogLevel.Warning);
-      return false;
+      Logging.instance.log(
+        "_startScans failed: $e\n$s",
+        level: LogLevel.Error,
+      );
+      rethrow;
     }
   }
 
@@ -1496,24 +1526,7 @@ class EpicCashWallet extends CoinServiceAPI
       final int curAdd = await setCurrentIndex();
       await _getReceivingAddressForIndex(curAdd);
 
-      if (!await startScans()) {
-        refreshMutex = false;
-        GlobalEventBus.instance.fire(
-          NodeConnectionStatusChangedEvent(
-            NodeConnectionStatus.disconnected,
-            walletId,
-            coin,
-          ),
-        );
-        GlobalEventBus.instance.fire(
-          WalletSyncStatusChangedEvent(
-            WalletSyncStatus.unableToSync,
-            walletId,
-            coin,
-          ),
-        );
-        return;
-      }
+      await _startScans();
 
       unawaited(startSync());
 
@@ -1687,26 +1700,13 @@ class EpicCashWallet extends CoinServiceAPI
     final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txnsData =
         [];
 
-    // int latestTxnBlockHeight =
-    //     DB.instance.get<dynamic>(boxName: walletId, key: "storedTxnDataHeight")
-    //             as int? ??
-    //         0;
     final slatesToCommits = await getSlatesToCommits();
 
     for (var tx in jsonTransactions) {
       Logging.instance.log("tx: $tx", level: LogLevel.Info);
       // // TODO: does "confirmed" mean finalized? If so please remove this todo
       final isConfirmed = tx["confirmed"] as bool;
-      // // TODO: since we are now caching tx history in hive are we losing anything by skipping here?
-      // // TODO: we can skip this filtering if it causes issues as the cache is later merged with updated data anyways
-      // // this would just make processing and updating cache more efficient
-      // if (txHeight > 0 &&
-      //     txHeight < latestTxnBlockHeight - MINIMUM_CONFIRMATIONS &&
-      //     isConfirmed) {
-      //   continue;
-      // }
-      // Logging.instance.log("Transactions listed below");
-      // Logging.instance.log(jsonTransactions);
+
       int amt = 0;
       if (tx["tx_type"] == "TxReceived" ||
           tx["tx_type"] == "TxReceivedCancelled") {
@@ -1807,24 +1807,7 @@ class EpicCashWallet extends CoinServiceAPI
         }
       }
 
-      //
-      // midSortedTx["inputSize"] = tx["num_inputs"];
-      // midSortedTx["outputSize"] = tx["num_outputs"];
-      // midSortedTx["aliens"] = <dynamic>[];
-      // midSortedTx["inputs"] = <dynamic>[];
-      // midSortedTx["outputs"] = <dynamic>[];
-
-      // key id not used afaik?
-      // midSortedTx["key_id"] = tx["parent_key_id"];
-
-      // if (txHeight >= latestTxnBlockHeight) {
-      //   latestTxnBlockHeight = txHeight;
-      // }
-
       txnsData.add(Tuple2(txn, transactionAddress));
-      // cachedMap?.remove(tx["id"].toString());
-      // cachedMap?.remove(commitId);
-      // Logging.instance.log("cmap: $cachedMap", level: LogLevel.Info);
     }
 
     await db.addNewTransactionData(txnsData, walletId);
@@ -1839,57 +1822,6 @@ class EpicCashWallet extends CoinServiceAPI
         ),
       );
     }
-
-    // midSortedArray
-    //     .sort((a, b) => (b["timestamp"] as int) - (a["timestamp"] as int));
-    //
-    // final Map<String, dynamic> result = {"dateTimeChunks": <dynamic>[]};
-    // final dateArray = <dynamic>[];
-    //
-    // for (int i = 0; i < midSortedArray.length; i++) {
-    //   final txObject = midSortedArray[i];
-    //   final date = extractDateFromTimestamp(txObject["timestamp"] as int);
-    //
-    //   final txTimeArray = [txObject["timestamp"], date];
-    //
-    //   if (dateArray.contains(txTimeArray[1])) {
-    //     result["dateTimeChunks"].forEach((dynamic chunk) {
-    //       if (extractDateFromTimestamp(chunk["timestamp"] as int) ==
-    //           txTimeArray[1]) {
-    //         if (chunk["transactions"] == null) {
-    //           chunk["transactions"] = <Map<String, dynamic>>[];
-    //         }
-    //         chunk["transactions"].add(txObject);
-    //       }
-    //     });
-    //   } else {
-    //     dateArray.add(txTimeArray[1]);
-    //
-    //     final chunk = {
-    //       "timestamp": txTimeArray[0],
-    //       "transactions": [txObject],
-    //     };sendAll
-    //
-    //     // result["dateTimeChunks"].
-    //     result["dateTimeChunks"].add(chunk);
-    //   }
-    // }
-    // final transactionsMap =
-    //     TransactionData.fromJson(result).getAllTransactions();
-    // if (cachedMap != null) {
-    //   transactionsMap.addAll(cachedMap);
-    // }
-    //
-    // final txModel = TransactionData.fromMap(transactionsMap);
-    //
-    // await DB.instance.put<dynamic>(
-    //     boxName: walletId,
-    //     key: 'storedTxnDataHeight',
-    //     value: latestTxnBlockHeight);
-    // await DB.instance.put<dynamic>(
-    //     boxName: walletId, key: 'latest_tx_model', value: txModel);
-    //
-    // return txModel;
   }
 
   @override

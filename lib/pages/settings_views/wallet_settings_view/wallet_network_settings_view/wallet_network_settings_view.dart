@@ -340,92 +340,98 @@ class _WalletNetworkSettingsViewState
                 style: STextStyles.navBarTitle(context),
               ),
               actions: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                    top: 10,
-                    bottom: 10,
-                    right: 10,
-                  ),
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: AppBarIconButton(
-                      key: const Key(
-                          "walletNetworkSettingsAddNewNodeViewButton"),
-                      size: 36,
-                      shadows: const [],
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .background,
-                      icon: SvgPicture.asset(
-                        Assets.svg.verticalEllipsis,
+                if (ref
+                        .read(walletsChangeNotifierProvider)
+                        .getManager(widget.walletId)
+                        .coin !=
+                    Coin.epicCash)
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: 10,
+                      bottom: 10,
+                      right: 10,
+                    ),
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: AppBarIconButton(
+                        key: const Key(
+                            "walletNetworkSettingsAddNewNodeViewButton"),
+                        size: 36,
+                        shadows: const [],
                         color: Theme.of(context)
                             .extension<StackColors>()!
-                            .accentColorDark,
-                        width: 20,
-                        height: 20,
-                      ),
-                      onPressed: () {
-                        showDialog<dynamic>(
-                          barrierColor: Colors.transparent,
-                          barrierDismissible: true,
-                          context: context,
-                          builder: (_) {
-                            return Stack(
-                              children: [
-                                Positioned(
-                                  top: 9,
-                                  right: 10,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .popupBG,
-                                      borderRadius: BorderRadius.circular(
-                                          Constants.size.circularBorderRadius),
-                                      // boxShadow: [CFColors.standardBoxShadow],
-                                      boxShadow: const [],
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        GestureDetector(
-                                          onTap: () {
-                                            Navigator.of(context).pop();
-                                            showDialog<void>(
-                                              context: context,
-                                              useSafeArea: false,
-                                              barrierDismissible: true,
-                                              builder: (context) {
-                                                return ConfirmFullRescanDialog(
-                                                  onConfirm: _attemptRescan,
-                                                );
-                                              },
-                                            );
-                                          },
-                                          child: RoundedWhiteContainer(
-                                            child: Material(
-                                              color: Colors.transparent,
-                                              child: Text(
-                                                "Rescan blockchain",
-                                                style:
-                                                    STextStyles.baseXS(context),
+                            .background,
+                        icon: SvgPicture.asset(
+                          Assets.svg.verticalEllipsis,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorDark,
+                          width: 20,
+                          height: 20,
+                        ),
+                        onPressed: () {
+                          showDialog<dynamic>(
+                            barrierColor: Colors.transparent,
+                            barrierDismissible: true,
+                            context: context,
+                            builder: (_) {
+                              return Stack(
+                                children: [
+                                  Positioned(
+                                    top: 9,
+                                    right: 10,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .popupBG,
+                                        borderRadius: BorderRadius.circular(
+                                            Constants
+                                                .size.circularBorderRadius),
+                                        // boxShadow: [CFColors.standardBoxShadow],
+                                        boxShadow: const [],
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          GestureDetector(
+                                            onTap: () {
+                                              Navigator.of(context).pop();
+                                              showDialog<void>(
+                                                context: context,
+                                                useSafeArea: false,
+                                                barrierDismissible: true,
+                                                builder: (context) {
+                                                  return ConfirmFullRescanDialog(
+                                                    onConfirm: _attemptRescan,
+                                                  );
+                                                },
+                                              );
+                                            },
+                                            child: RoundedWhiteContainer(
+                                              child: Material(
+                                                color: Colors.transparent,
+                                                child: Text(
+                                                  "Rescan blockchain",
+                                                  style: STextStyles.baseXS(
+                                                      context),
+                                                ),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      },
+                                ],
+                              );
+                            },
+                          );
+                        },
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
             body: Padding(
@@ -786,11 +792,21 @@ class _WalletNetworkSettingsViewState
                 .select((value) => value.getManager(widget.walletId).coin)),
             popBackToRoute: WalletNetworkSettingsView.routeName,
           ),
-          if (isDesktop)
+          if (isDesktop &&
+              ref
+                      .read(walletsChangeNotifierProvider)
+                      .getManager(widget.walletId)
+                      .coin !=
+                  Coin.epicCash)
             const SizedBox(
               height: 32,
             ),
-          if (isDesktop)
+          if (isDesktop &&
+              ref
+                      .read(walletsChangeNotifierProvider)
+                      .getManager(widget.walletId)
+                      .coin !=
+                  Coin.epicCash)
             Padding(
               padding: const EdgeInsets.only(
                 bottom: 12,
@@ -806,7 +822,12 @@ class _WalletNetworkSettingsViewState
                 ],
               ),
             ),
-          if (isDesktop)
+          if (isDesktop &&
+              ref
+                      .read(walletsChangeNotifierProvider)
+                      .getManager(widget.walletId)
+                      .coin !=
+                  Coin.epicCash)
             RoundedWhiteContainer(
               borderColor: isDesktop
                   ? Theme.of(context).extension<StackColors>()!.background
