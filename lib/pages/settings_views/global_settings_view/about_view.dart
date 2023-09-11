@@ -15,11 +15,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_libepiccash/git_versions.dart' as EPIC_VERSIONS;
 import 'package:flutter_libmonero/git_versions.dart' as MONERO_VERSIONS;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart';
 import 'package:lelantus/git_versions.dart' as FIRO_VERSIONS;
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:stackwallet/networking/http.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -39,14 +41,17 @@ Future<bool> doesCommitExist(
   String commit,
 ) async {
   Logging.instance.log("doesCommitExist", level: LogLevel.Info);
-  final Client client = Client();
+  // final Client client = Client();
+  HTTP client = HTTP();
   try {
     final uri = Uri.parse(
         "$kGithubAPI$kGithubHead/$organization/$project/commits/$commit");
 
     final commitQuery = await client.get(
-      uri,
+      url: uri,
       headers: {'Content-Type': 'application/json'},
+      proxyInfo:
+          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
     );
 
     final response = jsonDecode(commitQuery.body.toString());
@@ -76,14 +81,16 @@ Future<bool> isHeadCommit(
   String commit,
 ) async {
   Logging.instance.log("doesCommitExist", level: LogLevel.Info);
-  final Client client = Client();
+  HTTP client = HTTP();
   try {
     final uri = Uri.parse(
         "$kGithubAPI$kGithubHead/$organization/$project/commits/$branch");
 
     final commitQuery = await client.get(
-      uri,
+      url: uri,
       headers: {'Content-Type': 'application/json'},
+      proxyInfo:
+          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
     );
 
     final response = jsonDecode(commitQuery.body.toString());

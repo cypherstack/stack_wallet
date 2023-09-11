@@ -13,8 +13,9 @@ import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart';
 import 'package:stackwallet/db/hive/db.dart';
+import 'package:stackwallet/networking/http.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
@@ -32,7 +33,8 @@ class PriceAPI {
   static const Duration refreshIntervalDuration =
       Duration(seconds: refreshInterval);
 
-  final Client client;
+  // final Client client;
+  HTTP client = HTTP();
 
   PriceAPI(this.client);
 
@@ -104,8 +106,10 @@ class PriceAPI {
           "&order=market_cap_desc&per_page=50&page=1&sparkline=false");
 
       final coinGeckoResponse = await client.get(
-        uri,
+        url: uri,
         headers: {'Content-Type': 'application/json'},
+        proxyInfo:
+            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
       );
 
       final coinGeckoData = jsonDecode(coinGeckoResponse.body) as List<dynamic>;
@@ -136,6 +140,8 @@ class PriceAPI {
 
   static Future<List<String>?> availableBaseCurrencies() async {
     final externalCalls = Prefs.instance.externalCalls;
+    HTTP client = HTTP();
+
     if ((!Logger.isTestEnv && !externalCalls) ||
         !(await Prefs.instance.isExternalCallsSet())) {
       Logging.instance.log("User does not want to use external calls",
@@ -146,9 +152,11 @@ class PriceAPI {
         "https://api.coingecko.com/api/v3/simple/supported_vs_currencies";
     try {
       final uri = Uri.parse(uriString);
-      final response = await Client().get(
-        uri,
+      final response = await client.get(
+        url: uri,
         headers: {'Content-Type': 'application/json'},
+        proxyInfo:
+            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
       );
 
       final json = jsonDecode(response.body) as List<dynamic>;
@@ -186,8 +194,10 @@ class PriceAPI {
           "=$contractAddressesString&include_24hr_change=true");
 
       final coinGeckoResponse = await client.get(
-        uri,
+        url: uri,
         headers: {'Content-Type': 'application/json'},
+        proxyInfo:
+            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
       );
 
       final coinGeckoData = jsonDecode(coinGeckoResponse.body) as Map;

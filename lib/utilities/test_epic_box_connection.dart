@@ -10,22 +10,30 @@
 
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
+import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 
 Future<bool> _testEpicBoxNodeConnection(Uri uri) async {
+  HTTP client = HTTP();
   try {
-    final client = http.Client();
-    final response = await client.get(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-    ).timeout(const Duration(milliseconds: 2000),
-        onTimeout: () async => http.Response('Error', 408));
+    // final client = http.Client();
+    final response = await client
+        .get(
+          url: uri,
+          headers: {'Content-Type': 'application/json'},
+          proxyInfo: Prefs.instance.useTor
+              ? TorService.sharedInstance.proxyInfo
+              : null,
+        )
+        .timeout(const Duration(milliseconds: 2000),
+            onTimeout: () async => Response(utf8.encode('Error'), 408));
 
     final json = jsonDecode(response.body);
 
-    if (response.statusCode == 200 && json["node_version"] != null) {
+    if (response.code == 200 && json["node_version"] != null) {
       return true;
     } else {
       return false;
