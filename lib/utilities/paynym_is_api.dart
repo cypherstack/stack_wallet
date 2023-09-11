@@ -39,8 +39,13 @@ class PaynymIsApi {
         version +
         (endpoint.startsWith("/") ? endpoint : "/$endpoint");
     final uri = Uri.parse(url);
+
+    // Calculate the body length.
+    int contentLength = utf8.encode(jsonEncode(body)).length;
+
     final headers = {
       'Content-Type': 'application/json; charset=UTF-8',
+      'Content-Length': contentLength.toString(), // Set the Content-Length header.
     }..addAll(additionalHeaders);
     final response = await client.post(
       url: uri,
