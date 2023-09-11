@@ -324,4 +324,8 @@ class MajesticBankExchange extends Exchange {
       return ExchangeResponse(exception: response.exception);
     }
   }
+
+  // Majestic Bank supports tor.
+  @override
+  bool get supportsTor => true;
 }

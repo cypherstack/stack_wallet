@@ -125,7 +125,7 @@ class _ExchangeCurrencySelectionViewState
         await showDialog<void>(
           context: context,
           builder: (context) => StackDialog(
-            title: "ChangeNOW Error",
+            title: "Exchange Error",
             message: "Failed to load currency data: ${cn.exception}",
             leftButton: SecondaryButton(
               label: "Ok",
@@ -151,6 +151,10 @@ class _ExchangeCurrencySelectionViewState
   }
 
   Future<List<Currency>> _getCurrencies() async {
+    // This is where exchanges are added to the list of available currencies.
+    //
+    // TODO: make an exchange's addition to the list of available currencies
+    // be dynamic and dependant upon the exchange's supportsTor implementation.
     final currencies = await ExchangeDataLoadingService.instance.isar.currencies
         .where()
         .filter()
@@ -161,10 +165,16 @@ class _ExchangeCurrencySelectionViewState
                 .rateTypeEqualTo(SupportedRateType.both)
                 .or()
                 .rateTypeEqualTo(SupportedRateType.fixed)
+                .and()
+                .not()
+                .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
             : q
                 .rateTypeEqualTo(SupportedRateType.both)
                 .or()
-                .rateTypeEqualTo(SupportedRateType.estimated))
+                .rateTypeEqualTo(SupportedRateType.estimated)
+                .and()
+                .not()
+                .exchangeNameEqualTo(ChangeNowExchange.exchangeName))
         .sortByIsStackCoin()
         .thenByName()
         .findAll();

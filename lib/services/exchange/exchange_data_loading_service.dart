@@ -144,6 +144,7 @@ class ExchangeDataLoadingService {
       );
       final start = DateTime.now();
       try {
+        /*
         await Future.wait([
           _loadChangeNowCurrencies(),
           // _loadChangeNowFixedRatePairs(),
@@ -157,6 +158,17 @@ class ExchangeDataLoadingService {
         // quicker to load available currencies on the fly for a specific base currency
         // await _loadChangeNowFixedRatePairs();
         // await _loadChangeNowEstimatedRatePairs();
+         */
+        // Use the supportsTor flag to filter out unsupported exchanges.
+        if (ChangeNowExchange.instance.supportsTor) {
+          await _loadChangeNowCurrencies();
+        }
+        if (MajesticBankExchange.instance.supportsTor) {
+          await loadMajesticBankCurrencies();
+        }
+        if (TrocadorExchange.instance.supportsTor) {
+          await loadTrocadorCurrencies();
+        }
 
         Logging.instance.log(
           "ExchangeDataLoadingService.loadAll finished in ${DateTime.now().difference(start).inSeconds} seconds",

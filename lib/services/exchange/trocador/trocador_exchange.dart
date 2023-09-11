@@ -401,4 +401,8 @@ class TrocadorExchange extends Exchange {
       return ExchangeResponse(exception: response.exception);
     }
   }
+
+  // Trocador supports Tor.
+  @override
+  bool get supportsTor => true;
 }

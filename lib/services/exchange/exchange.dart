@@ -90,4 +90,7 @@ abstract class Exchange {
     Estimate? estimate,
     required bool reversed,
   });
+
+  // Flag to indicate that the exchange supports Tor.
+  bool get supportsTor => false;
 }
