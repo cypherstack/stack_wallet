@@ -8,7 +8,10 @@
  *
  */
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
@@ -16,6 +19,7 @@ import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -30,16 +34,17 @@ class AddTokenListElementData {
   bool selected = false;
 }
 
-class AddTokenListElement extends StatefulWidget {
+class AddTokenListElement extends ConsumerStatefulWidget {
   const AddTokenListElement({Key? key, required this.data}) : super(key: key);
 
   final AddTokenListElementData data;
 
   @override
-  State<AddTokenListElement> createState() => _AddTokenListElementState();
+  ConsumerState<AddTokenListElement> createState() =>
+      _AddTokenListElementState();
 }
 
-class _AddTokenListElementState extends State<AddTokenListElement> {
+class _AddTokenListElementState extends ConsumerState<AddTokenListElement> {
   final bool isDesktop = Util.isDesktop;
 
   @override
@@ -74,6 +79,17 @@ class _AddTokenListElementState extends State<AddTokenListElement> {
                       currency.image,
                       width: iconSize,
                       height: iconSize,
+                      placeholderBuilder: (_) => SvgPicture.file(
+                        File(
+                          ref.watch(
+                            themeAssetsProvider.select(
+                              (value) => value.stackIcon,
+                            ),
+                          ),
+                        ),
+                        width: iconSize,
+                        height: iconSize,
+                      ),
                     )
                   : SvgPicture.asset(
                       widget.data.token.symbol == "BNB"
