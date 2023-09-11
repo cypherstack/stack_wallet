@@ -107,8 +107,8 @@ abstract class Exchange {
   static List<String> get exchangeNamesWithTorSupport =>
       exchangesWithTorSupport.map((exchange) => exchange.name).toList();
   // Instead of using this, you can do like:
-  // currencies
-  //     .removeWhere((element) => !Exchange.exchangesWithTorSupport.any(
-  //             (e) => e.name == element.exchangeName,
-  //         ));
+  // currencies.removeWhere((element) =>
+  //   !Exchange.exchangesWithTorSupport.any((e) => e.name == element.exchangeName)
+  // );
+  // But this helper may be more readable.
 }

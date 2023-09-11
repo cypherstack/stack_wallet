@@ -154,10 +154,6 @@ class _ExchangeCurrencySelectionViewState
   }
 
   Future<List<Currency>> _getCurrencies() async {
-    // This is where exchanges are added to the list of available currencies.
-    //
-    // TODO: make an exchange's addition to the list of available currencies
-    // be dynamic and dependant upon the exchange's supportsTor implementation.
     final currencies = await ExchangeDataLoadingService.instance.isar.currencies
         .where()
         .filter()
@@ -178,12 +174,10 @@ class _ExchangeCurrencySelectionViewState
 
     // If using Tor, filter exchanges which do not support Tor.
     if (Prefs.instance.useTor) {
-      if (Exchange.exchangesWithTorSupport.isNotEmpty) {
-        currencies
-            .removeWhere((element) => !Exchange.exchangesWithTorSupport.any(
-                  (e) => e.name == element.exchangeName,
-                ));
-        // Could have also filtered using the List<String> Exchange.exchangeNamesWithTorSupport.  But I didn't.  This is fancier.
+      if (Exchange.exchangeNamesWithTorSupport.isNotEmpty) {
+        currencies.removeWhere((element) => !Exchange
+            .exchangeNamesWithTorSupport
+            .contains(element.exchangeName));
       }
     }
 
