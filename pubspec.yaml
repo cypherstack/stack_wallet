@@ -60,7 +60,7 @@ dependencies:
   # Utility plugins
   http: ^0.13.0
   local_auth: ^1.1.10
-  permission_handler: ^10.0.0
+  permission_handler: ^11.0.0
   flutter_local_notifications: ^9.4.0
   rxdart: ^0.27.3
   zxcvbn: ^1.0.0
@@ -123,7 +123,7 @@ dependencies:
   pointycastle: ^3.6.0
   package_info_plus: ^4.0.2
   lottie: ^2.3.2
-  file_picker: ^5.3.1
+  file_picker: ^5.5.0
   connectivity_plus: ^4.0.1
   isar: 3.0.5
   isar_flutter_libs: 3.0.5 # contains the binaries
@@ -199,6 +199,12 @@ dependency_overrides:
     git:
       url: https://github.com/cypherstack/stack-bip39.git
       ref: 0cd6d54e2860bea68fc50c801cb9db2a760192fb
+
+
+  file_picker:
+    git:
+      url: https://github.com/muttsu-623/flutter_file_picker.git
+      ref: f0930d9fa79d347b2a0e25a7de4f5a4a88a9a907
 
   crypto: 3.0.2
   analyzer: ^5.2.0
