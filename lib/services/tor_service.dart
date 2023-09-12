@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/utilities/logger.dart';
-import 'package:tor/tor.dart';
+import 'package:tor_ffi_plugin/tor_ffi_plugin.dart';
 
 final pTorService = Provider((_) => TorService.sharedInstance);
 
@@ -36,7 +36,7 @@ class TorService {
   /// Initialize the tor ffi lib instance if it hasn't already been set. Nothing
   /// changes if _tor is already been set.
   void init({Tor? mockableOverride}) {
-    _tor ??= mockableOverride ?? Tor();
+    _tor ??= mockableOverride ?? Tor.instance;
   }
 
   /// Start the Tor service.
