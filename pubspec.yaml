@@ -101,7 +101,7 @@ dependencies:
   flutter_native_splash: ^2.2.4
   google_fonts: ^4.0.4
   url_launcher: ^6.0.5
-  flutter_svg: ^1.0.1
+  flutter_svg: ^2.0.7
   flutter_feather_icons: ^2.0.0+1
   decimal: ^2.1.0
   event_bus: ^2.0.0
