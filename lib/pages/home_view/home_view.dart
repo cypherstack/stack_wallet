@@ -26,6 +26,7 @@ import 'package:stackwallet/providers/global/notifications_provider.dart';
 import 'package:stackwallet/providers/ui/home_view_index_provider.dart';
 import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
 import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -261,7 +262,32 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     color: Theme.of(context)
                         .extension<StackColors>()!
                         .backgroundAppBar,
-                    icon: _buildTorIcon(TorConnectionStatus.disconnected),
+                    icon: ref.watch(pTorService).enabled
+                        ? ref.read(pTorService).proxyInfo.port == -1
+                            ? SvgPicture.asset(
+                                Assets.svg.tor,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorYellow,
+                                width: 20,
+                                height: 20,
+                              )
+                            : SvgPicture.asset(
+                                Assets.svg.tor,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorGreen,
+                                width: 20,
+                                height: 20,
+                              )
+                        : SvgPicture.asset(
+                            Assets.svg.tor,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textSubtitle3,
+                            width: 20,
+                            height: 20,
+                          ),
                     onPressed: () {
                       Navigator.of(context)
                           .pushNamed(TorSettingsView.routeName);
