@@ -78,7 +78,7 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
                   height: 200,
                 ),
                 Text(
-                  "CONNECTED",
+                  "STOP",
                   style: STextStyles.smallMed14(context).copyWith(
                       color:
                           Theme.of(context).extension<StackColors>()!.popupBG),
