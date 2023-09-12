@@ -121,7 +121,7 @@ class TorService {
 
     // Stop the Tor service.
     try {
-      await _tor!.disable();
+      _tor!.disable();
       // no exception or error so we can (probably?) assume tor
       // has started successfully
       _enabled = false;

@@ -364,6 +364,13 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
     );
   }
 
+  /// Connect to the Tor network.
+  ///
+  /// This method is called when the user taps the "Connect" button.
+  ///
+  /// Throws an exception if the Tor service fails to start.
+  ///
+  /// Returns a Future that completes when the Tor service has started.
   Future<void> connect() async {
     // Init the Tor service if it hasn't already been.
     ref.read(pTorService).init();
@@ -381,6 +388,7 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
       );
     }
 
+    // Update the UI.
     setState(() {
       _networkStatus = TorConnectionStatus.connecting;
     });
@@ -388,6 +396,13 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
     return;
   }
 
+  /// Disconnect from the Tor network.
+  ///
+  /// This method is called when the user taps the "Disconnect" button.
+  ///
+  /// Throws an exception if the Tor service fails to stop.
+  ///
+  /// Returns a Future that completes when the Tor service has stopped.
   Future<void> disconnect() async {
     // Stop the Tor service.
     try {
