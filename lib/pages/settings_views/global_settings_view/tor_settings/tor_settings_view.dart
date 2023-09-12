@@ -17,6 +17,7 @@ import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -41,40 +42,84 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
   Widget _buildTorIcon(TorConnectionStatus status) {
     switch (status) {
       case TorConnectionStatus.disconnected:
-        return Stack(
-          alignment: AlignmentDirectional.center,
-          children: [
-            SvgPicture.asset(
-              Assets.svg.tor,
-              color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
-              width: 200,
-              height: 200,
+        return GestureDetector(
+            child: Stack(
+              alignment: AlignmentDirectional.center,
+              children: [
+                SvgPicture.asset(
+                  Assets.svg.tor,
+                  color:
+                      Theme.of(context).extension<StackColors>()!.textSubtitle3,
+                  width: 200,
+                  height: 200,
+                ),
+                Text(
+                  "CONNECT",
+                  style: STextStyles.smallMed14(context).copyWith(
+                      color:
+                          Theme.of(context).extension<StackColors>()!.popupBG),
+                )
+              ],
             ),
-            Text(
-              "CONNECT",
-              style: STextStyles.smallMed14(context).copyWith(
-                  color: Theme.of(context).extension<StackColors>()!.popupBG),
-            )
-          ],
-        );
+            onTap: () async {
+              // Init the Tor service if it hasn't already been.
+              ref.read(pTorService).init();
+
+              // Start the Tor service.
+              try {
+                await ref.read(pTorService).start();
+
+                // Toggle the useTor preference on success.
+                ref.read(prefsChangeNotifierProvider).useTor = true;
+              } catch (e, s) {
+                Logging.instance.log(
+                  "Error starting tor: $e\n$s",
+                  level: LogLevel.Error,
+                );
+              }
+
+              setState(() {
+                _networkStatus = TorConnectionStatus.connecting;
+              });
+            });
       case TorConnectionStatus.connected:
-        return Stack(
-          alignment: AlignmentDirectional.center,
-          children: [
-            SvgPicture.asset(
-              Assets.svg.tor,
-              color:
-                  Theme.of(context).extension<StackColors>()!.accentColorGreen,
-              width: 200,
-              height: 200,
+        return GestureDetector(
+            child: Stack(
+              alignment: AlignmentDirectional.center,
+              children: [
+                SvgPicture.asset(
+                  Assets.svg.tor,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorGreen,
+                  width: 200,
+                  height: 200,
+                ),
+                Text(
+                  "CONNECTED",
+                  style: STextStyles.smallMed14(context).copyWith(
+                      color:
+                          Theme.of(context).extension<StackColors>()!.popupBG),
+                )
+              ],
             ),
-            Text(
-              "CONNECTED",
-              style: STextStyles.smallMed14(context).copyWith(
-                  color: Theme.of(context).extension<StackColors>()!.popupBG),
-            )
-          ],
-        );
+            onTap: () async {
+              // Init the Tor service if it hasn't already been.
+              ref.read(pTorService).init();
+
+              // Start the Tor service.
+              try {
+                await ref.read(pTorService).start();
+
+                // Toggle the useTor preference on success.
+                ref.read(prefsChangeNotifierProvider).useTor = true;
+              } catch (e, s) {
+                Logging.instance.log(
+                  "Error starting tor: $e\n$s",
+                  level: LogLevel.Error,
+                );
+              }
+            });
       case TorConnectionStatus.connecting:
         return Stack(
           alignment: AlignmentDirectional.center,
