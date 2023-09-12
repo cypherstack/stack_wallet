@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
@@ -22,7 +24,9 @@ import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/notes_service.dart';
 import 'package:stackwallet/services/price_service.dart';
 import 'package:stackwallet/services/wallets.dart';
+import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
@@ -46,6 +50,7 @@ import 'transaction_card_test.mocks.dart';
   NotesService,
   ThemeService,
   MainDB,
+  IThemeAssets,
 ], customMocks: [])
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -57,6 +62,12 @@ void main() {
     final mockPriceService = MockPriceService();
     final mockThemeService = MockThemeService();
     final mockDB = MockMainDB();
+    final mockIThemeAssets = MockIThemeAssets();
+
+    when(mockIThemeAssets.send).thenAnswer(
+      (_) =>
+          "${Directory.current.path}/test/sample_data/light/assets/dummy.svg",
+    );
 
     final tx = Transaction(
       txid: "some txid",
@@ -130,6 +141,15 @@ void main() {
           prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
           priceAnd24hChangeNotifierProvider.overrideWithValue(mockPriceService),
           mainDBProvider.overrideWithValue(mockDB),
+          coinIconProvider.overrideWithProvider(
+            (argument) => Provider<String>((_) =>
+                "${Directory.current.path}/test/sample_data/light/assets/dummy.svg"),
+          ),
+          themeAssetsProvider.overrideWithProvider(
+            StateProvider(
+              (ref) => mockIThemeAssets,
+            ),
+          ),
         ],
         child: MaterialApp(
           theme: ThemeData(
@@ -186,6 +206,12 @@ void main() {
     final mockPriceService = MockPriceService();
     final mockThemeService = MockThemeService();
     final mockDB = MockMainDB();
+    final mockIThemeAssets = MockIThemeAssets();
+
+    when(mockIThemeAssets.txExchangeFailed).thenAnswer(
+      (_) =>
+          "${Directory.current.path}/test/sample_data/light/assets/dummy.svg",
+    );
 
     final tx = Transaction(
       txid: "some txid",
@@ -257,7 +283,16 @@ void main() {
           prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
           pThemeService.overrideWithValue(mockThemeService),
           mainDBProvider.overrideWithValue(mockDB),
-          priceAnd24hChangeNotifierProvider.overrideWithValue(mockPriceService)
+          priceAnd24hChangeNotifierProvider.overrideWithValue(mockPriceService),
+          coinIconProvider.overrideWithProvider(
+            (argument) => Provider<String>((_) =>
+                "${Directory.current.path}/test/sample_data/light/assets/dummy.svg"),
+          ),
+          themeAssetsProvider.overrideWithProvider(
+            StateProvider(
+              (ref) => mockIThemeAssets,
+            ),
+          ),
         ],
         child: MaterialApp(
           theme: ThemeData(
@@ -312,6 +347,12 @@ void main() {
     final mockPriceService = MockPriceService();
     final mockThemeService = MockThemeService();
     final mockDB = MockMainDB();
+    final mockIThemeAssets = MockIThemeAssets();
+
+    when(mockIThemeAssets.receive).thenAnswer(
+      (_) =>
+          "${Directory.current.path}/test/sample_data/light/assets/dummy.svg",
+    );
 
     final tx = Transaction(
       txid: "some txid",
@@ -384,7 +425,16 @@ void main() {
           prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
           pThemeService.overrideWithValue(mockThemeService),
           mainDBProvider.overrideWithValue(mockDB),
-          priceAnd24hChangeNotifierProvider.overrideWithValue(mockPriceService)
+          priceAnd24hChangeNotifierProvider.overrideWithValue(mockPriceService),
+          coinIconProvider.overrideWithProvider(
+            (argument) => Provider<String>((_) =>
+                "${Directory.current.path}/test/sample_data/light/assets/dummy.svg"),
+          ),
+          themeAssetsProvider.overrideWithProvider(
+            StateProvider(
+              (ref) => mockIThemeAssets,
+            ),
+          ),
         ],
         child: MaterialApp(
           theme: ThemeData(
@@ -432,6 +482,12 @@ void main() {
     final mockThemeService = MockThemeService();
     final mockDB = MockMainDB();
     final navigator = mockingjay.MockNavigator();
+    final mockIThemeAssets = MockIThemeAssets();
+
+    when(mockIThemeAssets.send).thenAnswer(
+      (_) =>
+          "${Directory.current.path}/test/sample_data/light/assets/dummy.svg",
+    );
 
     final tx = Transaction(
       txid: "some txid",
@@ -509,7 +565,16 @@ void main() {
           prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
           pThemeService.overrideWithValue(mockThemeService),
           mainDBProvider.overrideWithValue(mockDB),
-          priceAnd24hChangeNotifierProvider.overrideWithValue(mockPriceService)
+          priceAnd24hChangeNotifierProvider.overrideWithValue(mockPriceService),
+          coinIconProvider.overrideWithProvider(
+            (argument) => Provider<String>((_) =>
+                "${Directory.current.path}/test/sample_data/light/assets/dummy.svg"),
+          ),
+          themeAssetsProvider.overrideWithProvider(
+            StateProvider(
+              (ref) => mockIThemeAssets,
+            ),
+          ),
         ],
         child: MaterialApp(
           theme: ThemeData(
