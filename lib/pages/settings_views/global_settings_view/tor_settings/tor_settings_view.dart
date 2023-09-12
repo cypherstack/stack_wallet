@@ -62,25 +62,7 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
               ],
             ),
             onTap: () async {
-              // Init the Tor service if it hasn't already been.
-              ref.read(pTorService).init();
-
-              // Start the Tor service.
-              try {
-                await ref.read(pTorService).start();
-
-                // Toggle the useTor preference on success.
-                ref.read(prefsChangeNotifierProvider).useTor = true;
-              } catch (e, s) {
-                Logging.instance.log(
-                  "Error starting tor: $e\n$s",
-                  level: LogLevel.Error,
-                );
-              }
-
-              setState(() {
-                _networkStatus = TorConnectionStatus.connecting;
-              });
+              await connect();
             });
       case TorConnectionStatus.connected:
         return GestureDetector(
@@ -104,21 +86,8 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
               ],
             ),
             onTap: () async {
-              // Init the Tor service if it hasn't already been.
-              ref.read(pTorService).init();
-
-              // Start the Tor service.
-              try {
-                await ref.read(pTorService).start();
-
-                // Toggle the useTor preference on success.
-                ref.read(prefsChangeNotifierProvider).useTor = true;
-              } catch (e, s) {
-                Logging.instance.log(
-                  "Error starting tor: $e\n$s",
-                  level: LogLevel.Error,
-                );
-              }
+              // TODO we could make this sync.
+              await disconnect(); // TODO we could do away with the Future here.
             });
       case TorConnectionStatus.connecting:
         return Stack(
@@ -247,21 +216,67 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
               const SizedBox(
                 height: 30,
               ),
-              RoundedWhiteContainer(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Row(
-                    children: [
-                      Text(
-                        "Tor status",
-                        style: STextStyles.titleBold12(context),
+              GestureDetector(
+                  child: RoundedWhiteContainer(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Row(
+                        children: [
+                          Text(
+                            "Tor status",
+                            style: STextStyles.titleBold12(context),
+                          ),
+                          const Spacer(),
+                          _buildTorStatus(_networkStatus),
+                        ],
                       ),
-                      const Spacer(),
-                      _buildTorStatus(_networkStatus),
-                    ],
+                    ),
                   ),
-                ),
-              ),
+                  onTap: () async {
+                    // Connect or disconnect when the user taps the status.
+                    switch (_networkStatus) {
+                      case TorConnectionStatus.disconnected:
+                        // Update the UI.
+                        setState(() {
+                          _networkStatus = TorConnectionStatus.connecting;
+                        });
+
+                        try {
+                          await connect();
+                        } catch (e, s) {
+                          Logging.instance.log(
+                            "Error starting tor: $e\n$s",
+                            level: LogLevel.Error,
+                          );
+                          rethrow;
+                        }
+
+                        // Update the UI.
+                        setState(() {
+                          _networkStatus = TorConnectionStatus.connected;
+                        });
+                        break;
+                      case TorConnectionStatus.connected:
+                        try {
+                          await disconnect();
+                        } catch (e, s) {
+                          Logging.instance.log(
+                            "Error stopping tor: $e\n$s",
+                            level: LogLevel.Error,
+                          );
+                          rethrow;
+                        }
+
+                        // Update the UI.
+                        setState(() {
+                          _networkStatus = TorConnectionStatus.disconnected;
+                        });
+                        break;
+                      case TorConnectionStatus.connecting:
+                        // Do nothing.
+                        break;
+                    }
+                  }),
               const SizedBox(
                 height: 8,
               ),
@@ -347,5 +362,50 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
         ),
       ),
     );
+  }
+
+  Future<void> connect() async {
+    // Init the Tor service if it hasn't already been.
+    ref.read(pTorService).init();
+
+    // Start the Tor service.
+    try {
+      await ref.read(pTorService).start();
+
+      // Toggle the useTor preference on success.
+      ref.read(prefsChangeNotifierProvider).useTor = true;
+    } catch (e, s) {
+      Logging.instance.log(
+        "Error starting tor: $e\n$s",
+        level: LogLevel.Error,
+      );
+    }
+
+    setState(() {
+      _networkStatus = TorConnectionStatus.connecting;
+    });
+
+    return;
+  }
+
+  Future<void> disconnect() async {
+    // Stop the Tor service.
+    try {
+      await ref.read(pTorService).stop();
+
+      // Toggle the useTor preference on success.
+      ref.read(prefsChangeNotifierProvider).useTor = false;
+    } catch (e, s) {
+      Logging.instance.log(
+        "Error stopping tor: $e\n$s",
+        level: LogLevel.Error,
+      );
+    }
+
+    setState(() {
+      _networkStatus = TorConnectionStatus.disconnected;
+    });
+
+    return;
   }
 }
