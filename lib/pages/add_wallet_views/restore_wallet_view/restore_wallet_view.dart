@@ -98,7 +98,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
   final List<TextEditingController> _controllers = [];
   final List<FormInputStatus> _inputStatuses = [];
-  final List<FocusNode> _focusNodes = [];
+  // final List<FocusNode> _focusNodes = [];
 
   late final BarcodeScannerInterface scanner;
 
@@ -152,7 +152,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     for (int i = 0; i < _seedWordCount; i++) {
       _controllers.add(TextEditingController());
       _inputStatuses.add(FormInputStatus.empty);
-      _focusNodes.add(FocusNode());
+      // _focusNodes.add(FocusNode());
     }
 
     super.initState();
@@ -821,8 +821,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                     i * 4 + j - 1 == 1
                                                         ? textSelectionControls
                                                         : null,
-                                                focusNode:
-                                                    _focusNodes[i * 4 + j - 1],
+                                                // focusNode:
+                                                //     _focusNodes[i * 4 + j - 1],
                                                 onChanged: (value) {
                                                   final FormInputStatus
                                                       formInputStatus;
@@ -841,18 +841,18 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                         FormInputStatus.invalid;
                                                   }
 
-                                                  if (formInputStatus ==
-                                                      FormInputStatus.valid) {
-                                                    if (i * 4 + j <
-                                                        _focusNodes.length) {
-                                                      _focusNodes[i * 4 + j]
-                                                          .requestFocus();
-                                                    } else if (i * 4 + j ==
-                                                        _focusNodes.length) {
-                                                      _focusNodes[i * 4 + j - 1]
-                                                          .unfocus();
-                                                    }
-                                                  }
+                                                  // if (formInputStatus ==
+                                                  //     FormInputStatus.valid) {
+                                                  //   if (i * 4 + j <
+                                                  //       _focusNodes.length) {
+                                                  //     _focusNodes[i * 4 + j]
+                                                  //         .requestFocus();
+                                                  //   } else if (i * 4 + j ==
+                                                  //       _focusNodes.length) {
+                                                  //     _focusNodes[i * 4 + j - 1]
+                                                  //         .unfocus();
+                                                  //   }
+                                                  // }
                                                   setState(() {
                                                     _inputStatuses[i * 4 +
                                                         j -
@@ -929,7 +929,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                 selectionControls: i == 1
                                                     ? textSelectionControls
                                                     : null,
-                                                focusNode: _focusNodes[i],
+                                                // focusNode: _focusNodes[i],
                                                 onChanged: (value) {
                                                   final FormInputStatus
                                                       formInputStatus;
@@ -948,27 +948,27 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                         FormInputStatus.invalid;
                                                   }
 
-                                                  if (formInputStatus ==
-                                                          FormInputStatus
-                                                              .valid &&
-                                                      (i - 1) <
-                                                          _focusNodes.length) {
-                                                    Focus.of(context)
-                                                        .requestFocus(
-                                                            _focusNodes[i]);
-                                                  }
+                                                  // if (formInputStatus ==
+                                                  //         FormInputStatus
+                                                  //             .valid &&
+                                                  //     (i - 1) <
+                                                  //         _focusNodes.length) {
+                                                  //   Focus.of(context)
+                                                  //       .requestFocus(
+                                                  //           _focusNodes[i]);
+                                                  // }
 
-                                                  if (formInputStatus ==
-                                                      FormInputStatus.valid) {
-                                                    if (i + 1 <
-                                                        _focusNodes.length) {
-                                                      _focusNodes[i + 1]
-                                                          .requestFocus();
-                                                    } else if (i + 1 ==
-                                                        _focusNodes.length) {
-                                                      _focusNodes[i].unfocus();
-                                                    }
-                                                  }
+                                                  // if (formInputStatus ==
+                                                  //     FormInputStatus.valid) {
+                                                  //   if (i + 1 <
+                                                  //       _focusNodes.length) {
+                                                  //     _focusNodes[i + 1]
+                                                  //         .requestFocus();
+                                                  //   } else if (i + 1 ==
+                                                  //       _focusNodes.length) {
+                                                  //     _focusNodes[i].unfocus();
+                                                  //   }
+                                                  // }
                                                 },
                                                 controller: _controllers[i],
                                                 style:
@@ -1068,7 +1068,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                           AutovalidateMode.onUserInteraction,
                                       selectionControls:
                                           i == 1 ? textSelectionControls : null,
-                                      focusNode: _focusNodes[i - 1],
+                                      // focusNode: _focusNodes[i - 1],
                                       onChanged: (value) {
                                         final FormInputStatus formInputStatus;
 
@@ -1084,14 +1084,14 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                               FormInputStatus.invalid;
                                         }
 
-                                        if (formInputStatus ==
-                                            FormInputStatus.valid) {
-                                          if (i < _focusNodes.length) {
-                                            _focusNodes[i].requestFocus();
-                                          } else if (i == _focusNodes.length) {
-                                            _focusNodes[i - 1].unfocus();
-                                          }
-                                        }
+                                        // if (formInputStatus ==
+                                        //     FormInputStatus.valid) {
+                                        //   if (i < _focusNodes.length) {
+                                        //     _focusNodes[i].requestFocus();
+                                        //   } else if (i == _focusNodes.length) {
+                                        //     _focusNodes[i - 1].unfocus();
+                                        //   }
+                                        // }
                                         setState(() {
                                           _inputStatuses[i - 1] =
                                               formInputStatus;
