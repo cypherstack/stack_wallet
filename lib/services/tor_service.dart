@@ -57,6 +57,14 @@ class TorService {
       // is explicitly made aware of this
       // TODO restart tor after that's been added to the tor-ffi crate
       // (probably better to have a restart function separately)
+
+      // Fire a TorConnectionStatusChangedEvent on the event bus.
+      GlobalEventBus.instance.fire(
+        TorConnectionStatusChangedEvent(
+          TorConnectionStatus.connected,
+          "Tor connection status changed: connect ($_enabled)",
+        ),
+      );
       return;
     }
 
