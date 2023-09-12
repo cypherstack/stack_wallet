@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -5,7 +7,9 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
+import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/widgets/trade_card.dart';
 
@@ -14,10 +18,17 @@ import 'trade_card_test.mocks.dart';
 
 @GenerateMocks([
   ThemeService,
+  IThemeAssets,
 ])
 void main() {
   testWidgets("Test Trade card builds", (widgetTester) async {
     final mockThemeService = MockThemeService();
+    final mockIThemeAssets = MockIThemeAssets();
+
+    when(mockIThemeAssets.txExchangeFailed).thenAnswer(
+      (_) =>
+          "${Directory.current.path}/test/sample_data/light/assets/dummy.svg",
+    );
     when(mockThemeService.getTheme(themeId: "light")).thenAnswer(
       (_) => StackTheme.fromJson(
         json: lightThemeJsonMap,
@@ -51,6 +62,15 @@ void main() {
       ProviderScope(
         overrides: [
           pThemeService.overrideWithValue(mockThemeService),
+          themeAssetsProvider.overrideWithProvider(
+            StateProvider(
+              (ref) => mockIThemeAssets,
+            ),
+          ),
+          coinIconProvider.overrideWithProvider(
+            (argument) => Provider<String>((_) =>
+                "${Directory.current.path}/test/sample_data/light/assets/dummy.svg"),
+          ),
         ],
         child: MaterialApp(
           theme: ThemeData(
