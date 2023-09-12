@@ -118,32 +118,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
     );
   }
 
-  Widget _buildTorIcon(TorConnectionStatus status) {
-    switch (status) {
-      case TorConnectionStatus.disconnected:
-        return SvgPicture.asset(
-          Assets.svg.tor,
-          color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
-          width: 20,
-          height: 20,
-        );
-      case TorConnectionStatus.connected:
-        return SvgPicture.asset(
-          Assets.svg.tor,
-          color: Theme.of(context).extension<StackColors>()!.accentColorGreen,
-          width: 20,
-          height: 20,
-        );
-      case TorConnectionStatus.connecting:
-        return SvgPicture.asset(
-          Assets.svg.tor,
-          color: Theme.of(context).extension<StackColors>()!.accentColorYellow,
-          width: 20,
-          height: 20,
-        );
-    }
-  }
-
   @override
   void initState() {
     _pageController = PageController();

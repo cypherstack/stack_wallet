@@ -375,6 +375,11 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
     // Init the Tor service if it hasn't already been.
     ref.read(pTorService).init();
 
+    // Update the UI.
+    setState(() {
+      _networkStatus = TorConnectionStatus.connecting;
+    });
+
     // Start the Tor service.
     try {
       await ref.read(pTorService).start();
@@ -387,11 +392,6 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
         level: LogLevel.Error,
       );
     }
-
-    // Update the UI.
-    setState(() {
-      _networkStatus = TorConnectionStatus.connecting;
-    });
 
     return;
   }
