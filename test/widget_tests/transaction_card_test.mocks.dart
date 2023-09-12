@@ -3538,3 +3538,103 @@ class MockMainDB extends _i1.Mock implements _i14.MainDB {
         returnValue: _i19.Future<int?>.value(),
       ) as _i19.Future<int?>);
 }
+
+/// A class which mocks [IThemeAssets].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockIThemeAssets extends _i1.Mock implements _i33.IThemeAssets {
+  MockIThemeAssets() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  String get bellNew => (super.noSuchMethod(
+        Invocation.getter(#bellNew),
+        returnValue: '',
+      ) as String);
+  @override
+  String get buy => (super.noSuchMethod(
+        Invocation.getter(#buy),
+        returnValue: '',
+      ) as String);
+  @override
+  String get exchange => (super.noSuchMethod(
+        Invocation.getter(#exchange),
+        returnValue: '',
+      ) as String);
+  @override
+  String get personaIncognito => (super.noSuchMethod(
+        Invocation.getter(#personaIncognito),
+        returnValue: '',
+      ) as String);
+  @override
+  String get personaEasy => (super.noSuchMethod(
+        Invocation.getter(#personaEasy),
+        returnValue: '',
+      ) as String);
+  @override
+  String get stack => (super.noSuchMethod(
+        Invocation.getter(#stack),
+        returnValue: '',
+      ) as String);
+  @override
+  String get stackIcon => (super.noSuchMethod(
+        Invocation.getter(#stackIcon),
+        returnValue: '',
+      ) as String);
+  @override
+  String get receive => (super.noSuchMethod(
+        Invocation.getter(#receive),
+        returnValue: '',
+      ) as String);
+  @override
+  String get receivePending => (super.noSuchMethod(
+        Invocation.getter(#receivePending),
+        returnValue: '',
+      ) as String);
+  @override
+  String get receiveCancelled => (super.noSuchMethod(
+        Invocation.getter(#receiveCancelled),
+        returnValue: '',
+      ) as String);
+  @override
+  String get send => (super.noSuchMethod(
+        Invocation.getter(#send),
+        returnValue: '',
+      ) as String);
+  @override
+  String get sendPending => (super.noSuchMethod(
+        Invocation.getter(#sendPending),
+        returnValue: '',
+      ) as String);
+  @override
+  String get sendCancelled => (super.noSuchMethod(
+        Invocation.getter(#sendCancelled),
+        returnValue: '',
+      ) as String);
+  @override
+  String get themeSelector => (super.noSuchMethod(
+        Invocation.getter(#themeSelector),
+        returnValue: '',
+      ) as String);
+  @override
+  String get themePreview => (super.noSuchMethod(
+        Invocation.getter(#themePreview),
+        returnValue: '',
+      ) as String);
+  @override
+  String get txExchange => (super.noSuchMethod(
+        Invocation.getter(#txExchange),
+        returnValue: '',
+      ) as String);
+  @override
+  String get txExchangePending => (super.noSuchMethod(
+        Invocation.getter(#txExchangePending),
+        returnValue: '',
+      ) as String);
+  @override
+  String get txExchangeFailed => (super.noSuchMethod(
+        Invocation.getter(#txExchangeFailed),
+        returnValue: '',
+      ) as String);
+}

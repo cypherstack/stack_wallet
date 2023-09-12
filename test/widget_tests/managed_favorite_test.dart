@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,6 +16,7 @@ import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/services/wallets_service.dart';
+import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -89,6 +92,10 @@ void main() {
           walletsChangeNotifierProvider.overrideWithValue(wallets),
           pThemeService.overrideWithValue(mockThemeService),
           prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
+          coinIconProvider.overrideWithProvider(
+            (argument) => Provider<String>((_) =>
+                "${Directory.current.path}/test/sample_data/light/assets/dummy.svg"),
+          ),
         ],
         child: MaterialApp(
           theme: ThemeData(
@@ -176,6 +183,10 @@ void main() {
           walletsServiceChangeNotifierProvider
               .overrideWithValue(mockWalletsService),
           prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
+          coinIconProvider.overrideWithProvider(
+            (argument) => Provider<String>((_) =>
+                "${Directory.current.path}/test/sample_data/light/assets/dummy.svg"),
+          ),
         ],
         child: MaterialApp(
           theme: ThemeData(
@@ -261,7 +272,11 @@ void main() {
           pThemeService.overrideWithValue(mockThemeService),
           prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
           walletsServiceChangeNotifierProvider
-              .overrideWithValue(mockWalletsService)
+              .overrideWithValue(mockWalletsService),
+          coinIconProvider.overrideWithProvider(
+            (argument) => Provider<String>((_) =>
+                "${Directory.current.path}/test/sample_data/light/assets/dummy.svg"),
+          ),
         ],
         child: MaterialApp(
           theme: ThemeData(
