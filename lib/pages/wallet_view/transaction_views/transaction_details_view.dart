@@ -1579,13 +1579,8 @@ class _TransactionDetailsViewState
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton: (coin == Coin.epicCash &&
-                _transaction.isConfirmed(
-                      currentHeight,
-                      coin.requiredConfirmations,
-                    ) ==
-                    false &&
-                _transaction.isCancelled == false &&
-                _transaction.type == TransactionType.outgoing)
+                _transaction.getConfirmations(currentHeight) < 1 &&
+                _transaction.isCancelled == false)
             ? ConditionalParent(
                 condition: isDesktop,
                 builder: (child) => Padding(
