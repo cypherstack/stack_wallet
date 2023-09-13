@@ -45,7 +45,8 @@ class PaynymIsApi {
 
     final headers = {
       'Content-Type': 'application/json; charset=UTF-8',
-      'Content-Length': contentLength.toString(), // Set the Content-Length header.
+      'content-length':
+          contentLength.toString(), // Set the Content-Length header.
     }..addAll(additionalHeaders);
     final response = await client.post(
       url: uri,
