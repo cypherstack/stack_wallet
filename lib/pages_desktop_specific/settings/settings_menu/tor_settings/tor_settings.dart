@@ -347,7 +347,7 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                                                       ),
                                                       Text(
                                                         "A security feature that protects your information from accidental exposure by"
-                                                        " disconnecting your device from the Tor network if your virtual private network (VPN)"
+                                                        " disconnecting your device from the Tor network if the"
                                                         " connection is disrupted or compromised.",
                                                         style: STextStyles
                                                                 .desktopTextMedium(
