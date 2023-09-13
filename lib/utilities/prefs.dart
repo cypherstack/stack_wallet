@@ -399,14 +399,17 @@ class Prefs extends ChangeNotifier {
 
   // tor
 
-  bool _torKillswitch = false;
+  bool _torKillswitch = true;
 
-  bool get torKillswitch => _torKillswitch;
+  bool get torKillSwitch => _torKillswitch;
 
-  set torKillswitch(bool torKillswitch) {
-    if (_torKillswitch != showTestNetCoins) {
+  set torKillSwitch(bool torKillswitch) {
+    if (_torKillswitch != torKillswitch) {
       DB.instance.put<dynamic>(
-          boxName: DB.boxNamePrefs, key: "torKillswitch", value: torKillswitch);
+        boxName: DB.boxNamePrefs,
+        key: "torKillswitch",
+        value: torKillswitch,
+      );
       _torKillswitch = torKillswitch;
       notifyListeners();
     }
@@ -414,8 +417,10 @@ class Prefs extends ChangeNotifier {
 
   Future<bool> _getTorKillswitch() async {
     return await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "torKillswitch") as bool? ??
-        false;
+          boxName: DB.boxNamePrefs,
+          key: "torKillswitch",
+        ) as bool? ??
+        true;
   }
 
   // show testnet coins

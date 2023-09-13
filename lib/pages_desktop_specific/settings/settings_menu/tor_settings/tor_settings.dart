@@ -383,12 +383,12 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                           child: DraggableSwitchButton(
                             isOn: ref.watch(
                               prefsChangeNotifierProvider
-                                  .select((value) => value.torKillswitch),
+                                  .select((value) => value.torKillSwitch),
                             ),
                             onValueChanged: (newValue) {
                               ref
                                   .read(prefsChangeNotifierProvider)
-                                  .torKillswitch = newValue;
+                                  .torKillSwitch = newValue;
                             },
                           ),
                         ),

@@ -190,7 +190,7 @@ class ElectrumX {
       // But Tor isn't enabled...
       if (!_torService.enabled) {
         // And the killswitch isn't set...
-        if (!_prefs.torKillswitch) {
+        if (!_prefs.torKillSwitch) {
           // Then we'll just proceed and connect to ElectrumX through clearnet at the bottom of this function.
           Logging.instance.log(
             "Tor preference set but Tor is not enabled, killswitch not set, connecting to ElectrumX through clearnet",
