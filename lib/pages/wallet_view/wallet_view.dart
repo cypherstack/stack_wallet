@@ -29,7 +29,6 @@ import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages/receive_view/receive_view.dart';
 import 'package:stackwallet/pages/send_view/send_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/tor_settings/tor_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_view.dart';
 import 'package:stackwallet/pages/special/firo_rescan_recovery_error_dialog.dart';
@@ -52,7 +51,6 @@ import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
-import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
@@ -73,6 +71,7 @@ import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
+import 'package:stackwallet/widgets/small_tor_icon.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/buy_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/coin_control_nav_icon.dart';
@@ -554,54 +553,15 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     ],
                   ),
                   actions: [
-                    Padding(
-                      padding: const EdgeInsets.only(
+                    const Padding(
+                      padding: EdgeInsets.only(
                         top: 10,
                         bottom: 10,
                         right: 10,
                       ),
                       child: AspectRatio(
                         aspectRatio: 1,
-                        child: AppBarIconButton(
-                          semanticsLabel:
-                              "Tor Settings Button. Takes To Tor Settings Page.",
-                          key: const Key("walletsViewTorButton"),
-                          size: 36,
-                          shadows: const [],
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .backgroundAppBar,
-                          icon: ref.watch(pTorService).enabled
-                              ? ref.read(pTorService).proxyInfo.port == -1
-                                  ? SvgPicture.asset(
-                                      Assets.svg.tor,
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorYellow,
-                                      width: 20,
-                                      height: 20,
-                                    )
-                                  : SvgPicture.asset(
-                                      Assets.svg.tor,
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorGreen,
-                                      width: 20,
-                                      height: 20,
-                                    )
-                              : SvgPicture.asset(
-                                  Assets.svg.tor,
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textSubtitle3,
-                                  width: 20,
-                                  height: 20,
-                                ),
-                          onPressed: () {
-                            Navigator.of(context)
-                                .pushNamed(TorSettingsView.routeName);
-                          },
-                        ),
+                        child: SmallTorIcon(),
                       ),
                     ),
                     Padding(

@@ -10,13 +10,11 @@
 
 import 'dart:async';
 
-import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -30,6 +28,7 @@ import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart'
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
+import 'package:stackwallet/widgets/tor_subscription.dart';
 
 class TorSettingsView extends ConsumerStatefulWidget {
   const TorSettingsView({Key? key}) : super(key: key);
@@ -280,7 +279,7 @@ class _TorIconState extends ConsumerState<TorIcon> {
 
   @override
   Widget build(BuildContext context) {
-    return _TorSubscriptionBase(
+    return TorSubscription(
       onTorStatusChanged: (status) {
         setState(() {
           _status = status;
@@ -409,7 +408,7 @@ class _TorButtonState extends ConsumerState<TorButton> {
 
   @override
   Widget build(BuildContext context) {
-    return _TorSubscriptionBase(
+    return TorSubscription(
       onTorStatusChanged: (status) {
         setState(() {
           _status = status;
@@ -445,61 +444,6 @@ class _TorButtonState extends ConsumerState<TorButton> {
         ),
       ),
     );
-  }
-}
-
-class _TorSubscriptionBase extends ConsumerStatefulWidget {
-  const _TorSubscriptionBase({
-    super.key,
-    required this.onTorStatusChanged,
-    this.eventBus,
-    required this.child,
-  });
-
-  final Widget child;
-  final void Function(TorConnectionStatus) onTorStatusChanged;
-  final EventBus? eventBus;
-
-  @override
-  ConsumerState<_TorSubscriptionBase> createState() =>
-      _TorSubscriptionBaseState();
-}
-
-class _TorSubscriptionBaseState extends ConsumerState<_TorSubscriptionBase> {
-  /// The global event bus.
-  late final EventBus eventBus;
-
-  /// Subscription to the TorConnectionStatusChangedEvent.
-  late StreamSubscription<TorConnectionStatusChangedEvent>
-      _torConnectionStatusSubscription;
-
-  @override
-  void initState() {
-    // Initialize the global event bus.
-    eventBus = widget.eventBus ?? GlobalEventBus.instance;
-
-    // Subscribe to the TorConnectionStatusChangedEvent.
-    _torConnectionStatusSubscription =
-        eventBus.on<TorConnectionStatusChangedEvent>().listen(
-      (event) async {
-        widget.onTorStatusChanged.call(event.newStatus);
-      },
-    );
-
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    // Clean up the TorConnectionStatusChangedEvent subscription.
-    _torConnectionStatusSubscription.cancel();
-
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return widget.child;
   }
 }
 

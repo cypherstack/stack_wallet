@@ -20,13 +20,11 @@ import 'package:stackwallet/pages/home_view/sub_widgets/home_view_button_bar.dar
 import 'package:stackwallet/pages/notification_views/notifications_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/global_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/hidden_settings.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/tor_settings/tor_settings_view.dart';
 import 'package:stackwallet/pages/wallets_view/wallets_view.dart';
 import 'package:stackwallet/providers/global/notifications_provider.dart';
 import 'package:stackwallet/providers/ui/home_view_index_provider.dart';
 import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
 import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
-import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -35,6 +33,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/animated_widgets/rotate_icon.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/small_tor_icon.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class HomeView extends ConsumerStatefulWidget {
@@ -219,54 +218,15 @@ class _HomeViewState extends ConsumerState<HomeView> {
               ],
             ),
             actions: [
-              Padding(
-                padding: const EdgeInsets.only(
+              const Padding(
+                padding: EdgeInsets.only(
                   top: 10,
                   bottom: 10,
                   right: 10,
                 ),
                 child: AspectRatio(
                   aspectRatio: 1,
-                  child: AppBarIconButton(
-                    semanticsLabel:
-                        "Tor Settings Button. Takes To Tor Settings Page.",
-                    key: const Key("walletsViewTorButton"),
-                    size: 36,
-                    shadows: const [],
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .backgroundAppBar,
-                    icon: ref.watch(pTorService).enabled
-                        ? ref.read(pTorService).proxyInfo.port == -1
-                            ? SvgPicture.asset(
-                                Assets.svg.tor,
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorYellow,
-                                width: 20,
-                                height: 20,
-                              )
-                            : SvgPicture.asset(
-                                Assets.svg.tor,
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorGreen,
-                                width: 20,
-                                height: 20,
-                              )
-                        : SvgPicture.asset(
-                            Assets.svg.tor,
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textSubtitle3,
-                            width: 20,
-                            height: 20,
-                          ),
-                    onPressed: () {
-                      Navigator.of(context)
-                          .pushNamed(TorSettingsView.routeName);
-                    },
-                  ),
+                  child: SmallTorIcon(),
                 ),
               ),
               Padding(
