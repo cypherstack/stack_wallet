@@ -42,7 +42,7 @@ class HTTP {
       );
 
       if (headers != null) {
-        headers.forEach((key, value) => request.headers.add);
+        headers.forEach((key, value) => request.headers.add(key, value));
       }
 
       final response = await request.close();
@@ -87,7 +87,7 @@ class HTTP {
       );
 
       if (headers != null) {
-        headers.forEach((key, value) => request.headers.add);
+        headers.forEach((key, value) => request.headers.add(key, value));
       }
 
       request.write(body);
