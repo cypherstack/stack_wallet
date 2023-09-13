@@ -244,14 +244,14 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  bool get torKillswitch => (super.noSuchMethod(
-        Invocation.getter(#torKillswitch),
+  bool get torKillSwitch => (super.noSuchMethod(
+        Invocation.getter(#torKillSwitch),
         returnValue: false,
       ) as bool);
   @override
-  set torKillswitch(bool? torKillswitch) => super.noSuchMethod(
+  set torKillSwitch(bool? torKillswitch) => super.noSuchMethod(
         Invocation.setter(
-          #torKillswitch,
+          #torKillSwitch,
           torKillswitch,
         ),
         returnValueForMissingStub: null,

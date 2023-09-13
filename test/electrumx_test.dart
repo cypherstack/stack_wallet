@@ -1524,7 +1524,7 @@ void main() {
 
       final mockPrefs = MockPrefs();
       when(mockPrefs.useTor).thenAnswer((_) => false);
-      when(mockPrefs.torKillswitch)
+      when(mockPrefs.torKillSwitch)
           .thenAnswer((_) => false); // Or true, shouldn't matter.
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final mockTorService = MockTorService();
@@ -1549,7 +1549,7 @@ void main() {
 
       verify(mockPrefs.wifiOnly).called(1);
       verify(mockPrefs.useTor).called(1);
-      verifyNever(mockPrefs.torKillswitch);
+      verifyNever(mockPrefs.torKillSwitch);
       verifyNoMoreInteractions(mockPrefs);
       verifyNever(mockTorService.enabled);
       verifyNoMoreInteractions(mockTorService);
@@ -1571,7 +1571,7 @@ void main() {
 
       final mockPrefs = MockPrefs();
       when(mockPrefs.useTor).thenAnswer((_) => true);
-      when(mockPrefs.torKillswitch).thenAnswer((_) => false);
+      when(mockPrefs.torKillSwitch).thenAnswer((_) => false);
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
 
       final mockTorService = MockTorService();
@@ -1599,7 +1599,7 @@ void main() {
 
       verify(mockPrefs.wifiOnly).called(1);
       verify(mockPrefs.useTor).called(1);
-      verify(mockPrefs.torKillswitch).called(1);
+      verify(mockPrefs.torKillSwitch).called(1);
       verifyNoMoreInteractions(mockPrefs);
       verify(mockTorService.enabled).called(1);
       verifyNever(mockTorService.proxyInfo);
@@ -1624,7 +1624,7 @@ void main() {
 
       final mockPrefs = MockPrefs();
       when(mockPrefs.useTor).thenAnswer((_) => true);
-      when(mockPrefs.torKillswitch).thenAnswer((_) => false); // Or true.
+      when(mockPrefs.torKillSwitch).thenAnswer((_) => false); // Or true.
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
 
       final mockTorService = MockTorService();
@@ -1651,7 +1651,7 @@ void main() {
       verify(mockClient.proxyInfo).called(1);
       verify(mockPrefs.wifiOnly).called(1);
       verify(mockPrefs.useTor).called(1);
-      verifyNever(mockPrefs.torKillswitch);
+      verifyNever(mockPrefs.torKillSwitch);
       verifyNoMoreInteractions(mockPrefs);
       verify(mockTorService.enabled).called(1);
       verify(mockTorService.proxyInfo).called(1);
@@ -1682,7 +1682,7 @@ void main() {
 
       final mockPrefs = MockPrefs();
       when(mockPrefs.useTor).thenAnswer((_) => true);
-      when(mockPrefs.torKillswitch).thenAnswer((_) => true);
+      when(mockPrefs.torKillSwitch).thenAnswer((_) => true);
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final mockTorService = MockTorService();
       when(mockTorService.enabled).thenAnswer((_) => false);
@@ -1710,7 +1710,7 @@ void main() {
 
       verify(mockPrefs.wifiOnly).called(1);
       verify(mockPrefs.useTor).called(1);
-      verify(mockPrefs.torKillswitch).called(1);
+      verify(mockPrefs.torKillSwitch).called(1);
       verifyNoMoreInteractions(mockPrefs);
       verify(mockTorService.enabled).called(1);
       verifyNoMoreInteractions(mockTorService);
@@ -1737,7 +1737,7 @@ void main() {
 
       final mockPrefs = MockPrefs();
       when(mockPrefs.useTor).thenAnswer((_) => true);
-      when(mockPrefs.torKillswitch).thenAnswer((_) => false);
+      when(mockPrefs.torKillSwitch).thenAnswer((_) => false);
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final mockTorService = MockTorService();
       when(mockTorService.enabled).thenAnswer((_) => false);
@@ -1761,7 +1761,7 @@ void main() {
 
       verify(mockPrefs.wifiOnly).called(1);
       verify(mockPrefs.useTor).called(1);
-      verify(mockPrefs.torKillswitch).called(1);
+      verify(mockPrefs.torKillSwitch).called(1);
       verifyNoMoreInteractions(mockPrefs);
       verify(mockTorService.enabled).called(1);
       verifyNoMoreInteractions(mockTorService);

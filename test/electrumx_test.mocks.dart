@@ -15,6 +15,7 @@ import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i7;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i9;
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i6;
 import 'package:stackwallet/utilities/prefs.dart' as _i5;
+import 'package:tor_ffi_plugin/tor_ffi_plugin.dart' as _i12;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -321,14 +322,14 @@ class MockPrefs extends _i1.Mock implements _i5.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  bool get torKillswitch => (super.noSuchMethod(
-        Invocation.getter(#torKillswitch),
+  bool get torKillSwitch => (super.noSuchMethod(
+        Invocation.getter(#torKillSwitch),
         returnValue: false,
       ) as bool);
   @override
-  set torKillswitch(bool? torKillswitch) => super.noSuchMethod(
+  set torKillSwitch(bool? torKillswitch) => super.noSuchMethod(
         Invocation.setter(
-          #torKillswitch,
+          #torKillSwitch,
           torKillswitch,
         ),
         returnValueForMissingStub: null,
@@ -673,6 +674,15 @@ class MockTorService extends _i1.Mock implements _i11.TorService {
           port: 0
         ),
       ) as ({_i3.InternetAddress host, int port}));
+  @override
+  void init({_i12.Tor? mockableOverride}) => super.noSuchMethod(
+        Invocation.method(
+          #init,
+          [],
+          {#mockableOverride: mockableOverride},
+        ),
+        returnValueForMissingStub: null,
+      );
   @override
   _i4.Future<void> start() => (super.noSuchMethod(
         Invocation.method(

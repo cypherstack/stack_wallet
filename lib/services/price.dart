@@ -33,8 +33,7 @@ class PriceAPI {
   static const Duration refreshIntervalDuration =
       Duration(seconds: refreshInterval);
 
-  // final Client client;
-  HTTP client = HTTP();
+  final HTTP client;
 
   PriceAPI(this.client);
 
