@@ -20,6 +20,7 @@ import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
+import 'package:stackwallet/wallets/isar_models/wallet_info.dart';
 import 'package:tuple/tuple.dart';
 
 part '../queries/queries.dart';
@@ -57,6 +58,7 @@ class MainDB {
         ContactEntrySchema,
         OrdinalSchema,
         LelantusCoinSchema,
+        WalletInfoSchema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
       // inspector: kDebugMode,
@@ -65,6 +67,41 @@ class MainDB {
       maxSizeMiB: 512,
     );
     return true;
+  }
+
+  Future<void> putWalletInfo(WalletInfo walletInfo) async {
+    try {
+      await isar.writeTxn(() async {
+        await isar.walletInfo.put(walletInfo);
+      });
+    } catch (e) {
+      throw MainDBException("failed putWalletInfo()", e);
+    }
+  }
+
+  Future<void> updateWalletInfo(WalletInfo walletInfo) async {
+    try {
+      await isar.writeTxn(() async {
+        final info = await isar.walletInfo
+            .where()
+            .walletIdEqualTo(walletInfo.walletId)
+            .findFirst();
+        if (info == null) {
+          throw Exception("updateWalletInfo() called with new WalletInfo."
+              " Use putWalletInfo()");
+        }
+
+        await isar.walletInfo.deleteByWalletId(walletInfo.walletId);
+        await isar.walletInfo.put(walletInfo);
+      });
+    } catch (e) {
+      throw MainDBException("failed updateWalletInfo()", e);
+    }
+  }
+
+  // TODO refactor this elsewhere as it not only interacts with MainDB's isar
+  Future<void> deleteWallet({required String walletId}) async {
+    //
   }
 
   // contact entries

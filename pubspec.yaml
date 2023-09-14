@@ -144,6 +144,7 @@ dependencies:
   stellar_flutter_sdk: ^1.5.3
   tezart: ^2.0.5
   socks5_proxy: ^1.0.3+dev.3
+  coinlib: ^1.0.0-rc.3
 
 dev_dependencies:
   flutter_test:

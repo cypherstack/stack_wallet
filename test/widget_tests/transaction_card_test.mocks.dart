@@ -16,8 +16,8 @@ import 'package:stackwallet/db/isar/main_db.dart' as _i14;
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i13;
 import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i12;
 import 'package:stackwallet/models/balance.dart' as _i9;
-import 'package:stackwallet/models/isar/models/block_explorer.dart' as _i37;
-import 'package:stackwallet/models/isar/models/contact_entry.dart' as _i36;
+import 'package:stackwallet/models/isar/models/block_explorer.dart' as _i38;
+import 'package:stackwallet/models/isar/models/contact_entry.dart' as _i37;
 import 'package:stackwallet/models/isar/models/isar_models.dart' as _i23;
 import 'package:stackwallet/models/isar/stack_theme.dart' as _i34;
 import 'package:stackwallet/models/models.dart' as _i8;
@@ -41,6 +41,7 @@ import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i28;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i19;
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i27;
 import 'package:stackwallet/utilities/prefs.dart' as _i21;
+import 'package:stackwallet/wallets/isar_models/wallet_info.dart' as _i36;
 import 'package:tuple/tuple.dart' as _i15;
 
 // ignore_for_file: type=lint
@@ -3044,13 +3045,44 @@ class MockMainDB extends _i1.Mock implements _i14.MainDB {
         returnValue: _i20.Future<bool>.value(false),
       ) as _i20.Future<bool>);
   @override
-  List<_i36.ContactEntry> getContactEntries() => (super.noSuchMethod(
+  _i20.Future<void> putWalletInfo(_i36.WalletInfo? walletInfo) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #putWalletInfo,
+          [walletInfo],
+        ),
+        returnValue: _i20.Future<void>.value(),
+        returnValueForMissingStub: _i20.Future<void>.value(),
+      ) as _i20.Future<void>);
+  @override
+  _i20.Future<void> updateWalletInfo(_i36.WalletInfo? walletInfo) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateWalletInfo,
+          [walletInfo],
+        ),
+        returnValue: _i20.Future<void>.value(),
+        returnValueForMissingStub: _i20.Future<void>.value(),
+      ) as _i20.Future<void>);
+  @override
+  _i20.Future<void> deleteWallet({required String? walletId}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #deleteWallet,
+          [],
+          {#walletId: walletId},
+        ),
+        returnValue: _i20.Future<void>.value(),
+        returnValueForMissingStub: _i20.Future<void>.value(),
+      ) as _i20.Future<void>);
+  @override
+  List<_i37.ContactEntry> getContactEntries() => (super.noSuchMethod(
         Invocation.method(
           #getContactEntries,
           [],
         ),
-        returnValue: <_i36.ContactEntry>[],
-      ) as List<_i36.ContactEntry>);
+        returnValue: <_i37.ContactEntry>[],
+      ) as List<_i37.ContactEntry>);
   @override
   _i20.Future<bool> deleteContactEntry({required String? id}) =>
       (super.noSuchMethod(
@@ -3072,15 +3104,15 @@ class MockMainDB extends _i1.Mock implements _i14.MainDB {
         returnValue: _i20.Future<bool>.value(false),
       ) as _i20.Future<bool>);
   @override
-  _i36.ContactEntry? getContactEntry({required String? id}) =>
+  _i37.ContactEntry? getContactEntry({required String? id}) =>
       (super.noSuchMethod(Invocation.method(
         #getContactEntry,
         [],
         {#id: id},
-      )) as _i36.ContactEntry?);
+      )) as _i37.ContactEntry?);
   @override
   _i20.Future<bool> putContactEntry(
-          {required _i36.ContactEntry? contactEntry}) =>
+          {required _i37.ContactEntry? contactEntry}) =>
       (super.noSuchMethod(
         Invocation.method(
           #putContactEntry,
@@ -3090,16 +3122,16 @@ class MockMainDB extends _i1.Mock implements _i14.MainDB {
         returnValue: _i20.Future<bool>.value(false),
       ) as _i20.Future<bool>);
   @override
-  _i37.TransactionBlockExplorer? getTransactionBlockExplorer(
+  _i38.TransactionBlockExplorer? getTransactionBlockExplorer(
           {required _i19.Coin? coin}) =>
       (super.noSuchMethod(Invocation.method(
         #getTransactionBlockExplorer,
         [],
         {#coin: coin},
-      )) as _i37.TransactionBlockExplorer?);
+      )) as _i38.TransactionBlockExplorer?);
   @override
   _i20.Future<int> putTransactionBlockExplorer(
-          _i37.TransactionBlockExplorer? explorer) =>
+          _i38.TransactionBlockExplorer? explorer) =>
       (super.noSuchMethod(
         Invocation.method(
           #putTransactionBlockExplorer,

@@ -11,6 +11,7 @@
 import 'dart:convert';
 
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 class Balance {
   final Amount total;
@@ -24,6 +25,20 @@ class Balance {
     required this.blockedTotal,
     required this.pendingSpendable,
   });
+
+  factory Balance.zeroForCoin({required Coin coin}) {
+    final amount = Amount(
+      rawValue: BigInt.zero,
+      fractionDigits: coin.decimals,
+    );
+
+    return Balance(
+      total: amount,
+      spendable: amount,
+      blockedTotal: amount,
+      pendingSpendable: amount,
+    );
+  }
 
   String toJsonIgnoreCoin() => jsonEncode({
         "total": total.toJsonString(),
