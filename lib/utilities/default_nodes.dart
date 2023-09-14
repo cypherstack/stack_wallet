@@ -1,6 +1,6 @@
-/* 
+/*
  * This file is part of Stack Wallet.
- * 
+ *
  * Copyright (c) 2023 Cypher Stack
  * All Rights Reserved.
  * The code is distributed under GPLv3 license, see LICENSE file for details.
@@ -191,8 +191,19 @@ abstract class DefaultNodes {
       enabled: true,
       coinName: Coin.stellar.name,
       isFailover: true,
-      isDown: false
-  );
+      isDown: false);
+
+  static NodeModel get tezos => NodeModel(
+      // TODO: Change this to stack wallet one
+      host: "https://mainnet.api.tez.ie",
+      port: 443,
+      name: defaultName,
+      id: _nodeId(Coin.tezos),
+      useSSL: true,
+      enabled: true,
+      coinName: Coin.tezos.name,
+      isFailover: true,
+      isDown: false);
 
   static NodeModel get nano => NodeModel(
       host: "https://rainstorm.city/api",
@@ -277,16 +288,16 @@ abstract class DefaultNodes {
       );
 
   static NodeModel get stellarTestnet => NodeModel(
-    host: "https://horizon-testnet.stellar.org/",
-    port: 50022,
-    name: defaultName,
-    id: _nodeId(Coin.stellarTestnet),
-    useSSL: true,
-    enabled: true,
-    coinName: Coin.stellarTestnet.name,
-    isFailover: true,
-    isDown: false,
-  );
+        host: "https://horizon-testnet.stellar.org/",
+        port: 50022,
+        name: defaultName,
+        id: _nodeId(Coin.stellarTestnet),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.stellarTestnet.name,
+        isFailover: true,
+        isDown: false,
+      );
 
   static NodeModel getNodeFor(Coin coin) {
     switch (coin) {
@@ -334,6 +345,9 @@ abstract class DefaultNodes {
 
       case Coin.banano:
         return banano;
+
+      case Coin.tezos:
+        return tezos;
 
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;

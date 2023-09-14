@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -7,6 +9,7 @@ import 'package:mockito/mockito.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/models/notification_model.dart';
 import 'package:stackwallet/notifications/notification_card.dart';
+import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -47,6 +50,10 @@ void main() {
       ProviderScope(
         overrides: [
           pThemeService.overrideWithValue(mockThemeService),
+          coinIconProvider.overrideWithProvider(
+            (argument) => Provider<String>((_) =>
+                "${Directory.current.path}/test/sample_data/light/assets/dummy.svg"),
+          ),
         ],
         child: MaterialApp(
           theme: ThemeData(

@@ -72,6 +72,7 @@ import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
+import 'package:stackwallet/widgets/small_tor_icon.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/buy_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/coin_control_nav_icon.dart';
@@ -555,6 +556,17 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     ],
                   ),
                   actions: [
+                    const Padding(
+                      padding: EdgeInsets.only(
+                        top: 10,
+                        bottom: 10,
+                        right: 10,
+                      ),
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: SmallTorIcon(),
+                      ),
+                    ),
                     Padding(
                       padding: const EdgeInsets.only(
                         top: 10,

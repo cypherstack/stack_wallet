@@ -29,6 +29,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
 import 'package:stackwallet/utilities/test_eth_node_connection.dart';
 import 'package:stackwallet/utilities/test_monero_node_connection.dart';
+import 'package:stackwallet/utilities/test_stellar_node_connection.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -194,10 +195,17 @@ class _NodeCardState extends ConsumerState<NodeCard> {
 
       case Coin.nano:
       case Coin.banano:
+      case Coin.tezos:
+        //TODO: check network/node
+        throw UnimplementedError();
       case Coin.stellar:
       case Coin.stellarTestnet:
-        throw UnimplementedError();
-        //TODO: check network/node
+        try {
+          testPassed = await testStellarNodeConnection(node.host, node.port);
+        } catch (_) {
+          testPassed = false;
+        }
+        break;
     }
 
     if (testPassed) {

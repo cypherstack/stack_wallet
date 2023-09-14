@@ -9,6 +9,7 @@ import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/node_service.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -19,7 +20,7 @@ import 'package:tuple/tuple.dart';
 import '../sample_data/theme_json.dart';
 import 'node_options_sheet_test.mocks.dart';
 
-@GenerateMocks([Wallets, Prefs, NodeService])
+@GenerateMocks([Wallets, Prefs, NodeService, TorService])
 void main() {
   testWidgets("Load Node Options widget", (tester) async {
     final mockWallets = MockWallets();
@@ -163,6 +164,7 @@ void main() {
     final mockWallets = MockWallets();
     final mockPrefs = MockPrefs();
     final mockNodeService = MockNodeService();
+    final mockTorService = MockTorService();
 
     when(mockNodeService.getNodeById(id: "node id")).thenAnswer(
         (realInvocation) => NodeModel(
@@ -193,7 +195,8 @@ void main() {
         overrides: [
           walletsChangeNotifierProvider.overrideWithValue(mockWallets),
           prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
-          nodeServiceChangeNotifierProvider.overrideWithValue(mockNodeService)
+          nodeServiceChangeNotifierProvider.overrideWithValue(mockNodeService),
+          pTorService.overrideWithValue(mockTorService),
         ],
         child: MaterialApp(
           theme: ThemeData(

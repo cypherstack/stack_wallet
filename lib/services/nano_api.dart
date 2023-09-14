@@ -1,7 +1,9 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
 import 'package:nanodart/nanodart.dart';
+import 'package:stackwallet/networking/http.dart';
+import 'package:stackwallet/services/tor_service.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 
 class NanoAPI {
   static Future<
@@ -16,9 +18,11 @@ class NanoAPI {
     NAccountInfo? accountInfo;
     Exception? exception;
 
+    HTTP client = HTTP();
+
     try {
-      final response = await http.post(
-        server,
+      final response = await client.post(
+        url: server,
         headers: {
           "Content-Type": "application/json",
         },
@@ -27,6 +31,8 @@ class NanoAPI {
           "representative": "true",
           "account": account,
         }),
+        proxyInfo:
+            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
       );
 
       final map = jsonDecode(response.body);
@@ -105,8 +111,10 @@ class NanoAPI {
     required Uri server,
     required Map<String, dynamic> block,
   }) async {
-    final response = await http.post(
-      server,
+    HTTP client = HTTP();
+
+    final response = await client.post(
+      url: server,
       headers: {
         "Content-Type": "application/json",
       },
@@ -116,6 +124,8 @@ class NanoAPI {
         "subtype": "change",
         "block": block,
       }),
+      proxyInfo:
+          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
     );
 
     return jsonDecode(response.body);

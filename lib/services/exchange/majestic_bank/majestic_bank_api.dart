@@ -11,7 +11,6 @@
 import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
-import 'package:http/http.dart' as http;
 import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
 import 'package:stackwallet/exceptions/exchange/majestic_bank/mb_exception.dart';
 import 'package:stackwallet/exceptions/exchange/pair_unavailable_exception.dart';
@@ -20,8 +19,11 @@ import 'package:stackwallet/models/exchange/majestic_bank/mb_order.dart';
 import 'package:stackwallet/models/exchange/majestic_bank/mb_order_calculation.dart';
 import 'package:stackwallet/models/exchange/majestic_bank/mb_order_status.dart';
 import 'package:stackwallet/models/exchange/majestic_bank/mb_rate.dart';
+import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 
 class MajesticBankAPI {
   static const String scheme = "https";
@@ -35,22 +37,23 @@ class MajesticBankAPI {
 
   static MajesticBankAPI get instance => _instance;
 
-  /// set this to override using standard http client. Useful for testing
-  http.Client? client;
+  HTTP client = HTTP();
 
   Uri _buildUri({required String endpoint, Map<String, String>? params}) {
     return Uri.https(authority, "/api/$version/$endpoint", params);
   }
 
   Future<dynamic> _makeGetRequest(Uri uri) async {
-    final client = this.client ?? http.Client();
+    // final client = this.client ?? http.Client();
     int code = -1;
     try {
       final response = await client.get(
-        uri,
+        url: uri,
+        proxyInfo:
+            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
       );
 
-      code = response.statusCode;
+      code = response.code;
 
       final parsed = jsonDecode(response.body);
 

@@ -97,12 +97,16 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   late TextEditingController cryptoAmountController;
   late TextEditingController baseAmountController;
   // late TextEditingController feeController;
+  late TextEditingController memoController;
 
   late final SendViewAutoFillData? _data;
 
   final _addressFocusNode = FocusNode();
   final _cryptoFocus = FocusNode();
   final _baseFocus = FocusNode();
+  final _memoFocus = FocusNode();
+
+  late final bool isStellar;
 
   String? _note;
   String? _onChainNote;
@@ -326,10 +330,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           },
         );
       } else {
+        final memo = isStellar ? memoController.text : null;
         txDataFuture = manager.prepareSend(
           address: _address!,
           amount: amount,
           args: {
+            "memo": memo,
             "feeRate": ref.read(feeRateTypeStateProvider),
             "satsPerVByte": isCustomFee ? customFeeRate : null,
             "UTXOs": (manager.hasCoinControlSupport &&
@@ -663,6 +669,23 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     }
   }
 
+  Future<void> pasteMemo() async {
+    if (memoController.text.isNotEmpty) {
+      setState(() {
+        memoController.text = "";
+      });
+    } else {
+      final ClipboardData? data = await clipboard.getData(Clipboard.kTextPlain);
+      if (data?.text != null && data!.text!.isNotEmpty) {
+        String content = data.text!.trim();
+
+        setState(() {
+          memoController.text = content;
+        });
+      }
+    }
+  }
+
   void fiatTextFieldOnChanged(String baseAmountString) {
     final baseAmount = Amount.tryParseFiatString(
       baseAmountString,
@@ -762,10 +785,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     coin = ref.read(walletsChangeNotifierProvider).getManager(walletId).coin;
     clipboard = widget.clipboard;
     scanner = widget.barcodeScanner;
+    isStellar = coin == Coin.stellar || coin == Coin.stellarTestnet;
 
     sendToController = TextEditingController();
     cryptoAmountController = TextEditingController();
     baseAmountController = TextEditingController();
+    memoController = TextEditingController();
     // feeController = TextEditingController();
 
     onCryptoAmountChanged = _cryptoAmountChanged;
@@ -814,11 +839,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     sendToController.dispose();
     cryptoAmountController.dispose();
     baseAmountController.dispose();
+    memoController.dispose();
     // feeController.dispose();
 
     _addressFocusNode.dispose();
     _cryptoFocus.dispose();
     _baseFocus.dispose();
+    _memoFocus.dispose();
     super.dispose();
   }
 
@@ -1366,6 +1393,67 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 );
               }
             },
+          ),
+        if (isStellar)
+          const SizedBox(
+            height: 10,
+          ),
+        if (isStellar)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
+            ),
+            child: TextField(
+              minLines: 1,
+              maxLines: 5,
+              key: const Key("sendViewMemoFieldKey"),
+              controller: memoController,
+              readOnly: false,
+              autocorrect: false,
+              enableSuggestions: false,
+              focusNode: _memoFocus,
+              onChanged: (_) {
+                setState(() {});
+              },
+              style: STextStyles.desktopTextExtraSmall(context).copyWith(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldActiveText,
+                height: 1.8,
+              ),
+              decoration: standardInputDecoration(
+                "Enter memo (optional)",
+                _memoFocus,
+                context,
+                desktopMed: true,
+              ).copyWith(
+                contentPadding: const EdgeInsets.only(
+                  left: 16,
+                  top: 11,
+                  bottom: 12,
+                  right: 5,
+                ),
+                suffixIcon: Padding(
+                  padding: memoController.text.isEmpty
+                      ? const EdgeInsets.only(right: 8)
+                      : const EdgeInsets.only(right: 0),
+                  child: UnconstrainedBox(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        TextFieldIconButton(
+                          key: const Key("sendViewPasteMemoButtonKey"),
+                          onTap: pasteMemo,
+                          child: memoController.text.isEmpty
+                              ? const ClipboardIcon()
+                              : const XIcon(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
         if (!isPaynymSend)
           const SizedBox(

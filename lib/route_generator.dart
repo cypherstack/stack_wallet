@@ -27,6 +27,7 @@ import 'package:stackwallet/pages/add_wallet_views/add_token_view/edit_wallet_to
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/name_your_wallet_view/name_your_wallet_view.dart';
+import 'package:stackwallet/pages/add_wallet_views/new_wallet_options/new_wallet_options_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/new_wallet_recovery_phrase_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_warning_view/new_wallet_recovery_phrase_warning_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/restore_options_view.dart';
@@ -110,6 +111,7 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/support_vi
 import 'package:stackwallet/pages/settings_views/global_settings_view/syncing_preferences_views/syncing_options_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/syncing_preferences_views/syncing_preferences_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/syncing_preferences_views/wallet_syncing_options_view.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/tor_settings/tor_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_backup_views/wallet_backup_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_view.dart';
@@ -167,6 +169,7 @@ import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/langua
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/nodes_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/security_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/syncing_preferences_settings.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/tor_settings/tor_settings.dart';
 import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -683,6 +686,18 @@ class RouteGenerator {
             builder: (_) => const LanguageSettingsView(),
             settings: RouteSettings(name: settings.name));
 
+      case TorSettingsView.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const TorSettingsView(),
+            settings: RouteSettings(name: settings.name));
+
+      case TorSettings.routeName:
+        return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => const TorSettings(),
+            settings: RouteSettings(name: settings.name));
+
       case AboutView.routeName:
         return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
@@ -1121,6 +1136,21 @@ class RouteGenerator {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => RestoreOptionsView(
+              walletName: args.item1,
+              coin: args.item2,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case NewWalletOptionsView.routeName:
+        if (args is Tuple2<String, Coin>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => NewWalletOptionsView(
               walletName: args.item1,
               coin: args.item2,
             ),

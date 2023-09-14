@@ -1,6 +1,6 @@
-/* 
+/*
  * This file is part of Stack Wallet.
- * 
+ *
  * Copyright (c) 2023 Cypher Stack
  * All Rights Reserved.
  * The code is distributed under GPLv3 license, see LICENSE file for details.
@@ -28,6 +28,7 @@ import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
 import 'package:stackwallet/services/coins/nano/nano_wallet.dart';
 import 'package:stackwallet/services/coins/particl/particl_wallet.dart';
 import 'package:stackwallet/services/coins/stellar/stellar_wallet.dart';
+import 'package:stackwallet/services/coins/tezos/tezos_wallet.dart';
 import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -228,6 +229,24 @@ abstract class CoinServiceAPI {
           tracker: tracker,
         );
 
+      case Coin.stellarTestnet:
+        return StellarWallet(
+          walletId: walletId,
+          walletName: walletName,
+          coin: coin,
+          secureStore: secureStorageInterface,
+          tracker: tracker,
+        );
+
+      case Coin.tezos:
+        return TezosWallet(
+          walletId: walletId,
+          walletName: walletName,
+          coin: coin,
+          secureStore: secureStorageInterface,
+          tracker: tracker,
+        );
+
       case Coin.wownero:
         return WowneroWallet(
           walletId: walletId,
@@ -285,15 +304,6 @@ abstract class CoinServiceAPI {
           cachedClient: cachedClient,
           tracker: tracker,
         );
-
-      case Coin.stellarTestnet:
-        return StellarWallet(
-          walletId: walletId,
-          walletName: walletName,
-          coin: coin,
-          secureStore: secureStorageInterface,
-          tracker: tracker,
-        );
     }
   }
 
@@ -348,7 +358,9 @@ abstract class CoinServiceAPI {
     required int height,
   });
 
-  Future<void> initializeNew();
+  Future<void> initializeNew(
+    ({String mnemonicPassphrase, int wordCount})? data,
+  );
   Future<void> initializeExisting();
 
   Future<void> exit();

@@ -15,11 +15,13 @@ import 'package:archive/archive_io.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
+import 'package:stackwallet/networking/http.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 
 final pThemeService = Provider<ThemeService>((ref) {
@@ -38,6 +40,8 @@ class ThemeService {
   MainDB get db => _db!;
 
   void init(MainDB db) => _db ??= db;
+
+  HTTP client = HTTP();
 
   Future<void> install({required Uint8List themeArchiveData}) async {
     final themesDir = StackFileSystem.themesDir!;
@@ -207,7 +211,11 @@ class ThemeService {
 
   Future<List<StackThemeMetaData>> fetchThemes() async {
     try {
-      final response = await get(Uri.parse("$baseServerUrl/themes"));
+      final response = await client.get(
+        url: Uri.parse("$baseServerUrl/themes"),
+        proxyInfo:
+            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+      );
 
       final jsonList = jsonDecode(response.body) as List;
 
@@ -230,10 +238,13 @@ class ThemeService {
     required StackThemeMetaData themeMetaData,
   }) async {
     try {
-      final response =
-          await get(Uri.parse("$baseServerUrl/theme/${themeMetaData.id}"));
+      final response = await client.get(
+        url: Uri.parse("$baseServerUrl/theme/${themeMetaData.id}"),
+        proxyInfo:
+            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+      );
 
-      final bytes = response.bodyBytes;
+      final bytes = Uint8List.fromList(response.bodyBytes);
 
       // verify hash
       final digest = sha256.convert(bytes);

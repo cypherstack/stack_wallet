@@ -12,12 +12,13 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
-import 'package:http/http.dart' as http;
 import 'package:stackwallet/models/buy/response_objects/crypto.dart';
 import 'package:stackwallet/models/buy/response_objects/fiat.dart';
 import 'package:stackwallet/models/buy/response_objects/order.dart';
 import 'package:stackwallet/models/buy/response_objects/quote.dart';
+import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/services/buy/buy_response.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fiat_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -35,8 +36,7 @@ class SimplexAPI {
   static final SimplexAPI _instance = SimplexAPI._();
   static SimplexAPI get instance => _instance;
 
-  /// set this to override using standard http client. Useful for testing
-  http.Client? client;
+  HTTP client = HTTP();
 
   Uri _buildUri(String path, Map<String, String>? params) {
     if (scheme == "http") {
@@ -55,10 +55,15 @@ class SimplexAPI {
       };
       Uri url = _buildUri('api.php', data);
 
-      var res = await http.post(url, headers: headers);
-      if (res.statusCode != 200) {
+      var res = await client.post(
+        url: url,
+        headers: headers,
+        proxyInfo:
+            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+      );
+      if (res.code != 200) {
         throw Exception(
-            'getAvailableCurrencies exception: statusCode= ${res.statusCode}');
+            'getAvailableCurrencies exception: statusCode= ${res.code}');
       }
       final jsonArray = jsonDecode(res.body); // TODO handle if invalid json
 
@@ -116,10 +121,15 @@ class SimplexAPI {
       };
       Uri url = _buildUri('api.php', data);
 
-      var res = await http.post(url, headers: headers);
-      if (res.statusCode != 200) {
+      var res = await client.post(
+        url: url,
+        headers: headers,
+        proxyInfo:
+            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+      );
+      if (res.code != 200) {
         throw Exception(
-            'getAvailableCurrencies exception: statusCode= ${res.statusCode}');
+            'getAvailableCurrencies exception: statusCode= ${res.code}');
       }
       final jsonArray = jsonDecode(res.body); // TODO validate json
 
@@ -192,9 +202,14 @@ class SimplexAPI {
       }
       Uri url = _buildUri('api.php', data);
 
-      var res = await http.get(url, headers: headers);
-      if (res.statusCode != 200) {
-        throw Exception('getQuote exception: statusCode= ${res.statusCode}');
+      var res = await client.get(
+        url: url,
+        headers: headers,
+        proxyInfo:
+            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+      );
+      if (res.code != 200) {
+        throw Exception('getQuote exception: statusCode= ${res.code}');
       }
       final jsonArray = jsonDecode(res.body);
       if (jsonArray.containsKey('error') as bool) {
@@ -294,9 +309,14 @@ class SimplexAPI {
       }
       Uri url = _buildUri('api.php', data);
 
-      var res = await http.get(url, headers: headers);
-      if (res.statusCode != 200) {
-        throw Exception('newOrder exception: statusCode= ${res.statusCode}');
+      var res = await client.get(
+        url: url,
+        headers: headers,
+        proxyInfo:
+            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+      );
+      if (res.code != 200) {
+        throw Exception('newOrder exception: statusCode= ${res.code}');
       }
       final jsonArray = jsonDecode(res.body); // TODO check if valid json
       if (jsonArray.containsKey('error') as bool) {

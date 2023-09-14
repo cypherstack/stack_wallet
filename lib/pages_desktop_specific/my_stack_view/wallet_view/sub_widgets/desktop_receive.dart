@@ -219,14 +219,20 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
         if (coin != Coin.epicCash &&
             coin != Coin.ethereum &&
             coin != Coin.banano &&
-            coin != Coin.nano)
+            coin != Coin.nano &&
+            coin != Coin.stellar &&
+            coin != Coin.stellarTestnet &&
+            coin != Coin.tezos)
           const SizedBox(
             height: 20,
           ),
         if (coin != Coin.epicCash &&
             coin != Coin.ethereum &&
             coin != Coin.banano &&
-            coin != Coin.nano)
+            coin != Coin.nano &&
+            coin != Coin.stellar &&
+            coin != Coin.stellarTestnet &&
+            coin != Coin.tezos)
           SecondaryButton(
             buttonHeight: ButtonHeight.l,
             onPressed: generateNewAddress,

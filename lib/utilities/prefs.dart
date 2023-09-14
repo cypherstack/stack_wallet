@@ -10,6 +10,8 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:stackwallet/db/hive/db.dart';
+import 'package:stackwallet/services/event_bus/events/global/tor_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
@@ -42,6 +44,7 @@ class Prefs extends ChangeNotifier {
       _lastUnlocked = await _getLastUnlocked();
       _lastUnlockedTimeout = await _getLastUnlockedTimeout();
       _showTestNetCoins = await _getShowTestNetCoins();
+      _torKillswitch = await _getTorKillswitch();
       _isAutoBackupEnabled = await _getIsAutoBackupEnabled();
       _autoBackupLocation = await _getAutoBackupLocation();
       _backupFrequencyType = await _getBackupFrequencyType();
@@ -60,6 +63,7 @@ class Prefs extends ChangeNotifier {
       _systemBrightnessDarkThemeId = await _getSystemBrightnessDarkTheme();
       await _setAmountUnits();
       await _setMaxDecimals();
+      _useTor = await _getUseTor();
 
       _initialized = true;
     }
@@ -391,6 +395,32 @@ class Prefs extends ChangeNotifier {
     return await DB.instance.get<dynamic>(
             boxName: DB.boxNamePrefs, key: "familiarity") as int? ??
         0;
+  }
+
+  // tor
+
+  bool _torKillswitch = true;
+
+  bool get torKillSwitch => _torKillswitch;
+
+  set torKillSwitch(bool torKillswitch) {
+    if (_torKillswitch != torKillswitch) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "torKillswitch",
+        value: torKillswitch,
+      );
+      _torKillswitch = torKillswitch;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _getTorKillswitch() async {
+    return await DB.instance.get<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "torKillswitch",
+        ) as bool? ??
+        true;
   }
 
   // show testnet coins
@@ -868,5 +898,37 @@ class Prefs extends ChangeNotifier {
       // use some sane max rather than up to 30 that nano uses
       _amountDecimals[coin] = decimals;
     }
+  }
+
+  // enabled tor
+
+  bool _useTor = false;
+
+  bool get useTor => _useTor;
+
+  set useTor(bool useTor) {
+    if (_useTor != useTor) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "useTor",
+        value: useTor,
+      );
+      _useTor = useTor;
+      notifyListeners();
+      GlobalEventBus.instance.fire(
+        TorPreferenceChangedEvent(
+          status: useTor ? TorStatus.enabled : TorStatus.disabled,
+          message: "useTor updated in prefs",
+        ),
+      );
+    }
+  }
+
+  Future<bool> _getUseTor() async {
+    return await DB.instance.get<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "useTor",
+        ) as bool? ??
+        false;
   }
 }

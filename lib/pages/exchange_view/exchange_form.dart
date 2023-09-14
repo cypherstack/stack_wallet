@@ -31,15 +31,19 @@ import 'package:stackwallet/pages/exchange_view/sub_widgets/rate_type_toggle.dar
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
+import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
+import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -54,8 +58,6 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/textfields/exchange_textfield.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
-
-import '../../services/exchange/exchange_response.dart';
 
 class ExchangeForm extends ConsumerStatefulWidget {
   const ExchangeForm({
@@ -78,7 +80,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   late final Coin? coin;
   late final bool walletInitiated;
 
-  final exchanges = [
+  var exchanges = [
     MajesticBankExchange.instance,
     ChangeNowExchange.instance,
     TrocadorExchange.instance,
@@ -773,6 +775,14 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       });
     }
 
+    // Instantiate the Tor service.
+    torService = TorService.sharedInstance;
+
+    // Filter exchanges based on Tor support.
+    if (Prefs.instance.useTor) {
+      exchanges = Exchange.exchangesWithTorSupport;
+    }
+
     super.initState();
   }
 
@@ -1007,4 +1017,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       ],
     );
   }
+
+  // TorService instance.
+  late TorService torService;
 }

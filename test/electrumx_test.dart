@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/rpc.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 
 import 'electrumx_test.mocks.dart';
@@ -10,7 +13,7 @@ import 'sample_data/get_anonymity_set_sample_data.dart';
 import 'sample_data/get_used_serials_sample_data.dart';
 import 'sample_data/transaction_data_samples.dart';
 
-@GenerateMocks([JsonRPC, Prefs])
+@GenerateMocks([JsonRPC, Prefs, TorService])
 void main() {
   group("factory constructors and getters", () {
     test("electrumxnode .from factory", () {
@@ -38,9 +41,15 @@ void main() {
       );
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
 
-      final client =
-          ElectrumX.from(node: node, failovers: [], prefs: mockPrefs);
+      final client = ElectrumX.from(
+        node: node,
+        failovers: [],
+        prefs: mockPrefs,
+        torService: torService,
+      );
 
       expect(client.useSSL, node.useSSL);
       expect(client.host, node.address);
@@ -73,18 +82,23 @@ void main() {
     );
 
     final mockPrefs = MockPrefs();
+    when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+    final torService = MockTorService();
     when(mockPrefs.wifiOnly).thenAnswer((_) => false);
 
     final client = ElectrumX(
-        host: "some server",
-        port: 0,
-        useSSL: true,
-        client: mockClient,
-        failovers: [],
-        prefs: mockPrefs);
+      host: "some server",
+      port: 0,
+      useSSL: true,
+      client: mockClient,
+      failovers: [],
+      prefs: mockPrefs,
+      torService: torService,
+    );
 
     expect(() => client.getTransaction(requestID: "some requestId", txHash: ''),
         throwsA(isA<Exception>()));
+
     verify(mockPrefs.wifiOnly).called(1);
     verifyNoMoreInteractions(mockPrefs);
   });
@@ -109,6 +123,8 @@ void main() {
       );
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -116,13 +132,16 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       final result =
           await (client.getBlockHeadTip(requestID: "some requestId"));
 
       expect(result["height"], 520481);
+
       verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.useTor).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
 
@@ -139,6 +158,8 @@ void main() {
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -146,10 +167,12 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       expect(() => client.getBlockHeadTip(requestID: "some requestId"),
           throwsA(isA<Exception>()));
+
       verify(mockPrefs.wifiOnly).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
@@ -175,6 +198,8 @@ void main() {
       );
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -182,12 +207,15 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       final result = await client.ping(requestID: "some requestId");
 
       expect(result, true);
+
       verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.useTor).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
 
@@ -204,6 +232,8 @@ void main() {
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -211,10 +241,12 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       expect(() => client.ping(requestID: "some requestId"),
           throwsA(isA<Exception>()));
+
       verify(mockPrefs.wifiOnly).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
@@ -251,6 +283,8 @@ void main() {
       );
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -258,6 +292,7 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       final result =
@@ -275,7 +310,9 @@ void main() {
         "server_version": "ElectrumX 1.0.17",
         "hash_function": "sha256",
       });
+
       verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.useTor).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
 
@@ -292,6 +329,8 @@ void main() {
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -299,10 +338,12 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       expect(() => client.getServerFeatures(requestID: "some requestId"),
           throwsA(isA<Exception>()));
+
       verify(mockPrefs.wifiOnly).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
@@ -328,6 +369,8 @@ void main() {
       );
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -335,13 +378,16 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       final result = await client.broadcastTransaction(
           rawTx: "some raw transaction string", requestID: "some requestId");
 
       expect(result, "the txid of the rawtx");
+
       verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.useTor).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
 
@@ -358,6 +404,8 @@ void main() {
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -365,6 +413,7 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       expect(
@@ -372,6 +421,7 @@ void main() {
               rawTx: "some raw transaction string",
               requestID: "some requestId"),
           throwsA(isA<Exception>()));
+
       verify(mockPrefs.wifiOnly).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
@@ -400,6 +450,8 @@ void main() {
       );
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -407,13 +459,16 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       final result = await client.getBalance(
           scripthash: "dummy hash", requestID: "some requestId");
 
       expect(result, {"confirmed": 103873966, "unconfirmed": 23684400});
+
       verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.useTor).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
 
@@ -430,6 +485,8 @@ void main() {
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -437,12 +494,14 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       expect(
           () => client.getBalance(
               scripthash: "dummy hash", requestID: "some requestId"),
           throwsA(isA<Exception>()));
+
       verify(mockPrefs.wifiOnly).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
@@ -479,6 +538,8 @@ void main() {
       );
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -486,6 +547,7 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       final result = await client.getHistory(
@@ -503,7 +565,9 @@ void main() {
               "f3e1bf48975b8d6060a9de8884296abb80be618dc00ae3cb2f6cee3085e09403"
         }
       ]);
+
       verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.useTor).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
 
@@ -520,6 +584,8 @@ void main() {
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -527,12 +593,14 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       expect(
           () => client.getHistory(
               scripthash: "dummy hash", requestID: "some requestId"),
           throwsA(isA<Exception>()));
+
       verify(mockPrefs.wifiOnly).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
@@ -573,6 +641,8 @@ void main() {
       );
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -580,6 +650,7 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       final result = await client.getUTXOs(
@@ -601,7 +672,9 @@ void main() {
           "height": 441696
         }
       ]);
+
       verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.useTor).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
 
@@ -618,6 +691,8 @@ void main() {
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -625,12 +700,14 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       expect(
           () => client.getUTXOs(
               scripthash: "dummy hash", requestID: "some requestId"),
           throwsA(isA<Exception>()));
+
       verify(mockPrefs.wifiOnly).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
@@ -656,6 +733,8 @@ void main() {
       );
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -663,6 +742,7 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       final result = await client.getTransaction(
@@ -671,7 +751,9 @@ void main() {
           requestID: "some requestId");
 
       expect(result, SampleGetTransactionData.txData0);
+
       verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.useTor).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
 
@@ -688,6 +770,8 @@ void main() {
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -695,6 +779,7 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       expect(
@@ -702,6 +787,7 @@ void main() {
               txHash: SampleGetTransactionData.txHash0,
               requestID: "some requestId"),
           throwsA(isA<Exception>()));
+
       verify(mockPrefs.wifiOnly).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
@@ -727,6 +813,8 @@ void main() {
       );
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -734,13 +822,16 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       final result = await client.getAnonymitySet(
           groupId: "1", blockhash: "", requestID: "some requestId");
 
       expect(result, GetAnonymitySetSampleData.data);
+
       verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.useTor).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
 
@@ -757,6 +848,8 @@ void main() {
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -764,12 +857,14 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       expect(
           () =>
               client.getAnonymitySet(groupId: "1", requestID: "some requestId"),
           throwsA(isA<Exception>()));
+
       verify(mockPrefs.wifiOnly).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
@@ -795,6 +890,8 @@ void main() {
       );
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -802,13 +899,16 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       final result = await client.getMintData(
           mints: "some mints", requestID: "some requestId");
 
       expect(result, "mint meta data");
+
       verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.useTor).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
 
@@ -825,6 +925,8 @@ void main() {
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -832,12 +934,14 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       expect(
           () => client.getMintData(
               mints: "some mints", requestID: "some requestId"),
           throwsA(isA<Exception>()));
+
       verify(mockPrefs.wifiOnly).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
@@ -863,6 +967,8 @@ void main() {
       );
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -870,13 +976,16 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       final result = await client.getUsedCoinSerials(
           requestID: "some requestId", startNumber: 0);
 
       expect(result, GetUsedSerialsSampleData.serials);
+
       verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.useTor).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
 
@@ -893,6 +1002,8 @@ void main() {
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -900,12 +1011,14 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       expect(
           () => client.getUsedCoinSerials(
               requestID: "some requestId", startNumber: 0),
           throwsA(isA<Exception>()));
+
       verify(mockPrefs.wifiOnly).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
@@ -931,6 +1044,8 @@ void main() {
       );
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -938,12 +1053,15 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       final result = await client.getLatestCoinId(requestID: "some requestId");
 
       expect(result, 1);
+
       verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.useTor).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
 
@@ -960,6 +1078,8 @@ void main() {
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -967,6 +1087,7 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       expect(
@@ -974,6 +1095,7 @@ void main() {
                 requestID: "some requestId",
               ),
           throwsA(isA<Exception>()));
+
       verify(mockPrefs.wifiOnly).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
@@ -999,6 +1121,8 @@ void main() {
       );
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -1006,13 +1130,16 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       final result = await client.getAnonymitySet(
           groupId: "1", blockhash: "", requestID: "some requestId");
 
       expect(result, GetAnonymitySetSampleData.data);
+
       verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.useTor).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
 
@@ -1029,6 +1156,8 @@ void main() {
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -1036,6 +1165,7 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       expect(
@@ -1044,6 +1174,7 @@ void main() {
                 requestID: "some requestId",
               ),
           throwsA(isA<Exception>()));
+
       verify(mockPrefs.wifiOnly).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
@@ -1069,6 +1200,8 @@ void main() {
       );
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -1076,13 +1209,16 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       final result = await client.getMintData(
           mints: "some mints", requestID: "some requestId");
 
       expect(result, "mint meta data");
+
       verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.useTor).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
 
@@ -1099,6 +1235,8 @@ void main() {
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -1106,6 +1244,7 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       expect(
@@ -1114,6 +1253,7 @@ void main() {
                 requestID: "some requestId",
               ),
           throwsA(isA<Exception>()));
+
       verify(mockPrefs.wifiOnly).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
@@ -1139,6 +1279,8 @@ void main() {
       );
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -1146,13 +1288,16 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       final result = await client.getUsedCoinSerials(
           requestID: "some requestId", startNumber: 0);
 
       expect(result, GetUsedSerialsSampleData.serials);
+
       verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.useTor).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
 
@@ -1169,6 +1314,8 @@ void main() {
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -1176,12 +1323,14 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       expect(
           () => client.getUsedCoinSerials(
               requestID: "some requestId", startNumber: 0),
           throwsA(isA<Exception>()));
+
       verify(mockPrefs.wifiOnly).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
@@ -1207,6 +1356,8 @@ void main() {
       );
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -1214,12 +1365,15 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       final result = await client.getLatestCoinId(requestID: "some requestId");
 
       expect(result, 1);
+
       verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.useTor).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
 
@@ -1236,6 +1390,8 @@ void main() {
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -1243,10 +1399,12 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       expect(() => client.getLatestCoinId(requestID: "some requestId"),
           throwsA(isA<Exception>()));
+
       verify(mockPrefs.wifiOnly).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
@@ -1274,6 +1432,8 @@ void main() {
       );
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -1281,12 +1441,15 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       final result = await client.getFeeRate(requestID: "some requestId");
 
       expect(result, {"rate": 1000});
+
       verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.useTor).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
 
@@ -1303,6 +1466,8 @@ void main() {
       ).thenThrow(Exception());
 
       final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+      final torService = MockTorService();
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final client = ElectrumX(
           host: "some server",
@@ -1310,10 +1475,12 @@ void main() {
           useSSL: true,
           client: mockClient,
           prefs: mockPrefs,
+          torService: torService,
           failovers: []);
 
       expect(() => client.getFeeRate(requestID: "some requestId"),
           throwsA(isA<Exception>()));
+
       verify(mockPrefs.wifiOnly).called(1);
       verifyNoMoreInteractions(mockPrefs);
     });
@@ -1321,6 +1488,8 @@ void main() {
 
   test("rpcClient is null throws with bad server info", () {
     final mockPrefs = MockPrefs();
+    when(mockPrefs.useTor).thenAnswer((realInvocation) => false);
+    final torService = MockTorService();
     when(mockPrefs.wifiOnly).thenAnswer((_) => false);
     final client = ElectrumX(
       client: null,
@@ -1328,11 +1497,274 @@ void main() {
       host: "_ :sa  %",
       useSSL: false,
       prefs: mockPrefs,
+      torService: torService,
       failovers: [],
     );
 
     expect(() => client.getFeeRate(), throwsA(isA<Exception>()));
+
     verify(mockPrefs.wifiOnly).called(1);
     verifyNoMoreInteractions(mockPrefs);
+  });
+
+  group("Tor tests", () {
+    // useTor is false, so no TorService calls should be made.
+    test("Tor not in use", () async {
+      final mockClient = MockJsonRPC();
+      const command = "blockchain.transaction.get";
+      const jsonArgs = '["${SampleGetTransactionData.txHash0}",true]';
+      when(mockClient.request(
+        '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}',
+        const Duration(seconds: 60),
+      )).thenAnswer((_) async => JsonRPCResponse(data: {
+            "jsonrpc": "2.0",
+            "result": SampleGetTransactionData.txData0,
+            "id": "some requestId",
+          }));
+
+      final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((_) => false);
+      when(mockPrefs.torKillSwitch)
+          .thenAnswer((_) => false); // Or true, shouldn't matter.
+      when(mockPrefs.wifiOnly).thenAnswer((_) => false);
+      final mockTorService = MockTorService();
+      when(mockTorService.enabled).thenAnswer((_) => false);
+
+      final client = ElectrumX(
+        host: "some server",
+        port: 0,
+        useSSL: true,
+        client: mockClient,
+        failovers: [],
+        prefs: mockPrefs,
+        torService: mockTorService,
+      );
+
+      final result = await client.getTransaction(
+          txHash: SampleGetTransactionData.txHash0,
+          verbose: true,
+          requestID: "some requestId");
+
+      expect(result, SampleGetTransactionData.txData0);
+
+      verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.useTor).called(1);
+      verifyNever(mockPrefs.torKillSwitch);
+      verifyNoMoreInteractions(mockPrefs);
+      verifyNever(mockTorService.enabled);
+      verifyNoMoreInteractions(mockTorService);
+    });
+
+    // useTor is true, but TorService is not enabled and the killswitch is off, so a clearnet call should be made.
+    test("Tor in use but Tor unavailable and killswitch off", () async {
+      final mockClient = MockJsonRPC();
+      const command = "blockchain.transaction.get";
+      const jsonArgs = '["${SampleGetTransactionData.txHash0}",true]';
+      when(mockClient.request(
+        '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}',
+        const Duration(seconds: 60),
+      )).thenAnswer((_) async => JsonRPCResponse(data: {
+            "jsonrpc": "2.0",
+            "result": SampleGetTransactionData.txData0,
+            "id": "some requestId",
+          }));
+
+      final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((_) => true);
+      when(mockPrefs.torKillSwitch).thenAnswer((_) => false);
+      when(mockPrefs.wifiOnly).thenAnswer((_) => false);
+
+      final mockTorService = MockTorService();
+      when(mockTorService.enabled).thenAnswer((_) => false);
+      when(mockTorService.proxyInfo).thenAnswer((_) => (
+            host: InternetAddress('1.2.3.4'),
+            port: -1
+          )); // Port is set to -1 until Tor is enabled.
+
+      final client = ElectrumX(
+          host: "some server",
+          port: 0,
+          useSSL: true,
+          client: mockClient,
+          prefs: mockPrefs,
+          torService: mockTorService,
+          failovers: []);
+
+      final result = await client.getTransaction(
+          txHash: SampleGetTransactionData.txHash0,
+          verbose: true,
+          requestID: "some requestId");
+
+      expect(result, SampleGetTransactionData.txData0);
+
+      verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.useTor).called(1);
+      verify(mockPrefs.torKillSwitch).called(1);
+      verifyNoMoreInteractions(mockPrefs);
+      verify(mockTorService.enabled).called(1);
+      verifyNever(mockTorService.proxyInfo);
+      verifyNoMoreInteractions(mockTorService);
+    });
+
+    // useTor is true and TorService is enabled, so a TorService call should be made.
+    test("Tor in use and available", () async {
+      final mockClient = MockJsonRPC();
+      const command = "blockchain.transaction.get";
+      const jsonArgs = '["${SampleGetTransactionData.txHash0}",true]';
+      when(mockClient.request(
+        '{"jsonrpc": "2.0", "id": "some requestId","method": "$command","params": $jsonArgs}',
+        const Duration(seconds: 60),
+      )).thenAnswer((_) async => JsonRPCResponse(data: {
+            "jsonrpc": "2.0",
+            "result": SampleGetTransactionData.txData0,
+            "id": "some requestId",
+          }));
+      when(mockClient.proxyInfo)
+          .thenAnswer((_) => (host: InternetAddress('1.2.3.4'), port: 42));
+
+      final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((_) => true);
+      when(mockPrefs.torKillSwitch).thenAnswer((_) => false); // Or true.
+      when(mockPrefs.wifiOnly).thenAnswer((_) => false);
+
+      final mockTorService = MockTorService();
+      when(mockTorService.enabled).thenAnswer((_) => true);
+      when(mockTorService.proxyInfo)
+          .thenAnswer((_) => (host: InternetAddress('1.2.3.4'), port: 42));
+
+      final client = ElectrumX(
+          host: "some server",
+          port: 0,
+          useSSL: true,
+          client: mockClient,
+          prefs: mockPrefs,
+          torService: mockTorService,
+          failovers: []);
+
+      final result = await client.getTransaction(
+          txHash: SampleGetTransactionData.txHash0,
+          verbose: true,
+          requestID: "some requestId");
+
+      expect(result, SampleGetTransactionData.txData0);
+
+      verify(mockClient.proxyInfo).called(1);
+      verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.useTor).called(1);
+      verifyNever(mockPrefs.torKillSwitch);
+      verifyNoMoreInteractions(mockPrefs);
+      verify(mockTorService.enabled).called(1);
+      verify(mockTorService.proxyInfo).called(1);
+      verifyNoMoreInteractions(mockTorService);
+    });
+
+    // useTor is true, but TorService is not enabled and the killswitch is on, so no TorService calls should be made.
+    test("killswitch enabled", () async {
+      final mockClient = MockJsonRPC();
+      const command = "blockchain.transaction.get";
+      const jsonArgs = '["",true]';
+      when(
+        mockClient.request(
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
+        ),
+      ).thenAnswer(
+        (_) async => JsonRPCResponse(data: {
+          "jsonrpc": "2.0",
+          "error": {
+            "code": 1,
+            "message": "None should be a transaction hash",
+          },
+          "id": "some requestId",
+        }),
+      );
+
+      final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((_) => true);
+      when(mockPrefs.torKillSwitch).thenAnswer((_) => true);
+      when(mockPrefs.wifiOnly).thenAnswer((_) => false);
+      final mockTorService = MockTorService();
+      when(mockTorService.enabled).thenAnswer((_) => false);
+
+      final client = ElectrumX(
+        host: "some server",
+        port: 0,
+        useSSL: true,
+        client: mockClient,
+        failovers: [],
+        prefs: mockPrefs,
+        torService: mockTorService,
+      );
+
+      try {
+        var result = await client.getTransaction(
+            requestID: "some requestId", txHash: '');
+      } catch (e) {
+        expect(e, isA<Exception>());
+        expect(
+            e.toString(),
+            equals(
+                "Exception: Tor preference and killswitch set but Tor is not enabled, not connecting to ElectrumX"));
+      }
+
+      verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.useTor).called(1);
+      verify(mockPrefs.torKillSwitch).called(1);
+      verifyNoMoreInteractions(mockPrefs);
+      verify(mockTorService.enabled).called(1);
+      verifyNoMoreInteractions(mockTorService);
+    });
+
+    // useTor is true but Tor is not enabled, but because the killswitch is off, a clearnet call should be made.
+    test("killswitch disabled", () async {
+      final mockClient = MockJsonRPC();
+      const command = "blockchain.transaction.get";
+      const jsonArgs = '["${SampleGetTransactionData.txHash0}",true]';
+      when(
+        mockClient.request(
+          '{"jsonrpc": "2.0", "id": "some requestId",'
+          '"method": "$command","params": $jsonArgs}',
+          const Duration(seconds: 60),
+        ),
+      ).thenAnswer(
+        (_) async => JsonRPCResponse(data: {
+          "jsonrpc": "2.0",
+          "result": SampleGetTransactionData.txData0,
+          "id": "some requestId"
+        }),
+      );
+
+      final mockPrefs = MockPrefs();
+      when(mockPrefs.useTor).thenAnswer((_) => true);
+      when(mockPrefs.torKillSwitch).thenAnswer((_) => false);
+      when(mockPrefs.wifiOnly).thenAnswer((_) => false);
+      final mockTorService = MockTorService();
+      when(mockTorService.enabled).thenAnswer((_) => false);
+
+      final client = ElectrumX(
+        host: "some server",
+        port: 0,
+        useSSL: true,
+        client: mockClient,
+        failovers: [],
+        prefs: mockPrefs,
+        torService: mockTorService,
+      );
+
+      final result = await client.getTransaction(
+          txHash: SampleGetTransactionData.txHash0,
+          verbose: true,
+          requestID: "some requestId");
+
+      expect(result, SampleGetTransactionData.txData0);
+
+      verify(mockPrefs.wifiOnly).called(1);
+      verify(mockPrefs.useTor).called(1);
+      verify(mockPrefs.torKillSwitch).called(1);
+      verifyNoMoreInteractions(mockPrefs);
+      verify(mockTorService.enabled).called(1);
+      verifyNoMoreInteractions(mockTorService);
+    });
   });
 }

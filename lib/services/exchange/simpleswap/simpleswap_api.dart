@@ -12,7 +12,6 @@ import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
 import 'package:stackwallet/external_api_keys.dart';
 import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart';
@@ -20,9 +19,12 @@ import 'package:stackwallet/models/exchange/response_objects/range.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/exchange/simpleswap/sp_currency.dart';
 import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
+import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 
@@ -34,22 +36,22 @@ class SimpleSwapAPI {
   static final SimpleSwapAPI _instance = SimpleSwapAPI._();
   static SimpleSwapAPI get instance => _instance;
 
-  /// set this to override using standard http client. Useful for testing
-  http.Client? client;
+  HTTP client = HTTP();
 
   Uri _buildUri(String path, Map<String, String>? params) {
     return Uri.https(authority, path, params);
   }
 
   Future<dynamic> _makeGetRequest(Uri uri) async {
-    final client = this.client ?? http.Client();
     int code = -1;
     try {
       final response = await client.get(
-        uri,
+        url: uri,
+        proxyInfo:
+            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
       );
 
-      code = response.statusCode;
+      code = response.code;
 
       final parsed = jsonDecode(response.body);
 
@@ -67,15 +69,16 @@ class SimpleSwapAPI {
     Uri uri,
     Map<String, dynamic> body,
   ) async {
-    final client = this.client ?? http.Client();
     try {
       final response = await client.post(
-        uri,
+        url: uri,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
+        proxyInfo:
+            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
       );
 
-      if (response.statusCode == 200) {
+      if (response.code == 200) {
         final parsed = jsonDecode(response.body);
         return parsed;
       }

@@ -3,21 +3,23 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:http/http.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/models/isar/ordinal.dart';
+import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -50,11 +52,16 @@ class _DesktopOrdinalDetailsViewState
   late final UTXO? utxo;
 
   Future<String> _savePngToFile() async {
-    final response = await get(Uri.parse(widget.ordinal.content));
+    HTTP client = HTTP();
 
-    if (response.statusCode != 200) {
-      throw Exception(
-          "statusCode=${response.statusCode} body=${response.bodyBytes}");
+    final response = await client.get(
+      url: Uri.parse(widget.ordinal.content),
+      proxyInfo:
+          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+    );
+
+    if (response.code != 200) {
+      throw Exception("statusCode=${response.code} body=${response.bodyBytes}");
     }
 
     final bytes = response.bodyBytes;

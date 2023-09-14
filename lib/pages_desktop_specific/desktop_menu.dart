@@ -15,10 +15,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_menu_item.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu.dart';
 import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/widgets/desktop/desktop_tor_status_button.dart';
 import 'package:stackwallet/widgets/desktop/living_stack_icon.dart';
 
 enum DesktopMenuItemId {
@@ -52,10 +54,9 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
 
   final Duration duration = const Duration(milliseconds: 250);
   late final List<DMIController> controllers;
+  late final DMIController torButtonController;
 
   double _width = expandedWidth;
-
-  // final _buyDataLoadingService = BuyDataLoadingService();
 
   void updateSelectedMenuItem(DesktopMenuItemId idKey) {
     widget.onSelectionWillChange?.call(idKey);
@@ -71,6 +72,8 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
     for (var e in controllers) {
       e.toggle?.call();
     }
+
+    torButtonController.toggle?.call();
 
     setState(() {
       _width = expanded ? minimizedWidth : expandedWidth;
@@ -91,6 +94,8 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
       DMIController(),
     ];
 
+    torButtonController = DMIController();
+
     super.initState();
   }
 
@@ -99,6 +104,8 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
     for (var e in controllers) {
       e.dispose();
     }
+    torButtonController.dispose();
+
     super.dispose();
   }
 
@@ -140,7 +147,26 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
               ),
             ),
             const SizedBox(
-              height: 60,
+              height: 5,
+            ),
+            AnimatedContainer(
+              duration: duration,
+              width: _width == expandedWidth
+                  ? _width - 32 // 16 padding on either side
+                  : _width - 16, // 8 padding on either side
+              child: DesktopTorStatusButton(
+                transitionDuration: duration,
+                controller: torButtonController,
+                onPressed: () {
+                  ref.read(currentDesktopMenuItemProvider.state).state =
+                      DesktopMenuItemId.settings;
+                  ref.watch(selectedSettingsMenuItemStateProvider.state).state =
+                      4;
+                },
+              ),
+            ),
+            const SizedBox(
+              height: 40,
             ),
             Expanded(
               child: AnimatedContainer(

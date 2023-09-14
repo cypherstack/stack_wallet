@@ -268,10 +268,17 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
 
       // if not firo then do normal send
       if (shouldSendPublicFiroFunds == null) {
+        final memo =
+            manager.coin == Coin.stellar || manager.coin == Coin.stellarTestnet
+                ? trade.payInExtraId.isNotEmpty
+                    ? trade.payInExtraId
+                    : null
+                : null;
         txDataFuture = manager.prepareSend(
           address: address,
           amount: amount,
           args: {
+            "memo": memo,
             "feeRate": FeeRateType.average,
             // ref.read(feeRateTypeStateProvider)
           },

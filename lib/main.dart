@@ -16,7 +16,6 @@ import 'package:cw_core/node.dart';
 import 'package:cw_core/unspent_coins_info.dart';
 import 'package:cw_core/wallet_info.dart';
 import 'package:cw_core/wallet_type.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_libmonero/monero/monero.dart';
@@ -59,6 +58,7 @@ import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/notifications_service.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/services/trade_service.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/themes/theme_service.dart';
@@ -97,7 +97,7 @@ void main() async {
     setWindowMaxSize(Size.infinite);
 
     final screenHeight = screen?.frame.height;
-    if (screenHeight != null && !kDebugMode) {
+    if (screenHeight != null) {
       // starting to height be 3/4 screen height or 900, whichever is smaller
       final height = min<double>(screenHeight * 0.75, 900);
       setWindowFrame(
@@ -166,6 +166,16 @@ void main() async {
   await Hive.openBox<dynamic>(DB.boxNameDBInfo);
   await Hive.openBox<dynamic>(DB.boxNamePrefs);
   await Prefs.instance.init();
+
+  // TODO:
+  // This should be moved to happen during the loading animation instead of
+  // showing a blank screen for 4-10 seconds.
+  // Some refactoring will need to be done here to make sure we don't make any
+  // network calls before starting up tor
+  if (Prefs.instance.useTor) {
+    TorService.sharedInstance.init();
+    await TorService.sharedInstance.start();
+  }
 
   await StackFileSystem.initThemesDir();
 

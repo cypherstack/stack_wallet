@@ -103,6 +103,7 @@ class _SendViewState extends ConsumerState<SendView> {
   late TextEditingController noteController;
   late TextEditingController onChainNoteController;
   late TextEditingController feeController;
+  late TextEditingController memoController;
 
   late final SendViewAutoFillData? _data;
 
@@ -111,6 +112,9 @@ class _SendViewState extends ConsumerState<SendView> {
   final _onChainNoteFocusNode = FocusNode();
   final _cryptoFocus = FocusNode();
   final _baseFocus = FocusNode();
+  final _memoFocus = FocusNode();
+
+  late final bool isStellar;
 
   Amount? _amountToSend;
   Amount? _cachedAmountToSend;
@@ -522,10 +526,15 @@ class _SendViewState extends ConsumerState<SendView> {
           },
         );
       } else {
+        final memo =
+            manager.coin == Coin.stellar || manager.coin == Coin.stellarTestnet
+                ? memoController.text
+                : null;
         txDataFuture = manager.prepareSend(
           address: _address!,
           amount: amount,
           args: {
+            "memo": memo,
             "feeRate": ref.read(feeRateTypeStateProvider),
             "satsPerVByte": isCustomFee ? customFeeRate : null,
             "UTXOs": (manager.hasCoinControlSupport &&
@@ -622,6 +631,7 @@ class _SendViewState extends ConsumerState<SendView> {
     walletId = widget.walletId;
     clipboard = widget.clipboard;
     scanner = widget.barcodeScanner;
+    isStellar = coin == Coin.stellar || coin == Coin.stellarTestnet;
 
     sendToController = TextEditingController();
     cryptoAmountController = TextEditingController();
@@ -629,6 +639,7 @@ class _SendViewState extends ConsumerState<SendView> {
     noteController = TextEditingController();
     onChainNoteController = TextEditingController();
     feeController = TextEditingController();
+    memoController = TextEditingController();
 
     onCryptoAmountChanged = _cryptoAmountChanged;
     cryptoAmountController.addListener(onCryptoAmountChanged);
@@ -704,12 +715,14 @@ class _SendViewState extends ConsumerState<SendView> {
     noteController.dispose();
     onChainNoteController.dispose();
     feeController.dispose();
+    memoController.dispose();
 
     _noteFocusNode.dispose();
     _onChainNoteFocusNode.dispose();
     _addressFocusNode.dispose();
     _cryptoFocus.dispose();
     _baseFocus.dispose();
+    _memoFocus.dispose();
     super.dispose();
   }
 
@@ -1298,6 +1311,88 @@ class _SendViewState extends ConsumerState<SendView> {
                                 ),
                               ),
                             ),
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          if (isStellar)
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(
+                                Constants.size.circularBorderRadius,
+                              ),
+                              child: TextField(
+                                key: const Key("sendViewMemoFieldKey"),
+                                controller: memoController,
+                                readOnly: false,
+                                autocorrect: false,
+                                enableSuggestions: false,
+                                focusNode: _memoFocus,
+                                style: STextStyles.field(context),
+                                onChanged: (_) {
+                                  setState(() {});
+                                },
+                                decoration: standardInputDecoration(
+                                  "Enter memo (optional)",
+                                  _memoFocus,
+                                  context,
+                                ).copyWith(
+                                  contentPadding: const EdgeInsets.only(
+                                    left: 16,
+                                    top: 6,
+                                    bottom: 8,
+                                    right: 5,
+                                  ),
+                                  suffixIcon: Padding(
+                                    padding: memoController.text.isEmpty
+                                        ? const EdgeInsets.only(right: 8)
+                                        : const EdgeInsets.only(right: 0),
+                                    child: UnconstrainedBox(
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceAround,
+                                        children: [
+                                          memoController.text.isNotEmpty
+                                              ? TextFieldIconButton(
+                                                  semanticsLabel:
+                                                      "Clear Button. Clears The Memo Field Input.",
+                                                  key: const Key(
+                                                      "sendViewClearMemoFieldButtonKey"),
+                                                  onTap: () {
+                                                    memoController.text = "";
+                                                    setState(() {});
+                                                  },
+                                                  child: const XIcon(),
+                                                )
+                                              : TextFieldIconButton(
+                                                  semanticsLabel:
+                                                      "Paste Button. Pastes From Clipboard To Memo Field Input.",
+                                                  key: const Key(
+                                                      "sendViewPasteMemoFieldButtonKey"),
+                                                  onTap: () async {
+                                                    final ClipboardData? data =
+                                                        await clipboard.getData(
+                                                            Clipboard
+                                                                .kTextPlain);
+                                                    if (data?.text != null &&
+                                                        data!
+                                                            .text!.isNotEmpty) {
+                                                      String content =
+                                                          data.text!.trim();
+
+                                                      memoController.text =
+                                                          content.trim();
+
+                                                      setState(() {});
+                                                    }
+                                                  },
+                                                  child: const ClipboardIcon(),
+                                                ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                           Builder(
                             builder: (_) {
                               final error = _updateInvalidAddressText(
@@ -1817,7 +1912,8 @@ class _SendViewState extends ConsumerState<SendView> {
                               ),
                               child: TextField(
                                 autocorrect: Util.isDesktop ? false : true,
-                                enableSuggestions: Util.isDesktop ? false : true,
+                                enableSuggestions:
+                                    Util.isDesktop ? false : true,
                                 maxLength: 256,
                                 controller: onChainNoteController,
                                 focusNode: _onChainNoteFocusNode,
@@ -1828,25 +1924,27 @@ class _SendViewState extends ConsumerState<SendView> {
                                   _onChainNoteFocusNode,
                                   context,
                                 ).copyWith(
-                                  suffixIcon: onChainNoteController.text.isNotEmpty
+                                  suffixIcon: onChainNoteController
+                                          .text.isNotEmpty
                                       ? Padding(
-                                    padding:
-                                    const EdgeInsets.only(right: 0),
-                                    child: UnconstrainedBox(
-                                      child: Row(
-                                        children: [
-                                          TextFieldIconButton(
-                                            child: const XIcon(),
-                                            onTap: () async {
-                                              setState(() {
-                                                onChainNoteController.text = "";
-                                              });
-                                            },
+                                          padding:
+                                              const EdgeInsets.only(right: 0),
+                                          child: UnconstrainedBox(
+                                            child: Row(
+                                              children: [
+                                                TextFieldIconButton(
+                                                  child: const XIcon(),
+                                                  onTap: () async {
+                                                    setState(() {
+                                                      onChainNoteController
+                                                          .text = "";
+                                                    });
+                                                  },
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                        ],
-                                      ),
-                                    ),
-                                  )
+                                        )
                                       : null,
                                 ),
                               ),
@@ -1856,8 +1954,9 @@ class _SendViewState extends ConsumerState<SendView> {
                               height: 12,
                             ),
                           Text(
-                              (coin == Coin.epicCash) ? "Local Note (optional)"
-                                  : "Note (optional)",
+                            (coin == Coin.epicCash)
+                                ? "Local Note (optional)"
+                                : "Note (optional)",
                             style: STextStyles.smallMed12(context),
                             textAlign: TextAlign.left,
                           ),

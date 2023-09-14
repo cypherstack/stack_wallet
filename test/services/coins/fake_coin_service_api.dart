@@ -88,7 +88,9 @@ class FakeCoinServiceAPI extends CoinServiceAPI {
   }
 
   @override
-  Future<void> initializeNew() {
+  Future<void> initializeNew(
+    ({String mnemonicPassphrase, int wordCount})? data,
+  ) {
     // TODO: implement initializeNew
     throw UnimplementedError();
   }

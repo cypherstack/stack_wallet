@@ -12,7 +12,6 @@ import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
 import 'package:stackwallet/exceptions/exchange/pair_unavailable_exception.dart';
 import 'package:stackwallet/exceptions/exchange/unsupported_currency_exception.dart';
@@ -26,9 +25,12 @@ import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.d
 import 'package:stackwallet/models/exchange/response_objects/range.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
 import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
+import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
 
 class ChangeNowAPI {
@@ -37,12 +39,13 @@ class ChangeNowAPI {
   static const String apiVersion = "/v1";
   static const String apiVersionV2 = "/v2";
 
-  ChangeNowAPI._();
-  static final ChangeNowAPI _instance = ChangeNowAPI._();
-  static ChangeNowAPI get instance => _instance;
+  final HTTP client;
 
-  /// set this to override using standard http client. Useful for testing
-  http.Client? client;
+  @visibleForTesting
+  ChangeNowAPI({HTTP? http}) : client = http ?? HTTP();
+
+  static final ChangeNowAPI _instance = ChangeNowAPI();
+  static ChangeNowAPI get instance => _instance;
 
   Uri _buildUri(String path, Map<String, dynamic>? params) {
     return Uri.https(authority, apiVersion + path, params);
@@ -53,21 +56,23 @@ class ChangeNowAPI {
   }
 
   Future<dynamic> _makeGetRequest(Uri uri) async {
-    final client = this.client ?? http.Client();
     try {
       final response = await client.get(
-        uri,
+        url: uri,
         headers: {'Content-Type': 'application/json'},
+        proxyInfo:
+            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
       );
-
+      String? data;
       try {
-        final parsed = jsonDecode(response.body);
+        data = response.body;
+        final parsed = jsonDecode(data);
 
         return parsed;
       } on FormatException catch (e) {
         return {
           "error": "Dart format exception",
-          "message": response.body,
+          "message": data,
         };
       }
     } catch (e, s) {
@@ -78,17 +83,19 @@ class ChangeNowAPI {
   }
 
   Future<dynamic> _makeGetRequestV2(Uri uri, String apiKey) async {
-    final client = this.client ?? http.Client();
     try {
       final response = await client.get(
-        uri,
+        url: uri,
         headers: {
           // 'Content-Type': 'application/json',
           'x-changenow-api-key': apiKey,
         },
+        proxyInfo:
+            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
       );
 
-      final parsed = jsonDecode(response.body);
+      final data = response.body;
+      final parsed = jsonDecode(data);
 
       return parsed;
     } catch (e, s) {
@@ -102,21 +109,24 @@ class ChangeNowAPI {
     Uri uri,
     Map<String, String> body,
   ) async {
-    final client = this.client ?? http.Client();
     try {
       final response = await client.post(
-        uri,
+        url: uri,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
+        proxyInfo:
+            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
       );
 
+      String? data;
       try {
-        final parsed = jsonDecode(response.body);
+        data = response.body;
+        final parsed = jsonDecode(data);
 
         return parsed;
       } catch (_) {
-        Logging.instance.log("ChangeNOW api failed to parse: ${response.body}",
-            level: LogLevel.Error);
+        Logging.instance
+            .log("ChangeNOW api failed to parse: $data", level: LogLevel.Error);
         rethrow;
       }
     } catch (e, s) {

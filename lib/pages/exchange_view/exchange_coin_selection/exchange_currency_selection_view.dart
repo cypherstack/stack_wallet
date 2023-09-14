@@ -24,6 +24,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -38,6 +39,8 @@ import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
+
+import '../../../services/exchange/exchange.dart';
 
 class ExchangeCurrencySelectionView extends StatefulWidget {
   const ExchangeCurrencySelectionView({
@@ -125,7 +128,7 @@ class _ExchangeCurrencySelectionViewState
         await showDialog<void>(
           context: context,
           builder: (context) => StackDialog(
-            title: "ChangeNOW Error",
+            title: "Exchange Error",
             message: "Failed to load currency data: ${cn.exception}",
             leftButton: SecondaryButton(
               label: "Ok",
@@ -168,6 +171,15 @@ class _ExchangeCurrencySelectionViewState
         .sortByIsStackCoin()
         .thenByName()
         .findAll();
+
+    // If using Tor, filter exchanges which do not support Tor.
+    if (Prefs.instance.useTor) {
+      if (Exchange.exchangeNamesWithTorSupport.isNotEmpty) {
+        currencies.removeWhere((element) => !Exchange
+            .exchangeNamesWithTorSupport
+            .contains(element.exchangeName));
+      }
+    }
 
     return _getDistinctCurrenciesFrom(currencies);
   }

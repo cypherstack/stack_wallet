@@ -27,12 +27,15 @@ import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/blocks_remaining_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
+import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
@@ -91,6 +94,13 @@ class _WalletNetworkSettingsViewState
   late double _percent;
   late int _blocksRemaining;
   bool _advancedIsExpanded = false;
+
+  /// The current status of the Tor connection.
+  late TorConnectionStatus _torConnectionStatus;
+
+  /// The subscription to the TorConnectionStatusChangedEvent.
+  late final StreamSubscription<TorConnectionStatusChangedEvent>
+      _torConnectionStatusSubscription;
 
   Future<void> _attemptRescan() async {
     if (!Platform.isLinux) await Wakelock.enable();
@@ -268,6 +278,25 @@ class _WalletNetworkSettingsViewState
     //     }
     //   },
     // );
+
+    // Initialize the TorConnectionStatus.
+    _torConnectionStatus = ref.read(pTorService).enabled
+        ? TorConnectionStatus.connected
+        : TorConnectionStatus.disconnected;
+
+    // Subscribe to the TorConnectionStatusChangedEvent.
+    _torConnectionStatusSubscription =
+        eventBus.on<TorConnectionStatusChangedEvent>().listen(
+      (event) async {
+        // Rebuild the widget.
+        setState(() {
+          _torConnectionStatus = event.newStatus;
+        });
+
+        // TODO implement spinner or animations and control from here
+      },
+    );
+
     super.initState();
   }
 
@@ -277,6 +306,7 @@ class _WalletNetworkSettingsViewState
     _syncStatusSubscription.cancel();
     _refreshSubscription.cancel();
     _blocksRemainingSubscription?.cancel();
+    _torConnectionStatusSubscription.cancel();
     super.dispose();
   }
 
@@ -340,92 +370,98 @@ class _WalletNetworkSettingsViewState
                 style: STextStyles.navBarTitle(context),
               ),
               actions: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                    top: 10,
-                    bottom: 10,
-                    right: 10,
-                  ),
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: AppBarIconButton(
-                      key: const Key(
-                          "walletNetworkSettingsAddNewNodeViewButton"),
-                      size: 36,
-                      shadows: const [],
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .background,
-                      icon: SvgPicture.asset(
-                        Assets.svg.verticalEllipsis,
+                if (ref
+                        .read(walletsChangeNotifierProvider)
+                        .getManager(widget.walletId)
+                        .coin !=
+                    Coin.epicCash)
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: 10,
+                      bottom: 10,
+                      right: 10,
+                    ),
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: AppBarIconButton(
+                        key: const Key(
+                            "walletNetworkSettingsAddNewNodeViewButton"),
+                        size: 36,
+                        shadows: const [],
                         color: Theme.of(context)
                             .extension<StackColors>()!
-                            .accentColorDark,
-                        width: 20,
-                        height: 20,
-                      ),
-                      onPressed: () {
-                        showDialog<dynamic>(
-                          barrierColor: Colors.transparent,
-                          barrierDismissible: true,
-                          context: context,
-                          builder: (_) {
-                            return Stack(
-                              children: [
-                                Positioned(
-                                  top: 9,
-                                  right: 10,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .popupBG,
-                                      borderRadius: BorderRadius.circular(
-                                          Constants.size.circularBorderRadius),
-                                      // boxShadow: [CFColors.standardBoxShadow],
-                                      boxShadow: const [],
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        GestureDetector(
-                                          onTap: () {
-                                            Navigator.of(context).pop();
-                                            showDialog<void>(
-                                              context: context,
-                                              useSafeArea: false,
-                                              barrierDismissible: true,
-                                              builder: (context) {
-                                                return ConfirmFullRescanDialog(
-                                                  onConfirm: _attemptRescan,
-                                                );
-                                              },
-                                            );
-                                          },
-                                          child: RoundedWhiteContainer(
-                                            child: Material(
-                                              color: Colors.transparent,
-                                              child: Text(
-                                                "Rescan blockchain",
-                                                style:
-                                                    STextStyles.baseXS(context),
+                            .background,
+                        icon: SvgPicture.asset(
+                          Assets.svg.verticalEllipsis,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorDark,
+                          width: 20,
+                          height: 20,
+                        ),
+                        onPressed: () {
+                          showDialog<dynamic>(
+                            barrierColor: Colors.transparent,
+                            barrierDismissible: true,
+                            context: context,
+                            builder: (_) {
+                              return Stack(
+                                children: [
+                                  Positioned(
+                                    top: 9,
+                                    right: 10,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .popupBG,
+                                        borderRadius: BorderRadius.circular(
+                                            Constants
+                                                .size.circularBorderRadius),
+                                        // boxShadow: [CFColors.standardBoxShadow],
+                                        boxShadow: const [],
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          GestureDetector(
+                                            onTap: () {
+                                              Navigator.of(context).pop();
+                                              showDialog<void>(
+                                                context: context,
+                                                useSafeArea: false,
+                                                barrierDismissible: true,
+                                                builder: (context) {
+                                                  return ConfirmFullRescanDialog(
+                                                    onConfirm: _attemptRescan,
+                                                  );
+                                                },
+                                              );
+                                            },
+                                            child: RoundedWhiteContainer(
+                                              child: Material(
+                                                color: Colors.transparent,
+                                                child: Text(
+                                                  "Rescan blockchain",
+                                                  style: STextStyles.baseXS(
+                                                      context),
+                                                ),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      },
+                                ],
+                              );
+                            },
+                          );
+                        },
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
             body: Padding(
@@ -520,14 +556,6 @@ class _WalletNetworkSettingsViewState
                             Text(
                               "Synchronized",
                               style: STextStyles.w600_12(context),
-                            ),
-                            Text(
-                              "100%",
-                              style: STextStyles.syncPercent(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorGreen,
-                              ),
                             ),
                           ],
                         ),
@@ -753,6 +781,161 @@ class _WalletNetworkSettingsViewState
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
+                "Tor status",
+                textAlign: TextAlign.left,
+                style: isDesktop
+                    ? STextStyles.desktopTextExtraExtraSmall(context)
+                    : STextStyles.smallMed12(context),
+              ),
+              if (ref.watch(
+                  prefsChangeNotifierProvider.select((value) => value.useTor)))
+                GestureDetector(
+                  onTap: () async {
+                    // Stop the Tor service.
+                    try {
+                      await ref.read(pTorService).stop();
+
+                      // Toggle the useTor preference on success.
+                      ref.read(prefsChangeNotifierProvider).useTor = false;
+                    } catch (e, s) {
+                      Logging.instance.log(
+                        "Error stopping tor: $e\n$s",
+                        level: LogLevel.Error,
+                      );
+                    }
+                  },
+                  child: Text(
+                    "Disconnect",
+                    style: STextStyles.link2(context),
+                  ),
+                ),
+              if (!ref.watch(
+                  prefsChangeNotifierProvider.select((value) => value.useTor)))
+                GestureDetector(
+                  onTap: () async {
+                    // Init the Tor service if it hasn't already been.
+                    ref.read(pTorService).init();
+
+                    // Start the Tor service.
+                    try {
+                      await ref.read(pTorService).start();
+
+                      // Toggle the useTor preference on success.
+                      ref.read(prefsChangeNotifierProvider).useTor = true;
+                    } catch (e, s) {
+                      Logging.instance.log(
+                        "Error starting tor: $e\n$s",
+                        level: LogLevel.Error,
+                      );
+                    }
+                  },
+                  child: Text(
+                    "Connect",
+                    style: STextStyles.link2(context),
+                  ),
+                ),
+            ],
+          ),
+          SizedBox(
+            height: isDesktop ? 12 : 9,
+          ),
+          RoundedWhiteContainer(
+            borderColor: isDesktop
+                ? Theme.of(context).extension<StackColors>()!.background
+                : null,
+            padding:
+                isDesktop ? const EdgeInsets.all(16) : const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                if (ref.watch(prefsChangeNotifierProvider
+                    .select((value) => value.useTor)))
+                  Container(
+                    width: _iconSize,
+                    height: _iconSize,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorGreen
+                          .withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(_iconSize),
+                    ),
+                    child: Center(
+                      child: SvgPicture.asset(
+                        Assets.svg.tor,
+                        height: isDesktop ? 19 : 14,
+                        width: isDesktop ? 19 : 14,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorGreen,
+                      ),
+                    ),
+                  ),
+                if (!ref.watch(prefsChangeNotifierProvider
+                    .select((value) => value.useTor)))
+                  Container(
+                    width: _iconSize,
+                    height: _iconSize,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textDark
+                          .withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(_iconSize),
+                    ),
+                    child: Center(
+                      child: SvgPicture.asset(
+                        Assets.svg.tor,
+                        height: isDesktop ? 19 : 14,
+                        width: isDesktop ? 19 : 14,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark,
+                      ),
+                    ),
+                  ),
+                SizedBox(
+                  width: _boxPadding,
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Tor status",
+                      style: STextStyles.desktopTextExtraExtraSmall(context)
+                          .copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark,
+                      ),
+                    ),
+                    if (_torConnectionStatus == TorConnectionStatus.connected)
+                      Text(
+                        "Connected",
+                        style: STextStyles.desktopTextExtraExtraSmall(context),
+                      ),
+                    if (_torConnectionStatus == TorConnectionStatus.connecting)
+                      Text(
+                        "Connecting...",
+                        style: STextStyles.desktopTextExtraExtraSmall(context),
+                      ),
+                    if (_torConnectionStatus ==
+                        TorConnectionStatus.disconnected)
+                      Text(
+                        "Disconnected",
+                        style: STextStyles.desktopTextExtraExtraSmall(context),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: isDesktop ? 32 : 20,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
                 "${ref.watch(walletsChangeNotifierProvider.select((value) => value.getManager(widget.walletId).coin)).prettyName} nodes",
                 textAlign: TextAlign.left,
                 style: isDesktop
@@ -786,11 +969,21 @@ class _WalletNetworkSettingsViewState
                 .select((value) => value.getManager(widget.walletId).coin)),
             popBackToRoute: WalletNetworkSettingsView.routeName,
           ),
-          if (isDesktop)
+          if (isDesktop &&
+              ref
+                      .read(walletsChangeNotifierProvider)
+                      .getManager(widget.walletId)
+                      .coin !=
+                  Coin.epicCash)
             const SizedBox(
               height: 32,
             ),
-          if (isDesktop)
+          if (isDesktop &&
+              ref
+                      .read(walletsChangeNotifierProvider)
+                      .getManager(widget.walletId)
+                      .coin !=
+                  Coin.epicCash)
             Padding(
               padding: const EdgeInsets.only(
                 bottom: 12,
@@ -806,7 +999,12 @@ class _WalletNetworkSettingsViewState
                 ],
               ),
             ),
-          if (isDesktop)
+          if (isDesktop &&
+              ref
+                      .read(walletsChangeNotifierProvider)
+                      .getManager(widget.walletId)
+                      .coin !=
+                  Coin.epicCash)
             RoundedWhiteContainer(
               borderColor: isDesktop
                   ? Theme.of(context).extension<StackColors>()!.background

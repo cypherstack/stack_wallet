@@ -310,7 +310,9 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   @override
-  Future<void> initializeNew() async {
+  Future<void> initializeNew(
+    ({String mnemonicPassphrase, int wordCount})? data,
+  ) async {
     Logging.instance.log(
       "Generating new ${coin.prettyName} wallet.",
       level: LogLevel.Info,
@@ -324,7 +326,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
     await _prefs.init();
 
     try {
-      await _generateNewWallet();
+      await _generateNewWallet(data);
     } catch (e, s) {
       Logging.instance.log(
         "Exception rethrown from initializeNew(): $e\n$s",
@@ -338,7 +340,9 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
     ]);
   }
 
-  Future<void> _generateNewWallet() async {
+  Future<void> _generateNewWallet(
+    ({String mnemonicPassphrase, int wordCount})? data,
+  ) async {
     // Logging.instance
     //     .log("IS_INTEGRATION_TEST: $integrationTestFlag", level: LogLevel.Info);
     // if (!integrationTestFlag) {
@@ -366,14 +370,23 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
           "Attempted to overwrite mnemonic on generate new wallet!");
     }
 
-    final String mnemonic = bip39.generateMnemonic(strength: 128);
+    final int strength;
+    if (data == null || data.wordCount == 12) {
+      strength = 128;
+    } else if (data.wordCount == 24) {
+      strength = 256;
+    } else {
+      throw Exception("Invalid word count");
+    }
+    final String mnemonic = bip39.generateMnemonic(strength: strength);
+    final String passphrase = data?.mnemonicPassphrase ?? "";
     await _secureStore.write(key: '${_walletId}_mnemonic', value: mnemonic);
     await _secureStore.write(
       key: '${_walletId}_mnemonicPassphrase',
-      value: "",
+      value: passphrase,
     );
 
-    await _generateAndSaveAddress(mnemonic, "");
+    await _generateAndSaveAddress(mnemonic, passphrase);
 
     Logging.instance.log("_generateNewWalletFinished", level: LogLevel.Info);
   }

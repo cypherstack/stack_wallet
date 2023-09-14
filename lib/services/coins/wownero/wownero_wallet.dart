@@ -333,7 +333,10 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   @override
-  Future<void> initializeNew({int seedWordsLength = 14}) async {
+  Future<void> initializeNew(
+    ({String mnemonicPassphrase, int wordCount})? data, {
+    int seedWordsLength = 14,
+  }) async {
     await _prefs.init();
 
     // this should never fail

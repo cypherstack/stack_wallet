@@ -582,6 +582,19 @@ class MockPrefs extends _i1.Mock implements _i5.Prefs {
         returnValueForMissingStub: null,
       );
   @override
+  bool get torKillSwitch => (super.noSuchMethod(
+        Invocation.getter(#torKillSwitch),
+        returnValue: false,
+      ) as bool);
+  @override
+  set torKillSwitch(bool? torKillswitch) => super.noSuchMethod(
+        Invocation.setter(
+          #torKillSwitch,
+          torKillswitch,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   bool get showTestNetCoins => (super.noSuchMethod(
         Invocation.getter(#showTestNetCoins),
         returnValue: false,
@@ -750,6 +763,19 @@ class MockPrefs extends _i1.Mock implements _i5.Prefs {
         Invocation.setter(
           #systemBrightnessDarkThemeId,
           systemBrightnessDarkThemeId,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  bool get useTor => (super.noSuchMethod(
+        Invocation.getter(#useTor),
+        returnValue: false,
+      ) as bool);
+  @override
+  set useTor(bool? useTor) => super.noSuchMethod(
+        Invocation.setter(
+          #useTor,
+          useTor,
         ),
         returnValueForMissingStub: null,
       );

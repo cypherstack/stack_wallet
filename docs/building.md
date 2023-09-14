@@ -123,7 +123,7 @@ flutter run android
 Note on Emulators: Only x86_64 emulators are supported, x86 emulators will not work
 
 #### Linux
-Plug in your android device or use the emulator available via Android Studio and then run the following commands:
+Run the following commands or launch via Android Studio:
 ```
 flutter pub get
 flutter run linux

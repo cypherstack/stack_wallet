@@ -252,10 +252,17 @@ class _Step4ViewState extends ConsumerState<Step4View> {
           },
         );
       } else {
+        final memo =
+            manager.coin == Coin.stellar || manager.coin == Coin.stellarTestnet
+                ? model.trade!.payInExtraId.isNotEmpty
+                    ? model.trade!.payInExtraId
+                    : null
+                : null;
         txDataFuture = manager.prepareSend(
           address: address,
           amount: amount,
           args: {
+            "memo": memo,
             "feeRate": FeeRateType.average,
             // ref.read(feeRateTypeStateProvider)
           },
@@ -568,6 +575,74 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                             const SizedBox(
                               height: 6,
                             ),
+                            if (model.trade!.payInExtraId.isNotEmpty)
+                              RoundedWhiteContainer(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Memo",
+                                          style:
+                                              STextStyles.itemSubtitle(context),
+                                        ),
+                                        GestureDetector(
+                                          onTap: () async {
+                                            final data = ClipboardData(
+                                                text:
+                                                    model.trade!.payInExtraId);
+                                            await clipboard.setData(data);
+                                            if (mounted) {
+                                              unawaited(
+                                                showFloatingFlushBar(
+                                                  type: FlushBarType.info,
+                                                  message:
+                                                      "Copied to clipboard",
+                                                  context: context,
+                                                ),
+                                              );
+                                            }
+                                          },
+                                          child: Row(
+                                            children: [
+                                              SvgPicture.asset(
+                                                Assets.svg.copy,
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .infoItemIcons,
+                                                width: 10,
+                                              ),
+                                              const SizedBox(
+                                                width: 4,
+                                              ),
+                                              Text(
+                                                "Copy",
+                                                style:
+                                                    STextStyles.link2(context),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(
+                                      height: 4,
+                                    ),
+                                    Text(
+                                      model.trade!.payInExtraId,
+                                      style:
+                                          STextStyles.itemSubtitle12(context),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            if (model.trade!.payInExtraId.isNotEmpty)
+                              const SizedBox(
+                                height: 6,
+                              ),
                             RoundedWhiteContainer(
                               child: Row(
                                 children: [

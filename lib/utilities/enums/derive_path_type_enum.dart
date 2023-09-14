@@ -1,6 +1,6 @@
-/* 
+/*
  * This file is part of Stack Wallet.
- * 
+ *
  * Copyright (c) 2023 Cypher Stack
  * All Rights Reserved.
  * The code is distributed under GPLv3 license, see LICENSE file for details.
@@ -51,6 +51,7 @@ extension DerivePathTypeExt on DerivePathType {
       case Coin.banano:
       case Coin.stellar:
       case Coin.stellarTestnet:
+      case Coin.tezos: // TODO: Is this true?
         throw UnsupportedError(
             "$coin does not use bitcoin style derivation paths");
     }
