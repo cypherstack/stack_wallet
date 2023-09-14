@@ -25,6 +25,8 @@ class TorService {
   static final sharedInstance = TorService._();
 
   /// Getter for the proxyInfo.
+  ///
+  /// Returns a Map with the host and port of the Tor proxy.
   ({
     InternetAddress host,
     int port,
