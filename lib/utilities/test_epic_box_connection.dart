@@ -24,7 +24,7 @@ Future<bool> _testEpicBoxNodeConnection(Uri uri) async {
           url: uri,
           headers: {'Content-Type': 'application/json'},
           proxyInfo: Prefs.instance.useTor
-              ? TorService.sharedInstance.proxyInfo
+              ? TorService.sharedInstance.getProxyInfo()
               : null,
         )
         .timeout(const Duration(milliseconds: 2000),

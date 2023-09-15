@@ -693,7 +693,7 @@ class MockTorService extends _i1.Mock implements _i11.TorService {
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
   @override
-  _i4.Future<void> stop() => (super.noSuchMethod(
+  _i4.Future<void> disable() => (super.noSuchMethod(
         Invocation.method(
           #stop,
           [],

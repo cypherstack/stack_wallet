@@ -38,14 +38,16 @@ class BuyView extends ConsumerStatefulWidget {
 class _BuyViewState extends ConsumerState<BuyView> {
   Coin? coin;
   EthContract? tokenContract;
-  late bool torEnabled = false;
+
+  late bool torEnabled;
 
   @override
   void initState() {
     coin = widget.coin;
     tokenContract = widget.tokenContract;
 
-    torEnabled = ref.read(pTorService).enabled;
+    torEnabled =
+        ref.read(pTorService).status != TorConnectionStatus.disconnected;
 
     super.initState();
   }

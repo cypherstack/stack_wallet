@@ -187,8 +187,8 @@ class ElectrumX {
   void _checkRpcClient() {
     // If we're supposed to use Tor...
     if (_prefs.useTor) {
-      // But Tor isn't enabled...
-      if (!_torService.enabled) {
+      // But Tor isn't running...
+      if (_torService.status != TorConnectionStatus.connected) {
         // And the killswitch isn't set...
         if (!_prefs.torKillSwitch) {
           // Then we'll just proceed and connect to ElectrumX through clearnet at the bottom of this function.
@@ -203,7 +203,7 @@ class ElectrumX {
         }
       } else {
         // Get the proxy info from the TorService.
-        final proxyInfo = _torService.proxyInfo;
+        final proxyInfo = _torService.getProxyInfo();
 
         if (currentFailoverIndex == -1) {
           _rpcClient ??= JsonRPC(

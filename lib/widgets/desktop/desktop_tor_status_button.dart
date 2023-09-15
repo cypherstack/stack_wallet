@@ -81,9 +81,7 @@ class _DesktopTorStatusButtonState extends ConsumerState<DesktopTorStatusButton>
     eventBus = GlobalEventBus.instance;
 
     // Initialize the TorConnectionStatus.
-    _torConnectionStatus = ref.read(pTorService).enabled
-        ? TorConnectionStatus.connected
-        : TorConnectionStatus.disconnected;
+    _torConnectionStatus = ref.read(pTorService).status;
 
     // Subscribe to the TorConnectionStatusChangedEvent.
     _torConnectionStatusSubscription =
@@ -93,25 +91,6 @@ class _DesktopTorStatusButtonState extends ConsumerState<DesktopTorStatusButton>
         setState(() {
           _torConnectionStatus = event.newStatus;
         });
-
-        // TODO implement spinner or animations and control from here
-        // switch (event.newStatus) {
-        //   case TorConnectionStatus.disconnected:
-        //     // if (_spinController.hasLoadedAnimation) {
-        //     //   _spinController.stop?.call();
-        //     // }
-        //     break;
-        //   case TorConnectionStatus.connecting:
-        //     // if (_spinController.hasLoadedAnimation) {
-        //     //   _spinController.repeat?.call();
-        //     // }
-        //     break;
-        //   case TorConnectionStatus.connected:
-        //     // if (_spinController.hasLoadedAnimation) {
-        //     //   _spinController.stop?.call();
-        //     // }
-        //     break;
-        // }
       },
     );
 

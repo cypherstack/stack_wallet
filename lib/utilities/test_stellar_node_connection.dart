@@ -13,8 +13,9 @@ Future<bool> testStellarNodeConnection(String host, int port) async {
       .get(
         url: uri,
         headers: {'Content-Type': 'application/json'},
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       )
       .timeout(const Duration(milliseconds: 2000),
           onTimeout: () async => http.Response(utf8.encode('Error'), 408));

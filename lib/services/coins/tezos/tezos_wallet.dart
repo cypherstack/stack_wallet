@@ -245,7 +245,7 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
     var response = jsonDecode((await client.get(
       url: Uri.parse(api),
       proxyInfo:
-          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+          _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
     ))
         .body)[0];
     double totalFees = response[4] as double;
@@ -270,7 +270,7 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
     var response = jsonDecode((await client.get(
       url: Uri.parse(api),
       proxyInfo:
-          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+          _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
     ))
         .body);
     double totalFees = response[0][4] as double;
@@ -509,9 +509,8 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
       var response = jsonDecode(await client
           .get(
             url: Uri.parse(balanceCall),
-            proxyInfo: Prefs.instance.useTor
-                ? TorService.sharedInstance.proxyInfo
-                : null,
+            proxyInfo:
+                _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
           )
           .then((value) => value.body));
       Amount balanceInAmount = Amount(
@@ -538,9 +537,8 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
     var response = jsonDecode(await client
         .get(
           url: Uri.parse(transactionsCall),
-          proxyInfo: Prefs.instance.useTor
-              ? TorService.sharedInstance.proxyInfo
-              : null,
+          proxyInfo:
+              _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
         )
         .then((value) => value.body));
     List<Tuple2<Transaction, Address>> txs = [];
@@ -619,9 +617,8 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
       var jsonParsedResponse = jsonDecode(await client
           .get(
             url: Uri.parse(api),
-            proxyInfo: Prefs.instance.useTor
-                ? TorService.sharedInstance.proxyInfo
-                : null,
+            proxyInfo:
+                _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
           )
           .then((value) => value.body));
       final int intHeight = int.parse(jsonParsedResponse["level"].toString());
@@ -707,7 +704,7 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
         url: Uri.parse(
             "${getCurrentNode().host}:${getCurrentNode().port}/chains/main/blocks/head/header/shell"),
         proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+            _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
       );
       return true;
     } catch (e) {

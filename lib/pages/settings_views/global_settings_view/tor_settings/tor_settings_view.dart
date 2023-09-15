@@ -20,6 +20,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -270,9 +271,7 @@ class _TorIconState extends ConsumerState<TorIcon> {
 
   @override
   void initState() {
-    _status = ref.read(pTorService).enabled
-        ? TorConnectionStatus.connected
-        : TorConnectionStatus.disconnected;
+    _status = ref.read(pTorService).status;
 
     super.initState();
   }
@@ -399,9 +398,7 @@ class _TorButtonState extends ConsumerState<TorButton> {
 
   @override
   void initState() {
-    _status = ref.read(pTorService).enabled
-        ? TorConnectionStatus.connected
-        : TorConnectionStatus.disconnected;
+    _status = ref.read(pTorService).status;
 
     super.initState();
   }
@@ -455,11 +452,11 @@ class _TorButtonState extends ConsumerState<TorButton> {
 ///
 /// Returns a Future that completes when the Tor service has started.
 Future<void> _connectTor(WidgetRef ref, BuildContext context) async {
-  // Init the Tor service if it hasn't already been.
-  ref.read(pTorService).init();
-
-  // Start the Tor service.
   try {
+    // Init the Tor service if it hasn't already been.
+    final torDir = await StackFileSystem.applicationTorDirectory();
+    ref.read(pTorService).init(torDataDirPath: torDir.path);
+    // Start the Tor service.
     await ref.read(pTorService).start();
 
     // Toggle the useTor preference on success.
@@ -485,7 +482,7 @@ Future<void> _connectTor(WidgetRef ref, BuildContext context) async {
 Future<void> _disconnectTor(WidgetRef ref, BuildContext context) async {
   // Stop the Tor service.
   try {
-    await ref.read(pTorService).stop();
+    await ref.read(pTorService).disable();
 
     // Toggle the useTor preference on success.
     ref.read(prefsChangeNotifierProvider).useTor = false;

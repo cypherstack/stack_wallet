@@ -31,11 +31,12 @@ class DesktopBuyView extends ConsumerStatefulWidget {
 }
 
 class _DesktopBuyViewState extends ConsumerState<DesktopBuyView> {
-  late bool torEnabled = false;
+  late bool torEnabled;
 
   @override
   void initState() {
-    torEnabled = ref.read(pTorService).enabled;
+    torEnabled =
+        ref.read(pTorService).status != TorConnectionStatus.disconnected;
     super.initState();
   }
 
@@ -62,8 +63,8 @@ class _DesktopBuyViewState extends ConsumerState<DesktopBuyView> {
                 ),
               ),
             ),
-            body: Padding(
-              padding: const EdgeInsets.only(
+            body: const Padding(
+              padding: EdgeInsets.only(
                 left: 24,
                 right: 24,
                 bottom: 24,
@@ -75,7 +76,7 @@ class _DesktopBuyViewState extends ConsumerState<DesktopBuyView> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         SizedBox(
                           height: 16,
                         ),
@@ -86,7 +87,7 @@ class _DesktopBuyViewState extends ConsumerState<DesktopBuyView> {
                       ],
                     ),
                   ),
-                  const SizedBox(
+                  SizedBox(
                     width: 16,
                   ),
                   // Expanded(

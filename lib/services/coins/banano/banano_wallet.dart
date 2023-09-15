@@ -160,7 +160,7 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
         },
       ),
       proxyInfo:
-          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+          _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
     )
         .then((client) {
       if (client.code == 200) {
@@ -195,7 +195,7 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
         headers: headers,
         body: balanceBody,
         proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+            _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
       );
       final balanceData = jsonDecode(balanceResponse.body);
 
@@ -215,7 +215,7 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
         headers: headers,
         body: infoBody,
         proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+            _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
       );
 
       final String frontier =
@@ -270,7 +270,7 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
         headers: headers,
         body: processBody,
         proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+            _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
       );
 
       final Map<String, dynamic> decoded =
@@ -344,7 +344,7 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
       headers: headers,
       body: body,
       proxyInfo:
-          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+          _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
     );
     final data = jsonDecode(response.body);
     _balance = Balance(
@@ -388,7 +388,7 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
       headers: headers,
       body: infoBody,
       proxyInfo:
-          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+          _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
     );
     final infoData = jsonDecode(infoResponse.body);
 
@@ -408,7 +408,7 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
       headers: headers,
       body: balanceBody,
       proxyInfo:
-          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+          _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
     );
 
     final balanceData = jsonDecode(balanceResponse.body);
@@ -483,7 +483,7 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
       headers: headers,
       body: processBody,
       proxyInfo:
-          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+          _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
     );
 
     final Map<String, dynamic> decoded =
@@ -504,7 +504,7 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
         "count": "-1",
       }),
       proxyInfo:
-          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+          _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
     );
 
     final receivableData = await jsonDecode(receivableResponse.body);
@@ -536,7 +536,7 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
         "count": "-1",
       }),
       proxyInfo:
-          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+          _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
     );
     final data = await jsonDecode(response.body);
     final transactions =
@@ -858,7 +858,7 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
         },
       ),
       proxyInfo:
-          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+          _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
     );
 
     return response.code == 200;
@@ -952,7 +952,7 @@ class BananoWallet extends CoinServiceAPI with WalletCache, WalletDB {
       headers: headers,
       body: infoBody,
       proxyInfo:
-          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+          _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
     );
     final infoData = jsonDecode(infoResponse.body);
 

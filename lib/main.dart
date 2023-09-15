@@ -173,7 +173,9 @@ void main() async {
   // Some refactoring will need to be done here to make sure we don't make any
   // network calls before starting up tor
   if (Prefs.instance.useTor) {
-    TorService.sharedInstance.init();
+    TorService.sharedInstance.init(
+      torDataDirPath: (await StackFileSystem.applicationTorDirectory()).path,
+    );
     await TorService.sharedInstance.start();
   }
 

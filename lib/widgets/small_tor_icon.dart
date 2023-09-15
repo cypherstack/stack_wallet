@@ -37,9 +37,7 @@ class _SmallTorIconState extends ConsumerState<SmallTorIcon> {
 
   @override
   void initState() {
-    _status = ref.read(pTorService).enabled
-        ? TorConnectionStatus.connected
-        : TorConnectionStatus.disconnected;
+    _status = ref.read(pTorService).status;
 
     super.initState();
   }

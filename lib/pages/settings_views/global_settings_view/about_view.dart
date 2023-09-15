@@ -50,8 +50,9 @@ Future<bool> doesCommitExist(
     final commitQuery = await client.get(
       url: uri,
       headers: {'Content-Type': 'application/json'},
-      proxyInfo:
-          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+      proxyInfo: Prefs.instance.useTor
+          ? TorService.sharedInstance.getProxyInfo()
+          : null,
     );
 
     final response = jsonDecode(commitQuery.body.toString());
@@ -89,8 +90,9 @@ Future<bool> isHeadCommit(
     final commitQuery = await client.get(
       url: uri,
       headers: {'Content-Type': 'application/json'},
-      proxyInfo:
-          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+      proxyInfo: Prefs.instance.useTor
+          ? TorService.sharedInstance.getProxyInfo()
+          : null,
     );
 
     final response = jsonDecode(commitQuery.body.toString());
