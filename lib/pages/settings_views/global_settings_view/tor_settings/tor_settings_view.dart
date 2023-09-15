@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lottie/lottie.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import 'package:stackwallet/services/tor_service.dart';
@@ -32,7 +33,9 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/tor_subscription.dart';
 
 class TorSettingsView extends ConsumerStatefulWidget {
-  const TorSettingsView({Key? key}) : super(key: key);
+  const TorSettingsView({
+    Key? key,
+  }) : super(key: key);
 
   static const String routeName = "/torSettings";
 
@@ -99,7 +102,7 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
                 children: [
                   Padding(
                     padding: EdgeInsets.all(10.0),
-                    child: TorIcon(),
+                    child: TorAnimatedButton(),
                   ),
                 ],
               ),
@@ -195,47 +198,18 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
   }
 }
 
-class TorIcon extends ConsumerStatefulWidget {
-  const TorIcon({super.key});
+class TorAnimatedButton extends ConsumerStatefulWidget {
+  const TorAnimatedButton({super.key});
 
   @override
-  ConsumerState<TorIcon> createState() => _TorIconState();
+  ConsumerState<TorAnimatedButton> createState() => _TorAnimatedButtonState();
 }
 
-class _TorIconState extends ConsumerState<TorIcon> {
+class _TorAnimatedButtonState extends ConsumerState<TorAnimatedButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController controller1;
+
   late TorConnectionStatus _status;
-
-  Color _color(
-    TorConnectionStatus status,
-    StackColors colors,
-  ) {
-    switch (status) {
-      case TorConnectionStatus.disconnected:
-        return colors.textSubtitle3;
-
-      case TorConnectionStatus.connected:
-        return colors.accentColorGreen;
-
-      case TorConnectionStatus.connecting:
-        return colors.accentColorYellow;
-    }
-  }
-
-  String _label(
-    TorConnectionStatus status,
-    StackColors colors,
-  ) {
-    switch (status) {
-      case TorConnectionStatus.disconnected:
-        return "CONNECT";
-
-      case TorConnectionStatus.connected:
-        return "STOP";
-
-      case TorConnectionStatus.connecting:
-        return "CONNECTING";
-    }
-  }
 
   bool _tapLock = false;
 
@@ -269,20 +243,126 @@ class _TorIconState extends ConsumerState<TorIcon> {
     }
   }
 
+  Color _color(
+    TorConnectionStatus status,
+    StackColors colors,
+  ) {
+    switch (status) {
+      case TorConnectionStatus.disconnected:
+        return colors.textSubtitle3;
+
+      case TorConnectionStatus.connected:
+        return colors.accentColorGreen;
+
+      case TorConnectionStatus.connecting:
+        return colors.accentColorYellow;
+    }
+  }
+
+  String _label(
+    TorConnectionStatus status,
+  ) {
+    switch (status) {
+      case TorConnectionStatus.disconnected:
+        return "CONNECT";
+
+      case TorConnectionStatus.connected:
+        return "STOP";
+
+      case TorConnectionStatus.connecting:
+        return "CONNECTING";
+    }
+  }
+
+  void _playConnecting() async {
+    await _play(
+      from: "connection-start",
+      to: "connection-end",
+      repeat: true,
+    );
+  }
+
+  void _playConnected() async {
+    await _play(
+      from: "connection-end",
+      to: "disconnection-start",
+      repeat: true,
+    );
+  }
+
+  void _playDisconnect() async {
+    await _play(
+      from: "disconnection-start",
+      to: "disconnection-end",
+      repeat: false,
+    );
+    controller1.reset();
+  }
+
+  Future<void> _play({
+    required String from,
+    required String to,
+    required bool repeat,
+  }) async {
+    final composition = await _completer.future;
+    final start = composition.getMarker(from)!.start;
+    final end = composition.getMarker(to)!.start;
+
+    if (repeat) {
+      await controller1.repeat(
+        min: start,
+        max: end,
+        period: composition.duration * (end - start),
+      );
+    } else {
+      await controller1.animateTo(
+        end,
+        duration: composition.duration * (end - start),
+      );
+    }
+  }
+
+  late Completer<LottieComposition> _completer;
+
   @override
   void initState() {
+    controller1 = AnimationController(vsync: this);
+
     _status = ref.read(pTorService).status;
+
+    _completer = Completer();
 
     super.initState();
   }
 
   @override
+  void dispose() {
+    controller1.dispose();
+
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // TODO: modify size (waiting for updated onion lottie animation file)
+    final width = MediaQuery.of(context).size.width / 1.5;
+
     return TorSubscription(
       onTorStatusChanged: (status) {
-        setState(() {
-          _status = status;
-        });
+        _status = status;
+        switch (_status) {
+          case TorConnectionStatus.disconnected:
+            _playDisconnect();
+            break;
+
+          case TorConnectionStatus.connected:
+            _playConnected();
+            break;
+
+          case TorConnectionStatus.connecting:
+            _playConnecting();
+            break;
+        }
       },
       child: ConditionalParent(
         condition: _status != TorConnectionStatus.connecting,
@@ -290,32 +370,54 @@ class _TorIconState extends ConsumerState<TorIcon> {
           onTap: onTap,
           child: child,
         ),
-        child: SizedBox(
-          width: 220,
-          height: 220,
-          child: Stack(
-            alignment: AlignmentDirectional.center,
-            children: [
-              SvgPicture.asset(
-                Assets.svg.tor,
+        child: Column(
+          children: [
+            SizedBox(
+              width: width,
+              child: Lottie.asset(
+                Assets.lottie.onionTor,
+                controller: controller1,
+                width: width,
+                // height: width,
+                onLoaded: (composition) {
+                  _completer.complete(composition);
+                  // setState(() {
+                  controller1.duration = composition.duration;
+
+                  // TODO: clean up (waiting for updated onion lottie animation file)
+                  // });
+                  print(
+                      "=======================================================");
+
+                  composition.markers.forEach((e) {
+                    print(e.name);
+                  });
+                  print(
+                      "=======================================================");
+                  //
+
+                  if (_status == TorConnectionStatus.connected) {
+                    _playConnected();
+                  } else if (_status == TorConnectionStatus.connecting) {
+                    _playConnecting();
+                  }
+                },
+              ),
+            ),
+            Text(
+              _label(
+                _status,
+              ),
+              style: STextStyles.pageTitleH2(
+                context,
+              ).copyWith(
                 color: _color(
                   _status,
                   Theme.of(context).extension<StackColors>()!,
                 ),
-                width: 200,
-                height: 200,
               ),
-              Text(
-                _label(
-                  _status,
-                  Theme.of(context).extension<StackColors>()!,
-                ),
-                style: STextStyles.smallMed14(context).copyWith(
-                  color: Theme.of(context).extension<StackColors>()!.popupBG,
-                ),
-              ),
-            ],
-          ),
+            )
+          ],
         ),
       ),
     );
