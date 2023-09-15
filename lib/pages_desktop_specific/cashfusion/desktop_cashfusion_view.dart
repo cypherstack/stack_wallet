@@ -11,15 +11,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
+import 'package:stackwallet/providers/ui/check_box_state_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:stackwallet/widgets/stack_text_field.dart';
 
 class DesktopCashFusionView extends ConsumerStatefulWidget {
   const DesktopCashFusionView({
@@ -36,13 +38,44 @@ class DesktopCashFusionView extends ConsumerStatefulWidget {
 }
 
 class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
+  late final TextEditingController serverController;
+  late final FocusNode serverFocusNode;
+  late final TextEditingController portController;
+  late final FocusNode portFocusNode;
+
+  String _serverTerm = "";
+  String _portTerm = "";
+
+  bool _useSSL = false;
+  bool _trusted = false;
+  int? port;
+  late bool enableSSLCheckbox;
+
+  late final bool enableAuthFields;
+
+  void _updateState() {}
+
   @override
   void initState() {
+    serverController = TextEditingController();
+    portController = TextEditingController();
+
+    serverFocusNode = FocusNode();
+    portFocusNode = FocusNode();
+
+    enableSSLCheckbox = true;
+
     super.initState();
   }
 
   @override
   void dispose() {
+    serverController.dispose();
+    portController.dispose();
+
+    serverFocusNode.dispose();
+    portFocusNode.dispose();
+
     super.dispose();
   }
 
@@ -112,7 +145,7 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                               .radioButtonIconBorder,
                         ),
                         const SizedBox(
-                          width: 6,
+                          width: 8,
                         ),
                         RichText(
                           text: TextSpan(
@@ -144,27 +177,234 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                     child: Row(
                       children: [
                         Text(
-                            "CashFustion allows you to anonymize your BCH coins."
-                            "\nYou must be connected to the Tor network."),
+                          "CashFusion allows you to anonymize your BCH coins."
+                          "\nYou must be connected to the Tor network.",
+                          style:
+                              STextStyles.desktopTextExtraExtraSmall(context),
+                        ),
                       ],
                     ),
                   ),
                 ),
-                const Text("TODO FusionParticipantList"),
                 const SizedBox(
-                  height: 16,
+                  height: 24,
                 ),
-                TextButton(
-                  onPressed: () => {
-                    (ref
-                            .read(walletsChangeNotifierProvider)
-                            .getManager(widget.walletId)
-                            .wallet as FusionWalletInterface)
-                        .fuse()
-                  },
-                  child: Text(
-                    "Fuse",
-                    style: STextStyles.desktopTextMedium(context),
+                SizedBox(
+                  width: 460,
+                  child: RoundedWhiteContainer(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Server settings",
+                          style:
+                              STextStyles.desktopTextExtraExtraSmall(context),
+                        ),
+                        const SizedBox(
+                          height: 12,
+                        ),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          ),
+                          child: TextField(
+                              autocorrect: false,
+                              enableSuggestions: false,
+                              controller: serverController,
+                              focusNode: serverFocusNode,
+                              onChanged: (value) {
+                                setState(() {
+                                  _serverTerm = value;
+                                });
+                              },
+                              style: STextStyles.field(context),
+                              decoration: standardInputDecoration(
+                                "Server",
+                                serverFocusNode,
+                                context,
+                                desktopMed: true,
+                              )
+                              // .copyWith(labelStyle: ),
+                              ),
+                        ),
+                        const SizedBox(
+                          height: 12,
+                        ),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          ),
+                          child: TextField(
+                            autocorrect: false,
+                            enableSuggestions: false,
+                            controller: portController,
+                            focusNode: portFocusNode,
+                            onChanged: (value) {
+                              setState(() {
+                                _portTerm = value;
+                              });
+                            },
+                            style: STextStyles.field(context),
+                            decoration: standardInputDecoration(
+                              "Port",
+                              portFocusNode,
+                              context,
+                              desktopMed: true,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 12,
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            final value =
+                                ref.read(checkBoxStateProvider.state).state;
+                            ref.read(checkBoxStateProvider.state).state =
+                                !value;
+                          },
+                          child: Container(
+                            color: Colors.transparent,
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: Checkbox(
+                                    // fillColor: enableSSLCheckbox
+                                    //     ? null
+                                    //     : MaterialStateProperty.all(
+                                    //         Theme.of(context)
+                                    //             .extension<StackColors>()!
+                                    //             .checkboxBGDisabled),
+                                    materialTapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                    value: ref
+                                        .watch(checkBoxStateProvider.state)
+                                        .state,
+                                    onChanged: (newValue) {
+                                      ref
+                                          .watch(checkBoxStateProvider.state)
+                                          .state = newValue!;
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 12,
+                                ),
+                                Text(
+                                  "Use SSL",
+                                  style: STextStyles.itemSubtitle12(context),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        Text(
+                          "Rounds of fusion",
+                          style:
+                              STextStyles.desktopTextExtraExtraSmall(context),
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        Stack(
+                          children: [
+                            TextField(
+                              autocorrect: false,
+                              enableSuggestions: false,
+                              readOnly: true,
+                              textInputAction: TextInputAction.none,
+                              style: STextStyles.desktopTextFieldLabel(context)
+                                  .copyWith(
+                                fontSize: 16,
+                              ),
+                              decoration: const InputDecoration(
+                                contentPadding: EdgeInsets.symmetric(
+                                  vertical: 18,
+                                  horizontal: 16,
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                              child: RawMaterialButton(
+                                splashColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .highlight,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    Constants.size.circularBorderRadius,
+                                  ),
+                                ),
+                                onPressed: () {},
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Continuous",
+                                      style:
+                                          STextStyles.itemSubtitle12(context),
+                                    ),
+                                    SvgPicture.asset(
+                                      Assets.svg.chevronDown,
+                                      width: 8,
+                                      height: 4,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textSubtitle2,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Tor status",
+                              style: STextStyles.desktopTextExtraExtraSmall(
+                                  context),
+                            ),
+                            Text(
+                              "Disconnect",
+                              style: STextStyles.richLink(context).copyWith(
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        RoundedWhiteContainer(
+                          borderColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .shadow,
+                          child: Row(
+                            children: [],
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        PrimaryButton(
+                          label: "Start",
+                          onPressed: () {},
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
