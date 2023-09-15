@@ -12,6 +12,7 @@ import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
+import 'package:stackwallet/utilities/stack_file_system.dart';
 
 const String kReservedFusionAddress = "reserved_fusion_address";
 
@@ -30,7 +31,12 @@ mixin FusionWalletInterface {
     DerivePathType derivePathType,
   ) _generateAddressForChain;
 
-  void initFusionInterface({
+  /// Initializes the FusionWalletInterface mixin.
+  ///
+  /// This function must be called before any other functions in this mixin.
+  ///
+  /// Returns a `Future<void>` that resolves when Tor has been started.
+  Future<void> initFusionInterface({
     required String walletId,
     required Coin coin,
     required MainDB db,
@@ -39,27 +45,29 @@ mixin FusionWalletInterface {
       int,
       DerivePathType,
     ) generateAddressForChain,
-  }) {
+  }) async {
+    // Set passed in wallet data.
     _walletId = walletId;
     _coin = coin;
     _db = db;
     _generateAddressForChain = generateAddressForChain;
     _torService = TorService.sharedInstance;
 
-    // Start the Tor service if it's not already running.
-    // TODO fix this.  It will cause all Stack Wallet traffic to start being routed
-    // through Tor, which is not what we want.
-    if (_torService.proxyInfo.port == -1) {
-      // -1 indicates that the proxy is not running.
-      // Initialize the ffi lib instance if it hasn't already been set.
-      _torService.init();
+    // Try getting the proxy info.
+    //
+    // Start the Tor service if it's not already running.  Returns if Tor is already
+    // connected or else after Tor returns from start().
+    try {
+      _torService.getProxyInfo();
+      // Proxy info successfully retrieved, Tor is connected.
+      return;
+    } catch (e) {
+      // Init the Tor service if it hasn't already been.
+      final torDir = await StackFileSystem.applicationTorDirectory();
+      _torService.init(torDataDirPath: torDir.path);
 
       // Start the Tor service.
-      //
-      // TODO should we await this?  At this point I don't want to make this init function async.
-      // The risk would be that the Tor service is not started before the Fusion library tries to
-      // connect to it.
-      unawaited(_torService.start());
+      return await _torService.start();
     }
   }
 
@@ -181,7 +189,7 @@ mixin FusionWalletInterface {
     // returning the proxy address.
 
     // Return the proxy address.
-    return _torService.proxyInfo;
+    return _torService.getProxyInfo();
   }
 
   // Initial attempt for CashFusion integration goes here.
