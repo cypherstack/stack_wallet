@@ -9,13 +9,11 @@ import 'package:fusiondart/src/models/transaction.dart' as fusion_tx;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 
-import 'package:stackwallet/services/tor_service.dart';
-
 const String kReservedFusionAddress = "reserved_fusion_address";
-
 
 /// A mixin for the BitcoinCashWallet class that adds CashFusion functionality.
 mixin FusionWalletInterface {
