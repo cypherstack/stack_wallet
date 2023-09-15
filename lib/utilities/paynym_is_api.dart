@@ -52,8 +52,9 @@ class PaynymIsApi {
       url: uri,
       headers: headers,
       body: jsonEncode(body),
-      proxyInfo:
-          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+      proxyInfo: Prefs.instance.useTor
+          ? TorService.sharedInstance.getProxyInfo()
+          : null,
     );
 
     debugPrint("Paynym request uri: $uri");

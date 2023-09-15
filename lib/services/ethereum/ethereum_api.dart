@@ -61,8 +61,9 @@ abstract class EthereumAPI {
         url: Uri.parse(
           "$stackBaseServer/export?addrs=$address&firstBlock=$firstBlock",
         ),
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       if (response.code == 200) {
@@ -184,8 +185,9 @@ abstract class EthereumAPI {
         url: Uri.parse(
           "$stackBaseServer/transactions?transactions=${txns.map((e) => e.hash).join(" ")}&raw=true",
         ),
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       if (response.code == 200) {
@@ -244,8 +246,9 @@ abstract class EthereumAPI {
         url: Uri.parse(
           "$stackBaseServer/transactions?transactions=${txids.join(" ")}",
         ),
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       if (response.code == 200) {
@@ -303,8 +306,9 @@ abstract class EthereumAPI {
         url: Uri.parse(
           "$stackBaseServer/export?addrs=$address&emitter=$tokenContractAddress&logs=true",
         ),
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       if (response.code == 200) {
@@ -437,8 +441,9 @@ abstract class EthereumAPI {
       );
       final response = await client.get(
         url: uri,
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       if (response.code == 200) {
@@ -488,8 +493,9 @@ abstract class EthereumAPI {
       );
       final response = await client.get(
         url: uri,
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       if (response.code == 200) {
@@ -535,8 +541,9 @@ abstract class EthereumAPI {
         url: Uri.parse(
           "$stackBaseServer/gas-prices",
         ),
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       if (response.code == 200) {
@@ -606,8 +613,9 @@ abstract class EthereumAPI {
         url: Uri.parse(
           "$stackBaseServer/tokens?addrs=$contractAddress&parts=all",
         ),
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       if (response.code == 200) {
@@ -675,8 +683,9 @@ abstract class EthereumAPI {
         url: Uri.parse(
           "$stackBaseServer/abis?addrs=$contractAddress&verbose=true",
         ),
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       if (response.code == 200) {
@@ -717,8 +726,9 @@ abstract class EthereumAPI {
       final response = await client.get(
         url: Uri.parse(
             "$stackBaseServer/state?addrs=$contractAddress&parts=proxy"),
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
       if (response.code == 200) {
         final json = jsonDecode(response.body);

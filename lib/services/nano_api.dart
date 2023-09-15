@@ -31,8 +31,9 @@ class NanoAPI {
           "representative": "true",
           "account": account,
         }),
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       final map = jsonDecode(response.body);
@@ -124,8 +125,9 @@ class NanoAPI {
         "subtype": "change",
         "block": block,
       }),
-      proxyInfo:
-          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+      proxyInfo: Prefs.instance.useTor
+          ? TorService.sharedInstance.getProxyInfo()
+          : null,
     );
 
     return jsonDecode(response.body);

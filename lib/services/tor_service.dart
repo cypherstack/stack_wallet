@@ -10,35 +10,45 @@ final pTorService = Provider((_) => TorService.sharedInstance);
 
 class TorService {
   Tor? _tor;
+  String? _torDataDirPath;
 
-  /// Flag to indicate that a Tor circuit is thought to have been established.
-  bool _enabled = false;
-
-  /// Getter for the enabled flag.
-  bool get enabled => _enabled;
-
-  TorService._();
+  /// Current status. Same as that fired on the event bus
+  TorConnectionStatus get status => _status;
+  TorConnectionStatus _status = TorConnectionStatus.disconnected;
 
   /// Singleton instance of the TorService.
   ///
   /// Use this to access the TorService and its properties.
   static final sharedInstance = TorService._();
 
+  // private constructor for singleton
+  TorService._();
+
   /// Getter for the proxyInfo.
   ///
-  /// Returns a Map with the host and port of the Tor proxy.
+  /// Returns null if disabled on the stack wallet level.
   ({
     InternetAddress host,
     int port,
-  }) get proxyInfo => (
+  }) getProxyInfo() {
+    if (status == TorConnectionStatus.connected) {
+      return (
         host: InternetAddress.loopbackIPv4,
         port: _tor!.port,
       );
+    } else {
+      throw Exception("Tor proxy info fetched while not connected!");
+    }
+  }
 
   /// Initialize the tor ffi lib instance if it hasn't already been set. Nothing
   /// changes if _tor is already been set.
-  void init({Tor? mockableOverride}) {
+  void init({
+    required String torDataDirPath,
+    Tor? mockableOverride,
+  }) {
     _tor ??= mockableOverride ?? Tor.instance;
+    _torDataDirPath ??= torDataDirPath;
   }
 
   /// Start the Tor service.
@@ -49,46 +59,25 @@ class TorService {
   ///
   /// Returns a Future that completes when the Tor service has started.
   Future<void> start() async {
-    if (_tor == null) {
+    if (_tor == null || _torDataDirPath == null) {
       throw Exception("TorService.init has not been called!");
-    }
-
-    if (_enabled) {
-      // already started so just return
-      // could throw an exception here or something so the caller
-      // is explicitly made aware of this
-      // TODO restart tor after that's been added to the tor-ffi crate
-      // (probably better to have a restart function separately)
-
-      // Fire a TorConnectionStatusChangedEvent on the event bus.
-      GlobalEventBus.instance.fire(
-        TorConnectionStatusChangedEvent(
-          TorConnectionStatus.connected,
-          "Tor connection status changed: connect ($_enabled)",
-        ),
-      );
-      return;
     }
 
     // Start the Tor service.
     try {
-      GlobalEventBus.instance.fire(
-        TorConnectionStatusChangedEvent(
-          TorConnectionStatus.connecting,
-          "Tor connection status changed: connecting",
-        ),
+      _updateStatusAndFireEvent(
+        status: TorConnectionStatus.connecting,
+        message: "TorService.start call in progress",
       );
-      await _tor!.start();
+
+      await _tor!.start(torDataDirPath: _torDataDirPath!);
+
       // no exception or error so we can (probably?) assume tor
       // has started successfully
-      _enabled = true;
-
       // Fire a TorConnectionStatusChangedEvent on the event bus.
-      GlobalEventBus.instance.fire(
-        TorConnectionStatusChangedEvent(
-          TorConnectionStatus.connected,
-          "Tor connection status changed: connect ($_enabled)",
-        ),
+      _updateStatusAndFireEvent(
+        status: TorConnectionStatus.connected,
+        message: "TorService.start call success",
       );
     } catch (e, s) {
       Logging.instance.log(
@@ -98,47 +87,41 @@ class TorService {
       // _enabled should already be false
 
       // Fire a TorConnectionStatusChangedEvent on the event bus.
-      GlobalEventBus.instance.fire(
-        TorConnectionStatusChangedEvent(
-          TorConnectionStatus.disconnected,
-          "Tor connection status changed: $_enabled (failed)",
-        ),
+      _updateStatusAndFireEvent(
+        status: TorConnectionStatus.disconnected,
+        message: "TorService.start call failed",
       );
       rethrow;
     }
   }
 
-  Future<void> stop() async {
+  /// disable tor
+  Future<void> disable() async {
     if (_tor == null) {
       throw Exception("TorService.init has not been called!");
     }
 
-    if (!_enabled) {
-      // already stopped so just return
-      // could throw an exception here or something so the caller
-      // is explicitly made aware of this
-      // TODO make sure to kill
+    // no need to update status and fire event if status won't change
+    if (_status == TorConnectionStatus.disconnected) {
       return;
     }
 
-    // Stop the Tor service.
-    try {
-      _tor!.disable();
-      // no exception or error so we can (probably?) assume tor
-      // has started successfully
-      _enabled = false;
-      GlobalEventBus.instance.fire(
-        TorConnectionStatusChangedEvent(
-          TorConnectionStatus.disconnected,
-          "Tor connection status changed: $_enabled (disabled)",
-        ),
-      );
-    } catch (e, s) {
-      Logging.instance.log(
-        "TorService.stop failed: $e\n$s",
-        level: LogLevel.Warning,
-      );
-      rethrow;
-    }
+    _updateStatusAndFireEvent(
+      status: TorConnectionStatus.disconnected,
+      message: "TorService.disable call success",
+    );
+  }
+
+  void _updateStatusAndFireEvent({
+    required TorConnectionStatus status,
+    required String message,
+  }) {
+    _status = status;
+    GlobalEventBus.instance.fire(
+      TorConnectionStatusChangedEvent(
+        _status,
+        message,
+      ),
+    );
   }
 }

@@ -60,8 +60,9 @@ class ChangeNowAPI {
       final response = await client.get(
         url: uri,
         headers: {'Content-Type': 'application/json'},
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
       String? data;
       try {
@@ -90,8 +91,9 @@ class ChangeNowAPI {
           // 'Content-Type': 'application/json',
           'x-changenow-api-key': apiKey,
         },
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       final data = response.body;
@@ -114,8 +116,9 @@ class ChangeNowAPI {
         url: uri,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       String? data;

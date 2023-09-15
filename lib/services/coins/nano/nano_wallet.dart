@@ -169,7 +169,7 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB {
         },
       ),
       proxyInfo:
-          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+          _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
     )
         .then((Response response) {
       if (response.code == 200) {
@@ -204,7 +204,7 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB {
         headers: headers,
         body: balanceBody,
         proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+            _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
       );
       final balanceData = jsonDecode(balanceResponse.body);
 
@@ -224,7 +224,7 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB {
         headers: headers,
         body: infoBody,
         proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+            _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
       );
 
       final String frontier =
@@ -279,7 +279,7 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB {
         headers: headers,
         body: processBody,
         proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+            _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
       );
 
       final Map<String, dynamic> decoded =
@@ -349,7 +349,7 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB {
       headers: headers,
       body: body,
       proxyInfo:
-          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+          _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
     );
     final data = jsonDecode(response.body);
     _balance = Balance(
@@ -393,7 +393,7 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB {
       headers: headers,
       body: infoBody,
       proxyInfo:
-          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+          _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
     );
     final infoData = jsonDecode(infoResponse.body);
 
@@ -413,7 +413,7 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB {
       headers: headers,
       body: balanceBody,
       proxyInfo:
-          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+          _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
     );
 
     final balanceData = jsonDecode(balanceResponse.body);
@@ -488,7 +488,7 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB {
       headers: headers,
       body: processBody,
       proxyInfo:
-          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+          _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
     );
 
     final Map<String, dynamic> decoded =
@@ -509,7 +509,7 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB {
         "count": "-1",
       }),
       proxyInfo:
-          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+          _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
     );
 
     final receivableData = await jsonDecode(receivableResponse.body);
@@ -541,7 +541,7 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB {
         "count": "-1",
       }),
       proxyInfo:
-          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+          _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
     );
     final data = await jsonDecode(response.body);
     final transactions =
@@ -869,7 +869,7 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB {
         },
       ),
       proxyInfo:
-          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+          _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
     );
 
     return response.code == 200;
@@ -963,7 +963,7 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB {
       headers: headers,
       body: infoBody,
       proxyInfo:
-          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+          _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
     );
     final infoData = jsonDecode(infoResponse.body);
 

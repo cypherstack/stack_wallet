@@ -36,6 +36,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
@@ -48,6 +49,7 @@ import 'package:stackwallet/widgets/progress_bar.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
+import 'package:stackwallet/widgets/tor_subscription.dart';
 import 'package:tuple/tuple.dart';
 import 'package:wakelock/wakelock.dart';
 
@@ -97,10 +99,6 @@ class _WalletNetworkSettingsViewState
 
   /// The current status of the Tor connection.
   late TorConnectionStatus _torConnectionStatus;
-
-  /// The subscription to the TorConnectionStatusChangedEvent.
-  late final StreamSubscription<TorConnectionStatusChangedEvent>
-      _torConnectionStatusSubscription;
 
   Future<void> _attemptRescan() async {
     if (!Platform.isLinux) await Wakelock.enable();
@@ -280,22 +278,7 @@ class _WalletNetworkSettingsViewState
     // );
 
     // Initialize the TorConnectionStatus.
-    _torConnectionStatus = ref.read(pTorService).enabled
-        ? TorConnectionStatus.connected
-        : TorConnectionStatus.disconnected;
-
-    // Subscribe to the TorConnectionStatusChangedEvent.
-    _torConnectionStatusSubscription =
-        eventBus.on<TorConnectionStatusChangedEvent>().listen(
-      (event) async {
-        // Rebuild the widget.
-        setState(() {
-          _torConnectionStatus = event.newStatus;
-        });
-
-        // TODO implement spinner or animations and control from here
-      },
-    );
+    _torConnectionStatus = ref.read(pTorService).status;
 
     super.initState();
   }
@@ -306,7 +289,6 @@ class _WalletNetworkSettingsViewState
     _syncStatusSubscription.cancel();
     _refreshSubscription.cancel();
     _blocksRemainingSubscription?.cancel();
-    _torConnectionStatusSubscription.cancel();
     super.dispose();
   }
 
@@ -793,7 +775,7 @@ class _WalletNetworkSettingsViewState
                   onTap: () async {
                     // Stop the Tor service.
                     try {
-                      await ref.read(pTorService).stop();
+                      await ref.read(pTorService).disable();
 
                       // Toggle the useTor preference on success.
                       ref.read(prefsChangeNotifierProvider).useTor = false;
@@ -813,11 +795,12 @@ class _WalletNetworkSettingsViewState
                   prefsChangeNotifierProvider.select((value) => value.useTor)))
                 GestureDetector(
                   onTap: () async {
-                    // Init the Tor service if it hasn't already been.
-                    ref.read(pTorService).init();
-
-                    // Start the Tor service.
                     try {
+                      // Init the Tor service if it hasn't already been.
+                      final torDir =
+                          await StackFileSystem.applicationTorDirectory();
+                      ref.read(pTorService).init(torDataDirPath: torDir.path);
+                      // Start the Tor service.
                       await ref.read(pTorService).start();
 
                       // Toggle the useTor preference on success.
@@ -827,6 +810,7 @@ class _WalletNetworkSettingsViewState
                         "Error starting tor: $e\n$s",
                         level: LogLevel.Error,
                       );
+                      // TODO: show dialog with error message
                     }
                   },
                   child: Text(
@@ -896,35 +880,46 @@ class _WalletNetworkSettingsViewState
                 SizedBox(
                   width: _boxPadding,
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Tor status",
-                      style: STextStyles.desktopTextExtraExtraSmall(context)
-                          .copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark,
-                      ),
-                    ),
-                    if (_torConnectionStatus == TorConnectionStatus.connected)
+                TorSubscription(
+                  onTorStatusChanged: (status) {
+                    setState(() {
+                      _torConnectionStatus = status;
+                    });
+                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        "Connected",
-                        style: STextStyles.desktopTextExtraExtraSmall(context),
+                        "Tor status",
+                        style: STextStyles.desktopTextExtraExtraSmall(context)
+                            .copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textDark,
+                        ),
                       ),
-                    if (_torConnectionStatus == TorConnectionStatus.connecting)
-                      Text(
-                        "Connecting...",
-                        style: STextStyles.desktopTextExtraExtraSmall(context),
-                      ),
-                    if (_torConnectionStatus ==
-                        TorConnectionStatus.disconnected)
-                      Text(
-                        "Disconnected",
-                        style: STextStyles.desktopTextExtraExtraSmall(context),
-                      ),
-                  ],
+                      if (_torConnectionStatus == TorConnectionStatus.connected)
+                        Text(
+                          "Connected",
+                          style:
+                              STextStyles.desktopTextExtraExtraSmall(context),
+                        ),
+                      if (_torConnectionStatus ==
+                          TorConnectionStatus.connecting)
+                        Text(
+                          "Connecting...",
+                          style:
+                              STextStyles.desktopTextExtraExtraSmall(context),
+                        ),
+                      if (_torConnectionStatus ==
+                          TorConnectionStatus.disconnected)
+                        Text(
+                          "Disconnected",
+                          style:
+                              STextStyles.desktopTextExtraExtraSmall(context),
+                        ),
+                    ],
+                  ),
                 ),
               ],
             ),

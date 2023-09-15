@@ -25,8 +25,9 @@ class MonKeyService {
 
       final response = await client.get(
         url: Uri.parse(url),
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       if (response.code == 200) {

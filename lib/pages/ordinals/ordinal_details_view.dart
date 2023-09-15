@@ -12,6 +12,7 @@ import 'package:stackwallet/models/isar/ordinal.dart';
 import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
+import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -20,7 +21,6 @@ import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -219,7 +219,7 @@ class _DetailsItemWCopy extends StatelessWidget {
   }
 }
 
-class _OrdinalImageGroup extends StatelessWidget {
+class _OrdinalImageGroup extends ConsumerWidget {
   const _OrdinalImageGroup({
     Key? key,
     required this.walletId,
@@ -231,13 +231,14 @@ class _OrdinalImageGroup extends StatelessWidget {
 
   static const _spacing = 12.0;
 
-  Future<String> _savePngToFile() async {
+  Future<String> _savePngToFile(WidgetRef ref) async {
     HTTP client = HTTP();
 
     final response = await client.get(
       url: Uri.parse(ordinal.content),
-      proxyInfo:
-          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+      proxyInfo: ref.read(prefsChangeNotifierProvider).useTor
+          ? ref.read(pTorService).getProxyInfo()
+          : null,
     );
 
     if (response.code != 200) {
@@ -268,7 +269,7 @@ class _OrdinalImageGroup extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -318,7 +319,7 @@ class _OrdinalImageGroup extends StatelessWidget {
                 onPressed: () async {
                   bool didError = false;
                   final filePath = await showLoading<String>(
-                    whileFuture: _savePngToFile(),
+                    whileFuture: _savePngToFile(ref),
                     context: context,
                     isDesktop: true,
                     message: "Saving ordinal image",

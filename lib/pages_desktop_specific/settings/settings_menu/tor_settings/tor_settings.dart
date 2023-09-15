@@ -22,6 +22,7 @@ import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
@@ -59,11 +60,11 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
           width: 200,
           buttonHeight: ButtonHeight.m,
           onPressed: () async {
-            // Init the Tor service if it hasn't already been.
-            ref.read(pTorService).init();
-
-            // Start the Tor service.
             try {
+              // Init the Tor service if it hasn't already been.
+              final torDir = await StackFileSystem.applicationTorDirectory();
+              ref.read(pTorService).init(torDataDirPath: torDir.path);
+              // Start the Tor service.
               await ref.read(pTorService).start();
 
               // Toggle the useTor preference on success.
@@ -73,6 +74,7 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                 "Error starting tor: $e\n$s",
                 level: LogLevel.Error,
               );
+              // TODO: show dialog with error message
             }
           },
         );
@@ -93,7 +95,7 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
           onPressed: () async {
             // Stop the Tor service.
             try {
-              await ref.read(pTorService).stop();
+              await ref.read(pTorService).disable();
 
               // Toggle the useTor preference on success.
               ref.read(prefsChangeNotifierProvider).useTor = false;
@@ -114,9 +116,7 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
     eventBus = GlobalEventBus.instance;
 
     // Set the initial Tor connection status.
-    _torConnectionStatus = ref.read(pTorService).enabled
-        ? TorConnectionStatus.connected
-        : TorConnectionStatus.disconnected;
+    _torConnectionStatus = ref.read(pTorService).status;
 
     // Subscribe to the TorConnectionStatusChangedEvent.
     _torConnectionStatusSubscription =
