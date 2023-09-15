@@ -75,7 +75,7 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
                     useSafeArea: false,
                     barrierDismissible: true,
                     builder: (context) {
-                      return const StackDialog(
+                      return StackDialog(
                         title: "What is Tor?",
                         message:
                             "Short for \"The Onion Router\", is an open-source software that enables internet communication"
@@ -83,6 +83,7 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
                             " to obscure the origin and destination of data.",
                         rightButton: SecondaryButton(
                           label: "Close",
+                          onPressed: Navigator.of(context).pop,
                         ),
                       );
                     },
@@ -144,7 +145,7 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
                                       useSafeArea: false,
                                       barrierDismissible: true,
                                       builder: (context) {
-                                        return const StackDialog(
+                                        return StackDialog(
                                           title: "What is Tor killswitch?",
                                           message:
                                               "A security feature that protects your information from accidental exposure by"
@@ -152,6 +153,8 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
                                               " connection is disrupted or compromised.",
                                           rightButton: SecondaryButton(
                                             label: "Close",
+                                            onPressed:
+                                                Navigator.of(context).pop,
                                           ),
                                         );
                                       },
@@ -243,54 +246,31 @@ class _TorAnimatedButtonState extends ConsumerState<TorAnimatedButton>
     }
   }
 
-  Color _color(
-    TorConnectionStatus status,
-    StackColors colors,
-  ) {
-    switch (status) {
-      case TorConnectionStatus.disconnected:
-        return colors.textSubtitle3;
-
-      case TorConnectionStatus.connected:
-        return colors.accentColorGreen;
-
-      case TorConnectionStatus.connecting:
-        return colors.accentColorYellow;
-    }
-  }
-
-  String _label(
-    TorConnectionStatus status,
-  ) {
-    switch (status) {
-      case TorConnectionStatus.disconnected:
-        return "CONNECT";
-
-      case TorConnectionStatus.connected:
-        return "STOP";
-
-      case TorConnectionStatus.connecting:
-        return "CONNECTING";
-    }
-  }
-
-  void _playConnecting() async {
+  Future<void> _playConnecting() async {
     await _play(
-      from: "connection-start",
-      to: "connection-end",
+      from: "connecting-start",
+      to: "connecting-end",
       repeat: true,
     );
   }
 
-  void _playConnected() async {
+  Future<void> _playConnectingDone() async {
     await _play(
-      from: "connection-end",
-      to: "disconnection-start",
+      from: "connecting-end",
+      to: "connected-start",
+      repeat: false,
+    );
+  }
+
+  Future<void> _playConnected() async {
+    await _play(
+      from: "connected-start",
+      to: "connected-end",
       repeat: true,
     );
   }
 
-  void _playDisconnect() async {
+  Future<void> _playDisconnect() async {
     await _play(
       from: "disconnection-start",
       to: "disconnection-end",
@@ -307,6 +287,8 @@ class _TorAnimatedButtonState extends ConsumerState<TorAnimatedButton>
     final composition = await _completer.future;
     final start = composition.getMarker(from)!.start;
     final end = composition.getMarker(to)!.start;
+
+    controller1.value = start;
 
     if (repeat) {
       await controller1.repeat(
@@ -348,19 +330,20 @@ class _TorAnimatedButtonState extends ConsumerState<TorAnimatedButton>
     final width = MediaQuery.of(context).size.width / 1.5;
 
     return TorSubscription(
-      onTorStatusChanged: (status) {
+      onTorStatusChanged: (status) async {
         _status = status;
         switch (_status) {
           case TorConnectionStatus.disconnected:
-            _playDisconnect();
+            await _playDisconnect();
             break;
 
           case TorConnectionStatus.connected:
-            _playConnected();
+            await _playConnectingDone();
+            await _playConnected();
             break;
 
           case TorConnectionStatus.connecting:
-            _playConnecting();
+            await _playConnecting();
             break;
         }
       },
@@ -381,20 +364,7 @@ class _TorAnimatedButtonState extends ConsumerState<TorAnimatedButton>
                 // height: width,
                 onLoaded: (composition) {
                   _completer.complete(composition);
-                  // setState(() {
                   controller1.duration = composition.duration;
-
-                  // TODO: clean up (waiting for updated onion lottie animation file)
-                  // });
-                  print(
-                      "=======================================================");
-
-                  composition.markers.forEach((e) {
-                    print(e.name);
-                  });
-                  print(
-                      "=======================================================");
-                  //
 
                   if (_status == TorConnectionStatus.connected) {
                     _playConnected();
@@ -404,19 +374,7 @@ class _TorAnimatedButtonState extends ConsumerState<TorAnimatedButton>
                 },
               ),
             ),
-            Text(
-              _label(
-                _status,
-              ),
-              style: STextStyles.pageTitleH2(
-                context,
-              ).copyWith(
-                color: _color(
-                  _status,
-                  Theme.of(context).extension<StackColors>()!,
-                ),
-              ),
-            )
+            const UpperCaseTorText(),
           ],
         ),
       ),
@@ -543,6 +501,78 @@ class _TorButtonState extends ConsumerState<TorButton> {
         ),
       ),
     );
+  }
+}
+
+class UpperCaseTorText extends ConsumerStatefulWidget {
+  const UpperCaseTorText({super.key});
+
+  @override
+  ConsumerState<UpperCaseTorText> createState() => _UpperCaseTorTextState();
+}
+
+class _UpperCaseTorTextState extends ConsumerState<UpperCaseTorText> {
+  late TorConnectionStatus _status;
+
+  Color _color(
+    TorConnectionStatus status,
+    StackColors colors,
+  ) {
+    switch (status) {
+      case TorConnectionStatus.disconnected:
+        return colors.textSubtitle3;
+
+      case TorConnectionStatus.connected:
+        return colors.accentColorGreen;
+
+      case TorConnectionStatus.connecting:
+        return colors.accentColorYellow;
+    }
+  }
+
+  String _label(
+    TorConnectionStatus status,
+  ) {
+    switch (status) {
+      case TorConnectionStatus.disconnected:
+        return "CONNECT";
+
+      case TorConnectionStatus.connected:
+        return "STOP";
+
+      case TorConnectionStatus.connecting:
+        return "CONNECTING";
+    }
+  }
+
+  @override
+  void initState() {
+    _status = ref.read(pTorService).status;
+
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TorSubscription(
+        onTorStatusChanged: (status) {
+          setState(() {
+            _status = status;
+          });
+        },
+        child: Text(
+          _label(
+            _status,
+          ),
+          style: STextStyles.pageTitleH2(
+            context,
+          ).copyWith(
+            color: _color(
+              _status,
+              Theme.of(context).extension<StackColors>()!,
+            ),
+          ),
+        ));
   }
 }
 
