@@ -79,6 +79,9 @@ class TorService {
         status: TorConnectionStatus.connected,
         message: "TorService.start call success",
       );
+
+      // Complete the future.
+      return;
     } catch (e, s) {
       Logging.instance.log(
         "TorService.start failed: $e\n$s",
@@ -110,6 +113,8 @@ class TorService {
       status: TorConnectionStatus.disconnected,
       message: "TorService.disable call success",
     );
+
+    return;
   }
 
   void _updateStatusAndFireEvent({
