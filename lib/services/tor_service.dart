@@ -11,6 +11,11 @@ final pTorService = Provider((_) => TorService.sharedInstance);
 class TorService {
   Tor? _tor;
 
+  /// Current status. Same as that fired on the event bus
+  TorConnectionStatus get status => _status;
+  // set to some default value
+  TorConnectionStatus _status = TorConnectionStatus.disconnected;
+
   /// Flag to indicate that a Tor circuit is thought to have been established.
   bool _enabled = false;
 
@@ -30,7 +35,7 @@ class TorService {
     int port,
   }) get proxyInfo => (
         host: InternetAddress.loopbackIPv4,
-        port: _tor!.port,
+        port: _tor!.port!,
       );
 
   /// Initialize the tor ffi lib instance if it hasn't already been set. Nothing
@@ -53,40 +58,25 @@ class TorService {
 
     if (_enabled) {
       // already started so just return
-      // could throw an exception here or something so the caller
-      // is explicitly made aware of this
-      // TODO restart tor after that's been added to the tor-ffi crate
-      // (probably better to have a restart function separately)
-
-      // Fire a TorConnectionStatusChangedEvent on the event bus.
-      GlobalEventBus.instance.fire(
-        TorConnectionStatusChangedEvent(
-          TorConnectionStatus.connected,
-          "Tor connection status changed: connect ($_enabled)",
-        ),
-      );
       return;
     }
 
     // Start the Tor service.
     try {
-      GlobalEventBus.instance.fire(
-        TorConnectionStatusChangedEvent(
-          TorConnectionStatus.connecting,
-          "Tor connection status changed: connecting",
-        ),
+      _updateStatusAndFireEvent(
+        status: TorConnectionStatus.connecting,
+        message: "Tor connection status changed: connecting",
       );
+
       await _tor!.start();
       // no exception or error so we can (probably?) assume tor
       // has started successfully
       _enabled = true;
 
       // Fire a TorConnectionStatusChangedEvent on the event bus.
-      GlobalEventBus.instance.fire(
-        TorConnectionStatusChangedEvent(
-          TorConnectionStatus.connected,
-          "Tor connection status changed: connect ($_enabled)",
-        ),
+      _updateStatusAndFireEvent(
+        status: TorConnectionStatus.connected,
+        message: "Tor connection status changed: connect ($_enabled)",
       );
     } catch (e, s) {
       Logging.instance.log(
@@ -96,11 +86,9 @@ class TorService {
       // _enabled should already be false
 
       // Fire a TorConnectionStatusChangedEvent on the event bus.
-      GlobalEventBus.instance.fire(
-        TorConnectionStatusChangedEvent(
-          TorConnectionStatus.disconnected,
-          "Tor connection status changed: $_enabled (failed)",
-        ),
+      _updateStatusAndFireEvent(
+        status: TorConnectionStatus.disconnected,
+        message: "Tor connection status changed: $_enabled (failed)",
       );
       rethrow;
     }
@@ -125,11 +113,9 @@ class TorService {
       // no exception or error so we can (probably?) assume tor
       // has started successfully
       _enabled = false;
-      GlobalEventBus.instance.fire(
-        TorConnectionStatusChangedEvent(
-          TorConnectionStatus.disconnected,
-          "Tor connection status changed: $_enabled (disabled)",
-        ),
+      _updateStatusAndFireEvent(
+        status: TorConnectionStatus.disconnected,
+        message: "Tor connection status changed: $_enabled (disabled)",
       );
     } catch (e, s) {
       Logging.instance.log(
@@ -138,5 +124,18 @@ class TorService {
       );
       rethrow;
     }
+  }
+
+  void _updateStatusAndFireEvent({
+    required TorConnectionStatus status,
+    required String message,
+  }) {
+    _status = status;
+    GlobalEventBus.instance.fire(
+      TorConnectionStatusChangedEvent(
+        _status,
+        message,
+      ),
+    );
   }
 }
