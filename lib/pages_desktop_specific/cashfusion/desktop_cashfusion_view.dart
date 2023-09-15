@@ -19,6 +19,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class DesktopCashFusionView extends ConsumerStatefulWidget {
   const DesktopCashFusionView({
@@ -55,67 +56,121 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
         isCompactHeight: true,
         useSpacers: false,
         leading: Expanded(
-          child: Row(
-            children: [
-              const SizedBox(
-                width: 32,
-              ),
-              AppBarIconButton(
-                size: 32,
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldDefaultBG,
-                shadows: const [],
-                icon: SvgPicture.asset(
-                  Assets.svg.arrowLeft,
-                  width: 18,
-                  height: 18,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .topNavIconPrimary,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    // const SizedBox(
+                    //   width: 32,
+                    // ),
+                    AppBarIconButton(
+                      size: 32,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldDefaultBG,
+                      shadows: const [],
+                      icon: SvgPicture.asset(
+                        Assets.svg.arrowLeft,
+                        width: 18,
+                        height: 18,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .topNavIconPrimary,
+                      ),
+                      onPressed: Navigator.of(context).pop,
+                    ),
+                    const SizedBox(
+                      width: 15,
+                    ),
+                    SvgPicture.asset(
+                      Assets.svg.cashFusion,
+                      width: 32,
+                      height: 32,
+                    ),
+                    const SizedBox(
+                      width: 12,
+                    ),
+                    Text(
+                      "CashFusion",
+                      style: STextStyles.desktopH3(context),
+                    ),
+                  ],
                 ),
-                onPressed: Navigator.of(context).pop,
-              ),
-              const SizedBox(
-                width: 15,
-              ),
-              SvgPicture.asset(
-                Assets.svg.cashFusion,
-                width: 32,
-                height: 32,
-              ),
-              const SizedBox(
-                width: 12,
-              ),
-              Text(
-                "CashFusion",
-                style: STextStyles.desktopH3(context),
-              )
-            ],
+                MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () {},
+                    child: Row(
+                      children: [
+                        SvgPicture.asset(
+                          Assets.svg.circleQuestion,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .radioButtonIconBorder,
+                        ),
+                        const SizedBox(
+                          width: 6,
+                        ),
+                        RichText(
+                          text: TextSpan(
+                            text: "What is CashFusion?",
+                            style: STextStyles.richLink(context).copyWith(
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text("TODO FusionParticipantList"),
-          const SizedBox(
-            height: 16,
-          ),
-          TextButton(
-            onPressed: () => {
-              (ref
-                      .read(walletsChangeNotifierProvider)
-                      .getManager(widget.walletId)
-                      .wallet as FusionWalletInterface)
-                  .fuse()
-            },
-            child: Text(
-              "Fuse",
-              style: STextStyles.desktopTextMedium(context),
+      body: Row(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 460,
+                  child: RoundedWhiteContainer(
+                    child: Row(
+                      children: [
+                        Text(
+                            "CashFustion allows you to anonymize your BCH coins."
+                            "\nYou must be connected to the Tor network."),
+                      ],
+                    ),
+                  ),
+                ),
+                const Text("TODO FusionParticipantList"),
+                const SizedBox(
+                  height: 16,
+                ),
+                TextButton(
+                  onPressed: () => {
+                    (ref
+                            .read(walletsChangeNotifierProvider)
+                            .getManager(widget.walletId)
+                            .wallet as FusionWalletInterface)
+                        .fuse()
+                  },
+                  child: Text(
+                    "Fuse",
+                    style: STextStyles.desktopTextMedium(context),
+                  ),
+                ),
+              ],
             ),
-          )
-        ]),
+          ),
+        ],
       ),
     );
   }
