@@ -47,7 +47,10 @@ mixin FusionWalletInterface {
     _torService = TorService.sharedInstance;
 
     // Start the Tor service if it's not already running.
-    if (_torService.proxyInfo.port == -1) { // -1 indicates that the proxy is not running.
+    // TODO fix this.  It will cause all Stack Wallet traffic to start being routed
+    // through Tor, which is not what we want.
+    if (_torService.proxyInfo.port == -1) {
+      // -1 indicates that the proxy is not running.
       // Initialize the ffi lib instance if it hasn't already been set.
       _torService.init();
 
