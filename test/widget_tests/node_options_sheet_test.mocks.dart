@@ -12,6 +12,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/models/node_model.dart' as _i18;
 import 'package:stackwallet/services/coins/manager.dart' as _i6;
+import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart'
+    as _i20;
 import 'package:stackwallet/services/node_service.dart' as _i3;
 import 'package:stackwallet/services/tor_service.dart' as _i19;
 import 'package:stackwallet/services/wallets.dart' as _i9;
@@ -23,7 +25,7 @@ import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i15;
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart'
     as _i7;
 import 'package:stackwallet/utilities/prefs.dart' as _i13;
-import 'package:tor_ffi_plugin/tor_ffi_plugin.dart' as _i20;
+import 'package:tor_ffi_plugin/tor_ffi_plugin.dart' as _i21;
 import 'package:tuple/tuple.dart' as _i11;
 
 // ignore_for_file: type=lint
@@ -1025,27 +1027,40 @@ class MockTorService extends _i1.Mock implements _i19.TorService {
   }
 
   @override
-  bool get enabled => (super.noSuchMethod(
-        Invocation.getter(#enabled),
-        returnValue: false,
-      ) as bool);
+  _i20.TorConnectionStatus get status => (super.noSuchMethod(
+        Invocation.getter(#status),
+        returnValue: _i20.TorConnectionStatus.disconnected,
+      ) as _i20.TorConnectionStatus);
   @override
-  ({_i8.InternetAddress host, int port}) get proxyInfo => (super.noSuchMethod(
-        Invocation.getter(#proxyInfo),
+  ({_i8.InternetAddress host, int port}) getProxyInfo() => (super.noSuchMethod(
+        Invocation.method(
+          #getProxyInfo,
+          [],
+        ),
         returnValue: (
           host: _FakeInternetAddress_5(
             this,
-            Invocation.getter(#proxyInfo),
+            Invocation.method(
+              #getProxyInfo,
+              [],
+            ),
           ),
           port: 0
         ),
       ) as ({_i8.InternetAddress host, int port}));
   @override
-  void init({_i20.Tor? mockableOverride}) => super.noSuchMethod(
+  void init({
+    required String? torDataDirPath,
+    _i21.Tor? mockableOverride,
+  }) =>
+      super.noSuchMethod(
         Invocation.method(
           #init,
           [],
-          {#mockableOverride: mockableOverride},
+          {
+            #torDataDirPath: torDataDirPath,
+            #mockableOverride: mockableOverride,
+          },
         ),
         returnValueForMissingStub: null,
       );
@@ -1059,9 +1074,9 @@ class MockTorService extends _i1.Mock implements _i19.TorService {
         returnValueForMissingStub: _i12.Future<void>.value(),
       ) as _i12.Future<void>);
   @override
-  _i12.Future<void> stop() => (super.noSuchMethod(
+  _i12.Future<void> disable() => (super.noSuchMethod(
         Invocation.method(
-          #stop,
+          #disable,
           [],
         ),
         returnValue: _i12.Future<void>.value(),

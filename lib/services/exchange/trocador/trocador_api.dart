@@ -52,8 +52,9 @@ abstract class TrocadorAPI {
       final response = await client.get(
         url: uri,
         headers: {'Content-Type': 'application/json'},
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       code = response.code;

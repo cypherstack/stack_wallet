@@ -107,8 +107,9 @@ class PriceAPI {
       final coinGeckoResponse = await client.get(
         url: uri,
         headers: {'Content-Type': 'application/json'},
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       final coinGeckoData = jsonDecode(coinGeckoResponse.body) as List<dynamic>;
@@ -154,8 +155,9 @@ class PriceAPI {
       final response = await client.get(
         url: uri,
         headers: {'Content-Type': 'application/json'},
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       final json = jsonDecode(response.body) as List<dynamic>;
@@ -195,8 +197,9 @@ class PriceAPI {
       final coinGeckoResponse = await client.get(
         url: uri,
         headers: {'Content-Type': 'application/json'},
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       final coinGeckoData = jsonDecode(coinGeckoResponse.body) as Map;

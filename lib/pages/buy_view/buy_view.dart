@@ -12,10 +12,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/pages/buy_view/buy_form.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
+import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
+import 'package:stackwallet/widgets/tor_subscription.dart';
 
 class BuyView extends ConsumerStatefulWidget {
   const BuyView({
@@ -36,18 +38,16 @@ class BuyView extends ConsumerStatefulWidget {
 class _BuyViewState extends ConsumerState<BuyView> {
   Coin? coin;
   EthContract? tokenContract;
-  late bool torEnabled = false;
+
+  late bool torEnabled;
 
   @override
   void initState() {
     coin = widget.coin;
     tokenContract = widget.tokenContract;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      setState(() {
-        torEnabled = ref.read(prefsChangeNotifierProvider).useTor;
-      });
-    });
+    torEnabled =
+        ref.read(pTorService).status != TorConnectionStatus.disconnected;
 
     super.initState();
   }
@@ -56,35 +56,42 @@ class _BuyViewState extends ConsumerState<BuyView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    return Stack(
-      children: [
-        SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 16,
-            ),
-            child: BuyForm(
-              coin: coin,
-              tokenContract: tokenContract,
-            ),
-          ),
-        ),
-        if (torEnabled)
-          Container(
-            color: Theme.of(context)
-                .extension<StackColors>()!
-                .overlay
-                .withOpacity(0.7),
-            height: MediaQuery.of(context).size.height,
-            width: MediaQuery.of(context).size.width,
-            child: const StackDialog(
-              title: "Tor is enabled",
-              message: "Purchasing not available while Tor is enabled",
+    return TorSubscription(
+      onTorStatusChanged: (status) {
+        setState(() {
+          torEnabled = status != TorConnectionStatus.disconnected;
+        });
+      },
+      child: Stack(
+        children: [
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+              ),
+              child: BuyForm(
+                coin: coin,
+                tokenContract: tokenContract,
+              ),
             ),
           ),
-      ],
+          if (torEnabled)
+            Container(
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .overlay
+                  .withOpacity(0.7),
+              height: MediaQuery.of(context).size.height,
+              width: MediaQuery.of(context).size.width,
+              child: const StackDialog(
+                title: "Tor is enabled",
+                message: "Purchasing not available while Tor is enabled",
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

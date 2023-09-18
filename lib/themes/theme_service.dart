@@ -213,8 +213,9 @@ class ThemeService {
     try {
       final response = await client.get(
         url: Uri.parse("$baseServerUrl/themes"),
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       final jsonList = jsonDecode(response.body) as List;
@@ -240,8 +241,9 @@ class ThemeService {
     try {
       final response = await client.get(
         url: Uri.parse("$baseServerUrl/theme/${themeMetaData.id}"),
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       final bytes = Uint8List.fromList(response.bodyBytes);

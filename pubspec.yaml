@@ -58,7 +58,9 @@ dependencies:
       ref: 081ca1863c2feba00c35bb5b297902f12f499941
 
   tor_ffi_plugin:
-    path: ./crypto_plugins/tor
+    git:
+      url: https://github.com/cypherstack/tor.git
+      ref: 8a26a160bdc4dcac2ba5a0350a151a345d1dead9
 
   # Utility plugins
   http: ^0.13.0
@@ -377,6 +379,7 @@ flutter:
     - assets/lottie/icon_send.json
     - assets/lottie/loader_and_checkmark.json
     - assets/lottie/arrow_rotate.json
+    - assets/lottie/onion_animation.json
 
     # default themes_testing
     - assets/default_themes/

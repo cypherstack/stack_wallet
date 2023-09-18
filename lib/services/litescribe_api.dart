@@ -22,8 +22,9 @@ class LitescribeAPI {
   Future<LitescribeResponse> _getResponse(String endpoint) async {
     final response = await client.get(
       url: Uri.parse('$baseUrl$endpoint'),
-      proxyInfo:
-          Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+      proxyInfo: Prefs.instance.useTor
+          ? TorService.sharedInstance.getProxyInfo()
+          : null,
     );
     if (response.code == 200) {
       return LitescribeResponse(data: _validateJson(response.body));

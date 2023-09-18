@@ -49,8 +49,9 @@ class MajesticBankAPI {
     try {
       final response = await client.get(
         url: uri,
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       code = response.code;

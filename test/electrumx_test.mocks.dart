@@ -9,13 +9,15 @@ import 'dart:ui' as _i10;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/electrumx_rpc/rpc.dart' as _i2;
+import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart'
+    as _i12;
 import 'package:stackwallet/services/tor_service.dart' as _i11;
 import 'package:stackwallet/utilities/amount/amount_unit.dart' as _i8;
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i7;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i9;
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i6;
 import 'package:stackwallet/utilities/prefs.dart' as _i5;
-import 'package:tor_ffi_plugin/tor_ffi_plugin.dart' as _i12;
+import 'package:tor_ffi_plugin/tor_ffi_plugin.dart' as _i13;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -659,27 +661,40 @@ class MockTorService extends _i1.Mock implements _i11.TorService {
   }
 
   @override
-  bool get enabled => (super.noSuchMethod(
-        Invocation.getter(#enabled),
-        returnValue: false,
-      ) as bool);
+  _i12.TorConnectionStatus get status => (super.noSuchMethod(
+        Invocation.getter(#status),
+        returnValue: _i12.TorConnectionStatus.disconnected,
+      ) as _i12.TorConnectionStatus);
   @override
-  ({_i3.InternetAddress host, int port}) get proxyInfo => (super.noSuchMethod(
-        Invocation.getter(#proxyInfo),
+  ({_i3.InternetAddress host, int port}) getProxyInfo() => (super.noSuchMethod(
+        Invocation.method(
+          #getProxyInfo,
+          [],
+        ),
         returnValue: (
           host: _FakeInternetAddress_2(
             this,
-            Invocation.getter(#proxyInfo),
+            Invocation.method(
+              #getProxyInfo,
+              [],
+            ),
           ),
           port: 0
         ),
       ) as ({_i3.InternetAddress host, int port}));
   @override
-  void init({_i12.Tor? mockableOverride}) => super.noSuchMethod(
+  void init({
+    required String? torDataDirPath,
+    _i13.Tor? mockableOverride,
+  }) =>
+      super.noSuchMethod(
         Invocation.method(
           #init,
           [],
-          {#mockableOverride: mockableOverride},
+          {
+            #torDataDirPath: torDataDirPath,
+            #mockableOverride: mockableOverride,
+          },
         ),
         returnValueForMissingStub: null,
       );
@@ -693,9 +708,9 @@ class MockTorService extends _i1.Mock implements _i11.TorService {
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
   @override
-  _i4.Future<void> stop() => (super.noSuchMethod(
+  _i4.Future<void> disable() => (super.noSuchMethod(
         Invocation.method(
-          #stop,
+          #disable,
           [],
         ),
         returnValue: _i4.Future<void>.value(),

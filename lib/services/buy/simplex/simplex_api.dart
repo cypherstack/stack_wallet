@@ -59,7 +59,7 @@ class SimplexAPI {
         url: url,
         headers: headers,
         proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+            Prefs.instance.useTor ? TorService.sharedInstance.getProxyInfo() : null,
       );
       if (res.code != 200) {
         throw Exception(
@@ -125,7 +125,7 @@ class SimplexAPI {
         url: url,
         headers: headers,
         proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+            Prefs.instance.useTor ? TorService.sharedInstance.getProxyInfo() : null,
       );
       if (res.code != 200) {
         throw Exception(
@@ -206,7 +206,7 @@ class SimplexAPI {
         url: url,
         headers: headers,
         proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+            Prefs.instance.useTor ? TorService.sharedInstance.getProxyInfo() : null,
       );
       if (res.code != 200) {
         throw Exception('getQuote exception: statusCode= ${res.code}');
@@ -313,7 +313,7 @@ class SimplexAPI {
         url: url,
         headers: headers,
         proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+            Prefs.instance.useTor ? TorService.sharedInstance.getProxyInfo() : null,
       );
       if (res.code != 200) {
         throw Exception('newOrder exception: statusCode= ${res.code}');

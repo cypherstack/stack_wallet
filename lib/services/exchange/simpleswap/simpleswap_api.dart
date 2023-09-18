@@ -47,8 +47,9 @@ class SimpleSwapAPI {
     try {
       final response = await client.get(
         url: uri,
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       code = response.code;
@@ -74,8 +75,9 @@ class SimpleSwapAPI {
         url: uri,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.proxyInfo : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
       if (response.code == 200) {
