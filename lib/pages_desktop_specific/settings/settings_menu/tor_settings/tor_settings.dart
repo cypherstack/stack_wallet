@@ -219,8 +219,21 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                                           children: [
                                             Row(
                                               mainAxisAlignment:
-                                                  MainAxisAlignment.end,
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
                                               children: [
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                    left: 32,
+                                                  ),
+                                                  child: Text(
+                                                    "What is Tor?",
+                                                    style:
+                                                        STextStyles.desktopH2(
+                                                            context),
+                                                  ),
+                                                ),
                                                 DesktopDialogCloseButton(
                                                   onPressedOverride: () =>
                                                       Navigator.of(context)
@@ -229,34 +242,24 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                                               ],
                                             ),
                                             Padding(
-                                              padding: const EdgeInsets.all(20),
-                                              child: Column(
-                                                mainAxisSize: MainAxisSize.max,
-                                                children: [
-                                                  Text(
-                                                    "What is Tor?",
-                                                    style:
-                                                        STextStyles.desktopH2(
-                                                            context),
-                                                  ),
-                                                  const SizedBox(
-                                                    height: 20,
-                                                  ),
-                                                  Text(
-                                                    "Short for \"The Onion Router\", is an open-source software that enables internet communication"
-                                                    " to remain anonymous by routing internet traffic through a series of layered nodes,"
-                                                    " to obscure the origin and destination of data.",
-                                                    style: STextStyles
-                                                            .desktopTextMedium(
-                                                                context)
-                                                        .copyWith(
-                                                      color: Theme.of(context)
-                                                          .extension<
-                                                              StackColors>()!
-                                                          .textDark3,
-                                                    ),
-                                                  ),
-                                                ],
+                                              padding: const EdgeInsets.only(
+                                                top: 12,
+                                                left: 32,
+                                                bottom: 32,
+                                                right: 32,
+                                              ),
+                                              child: Text(
+                                                "Short for \"The Onion Router\", is an open-source software that enables internet communication"
+                                                " to remain anonymous by routing internet traffic through a series of layered nodes,"
+                                                " to obscure the origin and destination of data.",
+                                                style: STextStyles
+                                                        .desktopTextMedium(
+                                                            context)
+                                                    .copyWith(
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .textDark3,
+                                                ),
                                               ),
                                             ),
                                           ],
@@ -289,21 +292,25 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                     children: [
                       Row(
                         children: [
-                          RichText(
-                            textAlign: TextAlign.start,
-                            text: TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: "Tor killswitch",
-                                  style: STextStyles.desktopTextExtraExtraSmall(
-                                          context)
-                                      .copyWith(
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .textDark),
-                                ),
-                                TextSpan(
-                                  text: "\nWhat is Tor killswitch?",
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Tor killswitch",
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                        context)
+                                    .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textDark),
+                              ),
+                              const SizedBox(
+                                height: 8,
+                              ),
+                              RichText(
+                                textAlign: TextAlign.start,
+                                text: TextSpan(
+                                  text: "What is Tor killswitch?",
                                   style: STextStyles.richLink(context).copyWith(
                                     fontSize: 14,
                                   ),
@@ -321,8 +328,20 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                                               children: [
                                                 Row(
                                                   mainAxisAlignment:
-                                                      MainAxisAlignment.end,
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
                                                   children: [
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                        left: 32,
+                                                      ),
+                                                      child: Text(
+                                                        "What is Tor killswitch?",
+                                                        style: STextStyles
+                                                            .desktopH2(context),
+                                                      ),
+                                                    ),
                                                     DesktopDialogCloseButton(
                                                       onPressedOverride: () =>
                                                           Navigator.of(context)
@@ -332,35 +351,25 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                                                 ),
                                                 Padding(
                                                   padding:
-                                                      const EdgeInsets.all(20),
-                                                  child: Column(
-                                                    mainAxisSize:
-                                                        MainAxisSize.max,
-                                                    children: [
-                                                      Text(
-                                                        "What is Tor killswitch?",
-                                                        style: STextStyles
-                                                            .desktopH2(context),
-                                                      ),
-                                                      const SizedBox(
-                                                        height: 20,
-                                                      ),
-                                                      Text(
-                                                        "A security feature that protects your information from accidental exposure by"
-                                                        " disconnecting your device from the Tor network if the"
-                                                        " connection is disrupted or compromised.",
-                                                        style: STextStyles
-                                                                .desktopTextMedium(
-                                                                    context)
-                                                            .copyWith(
-                                                          color: Theme.of(
-                                                                  context)
-                                                              .extension<
-                                                                  StackColors>()!
-                                                              .textDark3,
-                                                        ),
-                                                      ),
-                                                    ],
+                                                      const EdgeInsets.only(
+                                                    top: 12,
+                                                    left: 32,
+                                                    bottom: 32,
+                                                    right: 32,
+                                                  ),
+                                                  child: Text(
+                                                    "A security feature that protects your information from accidental exposure by"
+                                                    " disconnecting your device from the Tor network if the"
+                                                    " connection is disrupted or compromised.",
+                                                    style: STextStyles
+                                                            .desktopTextMedium(
+                                                                context)
+                                                        .copyWith(
+                                                      color: Theme.of(context)
+                                                          .extension<
+                                                              StackColors>()!
+                                                          .textDark3,
+                                                    ),
                                                   ),
                                                 ),
                                               ],
@@ -370,8 +379,8 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                                       );
                                     },
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ],
                       ),

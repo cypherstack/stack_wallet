@@ -5,6 +5,7 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/rpc.dart';
+import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 
@@ -1528,7 +1529,8 @@ void main() {
           .thenAnswer((_) => false); // Or true, shouldn't matter.
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final mockTorService = MockTorService();
-      when(mockTorService.enabled).thenAnswer((_) => false);
+      when(mockTorService.status)
+          .thenAnswer((_) => TorConnectionStatus.disconnected);
 
       final client = ElectrumX(
         host: "some server",
@@ -1551,7 +1553,7 @@ void main() {
       verify(mockPrefs.useTor).called(1);
       verifyNever(mockPrefs.torKillSwitch);
       verifyNoMoreInteractions(mockPrefs);
-      verifyNever(mockTorService.enabled);
+      verifyNever(mockTorService.status);
       verifyNoMoreInteractions(mockTorService);
     });
 
@@ -1575,8 +1577,9 @@ void main() {
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
 
       final mockTorService = MockTorService();
-      when(mockTorService.enabled).thenAnswer((_) => false);
-      when(mockTorService.proxyInfo).thenAnswer((_) => (
+      when(mockTorService.status)
+          .thenAnswer((_) => TorConnectionStatus.disconnected);
+      when(mockTorService.getProxyInfo()).thenAnswer((_) => (
             host: InternetAddress('1.2.3.4'),
             port: -1
           )); // Port is set to -1 until Tor is enabled.
@@ -1601,8 +1604,8 @@ void main() {
       verify(mockPrefs.useTor).called(1);
       verify(mockPrefs.torKillSwitch).called(1);
       verifyNoMoreInteractions(mockPrefs);
-      verify(mockTorService.enabled).called(1);
-      verifyNever(mockTorService.proxyInfo);
+      verify(mockTorService.status).called(1);
+      verifyNever(mockTorService.getProxyInfo());
       verifyNoMoreInteractions(mockTorService);
     });
 
@@ -1628,8 +1631,9 @@ void main() {
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
 
       final mockTorService = MockTorService();
-      when(mockTorService.enabled).thenAnswer((_) => true);
-      when(mockTorService.proxyInfo)
+      when(mockTorService.status)
+          .thenAnswer((_) => TorConnectionStatus.connected);
+      when(mockTorService.getProxyInfo())
           .thenAnswer((_) => (host: InternetAddress('1.2.3.4'), port: 42));
 
       final client = ElectrumX(
@@ -1653,8 +1657,8 @@ void main() {
       verify(mockPrefs.useTor).called(1);
       verifyNever(mockPrefs.torKillSwitch);
       verifyNoMoreInteractions(mockPrefs);
-      verify(mockTorService.enabled).called(1);
-      verify(mockTorService.proxyInfo).called(1);
+      verify(mockTorService.status).called(1);
+      verify(mockTorService.getProxyInfo()).called(1);
       verifyNoMoreInteractions(mockTorService);
     });
 
@@ -1685,7 +1689,8 @@ void main() {
       when(mockPrefs.torKillSwitch).thenAnswer((_) => true);
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final mockTorService = MockTorService();
-      when(mockTorService.enabled).thenAnswer((_) => false);
+      when(mockTorService.status)
+          .thenAnswer((_) => TorConnectionStatus.disconnected);
 
       final client = ElectrumX(
         host: "some server",
@@ -1712,7 +1717,7 @@ void main() {
       verify(mockPrefs.useTor).called(1);
       verify(mockPrefs.torKillSwitch).called(1);
       verifyNoMoreInteractions(mockPrefs);
-      verify(mockTorService.enabled).called(1);
+      verify(mockTorService.status).called(1);
       verifyNoMoreInteractions(mockTorService);
     });
 
@@ -1740,7 +1745,8 @@ void main() {
       when(mockPrefs.torKillSwitch).thenAnswer((_) => false);
       when(mockPrefs.wifiOnly).thenAnswer((_) => false);
       final mockTorService = MockTorService();
-      when(mockTorService.enabled).thenAnswer((_) => false);
+      when(mockTorService.status)
+          .thenAnswer((_) => TorConnectionStatus.disconnected);
 
       final client = ElectrumX(
         host: "some server",
@@ -1763,7 +1769,7 @@ void main() {
       verify(mockPrefs.useTor).called(1);
       verify(mockPrefs.torKillSwitch).called(1);
       verifyNoMoreInteractions(mockPrefs);
-      verify(mockTorService.enabled).called(1);
+      verify(mockTorService.status).called(1);
       verifyNoMoreInteractions(mockTorService);
     });
   });
