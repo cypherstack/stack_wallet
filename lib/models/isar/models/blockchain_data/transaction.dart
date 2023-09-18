@@ -242,30 +242,60 @@ class Transaction {
     fusion_tx.Transaction fusionTransaction = fusion_tx.Transaction();
 
     // Map the Inputs and Outputs to Fusion Dart's format
-    fusionTransaction.Inputs = inputs
-        .map((e) => fusion_input.Input(
-              prevTxid: utf8.encode(e.txid),
-              prevIndex: e.vout,
-              pubKey: utf8.encode(e.witness ?? ""), // TODO fix or failsafe.
-              amount: 0, // TODO fix
-            ))
-        .toList();
+    fusionTransaction.Inputs = inputs.map((e) {
+      return fusion_input.Input(
+        prevTxid: utf8.encode(e.txid),
+        prevIndex: e.vout,
+        pubKey: utf8.encode(address.value.toString()), // TODO is this valid?
+        amount: amount, // TODO is this valid?
+      );
+    }).toList();
 
-    fusionTransaction.Outputs = outputs
-        .map((e) => fusion_output.Output(
-              addr: fusion_address.Address(
-                addr: e.scriptPubKeyAddress,
-                publicKey: utf8.encode(e.scriptPubKey ??
-                    address!.value.toString()), // TODO fix or failsafe.
-                derivationPath: fusion_address.DerivationPath(address!
-                    .value!.derivationPath!
-                    .toString()), // TODO failsafe the (non-)null assertions.
-              ),
-              value: e.value,
-            ))
-        .toList();
+    fusionTransaction.Outputs = outputs.map((e) {
+      /*
+      if (e.scriptPubKey == null) {
+        // TODO calculate scriptPubKey if it is null.
+      }
+      */
 
-    // If any other information needs to be altered/added, do so here.
+      fusion_address.DerivationPath? derivationPath;
+      List<int>? pubKey;
+
+      // Validate that we have all the required data.
+      if (address.value == null) {
+        // TODO calculate address if it is null.
+        throw Exception(
+            "address value is null for input: ${e.scriptPubKeyAddress}");
+      } else {
+        if (address.value!.publicKey.isEmpty || e.scriptPubKey != null) {
+          pubKey = utf8.encode(e.scriptPubKey!);
+          // TODO is this valid?
+        } else {
+          pubKey = address.value!.publicKey;
+        }
+        if (address.value!.derivationPath != null) {
+          derivationPath = fusion_address.DerivationPath(
+              address.value!.derivationPath!.toString());
+        } else {
+          // TODO calculate derivation path if it is null.
+          /*
+          throw Exception(
+              "derivationPath is null for input: ${e.scriptPubKeyAddress}");
+          */
+        }
+      }
+
+      // TODO handle case where address.value.publicKey is empty and e.scriptPubKey is null
+
+      return fusion_output.Output(
+        addr: fusion_address.Address(
+          addr: e.scriptPubKeyAddress,
+          publicKey: pubKey,
+          derivationPath: derivationPath,
+        ),
+        value: e.value,
+      );
+    }).toList();
 
     return fusionTransaction;
   }
