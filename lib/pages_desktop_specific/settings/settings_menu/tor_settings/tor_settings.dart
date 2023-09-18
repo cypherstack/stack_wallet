@@ -215,40 +215,37 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                                       return DesktopDialog(
                                         maxWidth: 580,
                                         maxHeight: double.infinity,
-                                        child: Column(
-                                          children: [
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                    left: 32,
-                                                  ),
-                                                  child: Text(
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 10,
+                                            left: 20,
+                                            bottom: 20,
+                                            right: 10,
+                                          ),
+                                          child: Column(
+                                            children: [
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Text(
                                                     "What is Tor?",
                                                     style:
                                                         STextStyles.desktopH2(
                                                             context),
                                                   ),
-                                                ),
-                                                DesktopDialogCloseButton(
-                                                  onPressedOverride: () =>
-                                                      Navigator.of(context)
-                                                          .pop(true),
-                                                ),
-                                              ],
-                                            ),
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                top: 12,
-                                                left: 32,
-                                                bottom: 32,
-                                                right: 32,
+                                                  DesktopDialogCloseButton(
+                                                    onPressedOverride: () =>
+                                                        Navigator.of(context)
+                                                            .pop(true),
+                                                  ),
+                                                ],
                                               ),
-                                              child: Text(
+                                              const SizedBox(
+                                                height: 16,
+                                              ),
+                                              Text(
                                                 "Short for \"The Onion Router\", is an open-source software that enables internet communication"
                                                 " to remain anonymous by routing internet traffic through a series of layered nodes,"
                                                 " to obscure the origin and destination of data.",
@@ -261,8 +258,8 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                                                       .textDark3,
                                                 ),
                                               ),
-                                            ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
                                       );
                                     },
@@ -324,40 +321,37 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                                           return DesktopDialog(
                                             maxWidth: 580,
                                             maxHeight: double.infinity,
-                                            child: Column(
-                                              children: [
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                        left: 32,
-                                                      ),
-                                                      child: Text(
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(
+                                                top: 10,
+                                                left: 20,
+                                                bottom: 20,
+                                                right: 10,
+                                              ),
+                                              child: Column(
+                                                children: [
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      Text(
                                                         "What is Tor killswitch?",
                                                         style: STextStyles
                                                             .desktopH2(context),
                                                       ),
-                                                    ),
-                                                    DesktopDialogCloseButton(
-                                                      onPressedOverride: () =>
-                                                          Navigator.of(context)
-                                                              .pop(true),
-                                                    ),
-                                                  ],
-                                                ),
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                    top: 12,
-                                                    left: 32,
-                                                    bottom: 32,
-                                                    right: 32,
+                                                      DesktopDialogCloseButton(
+                                                        onPressedOverride: () =>
+                                                            Navigator.of(
+                                                                    context)
+                                                                .pop(true),
+                                                      ),
+                                                    ],
                                                   ),
-                                                  child: Text(
+                                                  const SizedBox(
+                                                    height: 16,
+                                                  ),
+                                                  Text(
                                                     "A security feature that protects your information from accidental exposure by"
                                                     " disconnecting your device from the Tor network if the"
                                                     " connection is disrupted or compromised.",
@@ -371,16 +365,16 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                                                           .textDark3,
                                                     ),
                                                   ),
-                                                ),
-                                              ],
+                                                ],
+                                              ),
                                             ),
                                           );
                                         },
                                       );
                                     },
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
                       ),
