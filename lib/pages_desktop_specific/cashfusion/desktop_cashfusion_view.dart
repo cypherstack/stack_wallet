@@ -10,6 +10,7 @@
 
 import 'dart:async';
 
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/ui/check_box_state_provider.dart';
 import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -37,6 +39,11 @@ import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
+
+enum FusionRounds {
+  Continuous,
+  Custom;
+}
 
 class DesktopCashFusionView extends ConsumerStatefulWidget {
   const DesktopCashFusionView({
@@ -65,8 +72,9 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
   bool _trusted = false;
   int? port;
   late bool enableSSLCheckbox;
-
   late final bool enableAuthFields;
+
+  FusionRounds _roundType = FusionRounds.Continuous;
 
   /// The global event bus.
   late final EventBus eventBus;
@@ -463,60 +471,58 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                         const SizedBox(
                           height: 10,
                         ),
-                        Stack(
-                          children: [
-                            TextField(
-                              autocorrect: false,
-                              enableSuggestions: false,
-                              readOnly: true,
-                              textInputAction: TextInputAction.none,
-                              style: STextStyles.desktopTextFieldLabel(context)
-                                  .copyWith(
-                                fontSize: 16,
-                              ),
-                              decoration: const InputDecoration(
-                                contentPadding: EdgeInsets.symmetric(
-                                  vertical: 18,
-                                  horizontal: 16,
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                              ),
-                              child: RawMaterialButton(
-                                splashColor: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .highlight,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                    Constants.size.circularBorderRadius,
+                        DropdownButtonHideUnderline(
+                          child: DropdownButton2<FusionRounds>(
+                            value: _roundType,
+                            items: [
+                              ...FusionRounds.values.map(
+                                (e) => DropdownMenuItem(
+                                  value: e,
+                                  child: Text(
+                                    e.name,
+                                    style:
+                                        STextStyles.desktopTextMedium(context),
                                   ),
                                 ),
-                                onPressed: () {},
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "Continuous",
-                                      style:
-                                          STextStyles.itemSubtitle12(context),
-                                    ),
-                                    SvgPicture.asset(
-                                      Assets.svg.chevronDown,
-                                      width: 8,
-                                      height: 4,
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textSubtitle2,
-                                    ),
-                                  ],
+                              ),
+                            ],
+                            onChanged: (value) {
+                              if (value is FusionRounds) {
+                                setState(() {
+                                  _roundType = value;
+                                });
+                              }
+                            },
+                            isExpanded: true,
+                            iconStyleData: IconStyleData(
+                              icon: SvgPicture.asset(
+                                Assets.svg.chevronDown,
+                                width: 12,
+                                height: 6,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textFieldActiveSearchIconRight,
+                              ),
+                            ),
+                            dropdownStyleData: DropdownStyleData(
+                              offset: const Offset(0, -10),
+                              elevation: 0,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textFieldActiveBG,
+                                borderRadius: BorderRadius.circular(
+                                  Constants.size.circularBorderRadius,
                                 ),
                               ),
                             ),
-                          ],
+                            menuItemStyleData: const MenuItemStyleData(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                            ),
+                          ),
                         ),
                         const SizedBox(
                           height: 20,
