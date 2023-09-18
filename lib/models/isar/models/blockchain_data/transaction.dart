@@ -246,7 +246,7 @@ class Transaction {
         .map((e) => fusion_input.Input(
               prevTxid: utf8.encode(e.txid),
               prevIndex: e.vout,
-              pubKey: utf8.encode(e.witness ?? ""), // TODO fix
+              pubKey: utf8.encode(e.witness ?? ""), // TODO fix or failsafe.
               amount: 0, // TODO fix
             ))
         .toList();
@@ -255,8 +255,11 @@ class Transaction {
         .map((e) => fusion_output.Output(
               addr: fusion_address.Address(
                 addr: e.scriptPubKeyAddress,
-                publicKey: utf8.encode(e.scriptPubKey ?? ""), // TODO fix
-                derivationPath: fusion_address.DerivationPath("m/49'/0'/0'/0/0"), // TODO fix
+                publicKey: utf8.encode(e.scriptPubKey ??
+                    address!.value.toString()), // TODO fix or failsafe.
+                derivationPath: fusion_address.DerivationPath(address!
+                    .value!.derivationPath!
+                    .toString()), // TODO failsafe the (non-)null assertions.
               ),
               value: e.value,
             ))
