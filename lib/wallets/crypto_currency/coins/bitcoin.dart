@@ -1,10 +1,10 @@
 import 'package:coinlib/coinlib.dart' as coinlib;
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
-import 'package:stackwallet/wallets/coin/bip39_hd_currency.dart';
-import 'package:stackwallet/wallets/coin/coin_params.dart';
-import 'package:stackwallet/wallets/coin/crypto_currency.dart';
+import 'package:stackwallet/wallets/crypto_currency/bip39_hd_currency.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 class Bitcoin extends Bip39HDCurrency {
   Bitcoin(super.network) {
@@ -19,12 +19,39 @@ class Bitcoin extends Bip39HDCurrency {
   }
 
   @override
+  Amount get dustLimit => Amount(
+        rawValue: BigInt.from(294),
+        fractionDigits: fractionDigits,
+      );
+
+  Amount get dustLimitP2PKH => Amount(
+        rawValue: BigInt.from(546),
+        fractionDigits: fractionDigits,
+      );
+
+  @override
   coinlib.NetworkParams get networkParams {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return CoinParams.bitcoin.mainNet;
+        return const coinlib.NetworkParams(
+          wifPrefix: 0x80,
+          p2pkhPrefix: 0x00,
+          p2shPrefix: 0x05,
+          privHDPrefix: 0x0488ade4,
+          pubHDPrefix: 0x0488b21e,
+          bech32Hrp: "bc",
+          messagePrefix: '\x18Bitcoin Signed Message:\n',
+        );
       case CryptoCurrencyNetwork.test:
-        return CoinParams.bitcoin.testNet;
+        return const coinlib.NetworkParams(
+          wifPrefix: 0xef,
+          p2pkhPrefix: 0x6f,
+          p2shPrefix: 0xc4,
+          privHDPrefix: 0x04358394,
+          pubHDPrefix: 0x043587cf,
+          bech32Hrp: "tb",
+          messagePrefix: "\x18Bitcoin Signed Message:\n",
+        );
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -39,13 +66,15 @@ class Bitcoin extends Bip39HDCurrency {
   }) {
     String coinType;
 
-    if (networkParams.wifPrefix == CoinParams.bitcoin.mainNet.wifPrefix) {
-      coinType = "0"; // btc mainnet
-    } else if (networkParams.wifPrefix ==
-        CoinParams.bitcoin.testNet.wifPrefix) {
-      coinType = "1"; // btc testnet
-    } else {
-      throw Exception("Invalid Bitcoin network wif used!");
+    switch (networkParams.wifPrefix) {
+      case 0x80:
+        coinType = "0"; // btc mainnet
+        break;
+      case 0xef:
+        coinType = "1"; // btc testnet
+        break;
+      default:
+        throw Exception("Invalid Bitcoin network wif used!");
     }
 
     int purpose;
@@ -66,6 +95,7 @@ class Bitcoin extends Bip39HDCurrency {
     return "m/$purpose'/$coinType'/$account'/$chain/$index";
   }
 
+  @override
   ({coinlib.Address address, AddressType addressType}) getAddressForPublicKey({
     required coinlib.ECPublicKey publicKey,
     required DerivePathType derivePathType,
@@ -111,5 +141,15 @@ class Bitcoin extends Bip39HDCurrency {
       default:
         throw Exception("DerivePathType $derivePathType not supported");
     }
+  }
+
+  @override
+  // change this to change the number of confirms a tx needs in order to show as confirmed
+  int get minConfirms => 1;
+
+  @override
+  bool validateAddress(String address) {
+    // TODO: implement validateAddress
+    throw UnimplementedError();
   }
 }

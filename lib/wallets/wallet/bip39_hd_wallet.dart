@@ -1,14 +1,13 @@
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:coinlib/coinlib.dart' as coinlib;
 import 'package:isar/isar.dart';
-import 'package:stackwallet/exceptions/sw_exception.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
-import 'package:stackwallet/wallets/coin/bip39_hd_currency.dart';
+import 'package:stackwallet/wallets/crypto_currency/bip39_hd_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/wallet.dart';
+import 'package:stackwallet/wallets/wallet/bip39_wallet.dart';
 
-class Bip39HDWallet<T extends Bip39HDCurrency> extends Wallet<T> {
+abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T> {
   Bip39HDWallet(super.cryptoCurrency);
 
   /// Generates a receiving address of [walletInfo.mainAddressType]. If none
@@ -48,30 +47,6 @@ class Bip39HDWallet<T extends Bip39HDCurrency> extends Wallet<T> {
     await mainDB.putAddress(address);
 
     return address;
-  }
-
-  Future<String> getMnemonic() async {
-    final mnemonic = await secureStorageInterface.read(
-      key: Wallet.mnemonicKey(walletId: walletInfo.walletId),
-    );
-
-    if (mnemonic == null) {
-      throw SWException("mnemonic has not been set");
-    }
-
-    return mnemonic;
-  }
-
-  Future<String> getMnemonicPassphrase() async {
-    final mnemonicPassphrase = await secureStorageInterface.read(
-      key: Wallet.mnemonicPassphraseKey(walletId: walletInfo.walletId),
-    );
-
-    if (mnemonicPassphrase == null) {
-      throw SWException("mnemonicPassphrase has not been set");
-    }
-
-    return mnemonicPassphrase;
   }
 
   // ========== Private ========================================================
@@ -147,6 +122,12 @@ class Bip39HDWallet<T extends Bip39HDCurrency> extends Wallet<T> {
   @override
   Future<TxData> prepareSend({required TxData txData}) {
     // TODO: implement prepareSend
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> recover({required bool isRescan}) {
+    // TODO: implement recover
     throw UnimplementedError();
   }
 }

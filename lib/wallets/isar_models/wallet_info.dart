@@ -7,7 +7,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 part 'wallet_info.g.dart';
 
-@Collection(accessor: "walletInfo")
+@Collection(accessor: "walletInfo", inheritance: false)
 class WalletInfo {
   Id id = Isar.autoIncrement;
 
@@ -30,10 +30,11 @@ class WalletInfo {
   // Only exposed for isar to avoid dealing with storing enums as Coin can change
   final String coinName;
 
-  final bool isFavourite;
-
   /// User set favourites ordering. No restrictions are placed on uniqueness.
   /// Reordering logic in the ui code should ensure this is unique.
+  ///
+  /// Also represents if the wallet is a favourite. Any number greater then -1
+  /// denotes a favourite. Any number less than 0 means it is not a favourite.
   final int favouriteOrderIndex;
 
   /// Wallets without this flag set to true should be deleted on next app run
@@ -43,13 +44,37 @@ class WalletInfo {
   /// The highest block height the wallet has scanned.
   final int cachedChainHeight;
 
-  /// Wallet creation chain height. Applies to select coin only.
-  final int creationHeight;
+  // TODO: store these in other data s
+  // Should contain specific things based on certain coins only
 
-  /// Wallet restore chain height. Applies to select coin only.
-  final int restoreHeight;
+  // /// Wallet creation chain height. Applies to select coin only.
+  // final int creationHeight;
+  //
+  // /// Wallet restore chain height. Applies to select coin only.
+  // final int restoreHeight;
+
+  final String? otherDataJsonString;
 
   //============================================================================
+  //=============== Getters ====================================================
+
+  bool get isFavourite => favouriteOrderIndex > -1;
+
+  List<String> get tokenContractAddresses =>
+      otherData[WalletInfoKeys.tokenContractAddresses] as List<String>? ?? [];
+
+  /// Special case for coins such as firo
+  @ignore
+  Balance get cachedSecondaryBalance {
+    try {
+      return Balance.fromJson(
+        otherData[WalletInfoKeys.cachedSecondaryBalance] as String? ?? "",
+        coin.decimals,
+      );
+    } catch (_) {
+      return Balance.zeroForCoin(coin: coin);
+    }
+  }
 
   @ignore
   Coin get coin => Coin.values.byName(coinName);
@@ -63,19 +88,24 @@ class WalletInfo {
     }
   }
 
+  @ignore
+  Map<String, dynamic> get otherData => otherDataJsonString == null
+      ? {}
+      : Map<String, dynamic>.from(jsonDecode(otherDataJsonString!) as Map);
+
+  //============================================================================
+
   WalletInfo({
     required this.coinName,
     required this.walletId,
     required this.name,
     required this.walletType,
     required this.mainAddressType,
-    this.isFavourite = false,
     this.favouriteOrderIndex = 0,
     this.cachedChainHeight = 0,
-    this.creationHeight = 0,
-    this.restoreHeight = 0,
     this.isMnemonicVerified = false,
     this.cachedBalanceString,
+    this.otherDataJsonString,
   }) : assert(
           Coin.values.map((e) => e.name).contains(coinName),
         );
@@ -83,13 +113,11 @@ class WalletInfo {
   WalletInfo copyWith({
     String? coinName,
     String? name,
-    bool? isFavourite,
     int? favouriteOrderIndex,
     int? cachedChainHeight,
-    int? creationHeight,
-    int? restoreHeight,
     bool? isMnemonicVerified,
     String? cachedBalanceString,
+    Map<String, dynamic>? otherData,
   }) {
     return WalletInfo(
       coinName: coinName ?? this.coinName,
@@ -97,13 +125,12 @@ class WalletInfo {
       name: name ?? this.name,
       walletType: walletType,
       mainAddressType: mainAddressType,
-      isFavourite: isFavourite ?? this.isFavourite,
       favouriteOrderIndex: favouriteOrderIndex ?? this.favouriteOrderIndex,
       cachedChainHeight: cachedChainHeight ?? this.cachedChainHeight,
-      creationHeight: creationHeight ?? this.creationHeight,
-      restoreHeight: restoreHeight ?? this.restoreHeight,
       isMnemonicVerified: isMnemonicVerified ?? this.isMnemonicVerified,
       cachedBalanceString: cachedBalanceString ?? this.cachedBalanceString,
+      otherDataJsonString:
+          otherData == null ? otherDataJsonString : jsonEncode(otherData),
     )..id = id;
   }
 
@@ -140,10 +167,17 @@ class WalletInfo {
   }
 }
 
+abstract class WalletInfoKeys {
+  static const String tokenContractAddresses = "tokenContractAddressesKey";
+  static const String cachedSecondaryBalance = "cachedSecondaryBalanceKey";
+  static const String epiccashData = "epiccashDataKey";
+}
+
 // Used in Isar db and stored there as int indexes so adding/removing values
 // in this definition should be done extremely carefully in production
 enum WalletType {
   bip39,
+  bip39HD,
   cryptonote,
   privateKeyBased;
 }

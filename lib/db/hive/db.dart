@@ -26,12 +26,13 @@ class DB {
   @Deprecated("Left over for migration from old versions of Stack Wallet")
   static const String boxNameAddressBook = "addressBook";
   static const String boxNameTrades = "exchangeTransactionsBox";
+  static const String boxNameAllWalletsData = "wallets";
+  static const String boxNameFavoriteWallets = "favoriteWallets";
 
   // in use
   // TODO: migrate
   static const String boxNameNodeModels = "nodeModels";
   static const String boxNamePrimaryNodes = "primaryNodes";
-  static const String boxNameAllWalletsData = "wallets";
   static const String boxNameNotifications = "notificationModels";
   static const String boxNameWatchedTransactions =
       "watchedTxNotificationModels";
@@ -39,7 +40,6 @@ class DB {
   static const String boxNameTradesV2 = "exchangeTradesBox";
   static const String boxNameTradeNotes = "tradeNotesBox";
   static const String boxNameTradeLookup = "tradeToTxidLookUpBox";
-  static const String boxNameFavoriteWallets = "favoriteWallets";
   static const String boxNameWalletsToDeleteOnStart = "walletsToDeleteOnStart";
   static const String boxNamePriceCache = "priceAPIPrice24hCache";
 

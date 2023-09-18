@@ -1,14 +1,15 @@
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
+import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/wallets/coin/bip39_hd_currency.dart';
-import 'package:stackwallet/wallets/coin/coins/bitcoin.dart';
-import 'package:stackwallet/wallets/coin/crypto_currency.dart';
+import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar_models/wallet_info.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/bip39_hd_wallet.dart';
-import 'package:stackwallet/wallets/wallet/private_key_based_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/bitcoin_wallet.dart';
+import 'package:stackwallet/wallets/wallet/mixins/electrumx_mixin.dart';
 
 abstract class Wallet<T extends CryptoCurrency> {
   Wallet(this.cryptoCurrency);
@@ -21,6 +22,7 @@ abstract class Wallet<T extends CryptoCurrency> {
   late final MainDB mainDB;
   late final SecureStorageInterface secureStorageInterface;
   late final WalletInfo walletInfo;
+  late final Prefs prefs;
 
   //============================================================================
   // ========== Wallet Info Convenience Getters ================================
@@ -36,19 +38,23 @@ abstract class Wallet<T extends CryptoCurrency> {
     required WalletInfo walletInfo,
     required MainDB mainDB,
     required SecureStorageInterface secureStorageInterface,
+    required NodeService nodeService,
+    required Prefs prefs,
     String? mnemonic,
     String? mnemonicPassphrase,
     String? privateKey,
-    int? startDate,
   }) async {
     final Wallet wallet = await _construct(
       walletInfo: walletInfo,
       mainDB: mainDB,
       secureStorageInterface: secureStorageInterface,
+      nodeService: nodeService,
+      prefs: prefs,
     );
 
     switch (walletInfo.walletType) {
       case WalletType.bip39:
+      case WalletType.bip39HD:
         await secureStorageInterface.write(
           key: mnemonicKey(walletId: walletInfo.walletId),
           value: mnemonic,
@@ -77,6 +83,8 @@ abstract class Wallet<T extends CryptoCurrency> {
     required String walletId,
     required MainDB mainDB,
     required SecureStorageInterface secureStorageInterface,
+    required NodeService nodeService,
+    required Prefs prefs,
   }) async {
     final walletInfo = await mainDB.isar.walletInfo
         .where()
@@ -93,22 +101,27 @@ abstract class Wallet<T extends CryptoCurrency> {
       walletInfo: walletInfo!,
       mainDB: mainDB,
       secureStorageInterface: secureStorageInterface,
+      nodeService: nodeService,
+      prefs: prefs,
     );
   }
 
   //============================================================================
   // ========== Static Util ====================================================
 
+  // secure storage key
   static String mnemonicKey({
     required String walletId,
   }) =>
       "${walletId}_mnemonic";
 
+  // secure storage key
   static String mnemonicPassphraseKey({
     required String walletId,
   }) =>
       "${walletId}_mnemonicPassphrase";
 
+  // secure storage key
   static String privateKeyKey({
     required String walletId,
   }) =>
@@ -122,23 +135,18 @@ abstract class Wallet<T extends CryptoCurrency> {
     required WalletInfo walletInfo,
     required MainDB mainDB,
     required SecureStorageInterface secureStorageInterface,
+    required NodeService nodeService,
+    required Prefs prefs,
   }) async {
-    final Wallet wallet;
+    final Wallet wallet = _loadWallet(
+      walletInfo: walletInfo,
+      nodeService: nodeService,
+      prefs: prefs,
+    );
 
-    final cryptoCurrency = _loadCurrency(walletInfo: walletInfo);
-
-    switch (walletInfo.walletType) {
-      case WalletType.bip39:
-        wallet = Bip39HDWallet(cryptoCurrency as Bip39HDCurrency);
-        break;
-
-      case WalletType.cryptonote:
-        wallet = PrivateKeyBasedWallet(cryptoCurrency);
-        break;
-
-      case WalletType.privateKeyBased:
-        wallet = PrivateKeyBasedWallet(cryptoCurrency);
-        break;
+    if (wallet is ElectrumXMixin) {
+      // initialize electrumx instance
+      await wallet.updateNode();
     }
 
     return wallet
@@ -147,18 +155,28 @@ abstract class Wallet<T extends CryptoCurrency> {
       ..walletInfo = walletInfo;
   }
 
-  static CryptoCurrency _loadCurrency({
+  static Wallet _loadWallet({
     required WalletInfo walletInfo,
+    required NodeService nodeService,
+    required Prefs prefs,
   }) {
     switch (walletInfo.coin) {
       case Coin.bitcoin:
-        return Bitcoin(CryptoCurrencyNetwork.main);
+        return BitcoinWallet(
+          Bitcoin(CryptoCurrencyNetwork.main),
+          nodeService: nodeService,
+          prefs: prefs,
+        );
       case Coin.bitcoinTestNet:
-        return Bitcoin(CryptoCurrencyNetwork.test);
+        return BitcoinWallet(
+          Bitcoin(CryptoCurrencyNetwork.test),
+          nodeService: nodeService,
+          prefs: prefs,
+        );
 
       default:
         // should never hit in reality
-        throw Exception("Unknown cryupto currency");
+        throw Exception("Unknown crypto currency");
     }
   }
 
@@ -171,4 +189,22 @@ abstract class Wallet<T extends CryptoCurrency> {
   /// Broadcast transaction to network. On success update local wallet state to
   /// reflect updated balance, transactions, utxos, etc.
   Future<TxData> confirmSend({required TxData txData});
+
+  /// Recover a wallet by scanning the blockchain. If called on a new wallet a
+  /// normal recovery should occur. When called on an existing wallet and
+  /// [isRescan] is false then it should throw. Otherwise this function should
+  /// delete all locally stored blockchain data and refetch it.
+  Future<void> recover({required bool isRescan});
+
+  Future<void> updateTransactions();
+  Future<void> updateUTXOs();
+  Future<void> updateBalance();
+
+  // Should probably call the above 3 functions
+  // Should fire events
+  Future<void> refresh();
+
+  //===========================================
+
+  Future<void> updateNode();
 }
