@@ -8,11 +8,22 @@
  *
  */
 
+import 'dart:async';
+
+import 'package:event_bus/event_bus.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_menu.dart';
+import 'package:stackwallet/pages_desktop_specific/settings/settings_menu.dart';
+import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/ui/check_box_state_provider.dart';
+import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -20,6 +31,8 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -55,7 +68,66 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
 
   late final bool enableAuthFields;
 
-  void _updateState() {}
+  /// The global event bus.
+  late final EventBus eventBus;
+
+  /// The subscription to the TorConnectionStatusChangedEvent.
+  late final StreamSubscription<TorConnectionStatusChangedEvent>
+      _torConnectionStatusSubscription;
+
+  /// The current status of the Tor connection.
+  late TorConnectionStatus _torConnectionStatus =
+      TorConnectionStatus.disconnected;
+
+  /// Build the connect/disconnect button
+  /// pushes to Tor settings
+  Widget _buildConnectButton(TorConnectionStatus status) {
+    switch (status) {
+      case TorConnectionStatus.disconnected:
+        return MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: () {
+              ref.read(currentDesktopMenuItemProvider.state).state =
+                  DesktopMenuItemId.settings;
+              ref.watch(selectedSettingsMenuItemStateProvider.state).state = 4;
+            },
+            child: Text(
+              "Connect",
+              style: STextStyles.richLink(context).copyWith(
+                fontSize: 14,
+              ),
+            ),
+          ),
+        );
+      case TorConnectionStatus.connecting:
+        return AbsorbPointer(
+          child: Text(
+            "Connecting",
+            style: STextStyles.richLink(context).copyWith(
+              fontSize: 14,
+            ),
+          ),
+        );
+      case TorConnectionStatus.connected:
+        return MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: () {
+              ref.read(currentDesktopMenuItemProvider.state).state =
+                  DesktopMenuItemId.settings;
+              ref.watch(selectedSettingsMenuItemStateProvider.state).state = 4;
+            },
+            child: Text(
+              "Disconnect",
+              style: STextStyles.richLink(context).copyWith(
+                fontSize: 14,
+              ),
+            ),
+          ),
+        );
+    }
+  }
 
   @override
   void initState() {
@@ -66,6 +138,23 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
     portFocusNode = FocusNode();
 
     enableSSLCheckbox = true;
+
+    // Initialize the global event bus.
+    eventBus = GlobalEventBus.instance;
+
+    // Initialize the TorConnectionStatus.
+    _torConnectionStatus = ref.read(pTorService).status;
+
+    // Subscribe to the TorConnectionStatusChangedEvent.
+    _torConnectionStatusSubscription =
+        eventBus.on<TorConnectionStatusChangedEvent>().listen(
+      (event) async {
+        // Rebuild the widget.
+        setState(() {
+          _torConnectionStatus = event.newStatus;
+        });
+      },
+    );
 
     super.initState();
   }
@@ -155,6 +244,67 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                             style: STextStyles.richLink(context).copyWith(
                               fontSize: 16,
                             ),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                showDialog<dynamic>(
+                                  context: context,
+                                  useSafeArea: false,
+                                  barrierDismissible: true,
+                                  builder: (context) {
+                                    return DesktopDialog(
+                                      maxWidth: 580,
+                                      maxHeight: double.infinity,
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(
+                                          top: 10,
+                                          left: 20,
+                                          bottom: 20,
+                                          right: 10,
+                                        ),
+                                        child: Column(
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                  "What is CashFusion?",
+                                                  style: STextStyles.desktopH2(
+                                                      context),
+                                                ),
+                                                DesktopDialogCloseButton(
+                                                  onPressedOverride: () =>
+                                                      Navigator.of(context)
+                                                          .pop(true),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(
+                                              height: 16,
+                                            ),
+                                            Text(
+                                              "A fully decentralized privacy protocol that allows "
+                                              "anyone to create multi-party transactions with other "
+                                              "network participants. This process obscures your real "
+                                              "spending and makes it difficult for chain-analysis "
+                                              "companies to track your coins.",
+                                              style:
+                                                  STextStyles.desktopTextMedium(
+                                                          context)
+                                                      .copyWith(
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textDark3,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
                           ),
                         ),
                       ],
@@ -379,12 +529,7 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                               style: STextStyles.desktopTextExtraExtraSmall(
                                   context),
                             ),
-                            Text(
-                              "Disconnect",
-                              style: STextStyles.richLink(context).copyWith(
-                                fontSize: 14,
-                              ),
-                            ),
+                            _buildConnectButton(_torConnectionStatus),
                           ],
                         ),
                         const SizedBox(
@@ -394,8 +539,32 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                           borderColor: Theme.of(context)
                               .extension<StackColors>()!
                               .shadow,
-                          child: const Row(
-                            children: [],
+                          child: Row(
+                            children: [
+                              SvgPicture.asset(
+                                Assets.svg.circleTor,
+                                width: 48,
+                                height: 48,
+                              ),
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Tor Network",
+                                    style: STextStyles.itemSubtitle12(context),
+                                  ),
+                                  const SizedBox(
+                                    height: 4,
+                                  ),
+                                  Text(_torConnectionStatus.name.capitalize(),
+                                      style: STextStyles
+                                          .desktopTextExtraExtraSmall(context)),
+                                ],
+                              )
+                            ],
                           ),
                         ),
                         const SizedBox(
