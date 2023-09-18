@@ -1,7 +1,7 @@
-import 'package:flutter_libepiccash/epic_cash.dart' as lib_epiccash;
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/bip39_currency.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:stackwallet/wallets/example/libepiccash.dart';
 
 class Epiccash extends Bip39Currency {
   Epiccash(super.network) {
@@ -30,15 +30,6 @@ class Epiccash extends Bip39Currency {
       }
     }
 
-    final String validate = lib_epiccash.validateSendAddress(address);
-    if (int.parse(validate) == 1) {
-      // Check if address contains a domain
-      if (address.contains("@")) {
-        return true;
-      }
-      return false;
-    } else {
-      return false;
-    }
+    return LibEpiccash.validateSendAddress(address: address);
   }
 }
