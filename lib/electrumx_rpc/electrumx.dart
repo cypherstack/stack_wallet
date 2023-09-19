@@ -726,6 +726,14 @@ class ElectrumX {
         return {"rawtx": response["result"] as String};
       }
 
+      if (response["result"] == null) {
+        Logging.instance.log(
+          "getTransaction($txHash) returned null response",
+          level: LogLevel.Error,
+        );
+        throw 'getTransaction($txHash) returned null response';
+      }
+
       return Map<String, dynamic>.from(response["result"] as Map);
     } catch (e) {
       Logging.instance.log(

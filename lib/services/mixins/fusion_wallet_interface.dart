@@ -8,6 +8,8 @@ import 'package:fusiondart/src/models/input.dart' as fusion_input;
 import 'package:fusiondart/src/models/transaction.dart' as fusion_tx;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
+import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -22,6 +24,7 @@ mixin FusionWalletInterface {
   late final String _walletId;
   late final Coin _coin;
   late final MainDB _db;
+  late final CachedElectrumX _cachedElectrumX;
   late final TorService _torService;
 
   // Passed in wallet functions.
@@ -45,6 +48,7 @@ mixin FusionWalletInterface {
       int,
       DerivePathType,
     ) generateAddressForChain,
+    required CachedElectrumX cachedElectrumX,
   }) async {
     // Set passed in wallet data.
     _walletId = walletId;
@@ -52,6 +56,7 @@ mixin FusionWalletInterface {
     _db = db;
     _generateAddressForChain = generateAddressForChain;
     _torService = TorService.sharedInstance;
+    _cachedElectrumX = cachedElectrumX;
 
     // Try getting the proxy info.
     //
@@ -82,9 +87,11 @@ mixin FusionWalletInterface {
       String address) async {
     var _txs = await _db.getTransactions(_walletId).findAll();
 
-    return _txs
-        .map((tx) => tx.toFusionTransaction())
-        .toSet(); // TODO fix public key.
+    // Use Future.wait to await all the futures in the set and then convert it to a set.
+    var resultSet = await Future.wait(
+        _txs.map((tx) => tx.toFusionTransaction(_cachedElectrumX)));
+
+    return resultSet.toSet();
   }
 
   /// Returns a list of all UTXOs in the wallet for the given address.
@@ -224,9 +231,45 @@ mixin FusionWalletInterface {
 
     // Add stack UTXOs.
     List<UTXO> utxos = await _db.getUTXOs(_walletId).findAll();
+    List<(String, int, int, List<int>)> coinList = [];
 
-    await mainFusionObject.addCoinsFromWallet(
-        utxos.map((e) => (e.txid, e.vout, e.value)).toList());
+    // Loop through UTXOs, checking and adding valid ones.
+    for (var e in utxos) {
+      // Check if address is available.
+      if (e.address == null) {
+        // TODO we could continue here (and below during scriptPubKey validation) instead of throwing.
+        throw Exception("UTXO ${e.txid}:${e.vout} address is null");
+      }
+
+      // Find public key.
+      print("1 getting tx ${e.txid}");
+      Map<String, dynamic> tx = await _cachedElectrumX.getTransaction(coin: _coin,
+          txHash: e.txid, verbose: true); // TODO is verbose needed?
+
+      // Check if scriptPubKey is available.
+      if (tx["vout"] == null) {
+        throw Exception("Vout in transaction ${e.txid} is null");
+      }
+      if (tx["vout"][e.vout] == null) {
+        throw Exception("Vout index ${e.vout} in transaction is null");
+      }
+      if (tx["vout"][e.vout]["scriptPubKey"] == null) {
+        throw Exception("scriptPubKey at vout index ${e.vout} is null");
+      }
+      if (tx["vout"][e.vout]["scriptPubKey"]["hex"] == null) {
+        throw Exception("hex in scriptPubKey at vout index ${e.vout} is null");
+      }
+
+      // Assign scriptPubKey to pubKey.  TODO verify this is correct.
+      List<int> pubKey =
+          utf8.encode("${tx["vout"][e.vout]["scriptPubKey"]["hex"]}");
+
+      // Add UTXO to coinList.
+      coinList.add((e.txid, e.vout, e.value, pubKey));
+    }
+
+    // Add Stack UTXOs.
+    await mainFusionObject.addCoinsFromWallet(coinList);
 
     // Fuse UTXOs.
     return await mainFusionObject.fuse();

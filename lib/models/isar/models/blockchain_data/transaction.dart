@@ -11,15 +11,18 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:decimal/decimal.dart';
 import 'package:fusiondart/src/models/address.dart' as fusion_address;
 import 'package:fusiondart/src/models/input.dart' as fusion_input;
 import 'package:fusiondart/src/models/output.dart' as fusion_output;
 import 'package:fusiondart/src/models/transaction.dart' as fusion_tx;
 import 'package:isar/isar.dart';
+import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/input.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/output.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:tuple/tuple.dart';
 
 part 'transaction.g.dart';
@@ -237,19 +240,57 @@ class Transaction {
   }
 
   // Convert to fusiondart's Transaction type.
-  fusion_tx.Transaction toFusionTransaction() {
+  //
+  // This is bad because in the FusionWalletInterface in getTransactionsByAddress
+  // we already getAllTransactions, then for each transaction here we also getTransaction
+  // for each transaction again.  But the data we need--the input's value--isn't
+  // here anyways.
+  Future<fusion_tx.Transaction> toFusionTransaction(
+      CachedElectrumX cachedElectrumX) async {
     // Initialize Fusion Dart's Transaction object.
     fusion_tx.Transaction fusionTransaction = fusion_tx.Transaction();
 
-    // Map the Inputs and Outputs to Fusion Dart's format
-    fusionTransaction.Inputs = inputs.map((e) {
-      return fusion_input.Input(
-        prevTxid: utf8.encode(e.txid),
-        prevIndex: e.vout,
-        pubKey: utf8.encode(address.value.toString()), // TODO fix public key.
-        amount: amount, // TODO is this valid?  Probably not.
+    // Map the Inputs and Outputs to Fusion Dart's format.
+    //
+    // This takes an exqcessive amount of time because we have to get the
+    // transaction for each input.  We already have the transaction for each
+    // input in getTransactionsByAddress, but we don't have the input's value.
+    // So we have to get the transaction again here.
+    fusionTransaction.Inputs = await Future.wait(inputs.map((e) async {
+      // Find input amount.
+      print("2 getting tx ${e.txid}");
+      Map<String, dynamic> _tx = await cachedElectrumX.getTransaction(
+          coin: Coin.bitcoincash,
+          txHash: e.txid,
+          verbose: true); // TODO is verbose needed?
+
+      // Check if output amount is available.
+      if (_tx == null) {
+        throw Exception("Transaction not found for input: ${e.txid}");
+      }
+      if (_tx["vout"] == null) {
+        throw Exception("Vout in transaction ${e.txid} is null");
+      }
+      if (_tx["vout"][e.vout] == null) {
+        throw Exception("Vout index ${e.vout} in transaction is null");
+      }
+      if (_tx["vout"][e.vout]["value"] == null) {
+        throw Exception("Value of vout index ${e.vout} in transaction is null");
+      }
+
+      // Assign vout value to amount.
+      final value = Amount.fromDecimal(
+        Decimal.parse(_tx["vout"][e.vout]["value"].toString()),
+        fractionDigits: Coin.bitcoincash.decimals,
       );
-    }).toList();
+
+      return fusion_input.Input(
+        prevTxid: utf8.encode(e.txid), // TODO verify this is what we want.
+        prevIndex: e.vout, // TODO verify this is what we want.
+        pubKey: utf8.encode(address.value.toString()), // TODO fix public key.
+        amount: value.raw.toInt(),
+      );
+    }).toList());
 
     fusionTransaction.Outputs = outputs.map((e) {
       /*
