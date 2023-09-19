@@ -92,6 +92,9 @@ class _SVG {
 
   final coinControl = const _COIN_CONTROL();
 
+  String get peers => "assets/svg/peers.svg";
+  String get fusing => "assets/svg/fusing.svg";
+  String get upFromLine => "assets/svg/up-from-line.svg";
   String get connectedButton => "assets/svg/connected-button.svg";
   String get connectingButton => "assets/svg/connecting-button.svg";
   String get disconnectedButton => "assets/svg/disconnected-button.svg";

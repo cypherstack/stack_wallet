@@ -362,6 +362,9 @@ flutter:
     - assets/svg/connected-button.svg
     - assets/svg/connecting-button.svg
     - assets/svg/disconnected-button.svg
+    - assets/svg/up-from-line.svg
+    - assets/svg/peers.svg
+    - assets/svg/fusing.svg
 
     # coin control icons
     - assets/svg/coin_control/
