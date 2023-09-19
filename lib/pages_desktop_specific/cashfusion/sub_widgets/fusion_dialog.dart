@@ -9,7 +9,7 @@ import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 
-enum CashFustionStatus { waiting, restoring, success, failed }
+enum CashFusionStatus { waiting, restoring, success, failed }
 
 class FusionDialog extends StatelessWidget {
   const FusionDialog({
@@ -18,25 +18,25 @@ class FusionDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget _getIconForState(CashFustionStatus state) {
+    Widget _getIconForState(CashFusionStatus state) {
       switch (state) {
-        case CashFustionStatus.waiting:
+        case CashFusionStatus.waiting:
           return SvgPicture.asset(
             Assets.svg.loader,
             color:
                 Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
           );
-        case CashFustionStatus.restoring:
+        case CashFusionStatus.restoring:
           return SvgPicture.asset(
             Assets.svg.loader,
             color: Theme.of(context).extension<StackColors>()!.accentColorGreen,
           );
-        case CashFustionStatus.success:
+        case CashFusionStatus.success:
           return SvgPicture.asset(
             Assets.svg.checkCircle,
             color: Theme.of(context).extension<StackColors>()!.accentColorGreen,
           );
-        case CashFustionStatus.failed:
+        case CashFusionStatus.failed:
           return SvgPicture.asset(
             Assets.svg.circleAlert,
             color: Theme.of(context).extension<StackColors>()!.textError,
