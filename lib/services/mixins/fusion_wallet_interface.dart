@@ -84,7 +84,7 @@ mixin FusionWalletInterface {
 
     return _txs
         .map((tx) => tx.toFusionTransaction())
-        .toSet(); // TODO feed in proper public key
+        .toSet(); // TODO fix public key.
   }
 
   /// Returns a list of all UTXOs in the wallet for the given address.
@@ -93,7 +93,7 @@ mixin FusionWalletInterface {
 
     return _utxos
         .map((utxo) => utxo.toFusionInput(
-            pubKey: utf8.encode('0000'))) // TODO feed in proper public key
+            pubKey: utf8.encode(address.toString()))) // TODO fix public key.
         .toList();
   }
 

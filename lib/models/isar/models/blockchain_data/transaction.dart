@@ -246,8 +246,8 @@ class Transaction {
       return fusion_input.Input(
         prevTxid: utf8.encode(e.txid),
         prevIndex: e.vout,
-        pubKey: utf8.encode(address.value.toString()), // TODO is this valid?
-        amount: amount, // TODO is this valid?
+        pubKey: utf8.encode(address.value.toString()), // TODO fix public key.
+        amount: amount, // TODO is this valid?  Probably not.
       );
     }).toList();
 
