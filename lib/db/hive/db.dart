@@ -46,6 +46,7 @@ class DB {
   // in use (keep for now)
   static const String boxNameDBInfo = "dbInfo";
   static const String boxNamePrefs = "prefs";
+  static const String boxNameOneTimeDialogsShown = "oneTimeDialogsShown";
 
   String _boxNameTxCache({required Coin coin}) => "${coin.name}_txCache";
 

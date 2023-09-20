@@ -372,6 +372,9 @@ flutter:
     # buy
     - assets/svg/buy/
 
+    # gif
+    - assets/gif/
+
     # lottie animations
     # basic
     - assets/lottie/test2.json
