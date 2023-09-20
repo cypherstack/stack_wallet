@@ -385,6 +385,46 @@ mixin FusionWalletInterface {
   }
 }
 
+/// An extension of Stack Wallet's Address class that adds CashFusion functionality.
+extension FusionAddress on Address {
+  fusion_address.Address toFusionAddress() {
+    return fusion_address.Address(
+        addr: value,
+        publicKey:
+            publicKey, // Assuming List<byte> and List<int> are compatible
+        derivationPath:
+            fusion_address.DerivationPath(derivationPath?.value ?? ""));
+  }
+}
+
+/// An extension of Stack Wallet's UTXO class that adds CashFusion functionality.
+///
+/// This class is used to convert Stack Wallet's UTXO class to FusionDart's
+/// Input and Output classes.
+extension FusionUTXO on UTXO {
+  /// Converts a Stack Wallet UTXO to a FusionDart Input.
+  fusion_input.Input toFusionInput({required List<int> pubKey}) {
+    return fusion_input.Input(
+      prevTxid: utf8.encode(txid), // TODO verify this is what we want.
+      prevIndex: vout, // TODO verify this is what we want.
+      pubKey: pubKey, // TODO fix public key.
+      amount: value,
+    );
+  }
+
+  /// Converts a Stack Wallet UTXO to a FusionDart Output.
+  fusion_output.Output toFusionOutput({required String address}) {
+    return fusion_output.Output(
+      addr: fusion_address.Address(
+        addr: address,
+        publicKey: utf8.encode(address.toString()), // TODO fix public key.
+        derivationPath: null, // TODO fix derivation path.
+      ),
+      value: value,
+    );
+  }
+}
+
 /// An extension of Stack Wallet's Transaction class that adds CashFusion functionality.
 extension FusionTransaction on Transaction {
   // WIP.
@@ -478,33 +518,5 @@ extension FusionTransaction on Transaction {
     }).toList();
 
     return fusionTransaction;
-  }
-}
-
-/// An extension of Stack Wallet's UTXO class that adds CashFusion functionality.
-///
-/// This class is used to convert Stack Wallet's UTXO class to FusionDart's
-/// Input and Output classes.
-extension FusionUTXO on UTXO {
-  /// Converts a Stack Wallet UTXO to a FusionDart Input.
-  fusion_input.Input toFusionInput({required List<int> pubKey}) {
-    return fusion_input.Input(
-      prevTxid: utf8.encode(txid), // TODO verify this is what we want.
-      prevIndex: vout, // TODO verify this is what we want.
-      pubKey: pubKey, // TODO fix public key.
-      amount: value,
-    );
-  }
-
-  /// Converts a Stack Wallet UTXO to a FusionDart Output.
-  fusion_output.Output toFusionOutput({required String address}) {
-    return fusion_output.Output(
-      addr: fusion_address.Address(
-        addr: address,
-        publicKey: utf8.encode(address.toString()), // TODO fix public key.
-        derivationPath: null, // TODO fix derivation path.
-      ),
-      value: value,
-    );
   }
 }

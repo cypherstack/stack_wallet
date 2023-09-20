@@ -236,14 +236,3 @@ class DerivationPath {
   @override
   int get hashCode => value.hashCode;
 }
-
-extension ToFusionAddress on Address {
-  FusionAddress.Address toFusionAddress() {
-    return FusionAddress.Address(
-        addr: value,
-        publicKey:
-            publicKey, // Assuming List<byte> and List<int> are compatible
-        derivationPath:
-            FusionAddress.DerivationPath(derivationPath?.value ?? ""));
-  }
-}
