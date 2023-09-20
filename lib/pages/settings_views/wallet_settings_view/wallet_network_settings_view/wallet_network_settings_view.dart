@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/tor_settings/tor_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/sub_widgets/nodes_list.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/sub_widgets/confirm_full_rescan.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/sub_widgets/rescanning_dialog.dart';
@@ -35,8 +36,6 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
@@ -99,6 +98,26 @@ class _WalletNetworkSettingsViewState
 
   /// The current status of the Tor connection.
   late TorConnectionStatus _torConnectionStatus;
+
+  bool _buttonLockTor = false;
+  Future<void> onTorTapped() async {
+    if (_buttonLockTor) {
+      return;
+    }
+    _buttonLockTor = true;
+    try {
+      if (ref.read(prefsChangeNotifierProvider).useTor) {
+        await disconnectTor(ref, context);
+      } else {
+        await connectTor(ref, context);
+      }
+    } catch (_) {
+      // Nothing. Just using finally to ensure button lock is reset in case
+      // some unexpected error happens
+    } finally {
+      _buttonLockTor = false;
+    }
+  }
 
   Future<void> _attemptRescan() async {
     if (!Platform.isLinux) await Wakelock.enable();
@@ -477,17 +496,14 @@ class _WalletNetworkSettingsViewState
                     ? STextStyles.desktopTextExtraExtraSmall(context)
                     : STextStyles.smallMed12(context),
               ),
-              GestureDetector(
+              CustomTextButton(
+                text: "Resync",
                 onTap: () {
                   ref
                       .read(walletsChangeNotifierProvider)
                       .getManager(widget.walletId)
                       .refresh();
                 },
-                child: Text(
-                  "Resync",
-                  style: STextStyles.link2(context),
-                ),
               ),
             ],
           ),
@@ -769,55 +785,13 @@ class _WalletNetworkSettingsViewState
                     ? STextStyles.desktopTextExtraExtraSmall(context)
                     : STextStyles.smallMed12(context),
               ),
-              if (ref.watch(
-                  prefsChangeNotifierProvider.select((value) => value.useTor)))
-                GestureDetector(
-                  onTap: () async {
-                    // Stop the Tor service.
-                    try {
-                      await ref.read(pTorService).disable();
-
-                      // Toggle the useTor preference on success.
-                      ref.read(prefsChangeNotifierProvider).useTor = false;
-                    } catch (e, s) {
-                      Logging.instance.log(
-                        "Error stopping tor: $e\n$s",
-                        level: LogLevel.Error,
-                      );
-                    }
-                  },
-                  child: Text(
-                    "Disconnect",
-                    style: STextStyles.link2(context),
-                  ),
-                ),
-              if (!ref.watch(
-                  prefsChangeNotifierProvider.select((value) => value.useTor)))
-                GestureDetector(
-                  onTap: () async {
-                    try {
-                      // Init the Tor service if it hasn't already been.
-                      final torDir =
-                          await StackFileSystem.applicationTorDirectory();
-                      ref.read(pTorService).init(torDataDirPath: torDir.path);
-                      // Start the Tor service.
-                      await ref.read(pTorService).start();
-
-                      // Toggle the useTor preference on success.
-                      ref.read(prefsChangeNotifierProvider).useTor = true;
-                    } catch (e, s) {
-                      Logging.instance.log(
-                        "Error starting tor: $e\n$s",
-                        level: LogLevel.Error,
-                      );
-                      // TODO: show dialog with error message
-                    }
-                  },
-                  child: Text(
-                    "Connect",
-                    style: STextStyles.link2(context),
-                  ),
-                ),
+              CustomTextButton(
+                text: ref.watch(prefsChangeNotifierProvider
+                        .select((value) => value.useTor))
+                    ? "Disconnect"
+                    : "Connect",
+                onTap: onTorTapped,
+              ),
             ],
           ),
           SizedBox(
