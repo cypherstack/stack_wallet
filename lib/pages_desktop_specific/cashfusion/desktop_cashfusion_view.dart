@@ -62,9 +62,12 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
   late final FocusNode serverFocusNode;
   late final TextEditingController portController;
   late final FocusNode portFocusNode;
+  late final TextEditingController fusionRoundController;
+  late final FocusNode fusionRoundFocusNode;
 
   String _serverTerm = "";
   String _portTerm = "";
+  String _fusionRoundTerm = "";
 
   bool _useSSL = false;
   bool _trusted = false;
@@ -139,9 +142,11 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
   void initState() {
     serverController = TextEditingController();
     portController = TextEditingController();
+    fusionRoundController = TextEditingController();
 
     serverFocusNode = FocusNode();
     portFocusNode = FocusNode();
+    fusionRoundFocusNode = FocusNode();
 
     enableSSLCheckbox = true;
 
@@ -169,9 +174,11 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
   void dispose() {
     serverController.dispose();
     portController.dispose();
+    fusionRoundController.dispose();
 
     serverFocusNode.dispose();
     portFocusNode.dispose();
+    fusionRoundFocusNode.dispose();
 
     super.dispose();
   }
@@ -478,8 +485,12 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                                   value: e,
                                   child: Text(
                                     e.name,
-                                    style:
-                                        STextStyles.desktopTextMedium(context),
+                                    style: STextStyles.smallMed14(context)
+                                        .copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -522,6 +533,46 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                             ),
                           ),
                         ),
+                        if (_roundType == FusionRounds.Custom)
+                          const SizedBox(
+                            height: 10,
+                          ),
+                        if (_roundType == FusionRounds.Custom)
+                          SizedBox(
+                            width: 460,
+                            child: RoundedWhiteContainer(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(
+                                      Constants.size.circularBorderRadius,
+                                    ),
+                                    child: TextField(
+                                      autocorrect: false,
+                                      enableSuggestions: false,
+                                      controller: fusionRoundController,
+                                      focusNode: fusionRoundFocusNode,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _fusionRoundTerm = value;
+                                        });
+                                      },
+                                      style: STextStyles.field(context),
+                                      decoration: standardInputDecoration(
+                                        "",
+                                        fusionRoundFocusNode,
+                                        context,
+                                        desktopMed: true,
+                                      ).copyWith(
+                                          labelText:
+                                              "Enter number of fusions.."),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         const SizedBox(
                           height: 20,
                         ),
