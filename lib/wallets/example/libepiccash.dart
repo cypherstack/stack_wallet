@@ -8,6 +8,11 @@ import 'package:mutex/mutex.dart';
 /// Should all be static calls (no state stored in this class)
 ///
 abstract class LibEpiccash {
+  static final Mutex _mutex = Mutex();
+
+  ///
+  /// Check if [address] is a valid epiccash address according to libepiccash
+  ///
   static bool validateSendAddress({required String address}) {
     final String validate = lib_epiccash.validateSendAddress(address);
     if (int.parse(validate) == 1) {
