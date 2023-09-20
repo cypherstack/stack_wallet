@@ -162,18 +162,21 @@ class ExchangeDataLoadingService {
         // await _loadChangeNowEstimatedRatePairs();
          */
 
+        // Exchanges which support Tor just get treated normally.
+        final futures = [
+          loadMajesticBankCurrencies(),
+          loadTrocadorCurrencies(),
+        ];
+
         // If using Tor, don't load data for exchanges which don't support Tor.
         //
         // Add to this list when adding an exchange which doesn't supports Tor.
         if (!Prefs.instance.useTor) {
-          await _loadChangeNowCurrencies();
+          futures.add(_loadChangeNowCurrencies());
         }
 
-        // Exchanges which support Tor just get treated normally.
-        await Future.wait([
-          loadMajesticBankCurrencies(),
-          loadTrocadorCurrencies(),
-        ]);
+        // wait for all loading futures to complete
+        await Future.wait(futures);
 
         Logging.instance.log(
           "ExchangeDataLoadingService.loadAll finished in ${DateTime.now().difference(start).inSeconds} seconds",

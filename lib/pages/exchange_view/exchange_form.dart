@@ -36,7 +36,6 @@ import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
-import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -780,9 +779,6 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       });
     }
 
-    // Instantiate the Tor service.
-    torService = TorService.sharedInstance;
-
     super.initState();
   }
 
@@ -1017,7 +1013,4 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       ],
     );
   }
-
-  // TorService instance.
-  late TorService torService;
 }

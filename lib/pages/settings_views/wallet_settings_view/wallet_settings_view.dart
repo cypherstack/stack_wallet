@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/models/epicbox_config_model.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
@@ -36,11 +37,14 @@ import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:tuple/tuple.dart';
 
 /// [eventBus] should only be set during testing
@@ -302,6 +306,61 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                             XPubView.routeName,
                                             arguments: widget.walletId,
                                           );
+                                        },
+                                      );
+                                    },
+                                  ),
+                                if (coin == Coin.firo)
+                                  const SizedBox(
+                                    height: 8,
+                                  ),
+                                if (coin == Coin.firo)
+                                  Consumer(
+                                    builder: (_, ref, __) {
+                                      return SettingsListButton(
+                                        iconAssetName: Assets.svg.eye,
+                                        title: "Clear electrumx cache",
+                                        onPressed: () async {
+                                          String? result;
+                                          await showDialog<void>(
+                                            useSafeArea: false,
+                                            barrierDismissible: true,
+                                            context: context,
+                                            builder: (_) => StackOkDialog(
+                                              title:
+                                                  "Are you sure you want to clear "
+                                                  "${coin.prettyName} electrumx cache?",
+                                              onOkPressed: (value) {
+                                                result = value;
+                                              },
+                                              leftButton: SecondaryButton(
+                                                label: "Cancel",
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                              ),
+                                            ),
+                                          );
+
+                                          if (result == "OK" && mounted) {
+                                            await showLoading(
+                                              whileFuture: Future.wait<void>(
+                                                [
+                                                  Future.delayed(
+                                                    const Duration(
+                                                      milliseconds: 1500,
+                                                    ),
+                                                  ),
+                                                  DB.instance
+                                                      .clearSharedTransactionCache(
+                                                    coin: coin,
+                                                  ),
+                                                ],
+                                              ),
+                                              context: context,
+                                              message: "Clearing cache...",
+                                            );
+                                          }
                                         },
                                       );
                                     },
