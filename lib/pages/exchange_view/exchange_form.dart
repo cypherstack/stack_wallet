@@ -43,7 +43,6 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
-import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -80,11 +79,17 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   late final Coin? coin;
   late final bool walletInitiated;
 
-  var exchanges = [
-    MajesticBankExchange.instance,
-    ChangeNowExchange.instance,
-    TrocadorExchange.instance,
-  ];
+  List<Exchange> get usableExchanges {
+    if (ref.read(prefsChangeNotifierProvider).useTor) {
+      return Exchange.exchangesWithTorSupport;
+    } else {
+      return [
+        MajesticBankExchange.instance,
+        ChangeNowExchange.instance,
+        TrocadorExchange.instance,
+      ];
+    }
+  }
 
   late final TextEditingController _sendController;
   late final TextEditingController _receiveController;
@@ -623,7 +628,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     final uuid = const Uuid().v1();
     _latestUuid = uuid;
     _addUpdate(uuid);
-    for (final exchange in exchanges) {
+    for (final exchange in usableExchanges) {
       ref.read(efEstimatesListProvider(exchange.name).notifier).state = null;
     }
 
@@ -644,7 +649,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     final Map<String, Tuple2<ExchangeResponse<List<Estimate>>, Range?>>
         results = {};
 
-    for (final exchange in exchanges) {
+    for (final exchange in usableExchanges) {
       final sendCurrency = pair.send?.forExchange(exchange.name);
       final receiveCurrency = pair.receive?.forExchange(exchange.name);
 
@@ -674,7 +679,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       }
     }
 
-    for (final exchange in exchanges) {
+    for (final exchange in usableExchanges) {
       if (uuid == _latestUuid) {
         ref.read(efEstimatesListProvider(exchange.name).notifier).state =
             results[exchange.name];
@@ -777,11 +782,6 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
 
     // Instantiate the Tor service.
     torService = TorService.sharedInstance;
-
-    // Filter exchanges based on Tor support.
-    if (Prefs.instance.useTor) {
-      exchanges = Exchange.exchangesWithTorSupport;
-    }
 
     super.initState();
   }
