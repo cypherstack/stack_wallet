@@ -60,7 +60,7 @@ dependencies:
   tor_ffi_plugin:
     git:
       url: https://github.com/cypherstack/tor.git
-      ref: 8a26a160bdc4dcac2ba5a0350a151a345d1dead9
+      ref: 7123505a9e5f702dba1c0c9aa12b289b5dfbb3bf
 
   # Utility plugins
   http: ^0.13.0
@@ -372,6 +372,9 @@ flutter:
 
     # buy
     - assets/svg/buy/
+
+    # gif
+    - assets/gif/
 
     # lottie animations
     # basic

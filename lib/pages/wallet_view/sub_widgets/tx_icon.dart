@@ -47,7 +47,7 @@ class TxIcon extends ConsumerWidget {
 
     if (isReceived) {
       if (isCancelled) {
-        return assets.receive;
+        return assets.receiveCancelled;
       }
       if (isPending) {
         return assets.receivePending;

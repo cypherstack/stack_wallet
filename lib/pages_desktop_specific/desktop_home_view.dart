@@ -30,6 +30,7 @@ import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/widgets/background.dart';
+import 'package:stackwallet/widgets/onetime_popups/tor_has_been_add_dialog.dart';
 
 final currentWalletIdProvider = StateProvider<String?>((_) => null);
 
@@ -53,6 +54,11 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
       onGenerateRoute: RouteGenerator.generateRoute,
       initialRoute: MyStackView.routeName,
     );
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      showOneTimeTorHasBeenAddedDialogIfRequired(context);
+    });
+
     super.initState();
   }
 
