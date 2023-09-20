@@ -14,9 +14,11 @@ import 'package:stackwallet/models/exchange/aggregate_currency.dart';
 import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_provider_option.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
+import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -44,6 +46,13 @@ class _ExchangeProviderOptionsState
     required AggregateCurrency? sendCurrency,
     required AggregateCurrency? receiveCurrency,
   }) {
+    // If using Tor, only allow exchanges that support it.
+    if (Prefs.instance.useTor) {
+      if (!Exchange.exchangeNamesWithTorSupport.contains(exchangeName)) {
+        return false;
+      }
+    }
+
     final send = sendCurrency?.forExchange(exchangeName);
     if (send == null) return false;
 

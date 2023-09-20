@@ -19,6 +19,7 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -157,6 +158,7 @@ class NodeOptionsSheet extends ConsumerWidget {
           useSSL: node.useSSL,
           failovers: [],
           prefs: ref.read(prefsChangeNotifierProvider),
+          torService: ref.read(pTorService),
         );
 
         try {

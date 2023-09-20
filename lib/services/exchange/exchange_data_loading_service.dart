@@ -20,6 +20,7 @@ import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchan
 import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
 import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:tuple/tuple.dart';
 
@@ -144,6 +145,8 @@ class ExchangeDataLoadingService {
       );
       final start = DateTime.now();
       try {
+        /*
+        // Old exchange data loading code.
         await Future.wait([
           _loadChangeNowCurrencies(),
           // _loadChangeNowFixedRatePairs(),
@@ -157,6 +160,23 @@ class ExchangeDataLoadingService {
         // quicker to load available currencies on the fly for a specific base currency
         // await _loadChangeNowFixedRatePairs();
         // await _loadChangeNowEstimatedRatePairs();
+         */
+
+        // Exchanges which support Tor just get treated normally.
+        final futures = [
+          loadMajesticBankCurrencies(),
+          loadTrocadorCurrencies(),
+        ];
+
+        // If using Tor, don't load data for exchanges which don't support Tor.
+        //
+        // Add to this list when adding an exchange which doesn't supports Tor.
+        if (!Prefs.instance.useTor) {
+          futures.add(_loadChangeNowCurrencies());
+        }
+
+        // wait for all loading futures to complete
+        await Future.wait(futures);
 
         Logging.instance.log(
           "ExchangeDataLoadingService.loadAll finished in ${DateTime.now().difference(start).inSeconds} seconds",

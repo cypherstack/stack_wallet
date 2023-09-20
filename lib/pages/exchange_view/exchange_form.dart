@@ -31,7 +31,9 @@ import 'package:stackwallet/pages/exchange_view/sub_widgets/rate_type_toggle.dar
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
+import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
+import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -55,8 +57,6 @@ import 'package:stackwallet/widgets/textfields/exchange_textfield.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../services/exchange/exchange_response.dart';
-
 class ExchangeForm extends ConsumerStatefulWidget {
   const ExchangeForm({
     Key? key,
@@ -78,11 +78,17 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   late final Coin? coin;
   late final bool walletInitiated;
 
-  final exchanges = [
-    MajesticBankExchange.instance,
-    ChangeNowExchange.instance,
-    TrocadorExchange.instance,
-  ];
+  List<Exchange> get usableExchanges {
+    if (ref.read(prefsChangeNotifierProvider).useTor) {
+      return Exchange.exchangesWithTorSupport;
+    } else {
+      return [
+        MajesticBankExchange.instance,
+        ChangeNowExchange.instance,
+        TrocadorExchange.instance,
+      ];
+    }
+  }
 
   late final TextEditingController _sendController;
   late final TextEditingController _receiveController;
@@ -621,7 +627,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     final uuid = const Uuid().v1();
     _latestUuid = uuid;
     _addUpdate(uuid);
-    for (final exchange in exchanges) {
+    for (final exchange in usableExchanges) {
       ref.read(efEstimatesListProvider(exchange.name).notifier).state = null;
     }
 
@@ -642,7 +648,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     final Map<String, Tuple2<ExchangeResponse<List<Estimate>>, Range?>>
         results = {};
 
-    for (final exchange in exchanges) {
+    for (final exchange in usableExchanges) {
       final sendCurrency = pair.send?.forExchange(exchange.name);
       final receiveCurrency = pair.receive?.forExchange(exchange.name);
 
@@ -672,7 +678,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       }
     }
 
-    for (final exchange in exchanges) {
+    for (final exchange in usableExchanges) {
       if (uuid == _latestUuid) {
         ref.read(efEstimatesListProvider(exchange.name).notifier).state =
             results[exchange.name];

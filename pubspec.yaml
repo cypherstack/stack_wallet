@@ -57,6 +57,11 @@ dependencies:
       url: https://github.com/cypherstack/bip47.git
       ref: 081ca1863c2feba00c35bb5b297902f12f499941
 
+  tor_ffi_plugin:
+    git:
+      url: https://github.com/cypherstack/tor.git
+      ref: 7123505a9e5f702dba1c0c9aa12b289b5dfbb3bf
+
   # Utility plugins
   http: ^0.13.0
   local_auth: ^1.1.10
@@ -140,6 +145,7 @@ dependencies:
   basic_utils: ^5.5.4
   stellar_flutter_sdk: ^1.5.3
   tezart: ^2.0.5
+  socks5_proxy: ^1.0.3+dev.3
 
 dev_dependencies:
   flutter_test:
@@ -348,6 +354,11 @@ flutter:
     - assets/svg/send.svg
     - assets/svg/ordinal.svg
     - assets/svg/monkey.svg
+    - assets/svg/tor.svg
+    - assets/svg/tor-circle.svg
+    - assets/svg/connected-button.svg
+    - assets/svg/connecting-button.svg
+    - assets/svg/disconnected-button.svg
 
     # coin control icons
     - assets/svg/coin_control/
@@ -361,12 +372,16 @@ flutter:
     # buy
     - assets/svg/buy/
 
+    # gif
+    - assets/gif/
+
     # lottie animations
     # basic
     - assets/lottie/test2.json
     - assets/lottie/icon_send.json
     - assets/lottie/loader_and_checkmark.json
     - assets/lottie/arrow_rotate.json
+    - assets/lottie/onion_animation.json
 
     # default themes_testing
     - assets/default_themes/

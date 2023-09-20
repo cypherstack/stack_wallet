@@ -21,6 +21,7 @@ abstract class Assets {
   static const socials = _SOCIALS();
   static const exchange = _EXCHANGE();
   static const buy = _BUY();
+  static const gif = _GIF();
 }
 
 class _SOCIALS {
@@ -92,6 +93,11 @@ class _SVG {
 
   final coinControl = const _COIN_CONTROL();
 
+  String get connectedButton => "assets/svg/connected-button.svg";
+  String get connectingButton => "assets/svg/connecting-button.svg";
+  String get disconnectedButton => "assets/svg/disconnected-button.svg";
+  String get circleTor => "assets/svg/tor-circle.svg";
+  String get tor => "assets/svg/tor.svg";
   String get monkey => "assets/svg/monkey.svg";
   String get circleSliders => "assets/svg/configuration.svg";
   String get circlePlus => "assets/svg/plus-circle.svg";
@@ -253,4 +259,11 @@ class _ANIMATIONS {
   String get iconSend => "assets/lottie/icon_send.json";
   String get loaderAndCheckmark => "assets/lottie/loader_and_checkmark.json";
   String get arrowRotate => "assets/lottie/arrow_rotate.json";
+  String get onionTor => "assets/lottie/onion_animation.json";
+}
+
+class _GIF {
+  const _GIF();
+
+  String get stacyOnion => "assets/gif/stacy_onion.gif";
 }

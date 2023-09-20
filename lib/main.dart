@@ -58,6 +58,7 @@ import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/notifications_service.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/services/trade_service.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/themes/theme_service.dart';
@@ -165,6 +166,18 @@ void main() async {
   await Hive.openBox<dynamic>(DB.boxNameDBInfo);
   await Hive.openBox<dynamic>(DB.boxNamePrefs);
   await Prefs.instance.init();
+
+  // TODO:
+  // This should be moved to happen during the loading animation instead of
+  // showing a blank screen for 4-10 seconds.
+  // Some refactoring will need to be done here to make sure we don't make any
+  // network calls before starting up tor
+  if (Prefs.instance.useTor) {
+    TorService.sharedInstance.init(
+      torDataDirPath: (await StackFileSystem.applicationTorDirectory()).path,
+    );
+    await TorService.sharedInstance.start();
+  }
 
   await StackFileSystem.initThemesDir();
 

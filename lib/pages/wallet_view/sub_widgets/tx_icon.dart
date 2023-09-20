@@ -35,7 +35,6 @@ class TxIcon extends ConsumerWidget {
 
   String _getAssetName(
       bool isCancelled, bool isReceived, bool isPending, IThemeAssets assets) {
-
     if (!isReceived && transaction.subType == TransactionSubType.mint) {
       if (isCancelled) {
         return Assets.svg.anonymizeFailed;

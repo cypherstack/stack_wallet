@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/tor_settings/tor_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/sub_widgets/nodes_list.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/sub_widgets/confirm_full_rescan.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/sub_widgets/rescanning_dialog.dart';
@@ -27,8 +28,10 @@ import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/blocks_remaining_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
+import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -45,6 +48,7 @@ import 'package:stackwallet/widgets/progress_bar.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
+import 'package:stackwallet/widgets/tor_subscription.dart';
 import 'package:tuple/tuple.dart';
 import 'package:wakelock/wakelock.dart';
 
@@ -91,6 +95,29 @@ class _WalletNetworkSettingsViewState
   late double _percent;
   late int _blocksRemaining;
   bool _advancedIsExpanded = false;
+
+  /// The current status of the Tor connection.
+  late TorConnectionStatus _torConnectionStatus;
+
+  bool _buttonLockTor = false;
+  Future<void> onTorTapped() async {
+    if (_buttonLockTor) {
+      return;
+    }
+    _buttonLockTor = true;
+    try {
+      if (ref.read(prefsChangeNotifierProvider).useTor) {
+        await disconnectTor(ref, context);
+      } else {
+        await connectTor(ref, context);
+      }
+    } catch (_) {
+      // Nothing. Just using finally to ensure button lock is reset in case
+      // some unexpected error happens
+    } finally {
+      _buttonLockTor = false;
+    }
+  }
 
   Future<void> _attemptRescan() async {
     if (!Platform.isLinux) await Wakelock.enable();
@@ -268,6 +295,10 @@ class _WalletNetworkSettingsViewState
     //     }
     //   },
     // );
+
+    // Initialize the TorConnectionStatus.
+    _torConnectionStatus = ref.read(pTorService).status;
+
     super.initState();
   }
 
@@ -465,17 +496,14 @@ class _WalletNetworkSettingsViewState
                     ? STextStyles.desktopTextExtraExtraSmall(context)
                     : STextStyles.smallMed12(context),
               ),
-              GestureDetector(
+              CustomTextButton(
+                text: "Resync",
                 onTap: () {
                   ref
                       .read(walletsChangeNotifierProvider)
                       .getManager(widget.walletId)
                       .refresh();
                 },
-                child: Text(
-                  "Resync",
-                  style: STextStyles.link2(context),
-                ),
               ),
             ],
           ),
@@ -526,14 +554,6 @@ class _WalletNetworkSettingsViewState
                             Text(
                               "Synchronized",
                               style: STextStyles.w600_12(context),
-                            ),
-                            Text(
-                              "100%",
-                              style: STextStyles.syncPercent(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorGreen,
-                              ),
                             ),
                           ],
                         ),
@@ -752,6 +772,132 @@ class _WalletNetworkSettingsViewState
                 ),
               ),
             ),
+          SizedBox(
+            height: isDesktop ? 32 : 20,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Tor status",
+                textAlign: TextAlign.left,
+                style: isDesktop
+                    ? STextStyles.desktopTextExtraExtraSmall(context)
+                    : STextStyles.smallMed12(context),
+              ),
+              CustomTextButton(
+                text: ref.watch(prefsChangeNotifierProvider
+                        .select((value) => value.useTor))
+                    ? "Disconnect"
+                    : "Connect",
+                onTap: onTorTapped,
+              ),
+            ],
+          ),
+          SizedBox(
+            height: isDesktop ? 12 : 9,
+          ),
+          RoundedWhiteContainer(
+            borderColor: isDesktop
+                ? Theme.of(context).extension<StackColors>()!.background
+                : null,
+            padding:
+                isDesktop ? const EdgeInsets.all(16) : const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                if (ref.watch(prefsChangeNotifierProvider
+                    .select((value) => value.useTor)))
+                  Container(
+                    width: _iconSize,
+                    height: _iconSize,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorGreen
+                          .withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(_iconSize),
+                    ),
+                    child: Center(
+                      child: SvgPicture.asset(
+                        Assets.svg.tor,
+                        height: isDesktop ? 19 : 14,
+                        width: isDesktop ? 19 : 14,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorGreen,
+                      ),
+                    ),
+                  ),
+                if (!ref.watch(prefsChangeNotifierProvider
+                    .select((value) => value.useTor)))
+                  Container(
+                    width: _iconSize,
+                    height: _iconSize,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textDark
+                          .withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(_iconSize),
+                    ),
+                    child: Center(
+                      child: SvgPicture.asset(
+                        Assets.svg.tor,
+                        height: isDesktop ? 19 : 14,
+                        width: isDesktop ? 19 : 14,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark,
+                      ),
+                    ),
+                  ),
+                SizedBox(
+                  width: _boxPadding,
+                ),
+                TorSubscription(
+                  onTorStatusChanged: (status) {
+                    setState(() {
+                      _torConnectionStatus = status;
+                    });
+                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Tor status",
+                        style: STextStyles.desktopTextExtraExtraSmall(context)
+                            .copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textDark,
+                        ),
+                      ),
+                      if (_torConnectionStatus == TorConnectionStatus.connected)
+                        Text(
+                          "Connected",
+                          style:
+                              STextStyles.desktopTextExtraExtraSmall(context),
+                        ),
+                      if (_torConnectionStatus ==
+                          TorConnectionStatus.connecting)
+                        Text(
+                          "Connecting...",
+                          style:
+                              STextStyles.desktopTextExtraExtraSmall(context),
+                        ),
+                      if (_torConnectionStatus ==
+                          TorConnectionStatus.disconnected)
+                        Text(
+                          "Disconnected",
+                          style:
+                              STextStyles.desktopTextExtraExtraSmall(context),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
           SizedBox(
             height: isDesktop ? 32 : 20,
           ),

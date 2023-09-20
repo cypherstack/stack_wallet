@@ -24,6 +24,7 @@ import 'package:stackwallet/pages/wallets_view/wallets_view.dart';
 import 'package:stackwallet/providers/global/notifications_provider.dart';
 import 'package:stackwallet/providers/ui/home_view_index_provider.dart';
 import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
+import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -32,6 +33,8 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/animated_widgets/rotate_icon.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/onetime_popups/tor_has_been_add_dialog.dart';
+import 'package:stackwallet/widgets/small_tor_icon.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class HomeView extends ConsumerStatefulWidget {
@@ -54,6 +57,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
   DateTime? _cachedTime;
 
   bool _exitEnabled = false;
+
+  late TorConnectionStatus _currentSyncStatus;
 
   // final _buyDataLoadingService = BuyDataLoadingService();
 
@@ -124,6 +129,10 @@ class _HomeViewState extends ConsumerState<HomeView> {
     ];
 
     ref.read(notificationsProvider).startCheckingWatchedNotifications();
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      showOneTimeTorHasBeenAddedDialogIfRequired(context);
+    });
 
     super.initState();
   }
@@ -200,6 +209,17 @@ class _HomeViewState extends ConsumerState<HomeView> {
               ],
             ),
             actions: [
+              const Padding(
+                padding: EdgeInsets.only(
+                  top: 10,
+                  bottom: 10,
+                  right: 10,
+                ),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: SmallTorIcon(),
+                ),
+              ),
               Padding(
                 padding: const EdgeInsets.only(
                   top: 10,

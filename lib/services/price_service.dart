@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
+import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/services/price.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:tuple/tuple.dart';
@@ -29,7 +30,7 @@ class PriceService extends ChangeNotifier {
 
   final Map<String, Tuple2<Decimal, double>> _cachedTokenPrices = {};
 
-  final _priceAPI = PriceAPI(Client());
+  final _priceAPI = PriceAPI(HTTP());
 
   Tuple2<Decimal, double> getPrice(Coin coin) => _cachedPrices[coin]!;
 

@@ -457,7 +457,6 @@ class EpicCashWallet extends CoinServiceAPI
 
       // TODO determine whether it is worth sending change to a change address.
       dynamic message;
-      print("THIS TX DATA IS $txData");
 
       String receiverAddress = txData['addresss'] as String;
 
