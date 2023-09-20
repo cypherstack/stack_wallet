@@ -242,7 +242,8 @@ class _OrdinalImageGroup extends ConsumerWidget {
     );
 
     if (response.code != 200) {
-      throw Exception("statusCode=${response.code} body=${response.bodyBytes}");
+      throw Exception(
+          "OrdinalDetailsView _savePngToFile statusCode=${response.code} body=${response.bodyBytes}");
     }
 
     final bytes = response.bodyBytes;
