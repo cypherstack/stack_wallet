@@ -4,17 +4,18 @@ import 'dart:io';
 
 /// A SOCKS5 socket.
 ///
-/// This class is a wrapper around a Socket that connects to a SOCKS5 proxy
-/// server and sends all data through the proxy.
+/// This class is a wrapper around the Socket class that implements the
+/// SOCKS5 protocol.  It supports SSL and non-SSL connections.
 ///
-/// This class is used to connect to the Tor proxy server.
+/// TODO move into / use via cypherstack/tor or Foundation-Devices/tor in order
+/// to stay in sync with changes in the tor package.
 ///
-/// Attributes:
+/// Properties:
 ///  - [proxyHost]: The host of the SOCKS5 proxy server.
 ///  - [proxyPort]: The port of the SOCKS5 proxy server.
-///  - [_socksSocket]: The underlying [Socket] that connects to the SOCKS5 proxy
+///  - [_socksSocket]: The underlying Socket that connects to the SOCKS5 proxy
 ///  server.
-///  - [_responseController]: A [StreamController] that listens to the
+///  - [_responseController]: A StreamController that listens to the
 ///  [_socksSocket] and broadcasts the response.
 ///
 /// Methods:
@@ -271,38 +272,6 @@ class SOCKSSocket {
     }
   }
 
-  /// Sends the server.features command to the proxy server.
-  ///
-  /// This method is used to send the server.features command to the proxy
-  /// server. This command is used to request the features of the proxy server.
-  /// It serves as a demonstration of how to send commands to the proxy server.
-  ///
-  /// Returns:
-  ///   A Future that resolves to void.
-  Future<void> sendServerFeaturesCommand() async {
-    // The server.features command.
-    const String command =
-        '{"jsonrpc":"2.0","id":"0","method":"server.features","params":[]}';
-
-    if (!sslEnabled) {
-      // Send the command to the proxy server.
-      _socksSocket.writeln(command);
-
-      // Wait for the response from the proxy server.
-      var responseData = await _responseController.stream.first;
-      print("responseData: ${utf8.decode(responseData)}");
-    } else {
-      // Send the command to the proxy server.
-      _secureSocksSocket.writeln(command);
-
-      // Wait for the response from the proxy server.
-      var responseData = await _secureResponseController.stream.first;
-      print("secure responseData: ${utf8.decode(responseData)}");
-    }
-
-    return;
-  }
-
   /// Closes the connection to the Tor proxy.
   ///
   /// Returns:
@@ -339,5 +308,36 @@ class SOCKSSocket {
             onDone: onDone,
             cancelOnError: cancelOnError,
           );
+  }
+
+  /// Sends the server.features command to the proxy server.
+  ///
+  /// This demos how to send the server.features command.  Use as an example
+  /// for sending other commands.
+  ///
+  /// Returns:
+  ///   A Future that resolves to void.
+  Future<void> sendServerFeaturesCommand() async {
+    // The server.features command.
+    const String command =
+        '{"jsonrpc":"2.0","id":"0","method":"server.features","params":[]}';
+
+    if (!sslEnabled) {
+      // Send the command to the proxy server.
+      _socksSocket.writeln(command);
+
+      // Wait for the response from the proxy server.
+      var responseData = await _responseController.stream.first;
+      print("responseData: ${utf8.decode(responseData)}");
+    } else {
+      // Send the command to the proxy server.
+      _secureSocksSocket.writeln(command);
+
+      // Wait for the response from the proxy server.
+      var responseData = await _secureResponseController.stream.first;
+      print("secure responseData: ${utf8.decode(responseData)}");
+    }
+
+    return;
   }
 }
