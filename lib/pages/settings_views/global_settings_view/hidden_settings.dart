@@ -12,15 +12,19 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/debug_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
+import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/onetime_popups/tor_has_been_add_dialog.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -35,7 +39,27 @@ class HiddenSettings extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
-          leading: Container(),
+          leading: Util.isDesktop
+              ? Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: AppBarIconButton(
+                    size: 32,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
+                    shadows: const [],
+                    icon: SvgPicture.asset(
+                      Assets.svg.arrowLeft,
+                      width: 18,
+                      height: 18,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .topNavIconPrimary,
+                    ),
+                    onPressed: Navigator.of(context).pop,
+                  ),
+                )
+              : Container(),
           title: Text(
             "Dev options",
             style: STextStyles.navBarTitle(context),

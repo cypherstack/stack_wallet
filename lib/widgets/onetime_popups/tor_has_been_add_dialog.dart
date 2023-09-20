@@ -75,7 +75,10 @@ class _TorHasBeenAddedDialogState extends State<_TorHasBeenAddedDialog> {
                   ),
                 ),
                 DesktopDialogCloseButton(
-                  onPressedOverride: setDoNotShowAgain,
+                  onPressedOverride: () {
+                    setDoNotShowAgain();
+                    Navigator.of(context).pop();
+                  },
                 ),
               ],
             ),
