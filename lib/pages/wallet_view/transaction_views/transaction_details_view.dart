@@ -358,8 +358,6 @@ class _TransactionDetailsViewState
     final currentHeight = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManager(walletId).currentHeight));
 
-    print("THIS TRANSACTION IS $_transaction");
-
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(

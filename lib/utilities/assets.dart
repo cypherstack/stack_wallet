@@ -21,6 +21,7 @@ abstract class Assets {
   static const socials = _SOCIALS();
   static const exchange = _EXCHANGE();
   static const buy = _BUY();
+  static const gif = _GIF();
 }
 
 class _SOCIALS {
@@ -259,4 +260,10 @@ class _ANIMATIONS {
   String get loaderAndCheckmark => "assets/lottie/loader_and_checkmark.json";
   String get arrowRotate => "assets/lottie/arrow_rotate.json";
   String get onionTor => "assets/lottie/onion_animation.json";
+}
+
+class _GIF {
+  const _GIF();
+
+  String get stacyOnion => "assets/gif/stacy_onion.gif";
 }

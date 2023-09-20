@@ -225,11 +225,11 @@ class _TorAnimatedButtonState extends ConsumerState<TorAnimatedButton>
       // Connect or disconnect when the user taps the status.
       switch (_status) {
         case TorConnectionStatus.disconnected:
-          await _connectTor(ref, context);
+          await connectTor(ref, context);
           break;
 
         case TorConnectionStatus.connected:
-          await _disconnectTor(ref, context);
+          await disconnectTor(ref, context);
 
           break;
 
@@ -435,11 +435,11 @@ class _TorButtonState extends ConsumerState<TorButton> {
       // Connect or disconnect when the user taps the status.
       switch (_status) {
         case TorConnectionStatus.disconnected:
-          await _connectTor(ref, context);
+          await connectTor(ref, context);
           break;
 
         case TorConnectionStatus.connected:
-          await _disconnectTor(ref, context);
+          await disconnectTor(ref, context);
 
           break;
 
@@ -583,7 +583,7 @@ class _UpperCaseTorTextState extends ConsumerState<UpperCaseTorText> {
 /// Throws an exception if the Tor service fails to start.
 ///
 /// Returns a Future that completes when the Tor service has started.
-Future<void> _connectTor(WidgetRef ref, BuildContext context) async {
+Future<void> connectTor(WidgetRef ref, BuildContext context) async {
   try {
     // Init the Tor service if it hasn't already been.
     final torDir = await StackFileSystem.applicationTorDirectory();
@@ -600,8 +600,6 @@ Future<void> _connectTor(WidgetRef ref, BuildContext context) async {
     );
     // TODO: show dialog with error message
   }
-
-  return;
 }
 
 /// Disconnect from the Tor network.
@@ -611,7 +609,7 @@ Future<void> _connectTor(WidgetRef ref, BuildContext context) async {
 /// Throws an exception if the Tor service fails to stop.
 ///
 /// Returns a Future that completes when the Tor service has stopped.
-Future<void> _disconnectTor(WidgetRef ref, BuildContext context) async {
+Future<void> disconnectTor(WidgetRef ref, BuildContext context) async {
   // Stop the Tor service.
   try {
     await ref.read(pTorService).disable();
