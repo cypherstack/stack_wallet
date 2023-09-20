@@ -247,6 +247,8 @@ class JsonRPC {
         cancelOnError: true,
       );
     }
+
+    return;
   }
 }
 
