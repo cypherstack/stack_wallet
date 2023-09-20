@@ -62,7 +62,8 @@ class _DesktopOrdinalDetailsViewState
     );
 
     if (response.code != 200) {
-      throw Exception("statusCode=${response.code} body=${response.bodyBytes}");
+      throw Exception(
+          "DesktopOrdinalDetailsView _savePngToFile statusCode=${response.code} body=${response.bodyBytes}");
     }
 
     final bytes = response.bodyBytes;
