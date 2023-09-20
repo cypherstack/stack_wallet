@@ -2,16 +2,18 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:decimal/decimal.dart';
 import 'package:fusiondart/fusiondart.dart';
 import 'package:fusiondart/src/models/address.dart' as fusion_address;
 import 'package:fusiondart/src/models/input.dart' as fusion_input;
+import 'package:fusiondart/src/models/output.dart' as fusion_output;
 import 'package:fusiondart/src/models/transaction.dart' as fusion_tx;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/services/tor_service.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
@@ -243,8 +245,10 @@ mixin FusionWalletInterface {
 
       // Find public key.
       print("1 getting tx ${e.txid}");
-      Map<String, dynamic> tx = await _cachedElectrumX.getTransaction(coin: _coin,
-          txHash: e.txid, verbose: true); // TODO is verbose needed?
+      Map<String, dynamic> tx = await _cachedElectrumX.getTransaction(
+          coin: _coin,
+          txHash: e.txid,
+          verbose: true); // TODO is verbose needed?
 
       // Check if scriptPubKey is available.
       if (tx["vout"] == null) {
@@ -378,5 +382,129 @@ mixin FusionWalletInterface {
     // TODO
     throw UnimplementedError(
         "TODO refreshFusion eg look up number of fusion participants connected/coordinating");
+  }
+}
+
+/// An extension of Stack Wallet's Transaction class that adds CashFusion functionality.
+extension FusionTransaction on Transaction {
+  // WIP.
+  Future<fusion_tx.Transaction> toFusionTransaction(
+      CachedElectrumX cachedElectrumX) async {
+    // Initialize Fusion Dart's Transaction object.
+    fusion_tx.Transaction fusionTransaction = fusion_tx.Transaction();
+
+    // WIP.
+    fusionTransaction.Inputs = await Future.wait(inputs.map((e) async {
+      // Find input amount.
+      Map<String, dynamic> _tx = await cachedElectrumX.getTransaction(
+          coin: Coin.bitcoincash,
+          txHash: e.txid,
+          verbose: true); // TODO is verbose needed?
+
+      // Check if output amount is available.
+      if (_tx.isEmpty) {
+        throw Exception("Transaction not found for input: ${e.txid}");
+      }
+      if (_tx["vout"] == null) {
+        throw Exception("Vout in transaction ${e.txid} is null");
+      }
+      if (_tx["vout"][e.vout] == null) {
+        throw Exception("Vout index ${e.vout} in transaction is null");
+      }
+      if (_tx["vout"][e.vout]["value"] == null) {
+        throw Exception("Value of vout index ${e.vout} in transaction is null");
+      }
+      // TODO replace with conditional chaining?
+
+      // Assign vout value to amount.
+      final value = Amount.fromDecimal(
+        Decimal.parse(_tx["vout"][e.vout]["value"].toString()),
+        fractionDigits: Coin.bitcoincash.decimals,
+      );
+
+      return fusion_input.Input(
+        prevTxid: utf8.encode(e.txid), // TODO verify this is what we want.
+        prevIndex: e.vout, // TODO verify this is what we want.
+        pubKey: utf8.encode(address.value.toString()), // TODO fix public key.
+        amount: value.raw.toInt(),
+      );
+    }).toList());
+
+    fusionTransaction.Outputs = outputs.map((e) {
+      /*
+      if (e.scriptPubKey == null) {
+        // TODO calculate scriptPubKey if it is null.
+      }
+      */
+
+      fusion_address.DerivationPath? derivationPath;
+      List<int>? pubKey;
+
+      // Validate that we have all the required data.
+      if (address.value == null) {
+        // TODO calculate address if it is null.
+        throw Exception(
+            "address value is null for input: ${e.scriptPubKeyAddress}");
+      } else {
+        if (address.value!.publicKey.isEmpty || e.scriptPubKey != null) {
+          pubKey = utf8.encode(e.scriptPubKey!);
+          // TODO is this valid?
+        } else {
+          pubKey = address.value!
+              .publicKey; // TODO IMPORTANT: this address may not be *the* address in question :)
+        }
+        if (address.value!.derivationPath != null) {
+          derivationPath = fusion_address.DerivationPath(
+              address.value!.derivationPath!.toString());
+        } else {
+          // TODO calculate derivation path if it is null.
+          /*
+          throw Exception(
+              "derivationPath is null for input: ${e.scriptPubKeyAddress}");
+          */
+        }
+      }
+
+      // TODO handle case where address.value.publicKey is empty and e.scriptPubKey is null
+
+      return fusion_output.Output(
+        addr: fusion_address.Address(
+          addr: e.scriptPubKeyAddress,
+          publicKey: pubKey,
+          derivationPath: derivationPath,
+        ),
+        value: e.value,
+      );
+    }).toList();
+
+    return fusionTransaction;
+  }
+}
+
+/// An extension of Stack Wallet's UTXO class that adds CashFusion functionality.
+///
+/// This class is used to convert Stack Wallet's UTXO class to FusionDart's
+/// Input and Output classes.
+extension FusionUTXO on UTXO {
+  /// Converts a Stack Wallet UTXO to a FusionDart Input.
+  fusion_input.Input toFusionInput({required List<int> pubKey}) {
+    return fusion_input.Input(
+      prevTxid: utf8.encode(txid), // TODO verify this is what we want.
+      prevIndex: vout, // TODO verify this is what we want.
+      pubKey: pubKey, // TODO fix public key.
+      amount: value,
+    );
+  }
+
+  /// Converts a Stack Wallet UTXO to a FusionDart Output.
+  fusion_output.Output toFusionOutput({required String address}) {
+    return fusion_output.Output(
+      addr: fusion_address.Address(
+        addr: address,
+        publicKey: utf8.encode(address.toString()), // TODO fix public key.
+        derivationPath: null, // TODO fix derivation path.
+      ),
+      value: value,
+    );
   }
 }
