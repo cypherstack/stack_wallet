@@ -32,4 +32,16 @@ class Epiccash extends Bip39Currency {
 
     return LibEpiccash.validateSendAddress(address: address);
   }
+
+  String getMnemonic() {
+    return LibEpiccash.getMnemonic();
+  }
+
+  Future<String> initializeNew(({String config, String mnemonic, String password, String name})? data) {
+    return LibEpiccash.initializeNewWallet(
+        config: data!.config,
+        mnemonic: data.mnemonic,
+        password: data.password,
+        name: data.name);
+  }
 }
