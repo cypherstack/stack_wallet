@@ -4,7 +4,7 @@ set -e
 
 # libepiccash requires old rust
 source ../rust_version.sh
-set_rust_to_1680
+set_rust_to_1671
 
 # for arm
 # flutter-elinux clean
