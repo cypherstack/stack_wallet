@@ -390,10 +390,10 @@ extension FusionAddress on Address {
   fusion_address.Address toFusionAddress() {
     return fusion_address.Address(
         addr: value,
-        publicKey:
-            publicKey, // Assuming List<byte> and List<int> are compatible
+        publicKey: publicKey,
         derivationPath:
             fusion_address.DerivationPath(derivationPath?.value ?? ""));
+    // TODO fix default derivation path.
   }
 }
 
@@ -404,9 +404,14 @@ extension FusionAddress on Address {
 extension FusionUTXO on UTXO {
   /// Converts a Stack Wallet UTXO to a FusionDart Input.
   fusion_input.Input toFusionInput({required List<int> pubKey}) {
+    if (address != null) {
+      // Search isar for address.
+      // TODO
+    }
+
     return fusion_input.Input(
-      prevTxid: utf8.encode(txid), // TODO verify this is what we want.
-      prevIndex: vout, // TODO verify this is what we want.
+      txid: utf8.encode(txid), // TODO verify this is what we want.
+      index: vout, // TODO verify this is what we want.
       pubKey: pubKey, // TODO fix public key.
       amount: value,
     );
@@ -463,9 +468,9 @@ extension FusionTransaction on Transaction {
       );
 
       return fusion_input.Input(
-        prevTxid: utf8.encode(e.txid), // TODO verify this is what we want.
-        prevIndex: e.vout, // TODO verify this is what we want.
-        pubKey: utf8.encode(address.value.toString()), // TODO fix public key.
+        txid: utf8.encode(e.txid), // TODO verify this is what we want.
+        index: e.vout, // TODO verify this is what we want.
+        pubKey: utf8.encode('0000'), // TODO fix public key.
         amount: value.raw.toInt(),
       );
     }).toList());
