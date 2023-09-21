@@ -120,50 +120,56 @@ class _DesktopTorStatusButtonState extends ConsumerState<DesktopTorStatusButton>
           .extension<StackColors>()!
           .getDesktopMenuButtonStyle(context),
       onPressed: widget.onPressed,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: 16,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AnimatedContainer(
-              duration: widget.transitionDuration,
-              width: _iconOnly ? 0 : 16,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: 16,
             ),
-            SvgPicture.asset(
-              Assets.svg.tor,
-              color: _color(_torConnectionStatus),
-              width: 20,
-              height: 20,
-            ),
-            AnimatedOpacity(
-              duration: widget.transitionDuration,
-              opacity: _iconOnly ? 0 : 1.0,
-              child: SizeTransition(
-                sizeFactor: animationController,
-                axis: Axis.horizontal,
-                axisAlignment: -1,
-                child: SizedBox(
-                  width: labelLength,
-                  child: Row(
-                    children: [
-                      const SizedBox(
-                        width: 12,
-                      ),
-                      Text(
-                        _torConnectionStatus.name.capitalize(),
-                        style: STextStyles.smallMed12(context).copyWith(
-                          color: _color(_torConnectionStatus),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedContainer(
+                  duration: widget.transitionDuration,
+                  width: _iconOnly ? 0 : 16,
+                ),
+                SvgPicture.asset(
+                  Assets.svg.tor,
+                  color: _color(_torConnectionStatus),
+                  width: 20,
+                  height: 20,
+                ),
+                AnimatedOpacity(
+                  duration: widget.transitionDuration,
+                  opacity: _iconOnly ? 0 : 1.0,
+                  child: SizeTransition(
+                    sizeFactor: animationController,
+                    axis: Axis.horizontal,
+                    axisAlignment: -1,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(
+                          width: 12,
                         ),
-                      ),
-                    ],
+                        Text(
+                          _torConnectionStatus.name.capitalize(),
+                          style: STextStyles.smallMed12(context).copyWith(
+                            color: _color(_torConnectionStatus),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 21,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

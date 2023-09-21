@@ -225,11 +225,11 @@ class _TorAnimatedButtonState extends ConsumerState<TorAnimatedButton>
       // Connect or disconnect when the user taps the status.
       switch (_status) {
         case TorConnectionStatus.disconnected:
-          await _connectTor(ref, context);
+          await connectTor(ref, context);
           break;
 
         case TorConnectionStatus.connected:
-          await _disconnectTor(ref, context);
+          await disconnectTor(ref, context);
 
           break;
 
@@ -246,9 +246,17 @@ class _TorAnimatedButtonState extends ConsumerState<TorAnimatedButton>
     }
   }
 
-  Future<void> _playConnecting() async {
+  Future<void> _playPlug() async {
     await _play(
-      from: "connecting-start",
+      from: "0.0",
+      to: "connecting-start",
+      repeat: false,
+    );
+  }
+
+  Future<void> _playConnecting({double? start}) async {
+    await _play(
+      from: start?.toString() ?? "connecting-start",
       to: "connecting-end",
       repeat: true,
     );
@@ -256,7 +264,7 @@ class _TorAnimatedButtonState extends ConsumerState<TorAnimatedButton>
 
   Future<void> _playConnectingDone() async {
     await _play(
-      from: "connecting-end",
+      from: "${controller1.value}",
       to: "connected-start",
       repeat: false,
     );
@@ -285,7 +293,7 @@ class _TorAnimatedButtonState extends ConsumerState<TorAnimatedButton>
     required bool repeat,
   }) async {
     final composition = await _completer.future;
-    final start = composition.getMarker(from)!.start;
+    final start = double.tryParse(from) ?? composition.getMarker(from)!.start;
     final end = composition.getMarker(to)!.start;
 
     controller1.value = start;
@@ -326,7 +334,6 @@ class _TorAnimatedButtonState extends ConsumerState<TorAnimatedButton>
 
   @override
   Widget build(BuildContext context) {
-    // TODO: modify size (waiting for updated onion lottie animation file)
     final width = MediaQuery.of(context).size.width / 1.5;
 
     return TorSubscription(
@@ -343,6 +350,7 @@ class _TorAnimatedButtonState extends ConsumerState<TorAnimatedButton>
             break;
 
           case TorConnectionStatus.connecting:
+            await _playPlug();
             await _playConnecting();
             break;
         }
@@ -435,11 +443,11 @@ class _TorButtonState extends ConsumerState<TorButton> {
       // Connect or disconnect when the user taps the status.
       switch (_status) {
         case TorConnectionStatus.disconnected:
-          await _connectTor(ref, context);
+          await connectTor(ref, context);
           break;
 
         case TorConnectionStatus.connected:
-          await _disconnectTor(ref, context);
+          await disconnectTor(ref, context);
 
           break;
 
@@ -583,7 +591,7 @@ class _UpperCaseTorTextState extends ConsumerState<UpperCaseTorText> {
 /// Throws an exception if the Tor service fails to start.
 ///
 /// Returns a Future that completes when the Tor service has started.
-Future<void> _connectTor(WidgetRef ref, BuildContext context) async {
+Future<void> connectTor(WidgetRef ref, BuildContext context) async {
   try {
     // Init the Tor service if it hasn't already been.
     final torDir = await StackFileSystem.applicationTorDirectory();
@@ -600,8 +608,6 @@ Future<void> _connectTor(WidgetRef ref, BuildContext context) async {
     );
     // TODO: show dialog with error message
   }
-
-  return;
 }
 
 /// Disconnect from the Tor network.
@@ -611,7 +617,7 @@ Future<void> _connectTor(WidgetRef ref, BuildContext context) async {
 /// Throws an exception if the Tor service fails to stop.
 ///
 /// Returns a Future that completes when the Tor service has stopped.
-Future<void> _disconnectTor(WidgetRef ref, BuildContext context) async {
+Future<void> disconnectTor(WidgetRef ref, BuildContext context) async {
   // Stop the Tor service.
   try {
     await ref.read(pTorService).disable();
