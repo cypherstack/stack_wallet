@@ -10,7 +10,6 @@
 
 import 'dart:convert';
 
-import 'package:fusiondart/src/models/address.dart' as FusionAddress;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/exceptions/address/address_exception.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/crypto_currency_address.dart';
@@ -92,7 +91,6 @@ class Address extends CryptoCurrencyAddress {
       otherData: otherData ?? this.otherData,
     );
   }
-
 
   @override
   String toString() => "{ "
