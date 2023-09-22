@@ -430,7 +430,7 @@ extension FusionUTXO on UTXO {
     );
   }
 
-  /// Converts a Stack Wallet UTXO to a FusionDart Output... eventually.
+  /// Converts a Stack Wallet UTXO to a FusionDart Output.
   Future<fusion_output.Output> toFusionOutput() async {
     if (address == null) {
       throw Exception("toFutionOutput Address is null");
@@ -442,8 +442,9 @@ extension FusionUTXO on UTXO {
     return fusion_output.Output(
       addr: fusion_address.Address(
         addr: address!,
-        publicKey: addr.publicKey, // TODO fix public key.
-        derivationPath: null, // TODO fix derivation path.
+        publicKey: addr.publicKey,
+        derivationPath:
+            fusion_address.DerivationPath(addr.derivationPath?.value ?? ""),
       ),
       value: value,
     );
