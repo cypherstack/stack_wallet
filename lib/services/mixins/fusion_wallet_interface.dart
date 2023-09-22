@@ -585,15 +585,13 @@ extension FusionTransaction on Transaction {
         address: outputAddress,
         dbInstance: dbInstance,
       );
-      fusion_address.DerivationPath derivationPath;
+
+      final fusion_address.DerivationPath? derivationPath;
       if (derivationPathString == null) {
         // TODO: check on this:
-        // Either the address is not an address of this wallet
-        // or we need to find out what it is.
-        // If the former, then the issue cannot be easily solved as we will
-        // have no way of finding out what the derivation path is.
-        // Throw exception for now.
-        throw Exception("derivationPathString is null");
+        // The address is not an address of this wallet and in that case we
+        // cannot know the derivation path
+        derivationPath = null;
       } else {
         derivationPath = fusion_address.DerivationPath(
           derivationPathString,
