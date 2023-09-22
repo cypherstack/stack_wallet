@@ -459,7 +459,7 @@ extension FusionUTXO on UTXO {
     }
   }
 
-  /// Converts a Stack Wallet UTXO to a FusionDart Output... eventually.
+  /// Converts a Stack Wallet UTXO to a FusionDart Output.
   Future<fusion_output.Output> toFusionOutput({
     required String walletId,
     required MainDB dbInstance,
