@@ -70,6 +70,8 @@ class Address extends CryptoCurrencyAddress {
       subType == AddressSubType.paynymSend ||
       subType == AddressSubType.paynymReceive;
 
+  /// If called on an [Address] already stored in the DB be sure to update the
+  /// [transactions] Isar Links if required
   Address copyWith({
     String? walletId,
     String? value,
