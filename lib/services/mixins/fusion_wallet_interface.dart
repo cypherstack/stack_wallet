@@ -410,8 +410,8 @@ extension FusionUTXO on UTXO {
     }
 
     return fusion_input.Input(
-      txid: utf8.encode(txid), // TODO verify this is what we want.
-      index: vout, // TODO verify this is what we want.
+      prevTxid: utf8.encode(txid), // TODO verify this is what we want.
+      prevIndex: vout, // TODO verify this is what we want.
       pubKey: pubKey, // TODO fix public key.
       amount: value,
     );
@@ -468,8 +468,8 @@ extension FusionTransaction on Transaction {
       );
 
       return fusion_input.Input(
-        txid: utf8.encode(e.txid), // TODO verify this is what we want.
-        index: e.vout, // TODO verify this is what we want.
+        prevTxid: utf8.encode(e.txid), // TODO verify this is what we want.
+        prevIndex: e.vout, // TODO verify this is what we want.
         pubKey: utf8.encode('0000'), // TODO fix public key.
         amount: value.raw.toInt(),
       );
