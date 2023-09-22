@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:convert/convert.dart';
 import 'package:decimal/decimal.dart';
 import 'package:fusiondart/fusiondart.dart';
 import 'package:fusiondart/src/models/address.dart' as fusion_address;
@@ -17,6 +16,7 @@ import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
+import 'package:stackwallet/utilities/extensions/impl/string.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 
 const String kReservedFusionAddress = "reserved_fusion_address";
@@ -92,7 +92,13 @@ mixin FusionWalletInterface {
 
     // Use Future.wait to await all the futures in the set and then convert it to a set.
     final resultSet = await Future.wait(
-        _txs.map((tx) => tx.toFusionTransaction(_cachedElectrumX)));
+      _txs.map(
+        (tx) => tx.toFusionTransaction(
+          dbInstance: _db,
+          cachedElectrumX: _cachedElectrumX,
+        ),
+      ),
+    );
 
     return resultSet;
   }
@@ -499,100 +505,110 @@ extension FusionUTXO on UTXO {
 
 /// An extension of Stack Wallet's Transaction class that adds CashFusion functionality.
 extension FusionTransaction on Transaction {
+  /// Fetch the public key of an address stored in the database.
+  Future<String?> _getAddressDerivationPathString({
+    required String address,
+    required MainDB dbInstance,
+  }) async {
+    final Address? addr = await dbInstance.getAddress(walletId, address);
+
+    return addr?.derivationPath?.value;
+  }
+
   // WIP.
-  Future<fusion_tx.Transaction> toFusionTransaction(
-      CachedElectrumX cachedElectrumX) async {
+  Future<fusion_tx.Transaction> toFusionTransaction({
+    required CachedElectrumX cachedElectrumX,
+    required MainDB dbInstance,
+  }) async {
     // Initialize Fusion Dart's Transaction object.
     fusion_tx.Transaction fusionTransaction = fusion_tx.Transaction();
 
     // WIP.
-    fusionTransaction.Inputs = await Future.wait(inputs.map((e) async {
+    fusionTransaction.Inputs = await Future.wait(inputs.map((input) async {
       // Find input amount.
       Map<String, dynamic> _tx = await cachedElectrumX.getTransaction(
-          coin: Coin.bitcoincash,
-          txHash: e.txid,
-          verbose: true); // TODO is verbose needed?
+        coin: Coin.bitcoincash,
+        txHash: input.txid,
+        verbose: true,
+      );
+
+      if (_tx.isEmpty) {
+        throw Exception("Transaction not found for input: ${input.txid}");
+      }
 
       // Check if output amount is available.
-      if (_tx.isEmpty) {
-        throw Exception("Transaction not found for input: ${e.txid}");
-      }
-      if (_tx["vout"] == null) {
-        throw Exception("Vout in transaction ${e.txid} is null");
-      }
-      if (_tx["vout"][e.vout] == null) {
-        throw Exception("Vout index ${e.vout} in transaction is null");
-      }
-      if (_tx["vout"][e.vout]["value"] == null) {
-        throw Exception("Value of vout index ${e.vout} in transaction is null");
-      }
-      if (_tx["vout"][e.vout]["scriptPubKey"] == null) {
+      final txVoutAmount = Decimal.tryParse(
+        _tx["vout"]?[input.vout]?["value"].toString() ?? "",
+      );
+      if (txVoutAmount == null) {
         throw Exception(
-            "scriptPubKey of vout index ${e.vout} in transaction is null");
+          "Output value at index ${input.vout} in transaction ${input.txid} not found",
+        );
       }
-      // TODO replace with conditional chaining?
+
+      final scriptPubKeyHex =
+          _tx["vout"]?[input.vout]?["scriptPubKey"] as String?;
+      if (scriptPubKeyHex == null) {
+        throw Exception(
+          "scriptPubKey of vout index ${input.vout} in transaction is null",
+        );
+      }
 
       // Assign vout value to amount.
       final value = Amount.fromDecimal(
-        Decimal.parse(_tx["vout"][e.vout]["value"].toString()),
+        txVoutAmount,
         fractionDigits: Coin.bitcoincash.decimals,
       );
 
       return fusion_input.Input(
-        prevTxid: utf8.encode(e.txid),
-        prevIndex: e.vout,
-        pubKey: hex.decode("${_tx["vout"][e.vout]["scriptPubKey"]}"),
+        prevTxid: utf8.encode(input.txid),
+        prevIndex: input.vout,
+        pubKey: scriptPubKeyHex.toUint8ListFromHex,
         amount: value.raw.toInt(),
       );
     }).toList());
 
-    fusionTransaction.Outputs = outputs.map((e) {
-      /*
-      if (e.scriptPubKey == null) {
-        // TODO calculate scriptPubKey if it is null.
+    fusionTransaction.Outputs = await Future.wait(outputs.map((output) async {
+      // TODO: maybe only need one of these but IIRC scriptPubKeyAddress is required for bitcoincash transactions?
+      if (output.scriptPubKeyAddress.isEmpty) {
+        throw Exception("isar model output.scriptPubKeyAddress is empty!");
       }
-      */
+      if (output.scriptPubKey == null || output.scriptPubKey!.isEmpty) {
+        throw Exception("isar model output.scriptPubKey is null or empty!");
+      }
 
-      fusion_address.DerivationPath? derivationPath;
-      List<int>? pubKey;
+      final outputAddress = output.scriptPubKeyAddress;
+      final outputAddressScriptPubKey = output.scriptPubKey!.toUint8ListFromHex;
 
-      // Validate that we have all the required data.
-      if (address.value == null) {
-        // TODO calculate address if it is null.
-        throw Exception(
-            "address value is null for input: ${e.scriptPubKeyAddress}");
+      // fetch address derivation path
+      final derivationPathString = await _getAddressDerivationPathString(
+        address: outputAddress,
+        dbInstance: dbInstance,
+      );
+      fusion_address.DerivationPath derivationPath;
+      if (derivationPathString == null) {
+        // TODO: check on this:
+        // Either the address is not an address of this wallet
+        // or we need to find out what it is.
+        // If the former, then the issue cannot be easily solved as we will
+        // have no way of finding out what the derivation path is.
+        // Throw exception for now.
+        throw Exception("derivationPathString is null");
       } else {
-        if (address.value!.publicKey.isEmpty || e.scriptPubKey != null) {
-          pubKey = utf8.encode(e.scriptPubKey!);
-          // TODO is this valid?
-        } else {
-          pubKey = address.value!
-              .publicKey; // TODO IMPORTANT: this address may not be *the* address in question :)
-        }
-        if (address.value!.derivationPath != null) {
-          derivationPath = fusion_address.DerivationPath(address
-              .value!.derivationPath!
-              .toString()); // TODO IMPORTANT: this address may not be *the* address in question :)
-        } else {
-          // TODO calculate derivation path if it is null.
-          /*
-          throw Exception(
-              "derivationPath is null for input: ${e.scriptPubKeyAddress}");
-          */
-        }
+        derivationPath = fusion_address.DerivationPath(
+          derivationPathString,
+        );
       }
-
-      // TODO handle case where address.value.publicKey is empty and e.scriptPubKey is null
 
       return fusion_output.Output(
         addr: fusion_address.Address(
-          addr: e.scriptPubKeyAddress,
-          publicKey: pubKey,
+          addr: output.scriptPubKeyAddress,
+          publicKey: outputAddressScriptPubKey,
           derivationPath: derivationPath,
         ),
-        value: e.value,
+        value: output.value,
       );
-    }).toList();
+    }).toList());
 
     return fusionTransaction;
   }
