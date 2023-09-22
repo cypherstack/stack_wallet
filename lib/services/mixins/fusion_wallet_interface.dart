@@ -12,7 +12,7 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/services/tor_service.dart';
+import 'package:stackwallet/services/fusion_tor_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
@@ -28,7 +28,7 @@ mixin FusionWalletInterface {
   late final Coin _coin;
   late final MainDB _db;
   late final CachedElectrumX _cachedElectrumX;
-  late final TorService _torService;
+  late final FusionTorService _torService;
 
   // Passed in wallet functions.
   late final Future<Address> Function(
@@ -58,25 +58,8 @@ mixin FusionWalletInterface {
     _coin = coin;
     _db = db;
     _generateAddressForChain = generateAddressForChain;
-    _torService = TorService.sharedInstance;
+    _torService = FusionTorService.sharedInstance;
     _cachedElectrumX = cachedElectrumX;
-
-    // Try getting the proxy info.
-    //
-    // Start the Tor service if it's not already running.  Returns if Tor is already
-    // connected or else after Tor returns from start().
-    try {
-      _torService.getProxyInfo();
-      // Proxy info successfully retrieved, Tor is connected.
-      return;
-    } catch (e) {
-      // Init the Tor service if it hasn't already been.
-      final torDir = await StackFileSystem.applicationTorDirectory();
-      _torService.init(torDataDirPath: torDir.path);
-
-      // Start the Tor service.
-      return await _torService.start();
-    }
   }
 
   /// Returns a list of all addresses in the wallet.
@@ -198,20 +181,38 @@ mixin FusionWalletInterface {
     return unusedAddresses;
   }
 
+  int _torStartCount = 0;
+
   /// Returns the current Tor proxy address.
   Future<({InternetAddress host, int port})> getSocksProxyAddress() async {
-    /*
-    // Start the Tor service if it's not already running.
-    if (_torService.proxyInfo.port == -1) { // -1 indicates that the proxy is not running.
-      await _torService.start(); // We already unawaited this in initFusionInterface...
+    if (_torStartCount > 5) {
+      // something is quite broken so stop trying to recursively fetch
+      // start up tor and fetch proxy info
+      throw Exception(
+        "Fusion interface attempted to start tor $_torStartCount times and failed!",
+      );
     }
-     */
 
-    // TODO make sure we've properly awaited the Tor service starting before
-    // returning the proxy address.
+    try {
+      final info = _torService.getProxyInfo();
 
-    // Return the proxy address.
-    return _torService.getProxyInfo();
+      // reset counter before return info;
+      _torStartCount = 0;
+
+      return info;
+    } catch (_) {
+      // tor is probably not running so lets fix that
+      final torDir = await StackFileSystem.applicationTorDirectory();
+      _torService.init(torDataDirPath: torDir.path);
+
+      // increment start attempt count
+      _torStartCount++;
+
+      await _torService.start();
+
+      // try again to fetch proxy info
+      return await getSocksProxyAddress();
+    }
   }
 
   // Initial attempt for CashFusion integration goes here.
