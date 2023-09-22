@@ -136,14 +136,16 @@ class BitcoinCashWallet extends CoinServiceAPI
     initCache(walletId, coin);
     initWalletDB(mockableOverride: mockableOverride);
     initFusionInterface(
-        walletId: walletId,
-        coin: coin,
-        db: db,
-        getWalletCachedElectrumX: () => cachedElectrumXClient,
-        getNextUnusedChangeAddress: () async {
-          await checkCurrentChangeAddressesForTransactions();
-          return await _currentChangeAddress;
-        });
+      walletId: walletId,
+      coin: coin,
+      db: db,
+      getWalletCachedElectrumX: () => cachedElectrumXClient,
+      getNextUnusedChangeAddress: () async {
+        await checkCurrentChangeAddressesForTransactions();
+        return await _currentChangeAddress;
+      },
+      getTxCountForAddress: getTxCount,
+    );
     initCoinControlInterface(
       walletId: walletId,
       walletName: walletName,

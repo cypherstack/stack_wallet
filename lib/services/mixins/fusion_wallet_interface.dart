@@ -31,6 +31,9 @@ mixin FusionWalletInterface {
   // Passed in wallet functions.
   late final Future<Address> Function() _getNextUnusedChangeAddress;
   late final CachedElectrumX Function() _getWalletCachedElectrumX;
+  late final Future<int> Function({
+    required String address,
+  }) _getTxCountForAddress;
 
   /// Initializes the FusionWalletInterface mixin.
   ///
@@ -43,6 +46,9 @@ mixin FusionWalletInterface {
     required MainDB db,
     required Future<Address> Function() getNextUnusedChangeAddress,
     required CachedElectrumX Function() getWalletCachedElectrumX,
+    required Future<int> Function({
+      required String address,
+    }) getTxCountForAddress,
   }) async {
     // Set passed in wallet data.
     _walletId = walletId;
@@ -51,6 +57,7 @@ mixin FusionWalletInterface {
     _getNextUnusedChangeAddress = getNextUnusedChangeAddress;
     _torService = FusionTorService.sharedInstance;
     _getWalletCachedElectrumX = getWalletCachedElectrumX;
+    _getTxCountForAddress = getTxCountForAddress;
   }
 
   /// Returns a list of all addresses in the wallet.
@@ -117,24 +124,8 @@ mixin FusionWalletInterface {
   Future<List<fusion_address.Address>> getUnusedReservedChangeAddresses(
     int numberOfAddresses,
   ) async {
-    // Fetch all transactions that have been sent to a reserved change address.
-    final txns = await _db
-        .getTransactions(_walletId)
-        .filter()
-        .address((q) => q
-            .otherDataEqualTo(kReservedFusionAddress)
-            .and()
-            .subTypeEqualTo(AddressSubType.change))
-        .findAll();
-
-    // Fetch all addresses that have been used in a transaction.
-    final List<String> usedAddresses = txns
-        .where((e) => e.address.value != null)
-        .map((e) => e.address.value!.value)
-        .toList(growable: false);
-
     // Fetch all reserved change addresses.
-    final List<Address> addresses = await _db
+    final List<Address> reservedChangeAddresses = await _db
         .getAddresses(_walletId)
         .filter()
         .otherDataEqualTo(kReservedFusionAddress)
@@ -145,18 +136,27 @@ mixin FusionWalletInterface {
     // Initialize a list of unused reserved change addresses.
     final List<fusion_address.Address> unusedAddresses = [];
 
-    // Add any unused reserved change addresses to the list.
-    for (final address in addresses) {
-      if (!usedAddresses.contains(address.value)) {
-        unusedAddresses.add(address.toFusionAddress());
+    // check addresses for tx history
+    for (final address in reservedChangeAddresses) {
+      // first check in db to avoid unnecessary network calls
+      final txCountInDB = await _db
+          .getTransactions(_walletId)
+          .filter()
+          .address((q) => q.valueEqualTo(address.value))
+          .count();
+      if (txCountInDB == 0) {
+        // double check via electrumx
+        // _getTxCountForAddress can throw!
+        final count = await _getTxCountForAddress(address: address.value);
+        if (count == 0) {
+          unusedAddresses.add(address.toFusionAddress());
+        }
       }
     }
 
     // If there are not enough unused reserved change addresses, create new ones.
-    if (unusedAddresses.length < numberOfAddresses) {
-      for (int i = unusedAddresses.length; i < numberOfAddresses; i++) {
-        unusedAddresses.add(await createNewReservedChangeAddress());
-      }
+    while (unusedAddresses.length < numberOfAddresses) {
+      unusedAddresses.add(await createNewReservedChangeAddress());
     }
 
     // Return the list of unused reserved change addresses.
