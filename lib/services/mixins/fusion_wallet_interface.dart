@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:convert/convert.dart';
 import 'package:decimal/decimal.dart';
 import 'package:fusiondart/fusiondart.dart';
 import 'package:fusiondart/src/models/address.dart' as fusion_address;
@@ -250,7 +251,6 @@ mixin FusionWalletInterface {
       }
 
       // Find public key.
-      print("1 getting tx ${e.txid}");
       Map<String, dynamic> tx = await _cachedElectrumX.getTransaction(
           coin: _coin,
           txHash: e.txid,
@@ -395,14 +395,15 @@ mixin FusionWalletInterface {
 extension FusionAddress on Address {
   fusion_address.Address toFusionAddress() {
     if (derivationPath == null) {
-      throw Exception("Fusion Addresses require a derivation path");
+      // throw Exception("Fusion Addresses require a derivation path");
+      // TODO calculate a derivation path if it is null.
     }
 
     return fusion_address.Address(
       addr: value,
       publicKey: publicKey,
       derivationPath: fusion_address.DerivationPath(
-        derivationPath!.value,
+        derivationPath?.value ?? "", // TODO fix null derivation path.
       ),
     );
   }
@@ -525,6 +526,10 @@ extension FusionTransaction on Transaction {
       if (_tx["vout"][e.vout]["value"] == null) {
         throw Exception("Value of vout index ${e.vout} in transaction is null");
       }
+      if (_tx["vout"][e.vout]["scriptPubKey"] == null) {
+        throw Exception(
+            "scriptPubKey of vout index ${e.vout} in transaction is null");
+      }
       // TODO replace with conditional chaining?
 
       // Assign vout value to amount.
@@ -534,9 +539,9 @@ extension FusionTransaction on Transaction {
       );
 
       return fusion_input.Input(
-        prevTxid: utf8.encode(e.txid), // TODO verify this is what we want.
-        prevIndex: e.vout, // TODO verify this is what we want.
-        pubKey: utf8.encode('0000'), // TODO fix public key.
+        prevTxid: utf8.encode(e.txid),
+        prevIndex: e.vout,
+        pubKey: hex.decode("${_tx["vout"][e.vout]["scriptPubKey"]}"),
         amount: value.raw.toInt(),
       );
     }).toList());
@@ -565,8 +570,9 @@ extension FusionTransaction on Transaction {
               .publicKey; // TODO IMPORTANT: this address may not be *the* address in question :)
         }
         if (address.value!.derivationPath != null) {
-          derivationPath = fusion_address.DerivationPath(
-              address.value!.derivationPath!.toString());
+          derivationPath = fusion_address.DerivationPath(address
+              .value!.derivationPath!
+              .toString()); // TODO IMPORTANT: this address may not be *the* address in question :)
         } else {
           // TODO calculate derivation path if it is null.
           /*
