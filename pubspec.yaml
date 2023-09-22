@@ -149,6 +149,8 @@ dependencies:
   bip340: ^0.2.0
   tezart: ^2.0.5
   socks5_proxy: ^1.0.3+dev.3
+  coinlib: ^1.0.0
+  convert: ^3.1.1
 
 dev_dependencies:
   flutter_test:

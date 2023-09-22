@@ -262,6 +262,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.6.0"
+  coinlib:
+    dependency: "direct main"
+    description:
+      name: coinlib
+      sha256: "410993f49aef30e48b76bbad8a33fef33f6b90e103b15b6be0277683ffe15399"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   collection:
     dependency: transitive
     description:
@@ -287,7 +295,7 @@ packages:
     source: hosted
     version: "1.2.4"
   convert:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: convert
       sha256: "0f08b14755d163f6e2134cb58222dd25ea2a2ee8a195e53983d57c075324d592"
@@ -1861,6 +1869,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.0.12+1"
+  wasm_interop:
+    dependency: transitive
+    description:
+      name: wasm_interop
+      sha256: b1b378f07a4cf0103c25faf34d9a64d2c3312135b9efb47e0ec116ec3b14e48f
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
   watcher:
     dependency: transitive
     description:

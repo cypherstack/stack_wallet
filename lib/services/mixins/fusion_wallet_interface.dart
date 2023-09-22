@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:convert/convert.dart';
 import 'package:decimal/decimal.dart';
 import 'package:fusiondart/fusiondart.dart';
 import 'package:fusiondart/src/models/address.dart' as fusion_address;
@@ -527,10 +528,7 @@ extension FusionTransaction on Transaction {
     fusionTransaction.Inputs = await Future.wait(inputs.map((input) async {
       // Find input amount.
       Map<String, dynamic> _tx = await cachedElectrumX.getTransaction(
-        coin: Coin.bitcoincash,
-        txHash: input.txid,
-        verbose: true,
-      );
+          coin: Coin.bitcoincash, txHash: input.txid, verbose: true);
 
       if (_tx.isEmpty) {
         throw Exception("Transaction not found for input: ${input.txid}");
@@ -545,14 +543,20 @@ extension FusionTransaction on Transaction {
           "Output value at index ${input.vout} in transaction ${input.txid} not found",
         );
       }
-
-      final scriptPubKeyHex =
-          _tx["vout"]?[input.vout]?["scriptPubKey"] as String?;
-      if (scriptPubKeyHex == null) {
-        throw Exception(
-          "scriptPubKey of vout index ${input.vout} in transaction is null",
-        );
+      if (_tx["vout"] == null) {
+        throw Exception("Vout in transaction ${input.txid} is null");
       }
+      if (_tx["vout"][input.vout] == null) {
+        throw Exception("Vout index ${input.vout} in transaction is null");
+      }
+      if (_tx["vout"][input.vout]["scriptPubKey"] == null) {
+        throw Exception("scriptPubKey at vout index ${input.vout} is null");
+      }
+      if (_tx["vout"][input.vout]["scriptPubKey"]["hex"] == null) {
+        throw Exception(
+            "scriptPubKey hex of vout index ${input.vout} in transaction is null");
+      }
+      // TODO replace with conditional chaining?
 
       // Assign vout value to amount.
       final value = Amount.fromDecimal(
@@ -563,7 +567,7 @@ extension FusionTransaction on Transaction {
       return fusion_input.Input(
         prevTxid: utf8.encode(input.txid),
         prevIndex: input.vout,
-        pubKey: scriptPubKeyHex.toUint8ListFromHex,
+        pubKey: hex.decode("${_tx["vout"][input.vout]["scriptPubKey"]["hex"]}"),
         amount: value.raw.toInt(),
       );
     }).toList());
@@ -585,7 +589,7 @@ extension FusionTransaction on Transaction {
         address: outputAddress,
         dbInstance: dbInstance,
       );
-      fusion_address.DerivationPath derivationPath;
+      fusion_address.DerivationPath? derivationPath;
       if (derivationPathString == null) {
         // TODO: check on this:
         // Either the address is not an address of this wallet
@@ -593,7 +597,7 @@ extension FusionTransaction on Transaction {
         // If the former, then the issue cannot be easily solved as we will
         // have no way of finding out what the derivation path is.
         // Throw exception for now.
-        throw Exception("derivationPathString is null");
+        // throw Exception("derivationPathString is null");
       } else {
         derivationPath = fusion_address.DerivationPath(
           derivationPathString,
