@@ -207,7 +207,7 @@ mixin FusionWalletInterface {
   ///   A `Future<void>` that resolves when the fusion operation is finished.
   Future<void> fuse() async {
     // Initial attempt for CashFusion integration goes here.
-    Fusion mainFusionObject = Fusion(
+    final mainFusionObject = Fusion(
       getAddresses: () => getFusionAddresses(),
       getTransactionsByAddress: (String address) =>
           getTransactionsByAddress(address),
@@ -220,39 +220,46 @@ mixin FusionWalletInterface {
 
     // Pass wallet functions to the Fusion object
     mainFusionObject.initFusion(
-        getAddresses: getFusionAddresses,
-        getTransactionsByAddress: getTransactionsByAddress,
-        getInputsByAddress: getInputsByAddress,
-        /*createNewReservedChangeAddress: createNewReservedChangeAddress,*/
-        getUnusedReservedChangeAddresses: getUnusedReservedChangeAddresses,
-        getSocksProxyAddress: getSocksProxyAddress);
+      getAddresses: getFusionAddresses,
+      getTransactionsByAddress: getTransactionsByAddress,
+      getInputsByAddress: getInputsByAddress,
+      /*createNewReservedChangeAddress: createNewReservedChangeAddress,*/
+      getUnusedReservedChangeAddresses: getUnusedReservedChangeAddresses,
+      getSocksProxyAddress: getSocksProxyAddress,
+    );
 
     // Add stack UTXOs.
-    List<UTXO> utxos = await _db.getUTXOs(_walletId).findAll();
-    List<(String, int, int, List<int>)> coinList = [];
+    final List<UTXO> walletUtxos = await _db.getUTXOs(_walletId).findAll();
+    final List<
+        ({
+          String txid,
+          int vout,
+          int value,
+          List<int> pubKey,
+        })> coinList = [];
 
     // Loop through UTXOs, checking and adding valid ones.
-    for (var e in utxos) {
+    for (final utxo in walletUtxos) {
       // Check if address is available.
-      if (e.address == null) {
+      if (utxo.address == null) {
         // TODO we could continue here (and below during scriptPubKey validation) instead of throwing.
-        throw Exception("UTXO ${e.txid}:${e.vout} address is null");
+        throw Exception("UTXO ${utxo.txid}:${utxo.vout} address is null");
       }
 
       // Find public key.
       Map<String, dynamic> tx =
           await _getWalletCachedElectrumX().getTransaction(
         coin: _coin,
-        txHash: e.txid,
+        txHash: utxo.txid,
         verbose: true,
       );
 
       // Check if scriptPubKey is available.
       final scriptPubKeyHex =
-          tx["vout"]?[e.vout]?["scriptPubKey"]?["hex"] as String?;
+          tx["vout"]?[utxo.vout]?["scriptPubKey"]?["hex"] as String?;
       if (scriptPubKeyHex == null) {
         throw Exception(
-          "hex in scriptPubKey of vout index ${e.vout} in transaction is null",
+          "hex in scriptPubKey of vout index ${utxo.vout} in transaction is null",
         );
       }
 
@@ -260,7 +267,12 @@ mixin FusionWalletInterface {
       List<int> pubKey = scriptPubKeyHex.toUint8ListFromHex;
 
       // Add UTXO to coinList.
-      coinList.add((e.txid, e.vout, e.value, pubKey));
+      coinList.add((
+        txid: utxo.txid,
+        vout: utxo.vout,
+        value: utxo.value,
+        pubKey: pubKey
+      ));
     }
 
     // Add Stack UTXOs.
