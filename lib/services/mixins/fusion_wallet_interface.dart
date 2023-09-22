@@ -27,7 +27,6 @@ mixin FusionWalletInterface {
   late final String _walletId;
   late final Coin _coin;
   late final MainDB _db;
-  late final CachedElectrumX _cachedElectrumX;
   late final FusionTorService _torService;
 
   // Passed in wallet functions.
@@ -36,6 +35,8 @@ mixin FusionWalletInterface {
     int index,
     DerivePathType derivePathType,
   ) _generateAddressForChain;
+
+  late final CachedElectrumX Function() _getWalletCachedElectrumX;
 
   /// Initializes the FusionWalletInterface mixin.
   ///
@@ -51,7 +52,7 @@ mixin FusionWalletInterface {
       int,
       DerivePathType,
     ) generateAddressForChain,
-    required CachedElectrumX cachedElectrumX,
+    required CachedElectrumX Function() getWalletCachedElectrumX,
   }) async {
     // Set passed in wallet data.
     _walletId = walletId;
@@ -59,7 +60,7 @@ mixin FusionWalletInterface {
     _db = db;
     _generateAddressForChain = generateAddressForChain;
     _torService = FusionTorService.sharedInstance;
-    _cachedElectrumX = cachedElectrumX;
+    _getWalletCachedElectrumX = getWalletCachedElectrumX;
   }
 
   /// Returns a list of all addresses in the wallet.
@@ -78,7 +79,7 @@ mixin FusionWalletInterface {
       _txs.map(
         (tx) => tx.toFusionTransaction(
           dbInstance: _db,
-          cachedElectrumX: _cachedElectrumX,
+          cachedElectrumX: _getWalletCachedElectrumX(),
         ),
       ),
     );
@@ -258,7 +259,8 @@ mixin FusionWalletInterface {
       }
 
       // Find public key.
-      Map<String, dynamic> tx = await _cachedElectrumX.getTransaction(
+      Map<String, dynamic> tx =
+          await _getWalletCachedElectrumX().getTransaction(
         coin: _coin,
         txHash: e.txid,
         verbose: true,

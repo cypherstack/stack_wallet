@@ -140,7 +140,7 @@ class BitcoinCashWallet extends CoinServiceAPI
       coin: coin,
       db: db,
       generateAddressForChain: _generateAddressForChain,
-      cachedElectrumX: cachedElectrumXClient,
+      getWalletCachedElectrumX: () => cachedElectrumXClient,
     );
     initCoinControlInterface(
       walletId: walletId,
