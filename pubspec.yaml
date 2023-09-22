@@ -11,7 +11,7 @@ description: Stack Wallet
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.7.20+188
+version: 1.8.0+191
 
 environment:
   sdk: ">=3.0.2 <4.0.0"
@@ -60,7 +60,7 @@ dependencies:
   tor_ffi_plugin:
     git:
       url: https://github.com/cypherstack/tor.git
-      ref: 7123505a9e5f702dba1c0c9aa12b289b5dfbb3bf
+      ref: 0a6888282f4e98401051a396e9d2293bd55ac2c2
 
   # Utility plugins
   http: ^0.13.0

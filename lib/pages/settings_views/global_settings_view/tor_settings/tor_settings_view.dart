@@ -246,9 +246,17 @@ class _TorAnimatedButtonState extends ConsumerState<TorAnimatedButton>
     }
   }
 
-  Future<void> _playConnecting() async {
+  Future<void> _playPlug() async {
     await _play(
-      from: "connecting-start",
+      from: "0.0",
+      to: "connecting-start",
+      repeat: false,
+    );
+  }
+
+  Future<void> _playConnecting({double? start}) async {
+    await _play(
+      from: start?.toString() ?? "connecting-start",
       to: "connecting-end",
       repeat: true,
     );
@@ -256,7 +264,7 @@ class _TorAnimatedButtonState extends ConsumerState<TorAnimatedButton>
 
   Future<void> _playConnectingDone() async {
     await _play(
-      from: "connecting-end",
+      from: "${controller1.value}",
       to: "connected-start",
       repeat: false,
     );
@@ -285,7 +293,7 @@ class _TorAnimatedButtonState extends ConsumerState<TorAnimatedButton>
     required bool repeat,
   }) async {
     final composition = await _completer.future;
-    final start = composition.getMarker(from)!.start;
+    final start = double.tryParse(from) ?? composition.getMarker(from)!.start;
     final end = composition.getMarker(to)!.start;
 
     controller1.value = start;
@@ -326,7 +334,6 @@ class _TorAnimatedButtonState extends ConsumerState<TorAnimatedButton>
 
   @override
   Widget build(BuildContext context) {
-    // TODO: modify size (waiting for updated onion lottie animation file)
     final width = MediaQuery.of(context).size.width / 1.5;
 
     return TorSubscription(
@@ -343,6 +350,7 @@ class _TorAnimatedButtonState extends ConsumerState<TorAnimatedButton>
             break;
 
           case TorConnectionStatus.connecting:
+            await _playPlug();
             await _playConnecting();
             break;
         }
