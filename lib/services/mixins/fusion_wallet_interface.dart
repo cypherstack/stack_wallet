@@ -547,7 +547,7 @@ extension FusionTransaction on Transaction {
       }
 
       final scriptPubKeyHex =
-          _tx["vout"]?[input.vout]?["scriptPubKey"] as String?;
+          _tx["vout"]?[input.vout]?["scriptPubKey"]?["hex"] as String?;
       if (scriptPubKeyHex == null) {
         throw Exception(
           "scriptPubKey of vout index ${input.vout} in transaction is null",
