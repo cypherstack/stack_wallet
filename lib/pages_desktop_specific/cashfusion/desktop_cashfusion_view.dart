@@ -21,11 +21,9 @@ import 'package:stackwallet/pages_desktop_specific/cashfusion/sub_widgets/fusion
 import 'package:stackwallet/pages_desktop_specific/desktop_menu.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu.dart';
 import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/ui/check_box_state_provider.dart';
 import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -630,11 +628,11 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                         PrimaryButton(
                           label: "Start",
                           onPressed: () async {
-                            await (ref
-                                    .read(walletsChangeNotifierProvider)
-                                    .getManager(widget.walletId)
-                                    .wallet as FusionWalletInterface)
-                                .fuse();
+                            // await (ref
+                            //         .read(walletsChangeNotifierProvider)
+                            //         .getManager(widget.walletId)
+                            //         .wallet as FusionWalletInterface)
+                            //     .fuse();
 
                             await showDialog(
                               context: context,
