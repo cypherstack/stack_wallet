@@ -23,9 +23,9 @@ const String kReservedFusionAddress = "reserved_fusion_address";
 /// A mixin for the BitcoinCashWallet class that adds CashFusion functionality.
 mixin FusionWalletInterface {
   // Passed in wallet data.
-  static late final String _walletId;
+  late final String _walletId;
   late final Coin _coin;
-  static late final MainDB _db;
+  late final MainDB _db;
   late final CachedElectrumX _cachedElectrumX;
   late final TorService _torService;
 
@@ -85,23 +85,29 @@ mixin FusionWalletInterface {
   }
 
   /// Returns a list of all transactions in the wallet for the given address.
-  Future<Set<fusion_tx.Transaction>> getTransactionsByAddress(
+  Future<List<fusion_tx.Transaction>> getTransactionsByAddress(
       String address) async {
-    var _txs = await _db.getTransactions(_walletId).findAll();
+    final _txs = await _db.getTransactions(_walletId).findAll();
 
     // Use Future.wait to await all the futures in the set and then convert it to a set.
-    var resultSet = await Future.wait(
+    final resultSet = await Future.wait(
         _txs.map((tx) => tx.toFusionTransaction(_cachedElectrumX)));
 
-    return resultSet.toSet();
+    return resultSet;
   }
 
   /// Returns a list of all UTXOs in the wallet for the given address.
   Future<List<fusion_input.Input>> getInputsByAddress(String address) async {
-    var _utxos = await _db.getUTXOsByAddress(_walletId, address).findAll();
+    final _utxos = await _db.getUTXOsByAddress(_walletId, address).findAll();
 
-    List<Future<fusion_input.Input>> futureInputs =
-        _utxos.map((utxo) => utxo.toFusionInput()).toList();
+    List<Future<fusion_input.Input>> futureInputs = _utxos
+        .map(
+          (utxo) => utxo.toFusionInput(
+            walletId: _walletId,
+            dbInstance: _db,
+          ),
+        )
+        .toList();
 
     return await Future.wait(futureInputs);
   }
@@ -183,17 +189,6 @@ mixin FusionWalletInterface {
 
     // Return the list of unused reserved change addresses.
     return unusedAddresses;
-  }
-
-  /// Get an address.
-  static Future<Address> getAddress(String addr) async {
-    Address? address = await _db.getAddress(_walletId, addr);
-
-    if (address == null) {
-      throw Exception("Address not found");
-    }
-
-    return address;
   }
 
   /// Returns the current Tor proxy address.
@@ -399,12 +394,17 @@ mixin FusionWalletInterface {
 /// An extension of Stack Wallet's Address class that adds CashFusion functionality.
 extension FusionAddress on Address {
   fusion_address.Address toFusionAddress() {
+    if (derivationPath == null) {
+      throw Exception("Fusion Addresses require a derivation path");
+    }
+
     return fusion_address.Address(
-        addr: value,
-        publicKey: publicKey,
-        derivationPath:
-            fusion_address.DerivationPath(derivationPath?.value ?? ""));
-    // TODO fix default derivation path.
+      addr: value,
+      publicKey: publicKey,
+      derivationPath: fusion_address.DerivationPath(
+        derivationPath!.value,
+      ),
+    );
   }
 }
 
@@ -413,37 +413,83 @@ extension FusionAddress on Address {
 /// This class is used to convert Stack Wallet's UTXO class to FusionDart's
 /// Input and Output classes.
 extension FusionUTXO on UTXO {
-  /// Converts a Stack Wallet UTXO to a FusionDart Input.
-  Future<fusion_input.Input> toFusionInput() async {
-    if (address == null) {
-      throw Exception("toFutionInput Address is null");
+  /// Fetch the public key of an address stored in the database.
+  Future<Address> _getAddressPubkey({
+    required String address,
+    required String walletId,
+    required MainDB dbInstance,
+  }) async {
+    final Address? addr = await dbInstance.getAddress(walletId, address);
+
+    if (addr == null) {
+      throw Exception("Address not found");
     }
 
-    // Search isar for address to get pubKey.
-    Address addr = await FusionWalletInterface.getAddress(address!);
+    return addr;
+  }
 
-    return fusion_input.Input(
-      prevTxid: utf8.encode(txid),
-      prevIndex: vout,
-      pubKey: addr.publicKey,
-      amount: value,
-    );
+  /// Converts a Stack Wallet UTXO to a FusionDart Input.
+  Future<fusion_input.Input> toFusionInput({
+    required String walletId,
+    required MainDB dbInstance,
+  }) async {
+    if (address == null) {
+      throw Exception("toFusionInput Address is null");
+    }
+
+    try {
+      final Address addr = await _getAddressPubkey(
+        address: address!,
+        walletId: walletId,
+        dbInstance: dbInstance,
+      );
+
+      if (addr.publicKey.isEmpty) {
+        throw Exception("Public key for fetched address is empty");
+      }
+
+      return fusion_input.Input(
+        prevTxid: utf8.encode(txid),
+        prevIndex: vout,
+        pubKey: addr.publicKey,
+        amount: value,
+      );
+    } catch (e) {
+      rethrow;
+    }
   }
 
   /// Converts a Stack Wallet UTXO to a FusionDart Output... eventually.
-  Future<fusion_output.Output> toFusionOutput() async {
+  Future<fusion_output.Output> toFusionOutput({
+    required String walletId,
+    required MainDB dbInstance,
+  }) async {
     if (address == null) {
       throw Exception("toFutionOutput Address is null");
     }
 
     // Search isar for address to get pubKey.
-    Address addr = await FusionWalletInterface.getAddress(address!);
+    final Address addr = await _getAddressPubkey(
+      address: address!,
+      walletId: walletId,
+      dbInstance: dbInstance,
+    );
+
+    if (addr.publicKey.isEmpty) {
+      throw Exception("Public key for fetched address is empty");
+    }
+
+    if (addr.derivationPath == null) {
+      throw Exception("Derivation path for fetched address is empty");
+    }
 
     return fusion_output.Output(
       addr: fusion_address.Address(
         addr: address!,
-        publicKey: addr.publicKey, // TODO fix public key.
-        derivationPath: null, // TODO fix derivation path.
+        publicKey: addr.publicKey,
+        derivationPath: fusion_address.DerivationPath(
+          addr.derivationPath!.value,
+        ),
       ),
       value: value,
     );
