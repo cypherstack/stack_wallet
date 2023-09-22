@@ -258,27 +258,22 @@ mixin FusionWalletInterface {
 
       // Find public key.
       Map<String, dynamic> tx = await _cachedElectrumX.getTransaction(
-          coin: _coin,
-          txHash: e.txid,
-          verbose: true); // TODO is verbose needed?
+        coin: _coin,
+        txHash: e.txid,
+        verbose: true,
+      );
 
       // Check if scriptPubKey is available.
-      if (tx["vout"] == null) {
-        throw Exception("Vout in transaction ${e.txid} is null");
-      }
-      if (tx["vout"][e.vout] == null) {
-        throw Exception("Vout index ${e.vout} in transaction is null");
-      }
-      if (tx["vout"][e.vout]["scriptPubKey"] == null) {
-        throw Exception("scriptPubKey at vout index ${e.vout} is null");
-      }
-      if (tx["vout"][e.vout]["scriptPubKey"]["hex"] == null) {
-        throw Exception("hex in scriptPubKey at vout index ${e.vout} is null");
+      final scriptPubKeyHex =
+          tx["vout"]?[e.vout]?["scriptPubKey"]?["hex"] as String?;
+      if (scriptPubKeyHex == null) {
+        throw Exception(
+          "hex in scriptPubKey of vout index ${e.vout} in transaction is null",
+        );
       }
 
       // Assign scriptPubKey to pubKey.  TODO verify this is correct.
-      List<int> pubKey =
-          utf8.encode("${tx["vout"][e.vout]["scriptPubKey"]["hex"]}");
+      List<int> pubKey = scriptPubKeyHex.toUint8ListFromHex;
 
       // Add UTXO to coinList.
       coinList.add((e.txid, e.vout, e.value, pubKey));
