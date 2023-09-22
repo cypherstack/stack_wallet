@@ -145,6 +145,16 @@ class _TorHasBeenAddedDialogState extends State<_TorHasBeenAddedDialog> {
                   ? STextStyles.desktopTextMedium(context)
                   : STextStyles.smallMed14(context),
             ),
+            SizedBox(
+              height: Util.isDesktop ? 24 : 16,
+            ),
+            Text(
+              "Note: Tor does NOT yet work for Monero or Epic Cash wallets. "
+              "Opening one of these will leak your IP address.",
+              style: Util.isDesktop
+                  ? STextStyles.desktopTextMedium(context)
+                  : STextStyles.smallMed14(context),
+            ),
           ],
         ),
       ),
