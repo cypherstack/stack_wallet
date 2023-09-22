@@ -23,9 +23,9 @@ const String kReservedFusionAddress = "reserved_fusion_address";
 /// A mixin for the BitcoinCashWallet class that adds CashFusion functionality.
 mixin FusionWalletInterface {
   // Passed in wallet data.
-  late final String _walletId;
+  static late final String _walletId;
   late final Coin _coin;
-  late final MainDB _db;
+  static late final MainDB _db;
   late final CachedElectrumX _cachedElectrumX;
   late final TorService _torService;
 
@@ -100,10 +100,10 @@ mixin FusionWalletInterface {
   Future<List<fusion_input.Input>> getInputsByAddress(String address) async {
     var _utxos = await _db.getUTXOsByAddress(_walletId, address).findAll();
 
-    return _utxos
-        .map((utxo) => utxo.toFusionInput(
-            pubKey: utf8.encode(address.toString()))) // TODO fix public key.
-        .toList();
+    List<Future<fusion_input.Input>> futureInputs =
+        _utxos.map((utxo) => utxo.toFusionInput()).toList();
+
+    return await Future.wait(futureInputs);
   }
 
   /// Creates a new reserved change address.
@@ -183,6 +183,17 @@ mixin FusionWalletInterface {
 
     // Return the list of unused reserved change addresses.
     return unusedAddresses;
+  }
+
+  /// Get an address.
+  static Future<Address> getAddress(String addr) async {
+    Address? address = await _db.getAddress(_walletId, addr);
+
+    if (address == null) {
+      throw Exception("Address not found");
+    }
+
+    return address;
   }
 
   /// Returns the current Tor proxy address.
@@ -403,26 +414,35 @@ extension FusionAddress on Address {
 /// Input and Output classes.
 extension FusionUTXO on UTXO {
   /// Converts a Stack Wallet UTXO to a FusionDart Input.
-  fusion_input.Input toFusionInput({required List<int> pubKey}) {
-    if (address != null) {
-      // Search isar for address.
-      // TODO
+  Future<fusion_input.Input> toFusionInput() async {
+    if (address == null) {
+      throw Exception("toFutionInput Address is null");
     }
 
+    // Search isar for address to get pubKey.
+    Address addr = await FusionWalletInterface.getAddress(address!);
+
     return fusion_input.Input(
-      prevTxid: utf8.encode(txid), // TODO verify this is what we want.
-      prevIndex: vout, // TODO verify this is what we want.
-      pubKey: pubKey, // TODO fix public key.
+      prevTxid: utf8.encode(txid),
+      prevIndex: vout,
+      pubKey: addr.publicKey,
       amount: value,
     );
   }
 
-  /// Converts a Stack Wallet UTXO to a FusionDart Output.
-  fusion_output.Output toFusionOutput({required String address}) {
+  /// Converts a Stack Wallet UTXO to a FusionDart Output... eventually.
+  Future<fusion_output.Output> toFusionOutput() async {
+    if (address == null) {
+      throw Exception("toFutionOutput Address is null");
+    }
+
+    // Search isar for address to get pubKey.
+    Address addr = await FusionWalletInterface.getAddress(address!);
+
     return fusion_output.Output(
       addr: fusion_address.Address(
-        addr: address,
-        publicKey: utf8.encode(address.toString()), // TODO fix public key.
+        addr: address!,
+        publicKey: addr.publicKey, // TODO fix public key.
         derivationPath: null, // TODO fix derivation path.
       ),
       value: value,
