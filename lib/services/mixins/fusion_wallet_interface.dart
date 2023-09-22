@@ -15,7 +15,6 @@ import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/services/fusion_tor_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/extensions/impl/string.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 
@@ -30,12 +29,7 @@ mixin FusionWalletInterface {
   late final FusionTorService _torService;
 
   // Passed in wallet functions.
-  late final Future<Address> Function(
-    int chain,
-    int index,
-    DerivePathType derivePathType,
-  ) _generateAddressForChain;
-
+  late final Future<Address> Function() _getNextUnusedChangeAddress;
   late final CachedElectrumX Function() _getWalletCachedElectrumX;
 
   /// Initializes the FusionWalletInterface mixin.
@@ -47,18 +41,14 @@ mixin FusionWalletInterface {
     required String walletId,
     required Coin coin,
     required MainDB db,
-    required Future<Address> Function(
-      int,
-      int,
-      DerivePathType,
-    ) generateAddressForChain,
+    required Future<Address> Function() getNextUnusedChangeAddress,
     required CachedElectrumX Function() getWalletCachedElectrumX,
   }) async {
     // Set passed in wallet data.
     _walletId = walletId;
     _coin = coin;
     _db = db;
-    _generateAddressForChain = generateAddressForChain;
+    _getNextUnusedChangeAddress = getNextUnusedChangeAddress;
     _torService = FusionTorService.sharedInstance;
     _getWalletCachedElectrumX = getWalletCachedElectrumX;
   }
@@ -105,28 +95,14 @@ mixin FusionWalletInterface {
 
   /// Creates a new reserved change address.
   Future<fusion_address.Address> createNewReservedChangeAddress() async {
-    int? highestChangeIndex = await _db
-        .getAddresses(_walletId)
-        .filter()
-        .typeEqualTo(AddressType.p2pkh)
-        .subTypeEqualTo(AddressSubType.change)
-        .derivationPath((q) => q.not().valueStartsWith("m/44'/0'"))
-        .sortByDerivationIndexDesc()
-        .derivationIndexProperty()
-        .findFirst();
+    // _getNextUnusedChangeAddress() grabs the latest unused change address
+    // from the wallet.
+    // CopyWith to mark it as a fusion reserved change address
+    final address = (await _getNextUnusedChangeAddress())
+        .copyWith(otherData: kReservedFusionAddress);
 
-    Address address = await _generateAddressForChain(
-      1, // change chain
-      highestChangeIndex ?? 0,
-      DerivePathTypeExt.primaryFor(_coin),
-    );
-    address = address.copyWith(otherData: kReservedFusionAddress);
-
-    // TODO if we really want to be sure it's not used, call electrumx and check it
-
-    Address? _address = await _db.getAddress(_walletId, address.value);
+    final _address = await _db.getAddress(_walletId, address.value);
     if (_address != null) {
-      // throw Exception("Address already exists");
       await _db.updateAddress(_address, address);
     } else {
       await _db.putAddress(address);
@@ -145,7 +121,10 @@ mixin FusionWalletInterface {
     final txns = await _db
         .getTransactions(_walletId)
         .filter()
-        .address((q) => q.otherDataEqualTo(kReservedFusionAddress))
+        .address((q) => q
+            .otherDataEqualTo(kReservedFusionAddress)
+            .and()
+            .subTypeEqualTo(AddressSubType.change))
         .findAll();
 
     // Fetch all addresses that have been used in a transaction.
@@ -159,6 +138,8 @@ mixin FusionWalletInterface {
         .getAddresses(_walletId)
         .filter()
         .otherDataEqualTo(kReservedFusionAddress)
+        .and()
+        .subTypeEqualTo(AddressSubType.change)
         .findAll();
 
     // Initialize a list of unused reserved change addresses.
