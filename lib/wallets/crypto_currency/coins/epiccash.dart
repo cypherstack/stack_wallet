@@ -37,8 +37,8 @@ class Epiccash extends Bip39Currency {
     return LibEpiccash.getMnemonic();
   }
 
-  Future<String> initializeNew(({String config, String mnemonic, String password, String name})? data) {
-    return LibEpiccash.initializeNewWallet(
+  Future<void> createNewWallet(({String config, String mnemonic, String password, String name})? data) async {
+    await LibEpiccash.initializeNewWallet(
         config: data!.config,
         mnemonic: data.mnemonic,
         password: data.password,

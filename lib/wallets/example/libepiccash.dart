@@ -27,13 +27,18 @@ abstract class LibEpiccash {
   }
 
   ///
-  /// Fetch the mnemonic of (some? current?) wallet
+  /// Fetch the mnemonic For a new wallet (Only used in the example app)
   ///
   // TODO: ensure the above documentation comment is correct
   // TODO: ensure this will always return the mnemonic. If not, this function should throw an exception
   // TODO: probably remove this as we don't use it in stack wallet. We store the mnemonic separately
   static String getMnemonic() {
-    return lib_epiccash.walletMnemonic();
+    try {
+      return lib_epiccash.walletMnemonic();
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+
   }
 
   // Private function wrapper for compute
@@ -55,26 +60,105 @@ abstract class LibEpiccash {
   }
 
   ///
-  /// Create and or initialize a new epiccash wallet.
+  /// Create a new epiccash wallet.
   ///
   // TODO: Complete/modify the documentation comment above
   // TODO: Should return a void future. On error this function should throw and exception
-  static Future<String> initializeNewWallet({
+  static Future<void> initializeNewWallet({
     required String config,
     required String mnemonic,
     required String password,
     required String name,
   }) async {
-    final String result = await compute(
-      _initializeWalletWrapper,
-      (
+    try {
+      await compute(
+        _initializeWalletWrapper,
+        (
         config: config,
         mnemonic: mnemonic,
         password: password,
         name: name,
-      ),
-    );
-
-    return result;
+        ),
+      );
+    } catch (e) {
+      throw("Error creating new wallet : ${e.toString()}");
+    }
   }
+
+  ///
+  /// Private function wrapper for wallet balances
+  ///
+  static Future<String> _walletBalancesWrapper(
+  ({
+    String wallet,
+    int refreshFromNode,
+    int minimumConfirmations
+  }) data,) async {
+    return  lib_epiccash.getWalletInfo(
+        data.wallet, 
+        data.refreshFromNode, 
+        data.minimumConfirmations
+    );
+  }
+
+  ///
+  /// Get balance information for the currently open wallet
+  ///
+  static Future<String> getWalletBalances({
+    required String wallet,
+    required int refreshFromNode,
+    required int minimumConfirmations
+  }) async {
+    try {
+      String balances = await compute(_walletBalancesWrapper, (
+      wallet: wallet,
+      refreshFromNode: refreshFromNode,
+      minimumConfirmations: minimumConfirmations,
+      ));
+      return balances;
+    } catch (e) {
+      throw("Error getting wallet info : ${e.toString()}");
+    }
+  }
+
+  ///
+  /// Private function wrapper for recover wallet function
+  ///
+  static Future<String> _recoverWalletWrapper(
+      ({
+      String config,
+      String password,
+      String mnemonic,
+      String name,
+      }) data,) async {
+    return  lib_epiccash.recoverWallet(
+        data.config,
+        data.password,
+        data.mnemonic,
+        data.name,
+    );
+  }
+
+  ///
+  /// Recover an Epic wallet using a mnemonic
+  ///
+  static Future<void> recoverWallet({
+    required String config,
+    required String password,
+    required String mnemonic,
+    required String name
+  }) async {
+    try {
+      await compute(_recoverWalletWrapper, (
+      config: config,
+      password: password,
+      mnemonic: mnemonic,
+      name: name,
+      ));
+    } catch (e) {
+      throw("Error recovering wallet : ${e.toString()}");
+    }
+  }
+
+
 }
