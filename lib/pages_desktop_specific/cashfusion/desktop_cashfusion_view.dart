@@ -634,6 +634,10 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                             //         .wallet as FusionWalletInterface)
                             //     .fuse();
 
+                            // have nullable of variable type that can be set or unset; of notifier
+                            // when pressed, grab wallet as wallet id
+                            // add to fusion wallet interface and connect to provider
+
                             await showDialog(
                               context: context,
                               builder: (context) {
