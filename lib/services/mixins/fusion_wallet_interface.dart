@@ -207,19 +207,10 @@ mixin FusionWalletInterface {
   ///   A `Future<void>` that resolves when the fusion operation is finished.
   Future<void> fuse() async {
     // Initial attempt for CashFusion integration goes here.
-    final mainFusionObject = Fusion(
-      getAddresses: () => getFusionAddresses(),
-      getTransactionsByAddress: (String address) =>
-          getTransactionsByAddress(address),
-      getInputsByAddress: (String address) => getInputsByAddress(address),
-      // createNewReservedChangeAddress: () => createNewReservedChangeAddress(),
-      getUnusedReservedChangeAddresses: (int numberOfAddresses) =>
-          getUnusedReservedChangeAddresses(numberOfAddresses),
-      getSocksProxyAddress: () => getSocksProxyAddress(),
-    );
+    final mainFusionObject = Fusion(FusionParams());
 
     // Pass wallet functions to the Fusion object
-    mainFusionObject.initFusion(
+    await mainFusionObject.initFusion(
       getAddresses: getFusionAddresses,
       getTransactionsByAddress: getTransactionsByAddress,
       getInputsByAddress: getInputsByAddress,
