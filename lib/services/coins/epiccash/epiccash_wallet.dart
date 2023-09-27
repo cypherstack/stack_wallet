@@ -48,13 +48,18 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/epiccash.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:tuple/tuple.dart';
 import 'package:websocket_universal/websocket_universal.dart';
+import 'package:stackwallet/wallets/example/libepiccash.dart';
 
 const int MINIMUM_CONFIRMATIONS = 3;
 
 const String GENESIS_HASH_MAINNET = "";
 const String GENESIS_HASH_TESTNET = "";
+
+final epiccash = Epiccash(CryptoCurrencyNetwork.main);
 
 class BadEpicHttpAddressException implements Exception {
   final String? message;
@@ -383,34 +388,12 @@ class EpicCashWallet extends CoinServiceAPI
     return "";
   }
 
-  Future<String> allWalletBalances() async {
+  Future<({double awaitingFinalization, double pending, double spendable, double total})> allWalletBalances() async {
     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
     const refreshFromNode = 0;
-
-    dynamic message;
-    await m.protect(() async {
-      ReceivePort receivePort = await getIsolate({
-        "function": "getWalletInfo",
-        "wallet": wallet!,
-        "refreshFromNode": refreshFromNode,
-        "minimumConfirmations": MINIMUM_CONFIRMATIONS,
-      }, name: walletName);
-
-      message = await receivePort.first;
-      if (message is String) {
-        Logging.instance
-            .log("this is a string $message", level: LogLevel.Error);
-        stop(receivePort);
-        throw Exception("getWalletInfo isolate failed");
-      }
-      stop(receivePort);
-      Logging.instance
-          .log('Closing getWalletInfo!\n  $message', level: LogLevel.Info);
-    });
-
-    // return message;
-    final String walletBalances = message['result'] as String;
-    return walletBalances;
+    ({String wallet, int refreshFromNode, }) data = (wallet: wallet!, refreshFromNode: refreshFromNode);
+    var balances = await epiccash.getWalletInfo(data);
+    return balances;
   }
 
   Timer? timer;
@@ -777,17 +760,8 @@ class EpicCashWallet extends CoinServiceAPI
 
     String name = _walletId;
 
-    await m.protect(() async {
-      await compute(
-        _initWalletWrapper,
-        Tuple4(
-          stringConfig,
-          mnemonicString,
-          password,
-          name,
-        ),
-      );
-    });
+    ({String config, String mnemonic, String password, String name,}) walletData = (config: stringConfig, mnemonic: mnemonicString, password: password, name: name);
+    await epiccash.createNewWallet(walletData);
 
     //Open wallet
     final walletOpen = openWallet(stringConfig, password);
@@ -1830,27 +1804,7 @@ class EpicCashWallet extends CoinServiceAPI
 
   @override
   bool validateAddress(String address) {
-    //Invalid address that contains HTTP and epicbox domain
-    if ((address.startsWith("http://") || address.startsWith("https://")) &&
-        address.contains("@")) {
-      return false;
-    }
-    if (address.startsWith("http://") || address.startsWith("https://")) {
-      if (Uri.tryParse(address) != null) {
-        return true;
-      }
-    }
-
-    String validate = validateSendAddress(address);
-    if (int.parse(validate) == 1) {
-      //Check if address contrains a domain
-      if (address.contains("@")) {
-        return true;
-      }
-      return false;
-    } else {
-      return false;
-    }
+    return epiccash.validateAddress(address);
   }
 
   @override
@@ -1905,26 +1859,14 @@ class EpicCashWallet extends CoinServiceAPI
   }
 
   Future<void> _refreshBalance() async {
-    String walletBalances = await allWalletBalances();
-    var jsonBalances = json.decode(walletBalances);
-
-    final spendable =
-        (jsonBalances['amount_currently_spendable'] as double).toString();
-
-    final pending =
-        (jsonBalances['amount_awaiting_confirmation'] as double).toString();
-
-    final total = (jsonBalances['total'] as double).toString();
-    final awaiting =
-        (jsonBalances['amount_awaiting_finalization'] as double).toString();
-
+    var balances = await allWalletBalances();
     _balance = Balance(
       total: Amount.fromDecimal(
-        Decimal.parse(total) + Decimal.parse(awaiting),
+        Decimal.parse(balances.total.toString()) + Decimal.parse(balances.awaitingFinalization.toString()),
         fractionDigits: coin.decimals,
       ),
       spendable: Amount.fromDecimal(
-        Decimal.parse(spendable),
+        Decimal.parse(balances.spendable.toString()),
         fractionDigits: coin.decimals,
       ),
       blockedTotal: Amount(
@@ -1932,11 +1874,10 @@ class EpicCashWallet extends CoinServiceAPI
         fractionDigits: coin.decimals,
       ),
       pendingSpendable: Amount.fromDecimal(
-        Decimal.parse(pending),
+        Decimal.parse(balances.pending.toString()),
         fractionDigits: coin.decimals,
       ),
     );
-
     await updateCachedBalance(_balance!);
   }
 

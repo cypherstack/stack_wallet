@@ -37,18 +37,36 @@ class Epiccash extends Bip39Currency {
     return LibEpiccash.getMnemonic();
   }
 
-  Future<void> createNewWallet(
+  Future<String?> createNewWallet(
       ({
         String config,
         String mnemonic,
         String password,
         String name,
       })? data) async {
-    await LibEpiccash.initializeNewWallet(
+    String result = await LibEpiccash.initializeNewWallet(
         config: data!.config,
         mnemonic: data.mnemonic,
         password: data.password,
         name: data.name);
+
+    if(result.isNotEmpty) {
+      return result;
+    }
+    return null;
+
+  }
+
+  Future<({double awaitingFinalization, double pending, double spendable, double total})> getWalletInfo(
+      ({
+      String wallet,
+      int refreshFromNode,
+      })? data
+      ) async {
+
+    var result = await LibEpiccash.getWalletBalances(wallet: data!.wallet, refreshFromNode: data.refreshFromNode, minimumConfirmations: minConfirms);
+    return result;
+
   }
 
   Future<void> scanOutputs(
@@ -67,7 +85,6 @@ class Epiccash extends Bip39Currency {
         String address,
         int secretKey,
         String epicboxConfig,
-        int minimumConfirmations,
         String note,
       })? data) async {
     await LibEpiccash.createTransaction(
@@ -76,7 +93,7 @@ class Epiccash extends Bip39Currency {
         address: data.address,
         secretKey: data.secretKey,
         epicboxConfig: data.epicboxConfig,
-        minimumConfirmations: data.minimumConfirmations,
+        minimumConfirmations: minConfirms,
         note: data.note);
   }
 

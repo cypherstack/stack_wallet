@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_libepiccash/epic_cash.dart' as lib_epiccash;
 import 'package:mutex/mutex.dart';
@@ -34,7 +36,11 @@ abstract class LibEpiccash {
   // TODO: probably remove this as we don't use it in stack wallet. We store the mnemonic separately
   static String getMnemonic() {
     try {
-      return lib_epiccash.walletMnemonic();
+      String mnemonic = lib_epiccash.walletMnemonic();
+      if (mnemonic.isEmpty) {
+        throw Exception("Error getting mnemonic, returned empty string");
+      }
+      return mnemonic;
     } catch (e) {
       throw Exception(e.toString());
     }
@@ -63,14 +69,14 @@ abstract class LibEpiccash {
   ///
   // TODO: Complete/modify the documentation comment above
   // TODO: Should return a void future. On error this function should throw and exception
-  static Future<void> initializeNewWallet({
+  static Future<String> initializeNewWallet({
     required String config,
     required String mnemonic,
     required String password,
     required String name,
   }) async {
     try {
-      await compute(
+      return await compute(
         _initializeWalletWrapper,
         (
           config: config,
@@ -97,7 +103,7 @@ abstract class LibEpiccash {
   ///
   /// Get balance information for the currently open wallet
   ///
-  static Future<String> getWalletBalances(
+  static Future<({double awaitingFinalization, double pending, double spendable, double total})> getWalletBalances(
       {required String wallet,
       required int refreshFromNode,
       required int minimumConfirmations}) async {
@@ -107,7 +113,22 @@ abstract class LibEpiccash {
         refreshFromNode: refreshFromNode,
         minimumConfirmations: minimumConfirmations,
       ));
-      return balances;
+
+      //If balances is valid json return, else return error
+      if (balances.toUpperCase().contains("ERROR")) {
+        throw Exception(balances);
+      }
+      var jsonBalances = json.decode(balances);
+      //Return balances as record
+      ({
+        double spendable, double pending, double total, double awaitingFinalization
+      }) balancesRecord = (
+      spendable: jsonBalances['amount_currently_spendable'],
+      pending: jsonBalances['amount_awaiting_finalization'],
+      total: jsonBalances['total'],
+      awaitingFinalization: jsonBalances['amount_awaiting_finalization'],
+      );
+      return balancesRecord;
     } catch (e) {
       throw ("Error getting wallet info : ${e.toString()}");
     }
