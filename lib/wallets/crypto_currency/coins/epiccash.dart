@@ -50,35 +50,40 @@ class Epiccash extends Bip39Currency {
         password: data.password,
         name: data.name);
 
-    if(result.isNotEmpty) {
+    if (result.isNotEmpty) {
       return result;
     }
     return null;
-
   }
 
-  Future<({double awaitingFinalization, double pending, double spendable, double total})> getWalletInfo(
-      ({
-      String wallet,
-      int refreshFromNode,
-      })? data
-      ) async {
-
-    var result = await LibEpiccash.getWalletBalances(wallet: data!.wallet, refreshFromNode: data.refreshFromNode, minimumConfirmations: minConfirms);
+  Future<({double awaitingFinalization, double pending, double spendable, double total})>
+      getWalletInfo(
+          ({
+            String wallet,
+            int refreshFromNode,
+          })? data) async {
+    var result = await LibEpiccash.getWalletBalances(
+        wallet: data!.wallet,
+        refreshFromNode: data.refreshFromNode,
+        minimumConfirmations: minConfirms);
     return result;
-
   }
 
-  Future<void> scanOutputs(
+  Future<String?> scanOutputs(
       ({String wallet, int startHeight, int numberOfBlocks})? data) async {
-    await LibEpiccash.scanOutputs(
+    var result = await LibEpiccash.scanOutputs(
       wallet: data!.wallet,
       startHeight: data.startHeight,
       numberOfBlocks: data.numberOfBlocks,
     );
+
+    if (result.isNotEmpty) {
+      return result;
+    }
+    return null;
   }
 
-  Future<void> createTransaction(
+  Future<String?> createTransaction(
       ({
         String wallet,
         int amount,
@@ -87,48 +92,143 @@ class Epiccash extends Bip39Currency {
         String epicboxConfig,
         String note,
       })? data) async {
-    await LibEpiccash.createTransaction(
-        wallet: data!.wallet,
-        amount: data.amount,
-        address: data.address,
-        secretKey: data.secretKey,
-        epicboxConfig: data.epicboxConfig,
-        minimumConfirmations: minConfirms,
-        note: data.note);
+    var result = await LibEpiccash.createTransaction(
+      wallet: data!.wallet,
+      amount: data.amount,
+      address: data.address,
+      secretKey: data.secretKey,
+      epicboxConfig: data.epicboxConfig,
+      minimumConfirmations: minConfirms,
+      note: data.note,
+    );
+
+    if (result.isNotEmpty) {
+      return result;
+    }
+    return null;
   }
 
-  Future<void> getTransaction(
+  Future<String?> getTransaction(
       ({
         String wallet,
         int refreshFromNode,
       })? data) async {
-    await LibEpiccash.getTransaction(
+    var result = await LibEpiccash.getTransaction(
       wallet: data!.wallet,
       refreshFromNode: data.refreshFromNode,
     );
+
+    if (result.isNotEmpty) {
+      return result;
+    }
+    return null;
   }
 
-  Future<void> cancelTransaction(
+  Future<String?> cancelTransaction(
       ({
         String wallet,
         String transactionId,
       })? data) async {
-    await LibEpiccash.cancelTransaction(
+    var result = await LibEpiccash.cancelTransaction(
       wallet: data!.wallet,
       transactionId: data.transactionId,
     );
+
+    if (result.isNotEmpty) {
+      return result;
+    }
+    return null;
   }
 
-  Future<void> getAddressInfo(
+  Future<String?> getAddressInfo(
       ({
         String wallet,
         int index,
         String epicboxConfig,
       })? data) async {
-    await LibEpiccash.getAddressInfo(
+    var result = await LibEpiccash.getAddressInfo(
       wallet: data!.wallet,
       index: data.index,
       epicboxConfig: data.epicboxConfig,
     );
+
+    if (result.isNotEmpty) {
+      return result;
+    }
+    return null;
+  }
+
+  static Future<String?> transactionFees(
+    ({
+      String wallet,
+      int amount,
+      int minimumConfirmations,
+    })? data,
+  ) async {
+    var result = await LibEpiccash.getTransactionFees(
+      wallet: data!.wallet,
+      amount: data.amount,
+      minimumConfirmations: data.minimumConfirmations,
+    );
+    if (result.isNotEmpty) {
+      return result;
+    }
+    return null;
+  }
+
+  static Future<String?> deleteWallet(
+    ({
+      String wallet,
+      String config,
+    })? data,
+  ) async {
+    var result = await LibEpiccash.deleteWallet(
+      wallet: data!.wallet,
+      config: data.config,
+    );
+    if (result.isNotEmpty) {
+      return result;
+    }
+    return null;
+  }
+
+  static Future<String?> openWallet(
+    ({
+      String config,
+      String password,
+    })? data,
+  ) async {
+    var result = await LibEpiccash.openWallet(
+      config: data!.config,
+      password: data.password,
+    );
+    if (result.isNotEmpty) {
+      return result;
+    }
+    return null;
+  }
+
+  static Future<String?> txHttpSend(
+    ({
+      String wallet,
+      int selectionStrategyIsAll,
+      int minimumConfirmations,
+      String message,
+      int amount,
+      String address,
+    })? data,
+  ) async {
+    var result = await LibEpiccash.txHttpSend(
+      wallet: data!.wallet,
+      selectionStrategyIsAll: data.selectionStrategyIsAll,
+      minimumConfirmations: data.minimumConfirmations,
+      message: data.message,
+      amount: data.amount,
+      address: data.address,
+    );
+    if (result.isNotEmpty) {
+      return result;
+    }
+    return null;
   }
 }

@@ -103,10 +103,17 @@ abstract class LibEpiccash {
   ///
   /// Get balance information for the currently open wallet
   ///
-  static Future<({double awaitingFinalization, double pending, double spendable, double total})> getWalletBalances(
-      {required String wallet,
-      required int refreshFromNode,
-      required int minimumConfirmations}) async {
+  static Future<
+          ({
+            double awaitingFinalization,
+            double pending,
+            double spendable,
+            double total
+          })>
+      getWalletBalances(
+          {required String wallet,
+          required int refreshFromNode,
+          required int minimumConfirmations}) async {
     try {
       String balances = await compute(_walletBalancesWrapper, (
         wallet: wallet,
@@ -121,12 +128,15 @@ abstract class LibEpiccash {
       var jsonBalances = json.decode(balances);
       //Return balances as record
       ({
-        double spendable, double pending, double total, double awaitingFinalization
+        double spendable,
+        double pending,
+        double total,
+        double awaitingFinalization
       }) balancesRecord = (
-      spendable: jsonBalances['amount_currently_spendable'],
-      pending: jsonBalances['amount_awaiting_finalization'],
-      total: jsonBalances['total'],
-      awaitingFinalization: jsonBalances['amount_awaiting_finalization'],
+        spendable: jsonBalances['amount_currently_spendable'],
+        pending: jsonBalances['amount_awaiting_finalization'],
+        total: jsonBalances['total'],
+        awaitingFinalization: jsonBalances['amount_awaiting_finalization'],
       );
       return balancesRecord;
     } catch (e) {
@@ -150,13 +160,13 @@ abstract class LibEpiccash {
   ///
   /// Scan Epic outputs
   ///
-  static Future<void> scanOutputs({
+  static Future<String> scanOutputs({
     required String wallet,
     required int startHeight,
     required int numberOfBlocks,
   }) async {
     try {
-      await compute(_scanOutputsWrapper, (
+      return await compute(_scanOutputsWrapper, (
         wallet: wallet,
         startHeight: startHeight,
         numberOfBlocks: numberOfBlocks,
@@ -193,7 +203,7 @@ abstract class LibEpiccash {
   ///
   /// Create an Epic transaction
   ///
-  static Future<void> createTransaction({
+  static Future<String> createTransaction({
     required String wallet,
     required int amount,
     required String address,
@@ -203,7 +213,7 @@ abstract class LibEpiccash {
     required String note,
   }) async {
     try {
-      await compute(_createTransactionWrapper, (
+      return await compute(_createTransactionWrapper, (
         wallet: wallet,
         amount: amount,
         address: address,
@@ -235,12 +245,12 @@ abstract class LibEpiccash {
   ///
   ///
   ///
-  static Future<void> getTransaction({
+  static Future<String> getTransaction({
     required String wallet,
     required int refreshFromNode,
   }) async {
     try {
-      await compute(_getTransactionsWrapper, (
+      return await compute(_getTransactionsWrapper, (
         wallet: wallet,
         refreshFromNode: refreshFromNode,
       ));
@@ -265,14 +275,14 @@ abstract class LibEpiccash {
   }
 
   ///
+  /// Cancel current Epic transaction
   ///
-  ///
-  static Future<void> cancelTransaction({
+  static Future<String> cancelTransaction({
     required String wallet,
     required String transactionId,
   }) async {
     try {
-      await compute(_cancelTransactionWrapper, (
+      return await compute(_cancelTransactionWrapper, (
         wallet: wallet,
         transactionId: transactionId,
       ));
@@ -281,7 +291,10 @@ abstract class LibEpiccash {
     }
   }
 
-  static Future<String> addressInfoWrapper(
+  ///
+  /// Private function for address info function
+  ///
+  static Future<String> _addressInfoWrapper(
     ({
       String wallet,
       int index,
@@ -295,12 +308,59 @@ abstract class LibEpiccash {
     );
   }
 
-  static Future<void> getAddressInfo({
+  ///
+  /// get Epic address info
+  ///
+  static Future<String> getAddressInfo({
     required String wallet,
     required int index,
     required String epicboxConfig,
   }) async {
-    try {} catch (e) {}
+    try {
+      return await compute(_addressInfoWrapper, (
+        wallet: wallet,
+        index: index,
+        epicboxConfig: epicboxConfig,
+      ));
+    } catch (e) {
+      throw ("Error getting address info : ${e.toString()}");
+    }
+  }
+
+  ///
+  /// Private function for getting transaction fees
+  ///
+  static Future<String> _transactionFeesWrapper(
+    ({
+      String wallet,
+      int amount,
+      int minimumConfirmations,
+    }) data,
+  ) async {
+    return lib_epiccash.getTransactionFees(
+      data.wallet,
+      data.amount,
+      data.minimumConfirmations,
+    );
+  }
+
+  ///
+  /// get transaction fees for Epic
+  ///
+  static Future<String> getTransactionFees({
+    required String wallet,
+    required int amount,
+    required int minimumConfirmations,
+  }) async {
+    try {
+      return await compute(_transactionFeesWrapper, (
+        wallet: wallet,
+        amount: amount,
+        minimumConfirmations: minimumConfirmations,
+      ));
+    } catch (e) {
+      throw ("Error getting transaction fees : ${e.toString()}");
+    }
   }
 
   ///
@@ -339,6 +399,118 @@ abstract class LibEpiccash {
       ));
     } catch (e) {
       throw ("Error recovering wallet : ${e.toString()}");
+    }
+  }
+
+  ///
+  /// Private function wrapper for delete wallet function
+  ///
+  static Future<String> _deleteWalletWrapper(
+    ({
+      String wallet,
+      String config,
+    }) data,
+  ) async {
+    return lib_epiccash.deleteWallet(
+      data.wallet,
+      data.config,
+    );
+  }
+
+  ///
+  /// Delete an Epic wallet
+  ///
+  static Future<String> deleteWallet({
+    required String wallet,
+    required String config,
+  }) async {
+    try {
+      return await compute(_deleteWalletWrapper, (
+        wallet: wallet,
+        config: config,
+      ));
+    } catch (e) {
+      throw ("Error deleting wallet : ${e.toString()}");
+    }
+  }
+
+  ///
+  /// Private function wrapper for open wallet function
+  ///
+  static Future<String> _openWalletWrapper(
+    ({
+      String config,
+      String password,
+    }) data,
+  ) async {
+    return lib_epiccash.openWallet(
+      data.config,
+      data.password,
+    );
+  }
+
+  ///
+  /// Open an Epic wallet
+  ///
+  static Future<String> openWallet({
+    required String config,
+    required String password,
+  }) async {
+    try {
+      return await compute(_openWalletWrapper, (
+        config: config,
+        password: password,
+      ));
+    } catch (e) {
+      throw ("Error opening wallet : ${e.toString()}");
+    }
+  }
+
+  ///
+  /// Private function for txHttpSend function
+  ///
+  static Future<String> _txHttpSendWrapper(
+    ({
+      String wallet,
+      int selectionStrategyIsAll,
+      int minimumConfirmations,
+      String message,
+      int amount,
+      String address,
+    }) data,
+  ) async {
+    return lib_epiccash.txHttpSend(
+      data.wallet,
+      data.selectionStrategyIsAll,
+      data.minimumConfirmations,
+      data.message,
+      data.amount,
+      data.address,
+    );
+  }
+
+  ///
+  ///
+  ///
+  static Future<String> txHttpSend({
+    required String wallet,
+    required int selectionStrategyIsAll,
+    required int minimumConfirmations,
+    required String message,
+    required int amount,
+    required String address,
+  }) async {
+    try {
+      return await compute(_txHttpSendWrapper, (
+        wallet: wallet,
+        selectionStrategyIsAll: selectionStrategyIsAll,
+        minimumConfirmations: minimumConfirmations,
+        message: message,
+        amount: amount,
+        address: address,
+      ));
+    } catch (e) {
+      throw ("Error sending tx HTTP : ${e.toString()}");
     }
   }
 }
