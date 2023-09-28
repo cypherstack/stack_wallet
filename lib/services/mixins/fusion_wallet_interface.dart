@@ -221,13 +221,7 @@ mixin FusionWalletInterface {
 
     // Add stack UTXOs.
     final List<UTXO> walletUtxos = await _db.getUTXOs(_walletId).findAll();
-    final List<
-        ({
-          String txid,
-          int vout,
-          int value,
-          List<int> pubKey,
-        })> coinList = [];
+    final List<fusion.UtxoDTO> coinList = [];
 
     // Loop through UTXOs, checking and adding valid ones.
     for (final utxo in walletUtxos) {
@@ -258,12 +252,14 @@ mixin FusionWalletInterface {
       List<int> pubKey = scriptPubKeyHex.toUint8ListFromHex;
 
       // Add UTXO to coinList.
-      coinList.add((
-        txid: utxo.txid,
-        vout: utxo.vout,
-        value: utxo.value,
-        pubKey: pubKey
-      ));
+      coinList.add(
+        fusion.UtxoDTO(
+          txid: utxo.txid,
+          vout: utxo.vout,
+          value: utxo.value,
+          pubKey: pubKey,
+        ),
+      );
     }
 
     // Add Stack UTXOs.
