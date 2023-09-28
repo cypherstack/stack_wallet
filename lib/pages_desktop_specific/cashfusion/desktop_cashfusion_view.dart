@@ -20,6 +20,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages_desktop_specific/cashfusion/sub_widgets/fusion_dialog.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_menu.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu.dart';
+import 'package:stackwallet/providers/cash_fusion/fusion_progress_ui_state_provider.dart';
 import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/ui/check_box_state_provider.dart';
@@ -630,20 +631,23 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                         PrimaryButton(
                           label: "Start",
                           onPressed: () async {
-                            await (ref
-                                    .read(walletsChangeNotifierProvider)
-                                    .getManager(widget.walletId)
-                                    .wallet as FusionWalletInterface)
-                                .fuse();
+                            final fusionWallet = ref
+                                .read(walletsChangeNotifierProvider)
+                                .getManager(widget.walletId)
+                                .wallet as FusionWalletInterface;
 
-                            // have nullable of variable type that can be set or unset; of notifier
-                            // when pressed, grab wallet as wallet id
-                            // add to fusion wallet interface and connect to provider
+                            fusionWallet.uiState = ref.read(
+                              fusionProgressUIStateProvider(widget.walletId),
+                            );
 
-                            await showDialog(
+                            unawaited(fusionWallet.fuse());
+
+                            await showDialog<void>(
                               context: context,
                               builder: (context) {
-                                return FusionDialog();
+                                return FusionDialog(
+                                  walletId: widget.walletId,
+                                );
                               },
                             );
                           },

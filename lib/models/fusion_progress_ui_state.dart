@@ -1,12 +1,8 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages_desktop_specific/cashfusion/sub_widgets/fusion_dialog.dart';
-import 'package:stackwallet/services/coins/manager.dart';
-
-import 'fusion_progress_state.dart';
 
 class FusionProgressUIState extends ChangeNotifier {
-  bool _ableToConnect = false;
+  bool _ableToConnect = true; // set to true for now
 
   bool get done {
     if (!_ableToConnect) {
@@ -24,10 +20,8 @@ class FusionProgressUIState extends ChangeNotifier {
     _done &= (_complete == CashFusionStatus.success) ||
         (_complete == CashFusionStatus.failed);
 
-    for (final wallet in _fusionState.values) {
-      _done &= (wallet.fusionState == CashFusionStatus.success) ||
-          (wallet.fusionState == CashFusionStatus.failed);
-    }
+    _done &= (fusionState == CashFusionStatus.success) ||
+        (fusionState == CashFusionStatus.failed);
 
     return _done;
   }
@@ -43,9 +37,7 @@ class FusionProgressUIState extends ChangeNotifier {
     _succeeded &= _fusing == CashFusionStatus.success;
     _succeeded &= _complete == CashFusionStatus.success;
 
-    for (final wallet in _fusionState.values) {
-      _succeeded &= wallet.fusionState == CashFusionStatus.success;
-    }
+    _succeeded &= fusionState == CashFusionStatus.success;
 
     return _succeeded;
   }
@@ -85,55 +77,10 @@ class FusionProgressUIState extends ChangeNotifier {
     notifyListeners();
   }
 
-  List<Manager> get managers {
-    List<Manager> _managers = [];
-    for (final item in _fusionState.values) {
-      if (item.manager != null) {
-        _managers.add(item.manager!);
-      }
-    }
-    return _managers;
-  }
-
-  Map<String, FusionProgressState> _fusionState = {};
-  Map<String, ChangeNotifierProvider<FusionProgressState>>
-      _fusionStateProviders = {};
-  Map<String, ChangeNotifierProvider<FusionProgressState>>
-      get fusionStateProviders => _fusionStateProviders;
-
-  set fusionState(Map<String, FusionProgressState> state) {
-    _fusionState = state;
-    _fusionStateProviders = {};
-    for (final wallet in _fusionState.values) {
-      _fusionStateProviders[wallet.walletId] =
-          ChangeNotifierProvider<FusionProgressState>((_) => wallet);
-    }
-
-    /// todo: is this true
-    _ableToConnect = true;
-    notifyListeners();
-  }
-
-  FusionProgressState getFusionProgressState(String walletId) {
-    return _fusionState[walletId]!;
-  }
-
-  ChangeNotifierProvider<FusionProgressState> getFusionProgressStateProvider(
-      String walletId) {
-    return _fusionStateProviders[walletId]!;
-  }
-
-  void update({
-    required String walletId,
-    required CashFusionStatus fusionStatus,
-    Manager? manager,
-    String? address,
-  }) {
-    _fusionState[walletId]!.fusionState = fusionStatus;
-    _fusionState[walletId]!.manager =
-        manager ?? _fusionState[walletId]!.manager;
-    _fusionState[walletId]!.address =
-        address ?? _fusionState[walletId]!.address;
+  CashFusionStatus _fusionStatus = CashFusionStatus.waiting;
+  CashFusionStatus get fusionState => _fusionStatus;
+  set fusionState(CashFusionStatus fusionStatus) {
+    _fusionStatus = fusionStatus;
     notifyListeners();
   }
 }

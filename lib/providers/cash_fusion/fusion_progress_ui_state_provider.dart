@@ -12,5 +12,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/fusion_progress_ui_state.dart';
 
 final fusionProgressUIStateProvider =
-    ChangeNotifierProvider<FusionProgressUIState>(
-        (ref) => FusionProgressUIState());
+    ChangeNotifierProvider.family<FusionProgressUIState, String>(
+  (ref, walletId) {
+    return FusionProgressUIState();
+  },
+);

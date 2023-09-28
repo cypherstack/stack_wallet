@@ -16,7 +16,10 @@ enum CashFusionStatus { waiting, fusing, success, failed }
 class FusionDialog extends StatelessWidget {
   const FusionDialog({
     Key? key,
+    required this.walletId,
   }) : super(key: key);
+
+  final String walletId;
 
   @override
   Widget build(BuildContext context) {
@@ -103,8 +106,9 @@ class FusionDialog extends StatelessWidget {
                       height: 20,
                     ),
                     Consumer(builder: (_, ref, __) {
-                      final state = ref.watch(fusionProgressUIStateProvider
-                          .select((value) => value.connecting));
+                      final state = ref.watch(
+                          fusionProgressUIStateProvider(walletId)
+                              .select((value) => value.connecting));
                       return RoundedContainer(
                         padding: EdgeInsets.zero,
                         color:
@@ -143,8 +147,9 @@ class FusionDialog extends StatelessWidget {
                       height: 12,
                     ),
                     Consumer(builder: (_, ref, __) {
-                      final state = ref.watch(fusionProgressUIStateProvider
-                          .select((value) => value.outputs));
+                      final state = ref.watch(
+                          fusionProgressUIStateProvider(walletId)
+                              .select((value) => value.outputs));
                       return RoundedContainer(
                         padding: EdgeInsets.zero,
                         color:
@@ -183,8 +188,9 @@ class FusionDialog extends StatelessWidget {
                       height: 12,
                     ),
                     Consumer(builder: (_, ref, __) {
-                      final state = ref.watch(fusionProgressUIStateProvider
-                          .select((value) => value.peers));
+                      final state = ref.watch(
+                          fusionProgressUIStateProvider(walletId)
+                              .select((value) => value.peers));
                       return RoundedContainer(
                         padding: EdgeInsets.zero,
                         color:
@@ -223,8 +229,9 @@ class FusionDialog extends StatelessWidget {
                       height: 12,
                     ),
                     Consumer(builder: (_, ref, __) {
-                      final state = ref.watch(fusionProgressUIStateProvider
-                          .select((value) => value.fusing));
+                      final state = ref.watch(
+                          fusionProgressUIStateProvider(walletId)
+                              .select((value) => value.fusing));
                       return RoundedContainer(
                         padding: EdgeInsets.zero,
                         color:
@@ -263,8 +270,9 @@ class FusionDialog extends StatelessWidget {
                       height: 12,
                     ),
                     Consumer(builder: (_, ref, __) {
-                      final state = ref.watch(fusionProgressUIStateProvider
-                          .select((value) => value.complete));
+                      final state = ref.watch(
+                          fusionProgressUIStateProvider(walletId)
+                              .select((value) => value.complete));
                       return RoundedContainer(
                         padding: EdgeInsets.zero,
                         color:

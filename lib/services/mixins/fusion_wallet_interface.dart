@@ -7,6 +7,7 @@ import 'package:fusiondart/fusiondart.dart' as fusion;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
+import 'package:stackwallet/models/fusion_progress_ui_state.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/services/fusion_tor_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -23,6 +24,22 @@ mixin FusionWalletInterface {
   late final Coin _coin;
   late final MainDB _db;
   late final FusionTorService _torService;
+
+  // setting values on this should notify any listeners (the GUI)
+  FusionProgressUIState? _uiState;
+  FusionProgressUIState get uiState {
+    if (_uiState == null) {
+      throw Exception("FusionProgressUIState has not been set for $_walletId");
+    }
+    return _uiState!;
+  }
+
+  set uiState(FusionProgressUIState state) {
+    if (_uiState != null) {
+      throw Exception("FusionProgressUIState was already set for $_walletId");
+    }
+    _uiState = state;
+  }
 
   // Passed in wallet functions.
   late final Future<Address> Function() _getNextUnusedChangeAddress;
@@ -57,6 +74,12 @@ mixin FusionWalletInterface {
     _getWalletCachedElectrumX = getWalletCachedElectrumX;
     _getTxCountForAddress = getTxCountForAddress;
     _getChainHeight = getChainHeight;
+  }
+
+  // callback to update the ui state object
+  void updateStatus(fusion.FusionStatus fusionStatus) {
+    // TODO: this
+    // set _uiState states
   }
 
   /// Returns a list of all addresses in the wallet.
@@ -213,10 +236,10 @@ mixin FusionWalletInterface {
       getAddresses: getFusionAddresses,
       getTransactionsByAddress: getTransactionsByAddress,
       getInputsByAddress: getInputsByAddress,
-      /*createNewReservedChangeAddress: createNewReservedChangeAddress,*/
       getUnusedReservedChangeAddresses: getUnusedReservedChangeAddresses,
       getSocksProxyAddress: getSocksProxyAddress,
       getChainHeight: _getChainHeight,
+      updateStatusCallback: updateStatus,
     );
 
     // Add stack UTXOs.
