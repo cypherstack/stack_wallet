@@ -205,27 +205,6 @@ class BitcoinCashWallet extends CoinServiceAPI
           .findFirst()) ??
       await _generateAddressForChain(0, 0, DerivePathTypeExt.primaryFor(coin));
 
-  Future<String> get currentChangeAddress async =>
-      (await _currentChangeAddress).value;
-  // TODO return Address instead of String.
-
-  Future<String> get nextChangeAddress async {
-    // get change <Address>
-    final currentChange = await _currentChangeAddress;
-    // use <Address>.derivationmIndex + 1 to get next change address derivation path
-    final int nextChangeIndex = currentChange.derivationIndex + 1;
-    // generate next change address
-    final stack_address.Address newChangeAddress =
-        await _generateAddressForChain(
-            1,
-            nextChangeIndex,
-            DerivePathTypeExt.primaryFor(
-                coin)); // may need to pick other derive path type, eg 44, 49, 84
-
-    return newChangeAddress.value;
-    // TODO return Address instead of String.
-  }
-
   Future<isar_models.Address> get _currentChangeAddress async =>
       (await db
           .getAddresses(walletId)
