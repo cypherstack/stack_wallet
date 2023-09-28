@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_libepiccash/epic_cash.dart' as lib_epiccash;
 import 'package:mutex/mutex.dart';
@@ -347,19 +348,68 @@ abstract class LibEpiccash {
   ///
   /// get transaction fees for Epic
   ///
-  static Future<String> getTransactionFees({
+  static Future<({int fee, bool strategyUseAll, int total})> getTransactionFees({
     required String wallet,
     required int amount,
     required int minimumConfirmations,
+    required int available,
   }) async {
     try {
-      return await compute(_transactionFeesWrapper, (
-        wallet: wallet,
-        amount: amount,
-        minimumConfirmations: minimumConfirmations,
+
+      String fees = await compute(_transactionFeesWrapper, (
+      wallet: wallet,
+      amount: amount,
+      minimumConfirmations: minimumConfirmations,
       ));
+
+      if (available == amount) {
+        if (fees.contains("Required")) {
+          var splits = fees.split(" ");
+          Decimal required = Decimal.zero;
+          Decimal available = Decimal.zero;
+          for (int i = 0; i < splits.length; i++) {
+            var word = splits[i];
+            if (word == "Required:") {
+              required = Decimal.parse(splits[i + 1].replaceAll(",", ""));
+            } else if (word == "Available:") {
+              available = Decimal.parse(splits[i + 1].replaceAll(",", ""));
+            }
+          }
+          int largestSatoshiFee =
+          ((required - available) * Decimal.fromInt(100000000))
+              .toBigInt()
+              .toInt();
+          var amountSending = amount - largestSatoshiFee;
+          //Get fees for this new amount
+          ({String wallet, int amount, }) data = (wallet: wallet, amount: amountSending);
+          fees = await compute(_transactionFeesWrapper, (
+          wallet: wallet,
+          amount: amountSending,
+          minimumConfirmations: minimumConfirmations,
+          ));
+        }
+      }
+
+
+      if (fees.toUpperCase().contains("ERROR")) {
+        //Check if the error is an
+        //Throw the returned error
+        throw Exception(fees);
+      }
+      var decodedFees = json.decode(fees);
+      var feeItem = decodedFees[0];
+      ({
+      bool strategyUseAll,
+      int total,
+      int fee,
+      }) feeRecord = (
+      strategyUseAll: feeItem['selection_strategy_is_use_all'],
+      total: feeItem['total'],
+      fee: feeItem['fee'],
+      );
+      return feeRecord;
     } catch (e) {
-      throw ("Error getting transaction fees : ${e.toString()}");
+      throw (e.toString());
     }
   }
 

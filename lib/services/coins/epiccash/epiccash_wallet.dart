@@ -108,20 +108,6 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
         sendPort.send(result);
         return;
       }
-    } else if (function == "getWalletInfo") {
-      final wallet = arguments['wallet'] as String?;
-      final refreshFromNode = arguments['refreshFromNode'] as int?;
-      final minimumConfirmations = arguments['minimumConfirmations'] as int?;
-      Map<String, dynamic> result = {};
-      if (!(wallet == null ||
-          refreshFromNode == null ||
-          minimumConfirmations == null)) {
-        var res =
-            await getWalletInfo(wallet, refreshFromNode, minimumConfirmations);
-        result['result'] = res;
-        sendPort.send(result);
-        return;
-      }
     } else if (function == "getTransactions") {
       final wallet = arguments['wallet'] as String?;
       final refreshFromNode = arguments['refreshFromNode'] as int?;
@@ -138,18 +124,6 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
       Map<String, dynamic> result = {};
       if (!(wallet == null)) {
         var res = await getWalletInfo(wallet, refreshFromNode, 10);
-        result['result'] = res;
-        sendPort.send(result);
-        return;
-      }
-    } else if (function == "getTransactionFees") {
-      final wallet = arguments['wallet'] as String?;
-      final amount = arguments['amount'] as int?;
-      final minimumConfirmations = arguments['minimumConfirmations'] as int?;
-      Map<String, dynamic> result = {};
-      if (!(wallet == null || amount == null || minimumConfirmations == null)) {
-        var res =
-            await getTransactionFees(wallet, amount, minimumConfirmations);
         result['result'] = res;
         sendPort.send(result);
         return;
@@ -272,12 +246,6 @@ Future<String> _initWalletWrapper(
   final String initWalletStr =
       initWallet(data.item1, data.item2, data.item3, data.item4);
   return initWalletStr;
-}
-
-Future<String> _initGetAddressInfoWrapper(
-    Tuple3<String, int, String> data) async {
-  String walletAddress = getAddressInfo(data.item1, data.item2, data.item3);
-  return walletAddress;
 }
 
 Future<String> _walletMnemonicWrapper(int throwaway) async {
@@ -553,13 +521,10 @@ class EpicCashWallet extends CoinServiceAPI
       final wallet = await _secureStore.read(key: '${_walletId}_wallet');
       EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
 
-      String? walletAddress;
-      await m.protect(() async {
-        walletAddress = await compute(
-          _initGetAddressInfoWrapper,
-          Tuple3(wallet!, index, epicboxConfig.toString()),
-        );
-      });
+      ({String wallet, int index, String epicboxConfig}) data = (wallet: wallet!, index: index, epicboxConfig: epicboxConfig.toString());
+
+      String? walletAddress = await epiccash.getAddressInfo(data);
+
       Logging.instance
           .log("WALLET_ADDRESS_IS $walletAddress", level: LogLevel.Info);
 
@@ -705,20 +670,14 @@ class EpicCashWallet extends CoinServiceAPI
     Logging.instance.log("This index is $index", level: LogLevel.Info);
     EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
 
-    String? walletAddress;
-    await m.protect(() async {
-      walletAddress = await compute(
-        _initGetAddressInfoWrapper,
-        Tuple3(wallet!, index, epicboxConfig.toString()),
-      );
-    });
+
+    ({String wallet, int index, String epicboxConfig}) data = (wallet: wallet!, index: index, epicboxConfig: epicboxConfig.toString());
+    String? walletAddress = await epiccash.getAddressInfo(data);
+
     Logging.instance
         .log("WALLET_ADDRESS_IS $walletAddress", level: LogLevel.Info);
-    Logging.instance
-        .log("Wallet address is $walletAddress", level: LogLevel.Info);
-    String addressInfo = walletAddress!;
     await _secureStore.write(
-        key: '${_walletId}_address_info', value: addressInfo);
+        key: '${_walletId}_address_info', value: walletAddress);
   }
 
   // TODO: make more robust estimate of date maybe using https://explorer.epic.tech/api-index
@@ -861,120 +820,20 @@ class EpicCashWallet extends CoinServiceAPI
   Future<int> nativeFee(int satoshiAmount,
       {bool ifErrorEstimateFee = false}) async {
     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
-
     try {
-      String? transactionFees;
-      await m.protect(() async {
-        ReceivePort receivePort = await getIsolate({
-          "function": "getTransactionFees",
-          "wallet": wallet!,
-          "amount": satoshiAmount,
-          "minimumConfirmations": MINIMUM_CONFIRMATIONS,
-        }, name: walletName);
-
-        var message = await receivePort.first;
-        if (message is String) {
-          Logging.instance
-              .log("this is a string $message", level: LogLevel.Error);
-          stop(receivePort);
-          throw Exception("getTransactionFees isolate failed");
-        }
-        stop(receivePort);
-        Logging.instance.log('Closing getTransactionFees!\n  $message',
-            level: LogLevel.Info);
-        // return message;
-        transactionFees = message['result'] as String;
-      });
-      debugPrint(transactionFees);
-      dynamic decodeData;
 
       final available = balance.spendable.raw.toInt();
+      ({String wallet, int amount, int availableAmount}) data = (wallet: wallet!, amount: satoshiAmount, availableAmount: available);
+      var transactionFees = await epiccash.transactionFees(data);
 
-      if (available == satoshiAmount) {
-        if (transactionFees!.contains("Required")) {
-          var splits = transactionFees!.split(" ");
-          Decimal required = Decimal.zero;
-          Decimal available = Decimal.zero;
-          for (int i = 0; i < splits.length; i++) {
-            var word = splits[i];
-            if (word == "Required:") {
-              required = Decimal.parse(splits[i + 1].replaceAll(",", ""));
-            } else if (word == "Available:") {
-              available = Decimal.parse(splits[i + 1].replaceAll(",", ""));
-            }
-          }
-          int largestSatoshiFee =
-              ((required - available) * Decimal.fromInt(100000000))
-                  .toBigInt()
-                  .toInt();
-          var amountSending = satoshiAmount - largestSatoshiFee;
-
-          //Get fees for this new amount
-          await m.protect(() async {
-            ReceivePort receivePort = await getIsolate({
-              "function": "getTransactionFees",
-              "wallet": wallet!,
-              "amount": amountSending,
-              "minimumConfirmations": MINIMUM_CONFIRMATIONS,
-            }, name: walletName);
-
-            var message = await receivePort.first;
-            if (message is String) {
-              Logging.instance
-                  .log("this is a string $message", level: LogLevel.Error);
-              stop(receivePort);
-              throw Exception("getTransactionFees isolate failed");
-            }
-            stop(receivePort);
-            Logging.instance.log('Closing getTransactionFees!\n  $message',
-                level: LogLevel.Info);
-            // return message;
-            transactionFees = message['result'] as String;
-          });
-        }
-        decodeData = json.decode(transactionFees!);
-      } else {
-        try {
-          decodeData = json.decode(transactionFees!);
-        } catch (e) {
-          if (ifErrorEstimateFee) {
-            //Error Not enough funds. Required: 0.56500000, Available: 0.56200000
-            if (transactionFees!.contains("Required")) {
-              var splits = transactionFees!.split(" ");
-              Decimal required = Decimal.zero;
-              Decimal available = Decimal.zero;
-              for (int i = 0; i < splits.length; i++) {
-                var word = splits[i];
-                if (word == "Required:") {
-                  required = Decimal.parse(splits[i + 1].replaceAll(",", ""));
-                } else if (word == "Available:") {
-                  available = Decimal.parse(splits[i + 1].replaceAll(",", ""));
-                }
-              }
-              int largestSatoshiFee =
-                  ((required - available) * Decimal.fromInt(100000000))
-                      .toBigInt()
-                      .toInt();
-              Logging.instance.log("largestSatoshiFee $largestSatoshiFee",
-                  level: LogLevel.Info);
-              return largestSatoshiFee;
-            }
-          }
-          rethrow;
-        }
-      }
-
-      //TODO: first problem
       int realfee = 0;
       try {
-        var txObject = decodeData[0];
         realfee =
-            (Decimal.parse(txObject["fee"].toString())).toBigInt().toInt();
+            (Decimal.parse(transactionFees.fee.toString())).toBigInt().toInt();
       } catch (e, s) {
         //todo: come back to this
         debugPrint("$e $s");
       }
-
       return realfee;
     } catch (e, s) {
       Logging.instance.log("Error getting fees $e - $s", level: LogLevel.Error);

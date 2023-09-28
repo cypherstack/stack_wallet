@@ -158,25 +158,23 @@ class Epiccash extends Bip39Currency {
     return null;
   }
 
-  static Future<String?> transactionFees(
+  Future<({int fee, bool strategyUseAll, int total})> transactionFees(
     ({
       String wallet,
       int amount,
-      int minimumConfirmations,
+      int availableAmount,
     })? data,
   ) async {
     var result = await LibEpiccash.getTransactionFees(
       wallet: data!.wallet,
       amount: data.amount,
-      minimumConfirmations: data.minimumConfirmations,
+      minimumConfirmations: minConfirms,
+      available: data.availableAmount,
     );
-    if (result.isNotEmpty) {
-      return result;
-    }
-    return null;
+    return result;
   }
 
-  static Future<String?> deleteWallet(
+  Future<String?> deleteWallet(
     ({
       String wallet,
       String config,
@@ -192,7 +190,7 @@ class Epiccash extends Bip39Currency {
     return null;
   }
 
-  static Future<String?> openWallet(
+  Future<String?> openWallet(
     ({
       String config,
       String password,
@@ -208,7 +206,7 @@ class Epiccash extends Bip39Currency {
     return null;
   }
 
-  static Future<String?> txHttpSend(
+  Future<String?> txHttpSend(
     ({
       String wallet,
       int selectionStrategyIsAll,
