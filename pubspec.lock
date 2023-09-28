@@ -263,10 +263,18 @@ packages:
     source: hosted
     version: "4.6.0"
   coinlib:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: coinlib
       sha256: "410993f49aef30e48b76bbad8a33fef33f6b90e103b15b6be0277683ffe15399"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
+  coinlib_flutter:
+    dependency: "direct main"
+    description:
+      name: coinlib_flutter
+      sha256: d0a6a3694fc8c851f6b912bb1c552e33998e3f453efab3d62f75c0b1773d1ab9
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
