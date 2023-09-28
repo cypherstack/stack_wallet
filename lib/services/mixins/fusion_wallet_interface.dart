@@ -3,11 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:decimal/decimal.dart';
-import 'package:fusiondart/fusiondart.dart';
-import 'package:fusiondart/src/models/address.dart' as fusion_address;
-import 'package:fusiondart/src/models/input.dart' as fusion_input;
-import 'package:fusiondart/src/models/output.dart' as fusion_output;
-import 'package:fusiondart/src/models/transaction.dart' as fusion_tx;
+import 'package:fusiondart/fusiondart.dart' as fusion;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
@@ -64,13 +60,13 @@ mixin FusionWalletInterface {
   }
 
   /// Returns a list of all addresses in the wallet.
-  Future<List<fusion_address.Address>> getFusionAddresses() async {
+  Future<List<fusion.Address>> getFusionAddresses() async {
     List<Address> _addresses = await _db.getAddresses(_walletId).findAll();
     return _addresses.map((address) => address.toFusionAddress()).toList();
   }
 
   /// Returns a list of all transactions in the wallet for the given address.
-  Future<List<fusion_tx.Transaction>> getTransactionsByAddress(
+  Future<List<fusion.Transaction>> getTransactionsByAddress(
       String address) async {
     final _txs = await _db.getTransactions(_walletId).findAll();
 
@@ -88,10 +84,10 @@ mixin FusionWalletInterface {
   }
 
   /// Returns a list of all UTXOs in the wallet for the given address.
-  Future<List<fusion_input.Input>> getInputsByAddress(String address) async {
+  Future<List<fusion.Input>> getInputsByAddress(String address) async {
     final _utxos = await _db.getUTXOsByAddress(_walletId, address).findAll();
 
-    List<Future<fusion_input.Input>> futureInputs = _utxos
+    List<Future<fusion.Input>> futureInputs = _utxos
         .map(
           (utxo) => utxo.toFusionInput(
             walletId: _walletId,
@@ -104,7 +100,7 @@ mixin FusionWalletInterface {
   }
 
   /// Creates a new reserved change address.
-  Future<fusion_address.Address> createNewReservedChangeAddress() async {
+  Future<fusion.Address> createNewReservedChangeAddress() async {
     // _getNextUnusedChangeAddress() grabs the latest unused change address
     // from the wallet.
     // CopyWith to mark it as a fusion reserved change address
@@ -124,7 +120,7 @@ mixin FusionWalletInterface {
   /// Returns a list of unused reserved change addresses.
   ///
   /// If there are not enough unused reserved change addresses, new ones are created.
-  Future<List<fusion_address.Address>> getUnusedReservedChangeAddresses(
+  Future<List<fusion.Address>> getUnusedReservedChangeAddresses(
     int numberOfAddresses,
   ) async {
     // Fetch all reserved change addresses.
@@ -137,7 +133,7 @@ mixin FusionWalletInterface {
         .findAll();
 
     // Initialize a list of unused reserved change addresses.
-    final List<fusion_address.Address> unusedAddresses = [];
+    final List<fusion.Address> unusedAddresses = [];
 
     // check addresses for tx history
     for (final address in reservedChangeAddresses) {
@@ -210,7 +206,7 @@ mixin FusionWalletInterface {
   ///   A `Future<void>` that resolves when the fusion operation is finished.
   Future<void> fuse() async {
     // Initial attempt for CashFusion integration goes here.
-    final mainFusionObject = Fusion(FusionParams());
+    final mainFusionObject = fusion.Fusion(fusion.FusionParams());
 
     // Pass wallet functions to the Fusion object
     await mainFusionObject.initFusion(
@@ -385,16 +381,16 @@ mixin FusionWalletInterface {
 
 /// An extension of Stack Wallet's Address class that adds CashFusion functionality.
 extension FusionAddress on Address {
-  fusion_address.Address toFusionAddress() {
+  fusion.Address toFusionAddress() {
     if (derivationPath == null) {
       // throw Exception("Fusion Addresses require a derivation path");
       // TODO calculate a derivation path if it is null.
     }
 
-    return fusion_address.Address(
+    return fusion.Address(
       addr: value,
       publicKey: publicKey,
-      derivationPath: fusion_address.DerivationPath(
+      derivationPath: fusion.DerivationPath(
         derivationPath?.value ?? "", // TODO fix null derivation path.
       ),
     );
@@ -422,7 +418,7 @@ extension FusionUTXO on UTXO {
   }
 
   /// Converts a Stack Wallet UTXO to a FusionDart Input.
-  Future<fusion_input.Input> toFusionInput({
+  Future<fusion.Input> toFusionInput({
     required String walletId,
     required MainDB dbInstance,
   }) async {
@@ -441,7 +437,7 @@ extension FusionUTXO on UTXO {
         throw Exception("Public key for fetched address is empty");
       }
 
-      return fusion_input.Input(
+      return fusion.Input(
         prevTxid: utf8.encode(txid),
         prevIndex: vout,
         pubKey: addr.publicKey,
@@ -453,7 +449,7 @@ extension FusionUTXO on UTXO {
   }
 
   /// Converts a Stack Wallet UTXO to a FusionDart Output.
-  Future<fusion_output.Output> toFusionOutput({
+  Future<fusion.Output> toFusionOutput({
     required String walletId,
     required MainDB dbInstance,
   }) async {
@@ -476,11 +472,11 @@ extension FusionUTXO on UTXO {
       throw Exception("Derivation path for fetched address is empty");
     }
 
-    return fusion_output.Output(
-      addr: fusion_address.Address(
+    return fusion.Output(
+      addr: fusion.Address(
         addr: address!,
         publicKey: addr.publicKey,
-        derivationPath: fusion_address.DerivationPath(
+        derivationPath: fusion.DerivationPath(
           addr.derivationPath!.value,
         ),
       ),
@@ -502,12 +498,12 @@ extension FusionTransaction on Transaction {
   }
 
   // WIP.
-  Future<fusion_tx.Transaction> toFusionTransaction({
+  Future<fusion.Transaction> toFusionTransaction({
     required CachedElectrumX cachedElectrumX,
     required MainDB dbInstance,
   }) async {
     // Initialize Fusion Dart's Transaction object.
-    fusion_tx.Transaction fusionTransaction = fusion_tx.Transaction();
+    fusion.Transaction fusionTransaction = fusion.Transaction();
 
     // WIP.
     fusionTransaction.Inputs = await Future.wait(inputs.map((input) async {
@@ -546,7 +542,7 @@ extension FusionTransaction on Transaction {
         fractionDigits: Coin.bitcoincash.decimals,
       );
 
-      return fusion_input.Input(
+      return fusion.Input(
         prevTxid: utf8.encode(input.txid),
         prevIndex: input.vout,
         pubKey: scriptPubKeyHex.toUint8ListFromHex,
@@ -572,20 +568,20 @@ extension FusionTransaction on Transaction {
         dbInstance: dbInstance,
       );
 
-      final fusion_address.DerivationPath? derivationPath;
+      final fusion.DerivationPath? derivationPath;
       if (derivationPathString == null) {
         // TODO: check on this:
         // The address is not an address of this wallet and in that case we
         // cannot know the derivation path
         derivationPath = null;
       } else {
-        derivationPath = fusion_address.DerivationPath(
+        derivationPath = fusion.DerivationPath(
           derivationPathString,
         );
       }
 
-      return fusion_output.Output(
-        addr: fusion_address.Address(
+      return fusion.Output(
+        addr: fusion.Address(
           addr: output.scriptPubKeyAddress,
           publicKey: outputAddressScriptPubKey,
           derivationPath: derivationPath,
