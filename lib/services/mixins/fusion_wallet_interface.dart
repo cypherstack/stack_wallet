@@ -163,7 +163,7 @@ mixin FusionWalletInterface {
     }
 
     // Return the list of unused reserved change addresses.
-    return unusedAddresses;
+    return unusedAddresses.sublist(0, numberOfAddresses);
   }
 
   int _torStartCount = 0;
