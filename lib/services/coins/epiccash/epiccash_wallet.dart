@@ -48,18 +48,14 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/epiccash.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:stackwallet/wallets/example/libepiccash.dart' as epiccash;
 import 'package:tuple/tuple.dart';
 import 'package:websocket_universal/websocket_universal.dart';
-import 'package:stackwallet/wallets/example/libepiccash.dart';
 
 const int MINIMUM_CONFIRMATIONS = 3;
 
 const String GENESIS_HASH_MAINNET = "";
 const String GENESIS_HASH_TESTNET = "";
-
-final epiccash = Epiccash(CryptoCurrencyNetwork.main);
 
 class BadEpicHttpAddressException implements Exception {
   final String? message;
@@ -356,12 +352,20 @@ class EpicCashWallet extends CoinServiceAPI
     return "";
   }
 
-  Future<({double awaitingFinalization, double pending, double spendable, double total})> allWalletBalances() async {
+  Future<
+      ({
+        double awaitingFinalization,
+        double pending,
+        double spendable,
+        double total
+      })> allWalletBalances() async {
     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
     const refreshFromNode = 0;
-    ({String wallet, int refreshFromNode, }) data = (wallet: wallet!, refreshFromNode: refreshFromNode);
-    var balances = await epiccash.getWalletInfo(data);
-    return balances;
+    return await epiccash.LibEpiccash.getWalletBalances(
+      wallet: wallet!,
+      refreshFromNode: refreshFromNode,
+      minimumConfirmations: MINIMUM_CONFIRMATIONS,
+    );
   }
 
   Timer? timer;
@@ -521,7 +525,11 @@ class EpicCashWallet extends CoinServiceAPI
       final wallet = await _secureStore.read(key: '${_walletId}_wallet');
       EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
 
-      ({String wallet, int index, String epicboxConfig}) data = (wallet: wallet!, index: index, epicboxConfig: epicboxConfig.toString());
+      ({String wallet, int index, String epicboxConfig}) data = (
+        wallet: wallet!,
+        index: index,
+        epicboxConfig: epicboxConfig.toString()
+      );
 
       String? walletAddress = await epiccash.getAddressInfo(data);
 
@@ -670,8 +678,11 @@ class EpicCashWallet extends CoinServiceAPI
     Logging.instance.log("This index is $index", level: LogLevel.Info);
     EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
 
-
-    ({String wallet, int index, String epicboxConfig}) data = (wallet: wallet!, index: index, epicboxConfig: epicboxConfig.toString());
+    ({String wallet, int index, String epicboxConfig}) data = (
+      wallet: wallet!,
+      index: index,
+      epicboxConfig: epicboxConfig.toString()
+    );
     String? walletAddress = await epiccash.getAddressInfo(data);
 
     Logging.instance
@@ -719,7 +730,17 @@ class EpicCashWallet extends CoinServiceAPI
 
     String name = _walletId;
 
-    ({String config, String mnemonic, String password, String name,}) walletData = (config: stringConfig, mnemonic: mnemonicString, password: password, name: name);
+    ({
+      String config,
+      String mnemonic,
+      String password,
+      String name,
+    }) walletData = (
+      config: stringConfig,
+      mnemonic: mnemonicString,
+      password: password,
+      name: name
+    );
     await epiccash.createNewWallet(walletData);
 
     //Open wallet
@@ -821,9 +842,9 @@ class EpicCashWallet extends CoinServiceAPI
       {bool ifErrorEstimateFee = false}) async {
     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
     try {
-
       final available = balance.spendable.raw.toInt();
-      ({String wallet, int amount, int availableAmount}) data = (wallet: wallet!, amount: satoshiAmount, availableAmount: available);
+      ({String wallet, int amount, int availableAmount}) data =
+          (wallet: wallet!, amount: satoshiAmount, availableAmount: available);
       var transactionFees = await epiccash.transactionFees(data);
 
       int realfee = 0;
@@ -1663,7 +1684,17 @@ class EpicCashWallet extends CoinServiceAPI
 
   @override
   bool validateAddress(String address) {
-    return epiccash.validateAddress(address);
+    // Invalid address that contains HTTP and epicbox domain
+    if ((address.startsWith("http://") || address.startsWith("https://")) &&
+        address.contains("@")) {
+      return false;
+    }
+    if (address.startsWith("http://") || address.startsWith("https://")) {
+      if (Uri.tryParse(address) != null) {
+        return true;
+      }
+    }
+    return epiccash.LibEpiccash.validateSendAddress(address: address);
   }
 
   @override
@@ -1721,7 +1752,8 @@ class EpicCashWallet extends CoinServiceAPI
     var balances = await allWalletBalances();
     _balance = Balance(
       total: Amount.fromDecimal(
-        Decimal.parse(balances.total.toString()) + Decimal.parse(balances.awaitingFinalization.toString()),
+        Decimal.parse(balances.total.toString()) +
+            Decimal.parse(balances.awaitingFinalization.toString()),
         fractionDigits: coin.decimals,
       ),
       spendable: Amount.fromDecimal(
