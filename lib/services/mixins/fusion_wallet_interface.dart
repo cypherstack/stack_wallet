@@ -200,21 +200,6 @@ mixin FusionWalletInterface {
     }
   }
 
-  /// Returns the current chain height.
-  ///
-  /// This function is used by FusionDart to determine if a transaction is
-  /// confirmed or not.
-  ///
-  /// Returns:
-  ///   A `Future<int>` that resolves to the current chain height.
-  ///
-  /// Throws:
-  ///   An `Exception` if the chain height cannot be determined.
-  Future<int> getChainHeight() async {
-    throw UnimplementedError(
-        "TODO getChainHeight eg look up chain height from electrumx");
-  }
-
   // Initial attempt for CashFusion integration goes here.
 
   /// Fuse the wallet's UTXOs.
@@ -235,7 +220,7 @@ mixin FusionWalletInterface {
       /*createNewReservedChangeAddress: createNewReservedChangeAddress,*/
       getUnusedReservedChangeAddresses: getUnusedReservedChangeAddresses,
       getSocksProxyAddress: getSocksProxyAddress,
-      getChainHeight: getChainHeight,
+      getChainHeight: _getChainHeight,
     );
 
     // Add stack UTXOs.

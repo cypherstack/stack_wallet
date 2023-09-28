@@ -145,6 +145,7 @@ class BitcoinCashWallet extends CoinServiceAPI
         return await _currentChangeAddress;
       },
       getTxCountForAddress: getTxCount,
+      getChainHeight: () async => chainHeight,
     );
     initCoinControlInterface(
       walletId: walletId,
