@@ -34,6 +34,7 @@ mixin FusionWalletInterface {
   late final Future<int> Function({
     required String address,
   }) _getTxCountForAddress;
+  late final Future<int> Function() _getChainHeight;
 
   /// Initializes the FusionWalletInterface mixin.
   ///
@@ -49,6 +50,7 @@ mixin FusionWalletInterface {
     required Future<int> Function({
       required String address,
     }) getTxCountForAddress,
+    required Future<int> Function() getChainHeight,
   }) async {
     // Set passed in wallet data.
     _walletId = walletId;
@@ -58,6 +60,7 @@ mixin FusionWalletInterface {
     _torService = FusionTorService.sharedInstance;
     _getWalletCachedElectrumX = getWalletCachedElectrumX;
     _getTxCountForAddress = getTxCountForAddress;
+    _getChainHeight = getChainHeight;
   }
 
   /// Returns a list of all addresses in the wallet.
@@ -197,6 +200,21 @@ mixin FusionWalletInterface {
     }
   }
 
+  /// Returns the current chain height.
+  ///
+  /// This function is used by FusionDart to determine if a transaction is
+  /// confirmed or not.
+  ///
+  /// Returns:
+  ///   A `Future<int>` that resolves to the current chain height.
+  ///
+  /// Throws:
+  ///   An `Exception` if the chain height cannot be determined.
+  Future<int> getChainHeight() async {
+    throw UnimplementedError(
+        "TODO getChainHeight eg look up chain height from electrumx");
+  }
+
   // Initial attempt for CashFusion integration goes here.
 
   /// Fuse the wallet's UTXOs.
@@ -217,6 +235,7 @@ mixin FusionWalletInterface {
       /*createNewReservedChangeAddress: createNewReservedChangeAddress,*/
       getUnusedReservedChangeAddresses: getUnusedReservedChangeAddresses,
       getSocksProxyAddress: getSocksProxyAddress,
+      getChainHeight: getChainHeight,
     );
 
     // Add stack UTXOs.
