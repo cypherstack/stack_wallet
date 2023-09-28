@@ -651,6 +651,7 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
 
                             await showDialog<void>(
                               context: context,
+                              barrierDismissible: false,
                               builder: (context) {
                                 return FusionDialog(
                                   walletId: widget.walletId,
