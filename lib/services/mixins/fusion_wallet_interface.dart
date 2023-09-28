@@ -60,7 +60,7 @@ mixin FusionWalletInterface {
     _torService = FusionTorService.sharedInstance;
     _getWalletCachedElectrumX = getWalletCachedElectrumX;
     _getTxCountForAddress = getTxCountForAddress;
-    _getChainHeight = getChainHeight;
+    _getChainHeight = _getChainHeight;
   }
 
   /// Returns a list of all addresses in the wallet.
