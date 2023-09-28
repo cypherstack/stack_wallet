@@ -636,9 +636,16 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                                 .getManager(widget.walletId)
                                 .wallet as FusionWalletInterface;
 
-                            fusionWallet.uiState = ref.read(
-                              fusionProgressUIStateProvider(widget.walletId),
-                            );
+                            try {
+                              fusionWallet.uiState = ref.read(
+                                fusionProgressUIStateProvider(widget.walletId),
+                              );
+                            } catch (e) {
+                              if (!e.toString().contains(
+                                  "FusionProgressUIState was already set for ${widget.walletId}")) {
+                                rethrow;
+                              }
+                            }
 
                             unawaited(fusionWallet.fuse());
 
