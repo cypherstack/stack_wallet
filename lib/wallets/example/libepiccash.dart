@@ -292,6 +292,24 @@ abstract class LibEpiccash {
     }
   }
 
+  static Future<int> _chainHeightWrapper(
+    ({
+      String config,
+    }) data,
+  ) async {
+    return lib_epiccash.getChainHeight(data.config);
+  }
+
+  static Future<int> getChainHeight({
+    required String config,
+  }) async {
+    try {
+      return await compute(_chainHeightWrapper, (config: config,));
+    } catch (e) {
+      throw ("Error getting chain height : ${e.toString()}");
+    }
+  }
+
   ///
   /// Private function for address info function
   ///
@@ -348,18 +366,18 @@ abstract class LibEpiccash {
   ///
   /// get transaction fees for Epic
   ///
-  static Future<({int fee, bool strategyUseAll, int total})> getTransactionFees({
+  static Future<({int fee, bool strategyUseAll, int total})>
+      getTransactionFees({
     required String wallet,
     required int amount,
     required int minimumConfirmations,
     required int available,
   }) async {
     try {
-
       String fees = await compute(_transactionFeesWrapper, (
-      wallet: wallet,
-      amount: amount,
-      minimumConfirmations: minimumConfirmations,
+        wallet: wallet,
+        amount: amount,
+        minimumConfirmations: minimumConfirmations,
       ));
 
       if (available == amount) {
@@ -376,20 +394,22 @@ abstract class LibEpiccash {
             }
           }
           int largestSatoshiFee =
-          ((required - available) * Decimal.fromInt(100000000))
-              .toBigInt()
-              .toInt();
+              ((required - available) * Decimal.fromInt(100000000))
+                  .toBigInt()
+                  .toInt();
           var amountSending = amount - largestSatoshiFee;
           //Get fees for this new amount
-          ({String wallet, int amount, }) data = (wallet: wallet, amount: amountSending);
+          ({
+            String wallet,
+            int amount,
+          }) data = (wallet: wallet, amount: amountSending);
           fees = await compute(_transactionFeesWrapper, (
-          wallet: wallet,
-          amount: amountSending,
-          minimumConfirmations: minimumConfirmations,
+            wallet: wallet,
+            amount: amountSending,
+            minimumConfirmations: minimumConfirmations,
           ));
         }
       }
-
 
       if (fees.toUpperCase().contains("ERROR")) {
         //Check if the error is an
@@ -399,13 +419,13 @@ abstract class LibEpiccash {
       var decodedFees = json.decode(fees);
       var feeItem = decodedFees[0];
       ({
-      bool strategyUseAll,
-      int total,
-      int fee,
+        bool strategyUseAll,
+        int total,
+        int fee,
       }) feeRecord = (
-      strategyUseAll: feeItem['selection_strategy_is_use_all'],
-      total: feeItem['total'],
-      fee: feeItem['fee'],
+        strategyUseAll: feeItem['selection_strategy_is_use_all'],
+        total: feeItem['total'],
+        fee: feeItem['fee'],
       );
       return feeRecord;
     } catch (e) {

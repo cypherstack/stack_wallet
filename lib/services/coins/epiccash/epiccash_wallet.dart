@@ -202,10 +202,6 @@ Future<String> _cancelTransactionWrapper(Tuple2<String, String> data) async {
   return cancelTransaction(data.item1, data.item2);
 }
 
-Future<String> _deleteWalletWrapper(Tuple2<String, String> data) async {
-  return deleteWallet(data.item1, data.item2);
-}
-
 Future<String> deleteEpicWallet({
   required String walletId,
   required SecureStorageInterface secureStore,
@@ -229,7 +225,7 @@ Future<String> deleteEpicWallet({
     return "Tried to delete non existent epic wallet file with walletId=$walletId";
   } else {
     try {
-      return _deleteWalletWrapper(Tuple2(wallet, config!));
+      return epiccash.LibEpiccash.deleteWallet(wallet: wallet, config: config!);
     } catch (e, s) {
       Logging.instance.log("$e\n$s", level: LogLevel.Error);
       return "deleteEpicWallet($walletId) failed...";
@@ -531,7 +527,11 @@ class EpicCashWallet extends CoinServiceAPI
         epicboxConfig: epicboxConfig.toString()
       );
 
-      String? walletAddress = await epiccash.getAddressInfo(data);
+      String? walletAddress = await epiccash.LibEpiccash.getAddressInfo(
+        wallet: wallet,
+        index: index,
+        epicboxConfig: epicboxConfig.toString(),
+      );
 
       Logging.instance
           .log("WALLET_ADDRESS_IS $walletAddress", level: LogLevel.Info);
@@ -656,7 +656,8 @@ class EpicCashWallet extends CoinServiceAPI
     final config = await getRealConfig();
     final password = await _secureStore.read(key: '${_walletId}_password');
 
-    final walletOpen = openWallet(config, password!);
+    final walletOpen = await epiccash.LibEpiccash.openWallet(
+        config: config, password: password!);
     await _secureStore.write(key: '${_walletId}_wallet', value: walletOpen);
 
     if (getCachedId() == null) {
@@ -683,7 +684,11 @@ class EpicCashWallet extends CoinServiceAPI
       index: index,
       epicboxConfig: epicboxConfig.toString()
     );
-    String? walletAddress = await epiccash.getAddressInfo(data);
+    String? walletAddress = await epiccash.LibEpiccash.getAddressInfo(
+      wallet: wallet,
+      index: index,
+      epicboxConfig: epicboxConfig.toString(),
+    );
 
     Logging.instance
         .log("WALLET_ADDRESS_IS $walletAddress", level: LogLevel.Info);
@@ -741,10 +746,16 @@ class EpicCashWallet extends CoinServiceAPI
       password: password,
       name: name
     );
-    await epiccash.createNewWallet(walletData);
+    await epiccash.LibEpiccash.initializeNewWallet(
+      config: stringConfig,
+      mnemonic: mnemonicString,
+      password: password,
+      name: name,
+    );
 
     //Open wallet
-    final walletOpen = openWallet(stringConfig, password);
+    final walletOpen = await epiccash.LibEpiccash.openWallet(
+        config: stringConfig, password: password);
     await _secureStore.write(key: '${_walletId}_wallet', value: walletOpen);
 
     //Store Epic box address info
@@ -845,7 +856,13 @@ class EpicCashWallet extends CoinServiceAPI
       final available = balance.spendable.raw.toInt();
       ({String wallet, int amount, int availableAmount}) data =
           (wallet: wallet!, amount: satoshiAmount, availableAmount: available);
-      var transactionFees = await epiccash.transactionFees(data);
+      var transactionFees = await epiccash.LibEpiccash.getTransactionFees(
+        wallet: wallet,
+        amount: satoshiAmount,
+        // todo: double check
+        minimumConfirmations: MINIMUM_CONFIRMATIONS,
+        available: available,
+      );
 
       int realfee = 0;
       try {
@@ -1165,7 +1182,8 @@ class EpicCashWallet extends CoinServiceAPI
       ]);
 
       //Open Wallet
-      final walletOpen = openWallet(stringConfig, password);
+      final walletOpen = await epiccash.LibEpiccash.openWallet(
+          config: stringConfig, password: password);
       await _secureStore.write(key: '${_walletId}_wallet', value: walletOpen);
 
       //Store Epic box address info
@@ -1195,10 +1213,8 @@ class EpicCashWallet extends CoinServiceAPI
       final config = await getRealConfig();
       int? latestHeight;
       await m.protect(() async {
-        latestHeight = await compute(
-          _getChainHeightWrapper,
-          config,
-        );
+        latestHeight =
+            await epiccash.LibEpiccash.getChainHeight(config: config);
       });
 
       await updateCachedChainHeight(latestHeight!);
