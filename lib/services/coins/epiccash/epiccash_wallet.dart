@@ -233,26 +233,10 @@ Future<String> deleteEpicWallet({
   }
 }
 
-Future<String> _initWalletWrapper(
-    Tuple4<String, String, String, String> data) async {
-  final String initWalletStr =
-      initWallet(data.item1, data.item2, data.item3, data.item4);
-  return initWalletStr;
-}
-
+//TODO - remove and use one from abstract class
 Future<String> _walletMnemonicWrapper(int throwaway) async {
   final String mnemonic = walletMnemonic();
   return mnemonic;
-}
-
-Future<String> _recoverWrapper(
-    Tuple4<String, String, String, String> data) async {
-  return recoverWallet(data.item1, data.item2, data.item3, data.item4);
-}
-
-Future<int> _getChainHeightWrapper(String config) async {
-  final int chainHeight = getChainHeight(config);
-  return chainHeight;
 }
 
 class EpicCashWallet extends CoinServiceAPI
@@ -521,14 +505,8 @@ class EpicCashWallet extends CoinServiceAPI
       final wallet = await _secureStore.read(key: '${_walletId}_wallet');
       EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
 
-      ({String wallet, int index, String epicboxConfig}) data = (
-        wallet: wallet!,
-        index: index,
-        epicboxConfig: epicboxConfig.toString()
-      );
-
       String? walletAddress = await epiccash.LibEpiccash.getAddressInfo(
-        wallet: wallet,
+        wallet: wallet!,
         index: index,
         epicboxConfig: epicboxConfig.toString(),
       );
@@ -679,13 +657,8 @@ class EpicCashWallet extends CoinServiceAPI
     Logging.instance.log("This index is $index", level: LogLevel.Info);
     EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
 
-    ({String wallet, int index, String epicboxConfig}) data = (
-      wallet: wallet!,
-      index: index,
-      epicboxConfig: epicboxConfig.toString()
-    );
     String? walletAddress = await epiccash.LibEpiccash.getAddressInfo(
-      wallet: wallet,
+      wallet: wallet!,
       index: index,
       epicboxConfig: epicboxConfig.toString(),
     );
@@ -735,17 +708,6 @@ class EpicCashWallet extends CoinServiceAPI
 
     String name = _walletId;
 
-    ({
-      String config,
-      String mnemonic,
-      String password,
-      String name,
-    }) walletData = (
-      config: stringConfig,
-      mnemonic: mnemonicString,
-      password: password,
-      name: name
-    );
     await epiccash.LibEpiccash.initializeNewWallet(
       config: stringConfig,
       mnemonic: mnemonicString,
@@ -854,10 +816,9 @@ class EpicCashWallet extends CoinServiceAPI
     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
     try {
       final available = balance.spendable.raw.toInt();
-      ({String wallet, int amount, int availableAmount}) data =
-          (wallet: wallet!, amount: satoshiAmount, availableAmount: available);
+
       var transactionFees = await epiccash.LibEpiccash.getTransactionFees(
-        wallet: wallet,
+        wallet: wallet!,
         amount: satoshiAmount,
         // todo: double check
         minimumConfirmations: MINIMUM_CONFIRMATIONS,
@@ -1163,15 +1124,7 @@ class EpicCashWallet extends CoinServiceAPI
       await _secureStore.write(
           key: '${_walletId}_epicboxConfig', value: epicboxConfig.toString());
 
-      await compute(
-        _recoverWrapper,
-        Tuple4(
-          stringConfig,
-          password,
-          mnemonic,
-          name,
-        ),
-      );
+      await epiccash.LibEpiccash.recoverWallet(config: stringConfig, password: password, mnemonic: mnemonic, name: name);
 
       await Future.wait([
         epicUpdateRestoreHeight(height),
