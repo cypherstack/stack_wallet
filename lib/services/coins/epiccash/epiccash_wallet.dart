@@ -233,12 +233,6 @@ Future<String> deleteEpicWallet({
   }
 }
 
-//TODO - remove and use one from abstract class
-Future<String> _walletMnemonicWrapper(int throwaway) async {
-  final String mnemonic = walletMnemonic();
-  return mnemonic;
-}
-
 class EpicCashWallet extends CoinServiceAPI
     with WalletCache, WalletDB, EpicCashHive {
   EpicCashWallet({
@@ -404,88 +398,101 @@ class EpicCashWallet extends CoinServiceAPI
         }
       }
 
-      await m.protect(() async {
-        if (receiverAddress.startsWith("http://") ||
-            receiverAddress.startsWith("https://")) {
-          const int selectionStrategyIsAll = 0;
-          ReceivePort receivePort = await getIsolate({
-            "function": "txHttpSend",
-            "wallet": wallet!,
-            "selectionStrategyIsAll": selectionStrategyIsAll,
-            "minimumConfirmations": MINIMUM_CONFIRMATIONS,
-            "message": txData['onChainNote'],
-            "amount": (txData['recipientAmt'] as Amount).raw.toInt(),
-            "address": txData['addresss'] as String,
-          }, name: walletName);
-
-          message = await receivePort.first;
-          if (message is String) {
-            Logging.instance
-                .log("this is a string $message", level: LogLevel.Error);
-            stop(receivePort);
-            throw Exception(message);
-          }
-          stop(receivePort);
-          Logging.instance
-              .log('Closing txHttpSend!\n  $message', level: LogLevel.Info);
-        } else {
-          ReceivePort receivePort = await getIsolate({
-            "function": "createTransaction",
-            "wallet": wallet!,
-            "amount": (txData['recipientAmt'] as Amount).raw.toInt(),
-            "address": txData['addresss'] as String,
-            "secretKeyIndex": 0,
-            "epicboxConfig": epicboxConfig.toString(),
-            "minimumConfirmations": MINIMUM_CONFIRMATIONS,
-            "onChainNote": txData['onChainNote'],
-          }, name: walletName);
-
-          message = await receivePort.first;
-          if (message is String) {
-            Logging.instance
-                .log("this is a string $message", level: LogLevel.Error);
-            stop(receivePort);
-            throw Exception("createTransaction isolate failed");
-          }
-          stop(receivePort);
-          Logging.instance.log('Closing createTransaction!\n  $message',
-              level: LogLevel.Info);
-        }
-      });
+      // await m.protect(() async {
+      //   if (receiverAddress.startsWith("http://") ||
+      //       receiverAddress.startsWith("https://")) {
+      //     const int selectionStrategyIsAll = 0;
+      //     ReceivePort receivePort = await getIsolate({
+      //       "function": "txHttpSend",
+      //       "wallet": wallet!,
+      //       "selectionStrategyIsAll": selectionStrategyIsAll,
+      //       "minimumConfirmations": MINIMUM_CONFIRMATIONS,
+      //       "message": txData['onChainNote'],
+      //       "amount": (txData['recipientAmt'] as Amount).raw.toInt(),
+      //       "address": txData['addresss'] as String,
+      //     }, name: walletName);
+      //
+      //     message = await receivePort.first;
+      //     if (message is String) {
+      //       Logging.instance
+      //           .log("this is a string $message", level: LogLevel.Error);
+      //       stop(receivePort);
+      //       throw Exception(message);
+      //     }
+      //     stop(receivePort);
+      //     Logging.instance
+      //         .log('Closing txHttpSend!\n  $message', level: LogLevel.Info);
+      //   } else {
+      //     ReceivePort receivePort = await getIsolate({
+      //       "function": "createTransaction",
+      //       "wallet": wallet!,
+      //       "amount": (txData['recipientAmt'] as Amount).raw.toInt(),
+      //       "address": txData['addresss'] as String,
+      //       "secretKeyIndex": 0,
+      //       "epicboxConfig": epicboxConfig.toString(),
+      //       "minimumConfirmations": MINIMUM_CONFIRMATIONS,
+      //       "onChainNote": txData['onChainNote'],
+      //     }, name: walletName);
+      //
+      //     message = await receivePort.first;
+      //     if (message is String) {
+      //       Logging.instance
+      //           .log("this is a string $message", level: LogLevel.Error);
+      //       stop(receivePort);
+      //       throw Exception("createTransaction isolate failed");
+      //     }
+      //     stop(receivePort);
+      //     Logging.instance.log('Closing createTransaction!\n  $message',
+      //         level: LogLevel.Info);
+      //   }
+      // });
 
       // return message;
-      final String sendTx = message['result'] as String;
-      if (sendTx.contains("Error")) {
-        throw BadEpicHttpAddressException(message: sendTx);
-      }
+      var transaction = await epiccash.LibEpiccash.createTransaction(
+          wallet: wallet!,
+          amount: (txData['recipientAmt'] as Amount).raw.toInt(),
+          address: txData['addresss'] as String,
+          secretKeyIndex: 0,
+          epicboxConfig: epicboxConfig.toString(),
+          minimumConfirmations: MINIMUM_CONFIRMATIONS,
+          note: txData['onChainNote'] as String);
 
+      // final String sendTx = message['result'] as String;
+      // if (sendTx.contains("Error")) {
+      //   throw BadEpicHttpAddressException(message: sendTx);
+      // }
+      //
       Map<String, String> txAddressInfo = {};
       txAddressInfo['from'] = await currentReceivingAddress;
       txAddressInfo['to'] = txData['addresss'] as String;
-      await putSendToAddresses(sendTx, txAddressInfo);
+      await putSendToAddresses(transaction, txAddressInfo);
 
-      Logging.instance.log("CONFIRM_RESULT_IS $sendTx", level: LogLevel.Info);
-
-      final decodeData = json.decode(sendTx);
-
-      if (decodeData[0] == "transaction_failed") {
-        String errorMessage = decodeData[1] as String;
-        throw Exception("Transaction failed with error code $errorMessage");
-      } else {
-        final txCreateResult = decodeData[0];
-        // //TODO: second problem
-        final transaction = json.decode(txCreateResult as String);
-
-        final tx = transaction[0];
-        final txLogEntry = json.decode(tx as String);
-        final txLogEntryFirst = txLogEntry[0];
-        final slateId = txLogEntryFirst['tx_slate_id'] as String;
-        return slateId!;
-      }
+      return transaction.slateId;
+      //
+      // Logging.instance.log("CONFIRM_RESULT_IS $sendTx", level: LogLevel.Info);
+      //
+      // final decodeData = json.decode(sendTx);
+      //
+      // if (decodeData[0] == "transaction_failed") {
+      //   String errorMessage = decodeData[1] as String;
+      //   throw Exception("Transaction failed with error code $errorMessage");
+      // } else {
+      //   final txCreateResult = decodeData[0];
+      //   // //TODO: second problem
+      //   final transaction = json.decode(txCreateResult as String);
+      //
+      //   final tx = transaction[0];
+      //   final txLogEntry = json.decode(tx as String);
+      //   final txLogEntryFirst = txLogEntry[0];
+      //   final slateId = txLogEntryFirst['tx_slate_id'] as String;
+      //   // return slateId!;
+      //
+      // }
     } catch (e, s) {
       Logging.instance.log("Error sending $e - $s", level: LogLevel.Error);
       rethrow;
     }
+    // return "";
   }
 
   Future<isar_models.Address> _getReceivingAddressForIndex(
@@ -755,15 +762,10 @@ class EpicCashWallet extends CoinServiceAPI
       final List<String> data = _mnemonicString.split(' ');
       return data;
     } else {
-      await m.protect(() async {
-        _mnemonicString = await compute(
-          _walletMnemonicWrapper,
-          0,
-        );
-      });
+      _mnemonicString = epiccash.LibEpiccash.getMnemonic();
       await _secureStore.write(
           key: '${_walletId}_mnemonic', value: _mnemonicString);
-      final List<String> data = _mnemonicString!.split(' ');
+      final List<String> data = _mnemonicString.split(' ');
       return data;
     }
   }
@@ -1261,20 +1263,20 @@ class EpicCashWallet extends CoinServiceAPI
   }
 
   Future<bool> putSendToAddresses(
-      String slateMessage, Map<String, String> txAddressInfo) async {
+      ({String slateId, String commitId}) slateData, Map<String, String> txAddressInfo) async {
     try {
       var slatesToCommits = await getSlatesToCommits();
-      final slate0 = jsonDecode(slateMessage);
-      final slate = jsonDecode(slate0[0] as String);
-      final part1 = jsonDecode(slate[0] as String);
-      final part2 = jsonDecode(slate[1] as String);
-      final slateId = part1[0]['tx_slate_id'];
-      final commitId = part2['tx']['body']['outputs'][0]['commit'];
+      // final slate0 = jsonDecode(slateMessage);
+      // final slate = jsonDecode(slate0[0] as String);
+      // final part1 = jsonDecode(slate[0] as String);
+      // final part2 = jsonDecode(slate[1] as String);
+      // final slateId = part1[0]['tx_slate_id'];
+      // final commitId = part2['tx']['body']['outputs'][0]['commit'];
 
       final from = txAddressInfo['from'];
       final to = txAddressInfo['to'];
-      slatesToCommits[slateId] = {
-        "commitId": commitId,
+      slatesToCommits[slateData.slateId] = {
+        "commitId": slateData.commitId,
         "from": from,
         "to": to,
       };

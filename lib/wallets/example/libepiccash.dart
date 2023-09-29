@@ -34,7 +34,7 @@ abstract class LibEpiccash {
   ///
   // TODO: ensure the above documentation comment is correct
   // TODO: ensure this will always return the mnemonic. If not, this function should throw an exception
-  // TODO: probably remove this as we don't use it in stack wallet. We store the mnemonic separately
+  //Function is used in _getMnemonicList()
   static String getMnemonic() {
     try {
       String mnemonic = lib_epiccash.walletMnemonic();
@@ -185,7 +185,7 @@ abstract class LibEpiccash {
       String wallet,
       int amount,
       String address,
-      int secretKey,
+      int secretKeyIndex,
       String epicboxConfig,
       int minimumConfirmations,
       String note,
@@ -195,7 +195,7 @@ abstract class LibEpiccash {
         data.wallet,
         data.amount,
         data.address,
-        data.secretKey,
+        data.secretKeyIndex,
         data.epicboxConfig,
         data.minimumConfirmations,
         data.note);
@@ -204,25 +204,42 @@ abstract class LibEpiccash {
   ///
   /// Create an Epic transaction
   ///
-  static Future<String> createTransaction({
+  static Future<({String slateId, String commitId})> createTransaction({
     required String wallet,
     required int amount,
     required String address,
-    required int secretKey,
+    required int secretKeyIndex,
     required String epicboxConfig,
     required int minimumConfirmations,
     required String note,
   }) async {
     try {
-      return await compute(_createTransactionWrapper, (
+      String result =  await compute(_createTransactionWrapper, (
         wallet: wallet,
         amount: amount,
         address: address,
-        secretKey: secretKey,
+        secretKeyIndex: secretKeyIndex,
         epicboxConfig: epicboxConfig,
         minimumConfirmations: minimumConfirmations,
         note: note,
       ));
+
+      if (result.toUpperCase().contains("ERROR")) {
+        throw Exception("Error creating transaction ${result.toString()}");
+      }
+
+      //Decode sent tx and return Slate Id
+      final slate0 = jsonDecode(result);
+      final slate = jsonDecode(slate0[0] as String);
+      final part1 = jsonDecode(slate[0] as String);
+      final part2 = jsonDecode(slate[1] as String);
+
+      ({String slateId, String commitId}) data = (
+        slateId: part1[0]['tx_slate_id'],
+        commitId: part2['tx']['body']['outputs'][0]['commit'],
+      );
+
+      return data;
     } catch (e) {
       throw ("Error creating epic transaction : ${e.toString()}");
     }
@@ -468,7 +485,7 @@ abstract class LibEpiccash {
         name: name,
       ));
     } catch (e) {
-      throw ("Error recovering wallet : ${e.toString()}");
+      throw (e.toString());
     }
   }
 
