@@ -99,7 +99,11 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
       final numberOfBlocks = arguments['numberOfBlocks'] as int?;
       Map<String, dynamic> result = {};
       if (!(wallet == null || startHeight == null || numberOfBlocks == null)) {
-        var outputs = await scanOutPuts(wallet, startHeight, numberOfBlocks);
+        var outputs = await epiccash.LibEpiccash.scanOutputs(
+          wallet: wallet,
+          startHeight: startHeight,
+          numberOfBlocks: numberOfBlocks,
+        );
         result['outputs'] = outputs;
         sendPort.send(result);
         return;
@@ -119,7 +123,11 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
       const int refreshFromNode = 1;
       Map<String, dynamic> result = {};
       if (!(wallet == null)) {
-        var res = await getWalletInfo(wallet, refreshFromNode, 10);
+        var res = await epiccash.LibEpiccash.getWalletBalances(
+          wallet: wallet!,
+          refreshFromNode: refreshFromNode,
+          minimumConfirmations: 10,
+        );
         result['result'] = res;
         sendPort.send(result);
         return;
@@ -172,7 +180,10 @@ Future<String> deleteEpicWallet({
     return "Tried to delete non existent epic wallet file with walletId=$walletId";
   } else {
     try {
-      return epiccash.LibEpiccash.deleteWallet(wallet: wallet, config: config!);
+      return epiccash.LibEpiccash.deleteWallet(
+        wallet: wallet,
+        config: config!,
+      );
     } catch (e, s) {
       Logging.instance.log("$e\n$s", level: LogLevel.Error);
       return "deleteEpicWallet($walletId) failed...";
@@ -703,7 +714,6 @@ class EpicCashWallet extends CoinServiceAPI
       var transactionFees = await epiccash.LibEpiccash.getTransactionFees(
         wallet: wallet!,
         amount: satoshiAmount,
-        // todo: double check
         minimumConfirmations: MINIMUM_CONFIRMATIONS,
         available: available,
       );
@@ -1008,10 +1018,11 @@ class EpicCashWallet extends CoinServiceAPI
           key: '${_walletId}_epicboxConfig', value: epicboxConfig.toString());
 
       await epiccash.LibEpiccash.recoverWallet(
-          config: stringConfig,
-          password: password,
-          mnemonic: mnemonic,
-          name: name);
+        config: stringConfig,
+        password: password,
+        mnemonic: mnemonic,
+        name: name,
+      );
 
       await Future.wait([
         epicUpdateRestoreHeight(height),
