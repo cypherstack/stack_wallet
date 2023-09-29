@@ -286,10 +286,10 @@ mixin FusionWalletInterface {
     }
 
     // Add Stack UTXOs.
-    await mainFusionObject.addCoinsFromWallet(coinList);
+    final inputs = await mainFusionObject.addCoinsFromWallet(coinList);
 
     // Fuse UTXOs.
-    return await mainFusionObject.fuse();
+    return await mainFusionObject.fuse(inputsFromWallet: inputs);
     //print ("DEBUG FUSION bitcoincash_wallet.dart 1202");
 
     // TODO remove or fix code below.
