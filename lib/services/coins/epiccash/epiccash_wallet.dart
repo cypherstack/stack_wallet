@@ -140,8 +140,15 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
           secretKeyIndex == null ||
           epicboxConfig == null ||
           minimumConfirmations == null)) {
-        var res = await createTransaction(wallet, amount, address,
-            secretKeyIndex, epicboxConfig, minimumConfirmations, onChainNote!);
+        var res = await epiccash.LibEpiccash.createTransaction(
+          wallet: wallet,
+          amount: amount,
+          address: address,
+          secretKeyIndex: secretKeyIndex,
+          epicboxConfig: epicboxConfig,
+          minimumConfirmations: minimumConfirmations,
+          note: onChainNote!,
+        );
         result['result'] = res;
         sendPort.send(result);
         return;
@@ -192,14 +199,6 @@ void stop(ReceivePort port) {
     isolate.kill(priority: Isolate.immediate);
     isolate = null;
   }
-}
-
-// Keep Wrapper functions outside of the class to avoid memory leaks and errors about receive ports and illegal arguments.
-// TODO: Can get rid of this wrapper and call it in a full isolate instead of compute() if we want more control over this
-Future<String> _cancelTransactionWrapper(Tuple2<String, String> data) async {
-  // assuming this returns an empty string on success
-  // or an error message string on failure
-  return cancelTransaction(data.item1, data.item2);
 }
 
 Future<String> deleteEpicWallet({
@@ -358,12 +357,9 @@ class EpicCashWallet extends CoinServiceAPI
       ))!;
 
       final result = await m.protect(() async {
-        return await compute(
-          _cancelTransactionWrapper,
-          Tuple2(
-            wallet,
-            txSlateId,
-          ),
+        return await epiccash.LibEpiccash.cancelTransaction(
+          wallet: wallet,
+          transactionId: txSlateId,
         );
       });
       Logging.instance.log(
@@ -1126,7 +1122,11 @@ class EpicCashWallet extends CoinServiceAPI
       await _secureStore.write(
           key: '${_walletId}_epicboxConfig', value: epicboxConfig.toString());
 
-      await epiccash.LibEpiccash.recoverWallet(config: stringConfig, password: password, mnemonic: mnemonic, name: name);
+      await epiccash.LibEpiccash.recoverWallet(
+          config: stringConfig,
+          password: password,
+          mnemonic: mnemonic,
+          name: name);
 
       await Future.wait([
         epicUpdateRestoreHeight(height),
@@ -1262,8 +1262,8 @@ class EpicCashWallet extends CoinServiceAPI
     }
   }
 
-  Future<bool> putSendToAddresses(
-      ({String slateId, String commitId}) slateData, Map<String, String> txAddressInfo) async {
+  Future<bool> putSendToAddresses(({String slateId, String commitId}) slateData,
+      Map<String, String> txAddressInfo) async {
     try {
       var slatesToCommits = await getSlatesToCommits();
       // final slate0 = jsonDecode(slateMessage);
