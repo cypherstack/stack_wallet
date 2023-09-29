@@ -579,7 +579,7 @@ abstract class LibEpiccash {
   ///
   ///
   ///
-  static Future<String> txHttpSend({
+  static Future<({String commitId, String slateId})> txHttpSend({
     required String wallet,
     required int selectionStrategyIsAll,
     required int minimumConfirmations,
@@ -588,7 +588,7 @@ abstract class LibEpiccash {
     required String address,
   }) async {
     try {
-      return await compute(_txHttpSendWrapper, (
+      var result = await compute(_txHttpSendWrapper, (
         wallet: wallet,
         selectionStrategyIsAll: selectionStrategyIsAll,
         minimumConfirmations: minimumConfirmations,
@@ -596,6 +596,23 @@ abstract class LibEpiccash {
         amount: amount,
         address: address,
       ));
+
+      if (result.toUpperCase().contains("ERROR")) {
+        throw Exception("Error creating transaction ${result.toString()}");
+      }
+
+      //Decode sent tx and return Slate Id
+      final slate0 = jsonDecode(result);
+      final slate = jsonDecode(slate0[0] as String);
+      final part1 = jsonDecode(slate[0] as String);
+      final part2 = jsonDecode(slate[1] as String);
+
+      ({String slateId, String commitId}) data = (
+      slateId: part1[0]['tx_slate_id'],
+      commitId: part2['tx']['body']['outputs'][0]['commit'],
+      );
+
+      return data;
     } catch (e) {
       throw ("Error sending tx HTTP : ${e.toString()}");
     }
