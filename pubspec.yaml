@@ -146,6 +146,8 @@ dependencies:
   stellar_flutter_sdk: ^1.5.3
   fusiondart:
     path: ./fusiondart
+  socks_socket:
+    path: ./fusiondart/socks_socket
   bip340: ^0.2.0
   tezart: ^2.0.5
   socks5_proxy: ^1.0.3+dev.3

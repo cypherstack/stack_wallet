@@ -1482,6 +1482,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.3+dev.3"
+  socks_socket:
+    dependency: "direct main"
+    description:
+      path: "fusiondart/socks_socket"
+      relative: true
+    source: path
+    version: "0.1.0"
   source_gen:
     dependency: transitive
     description:
