@@ -1482,6 +1482,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.3+dev.3"
+  socks_socket:
+    dependency: transitive
+    description:
+      path: "."
+      ref: ac6d721fe655208a6d488a088a35bab0ddc25702
+      resolved-ref: ac6d721fe655208a6d488a088a35bab0ddc25702
+      url: "https://github.com/cypherstack/socks_socket.git"
+    source: git
+    version: "0.1.0"
   source_gen:
     dependency: transitive
     description:
