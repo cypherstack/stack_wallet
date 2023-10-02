@@ -1483,10 +1483,10 @@ packages:
     source: hosted
     version: "1.0.3+dev.3"
   socks_socket:
-    dependency: transitive
+    dependency: "direct main"
     description:
       path: "."
-      ref: ac6d721fe655208a6d488a088a35bab0ddc25702
+      ref: master
       resolved-ref: ac6d721fe655208a6d488a088a35bab0ddc25702
       url: "https://github.com/cypherstack/socks_socket.git"
     source: git
