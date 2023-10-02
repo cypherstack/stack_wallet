@@ -1485,9 +1485,11 @@ packages:
   socks_socket:
     dependency: "direct main"
     description:
-      path: "fusiondart/socks_socket"
-      relative: true
-    source: path
+      path: "."
+      ref: master
+      resolved-ref: ac6d721fe655208a6d488a088a35bab0ddc25702
+      url: "https://github.com/cypherstack/socks_socket.git"
+    source: git
     version: "0.1.0"
   source_gen:
     dependency: transitive
