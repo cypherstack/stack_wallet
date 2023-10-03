@@ -1162,13 +1162,6 @@ class EpicCashWallet extends CoinServiceAPI
       Map<String, String> txAddressInfo) async {
     try {
       var slatesToCommits = await getSlatesToCommits();
-      // final slate0 = jsonDecode(slateMessage);
-      // final slate = jsonDecode(slate0[0] as String);
-      // final part1 = jsonDecode(slate[0] as String);
-      // final part2 = jsonDecode(slate[1] as String);
-      // final slateId = part1[0]['tx_slate_id'];
-      // final commitId = part2['tx']['body']['outputs'][0]['commit'];
-
       final from = txAddressInfo['from'];
       final to = txAddressInfo['to'];
       slatesToCommits[slateData.slateId] = {
