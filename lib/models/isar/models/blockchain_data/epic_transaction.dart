@@ -3,8 +3,6 @@ import 'package:stackwallet/models/isar/models/isar_models.dart';
 
 class EpicTransaction {
 
-  Id isarId = Isar.autoIncrement;
-
   @Index()
   late final String walletId;
 
@@ -38,7 +36,6 @@ class EpicTransaction {
   final address = IsarLink<Address>();
 
   EpicTransaction({
-    required this.walletId,
     required this.parentKeyId,
     required this.id,
     this.txSlateId,
@@ -59,28 +56,28 @@ class EpicTransaction {
     this.paymentProof,
   });
 
-  // factory EpicTransaction.fromJson(Map<String, dynamic> json) {
-  //   return EpicTransaction(
-  //     parentKeyId: json['parent_key_id'] as String,
-  //     id: json['id'] as int,
-  //     txSlateId: json['tx_slate_id'] as String,
-  //     txType: json['tx_type'] as TransactionType,
-  //     creationTs: json['creation_ts'] as String,
-  //     confirmationTs: json['confirmation_ts'] as String,
-  //     confirmed: json['confirmed'] as bool,
-  //     numInputs: json['num_inputs'] as int,
-  //     numOutputs: json['num_outputs'] as int,
-  //     amountCredited: json['amount_credited'] as String,
-  //     amountDebited: json['amount_debited'] as String,
-  //     fee: json['fee'] as String,
-  //     ttlCutoffHeight: json['ttl_cutoff_height'] as String,
-  //     messages: json['messages'] != null ? Messages.fromJson(json['messages'] as Map<String, dynamic>) : null,
-  //     storedTx: json['stored_tx'] as String,
-  //     kernelExcess: json['kernel_excess'] as String,
-  //     kernelLookupMinHeight: json['kernel_lookup_min_height'] as int,
-  //     paymentProof: json['payment_proof'] as String,
-  //   );
-  // }
+  factory EpicTransaction.fromJson(Map<String, dynamic> json) {
+    return EpicTransaction(
+      parentKeyId: json['parent_key_id'] as String,
+      id: json['id'] as int,
+      txSlateId: json['tx_slate_id'] as String,
+      txType: json['tx_type'] as TransactionType,
+      creationTs: json['creation_ts'] as String,
+      confirmationTs: json['confirmation_ts'] as String,
+      confirmed: json['confirmed'] as bool,
+      numInputs: json['num_inputs'] as int,
+      numOutputs: json['num_outputs'] as int,
+      amountCredited: json['amount_credited'] as String,
+      amountDebited: json['amount_debited'] as String,
+      fee: json['fee'] as String,
+      ttlCutoffHeight: json['ttl_cutoff_height'] as String,
+      messages: json['messages'] != null ? Messages.fromJson(json['messages'] as Map<String, dynamic>) : null,
+      storedTx: json['stored_tx'] as String,
+      kernelExcess: json['kernel_excess'] as String,
+      kernelLookupMinHeight: json['kernel_lookup_min_height'] as int,
+      paymentProof: json['payment_proof'] as String,
+    );
+  }
 }
 
 class Messages {
@@ -118,10 +115,9 @@ class Message {
   }
 }
 
-// Used in Isar db and stored there as int indexes so adding/removing values
-// in this definition should be done extremely carefully in production
-enum TransactionType {
-  // TODO: add more types before prod release?
+
+enum EpicTransactionType {
+  //Use Epic transaction type here
   outgoing,
   incoming,
   sentToSelf, // should we keep this?
