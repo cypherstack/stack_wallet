@@ -1408,6 +1408,8 @@ class EpicCashWallet extends CoinServiceAPI
     });
     // return message;
     final String transactions = message['result'] as String;
+
+    print("RETURNED TRANSACTIONS IS $transactions");
     final jsonTransactions = json.decode(transactions) as List;
 
     final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txnsData =
@@ -1472,7 +1474,6 @@ class EpicCashWallet extends CoinServiceAPI
         isLelantus: false,
         slateId: slateId,
         nonce: null,
-        // otherData: tx["id"].toString(),
         otherData: tx['onChainNote'].toString(),
         inputs: [],
         outputs: [],
