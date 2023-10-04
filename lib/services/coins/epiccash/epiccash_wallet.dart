@@ -109,20 +109,6 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
         sendPort.send(result);
         return;
       }
-    } else if (function == "startSync") {
-      final wallet = arguments['wallet'] as String?;
-      const int refreshFromNode = 1;
-      Map<String, dynamic> result = {};
-      if (!(wallet == null)) {
-        var res = await epiccash.LibEpiccash.getWalletBalances(
-          wallet: wallet!,
-          refreshFromNode: refreshFromNode,
-          minimumConfirmations: 10,
-        );
-        result['result'] = res;
-        sendPort.send(result);
-        return;
-      }
     }
 
     Logging.instance.log(
@@ -247,28 +233,14 @@ class EpicCashWallet extends CoinServiceAPI
   Future<String> startSync() async {
     Logging.instance.log("request start sync", level: LogLevel.Info);
     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
-
+    const int refreshFromNode = 1;
     if (!syncMutex.isLocked) {
-      await syncMutex.protect(() async {
-        Logging.instance.log("sync started", level: LogLevel.Info);
-        ReceivePort receivePort = await getIsolate({
-          "function": "startSync",
-          "wallet": wallet!,
-        }, name: walletName);
-        this.receivePort = receivePort;
 
-        var message = await receivePort.first;
-        if (message is String) {
-          Logging.instance
-              .log("this is a string $message", level: LogLevel.Error);
-          stop(receivePort);
-          throw Exception("startSync isolate failed");
-        }
-        stop(receivePort);
-        Logging.instance
-            .log('Closing startSync!\n  $message', level: LogLevel.Info);
-        Logging.instance.log("sync ended", level: LogLevel.Info);
-      });
+      await epiccash.LibEpiccash.getWalletBalances(
+        wallet: wallet!,
+        refreshFromNode: refreshFromNode,
+        minimumConfirmations: 10,
+      );
     } else {
       Logging.instance.log("request start sync denied", level: LogLevel.Info);
     }
