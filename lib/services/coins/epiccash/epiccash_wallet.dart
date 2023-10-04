@@ -1277,13 +1277,6 @@ class EpicCashWallet extends CoinServiceAPI
       Map<String, String> txAddressInfo) async {
     try {
       var slatesToCommits = await getSlatesToCommits();
-      // final slate0 = jsonDecode(slateMessage);
-      // final slate = jsonDecode(slate0[0] as String);
-      // final part1 = jsonDecode(slate[0] as String);
-      // final part2 = jsonDecode(slate[1] as String);
-      // final slateId = part1[0]['tx_slate_id'];
-      // final commitId = part2['tx']['body']['outputs'][0]['commit'];
-
       final from = txAddressInfo['from'];
       final to = txAddressInfo['to'];
       slatesToCommits[slateData.slateId] = {
@@ -1530,6 +1523,8 @@ class EpicCashWallet extends CoinServiceAPI
     });
     // return message;
     final String transactions = message['result'] as String;
+
+    print("RETURNED TRANSACTIONS IS $transactions");
     final jsonTransactions = json.decode(transactions) as List;
 
     final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txnsData =
@@ -1594,7 +1589,6 @@ class EpicCashWallet extends CoinServiceAPI
         isLelantus: false,
         slateId: slateId,
         nonce: null,
-        // otherData: tx["id"].toString(),
         otherData: tx['onChainNote'].toString(),
         inputs: [],
         outputs: [],
