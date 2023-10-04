@@ -284,20 +284,6 @@ class EpicCashWallet extends CoinServiceAPI
     return "";
   }
 
-  Future<String> scanOutPuts() async {
-    final String wallet =
-        (await _secureStore.read(key: '${_walletId}_wallet'))!;
-    final int lastScannedBlock =
-        epicGetLastScannedBlock() ?? await getRestoreHeight();
-    final int scanChunkSize = 10000;
-
-    return await epiccash.LibEpiccash.scanOutputs(
-      wallet: wallet,
-      startHeight: lastScannedBlock,
-      numberOfBlocks: scanChunkSize,
-    );
-  }
-
   Future<
       ({
         double awaitingFinalization,
