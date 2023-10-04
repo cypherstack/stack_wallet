@@ -1507,7 +1507,7 @@ class EpicCashWallet extends CoinServiceAPI
       } else {
         int debit = int.parse(tx.amountDebited);
         int credit = int.parse(tx.amountCredited);
-        int fee = int.parse((tx.fee ?? "0"));
+        int fee = int.parse((tx.fee ?? "0")); //TODO -double check this
         amt = debit - credit - fee;
       }
 
