@@ -23,6 +23,7 @@ import 'package:stack_wallet_backup/generate_password.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/epicbox_config_model.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/epic_transaction.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
@@ -105,16 +106,6 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
           numberOfBlocks: numberOfBlocks,
         );
         result['outputs'] = outputs;
-        sendPort.send(result);
-        return;
-      }
-    } else if (function == "getTransactions") {
-      final wallet = arguments['wallet'] as String?;
-      final refreshFromNode = arguments['refreshFromNode'] as int?;
-      Map<String, dynamic> result = {};
-      if (!(wallet == null || refreshFromNode == null)) {
-        var res = await getTransactions(wallet, refreshFromNode);
-        result['result'] = res;
         sendPort.send(result);
         return;
       }
@@ -315,12 +306,10 @@ class EpicCashWallet extends CoinServiceAPI
         key: '${_walletId}_wallet',
       ))!;
 
-      final result = await m.protect(() async {
-        return await epiccash.LibEpiccash.cancelTransaction(
-          wallet: wallet,
-          transactionId: txSlateId,
-        );
-      });
+      final result = await epiccash.LibEpiccash.cancelTransaction(
+        wallet: wallet,
+        transactionId: txSlateId,
+      );
       Logging.instance.log(
         "cancel $txSlateId result: $result",
         level: LogLevel.Info,
@@ -1062,14 +1051,11 @@ class EpicCashWallet extends CoinServiceAPI
   Future<int> get chainHeight async {
     try {
       final config = await getRealConfig();
-      int? latestHeight;
-      await m.protect(() async {
-        latestHeight =
-            await epiccash.LibEpiccash.getChainHeight(config: config);
-      });
+      int? latestHeight =
+      await epiccash.LibEpiccash.getChainHeight(config: config);
 
-      await updateCachedChainHeight(latestHeight!);
-      if (latestHeight! > storedChainHeight) {
+      await updateCachedChainHeight(latestHeight);
+      if (latestHeight > storedChainHeight) {
         GlobalEventBus.instance.fire(
           UpdatedInBackgroundEvent(
             "Updated current chain height in $walletId $walletName!",
@@ -1077,7 +1063,7 @@ class EpicCashWallet extends CoinServiceAPI
           ),
         );
       }
-      return latestHeight!;
+      return latestHeight;
     } catch (e, s) {
       Logging.instance.log("Exception caught in chainHeight: $e\n$s",
           level: LogLevel.Error);
@@ -1383,80 +1369,56 @@ class EpicCashWallet extends CoinServiceAPI
   bool get isConnected => _isConnected;
 
   Future<void> _refreshTransactions() async {
-    // final currentChainHeight = await chainHeight;
+
     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
     const refreshFromNode = 1;
 
-    dynamic message;
-    await m.protect(() async {
-      ReceivePort receivePort = await getIsolate({
-        "function": "getTransactions",
-        "wallet": wallet!,
-        "refreshFromNode": refreshFromNode,
-      }, name: walletName);
-
-      message = await receivePort.first;
-      if (message is String) {
-        Logging.instance
-            .log("this is a string $message", level: LogLevel.Error);
-        stop(receivePort);
-        throw Exception("getTransactions isolate failed");
-      }
-      stop(receivePort);
-      Logging.instance
-          .log('Closing getTransactions!\n $message', level: LogLevel.Info);
-    });
-    // return message;
-    final String transactions = message['result'] as String;
-
-    print("RETURNED TRANSACTIONS IS $transactions");
-    final jsonTransactions = json.decode(transactions) as List;
+    var transactions = await epiccash.LibEpiccash.getTransactions(wallet: wallet!, refreshFromNode: refreshFromNode);
 
     final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txnsData =
         [];
 
     final slatesToCommits = await getSlatesToCommits();
 
-    for (var tx in jsonTransactions) {
+    for (var tx in transactions) {
       Logging.instance.log("tx: $tx", level: LogLevel.Info);
       // // TODO: does "confirmed" mean finalized? If so please remove this todo
-      final isConfirmed = tx["confirmed"] as bool;
+      final isConfirmed = tx.confirmed;
 
       int amt = 0;
-      if (tx["tx_type"] == "TxReceived" ||
-          tx["tx_type"] == "TxReceivedCancelled") {
-        amt = int.parse(tx['amount_credited'] as String);
+      if (tx.txType == EpicTransactionType.TxReceived ||
+          tx.txType == EpicTransactionType.TxReceivedCancelled) {
+        amt = int.parse(tx.amountCredited);
       } else {
-        int debit = int.parse(tx['amount_debited'] as String);
-        int credit = int.parse(tx['amount_credited'] as String);
-        int fee = int.parse((tx['fee'] ?? "0") as String);
+        int debit = int.parse(tx.amountDebited);
+        int credit = int.parse(tx.amountCredited);
+        int fee = int.parse((tx.fee ?? "0"));
         amt = debit - credit - fee;
       }
 
-      DateTime dt = DateTime.parse(tx["creation_ts"] as String);
+      DateTime dt = DateTime.parse(tx.creationTs);
 
-      String? slateId = tx['tx_slate_id'] as String?;
+      String? slateId = tx.txSlateId;
       String address = slatesToCommits[slateId]
-              ?[tx["tx_type"] == "TxReceived" ? "from" : "to"] as String? ??
+              ?[tx.txType == EpicTransactionType.TxReceived ? "from" : "to"] as String? ??
           "";
       String? commitId = slatesToCommits[slateId]?['commitId'] as String?;
-      tx['numberOfMessages'] = tx['messages']?['messages']?.length;
-      tx['onChainNote'] = tx['messages']?['messages']?[0]?['message'];
+      int? numberOfMessages = tx.messages?.messages.length;
+      String? onChainNote = tx.messages?.messages[0].message;
 
       int? height;
 
       if (isConfirmed) {
-        height = tx["kernel_lookup_min_height"] as int? ?? 1;
+        height = tx.kernelLookupMinHeight ?? 1;
       } else {
         height = null;
       }
 
-      final isIncoming = (tx["tx_type"] == "TxReceived" ||
-          tx["tx_type"] == "TxReceivedCancelled");
-
+      final isIncoming = (tx.txType == EpicTransactionType.TxReceived ||
+          tx.txType == EpicTransactionType.TxReceivedCancelled);
       final txn = isar_models.Transaction(
         walletId: walletId,
-        txid: commitId ?? tx["id"].toString(),
+        txid: commitId ?? tx.id.toString(),
         timestamp: (dt.millisecondsSinceEpoch ~/ 1000),
         type: isIncoming
             ? isar_models.TransactionType.incoming
@@ -1467,19 +1429,17 @@ class EpicCashWallet extends CoinServiceAPI
           rawValue: BigInt.from(amt),
           fractionDigits: coin.decimals,
         ).toJsonString(),
-        fee: (tx["fee"] == null) ? 0 : int.parse(tx["fee"] as String),
+        fee: (tx.fee == "null") ? 0 : int.parse(tx.fee!),
         height: height,
-        isCancelled: tx["tx_type"] == "TxSentCancelled" ||
-            tx["tx_type"] == "TxReceivedCancelled",
+        isCancelled: tx.txType == EpicTransactionType.TxSentCancelled ||
+            tx.txType == EpicTransactionType.TxReceivedCancelled,
         isLelantus: false,
         slateId: slateId,
         nonce: null,
-        otherData: tx['onChainNote'].toString(),
+        otherData: onChainNote,
         inputs: [],
         outputs: [],
-        numberOfMessages: ((tx["numberOfMessages"] == null)
-            ? 0
-            : tx["numberOfMessages"]) as int,
+        numberOfMessages: numberOfMessages,
       );
 
       // txn.address =
