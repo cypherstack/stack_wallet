@@ -4,6 +4,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_libepiccash/epic_cash.dart' as lib_epiccash;
 import 'package:mutex/mutex.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/epic_transaction.dart';
 
 ///
 /// Wrapped up calls to flutter_libepiccash.
@@ -263,17 +264,30 @@ abstract class LibEpiccash {
   ///
   ///
   ///
-  static Future<String> getTransaction({
+  static Future<List<EpicTransaction>> getTransactions({
     required String wallet,
     required int refreshFromNode,
   }) async {
     try {
-      return await compute(_getTransactionsWrapper, (
-        wallet: wallet,
-        refreshFromNode: refreshFromNode,
+      var result = await compute(_getTransactionsWrapper, (
+      wallet: wallet,
+      refreshFromNode: refreshFromNode,
       ));
+
+      if (result.toUpperCase().contains("ERROR")) {
+        throw Exception("Error getting epic transactions ${result.toString()}");
+      }
+      //Parse the returned data as an EpicTransaction
+      List<EpicTransaction> finalResult = [];
+      var jsonResult = json.decode(result) as List;
+      for (var tx in jsonResult) {
+        EpicTransaction itemTx = EpicTransaction.fromJson(tx);
+        finalResult.add(itemTx);
+      }
+
+      return finalResult;
     } catch (e) {
-      throw ("Error getting epic transaction : ${e.toString()}");
+      throw ("Error getting epic transactions : ${e.toString()}");
     }
   }
 
