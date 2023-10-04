@@ -275,6 +275,20 @@ class EpicCashWallet extends CoinServiceAPI
     return "";
   }
 
+  Future<String> scanOutPuts() async {
+    final String wallet =
+        (await _secureStore.read(key: '${_walletId}_wallet'))!;
+    final int lastScannedBlock =
+        epicGetLastScannedBlock() ?? await getRestoreHeight();
+    final int scanChunkSize = 10000;
+
+    return await epiccash.LibEpiccash.scanOutputs(
+      wallet: wallet,
+      startHeight: lastScannedBlock,
+      numberOfBlocks: scanChunkSize,
+    );
+  }
+
   Future<
       ({
         double awaitingFinalization,
@@ -868,6 +882,107 @@ class EpicCashWallet extends CoinServiceAPI
         key: '${_walletId}_epicboxConfig', value: stringConfig);
     // TODO: refresh anything that needs to be refreshed/updated due to epicbox info changed
   }
+
+// Future<void> _startScans() async {
+//   try {
+//     //First stop the current listener
+//     if (ListenerManager.pointer != null) {
+//       Logging.instance
+//           .log("LISTENER HANDLER IS NOT NULL ....", level: LogLevel.Info);
+//       Logging.instance
+//           .log("STOPPING ANY WALLET LISTENER ....", level: LogLevel.Info);
+//       epicboxListenerStop(ListenerManager.pointer!);
+//     }
+//     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
+//
+//     // max number of blocks to scan per loop iteration
+//     const scanChunkSize = 10000;
+//
+//     // force firing of scan progress event
+//     await getSyncPercent;
+//
+//     // fetch current chain height and last scanned block (should be the
+//     // restore height if full rescan or a wallet restore)
+//     int chainHeight = await this.chainHeight;
+//     int lastScannedBlock =
+//         epicGetLastScannedBlock() ?? await getRestoreHeight();
+//
+//     // loop while scanning in chain in chunks (of blocks?)
+//     while (lastScannedBlock < chainHeight) {
+//       Logging.instance.log(
+//         "chainHeight: $chainHeight, lastScannedBlock: $lastScannedBlock",
+//         level: LogLevel.Info,
+//       );
+//
+//       // final int nextScannedBlock = await m.protect(() async {
+//       final result = await m.protect(() async {
+//         return await epiccash.LibEpiccash.scanOutputs(
+//           wallet: wallet!,
+//           startHeight: lastScannedBlock,
+//           numberOfBlocks: scanChunkSize,
+//         );
+//
+//         // // ReceivePort? receivePort;
+//         // try {
+//         //   // receivePort = await getIsolate({
+//         //   //   "function": "scanOutPuts",
+//         //   //   "wallet": wallet!,
+//         //   //   "startHeight": lastScannedBlock,
+//         //   //   "numberOfBlocks": scanChunkSize,
+//         //   // }, name: walletName);
+//         //
+//         //   // get response
+//         //   final message = await receivePort.first;
+//         //
+//         //   // check for error message
+//         //   if (message is String) {
+//         //     throw Exception("scanOutPuts isolate failed: $message");
+//         //   }
+//         //
+//         //   // attempt to grab next scanned block number
+//         //   final nextScanned = int.tryParse(message['outputs'] as String);
+//         //   if (nextScanned == null) {
+//         //     throw Exception(
+//         //       "scanOutPuts failed to parse next scanned block number from: $message",
+//         //     );
+//         //   }
+//         //
+//         //   return nextScanned;
+//         // } catch (_) {
+//         //   rethrow;
+//         // } finally {
+//         //   if (receivePort != null) {
+//         //     // kill isolate
+//         //     stop(receivePort);
+//         //   }
+//         // }
+//       });
+//
+//       // update local cache
+//       await epicUpdateLastScannedBlock(result as int);
+//
+//       // force firing of scan progress event
+//       await getSyncPercent;
+//
+//       // update while loop condition variables
+//       chainHeight = await this.chainHeight;
+//       lastScannedBlock = nextScannedBlock;
+//     }
+//
+//     Logging.instance.log(
+//       "_startScans successfully at the tip",
+//       level: LogLevel.Info,
+//     );
+//     //Once scanner completes restart listener
+//     await listenToEpicbox();
+//   } catch (e, s) {
+//     Logging.instance.log(
+//       "_startScans failed: $e\n$s",
+//       level: LogLevel.Error,
+//     );
+//     rethrow;
+//   }
+// }
 
   Future<void> _startScans() async {
     try {
