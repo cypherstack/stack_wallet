@@ -13,6 +13,7 @@ import 'package:stackwallet/models/isar/models/blockchain_data/epic_transaction.
 ///
 abstract class LibEpiccash {
   static final Mutex _mutex = Mutex();
+  static final Mutex m = Mutex();
 
   ///
   /// Check if [address] is a valid epiccash address according to libepiccash
@@ -36,6 +37,7 @@ abstract class LibEpiccash {
   // TODO: ensure the above documentation comment is correct
   // TODO: ensure this will always return the mnemonic. If not, this function should throw an exception
   //Function is used in _getMnemonicList()
+  // wrap in mutex? -> would need to be Future<String>
   static String getMnemonic() {
     try {
       String mnemonic = lib_epiccash.walletMnemonic();
@@ -77,19 +79,21 @@ abstract class LibEpiccash {
     required String password,
     required String name,
   }) async {
-    try {
-      return await compute(
-        _initializeWalletWrapper,
-        (
-          config: config,
-          mnemonic: mnemonic,
-          password: password,
-          name: name,
-        ),
-      );
-    } catch (e) {
-      throw ("Error creating new wallet : ${e.toString()}");
-    }
+    return await m.protect(() async {
+      try {
+        return await compute(
+          _initializeWalletWrapper,
+          (
+            config: config,
+            mnemonic: mnemonic,
+            password: password,
+            name: name,
+          ),
+        );
+      } catch (e) {
+        throw ("Error creating new wallet : ${e.toString()}");
+      }
+    });
   }
 
   ///
@@ -116,34 +120,36 @@ abstract class LibEpiccash {
           {required String wallet,
           required int refreshFromNode,
           required int minimumConfirmations}) async {
-    try {
-      String balances = await compute(_walletBalancesWrapper, (
-        wallet: wallet,
-        refreshFromNode: refreshFromNode,
-        minimumConfirmations: minimumConfirmations,
-      ));
+    return await m.protect(() async {
+      try {
+        String balances = await compute(_walletBalancesWrapper, (
+          wallet: wallet,
+          refreshFromNode: refreshFromNode,
+          minimumConfirmations: minimumConfirmations,
+        ));
 
-      //If balances is valid json return, else return error
-      if (balances.toUpperCase().contains("ERROR")) {
-        throw Exception(balances);
+        //If balances is valid json return, else return error
+        if (balances.toUpperCase().contains("ERROR")) {
+          throw Exception(balances);
+        }
+        var jsonBalances = json.decode(balances);
+        //Return balances as record
+        ({
+          double spendable,
+          double pending,
+          double total,
+          double awaitingFinalization
+        }) balancesRecord = (
+          spendable: jsonBalances['amount_currently_spendable'],
+          pending: jsonBalances['amount_awaiting_finalization'],
+          total: jsonBalances['total'],
+          awaitingFinalization: jsonBalances['amount_awaiting_finalization'],
+        );
+        return balancesRecord;
+      } catch (e) {
+        throw ("Error getting wallet info : ${e.toString()}");
       }
-      var jsonBalances = json.decode(balances);
-      //Return balances as record
-      ({
-        double spendable,
-        double pending,
-        double total,
-        double awaitingFinalization
-      }) balancesRecord = (
-        spendable: jsonBalances['amount_currently_spendable'],
-        pending: jsonBalances['amount_awaiting_finalization'],
-        total: jsonBalances['total'],
-        awaitingFinalization: jsonBalances['amount_awaiting_finalization'],
-      );
-      return balancesRecord;
-    } catch (e) {
-      throw ("Error getting wallet info : ${e.toString()}");
-    }
+    });
   }
 
   ///
@@ -167,15 +173,17 @@ abstract class LibEpiccash {
     required int startHeight,
     required int numberOfBlocks,
   }) async {
-    try {
-      return await compute(_scanOutputsWrapper, (
-        wallet: wallet,
-        startHeight: startHeight,
-        numberOfBlocks: numberOfBlocks,
-      ));
-    } catch (e) {
-      throw ("Error getting scanning outputs : ${e.toString()}");
-    }
+    return await m.protect(() async {
+      try {
+        return await compute(_scanOutputsWrapper, (
+          wallet: wallet,
+          startHeight: startHeight,
+          numberOfBlocks: numberOfBlocks,
+        ));
+      } catch (e) {
+        throw ("Error getting scanning outputs : ${e.toString()}");
+      }
+    });
   }
 
   ///
@@ -214,36 +222,38 @@ abstract class LibEpiccash {
     required int minimumConfirmations,
     required String note,
   }) async {
-    try {
-      String result = await compute(_createTransactionWrapper, (
-        wallet: wallet,
-        amount: amount,
-        address: address,
-        secretKeyIndex: secretKeyIndex,
-        epicboxConfig: epicboxConfig,
-        minimumConfirmations: minimumConfirmations,
-        note: note,
-      ));
+    return await m.protect(() async {
+      try {
+        String result = await compute(_createTransactionWrapper, (
+          wallet: wallet,
+          amount: amount,
+          address: address,
+          secretKeyIndex: secretKeyIndex,
+          epicboxConfig: epicboxConfig,
+          minimumConfirmations: minimumConfirmations,
+          note: note,
+        ));
 
-      if (result.toUpperCase().contains("ERROR")) {
-        throw Exception("Error creating transaction ${result.toString()}");
+        if (result.toUpperCase().contains("ERROR")) {
+          throw Exception("Error creating transaction ${result.toString()}");
+        }
+
+        //Decode sent tx and return Slate Id
+        final slate0 = jsonDecode(result);
+        final slate = jsonDecode(slate0[0] as String);
+        final part1 = jsonDecode(slate[0] as String);
+        final part2 = jsonDecode(slate[1] as String);
+
+        ({String slateId, String commitId}) data = (
+          slateId: part1[0]['tx_slate_id'],
+          commitId: part2['tx']['body']['outputs'][0]['commit'],
+        );
+
+        return data;
+      } catch (e) {
+        throw ("Error creating epic transaction : ${e.toString()}");
       }
-
-      //Decode sent tx and return Slate Id
-      final slate0 = jsonDecode(result);
-      final slate = jsonDecode(slate0[0] as String);
-      final part1 = jsonDecode(slate[0] as String);
-      final part2 = jsonDecode(slate[1] as String);
-
-      ({String slateId, String commitId}) data = (
-        slateId: part1[0]['tx_slate_id'],
-        commitId: part2['tx']['body']['outputs'][0]['commit'],
-      );
-
-      return data;
-    } catch (e) {
-      throw ("Error creating epic transaction : ${e.toString()}");
-    }
+    });
   }
 
   ///
@@ -268,28 +278,31 @@ abstract class LibEpiccash {
     required String wallet,
     required int refreshFromNode,
   }) async {
-    try {
-      var result = await compute(_getTransactionsWrapper, (
-        wallet: wallet,
-        refreshFromNode: refreshFromNode,
-      ));
+    return await m.protect(() async {
+      try {
+        var result = await compute(_getTransactionsWrapper, (
+          wallet: wallet,
+          refreshFromNode: refreshFromNode,
+        ));
 
-      if (result.toUpperCase().contains("ERROR")) {
-        throw Exception("Error getting epic transactions ${result.toString()}");
+        if (result.toUpperCase().contains("ERROR")) {
+          throw Exception(
+              "Error getting epic transactions ${result.toString()}");
+        }
+
+//Parse the returned data as an EpicTransaction
+        List<EpicTransaction> finalResult = [];
+        var jsonResult = json.decode(result) as List;
+
+        for (var tx in jsonResult) {
+          EpicTransaction itemTx = EpicTransaction.fromJson(tx);
+          finalResult.add(itemTx);
+        }
+        return finalResult;
+      } catch (e) {
+        throw ("Error getting epic transactions : ${e.toString()}");
       }
-
-      //Parse the returned data as an EpicTransaction
-      List<EpicTransaction> finalResult = [];
-      var jsonResult = json.decode(result) as List;
-
-      for (var tx in jsonResult) {
-        EpicTransaction itemTx = EpicTransaction.fromJson(tx);
-        finalResult.add(itemTx);
-      }
-      return finalResult;
-    } catch (e) {
-      throw ("Error getting epic transactions : ${e.toString()}");
-    }
+    });
   }
 
   ///
@@ -315,14 +328,16 @@ abstract class LibEpiccash {
     required String wallet,
     required String transactionId,
   }) async {
-    try {
-      return await compute(_cancelTransactionWrapper, (
-        wallet: wallet,
-        transactionId: transactionId,
-      ));
-    } catch (e) {
-      throw ("Error canceling epic transaction : ${e.toString()}");
-    }
+    return await m.protect(() async {
+      try {
+        return await compute(_cancelTransactionWrapper, (
+          wallet: wallet,
+          transactionId: transactionId,
+        ));
+      } catch (e) {
+        throw ("Error canceling epic transaction : ${e.toString()}");
+      }
+    });
   }
 
   static Future<int> _chainHeightWrapper(
@@ -336,11 +351,13 @@ abstract class LibEpiccash {
   static Future<int> getChainHeight({
     required String config,
   }) async {
-    try {
-      return await compute(_chainHeightWrapper, (config: config,));
-    } catch (e) {
-      throw ("Error getting chain height : ${e.toString()}");
-    }
+    return await m.protect(() async {
+      try {
+        return await compute(_chainHeightWrapper, (config: config,));
+      } catch (e) {
+        throw ("Error getting chain height : ${e.toString()}");
+      }
+    });
   }
 
   ///
@@ -368,15 +385,17 @@ abstract class LibEpiccash {
     required int index,
     required String epicboxConfig,
   }) async {
-    try {
-      return await compute(_addressInfoWrapper, (
-        wallet: wallet,
-        index: index,
-        epicboxConfig: epicboxConfig,
-      ));
-    } catch (e) {
-      throw ("Error getting address info : ${e.toString()}");
-    }
+    return await m.protect(() async {
+      try {
+        return await compute(_addressInfoWrapper, (
+          wallet: wallet,
+          index: index,
+          epicboxConfig: epicboxConfig,
+        ));
+      } catch (e) {
+        throw ("Error getting address info : ${e.toString()}");
+      }
+    });
   }
 
   ///
@@ -406,64 +425,66 @@ abstract class LibEpiccash {
     required int minimumConfirmations,
     required int available,
   }) async {
-    try {
-      String fees = await compute(_transactionFeesWrapper, (
-        wallet: wallet,
-        amount: amount,
-        minimumConfirmations: minimumConfirmations,
-      ));
+    return await m.protect(() async {
+      try {
+        String fees = await compute(_transactionFeesWrapper, (
+          wallet: wallet,
+          amount: amount,
+          minimumConfirmations: minimumConfirmations,
+        ));
 
-      if (available == amount) {
-        if (fees.contains("Required")) {
-          var splits = fees.split(" ");
-          Decimal required = Decimal.zero;
-          Decimal available = Decimal.zero;
-          for (int i = 0; i < splits.length; i++) {
-            var word = splits[i];
-            if (word == "Required:") {
-              required = Decimal.parse(splits[i + 1].replaceAll(",", ""));
-            } else if (word == "Available:") {
-              available = Decimal.parse(splits[i + 1].replaceAll(",", ""));
+        if (available == amount) {
+          if (fees.contains("Required")) {
+            var splits = fees.split(" ");
+            Decimal required = Decimal.zero;
+            Decimal available = Decimal.zero;
+            for (int i = 0; i < splits.length; i++) {
+              var word = splits[i];
+              if (word == "Required:") {
+                required = Decimal.parse(splits[i + 1].replaceAll(",", ""));
+              } else if (word == "Available:") {
+                available = Decimal.parse(splits[i + 1].replaceAll(",", ""));
+              }
             }
+            int largestSatoshiFee =
+                ((required - available) * Decimal.fromInt(100000000))
+                    .toBigInt()
+                    .toInt();
+            var amountSending = amount - largestSatoshiFee;
+            //Get fees for this new amount
+            ({
+              String wallet,
+              int amount,
+            }) data = (wallet: wallet, amount: amountSending);
+            fees = await compute(_transactionFeesWrapper, (
+              wallet: wallet,
+              amount: amountSending,
+              minimumConfirmations: minimumConfirmations,
+            ));
           }
-          int largestSatoshiFee =
-              ((required - available) * Decimal.fromInt(100000000))
-                  .toBigInt()
-                  .toInt();
-          var amountSending = amount - largestSatoshiFee;
-          //Get fees for this new amount
-          ({
-            String wallet,
-            int amount,
-          }) data = (wallet: wallet, amount: amountSending);
-          fees = await compute(_transactionFeesWrapper, (
-            wallet: wallet,
-            amount: amountSending,
-            minimumConfirmations: minimumConfirmations,
-          ));
         }
-      }
 
-      if (fees.toUpperCase().contains("ERROR")) {
-        //Check if the error is an
-        //Throw the returned error
-        throw Exception(fees);
+        if (fees.toUpperCase().contains("ERROR")) {
+          //Check if the error is an
+          //Throw the returned error
+          throw Exception(fees);
+        }
+        var decodedFees = json.decode(fees);
+        var feeItem = decodedFees[0];
+        ({
+          bool strategyUseAll,
+          int total,
+          int fee,
+        }) feeRecord = (
+          strategyUseAll: feeItem['selection_strategy_is_use_all'],
+          total: feeItem['total'],
+          fee: feeItem['fee'],
+        );
+        return feeRecord;
+      } catch (e) {
+        throw (e.toString());
       }
-      var decodedFees = json.decode(fees);
-      var feeItem = decodedFees[0];
-      ({
-        bool strategyUseAll,
-        int total,
-        int fee,
-      }) feeRecord = (
-        strategyUseAll: feeItem['selection_strategy_is_use_all'],
-        total: feeItem['total'],
-        fee: feeItem['fee'],
-      );
-      return feeRecord;
-    } catch (e) {
-      throw (e.toString());
-    }
+    });
   }
 
   ///
