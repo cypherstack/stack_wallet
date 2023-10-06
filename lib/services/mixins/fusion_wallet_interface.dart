@@ -460,7 +460,7 @@ extension FusionUTXO on UTXO {
         prevTxid: utf8.encode(txid),
         prevIndex: vout,
         pubKey: addr.publicKey,
-        amount: value,
+        value: BigInt.from(value),
       );
     } catch (e) {
       rethrow;
@@ -525,7 +525,7 @@ extension FusionTransaction on Transaction {
     fusion.Transaction fusionTransaction = fusion.Transaction();
 
     // WIP.
-    fusionTransaction.Inputs = await Future.wait(inputs.map((input) async {
+    fusionTransaction.inputs = await Future.wait(inputs.map((input) async {
       // Find input amount.
       Map<String, dynamic> _tx = await cachedElectrumX.getTransaction(
         coin: Coin.bitcoincash,
@@ -565,11 +565,11 @@ extension FusionTransaction on Transaction {
         prevTxid: utf8.encode(input.txid),
         prevIndex: input.vout,
         pubKey: scriptPubKeyHex.toUint8ListFromHex,
-        amount: value.raw.toInt(),
+        value: value.raw,
       );
     }).toList());
 
-    fusionTransaction.Outputs = await Future.wait(outputs.map((output) async {
+    fusionTransaction.outputs = await Future.wait(outputs.map((output) async {
       // TODO: maybe only need one of these but IIRC scriptPubKeyAddress is required for bitcoincash transactions?
       if (output.scriptPubKeyAddress.isEmpty) {
         throw Exception("isar model output.scriptPubKeyAddress is empty!");
