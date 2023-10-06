@@ -179,12 +179,12 @@ abstract class LibEpiccash {
   ///
   /// Scan Epic outputs
   ///
-  static Future<String> scanOutputs({
+  static Future<int> scanOutputs({
     required String wallet,
     required int startHeight,
     required int numberOfBlocks,
   }) async {
-    return await m.protect(() async {
+    return int.parse(await m.protect(() async {
       try {
         return await compute(_scanOutputsWrapper, (
           wallet: wallet,
@@ -194,7 +194,7 @@ abstract class LibEpiccash {
       } catch (e) {
         throw ("Error getting scanning outputs : ${e.toString()}");
       }
-    });
+    }));
   }
 
   ///

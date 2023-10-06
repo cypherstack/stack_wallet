@@ -26,7 +26,6 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -37,6 +36,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/example/libepiccash.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -89,10 +89,8 @@ class _ConfirmTransactionViewState
   late final FocusNode _noteFocusNode;
   late final TextEditingController noteController;
 
-
   late final FocusNode _onChainNoteFocusNode;
   late final TextEditingController onChainNoteController;
-
 
   Future<void> _attemptSend(BuildContext context) async {
     final manager =
@@ -283,7 +281,8 @@ class _ConfirmTransactionViewState
 
     _onChainNoteFocusNode = FocusNode();
     onChainNoteController = TextEditingController();
-    onChainNoteController.text = transactionInfo["onChainNote"] as String? ?? "";
+    onChainNoteController.text =
+        transactionInfo["onChainNote"] as String? ?? "";
 
     super.initState();
   }
@@ -885,23 +884,22 @@ class _ConfirmTransactionViewState
                           ).copyWith(
                             suffixIcon: onChainNoteController.text.isNotEmpty
                                 ? Padding(
-                              padding:
-                              const EdgeInsets.only(right: 0),
-                              child: UnconstrainedBox(
-                                child: Row(
-                                  children: [
-                                    TextFieldIconButton(
-                                      child: const XIcon(),
-                                      onTap: () async {
-                                        setState(() {
-                                          onChainNoteController.text = "";
-                                        });
-                                      },
+                                    padding: const EdgeInsets.only(right: 0),
+                                    child: UnconstrainedBox(
+                                      child: Row(
+                                        children: [
+                                          TextFieldIconButton(
+                                            child: const XIcon(),
+                                            onTap: () async {
+                                              setState(() {
+                                                onChainNoteController.text = "";
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ],
-                                ),
-                              ),
-                            )
+                                  )
                                 : null,
                           ),
                         ),
@@ -911,7 +909,8 @@ class _ConfirmTransactionViewState
                         height: 12,
                       ),
                     Text(
-                      (coin == Coin.epicCash) ? "Local Note (optional)"
+                      (coin == Coin.epicCash)
+                          ? "Local Note (optional)"
                           : "Note (optional)",
                       style:
                           STextStyles.desktopTextExtraSmall(context).copyWith(

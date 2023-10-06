@@ -788,11 +788,11 @@ class EpicCashWallet extends CoinServiceAPI
           level: LogLevel.Info,
         );
 
-        int nextScannedBlock = int.parse(await epiccash.LibEpiccash.scanOutputs(
+        int nextScannedBlock = await epiccash.LibEpiccash.scanOutputs(
           wallet: wallet!,
           startHeight: lastScannedBlock,
           numberOfBlocks: scanChunkSize,
-        ));
+        );
 
         // update local cache
         await epicUpdateLastScannedBlock(nextScannedBlock);
