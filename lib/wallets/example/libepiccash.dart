@@ -277,14 +277,15 @@ abstract class LibEpiccash {
       if (result.toUpperCase().contains("ERROR")) {
         throw Exception("Error getting epic transactions ${result.toString()}");
       }
+
       //Parse the returned data as an EpicTransaction
       List<EpicTransaction> finalResult = [];
       var jsonResult = json.decode(result) as List;
+
       for (var tx in jsonResult) {
         EpicTransaction itemTx = EpicTransaction.fromJson(tx);
         finalResult.add(itemTx);
       }
-
       return finalResult;
     } catch (e) {
       throw ("Error getting epic transactions : ${e.toString()}");
