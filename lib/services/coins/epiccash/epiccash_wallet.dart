@@ -94,23 +94,6 @@ Future<void> executeNative(Map<String, dynamic> arguments) async {
   final SendPort sendPort = arguments['sendPort'] as SendPort;
   final function = arguments['function'] as String;
   try {
-    if (function == "scanOutPuts") {
-      final wallet = arguments['wallet'] as String?;
-      final startHeight = arguments['startHeight'] as int?;
-      final numberOfBlocks = arguments['numberOfBlocks'] as int?;
-      Map<String, dynamic> result = {};
-      if (!(wallet == null || startHeight == null || numberOfBlocks == null)) {
-        var outputs = await epiccash.LibEpiccash.scanOutputs(
-          wallet: wallet,
-          startHeight: startHeight,
-          numberOfBlocks: numberOfBlocks,
-        );
-        result['outputs'] = outputs;
-        sendPort.send(result);
-        return;
-      }
-    }
-
     Logging.instance.log(
         "Error Arguments for $function not formatted correctly",
         level: LogLevel.Fatal);
@@ -235,7 +218,6 @@ class EpicCashWallet extends CoinServiceAPI
     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
     const int refreshFromNode = 1;
     if (!syncMutex.isLocked) {
-
       await epiccash.LibEpiccash.getWalletBalances(
         wallet: wallet!,
         refreshFromNode: refreshFromNode,
@@ -245,20 +227,6 @@ class EpicCashWallet extends CoinServiceAPI
       Logging.instance.log("request start sync denied", level: LogLevel.Info);
     }
     return "";
-  }
-
-  Future<String> scanOutPuts() async {
-    final String wallet =
-        (await _secureStore.read(key: '${_walletId}_wallet'))!;
-    final int lastScannedBlock =
-        epicGetLastScannedBlock() ?? await getRestoreHeight();
-    final int scanChunkSize = 10000;
-
-    return await epiccash.LibEpiccash.scanOutputs(
-      wallet: wallet,
-      startHeight: lastScannedBlock,
-      numberOfBlocks: scanChunkSize,
-    );
   }
 
   Future<
@@ -855,107 +823,6 @@ class EpicCashWallet extends CoinServiceAPI
     // TODO: refresh anything that needs to be refreshed/updated due to epicbox info changed
   }
 
-// Future<void> _startScans() async {
-//   try {
-//     //First stop the current listener
-//     if (ListenerManager.pointer != null) {
-//       Logging.instance
-//           .log("LISTENER HANDLER IS NOT NULL ....", level: LogLevel.Info);
-//       Logging.instance
-//           .log("STOPPING ANY WALLET LISTENER ....", level: LogLevel.Info);
-//       epicboxListenerStop(ListenerManager.pointer!);
-//     }
-//     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
-//
-//     // max number of blocks to scan per loop iteration
-//     const scanChunkSize = 10000;
-//
-//     // force firing of scan progress event
-//     await getSyncPercent;
-//
-//     // fetch current chain height and last scanned block (should be the
-//     // restore height if full rescan or a wallet restore)
-//     int chainHeight = await this.chainHeight;
-//     int lastScannedBlock =
-//         epicGetLastScannedBlock() ?? await getRestoreHeight();
-//
-//     // loop while scanning in chain in chunks (of blocks?)
-//     while (lastScannedBlock < chainHeight) {
-//       Logging.instance.log(
-//         "chainHeight: $chainHeight, lastScannedBlock: $lastScannedBlock",
-//         level: LogLevel.Info,
-//       );
-//
-//       // final int nextScannedBlock = await m.protect(() async {
-//       final result = await m.protect(() async {
-//         return await epiccash.LibEpiccash.scanOutputs(
-//           wallet: wallet!,
-//           startHeight: lastScannedBlock,
-//           numberOfBlocks: scanChunkSize,
-//         );
-//
-//         // // ReceivePort? receivePort;
-//         // try {
-//         //   // receivePort = await getIsolate({
-//         //   //   "function": "scanOutPuts",
-//         //   //   "wallet": wallet!,
-//         //   //   "startHeight": lastScannedBlock,
-//         //   //   "numberOfBlocks": scanChunkSize,
-//         //   // }, name: walletName);
-//         //
-//         //   // get response
-//         //   final message = await receivePort.first;
-//         //
-//         //   // check for error message
-//         //   if (message is String) {
-//         //     throw Exception("scanOutPuts isolate failed: $message");
-//         //   }
-//         //
-//         //   // attempt to grab next scanned block number
-//         //   final nextScanned = int.tryParse(message['outputs'] as String);
-//         //   if (nextScanned == null) {
-//         //     throw Exception(
-//         //       "scanOutPuts failed to parse next scanned block number from: $message",
-//         //     );
-//         //   }
-//         //
-//         //   return nextScanned;
-//         // } catch (_) {
-//         //   rethrow;
-//         // } finally {
-//         //   if (receivePort != null) {
-//         //     // kill isolate
-//         //     stop(receivePort);
-//         //   }
-//         // }
-//       });
-//
-//       // update local cache
-//       await epicUpdateLastScannedBlock(result as int);
-//
-//       // force firing of scan progress event
-//       await getSyncPercent;
-//
-//       // update while loop condition variables
-//       chainHeight = await this.chainHeight;
-//       lastScannedBlock = nextScannedBlock;
-//     }
-//
-//     Logging.instance.log(
-//       "_startScans successfully at the tip",
-//       level: LogLevel.Info,
-//     );
-//     //Once scanner completes restart listener
-//     await listenToEpicbox();
-//   } catch (e, s) {
-//     Logging.instance.log(
-//       "_startScans failed: $e\n$s",
-//       level: LogLevel.Error,
-//     );
-//     rethrow;
-//   }
-// }
-
   Future<void> _startScans() async {
     try {
       //First stop the current listener
@@ -987,42 +854,11 @@ class EpicCashWallet extends CoinServiceAPI
           level: LogLevel.Info,
         );
 
-        final int nextScannedBlock = await m.protect(() async {
-          ReceivePort? receivePort;
-          try {
-            receivePort = await getIsolate({
-              "function": "scanOutPuts",
-              "wallet": wallet!,
-              "startHeight": lastScannedBlock,
-              "numberOfBlocks": scanChunkSize,
-            }, name: walletName);
-
-            // get response
-            final message = await receivePort.first;
-
-            // check for error message
-            if (message is String) {
-              throw Exception("scanOutPuts isolate failed: $message");
-            }
-
-            // attempt to grab next scanned block number
-            final nextScanned = int.tryParse(message['outputs'] as String);
-            if (nextScanned == null) {
-              throw Exception(
-                "scanOutPuts failed to parse next scanned block number from: $message",
-              );
-            }
-
-            return nextScanned;
-          } catch (_) {
-            rethrow;
-          } finally {
-            if (receivePort != null) {
-              // kill isolate
-              stop(receivePort);
-            }
-          }
-        });
+        int nextScannedBlock = int.parse(await epiccash.LibEpiccash.scanOutputs(
+          wallet: wallet!,
+          startHeight: lastScannedBlock,
+          numberOfBlocks: scanChunkSize,
+        ));
 
         // update local cache
         await epicUpdateLastScannedBlock(nextScannedBlock);
@@ -1139,7 +975,7 @@ class EpicCashWallet extends CoinServiceAPI
     try {
       final config = await getRealConfig();
       int? latestHeight =
-      await epiccash.LibEpiccash.getChainHeight(config: config);
+          await epiccash.LibEpiccash.getChainHeight(config: config);
 
       await updateCachedChainHeight(latestHeight);
       if (latestHeight > storedChainHeight) {
@@ -1456,11 +1292,11 @@ class EpicCashWallet extends CoinServiceAPI
   bool get isConnected => _isConnected;
 
   Future<void> _refreshTransactions() async {
-
     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
     const refreshFromNode = 1;
 
-    var transactions = await epiccash.LibEpiccash.getTransactions(wallet: wallet!, refreshFromNode: refreshFromNode);
+    var transactions = await epiccash.LibEpiccash.getTransactions(
+        wallet: wallet!, refreshFromNode: refreshFromNode);
 
     final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txnsData =
         [];
@@ -1487,7 +1323,8 @@ class EpicCashWallet extends CoinServiceAPI
 
       String? slateId = tx.txSlateId == "null" ? null : tx.txSlateId;
       String address = slatesToCommits[slateId]
-              ?[tx.txType == EpicTransactionType.TxReceived ? "from" : "to"] as String? ??
+                  ?[tx.txType == EpicTransactionType.TxReceived ? "from" : "to"]
+              as String? ??
           "";
       String? commitId = slatesToCommits[slateId]?['commitId'] as String?;
       int? numberOfMessages = tx.messages?.messages.length;
