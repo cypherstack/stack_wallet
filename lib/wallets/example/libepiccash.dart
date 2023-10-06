@@ -6,6 +6,17 @@ import 'package:flutter_libepiccash/epic_cash.dart' as lib_epiccash;
 import 'package:mutex/mutex.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/epic_transaction.dart';
 
+class BadEpicHttpAddressException implements Exception {
+  final String? message;
+
+  BadEpicHttpAddressException({this.message});
+
+  @override
+  String toString() {
+    return "BadEpicHttpAddressException: $message";
+  }
+}
+
 ///
 /// Wrapped up calls to flutter_libepiccash.
 ///

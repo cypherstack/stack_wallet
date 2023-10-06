@@ -58,17 +58,6 @@ const int MINIMUM_CONFIRMATIONS = 3;
 const String GENESIS_HASH_MAINNET = "";
 const String GENESIS_HASH_TESTNET = "";
 
-class BadEpicHttpAddressException implements Exception {
-  final String? message;
-
-  BadEpicHttpAddressException({this.message});
-
-  @override
-  String toString() {
-    return "BadEpicHttpAddressException: $message";
-  }
-}
-
 abstract class ListenerManager {
   static Pointer<Void>? pointer;
 }
