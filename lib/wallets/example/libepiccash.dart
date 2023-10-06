@@ -270,8 +270,8 @@ abstract class LibEpiccash {
   }) async {
     try {
       var result = await compute(_getTransactionsWrapper, (
-      wallet: wallet,
-      refreshFromNode: refreshFromNode,
+        wallet: wallet,
+        refreshFromNode: refreshFromNode,
       ));
 
       if (result.toUpperCase().contains("ERROR")) {
@@ -310,6 +310,7 @@ abstract class LibEpiccash {
   ///
   /// Cancel current Epic transaction
   ///
+  /// returns an empty String on success, error message on failure
   static Future<String> cancelTransaction({
     required String wallet,
     required String transactionId,
