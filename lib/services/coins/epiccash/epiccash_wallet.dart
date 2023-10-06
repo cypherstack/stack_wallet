@@ -23,6 +23,7 @@ import 'package:stack_wallet_backup/generate_password.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/epicbox_config_model.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/epic_transaction.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
@@ -48,6 +49,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
+import 'package:stackwallet/wallets/example/libepiccash.dart' as epiccash;
 import 'package:tuple/tuple.dart';
 import 'package:websocket_universal/websocket_universal.dart';
 
@@ -69,166 +71,6 @@ class BadEpicHttpAddressException implements Exception {
 
 abstract class ListenerManager {
   static Pointer<Void>? pointer;
-}
-
-// isolate
-
-Map<ReceivePort, Isolate> isolates = {};
-
-Future<ReceivePort> getIsolate(Map<String, dynamic> arguments,
-    {String name = ""}) async {
-  ReceivePort receivePort =
-      ReceivePort(); //port for isolate to receive messages.
-  arguments['sendPort'] = receivePort.sendPort;
-  Logging.instance.log("starting isolate ${arguments['function']} name: $name",
-      level: LogLevel.Info);
-  Isolate isolate = await Isolate.spawn(executeNative, arguments);
-  isolates[receivePort] = isolate;
-  return receivePort;
-}
-
-Future<void> executeNative(Map<String, dynamic> arguments) async {
-  await Logging.instance.initInIsolate();
-  final SendPort sendPort = arguments['sendPort'] as SendPort;
-  final function = arguments['function'] as String;
-  try {
-    if (function == "scanOutPuts") {
-      final wallet = arguments['wallet'] as String?;
-      final startHeight = arguments['startHeight'] as int?;
-      final numberOfBlocks = arguments['numberOfBlocks'] as int?;
-      Map<String, dynamic> result = {};
-      if (!(wallet == null || startHeight == null || numberOfBlocks == null)) {
-        var outputs = await scanOutPuts(wallet, startHeight, numberOfBlocks);
-        result['outputs'] = outputs;
-        sendPort.send(result);
-        return;
-      }
-    } else if (function == "getWalletInfo") {
-      final wallet = arguments['wallet'] as String?;
-      final refreshFromNode = arguments['refreshFromNode'] as int?;
-      final minimumConfirmations = arguments['minimumConfirmations'] as int?;
-      Map<String, dynamic> result = {};
-      if (!(wallet == null ||
-          refreshFromNode == null ||
-          minimumConfirmations == null)) {
-        var res =
-            await getWalletInfo(wallet, refreshFromNode, minimumConfirmations);
-        result['result'] = res;
-        sendPort.send(result);
-        return;
-      }
-    } else if (function == "getTransactions") {
-      final wallet = arguments['wallet'] as String?;
-      final refreshFromNode = arguments['refreshFromNode'] as int?;
-      Map<String, dynamic> result = {};
-      if (!(wallet == null || refreshFromNode == null)) {
-        var res = await getTransactions(wallet, refreshFromNode);
-        result['result'] = res;
-        sendPort.send(result);
-        return;
-      }
-    } else if (function == "startSync") {
-      final wallet = arguments['wallet'] as String?;
-      const int refreshFromNode = 1;
-      Map<String, dynamic> result = {};
-      if (!(wallet == null)) {
-        var res = await getWalletInfo(wallet, refreshFromNode, 10);
-        result['result'] = res;
-        sendPort.send(result);
-        return;
-      }
-    } else if (function == "getTransactionFees") {
-      final wallet = arguments['wallet'] as String?;
-      final amount = arguments['amount'] as int?;
-      final minimumConfirmations = arguments['minimumConfirmations'] as int?;
-      Map<String, dynamic> result = {};
-      if (!(wallet == null || amount == null || minimumConfirmations == null)) {
-        var res =
-            await getTransactionFees(wallet, amount, minimumConfirmations);
-        result['result'] = res;
-        sendPort.send(result);
-        return;
-      }
-    } else if (function == "createTransaction") {
-      final wallet = arguments['wallet'] as String?;
-      final amount = arguments['amount'] as int?;
-      final address = arguments['address'] as String?;
-      final secretKeyIndex = arguments['secretKeyIndex'] as int?;
-      final epicboxConfig = arguments['epicboxConfig'] as String?;
-      final minimumConfirmations = arguments['minimumConfirmations'] as int?;
-      final onChainNote = arguments['onChainNote'] as String?;
-
-      Map<String, dynamic> result = {};
-      if (!(wallet == null ||
-          amount == null ||
-          address == null ||
-          secretKeyIndex == null ||
-          epicboxConfig == null ||
-          minimumConfirmations == null)) {
-        var res = await createTransaction(wallet, amount, address,
-            secretKeyIndex, epicboxConfig, minimumConfirmations, onChainNote!);
-        result['result'] = res;
-        sendPort.send(result);
-        return;
-      }
-    } else if (function == "txHttpSend") {
-      final wallet = arguments['wallet'] as String?;
-      final selectionStrategyIsAll =
-          arguments['selectionStrategyIsAll'] as int?;
-      final minimumConfirmations = arguments['minimumConfirmations'] as int?;
-      final message = arguments['message'] as String?;
-      final amount = arguments['amount'] as int?;
-      final address = arguments['address'] as String?;
-
-      Map<String, dynamic> result = {};
-
-      if (!(wallet == null ||
-          selectionStrategyIsAll == null ||
-          minimumConfirmations == null ||
-          message == null ||
-          amount == null ||
-          address == null)) {
-        var res = await txHttpSend(wallet, selectionStrategyIsAll,
-            minimumConfirmations, message, amount, address);
-        result['result'] = res;
-        sendPort.send(result);
-        return;
-      }
-    }
-
-    Logging.instance.log(
-        "Error Arguments for $function not formatted correctly",
-        level: LogLevel.Fatal);
-    sendPort.send("Error Arguments for $function not formatted correctly");
-  } catch (e, s) {
-    Logging.instance.log(
-        "An error was thrown in this isolate $function: $e\n$s",
-        level: LogLevel.Error);
-    sendPort
-        .send("Error An error was thrown in this isolate $function: $e\n$s");
-  } finally {
-    await Logging.instance.isar?.close();
-  }
-}
-
-void stop(ReceivePort port) {
-  Isolate? isolate = isolates.remove(port);
-  if (isolate != null) {
-    isolate.kill(priority: Isolate.immediate);
-    isolate = null;
-  }
-}
-
-// Keep Wrapper functions outside of the class to avoid memory leaks and errors about receive ports and illegal arguments.
-// TODO: Can get rid of this wrapper and call it in a full isolate instead of compute() if we want more control over this
-Future<String> _cancelTransactionWrapper(Tuple2<String, String> data) async {
-  // assuming this returns an empty string on success
-  // or an error message string on failure
-  return cancelTransaction(data.item1, data.item2);
-}
-
-Future<String> _deleteWalletWrapper(Tuple2<String, String> data) async {
-  return deleteWallet(data.item1, data.item2);
 }
 
 Future<String> deleteEpicWallet({
@@ -254,40 +96,15 @@ Future<String> deleteEpicWallet({
     return "Tried to delete non existent epic wallet file with walletId=$walletId";
   } else {
     try {
-      return _deleteWalletWrapper(Tuple2(wallet, config!));
+      return epiccash.LibEpiccash.deleteWallet(
+        wallet: wallet,
+        config: config!,
+      );
     } catch (e, s) {
       Logging.instance.log("$e\n$s", level: LogLevel.Error);
       return "deleteEpicWallet($walletId) failed...";
     }
   }
-}
-
-Future<String> _initWalletWrapper(
-    Tuple4<String, String, String, String> data) async {
-  final String initWalletStr =
-      initWallet(data.item1, data.item2, data.item3, data.item4);
-  return initWalletStr;
-}
-
-Future<String> _initGetAddressInfoWrapper(
-    Tuple3<String, int, String> data) async {
-  String walletAddress = getAddressInfo(data.item1, data.item2, data.item3);
-  return walletAddress;
-}
-
-Future<String> _walletMnemonicWrapper(int throwaway) async {
-  final String mnemonic = walletMnemonic();
-  return mnemonic;
-}
-
-Future<String> _recoverWrapper(
-    Tuple4<String, String, String, String> data) async {
-  return recoverWallet(data.item1, data.item2, data.item3, data.item4);
-}
-
-Future<int> _getChainHeightWrapper(String config) async {
-  final int chainHeight = getChainHeight(config);
-  return chainHeight;
 }
 
 class EpicCashWallet extends CoinServiceAPI
@@ -306,13 +123,6 @@ class EpicCashWallet extends CoinServiceAPI
     initCache(walletId, coin);
     initEpicCashHive(walletId);
     initWalletDB(mockableOverride: mockableOverride);
-
-    Logging.instance.log("$walletName isolate length: ${isolates.length}",
-        level: LogLevel.Info);
-    for (final isolate in isolates.values) {
-      isolate.kill(priority: Isolate.immediate);
-    }
-    isolates.clear();
   }
 
   static const integrationTestFlag =
@@ -355,62 +165,33 @@ class EpicCashWallet extends CoinServiceAPI
   Future<String> startSync() async {
     Logging.instance.log("request start sync", level: LogLevel.Info);
     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
-
+    const int refreshFromNode = 1;
     if (!syncMutex.isLocked) {
-      await syncMutex.protect(() async {
-        Logging.instance.log("sync started", level: LogLevel.Info);
-        ReceivePort receivePort = await getIsolate({
-          "function": "startSync",
-          "wallet": wallet!,
-        }, name: walletName);
-        this.receivePort = receivePort;
-
-        var message = await receivePort.first;
-        if (message is String) {
-          Logging.instance
-              .log("this is a string $message", level: LogLevel.Error);
-          stop(receivePort);
-          throw Exception("startSync isolate failed");
-        }
-        stop(receivePort);
-        Logging.instance
-            .log('Closing startSync!\n  $message', level: LogLevel.Info);
-        Logging.instance.log("sync ended", level: LogLevel.Info);
-      });
+      await epiccash.LibEpiccash.getWalletBalances(
+        wallet: wallet!,
+        refreshFromNode: refreshFromNode,
+        minimumConfirmations: 10,
+      );
     } else {
       Logging.instance.log("request start sync denied", level: LogLevel.Info);
     }
     return "";
   }
 
-  Future<String> allWalletBalances() async {
+  Future<
+      ({
+        double awaitingFinalization,
+        double pending,
+        double spendable,
+        double total
+      })> allWalletBalances() async {
     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
     const refreshFromNode = 0;
-
-    dynamic message;
-    await m.protect(() async {
-      ReceivePort receivePort = await getIsolate({
-        "function": "getWalletInfo",
-        "wallet": wallet!,
-        "refreshFromNode": refreshFromNode,
-        "minimumConfirmations": MINIMUM_CONFIRMATIONS,
-      }, name: walletName);
-
-      message = await receivePort.first;
-      if (message is String) {
-        Logging.instance
-            .log("this is a string $message", level: LogLevel.Error);
-        stop(receivePort);
-        throw Exception("getWalletInfo isolate failed");
-      }
-      stop(receivePort);
-      Logging.instance
-          .log('Closing getWalletInfo!\n  $message', level: LogLevel.Info);
-    });
-
-    // return message;
-    final String walletBalances = message['result'] as String;
-    return walletBalances;
+    return await epiccash.LibEpiccash.getWalletBalances(
+      wallet: wallet!,
+      refreshFromNode: refreshFromNode,
+      minimumConfirmations: MINIMUM_CONFIRMATIONS,
+    );
   }
 
   Timer? timer;
@@ -428,15 +209,10 @@ class EpicCashWallet extends CoinServiceAPI
         key: '${_walletId}_wallet',
       ))!;
 
-      final result = await m.protect(() async {
-        return await compute(
-          _cancelTransactionWrapper,
-          Tuple2(
-            wallet,
-            txSlateId,
-          ),
-        );
-      });
+      final result = await epiccash.LibEpiccash.cancelTransaction(
+        wallet: wallet,
+        transactionId: txSlateId,
+      );
       Logging.instance.log(
         "cancel $txSlateId result: $result",
         level: LogLevel.Info,
@@ -452,12 +228,10 @@ class EpicCashWallet extends CoinServiceAPI
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {
     try {
       final wallet = await _secureStore.read(key: '${_walletId}_wallet');
-
       EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
 
       // TODO determine whether it is worth sending change to a change address.
-      dynamic message;
-
+      String slateId;
       String receiverAddress = txData['addresss'] as String;
 
       if (!receiverAddress.startsWith("http://") ||
@@ -469,88 +243,40 @@ class EpicCashWallet extends CoinServiceAPI
         }
       }
 
-      await m.protect(() async {
-        if (receiverAddress.startsWith("http://") ||
-            receiverAddress.startsWith("https://")) {
-          const int selectionStrategyIsAll = 0;
-          ReceivePort receivePort = await getIsolate({
-            "function": "txHttpSend",
-            "wallet": wallet!,
-            "selectionStrategyIsAll": selectionStrategyIsAll,
-            "minimumConfirmations": MINIMUM_CONFIRMATIONS,
-            "message": txData['onChainNote'],
-            "amount": (txData['recipientAmt'] as Amount).raw.toInt(),
-            "address": txData['addresss'] as String,
-          }, name: walletName);
+      ({String commitId, String slateId}) transaction;
 
-          message = await receivePort.first;
-          if (message is String) {
-            Logging.instance
-                .log("this is a string $message", level: LogLevel.Error);
-            stop(receivePort);
-            throw Exception(message);
-          }
-          stop(receivePort);
-          Logging.instance
-              .log('Closing txHttpSend!\n  $message', level: LogLevel.Info);
-        } else {
-          ReceivePort receivePort = await getIsolate({
-            "function": "createTransaction",
-            "wallet": wallet!,
-            "amount": (txData['recipientAmt'] as Amount).raw.toInt(),
-            "address": txData['addresss'] as String,
-            "secretKeyIndex": 0,
-            "epicboxConfig": epicboxConfig.toString(),
-            "minimumConfirmations": MINIMUM_CONFIRMATIONS,
-            "onChainNote": txData['onChainNote'],
-          }, name: walletName);
-
-          message = await receivePort.first;
-          if (message is String) {
-            Logging.instance
-                .log("this is a string $message", level: LogLevel.Error);
-            stop(receivePort);
-            throw Exception("createTransaction isolate failed");
-          }
-          stop(receivePort);
-          Logging.instance.log('Closing createTransaction!\n  $message',
-              level: LogLevel.Info);
-        }
-      });
-
-      // return message;
-      final String sendTx = message['result'] as String;
-      if (sendTx.contains("Error")) {
-        throw BadEpicHttpAddressException(message: sendTx);
+      if (receiverAddress.startsWith("http://") ||
+          receiverAddress.startsWith("https://")) {
+        transaction = await epiccash.LibEpiccash.txHttpSend(
+            wallet: wallet!,
+            selectionStrategyIsAll: 0,
+            minimumConfirmations: MINIMUM_CONFIRMATIONS,
+            message: txData['onChainNote'] as String,
+            amount: (txData['recipientAmt'] as Amount).raw.toInt(),
+            address: txData['addresss'] as String);
+      } else {
+        transaction = await epiccash.LibEpiccash.createTransaction(
+            wallet: wallet!,
+            amount: (txData['recipientAmt'] as Amount).raw.toInt(),
+            address: txData['addresss'] as String,
+            secretKeyIndex: 0,
+            epicboxConfig: epicboxConfig.toString(),
+            minimumConfirmations: MINIMUM_CONFIRMATIONS,
+            note: txData['onChainNote'] as String);
       }
 
       Map<String, String> txAddressInfo = {};
       txAddressInfo['from'] = await currentReceivingAddress;
       txAddressInfo['to'] = txData['addresss'] as String;
-      await putSendToAddresses(sendTx, txAddressInfo);
+      await putSendToAddresses(transaction, txAddressInfo);
 
-      Logging.instance.log("CONFIRM_RESULT_IS $sendTx", level: LogLevel.Info);
-
-      final decodeData = json.decode(sendTx);
-
-      if (decodeData[0] == "transaction_failed") {
-        String errorMessage = decodeData[1] as String;
-        throw Exception("Transaction failed with error code $errorMessage");
-      } else {
-        final txCreateResult = decodeData[0];
-        // //TODO: second problem
-        final transaction = json.decode(txCreateResult as String);
-
-        final tx = transaction[0];
-        final txLogEntry = json.decode(tx as String);
-        final txLogEntryFirst = txLogEntry[0];
-        final slateId = txLogEntryFirst['tx_slate_id'] as String;
-        return slateId!;
-      }
+      slateId = transaction.slateId;
+      return slateId;
     } catch (e, s) {
       Logging.instance.log("Error sending $e - $s", level: LogLevel.Error);
       rethrow;
     }
+    // return "";
   }
 
   Future<isar_models.Address> _getReceivingAddressForIndex(
@@ -570,13 +296,12 @@ class EpicCashWallet extends CoinServiceAPI
       final wallet = await _secureStore.read(key: '${_walletId}_wallet');
       EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
 
-      String? walletAddress;
-      await m.protect(() async {
-        walletAddress = await compute(
-          _initGetAddressInfoWrapper,
-          Tuple3(wallet!, index, epicboxConfig.toString()),
-        );
-      });
+      String? walletAddress = await epiccash.LibEpiccash.getAddressInfo(
+        wallet: wallet!,
+        index: index,
+        epicboxConfig: epicboxConfig.toString(),
+      );
+
       Logging.instance
           .log("WALLET_ADDRESS_IS $walletAddress", level: LogLevel.Info);
 
@@ -616,10 +341,6 @@ class EpicCashWallet extends CoinServiceAPI
     timer?.cancel();
     timer = null;
     stopNetworkAlivePinging();
-    for (final isolate in isolates.values) {
-      isolate.kill(priority: Isolate.immediate);
-    }
-    isolates.clear();
     Logging.instance.log("EpicCash_wallet exit finished", level: LogLevel.Info);
   }
 
@@ -700,7 +421,8 @@ class EpicCashWallet extends CoinServiceAPI
     final config = await getRealConfig();
     final password = await _secureStore.read(key: '${_walletId}_password');
 
-    final walletOpen = openWallet(config, password!);
+    final walletOpen = await epiccash.LibEpiccash.openWallet(
+        config: config, password: password!);
     await _secureStore.write(key: '${_walletId}_wallet', value: walletOpen);
 
     if (getCachedId() == null) {
@@ -722,20 +444,16 @@ class EpicCashWallet extends CoinServiceAPI
     Logging.instance.log("This index is $index", level: LogLevel.Info);
     EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
 
-    String? walletAddress;
-    await m.protect(() async {
-      walletAddress = await compute(
-        _initGetAddressInfoWrapper,
-        Tuple3(wallet!, index, epicboxConfig.toString()),
-      );
-    });
+    String? walletAddress = await epiccash.LibEpiccash.getAddressInfo(
+      wallet: wallet!,
+      index: index,
+      epicboxConfig: epicboxConfig.toString(),
+    );
+
     Logging.instance
         .log("WALLET_ADDRESS_IS $walletAddress", level: LogLevel.Info);
-    Logging.instance
-        .log("Wallet address is $walletAddress", level: LogLevel.Info);
-    String addressInfo = walletAddress!;
     await _secureStore.write(
-        key: '${_walletId}_address_info', value: addressInfo);
+        key: '${_walletId}_address_info', value: walletAddress);
   }
 
   // TODO: make more robust estimate of date maybe using https://explorer.epic.tech/api-index
@@ -777,20 +495,16 @@ class EpicCashWallet extends CoinServiceAPI
 
     String name = _walletId;
 
-    await m.protect(() async {
-      await compute(
-        _initWalletWrapper,
-        Tuple4(
-          stringConfig,
-          mnemonicString,
-          password,
-          name,
-        ),
-      );
-    });
+    await epiccash.LibEpiccash.initializeNewWallet(
+      config: stringConfig,
+      mnemonic: mnemonicString,
+      password: password,
+      name: name,
+    );
 
     //Open wallet
-    final walletOpen = openWallet(stringConfig, password);
+    final walletOpen = await epiccash.LibEpiccash.openWallet(
+        config: stringConfig, password: password);
     await _secureStore.write(key: '${_walletId}_wallet', value: walletOpen);
 
     //Store Epic box address info
@@ -828,15 +542,10 @@ class EpicCashWallet extends CoinServiceAPI
       final List<String> data = _mnemonicString.split(' ');
       return data;
     } else {
-      await m.protect(() async {
-        _mnemonicString = await compute(
-          _walletMnemonicWrapper,
-          0,
-        );
-      });
+      _mnemonicString = epiccash.LibEpiccash.getMnemonic();
       await _secureStore.write(
           key: '${_walletId}_mnemonic', value: _mnemonicString);
-      final List<String> data = _mnemonicString!.split(' ');
+      final List<String> data = _mnemonicString.split(' ');
       return data;
     }
   }
@@ -887,120 +596,24 @@ class EpicCashWallet extends CoinServiceAPI
   Future<int> nativeFee(int satoshiAmount,
       {bool ifErrorEstimateFee = false}) async {
     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
-
     try {
-      String? transactionFees;
-      await m.protect(() async {
-        ReceivePort receivePort = await getIsolate({
-          "function": "getTransactionFees",
-          "wallet": wallet!,
-          "amount": satoshiAmount,
-          "minimumConfirmations": MINIMUM_CONFIRMATIONS,
-        }, name: walletName);
-
-        var message = await receivePort.first;
-        if (message is String) {
-          Logging.instance
-              .log("this is a string $message", level: LogLevel.Error);
-          stop(receivePort);
-          throw Exception("getTransactionFees isolate failed");
-        }
-        stop(receivePort);
-        Logging.instance.log('Closing getTransactionFees!\n  $message',
-            level: LogLevel.Info);
-        // return message;
-        transactionFees = message['result'] as String;
-      });
-      debugPrint(transactionFees);
-      dynamic decodeData;
-
       final available = balance.spendable.raw.toInt();
 
-      if (available == satoshiAmount) {
-        if (transactionFees!.contains("Required")) {
-          var splits = transactionFees!.split(" ");
-          Decimal required = Decimal.zero;
-          Decimal available = Decimal.zero;
-          for (int i = 0; i < splits.length; i++) {
-            var word = splits[i];
-            if (word == "Required:") {
-              required = Decimal.parse(splits[i + 1].replaceAll(",", ""));
-            } else if (word == "Available:") {
-              available = Decimal.parse(splits[i + 1].replaceAll(",", ""));
-            }
-          }
-          int largestSatoshiFee =
-              ((required - available) * Decimal.fromInt(100000000))
-                  .toBigInt()
-                  .toInt();
-          var amountSending = satoshiAmount - largestSatoshiFee;
+      var transactionFees = await epiccash.LibEpiccash.getTransactionFees(
+        wallet: wallet!,
+        amount: satoshiAmount,
+        minimumConfirmations: MINIMUM_CONFIRMATIONS,
+        available: available,
+      );
 
-          //Get fees for this new amount
-          await m.protect(() async {
-            ReceivePort receivePort = await getIsolate({
-              "function": "getTransactionFees",
-              "wallet": wallet!,
-              "amount": amountSending,
-              "minimumConfirmations": MINIMUM_CONFIRMATIONS,
-            }, name: walletName);
-
-            var message = await receivePort.first;
-            if (message is String) {
-              Logging.instance
-                  .log("this is a string $message", level: LogLevel.Error);
-              stop(receivePort);
-              throw Exception("getTransactionFees isolate failed");
-            }
-            stop(receivePort);
-            Logging.instance.log('Closing getTransactionFees!\n  $message',
-                level: LogLevel.Info);
-            // return message;
-            transactionFees = message['result'] as String;
-          });
-        }
-        decodeData = json.decode(transactionFees!);
-      } else {
-        try {
-          decodeData = json.decode(transactionFees!);
-        } catch (e) {
-          if (ifErrorEstimateFee) {
-            //Error Not enough funds. Required: 0.56500000, Available: 0.56200000
-            if (transactionFees!.contains("Required")) {
-              var splits = transactionFees!.split(" ");
-              Decimal required = Decimal.zero;
-              Decimal available = Decimal.zero;
-              for (int i = 0; i < splits.length; i++) {
-                var word = splits[i];
-                if (word == "Required:") {
-                  required = Decimal.parse(splits[i + 1].replaceAll(",", ""));
-                } else if (word == "Available:") {
-                  available = Decimal.parse(splits[i + 1].replaceAll(",", ""));
-                }
-              }
-              int largestSatoshiFee =
-                  ((required - available) * Decimal.fromInt(100000000))
-                      .toBigInt()
-                      .toInt();
-              Logging.instance.log("largestSatoshiFee $largestSatoshiFee",
-                  level: LogLevel.Info);
-              return largestSatoshiFee;
-            }
-          }
-          rethrow;
-        }
-      }
-
-      //TODO: first problem
       int realfee = 0;
       try {
-        var txObject = decodeData[0];
         realfee =
-            (Decimal.parse(txObject["fee"].toString())).toBigInt().toInt();
+            (Decimal.parse(transactionFees.fee.toString())).toBigInt().toInt();
       } catch (e, s) {
         //todo: come back to this
         debugPrint("$e $s");
       }
-
       return realfee;
     } catch (e, s) {
       Logging.instance.log("Error getting fees $e - $s", level: LogLevel.Error);
@@ -1186,42 +799,11 @@ class EpicCashWallet extends CoinServiceAPI
           level: LogLevel.Info,
         );
 
-        final int nextScannedBlock = await m.protect(() async {
-          ReceivePort? receivePort;
-          try {
-            receivePort = await getIsolate({
-              "function": "scanOutPuts",
-              "wallet": wallet!,
-              "startHeight": lastScannedBlock,
-              "numberOfBlocks": scanChunkSize,
-            }, name: walletName);
-
-            // get response
-            final message = await receivePort.first;
-
-            // check for error message
-            if (message is String) {
-              throw Exception("scanOutPuts isolate failed: $message");
-            }
-
-            // attempt to grab next scanned block number
-            final nextScanned = int.tryParse(message['outputs'] as String);
-            if (nextScanned == null) {
-              throw Exception(
-                "scanOutPuts failed to parse next scanned block number from: $message",
-              );
-            }
-
-            return nextScanned;
-          } catch (_) {
-            rethrow;
-          } finally {
-            if (receivePort != null) {
-              // kill isolate
-              stop(receivePort);
-            }
-          }
-        });
+        int nextScannedBlock = int.parse(await epiccash.LibEpiccash.scanOutputs(
+          wallet: wallet!,
+          startHeight: lastScannedBlock,
+          numberOfBlocks: scanChunkSize,
+        ));
 
         // update local cache
         await epicUpdateLastScannedBlock(nextScannedBlock);
@@ -1292,14 +874,11 @@ class EpicCashWallet extends CoinServiceAPI
       await _secureStore.write(
           key: '${_walletId}_epicboxConfig', value: epicboxConfig.toString());
 
-      await compute(
-        _recoverWrapper,
-        Tuple4(
-          stringConfig,
-          password,
-          mnemonic,
-          name,
-        ),
+      await epiccash.LibEpiccash.recoverWallet(
+        config: stringConfig,
+        password: password,
+        mnemonic: mnemonic,
+        name: name,
       );
 
       await Future.wait([
@@ -1311,7 +890,8 @@ class EpicCashWallet extends CoinServiceAPI
       ]);
 
       //Open Wallet
-      final walletOpen = openWallet(stringConfig, password);
+      final walletOpen = await epiccash.LibEpiccash.openWallet(
+          config: stringConfig, password: password);
       await _secureStore.write(key: '${_walletId}_wallet', value: walletOpen);
 
       //Store Epic box address info
@@ -1339,16 +919,11 @@ class EpicCashWallet extends CoinServiceAPI
   Future<int> get chainHeight async {
     try {
       final config = await getRealConfig();
-      int? latestHeight;
-      await m.protect(() async {
-        latestHeight = await compute(
-          _getChainHeightWrapper,
-          config,
-        );
-      });
+      int? latestHeight =
+          await epiccash.LibEpiccash.getChainHeight(config: config);
 
-      await updateCachedChainHeight(latestHeight!);
-      if (latestHeight! > storedChainHeight) {
+      await updateCachedChainHeight(latestHeight);
+      if (latestHeight > storedChainHeight) {
         GlobalEventBus.instance.fire(
           UpdatedInBackgroundEvent(
             "Updated current chain height in $walletId $walletName!",
@@ -1356,7 +931,7 @@ class EpicCashWallet extends CoinServiceAPI
           ),
         );
       }
-      return latestHeight!;
+      return latestHeight;
     } catch (e, s) {
       Logging.instance.log("Exception caught in chainHeight: $e\n$s",
           level: LogLevel.Error);
@@ -1437,21 +1012,14 @@ class EpicCashWallet extends CoinServiceAPI
     }
   }
 
-  Future<bool> putSendToAddresses(
-      String slateMessage, Map<String, String> txAddressInfo) async {
+  Future<bool> putSendToAddresses(({String slateId, String commitId}) slateData,
+      Map<String, String> txAddressInfo) async {
     try {
       var slatesToCommits = await getSlatesToCommits();
-      final slate0 = jsonDecode(slateMessage);
-      final slate = jsonDecode(slate0[0] as String);
-      final part1 = jsonDecode(slate[0] as String);
-      final part2 = jsonDecode(slate[1] as String);
-      final slateId = part1[0]['tx_slate_id'];
-      final commitId = part2['tx']['body']['outputs'][0]['commit'];
-
       final from = txAddressInfo['from'];
       final to = txAddressInfo['to'];
-      slatesToCommits[slateId] = {
-        "commitId": commitId,
+      slatesToCommits[slateData.slateId] = {
+        "commitId": slateData.commitId,
         "from": from,
         "to": to,
       };
@@ -1669,78 +1237,57 @@ class EpicCashWallet extends CoinServiceAPI
   bool get isConnected => _isConnected;
 
   Future<void> _refreshTransactions() async {
-    // final currentChainHeight = await chainHeight;
     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
     const refreshFromNode = 1;
 
-    dynamic message;
-    await m.protect(() async {
-      ReceivePort receivePort = await getIsolate({
-        "function": "getTransactions",
-        "wallet": wallet!,
-        "refreshFromNode": refreshFromNode,
-      }, name: walletName);
-
-      message = await receivePort.first;
-      if (message is String) {
-        Logging.instance
-            .log("this is a string $message", level: LogLevel.Error);
-        stop(receivePort);
-        throw Exception("getTransactions isolate failed");
-      }
-      stop(receivePort);
-      Logging.instance
-          .log('Closing getTransactions!\n $message', level: LogLevel.Info);
-    });
-    // return message;
-    final String transactions = message['result'] as String;
-    final jsonTransactions = json.decode(transactions) as List;
+    var transactions = await epiccash.LibEpiccash.getTransactions(
+        wallet: wallet!, refreshFromNode: refreshFromNode);
 
     final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txnsData =
         [];
 
     final slatesToCommits = await getSlatesToCommits();
 
-    for (var tx in jsonTransactions) {
+    for (var tx in transactions) {
       Logging.instance.log("tx: $tx", level: LogLevel.Info);
       // // TODO: does "confirmed" mean finalized? If so please remove this todo
-      final isConfirmed = tx["confirmed"] as bool;
+      final isConfirmed = tx.confirmed;
 
       int amt = 0;
-      if (tx["tx_type"] == "TxReceived" ||
-          tx["tx_type"] == "TxReceivedCancelled") {
-        amt = int.parse(tx['amount_credited'] as String);
+      if (tx.txType == EpicTransactionType.TxReceived ||
+          tx.txType == EpicTransactionType.TxReceivedCancelled) {
+        amt = int.parse(tx.amountCredited);
       } else {
-        int debit = int.parse(tx['amount_debited'] as String);
-        int credit = int.parse(tx['amount_credited'] as String);
-        int fee = int.parse((tx['fee'] ?? "0") as String);
+        int debit = int.parse(tx.amountDebited);
+        int credit = int.parse(tx.amountCredited);
+        int fee = int.parse((tx.fee ?? "0")); //TODO -double check this
         amt = debit - credit - fee;
       }
 
-      DateTime dt = DateTime.parse(tx["creation_ts"] as String);
+      DateTime dt = DateTime.parse(tx.creationTs);
 
-      String? slateId = tx['tx_slate_id'] as String?;
+      String? slateId = tx.txSlateId == "null" ? null : tx.txSlateId;
       String address = slatesToCommits[slateId]
-              ?[tx["tx_type"] == "TxReceived" ? "from" : "to"] as String? ??
+                  ?[tx.txType == EpicTransactionType.TxReceived ? "from" : "to"]
+              as String? ??
           "";
       String? commitId = slatesToCommits[slateId]?['commitId'] as String?;
-      tx['numberOfMessages'] = tx['messages']?['messages']?.length;
-      tx['onChainNote'] = tx['messages']?['messages']?[0]?['message'];
+      int? numberOfMessages = tx.messages?.messages.length;
+      String? onChainNote = tx.messages?.messages[0].message;
 
       int? height;
 
       if (isConfirmed) {
-        height = tx["kernel_lookup_min_height"] as int? ?? 1;
+        height = tx.kernelLookupMinHeight ?? 1;
       } else {
         height = null;
       }
 
-      final isIncoming = (tx["tx_type"] == "TxReceived" ||
-          tx["tx_type"] == "TxReceivedCancelled");
-
+      final isIncoming = (tx.txType == EpicTransactionType.TxReceived ||
+          tx.txType == EpicTransactionType.TxReceivedCancelled);
       final txn = isar_models.Transaction(
         walletId: walletId,
-        txid: commitId ?? tx["id"].toString(),
+        txid: commitId ?? tx.id.toString(),
         timestamp: (dt.millisecondsSinceEpoch ~/ 1000),
         type: isIncoming
             ? isar_models.TransactionType.incoming
@@ -1751,20 +1298,17 @@ class EpicCashWallet extends CoinServiceAPI
           rawValue: BigInt.from(amt),
           fractionDigits: coin.decimals,
         ).toJsonString(),
-        fee: (tx["fee"] == null) ? 0 : int.parse(tx["fee"] as String),
+        fee: (tx.fee == "null") ? 0 : int.parse(tx.fee!),
         height: height,
-        isCancelled: tx["tx_type"] == "TxSentCancelled" ||
-            tx["tx_type"] == "TxReceivedCancelled",
+        isCancelled: tx.txType == EpicTransactionType.TxSentCancelled ||
+            tx.txType == EpicTransactionType.TxReceivedCancelled,
         isLelantus: false,
         slateId: slateId,
         nonce: null,
-        // otherData: tx["id"].toString(),
-        otherData: tx['onChainNote'].toString(),
+        otherData: onChainNote,
         inputs: [],
         outputs: [],
-        numberOfMessages: ((tx["numberOfMessages"] == null)
-            ? 0
-            : tx["numberOfMessages"]) as int,
+        numberOfMessages: numberOfMessages,
       );
 
       // txn.address =
@@ -1775,11 +1319,13 @@ class EpicCashWallet extends CoinServiceAPI
           .valueEqualTo(address)
           .findFirst();
 
-      if (transactionAddress == null) {
+      if (transactionAddress!.value.isEmpty) {
         if (isIncoming) {
+          //Use current receiving address as address
+          String receivingAddress = await currentReceivingAddress;
           transactionAddress = isar_models.Address(
             walletId: walletId,
-            value: address,
+            value: receivingAddress,
             publicKey: [],
             derivationIndex: 0,
             derivationPath: null,
@@ -1830,7 +1376,7 @@ class EpicCashWallet extends CoinServiceAPI
 
   @override
   bool validateAddress(String address) {
-    //Invalid address that contains HTTP and epicbox domain
+    // Invalid address that contains HTTP and epicbox domain
     if ((address.startsWith("http://") || address.startsWith("https://")) &&
         address.contains("@")) {
       return false;
@@ -1840,17 +1386,7 @@ class EpicCashWallet extends CoinServiceAPI
         return true;
       }
     }
-
-    String validate = validateSendAddress(address);
-    if (int.parse(validate) == 1) {
-      //Check if address contrains a domain
-      if (address.contains("@")) {
-        return true;
-      }
-      return false;
-    } else {
-      return false;
-    }
+    return epiccash.LibEpiccash.validateSendAddress(address: address);
   }
 
   @override
@@ -1870,11 +1406,6 @@ class EpicCashWallet extends CoinServiceAPI
         timer = null;
         if (isActive) {
           unawaited(startSync());
-        } else {
-          for (final isolate in isolates.values) {
-            isolate.kill(priority: Isolate.immediate);
-          }
-          isolates.clear();
         }
         this.isActive = isActive;
       };
@@ -1905,26 +1436,15 @@ class EpicCashWallet extends CoinServiceAPI
   }
 
   Future<void> _refreshBalance() async {
-    String walletBalances = await allWalletBalances();
-    var jsonBalances = json.decode(walletBalances);
-
-    final spendable =
-        (jsonBalances['amount_currently_spendable'] as double).toString();
-
-    final pending =
-        (jsonBalances['amount_awaiting_confirmation'] as double).toString();
-
-    final total = (jsonBalances['total'] as double).toString();
-    final awaiting =
-        (jsonBalances['amount_awaiting_finalization'] as double).toString();
-
+    var balances = await allWalletBalances();
     _balance = Balance(
       total: Amount.fromDecimal(
-        Decimal.parse(total) + Decimal.parse(awaiting),
+        Decimal.parse(balances.total.toString()) +
+            Decimal.parse(balances.awaitingFinalization.toString()),
         fractionDigits: coin.decimals,
       ),
       spendable: Amount.fromDecimal(
-        Decimal.parse(spendable),
+        Decimal.parse(balances.spendable.toString()),
         fractionDigits: coin.decimals,
       ),
       blockedTotal: Amount(
@@ -1932,11 +1452,10 @@ class EpicCashWallet extends CoinServiceAPI
         fractionDigits: coin.decimals,
       ),
       pendingSpendable: Amount.fromDecimal(
-        Decimal.parse(pending),
+        Decimal.parse(balances.pending.toString()),
         fractionDigits: coin.decimals,
       ),
     );
-
     await updateCachedBalance(_balance!);
   }
 
