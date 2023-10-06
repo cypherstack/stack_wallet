@@ -73,50 +73,6 @@ abstract class ListenerManager {
   static Pointer<Void>? pointer;
 }
 
-// isolate
-
-Map<ReceivePort, Isolate> isolates = {};
-
-Future<ReceivePort> getIsolate(Map<String, dynamic> arguments,
-    {String name = ""}) async {
-  ReceivePort receivePort =
-      ReceivePort(); //port for isolate to receive messages.
-  arguments['sendPort'] = receivePort.sendPort;
-  Logging.instance.log("starting isolate ${arguments['function']} name: $name",
-      level: LogLevel.Info);
-  Isolate isolate = await Isolate.spawn(executeNative, arguments);
-  isolates[receivePort] = isolate;
-  return receivePort;
-}
-
-Future<void> executeNative(Map<String, dynamic> arguments) async {
-  await Logging.instance.initInIsolate();
-  final SendPort sendPort = arguments['sendPort'] as SendPort;
-  final function = arguments['function'] as String;
-  try {
-    Logging.instance.log(
-        "Error Arguments for $function not formatted correctly",
-        level: LogLevel.Fatal);
-    sendPort.send("Error Arguments for $function not formatted correctly");
-  } catch (e, s) {
-    Logging.instance.log(
-        "An error was thrown in this isolate $function: $e\n$s",
-        level: LogLevel.Error);
-    sendPort
-        .send("Error An error was thrown in this isolate $function: $e\n$s");
-  } finally {
-    await Logging.instance.isar?.close();
-  }
-}
-
-void stop(ReceivePort port) {
-  Isolate? isolate = isolates.remove(port);
-  if (isolate != null) {
-    isolate.kill(priority: Isolate.immediate);
-    isolate = null;
-  }
-}
-
 Future<String> deleteEpicWallet({
   required String walletId,
   required SecureStorageInterface secureStore,
@@ -167,13 +123,6 @@ class EpicCashWallet extends CoinServiceAPI
     initCache(walletId, coin);
     initEpicCashHive(walletId);
     initWalletDB(mockableOverride: mockableOverride);
-
-    Logging.instance.log("$walletName isolate length: ${isolates.length}",
-        level: LogLevel.Info);
-    for (final isolate in isolates.values) {
-      isolate.kill(priority: Isolate.immediate);
-    }
-    isolates.clear();
   }
 
   static const integrationTestFlag =
@@ -392,10 +341,6 @@ class EpicCashWallet extends CoinServiceAPI
     timer?.cancel();
     timer = null;
     stopNetworkAlivePinging();
-    for (final isolate in isolates.values) {
-      isolate.kill(priority: Isolate.immediate);
-    }
-    isolates.clear();
     Logging.instance.log("EpicCash_wallet exit finished", level: LogLevel.Info);
   }
 
@@ -1461,11 +1406,6 @@ class EpicCashWallet extends CoinServiceAPI
         timer = null;
         if (isActive) {
           unawaited(startSync());
-        } else {
-          for (final isolate in isolates.values) {
-            isolate.kill(priority: Isolate.immediate);
-          }
-          isolates.clear();
         }
         this.isActive = isActive;
       };
