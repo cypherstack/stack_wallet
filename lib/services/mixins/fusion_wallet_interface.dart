@@ -286,6 +286,9 @@ mixin FusionWalletInterface {
         txHash: txid,
       ),
       getPrivateKeyForPubKey: getPrivateKeyForPubKey,
+      broadcastTransaction: (String txHex) => _getWalletCachedElectrumX()
+          .electrumXClient
+          .broadcastTransaction(rawTx: txHex),
     );
 
     // Add stack UTXOs.
