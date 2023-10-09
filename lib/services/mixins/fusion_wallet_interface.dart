@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:bitcoindart/bitcoindart.dart' as btcdart;
 import 'package:fusiondart/fusiondart.dart' as fusion;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
@@ -8,6 +10,7 @@ import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/models/fusion_progress_ui_state.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/services/fusion_tor_service.dart';
+import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/extensions/impl/string.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
@@ -21,6 +24,9 @@ mixin FusionWalletInterface {
   late final Coin _coin;
   late final MainDB _db;
   late final FusionTorService _torService;
+  late final Future<String?> _mnemonic;
+  late final Future<String?> _mnemonicPassphrase;
+  late final btcdart.NetworkType _network;
 
   // setting values on this should notify any listeners (the GUI)
   FusionProgressUIState? _uiState;
@@ -61,6 +67,9 @@ mixin FusionWalletInterface {
       required String address,
     }) getTxCountForAddress,
     required Future<int> Function() getChainHeight,
+    required Future<String?> mnemonic,
+    required Future<String?> mnemonicPassphrase,
+    required btcdart.NetworkType network,
   }) async {
     // Set passed in wallet data.
     _walletId = walletId;
@@ -71,6 +80,9 @@ mixin FusionWalletInterface {
     _getWalletCachedElectrumX = getWalletCachedElectrumX;
     _getTxCountForAddress = getTxCountForAddress;
     _getChainHeight = getChainHeight;
+    _mnemonic = mnemonic;
+    _mnemonicPassphrase = mnemonicPassphrase;
+    _network = network;
   }
 
   // callback to update the ui state object
@@ -110,6 +122,28 @@ mixin FusionWalletInterface {
     );
 
     return await Future.wait(futures);
+  }
+
+  Future<Uint8List> getPrivateKeyForPubKey(List<int> pubKey) async {
+    // can't directly query for equal lists in isar so we need to fetch
+    // all addresses then search in dart
+    try {
+      final derivationPath = (await getFusionAddresses())
+          .firstWhere((e) => e.publicKey.toString() == pubKey.toString())
+          .derivationPath!
+          .value;
+
+      final node = await Bip32Utils.getBip32Node(
+        (await _mnemonic)!,
+        (await _mnemonicPassphrase)!,
+        _network,
+        derivationPath,
+      );
+
+      return node.privateKey!;
+    } catch (_) {
+      throw Exception("Derivation path for pubkey=$pubKey could not be found");
+    }
   }
 
   /// Returns a list of all UTXOs in the wallet for the given address.
@@ -251,6 +285,7 @@ mixin FusionWalletInterface {
         coin: _coin,
         txHash: txid,
       ),
+      getPrivateKeyForPubKey: getPrivateKeyForPubKey,
     );
 
     // Add stack UTXOs.

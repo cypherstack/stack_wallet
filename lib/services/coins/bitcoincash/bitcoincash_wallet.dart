@@ -146,6 +146,9 @@ class BitcoinCashWallet extends CoinServiceAPI
       },
       getTxCountForAddress: getTxCount,
       getChainHeight: () async => chainHeight,
+      mnemonic: mnemonicString,
+      mnemonicPassphrase: mnemonicPassphrase,
+      network: _network,
     );
     initCoinControlInterface(
       walletId: walletId,
