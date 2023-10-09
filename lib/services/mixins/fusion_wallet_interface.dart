@@ -247,6 +247,11 @@ mixin FusionWalletInterface {
       getSocksProxyAddress: getSocksProxyAddress,
       getChainHeight: _getChainHeight,
       updateStatusCallback: updateStatus,
+      getTransactionJson: (String txid) async =>
+          await _getWalletCachedElectrumX().getTransaction(
+        coin: _coin,
+        txHash: txid,
+      ),
     );
 
     // Add stack UTXOs.
