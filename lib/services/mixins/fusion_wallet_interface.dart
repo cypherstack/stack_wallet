@@ -289,7 +289,11 @@ mixin FusionWalletInterface {
     final inputs = await mainFusionObject.addCoinsFromWallet(coinList);
 
     // Fuse UTXOs.
-    return await mainFusionObject.fuse(inputsFromWallet: inputs);
+    return await mainFusionObject.fuse(
+      inputsFromWallet: inputs,
+      network:
+          _coin.isTestNet ? fusion.Utilities.testNet : fusion.Utilities.mainNet,
+    );
     //print ("DEBUG FUSION bitcoincash_wallet.dart 1202");
 
     // TODO remove or fix code below.
@@ -407,7 +411,7 @@ extension FusionAddress on Address {
     }
 
     return fusion.Address(
-      addr: value,
+      address: value,
       publicKey: publicKey,
       derivationPath: fusion.DerivationPath(
         derivationPath?.value ?? "", // TODO fix null derivation path.
@@ -493,7 +497,7 @@ extension FusionUTXO on UTXO {
 
     return fusion.Output(
       addr: fusion.Address(
-        addr: address!,
+        address: address!,
         publicKey: addr.publicKey,
         derivationPath: fusion.DerivationPath(
           addr.derivationPath!.value,
@@ -601,7 +605,7 @@ extension FusionTransaction on Transaction {
 
       return fusion.Output(
         addr: fusion.Address(
-          addr: output.scriptPubKeyAddress,
+          address: output.scriptPubKeyAddress,
           publicKey: outputAddressScriptPubKey,
           derivationPath: derivationPath,
         ),
