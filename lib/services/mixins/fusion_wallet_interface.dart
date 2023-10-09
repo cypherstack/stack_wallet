@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:decimal/decimal.dart';
 import 'package:fusiondart/fusiondart.dart' as fusion;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
@@ -10,7 +9,6 @@ import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/models/fusion_progress_ui_state.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/services/fusion_tor_service.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/extensions/impl/string.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
@@ -89,21 +87,20 @@ mixin FusionWalletInterface {
   }
 
   /// Returns a list of all transactions in the wallet for the given address.
-  Future<List<fusion.Transaction>> getTransactionsByAddress(
-      String address) async {
-    final _txs = await _db.getTransactions(_walletId).findAll();
+  Future<List<Map<String, dynamic>>> getTransactionsByAddress(
+    String address,
+  ) async {
+    final txidList =
+        await _db.getTransactions(_walletId).txidProperty().findAll();
 
-    // Use Future.wait to await all the futures in the set and then convert it to a set.
-    final resultSet = await Future.wait(
-      _txs.map(
-        (tx) => tx.toFusionTransaction(
-          dbInstance: _db,
-          cachedElectrumX: _getWalletCachedElectrumX(),
-        ),
+    final futures = txidList.map(
+      (e) => _getWalletCachedElectrumX().getTransaction(
+        txHash: e,
+        coin: _coin,
       ),
     );
 
-    return resultSet;
+    return await Future.wait(futures);
   }
 
   /// Returns a list of all UTXOs in the wallet for the given address.
@@ -505,114 +502,5 @@ extension FusionUTXO on UTXO {
       ),
       value: value,
     );
-  }
-}
-
-/// An extension of Stack Wallet's Transaction class that adds CashFusion functionality.
-extension FusionTransaction on Transaction {
-  /// Fetch the public key of an address stored in the database.
-  Future<String?> _getAddressDerivationPathString({
-    required String address,
-    required MainDB dbInstance,
-  }) async {
-    final Address? addr = await dbInstance.getAddress(walletId, address);
-
-    return addr?.derivationPath?.value;
-  }
-
-  // WIP.
-  Future<fusion.Transaction> toFusionTransaction({
-    required CachedElectrumX cachedElectrumX,
-    required MainDB dbInstance,
-  }) async {
-    // Initialize Fusion Dart's Transaction object.
-    fusion.Transaction fusionTransaction = fusion.Transaction();
-
-    // WIP.
-    fusionTransaction.inputs = await Future.wait(inputs.map((input) async {
-      // Find input amount.
-      Map<String, dynamic> _tx = await cachedElectrumX.getTransaction(
-        coin: Coin.bitcoincash,
-        txHash: input.txid,
-        verbose: true,
-      );
-
-      if (_tx.isEmpty) {
-        throw Exception("Transaction not found for input: ${input.txid}");
-      }
-
-      // Check if output amount is available.
-      final txVoutAmount = Decimal.tryParse(
-        _tx["vout"]?[input.vout]?["value"].toString() ?? "",
-      );
-      if (txVoutAmount == null) {
-        throw Exception(
-          "Output value at index ${input.vout} in transaction ${input.txid} not found",
-        );
-      }
-
-      final scriptPubKeyHex =
-          _tx["vout"]?[input.vout]?["scriptPubKey"]?["hex"] as String?;
-      if (scriptPubKeyHex == null) {
-        throw Exception(
-          "scriptPubKey of vout index ${input.vout} in transaction is null",
-        );
-      }
-
-      // Assign vout value to amount.
-      final value = Amount.fromDecimal(
-        txVoutAmount,
-        fractionDigits: Coin.bitcoincash.decimals,
-      );
-
-      return fusion.Input(
-        prevTxid: utf8.encode(input.txid),
-        prevIndex: input.vout,
-        pubKey: scriptPubKeyHex.toUint8ListFromHex,
-        value: value.raw,
-      );
-    }).toList());
-
-    fusionTransaction.outputs = await Future.wait(outputs.map((output) async {
-      // TODO: maybe only need one of these but IIRC scriptPubKeyAddress is required for bitcoincash transactions?
-      if (output.scriptPubKeyAddress.isEmpty) {
-        throw Exception("isar model output.scriptPubKeyAddress is empty!");
-      }
-      if (output.scriptPubKey == null || output.scriptPubKey!.isEmpty) {
-        throw Exception("isar model output.scriptPubKey is null or empty!");
-      }
-
-      final outputAddress = output.scriptPubKeyAddress;
-      final outputAddressScriptPubKey = output.scriptPubKey!.toUint8ListFromHex;
-
-      // fetch address derivation path
-      final derivationPathString = await _getAddressDerivationPathString(
-        address: outputAddress,
-        dbInstance: dbInstance,
-      );
-
-      final fusion.DerivationPath? derivationPath;
-      if (derivationPathString == null) {
-        // TODO: check on this:
-        // The address is not an address of this wallet and in that case we
-        // cannot know the derivation path
-        derivationPath = null;
-      } else {
-        derivationPath = fusion.DerivationPath(
-          derivationPathString,
-        );
-      }
-
-      return fusion.Output(
-        addr: fusion.Address(
-          address: output.scriptPubKeyAddress,
-          publicKey: outputAddressScriptPubKey,
-          derivationPath: derivationPath,
-        ),
-        value: output.value,
-      );
-    }).toList());
-
-    return fusionTransaction;
   }
 }
