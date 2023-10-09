@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:fusiondart/fusiondart.dart' as fusion;
@@ -114,12 +113,12 @@ mixin FusionWalletInterface {
   }
 
   /// Returns a list of all UTXOs in the wallet for the given address.
-  Future<List<fusion.Input>> getInputsByAddress(String address) async {
+  Future<List<fusion.UtxoDTO>> getInputsByAddress(String address) async {
     final _utxos = await _db.getUTXOsByAddress(_walletId, address).findAll();
 
-    List<Future<fusion.Input>> futureInputs = _utxos
+    List<Future<fusion.UtxoDTO>> futureInputs = _utxos
         .map(
-          (utxo) => utxo.toFusionInput(
+          (utxo) => utxo.toFusionUtxoDTO(
             walletId: _walletId,
             dbInstance: _db,
           ),
@@ -357,7 +356,7 @@ extension FusionUTXO on UTXO {
   }
 
   /// Converts a Stack Wallet UTXO to a FusionDart Input.
-  Future<fusion.Input> toFusionInput({
+  Future<fusion.UtxoDTO> toFusionUtxoDTO({
     required String walletId,
     required MainDB dbInstance,
   }) async {
@@ -376,44 +375,14 @@ extension FusionUTXO on UTXO {
         throw Exception("Public key for fetched address is empty");
       }
 
-      return fusion.Input(
-        prevTxid: utf8.encode(txid),
-        prevIndex: vout,
+      return fusion.UtxoDTO(
+        txid: txid,
+        vout: vout,
         pubKey: addr.publicKey,
-        value: BigInt.from(value),
+        value: value,
       );
     } catch (e) {
       rethrow;
     }
-  }
-
-  /// Converts a Stack Wallet UTXO to a FusionDart Output.
-  Future<fusion.Output> toFusionOutput({
-    required String walletId,
-    required MainDB dbInstance,
-  }) async {
-    if (address == null) {
-      throw Exception("toFutionOutput Address is null");
-    }
-
-    // Search isar for address to get pubKey.
-    final Address addr = await _getAddressPubkey(
-      address: address!,
-      walletId: walletId,
-      dbInstance: dbInstance,
-    );
-
-    if (addr.publicKey.isEmpty) {
-      throw Exception("Public key for fetched address is empty");
-    }
-
-    if (addr.derivationPath == null) {
-      throw Exception("Derivation path for fetched address is empty");
-    }
-
-    return fusion.Output(
-      addr: addr.toFusionAddress(),
-      value: value,
-    );
   }
 }
