@@ -80,9 +80,19 @@ mixin FusionWalletInterface {
     // set _uiState states
   }
 
-  /// Returns a list of all addresses in the wallet.
+  /// Returns a list of all owned p2pkh addresses in the wallet.
   Future<List<fusion.Address>> getFusionAddresses() async {
-    List<Address> _addresses = await _db.getAddresses(_walletId).findAll();
+    List<Address> _addresses = await _db
+        .getAddresses(_walletId)
+        .filter()
+        .typeEqualTo(AddressType.p2pkh)
+        .and()
+        .group((q) => q
+            .subTypeEqualTo(AddressSubType.receiving)
+            .or()
+            .subTypeEqualTo(AddressSubType.change))
+        .findAll();
+
     return _addresses.map((address) => address.toFusionAddress()).toList();
   }
 
