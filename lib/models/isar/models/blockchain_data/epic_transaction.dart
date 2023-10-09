@@ -50,7 +50,7 @@ class EpicTransaction {
   });
 
   factory EpicTransaction.fromJson(dynamic json) {
-    // print("THIS JSON IS $json")
+    print("THIS JSON IS $json");
     return EpicTransaction(
       parentKeyId: json['parent_key_id'] as String,
       id: int.parse(json!['id'].toString()),
@@ -61,8 +61,8 @@ class EpicTransaction {
       confirmed: bool.parse(json['confirmed'].toString()),
       numInputs: int.parse(json['num_inputs'].toString()),
       numOutputs: int.parse(json['num_outputs'].toString()),
-      amountCredited: json['amount_credited'].toString(),
-      amountDebited: json['amount_debited'].toString(),
+      amountCredited: json['amount_credited'] as String,
+      amountDebited: json['amount_debited'] as String,
       fee: json['fee'].toString(),
       ttlCutoffHeight: json['ttl_cutoff_height'].toString(),
       messages: json['messages'] != null
@@ -73,7 +73,7 @@ class EpicTransaction {
       kernelLookupMinHeight: json['kernel_lookup_min_height'] == null
           ? null
           : int.parse(json['kernel_lookup_min_height'].toString()),
-      paymentProof: json['payment_proof'].toString(),
+      paymentProof: json['payment_proof'] as String?,
     );
   }
 }
