@@ -54,7 +54,7 @@ class EpicTransaction {
     return EpicTransaction(
       parentKeyId: json['parent_key_id'] as String,
       id: int.parse(json!['id'].toString()),
-      txSlateId: json['tx_slate_id'].toString(),
+      txSlateId: json['tx_slate_id'] as String?,
       txType: EpicTransactionType.values.byName(json['tx_type'] as String),
       creationTs: json['creation_ts'].toString(),
       confirmationTs: json['confirmation_ts'].toString(),
@@ -65,10 +65,14 @@ class EpicTransaction {
       amountDebited: json['amount_debited'].toString(),
       fee: json['fee'].toString(),
       ttlCutoffHeight: json['ttl_cutoff_height'].toString(),
-      messages: json['messages'] != null ? Messages.fromJson(json['messages'] as Map<String, dynamic>) : null,
+      messages: json['messages'] != null
+          ? Messages.fromJson(json['messages'] as Map<String, dynamic>)
+          : null,
       storedTx: json['stored_tx'].toString(),
       kernelExcess: json['kernel_excess'].toString(),
-      kernelLookupMinHeight: json['kernel_lookup_min_height'] == null? null : int.parse(json['kernel_lookup_min_height'].toString()),
+      kernelLookupMinHeight: json['kernel_lookup_min_height'] == null
+          ? null
+          : int.parse(json['kernel_lookup_min_height'].toString()),
       paymentProof: json['payment_proof'].toString(),
     );
   }
@@ -81,7 +85,9 @@ class Messages {
 
   factory Messages.fromJson(Map<String, dynamic> json) {
     final messageList = json['messages'] as List<dynamic>;
-    final messages = messageList.map((message) => Message.fromJson(message as Map<String, dynamic>)).toList();
+    final messages = messageList
+        .map((message) => Message.fromJson(message as Map<String, dynamic>))
+        .toList();
     return Messages(messages: messages);
   }
 }
@@ -108,7 +114,6 @@ class Message {
     );
   }
 }
-
 
 enum EpicTransactionType {
   //Use Epic transaction type here

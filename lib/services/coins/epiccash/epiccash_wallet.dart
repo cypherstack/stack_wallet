@@ -1255,7 +1255,7 @@ class EpicCashWallet extends CoinServiceAPI
 
       DateTime dt = DateTime.parse(tx.creationTs);
 
-      String? slateId = tx.txSlateId == "null" ? null : tx.txSlateId;
+      String? slateId = tx.txSlateId;
       String address = slatesToCommits[slateId]
                   ?[tx.txType == EpicTransactionType.TxReceived ? "from" : "to"]
               as String? ??
@@ -1308,7 +1308,7 @@ class EpicCashWallet extends CoinServiceAPI
           .valueEqualTo(address)
           .findFirst();
 
-      if (transactionAddress!.value.isEmpty) {
+      if (transactionAddress == null || transactionAddress!.value.isEmpty) {
         if (isIncoming) {
           //Use current receiving address as address
           String receivingAddress = await currentReceivingAddress;
