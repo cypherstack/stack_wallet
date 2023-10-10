@@ -116,7 +116,6 @@ class EpicCashWallet extends CoinServiceAPI
 
   static const integrationTestFlag =
       bool.fromEnvironment("IS_INTEGRATION_TEST");
-  final m = Mutex();
   final syncMutex = Mutex();
 
   final _prefs = Prefs.instance;

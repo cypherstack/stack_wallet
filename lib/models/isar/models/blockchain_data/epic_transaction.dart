@@ -116,9 +116,8 @@ class Message {
 }
 
 enum EpicTransactionType {
-  //Use Epic transaction type here
   TxReceived,
   TxReceivedCancelled,
   TxSent,
-  TxSentCancelled, // should we keep this?
+  TxSentCancelled,
 }
