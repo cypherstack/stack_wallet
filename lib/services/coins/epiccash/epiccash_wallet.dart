@@ -17,6 +17,7 @@ import 'dart:isolate';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_libepiccash/epic_cash.dart';
+import 'package:flutter_libepiccash/models/transaction.dart';
 import 'package:isar/isar.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
@@ -49,7 +50,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
-import 'package:stackwallet/wallets/example/libepiccash.dart' as epiccash;
+import 'package:flutter_libepiccash/lib.dart' as epiccash;
 import 'package:tuple/tuple.dart';
 import 'package:websocket_universal/websocket_universal.dart';
 
@@ -1242,8 +1243,8 @@ class EpicCashWallet extends CoinServiceAPI
       final isConfirmed = tx.confirmed;
 
       int amt = 0;
-      if (tx.txType == EpicTransactionType.TxReceived ||
-          tx.txType == EpicTransactionType.TxReceivedCancelled) {
+      if (tx.txType == TransactionType.TxReceived ||
+          tx.txType == TransactionType.TxReceivedCancelled) {
         amt = int.parse(tx.amountCredited);
       } else {
         int debit = int.parse(tx.amountDebited);
@@ -1256,7 +1257,7 @@ class EpicCashWallet extends CoinServiceAPI
 
       String? slateId = tx.txSlateId;
       String address = slatesToCommits[slateId]
-                  ?[tx.txType == EpicTransactionType.TxReceived ? "from" : "to"]
+                  ?[tx.txType == TransactionType.TxReceived ? "from" : "to"]
               as String? ??
           "";
       String? commitId = slatesToCommits[slateId]?['commitId'] as String?;
@@ -1271,8 +1272,8 @@ class EpicCashWallet extends CoinServiceAPI
         height = null;
       }
 
-      final isIncoming = (tx.txType == EpicTransactionType.TxReceived ||
-          tx.txType == EpicTransactionType.TxReceivedCancelled);
+      final isIncoming = (tx.txType == TransactionType.TxReceived ||
+          tx.txType == TransactionType.TxReceivedCancelled);
       final txn = isar_models.Transaction(
         walletId: walletId,
         txid: commitId ?? tx.id.toString(),
@@ -1288,8 +1289,8 @@ class EpicCashWallet extends CoinServiceAPI
         ).toJsonString(),
         fee: (tx.fee == "null") ? 0 : int.parse(tx.fee!),
         height: height,
-        isCancelled: tx.txType == EpicTransactionType.TxSentCancelled ||
-            tx.txType == EpicTransactionType.TxReceivedCancelled,
+        isCancelled: tx.txType == TransactionType.TxSentCancelled ||
+            tx.txType == TransactionType.TxReceivedCancelled,
         isLelantus: false,
         slateId: slateId,
         nonce: null,
