@@ -255,9 +255,12 @@ abstract class LibEpiccash {
         final part1 = jsonDecode(slate[0] as String);
         final part2 = jsonDecode(slate[1] as String);
 
+        List<dynamic>? outputs = part2['tx']?['body']?['outputs'] as List;
+        String? commitId = (outputs.isEmpty) ? '' : outputs[0]['commit'] as String;
+
         ({String slateId, String commitId}) data = (
           slateId: part1[0]['tx_slate_id'],
-          commitId: part2['tx']['body']['outputs'][0]['commit'],
+          commitId: commitId,
         );
 
         return data;
@@ -463,10 +466,6 @@ abstract class LibEpiccash {
                     .toInt();
             var amountSending = amount - largestSatoshiFee;
             //Get fees for this new amount
-            ({
-              String wallet,
-              int amount,
-            }) data = (wallet: wallet, amount: amountSending);
             fees = await compute(_transactionFeesWrapper, (
               wallet: wallet,
               amount: amountSending,
