@@ -16,7 +16,6 @@ import 'dart:isolate';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_libepiccash/epic_cash.dart';
 import 'package:flutter_libepiccash/lib.dart' as epiccash;
 import 'package:flutter_libepiccash/models/transaction.dart';
 import 'package:isar/isar.dart';
