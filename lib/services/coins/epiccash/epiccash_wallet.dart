@@ -951,28 +951,6 @@ class EpicCashWallet extends CoinServiceAPI
     }
   }
 
-  Future<Map<dynamic, dynamic>> removeBadAndRepeats(
-      Map<dynamic, dynamic> pendingAndProcessedSlates) async {
-    var clone = <dynamic, Map<dynamic, dynamic>>{};
-    for (var indexPair in pendingAndProcessedSlates.entries) {
-      clone[indexPair.key] = <dynamic, dynamic>{};
-      for (var pendingProcessed
-          in (indexPair.value as Map<dynamic, dynamic>).entries) {
-        if (pendingProcessed.value is String &&
-                (pendingProcessed.value as String)
-                    .contains("has already been received") ||
-            (pendingProcessed.value as String)
-                .contains("Error Wallet store error: DB Not Found Error")) {
-        } else if (pendingProcessed.value is String &&
-            pendingProcessed.value as String == "[]") {
-        } else {
-          clone[indexPair.key]?[pendingProcessed.key] = pendingProcessed.value;
-        }
-      }
-    }
-    return clone;
-  }
-
   Future<Map<dynamic, dynamic>> getSlatesToCommits() async {
     try {
       var slatesToCommits = epicGetSlatesToCommits();
