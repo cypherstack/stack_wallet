@@ -58,10 +58,6 @@ const int MINIMUM_CONFIRMATIONS = 3;
 const String GENESIS_HASH_MAINNET = "";
 const String GENESIS_HASH_TESTNET = "";
 
-abstract class ListenerManager {
-  static Pointer<Void>? pointer;
-}
-
 Future<String> deleteEpicWallet({
   required String walletId,
   required SecureStorageInterface secureStore,
@@ -759,13 +755,7 @@ class EpicCashWallet extends CoinServiceAPI
   Future<void> _startScans() async {
     try {
       //First stop the current listener
-      if (ListenerManager.pointer != null) {
-        Logging.instance
-            .log("LISTENER HANDLER IS NOT NULL ....", level: LogLevel.Info);
-        Logging.instance
-            .log("STOPPING ANY WALLET LISTENER ....", level: LogLevel.Info);
-        epicboxListenerStop(ListenerManager.pointer!);
-      }
+      epiccash.LibEpiccash.stopEpicboxListener();
       final wallet = await _secureStore.read(key: '${_walletId}_wallet');
 
       // max number of blocks to scan per loop iteration
@@ -895,9 +885,8 @@ class EpicCashWallet extends CoinServiceAPI
     Logging.instance.log("STARTING WALLET LISTENER ....", level: LogLevel.Info);
     final wallet = await _secureStore.read(key: '${_walletId}_wallet');
     EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
-
-    ListenerManager.pointer =
-        epicboxListenerStart(wallet!, epicboxConfig.toString());
+    epiccash.LibEpiccash.startEpicboxListener(
+        wallet: wallet!, epicboxConfig: epicboxConfig.toString());
   }
 
   Future<int> getRestoreHeight() async {
