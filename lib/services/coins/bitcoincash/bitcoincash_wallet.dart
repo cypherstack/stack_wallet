@@ -2166,8 +2166,11 @@ class BitcoinCashWallet extends CoinServiceAPI
         // outgoing tx
         type = isar_models.TransactionType.outgoing;
         amount = amountSentFromWallet - changeAmount - fee;
+
+        // TODO fix this hack
+        final diff = outputAddresses.difference(myChangeReceivedOnAddresses);
         final possible =
-            outputAddresses.difference(myChangeReceivedOnAddresses).first;
+            diff.isNotEmpty ? diff.first : myChangeReceivedOnAddresses.first;
 
         if (transactionAddress.value != possible) {
           transactionAddress = isar_models.Address(
