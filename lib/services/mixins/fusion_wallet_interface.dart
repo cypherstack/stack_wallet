@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:bitbox/bitbox.dart' as bitbox;
 import 'package:bitcoindart/bitcoindart.dart' as btcdart;
 import 'package:fusiondart/fusiondart.dart' as fusion;
 import 'package:isar/isar.dart';
@@ -12,6 +13,7 @@ import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/services/fusion_tor_service.dart';
 import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 
 const String kReservedFusionAddress = "reserved_fusion_address";
@@ -285,22 +287,32 @@ mixin FusionWalletInterface {
 
     // Loop through UTXOs, checking and adding valid ones.
     for (final utxo in walletUtxos) {
-      // Check if address is available.
-      if (utxo.address == null) {
-        // A utxo object should always have a non null address.
-        throw Exception("UTXO ${utxo.txid}:${utxo.vout} address is null");
+      final String addressString = utxo.address!;
+      final List<String> possibleAddresses = [addressString];
+
+      if (bitbox.Address.detectFormat(addressString) ==
+          bitbox.Address.formatCashAddr) {
+        possibleAddresses.add(bitbox.Address.toLegacyAddress(addressString));
+      } else {
+        possibleAddresses.add(bitbox.Address.toCashAddress(addressString));
       }
 
       // Find public key.
-      final addr = await _db.getAddress(_walletId, utxo.address!);
+      final addr = await _db
+          .getAddresses(_walletId)
+          .filter()
+          .anyOf<String, QueryBuilder<Address, Address, QAfterFilterCondition>>(
+              possibleAddresses, (q, e) => q.valueEqualTo(e))
+          .findFirst();
 
       if (addr == null) {
         // A utxo object should always have a non null address.
-        fusion.Utilities.debugPrint(
-          "UTXO ${utxo.txid}:${utxo.vout} address not found.  TODO calculate it instead of continuing.",
+        // If non found then just ignore the UTXO (aka don't fuse it)
+        Logging.instance.log(
+          "Missing address=\"$addressString\" while selecting UTXOs for Fusion",
+          level: LogLevel.Warning,
         );
         continue;
-        throw Exception("UTXO ${utxo.txid}:${utxo.vout} address not found");
       }
 
       final dto = fusion.UtxoDTO(
@@ -308,7 +320,7 @@ mixin FusionWalletInterface {
         vout: utxo.vout,
         value: utxo.value,
         address: utxo.address!,
-        pubKey: addr!.publicKey,
+        pubKey: addr.publicKey,
       );
 
       // Add UTXO to coinList.
