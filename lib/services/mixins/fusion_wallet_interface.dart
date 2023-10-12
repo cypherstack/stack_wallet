@@ -330,6 +330,7 @@ mixin FusionWalletInterface {
           vout: utxo.vout,
           value: utxo.value,
           pubKey: pubKey,
+          address: utxo.address!, // TODO validate null assertion.
         ),
       );
     }
@@ -418,6 +419,7 @@ extension FusionUTXO on UTXO {
         vout: vout,
         pubKey: addr.publicKey,
         value: value,
+        address: address!, // TODO validate null assertion.
       );
     } catch (e) {
       rethrow;
