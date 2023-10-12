@@ -296,6 +296,10 @@ mixin FusionWalletInterface {
 
       if (addr == null) {
         // A utxo object should always have a non null address.
+        fusion.Utilities.debugPrint(
+          "UTXO ${utxo.txid}:${utxo.vout} address not found.  TODO calculate it instead of continuing.",
+        );
+        continue;
         throw Exception("UTXO ${utxo.txid}:${utxo.vout} address not found");
       }
 
