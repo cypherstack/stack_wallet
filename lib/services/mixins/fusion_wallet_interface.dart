@@ -287,13 +287,17 @@ mixin FusionWalletInterface {
     for (final utxo in walletUtxos) {
       // Check if address is available.
       if (utxo.address == null) {
-        // A utxo object should always have a non null address
-        // as per the db query above
+        // A utxo object should always have a non null address.
         throw Exception("UTXO ${utxo.txid}:${utxo.vout} address is null");
       }
 
       // Find public key.
       final addr = await _db.getAddress(_walletId, utxo.address!);
+
+      if (addr == null) {
+        // A utxo object should always have a non null address.
+        throw Exception("UTXO ${utxo.txid}:${utxo.vout} address not found");
+      }
 
       final dto = fusion.UtxoDTO(
         txid: utxo.txid,
