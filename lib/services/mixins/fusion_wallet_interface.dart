@@ -12,7 +12,6 @@ import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/services/fusion_tor_service.dart';
 import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/extensions/impl/string.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 
 const String kReservedFusionAddress = "reserved_fusion_address";
@@ -146,22 +145,6 @@ mixin FusionWalletInterface {
     }
   }
 
-  /// Returns a list of all UTXOs in the wallet for the given address.
-  Future<List<fusion.UtxoDTO>> getInputsByAddress(String address) async {
-    final _utxos = await _db.getUTXOsByAddress(_walletId, address).findAll();
-
-    List<Future<fusion.UtxoDTO>> futureInputs = _utxos
-        .map(
-          (utxo) => utxo.toFusionUtxoDTO(
-            walletId: _walletId,
-            dbInstance: _db,
-          ),
-        )
-        .toList();
-
-    return await Future.wait(futureInputs);
-  }
-
   /// Creates a new reserved change address.
   Future<fusion.Address> createNewReservedChangeAddress() async {
     // _getNextUnusedChangeAddress() grabs the latest unused change address
@@ -275,7 +258,6 @@ mixin FusionWalletInterface {
     await mainFusionObject.initFusion(
       getAddresses: getFusionAddresses,
       getTransactionsByAddress: getTransactionsByAddress,
-      getInputsByAddress: getInputsByAddress,
       getUnusedReservedChangeAddresses: getUnusedReservedChangeAddresses,
       getSocksProxyAddress: getSocksProxyAddress,
       getChainHeight: _getChainHeight,
@@ -291,56 +273,43 @@ mixin FusionWalletInterface {
           .broadcastTransaction(rawTx: txHex),
     );
 
-    // Add stack UTXOs.
-    final List<UTXO> walletUtxos = await _db.getUTXOs(_walletId).findAll();
+    // Add unfrozen stack UTXOs.
+    final List<UTXO> walletUtxos = await _db
+        .getUTXOs(_walletId)
+        .filter()
+        .isBlockedEqualTo(false)
+        .and()
+        .addressIsNotNull()
+        .findAll();
     final List<fusion.UtxoDTO> coinList = [];
 
     // Loop through UTXOs, checking and adding valid ones.
     for (final utxo in walletUtxos) {
       // Check if address is available.
       if (utxo.address == null) {
-        // TODO we could continue here (and below during scriptPubKey validation) instead of throwing.
+        // A utxo object should always have a non null address
+        // as per the db query above
         throw Exception("UTXO ${utxo.txid}:${utxo.vout} address is null");
       }
 
       // Find public key.
-      Map<String, dynamic> tx =
-          await _getWalletCachedElectrumX().getTransaction(
-        coin: _coin,
-        txHash: utxo.txid,
-        verbose: true,
+      final addr = await _db.getAddress(_walletId, utxo.address!);
+
+      final dto = fusion.UtxoDTO(
+        txid: utxo.txid,
+        vout: utxo.vout,
+        value: utxo.value,
+        address: utxo.address!,
+        pubKey: addr!.publicKey,
       );
-
-      // Check if scriptPubKey is available.
-      final scriptPubKeyHex =
-          tx["vout"]?[utxo.vout]?["scriptPubKey"]?["hex"] as String?;
-      if (scriptPubKeyHex == null) {
-        throw Exception(
-          "hex in scriptPubKey of vout index ${utxo.vout} in transaction is null",
-        );
-      }
-
-      // Assign scriptPubKey to pubKey.  TODO verify this is correct.
-      List<int> pubKey = scriptPubKeyHex.toUint8ListFromHex;
 
       // Add UTXO to coinList.
-      coinList.add(
-        fusion.UtxoDTO(
-          txid: utxo.txid,
-          vout: utxo.vout,
-          value: utxo.value,
-          pubKey: pubKey,
-          address: utxo.address!, // TODO validate null assertion.
-        ),
-      );
+      coinList.add(dto);
     }
-
-    // Add Stack UTXOs.
-    final inputs = await mainFusionObject.addCoinsFromWallet(coinList);
 
     // Fuse UTXOs.
     return await mainFusionObject.fuse(
-      inputsFromWallet: inputs,
+      inputsFromWallet: coinList,
       network:
           _coin.isTestNet ? fusion.Utilities.testNet : fusion.Utilities.mainNet,
     );
@@ -371,58 +340,5 @@ extension FusionAddress on Address {
         derivationPath?.value ?? "", // TODO fix null derivation path.
       ),
     );
-  }
-}
-
-/// An extension of Stack Wallet's UTXO class that adds CashFusion functionality.
-///
-/// This class is used to convert Stack Wallet's UTXO class to FusionDart's
-/// Input and Output classes.
-extension FusionUTXO on UTXO {
-  /// Fetch the public key of an address stored in the database.
-  Future<Address> _getAddressPubkey({
-    required String address,
-    required String walletId,
-    required MainDB dbInstance,
-  }) async {
-    final Address? addr = await dbInstance.getAddress(walletId, address);
-
-    if (addr == null) {
-      throw Exception("Address not found");
-    }
-
-    return addr;
-  }
-
-  /// Converts a Stack Wallet UTXO to a FusionDart Input.
-  Future<fusion.UtxoDTO> toFusionUtxoDTO({
-    required String walletId,
-    required MainDB dbInstance,
-  }) async {
-    if (address == null) {
-      throw Exception("toFusionInput Address is null");
-    }
-
-    try {
-      final Address addr = await _getAddressPubkey(
-        address: address!,
-        walletId: walletId,
-        dbInstance: dbInstance,
-      );
-
-      if (addr.publicKey.isEmpty) {
-        throw Exception("Public key for fetched address is empty");
-      }
-
-      return fusion.UtxoDTO(
-        txid: txid,
-        vout: vout,
-        pubKey: addr.publicKey,
-        value: value,
-        address: address!, // TODO validate null assertion.
-      );
-    } catch (e) {
-      rethrow;
-    }
   }
 }
