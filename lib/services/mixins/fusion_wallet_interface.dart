@@ -10,6 +10,7 @@ import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/models/fusion_progress_ui_state.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/pages_desktop_specific/cashfusion/sub_widgets/fusion_dialog.dart';
 import 'package:stackwallet/services/fusion_tor_service.dart';
 import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -56,8 +57,6 @@ mixin FusionWalletInterface {
   /// Initializes the FusionWalletInterface mixin.
   ///
   /// This function must be called before any other functions in this mixin.
-  ///
-  /// Returns a `Future<void>` that resolves when Tor has been started.
   Future<void> initFusionInterface({
     required String walletId,
     required Coin coin,
@@ -88,8 +87,29 @@ mixin FusionWalletInterface {
 
   // callback to update the ui state object
   void updateStatus(fusion.FusionStatus fusionStatus) {
-    // TODO: this
-    // set _uiState states
+    switch (fusionStatus) {
+      case fusion.FusionStatus.setup:
+        _uiState?.connecting = CashFusionStatus.waiting;
+        break;
+      case fusion.FusionStatus.waiting:
+        _uiState?.connecting = CashFusionStatus.waiting;
+        break;
+      case fusion.FusionStatus.connecting:
+        _uiState?.connecting = CashFusionStatus.waiting;
+        break;
+      case fusion.FusionStatus.running:
+        _uiState?.connecting = CashFusionStatus.fusing;
+        break;
+      case fusion.FusionStatus.complete:
+        _uiState?.connecting = CashFusionStatus.success;
+        break;
+      case fusion.FusionStatus.failed:
+        _uiState?.connecting = CashFusionStatus.failed;
+        break;
+      case fusion.FusionStatus.exception:
+        _uiState?.connecting = CashFusionStatus.failed;
+        break;
+    }
   }
 
   /// Returns a list of all owned p2pkh addresses in the wallet.
@@ -249,9 +269,6 @@ mixin FusionWalletInterface {
   /// Fuse the wallet's UTXOs.
   ///
   /// This function is called when the user taps the "Fuse" button in the UI.
-  ///
-  /// Returns:
-  ///   A `Future<void>` that resolves when the fusion operation is finished.
   Future<void> fuse() async {
     // Initial attempt for CashFusion integration goes here.
     final mainFusionObject = fusion.Fusion(fusion.FusionParams());
