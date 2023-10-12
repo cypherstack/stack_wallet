@@ -297,20 +297,28 @@ mixin FusionWalletInterface {
         possibleAddresses.add(bitbox.Address.toCashAddress(addressString));
       }
 
-      // Find public key.
+      // Fetch address to get pubkey
       final addr = await _db
           .getAddresses(_walletId)
           .filter()
           .anyOf<String, QueryBuilder<Address, Address, QAfterFilterCondition>>(
               possibleAddresses, (q, e) => q.valueEqualTo(e))
+          .and()
+          .group((q) => q
+              .subTypeEqualTo(AddressSubType.change)
+              .or()
+              .subTypeEqualTo(AddressSubType.receiving))
+          .and()
+          .typeEqualTo(AddressType.p2pkh)
           .findFirst();
 
+      // depending on the address type in the query above this can be null
       if (addr == null) {
         // A utxo object should always have a non null address.
         // If non found then just ignore the UTXO (aka don't fuse it)
         Logging.instance.log(
-          "Missing address=\"$addressString\" while selecting UTXOs for Fusion",
-          level: LogLevel.Warning,
+          "Ignoring utxo=$utxo for address=\"$addressString\" while selecting UTXOs for Fusion",
+          level: LogLevel.Info,
         );
         continue;
       }
