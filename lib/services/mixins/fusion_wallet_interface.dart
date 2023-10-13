@@ -110,7 +110,7 @@ mixin FusionWalletInterface {
         _uiState?.complete = CashFusionStatus.success;
         break;
       case fusion.FusionStatus.failed:
-        _uiState?.fusing = CashFusionStatus.failed;
+        // _uiState?.fusing = CashFusionStatus.failed;
         _uiState?.complete = CashFusionStatus.failed;
 
         failCurrentUiState();
