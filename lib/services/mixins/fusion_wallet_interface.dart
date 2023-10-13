@@ -186,7 +186,8 @@ mixin FusionWalletInterface {
       );
 
       return node.privateKey!;
-    } catch (_) {
+    } catch (e, s) {
+      Logging.instance.log("$e\n$s", level: LogLevel.Fatal);
       throw Exception("Derivation path for pubkey=$pubKey could not be found");
     }
   }
