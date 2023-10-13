@@ -89,9 +89,10 @@ mixin FusionWalletInterface {
   void _updateStatus(fusion.FusionStatus fusionStatus) {
     switch (fusionStatus) {
       case fusion.FusionStatus.setup:
-        _uiState?.outputs = CashFusionStatus.waiting;
+        _uiState?.connecting = CashFusionStatus.running;
         break;
       case fusion.FusionStatus.waiting:
+        _uiState?.connecting = CashFusionStatus.success;
         _uiState?.outputs = CashFusionStatus.success;
         break;
       case fusion.FusionStatus.connecting:
@@ -99,7 +100,7 @@ mixin FusionWalletInterface {
         break;
       case fusion.FusionStatus.running:
         _uiState?.connecting = CashFusionStatus.success;
-        _uiState?.fusing = CashFusionStatus.fusing;
+        _uiState?.fusing = CashFusionStatus.running;
         break;
       case fusion.FusionStatus.complete:
         _uiState?.fusing = CashFusionStatus.success;

@@ -11,7 +11,7 @@ import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 
-enum CashFusionStatus { waiting, fusing, success, failed }
+enum CashFusionStatus { waiting, running, success, failed }
 
 class FusionDialog extends StatelessWidget {
   const FusionDialog({
@@ -31,7 +31,7 @@ class FusionDialog extends StatelessWidget {
             color:
                 Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
           );
-        case CashFusionStatus.fusing:
+        case CashFusionStatus.running:
           return SvgPicture.asset(
             Assets.svg.loader,
             color: Theme.of(context).extension<StackColors>()!.accentColorGreen,
