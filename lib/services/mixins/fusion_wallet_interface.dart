@@ -113,6 +113,14 @@ mixin FusionWalletInterface {
         _uiState?.fusing = CashFusionStatus.failed;
         _uiState?.complete = CashFusionStatus.failed;
         break;
+      case fusion.FusionStatus.reset:
+        _uiState?.outputs = CashFusionStatus.waiting;
+        _uiState?.peers = CashFusionStatus.waiting;
+        _uiState?.connecting = CashFusionStatus.waiting;
+        _uiState?.fusing = CashFusionStatus.waiting;
+        _uiState?.complete = CashFusionStatus.waiting;
+        _uiState?.fusionState = CashFusionStatus.waiting;
+        break;
     }
   }
 
@@ -389,6 +397,7 @@ mixin FusionWalletInterface {
       fusion.FusionStatus.complete,
       fusion.FusionStatus.failed,
       fusion.FusionStatus.exception,
+      fusion.FusionStatus.reset,
     ];
 
     // Iterate through the list of states, waiting one second between each.
