@@ -2809,66 +2809,43 @@ class BitcoinCashWallet extends CoinServiceAPI
       testnet: coin == Coin.bitcoincashTestnet,
     );
 
-    // retrieve address' utxos from the rest api
-    List<bitbox.Utxo> _utxos =
-        []; // await Bitbox.Address.utxo(address) as List<Bitbox.Utxo>;
-    for (var element in utxosToUse) {
-      _utxos.add(bitbox.Utxo(
-          element.txid,
-          element.vout,
-          bitbox.BitcoinCash.fromSatoshi(element.value),
-          element.value,
-          0,
-          MINIMUM_CONFIRMATIONS + 1));
-    }
-    Logger.print("bch utxos: $_utxos");
-
-    // placeholder for input signatures
-    final List<Map<dynamic, dynamic>> signatures = [];
-
-    // placeholder for total input balance
-    // int totalBalance = 0;
-
-    // iterate through the list of address _utxos and use them as inputs for the
-    // withdrawal transaction
-    for (var utxo in _utxos) {
-      // add the utxo as an input for the transaction
-      builder.addInput(utxo.txid, utxo.vout);
-      final ec =
-          utxoSigningData.firstWhere((e) => e.utxo.txid == utxo.txid).keyPair!;
-
-      final bitboxEC = bitbox.ECPair.fromWIF(ec.toWIF());
-
-      // add a signature to the list to be used later
-      signatures.add({
-        "vin": signatures.length,
-        "key_pair": bitboxEC,
-        "original_amount": utxo.satoshis
-      });
-
-      // totalBalance += utxo.satoshis;
-    }
-
-    // calculate the fee based on number of inputs and one expected output
-    // final fee =
-    //     bitbox.BitcoinCash.getByteCount(signatures.length, recipients.length);
-
-    // calculate how much balance will be left over to spend after the fee
-    // final sendAmount = totalBalance - fee;
-
     // add the output based on the address provided in the testing data
     for (int i = 0; i < recipients.length; i++) {
-      String recipient = recipients[i];
-      int satoshiAmount = satoshiAmounts[i];
-      builder.addOutput(recipient, satoshiAmount);
+      builder.addOutput(recipients[i], satoshiAmounts[i]);
     }
 
-    // sign all inputs
-    for (var signature in signatures) {
+    assert(utxosToUse.length == utxoSigningData.length);
+
+    final List<({bitbox.ECPair ecPair, int sats})> signingData = [];
+
+    for (final sd in utxoSigningData) {
+      final utxo = bitbox.Utxo(
+        sd.utxo.txid,
+        sd.utxo.vout,
+        bitbox.BitcoinCash.fromSatoshi(sd.utxo.value),
+        sd.utxo.value,
+        0,
+        MINIMUM_CONFIRMATIONS + 1, // why +1 ?
+      );
+
+      // add the utxo as an input for the transaction
+      builder.addInput(utxo.txid, utxo.vout);
+
+      // prepare signing data
+      signingData.add(
+        (
+          ecPair: bitbox.ECPair.fromWIF(sd.keyPair!.toWIF()),
+          sats: utxo.satoshis,
+        ),
+      );
+    }
+
+    for (int i = 0; i < signingData.length; i++) {
       builder.sign(
-          signature["vin"] as int,
-          signature["key_pair"] as bitbox.ECPair,
-          signature["original_amount"] as int);
+        i,
+        signingData[i].ecPair,
+        signingData[i].sats,
+      );
     }
 
     // build the transaction
