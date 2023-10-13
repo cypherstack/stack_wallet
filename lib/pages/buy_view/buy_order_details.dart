@@ -20,6 +20,8 @@ import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -89,9 +91,18 @@ class _BuyOrderDetailsViewState extends ConsumerState<BuyOrderDetailsView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            "Simplex order",
-            style: STextStyles.pageTitleH1(context),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Simplex order",
+                style: STextStyles.pageTitleH1(context),
+                textAlign: TextAlign.left,
+              ),
+              SimpleCopyButton(
+                  data: "Purchase ID: ${widget.order.paymentId}, User ID: ${widget.order.userId}, Quote ID: ${widget.order.quote.id}, Quoted cost: ${widget.order.quote.youPayFiatPrice.toStringAsFixed(2)} ${widget.order.quote.fiat.ticker.toUpperCase()}, Quoted amount: ${widget.order.quote.youReceiveCryptoAmount} ${widget.order.quote.crypto.ticker.toUpperCase()}, Receiving ${widget.order.quote.crypto.ticker.toUpperCase()} address: ${widget.order.quote.receivingAddress}, Provider: Simplex"
+              )
+            ],
           ),
           const SizedBox(
             height: 16,
@@ -261,7 +272,7 @@ class _BuyOrderDetailsViewState extends ConsumerState<BuyOrderDetailsView> {
           ),
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             Text(
-              "This information is not saved,\nscreenshot it now for your records",
+              "This information is not saved,\ncopy from button or screenshot it now for your records",
               style: STextStyles.label(context).copyWith(
                 color: Theme.of(context).extension<StackColors>()!.textDark,
               ),
