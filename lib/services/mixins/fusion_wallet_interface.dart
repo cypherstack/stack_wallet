@@ -374,4 +374,29 @@ mixin FusionWalletInterface {
     throw UnimplementedError(
         "TODO refreshFusion eg look up number of fusion participants connected/coordinating");
   }
+
+  /// Testing ground for iterating thru the UI state.
+  ///
+  /// TODO remove this, just for development.
+  Future<void> stepThruUiStates() async {
+    // Define the list of states.
+    final List<fusion.FusionStatus> states = [
+      fusion.FusionStatus.setup,
+      fusion.FusionStatus.waiting,
+      fusion.FusionStatus.connecting,
+      fusion.FusionStatus.running,
+      fusion.FusionStatus.complete,
+      fusion.FusionStatus.failed,
+      fusion.FusionStatus.exception,
+    ];
+
+    // Iterate through the list of states, waiting one second between each.
+    for (final state in states) {
+      // Set the connecting status to the current state.
+      _updateStatus(state);
+
+      // Wait one second.
+      await Future.delayed(const Duration(seconds: 1));
+    }
+  }
 }

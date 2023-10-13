@@ -648,6 +648,7 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                             }
 
                             unawaited(fusionWallet.fuse());
+                            unawaited(fusionWallet.stepThruUiStates());
 
                             await showDialog<void>(
                               context: context,
