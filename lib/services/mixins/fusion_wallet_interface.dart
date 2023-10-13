@@ -86,7 +86,7 @@ mixin FusionWalletInterface {
   }
 
   // callback to update the ui state object
-  void updateStatus(fusion.FusionStatus fusionStatus) {
+  void _updateStatus(fusion.FusionStatus fusionStatus) {
     switch (fusionStatus) {
       case fusion.FusionStatus.setup:
         _uiState?.connecting = CashFusionStatus.waiting;
@@ -112,24 +112,8 @@ mixin FusionWalletInterface {
     }
   }
 
-  /// Returns a list of all owned p2pkh addresses in the wallet.
-  Future<List<fusion.Address>> getFusionAddresses() async {
-    List<Address> _addresses = await _db
-        .getAddresses(_walletId)
-        .filter()
-        .typeEqualTo(AddressType.p2pkh)
-        .and()
-        .group((q) => q
-            .subTypeEqualTo(AddressSubType.receiving)
-            .or()
-            .subTypeEqualTo(AddressSubType.change))
-        .findAll();
-
-    return _addresses.map((address) => address.toFusionAddress()).toList();
-  }
-
   /// Returns a list of all transactions in the wallet for the given address.
-  Future<List<Map<String, dynamic>>> getTransactionsByAddress(
+  Future<List<Map<String, dynamic>>> _getTransactionsByAddress(
     String address,
   ) async {
     final txidList =
@@ -145,11 +129,22 @@ mixin FusionWalletInterface {
     return await Future.wait(futures);
   }
 
-  Future<Uint8List> getPrivateKeyForPubKey(List<int> pubKey) async {
+  Future<Uint8List> _getPrivateKeyForPubKey(List<int> pubKey) async {
     // can't directly query for equal lists in isar so we need to fetch
     // all addresses then search in dart
     try {
-      final derivationPath = (await getFusionAddresses())
+      final derivationPath = (await _db
+              .getAddresses(_walletId)
+              .filter()
+              .typeEqualTo(AddressType.p2pkh)
+              .and()
+              .derivationPathIsNotNull()
+              .and()
+              .group((q) => q
+                  .subTypeEqualTo(AddressSubType.receiving)
+                  .or()
+                  .subTypeEqualTo(AddressSubType.change))
+              .findAll())
           .firstWhere((e) => e.publicKey.toString() == pubKey.toString())
           .derivationPath!
           .value;
@@ -168,7 +163,7 @@ mixin FusionWalletInterface {
   }
 
   /// Creates a new reserved change address.
-  Future<fusion.Address> createNewReservedChangeAddress() async {
+  Future<Address> _createNewReservedChangeAddress() async {
     // _getNextUnusedChangeAddress() grabs the latest unused change address
     // from the wallet.
     // CopyWith to mark it as a fusion reserved change address
@@ -183,13 +178,13 @@ mixin FusionWalletInterface {
       await _db.putAddress(address);
     }
 
-    return address.toFusionAddress();
+    return address;
   }
 
   /// Returns a list of unused reserved change addresses.
   ///
   /// If there are not enough unused reserved change addresses, new ones are created.
-  Future<List<fusion.Address>> getUnusedReservedChangeAddresses(
+  Future<List<fusion.Address>> _getUnusedReservedChangeAddresses(
     int numberOfAddresses,
   ) async {
     // Fetch all reserved change addresses.
@@ -202,7 +197,7 @@ mixin FusionWalletInterface {
         .findAll();
 
     // Initialize a list of unused reserved change addresses.
-    final List<fusion.Address> unusedAddresses = [];
+    final List<Address> unusedAddresses = [];
 
     // check addresses for tx history
     for (final address in reservedChangeAddresses) {
@@ -217,24 +212,35 @@ mixin FusionWalletInterface {
         // _getTxCountForAddress can throw!
         final count = await _getTxCountForAddress(address: address.value);
         if (count == 0) {
-          unusedAddresses.add(address.toFusionAddress());
+          unusedAddresses.add(address);
         }
       }
     }
 
     // If there are not enough unused reserved change addresses, create new ones.
     while (unusedAddresses.length < numberOfAddresses) {
-      unusedAddresses.add(await createNewReservedChangeAddress());
+      unusedAddresses.add(await _createNewReservedChangeAddress());
     }
 
     // Return the list of unused reserved change addresses.
-    return unusedAddresses.sublist(0, numberOfAddresses);
+    return unusedAddresses.sublist(0, numberOfAddresses).map((e) {
+      final bool fusionReserved = e.otherData == kReservedFusionAddress;
+
+      return fusion.Address(
+        address: e.value,
+        publicKey: e.publicKey,
+        fusionReserved: fusionReserved,
+        derivationPath: fusion.DerivationPath(
+          e.derivationPath!.value,
+        ),
+      );
+    }).toList();
   }
 
   int _torStartCount = 0;
 
   /// Returns the current Tor proxy address.
-  Future<({InternetAddress host, int port})> getSocksProxyAddress() async {
+  Future<({InternetAddress host, int port})> _getSocksProxyAddress() async {
     if (_torStartCount > 5) {
       // something is quite broken so stop trying to recursively fetch
       // start up tor and fetch proxy info
@@ -261,7 +267,7 @@ mixin FusionWalletInterface {
       await _torService.start();
 
       // try again to fetch proxy info
-      return await getSocksProxyAddress();
+      return await _getSocksProxyAddress();
     }
   }
 
@@ -276,18 +282,17 @@ mixin FusionWalletInterface {
 
     // Pass wallet functions to the Fusion object
     await mainFusionObject.initFusion(
-      getAddresses: getFusionAddresses,
-      getTransactionsByAddress: getTransactionsByAddress,
-      getUnusedReservedChangeAddresses: getUnusedReservedChangeAddresses,
-      getSocksProxyAddress: getSocksProxyAddress,
+      getTransactionsByAddress: _getTransactionsByAddress,
+      getUnusedReservedChangeAddresses: _getUnusedReservedChangeAddresses,
+      getSocksProxyAddress: _getSocksProxyAddress,
       getChainHeight: _getChainHeight,
-      updateStatusCallback: updateStatus,
+      updateStatusCallback: _updateStatus,
       getTransactionJson: (String txid) async =>
           await _getWalletCachedElectrumX().getTransaction(
         coin: _coin,
         txHash: txid,
       ),
-      getPrivateKeyForPubKey: getPrivateKeyForPubKey,
+      getPrivateKeyForPubKey: _getPrivateKeyForPubKey,
       broadcastTransaction: (String txHex) => _getWalletCachedElectrumX()
           .electrumXClient
           .broadcastTransaction(rawTx: txHex),
@@ -365,26 +370,5 @@ mixin FusionWalletInterface {
     // TODO
     throw UnimplementedError(
         "TODO refreshFusion eg look up number of fusion participants connected/coordinating");
-  }
-}
-
-/// An extension of Stack Wallet's Address class that adds CashFusion functionality.
-extension FusionAddress on Address {
-  fusion.Address toFusionAddress() {
-    if (derivationPath == null) {
-      // throw Exception("Fusion Addresses require a derivation path");
-      // TODO calculate a derivation path if it is null.
-    }
-
-    final bool fusionReserved = otherData == kReservedFusionAddress;
-
-    return fusion.Address(
-      address: value,
-      publicKey: publicKey,
-      fusionReserved: fusionReserved,
-      derivationPath: fusion.DerivationPath(
-        derivationPath?.value ?? "", // TODO fix null derivation path.
-      ),
-    );
   }
 }
