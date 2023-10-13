@@ -98,16 +98,19 @@ mixin FusionWalletInterface {
         _uiState?.connecting = CashFusionStatus.waiting;
         break;
       case fusion.FusionStatus.running:
-        _uiState?.connecting = CashFusionStatus.fusing;
+        _uiState?.fusing = CashFusionStatus.fusing;
         break;
       case fusion.FusionStatus.complete:
-        _uiState?.connecting = CashFusionStatus.success;
+        _uiState?.fusing = CashFusionStatus.success;
+        _uiState?.complete = CashFusionStatus.success;
         break;
       case fusion.FusionStatus.failed:
-        _uiState?.connecting = CashFusionStatus.failed;
+        _uiState?.fusing = CashFusionStatus.failed;
+        _uiState?.complete = CashFusionStatus.failed;
         break;
       case fusion.FusionStatus.exception:
-        _uiState?.connecting = CashFusionStatus.failed;
+        _uiState?.fusing = CashFusionStatus.failed;
+        _uiState?.complete = CashFusionStatus.failed;
         break;
     }
   }
