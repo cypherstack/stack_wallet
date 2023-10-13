@@ -50,9 +50,6 @@ mixin FusionWalletInterface {
   late final Future<List<Address>> Function({int numberOfAddresses})
       _getNextUnusedChangeAddresses;
   late final CachedElectrumX Function() _getWalletCachedElectrumX;
-  late final Future<int> Function({
-    required String address,
-  }) _getTxCountForAddress;
   late final Future<int> Function() _getChainHeight;
 
   /// Initializes the FusionWalletInterface mixin.
@@ -65,9 +62,6 @@ mixin FusionWalletInterface {
     required Future<List<Address>> Function({int numberOfAddresses})
         getNextUnusedChangeAddress,
     required CachedElectrumX Function() getWalletCachedElectrumX,
-    required Future<int> Function({
-      required String address,
-    }) getTxCountForAddress,
     required Future<int> Function() getChainHeight,
     required Future<String?> mnemonic,
     required Future<String?> mnemonicPassphrase,
@@ -80,7 +74,6 @@ mixin FusionWalletInterface {
     _getNextUnusedChangeAddresses = getNextUnusedChangeAddress;
     _torService = FusionTorService.sharedInstance;
     _getWalletCachedElectrumX = getWalletCachedElectrumX;
-    _getTxCountForAddress = getTxCountForAddress;
     _getChainHeight = getChainHeight;
     _mnemonic = mnemonic;
     _mnemonicPassphrase = mnemonicPassphrase;
