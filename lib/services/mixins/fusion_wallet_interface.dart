@@ -155,6 +155,7 @@ mixin FusionWalletInterface {
     final address = (await _getNextUnusedChangeAddress())
         .copyWith(otherData: kReservedFusionAddress);
 
+    // Make sure the address is in the database as reserved for Fusion.
     final _address = await _db.getAddress(_walletId, address.value);
     if (_address != null) {
       await _db.updateAddress(_address, address);
