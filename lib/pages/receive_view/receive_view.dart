@@ -34,6 +34,8 @@ import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
+import '../../widgets/desktop/primary_button.dart';
+
 class ReceiveView extends ConsumerStatefulWidget {
   const ReceiveView({
     Key? key,
@@ -353,32 +355,32 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                                 foregroundColor: Theme.of(context)
                                     .extension<StackColors>()!
                                     .accentColorDark),
-                            const SizedBox(
-                              height: 20,
-                            ),
-                            CustomTextButton(
-                              text: "Create new QR code",
-                              onTap: () async {
-                                unawaited(Navigator.of(context).push(
-                                  RouteGenerator.getRoute(
-                                    shouldUseMaterialRoute:
-                                        RouteGenerator.useMaterialPageRoute,
-                                    builder: (_) => GenerateUriQrCodeView(
-                                      coin: coin,
-                                      receivingAddress: receivingAddress,
-                                    ),
-                                    settings: const RouteSettings(
-                                      name: GenerateUriQrCodeView.routeName,
-                                    ),
-                                  ),
-                                ));
-                              },
-                            ),
                           ],
                         ),
                       ),
                     ),
                   ),
+                  const SizedBox(
+                    height: 8,
+                  ),
+                  PrimaryButton(
+                    label: "Create new QR code",
+                    onPressed: () async {
+                      unawaited(Navigator.of(context).push(
+                        RouteGenerator.getRoute(
+                          shouldUseMaterialRoute:
+                          RouteGenerator.useMaterialPageRoute,
+                          builder: (_) => GenerateUriQrCodeView(
+                            coin: coin,
+                            receivingAddress: receivingAddress,
+                          ),
+                          settings: const RouteSettings(
+                            name: GenerateUriQrCodeView.routeName,
+                          ),
+                        ),
+                      ));
+                    },
+                  )
                 ],
               ),
             ),
