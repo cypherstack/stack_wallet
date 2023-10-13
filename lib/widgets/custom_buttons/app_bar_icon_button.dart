@@ -69,7 +69,7 @@ class AppBarBackButton extends StatelessWidget {
     this.isCompact = false,
     this.size,
     this.iconSize,
-    this.semanticsLabel = "Back Button. Takes Back To Previous Page.",
+    this.semanticsLabel = "Back",
   }) : super(key: key);
 
   final VoidCallback? onPressed;

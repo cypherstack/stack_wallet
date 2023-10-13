@@ -122,7 +122,7 @@ class _RefreshButtonState extends ConsumerState<WalletRefreshButton> {
         height: isDesktop ? 22 : 36,
         width: isDesktop ? 22 : 36,
         child: Semantics(
-          label: "Refresh Button. Refreshes The Values In Summary.",
+          label: "Refresh",
           excludeSemantics: true,
           child: MaterialButton(
             color: isDesktop

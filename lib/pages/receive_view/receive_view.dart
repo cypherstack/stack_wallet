@@ -155,7 +155,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                 aspectRatio: 1,
                 child: AppBarIconButton(
                   semanticsLabel:
-                      "Address List Pop-up Button. Opens A Pop-up For Address List Button.",
+                      "Address List",
                   key: const Key("walletNetworkSettingsAddNewNodeViewButton"),
                   size: 36,
                   shadows: const [],

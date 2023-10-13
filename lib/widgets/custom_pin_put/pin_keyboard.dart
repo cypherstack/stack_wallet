@@ -152,7 +152,7 @@ class _BackspaceKeyState extends State<BackspaceKey> {
             });
           },
           child: Semantics(
-            label: "Backspace Button. Deletes The Last Digit.",
+            label: "Backspace",
             excludeSemantics: true,
             child: Center(
               child: SvgPicture.asset(

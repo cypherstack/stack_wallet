@@ -1085,7 +1085,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                           _addressToggleFlag
                                               ? TextFieldIconButton(
                                                   semanticsLabel:
-                                                      "Clear Button. Clears The Address Field Input.",
+                                                      "Clear",
                                                   key: const Key(
                                                       "sendViewClearAddressFieldButtonKey"),
                                                   onTap: () {
@@ -1103,7 +1103,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                 )
                                               : TextFieldIconButton(
                                                   semanticsLabel:
-                                                      "Paste Button. Pastes From Clipboard To Address Field Input.",
+                                                      "Paste",
                                                   key: const Key(
                                                       "sendViewPasteAddressFieldButtonKey"),
                                                   onTap: () async {
@@ -1154,7 +1154,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                           if (sendToController.text.isEmpty)
                                             TextFieldIconButton(
                                               semanticsLabel:
-                                                  "Address Book Button. Opens Address Book For Address Field.",
+                                                  "Address Book",
                                               key: const Key(
                                                   "sendViewAddressBookButtonKey"),
                                               onTap: () {
@@ -1168,7 +1168,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                           if (sendToController.text.isEmpty)
                                             TextFieldIconButton(
                                               semanticsLabel:
-                                                  "Scan QR Button. Opens Camera For Scanning QR Code.",
+                                                  "Scan QR",
                                               key: const Key(
                                                   "sendViewScanQrButtonKey"),
                                               onTap: () async {

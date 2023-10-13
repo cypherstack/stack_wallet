@@ -251,7 +251,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
                           child: _showDiceIcon
                               ? Semantics(
                                   label:
-                                      "Generate Random Wallet Name Button. Generates A Random Name For Wallet.",
+                                      "Generate",
                                   excludeSemantics: true,
                                   child: DiceIcon(
                                     width: isDesktop ? 20 : 17,
@@ -260,7 +260,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
                                 )
                               : Semantics(
                                   label:
-                                      "Generate Random Wallet Name Button. Generates A Random Name For Wallet.",
+                                      "Generate",
                                   excludeSemantics: true,
                                   child: XIcon(
                                     width: isDesktop ? 21 : 18,

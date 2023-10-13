@@ -98,7 +98,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
   final List<TextEditingController> _controllers = [];
   final List<FormInputStatus> _inputStatuses = [];
-  // final List<FocusNode> _focusNodes = [];
+  final List<FocusNode> _focusNodes = [];
 
   late final BarcodeScannerInterface scanner;
 
@@ -155,6 +155,16 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       // _focusNodes.add(FocusNode());
     }
 
+    for (int i = 0; i < _seedWordCount; i++) {
+      _focusNodes[i].addListener(() {
+        if (!_focusNodes[i].hasFocus && _inputStatuses[i] == FormInputStatus.empty && _isValidMnemonicWord(_controllers[i].text.toLowerCase())) {
+          setState(() {
+            _inputStatuses[i] = FormInputStatus.valid;
+          });
+        }
+      });
+    }
+
     super.initState();
   }
 
@@ -180,6 +190,27 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       return wowneroWordList.contains(word);
     }
     return _wordListHashSet.contains(word);
+  }
+
+  // Solves: https://github.com/cypherstack/stack_wallet/issues/625
+  bool _isALongerWordAvailable(String word) {
+    List<String> wordList;
+    if (widget.coin == Coin.monero) {
+      wordList = monero.getMoneroWordList("English");
+    } else if (widget.coin == Coin.wownero) {
+      wordList = wownero.getWowneroWordList("English",
+          seedWordsLength: widget.seedWordsLength);
+    } else {
+      wordList = bip39wordlist.WORDLIST;
+    }
+    bool isALongerWordAvailable = false;
+    for (var element in wordList) {
+      if ((element != word) && (element.startsWith(word))) {
+        isALongerWordAvailable = true;
+        break;
+      }
+    }
+    return isALongerWordAvailable;
   }
 
   OutlineInputBorder _buildOutlineInputBorder(Color color) {
@@ -649,7 +680,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                     aspectRatio: 1,
                     child: AppBarIconButton(
                       semanticsLabel:
-                          "View QR Code Button. Opens Camera To Scan QR Code For Restoring Wallet.",
+                          "Scan QR",
                       key: const Key("restoreWalletViewQrCodeButton"),
                       size: 36,
                       shadows: const [],
@@ -677,7 +708,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                     aspectRatio: 1,
                     child: AppBarIconButton(
                       semanticsLabel:
-                          "Paste Button. Pastes From Clipboard For Restoring Wallet.",
+                          "Paste",
                       key: const Key("restoreWalletPasteButton"),
                       size: 36,
                       shadows: const [],
@@ -834,8 +865,13 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                       value
                                                           .trim()
                                                           .toLowerCase())) {
-                                                    formInputStatus =
-                                                        FormInputStatus.valid;
+                                                    if (!_isALongerWordAvailable(
+                                                        value.trim().toLowerCase())) {
+                                                      formInputStatus =
+                                                          FormInputStatus.valid;
+                                                    } else {
+                                                      formInputStatus = FormInputStatus.empty;
+                                                    }
                                                   } else {
                                                     formInputStatus =
                                                         FormInputStatus.invalid;
@@ -941,8 +977,13 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                       value
                                                           .trim()
                                                           .toLowerCase())) {
-                                                    formInputStatus =
-                                                        FormInputStatus.valid;
+                                                    if (!_isALongerWordAvailable(
+                                                        value.trim().toLowerCase())) {
+                                                      formInputStatus =
+                                                          FormInputStatus.valid;
+                                                    } else {
+                                                      formInputStatus = FormInputStatus.empty;
+                                                    }
                                                   } else {
                                                     formInputStatus =
                                                         FormInputStatus.invalid;
@@ -1077,8 +1118,13 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                               FormInputStatus.empty;
                                         } else if (_isValidMnemonicWord(
                                             value.trim().toLowerCase())) {
-                                          formInputStatus =
-                                              FormInputStatus.valid;
+                                          if (!_isALongerWordAvailable(
+                                              value.trim().toLowerCase())) {
+                                              formInputStatus =
+                                                FormInputStatus.valid;
+                                          } else {
+                                            formInputStatus = FormInputStatus.empty;
+                                          }
                                         } else {
                                           formInputStatus =
                                               FormInputStatus.invalid;

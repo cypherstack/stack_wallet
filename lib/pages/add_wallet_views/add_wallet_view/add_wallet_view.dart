@@ -347,7 +347,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                       ),
                       child: Semantics(
                         label:
-                            "Search Text Field. Inputs Text To Search In Wallets.",
+                            "Search",
                         excludeSemantics: true,
                         child: TextField(
                           autofocus: isDesktop,

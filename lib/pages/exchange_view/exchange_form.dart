@@ -911,7 +911,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                 child: child,
               ),
               child: Semantics(
-                label: "Swap Button. Reverse The Exchange Currencies.",
+                label: "Reverse Currencies",
                 excludeSemantics: true,
                 child: RoundedContainer(
                   padding: isDesktop
