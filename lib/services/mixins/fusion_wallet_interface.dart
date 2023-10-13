@@ -318,6 +318,26 @@ mixin FusionWalletInterface {
       broadcastTransaction: (String txHex) => _getWalletCachedElectrumX()
           .electrumXClient
           .broadcastTransaction(rawTx: txHex),
+      unReserveAddresses: (List<fusion.Address> addresses) async {
+        final List<Future<void>> futures = [];
+        for (final addr in addresses) {
+          futures.add(
+            _db.getAddress(_walletId, addr.address).then(
+              (address) async {
+                if (address == null) {
+                  // matching address not found in db so cannot mark as unreserved
+                  // just ignore I guess. Should never actually happen in practice.
+                  // Might be useful check in debugging cases?
+                  return;
+                } else {
+                  await _unReserveAddress(address);
+                }
+              },
+            ),
+          );
+        }
+        await Future.wait(futures);
+      },
     );
 
     // Add unfrozen stack UTXOs.
