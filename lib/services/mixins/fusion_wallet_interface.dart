@@ -112,10 +112,14 @@ mixin FusionWalletInterface {
       case fusion.FusionStatus.failed:
         _uiState?.fusing = CashFusionStatus.failed;
         _uiState?.complete = CashFusionStatus.failed;
+
+        failCurrentUiState();
+
         break;
       case fusion.FusionStatus.exception:
-        _uiState?.fusing = CashFusionStatus.failed;
         _uiState?.complete = CashFusionStatus.failed;
+
+        failCurrentUiState();
         break;
       case fusion.FusionStatus.reset:
         _uiState?.outputs = CashFusionStatus.waiting;
@@ -125,6 +129,22 @@ mixin FusionWalletInterface {
         _uiState?.complete = CashFusionStatus.waiting;
         _uiState?.fusionState = CashFusionStatus.waiting;
         break;
+    }
+  }
+
+  void failCurrentUiState() {
+    // Check each _uiState value to see if it is running.  If so, set it to failed.
+    if (_uiState?.connecting == CashFusionStatus.running) {
+      _uiState?.connecting = CashFusionStatus.failed;
+    }
+    if (_uiState?.outputs == CashFusionStatus.running) {
+      _uiState?.outputs = CashFusionStatus.failed;
+    }
+    if (_uiState?.peers == CashFusionStatus.running) {
+      _uiState?.peers = CashFusionStatus.failed;
+    }
+    if (_uiState?.fusing == CashFusionStatus.running) {
+      _uiState?.fusing = CashFusionStatus.failed;
     }
   }
 
