@@ -88,18 +88,19 @@ mixin FusionWalletInterface {
   // callback to update the ui state object
   void _updateStatus(fusion.FusionStatus fusionStatus) {
     switch (fusionStatus) {
-      case fusion.FusionStatus.setup:
+      case fusion.FusionStatus.connecting:
         _uiState?.connecting = CashFusionStatus.running;
         break;
-      case fusion.FusionStatus.waiting:
+      case fusion.FusionStatus.setup:
         _uiState?.connecting = CashFusionStatus.success;
-        _uiState?.outputs = CashFusionStatus.success;
+        _uiState?.outputs = CashFusionStatus.running;
         break;
-      case fusion.FusionStatus.connecting:
-        _uiState?.connecting = CashFusionStatus.waiting;
+      case fusion.FusionStatus.waiting:
+        _uiState?.outputs = CashFusionStatus.success;
+        _uiState?.peers = CashFusionStatus.running;
         break;
       case fusion.FusionStatus.running:
-        _uiState?.connecting = CashFusionStatus.success;
+        _uiState?.peers = CashFusionStatus.success;
         _uiState?.fusing = CashFusionStatus.running;
         break;
       case fusion.FusionStatus.complete:
@@ -391,9 +392,9 @@ mixin FusionWalletInterface {
   Future<void> stepThruUiStates() async {
     // Define the list of states.
     final List<fusion.FusionStatus> states = [
+      fusion.FusionStatus.connecting,
       fusion.FusionStatus.setup,
       fusion.FusionStatus.waiting,
-      fusion.FusionStatus.connecting,
       fusion.FusionStatus.running,
       fusion.FusionStatus.complete,
       fusion.FusionStatus.failed,
