@@ -140,10 +140,7 @@ class BitcoinCashWallet extends CoinServiceAPI
       coin: coin,
       db: db,
       getWalletCachedElectrumX: () => cachedElectrumXClient,
-      getNextUnusedChangeAddress: () async {
-        await checkCurrentChangeAddressesForTransactions();
-        return await _currentChangeAddress;
-      },
+      getNextUnusedChangeAddress: _getUnusedChangeAddresses,
       getTxCountForAddress: getTxCount,
       getChainHeight: () async => chainHeight,
       mnemonic: mnemonicString,
@@ -208,16 +205,80 @@ class BitcoinCashWallet extends CoinServiceAPI
           .findFirst()) ??
       await _generateAddressForChain(0, 0, DerivePathTypeExt.primaryFor(coin));
 
-  Future<isar_models.Address> get _currentChangeAddress async =>
-      (await db
-          .getAddresses(walletId)
-          .filter()
-          .typeEqualTo(isar_models.AddressType.p2pkh)
-          .subTypeEqualTo(isar_models.AddressSubType.change)
-          .derivationPath((q) => q.not().valueStartsWith("m/44'/0'"))
-          .sortByDerivationIndexDesc()
-          .findFirst()) ??
-      await _generateAddressForChain(1, 0, DerivePathTypeExt.primaryFor(coin));
+  Future<List<isar_models.Address>> _getUnusedChangeAddresses({
+    int numberOfAddresses = 1,
+  }) async {
+    if (numberOfAddresses < 1) {
+      throw ArgumentError.value(
+        numberOfAddresses,
+        "numberOfAddresses",
+        "Must not be less than 1",
+      );
+    }
+
+    final changeAddresses = await db
+        .getAddresses(walletId)
+        .filter()
+        .typeEqualTo(isar_models.AddressType.p2pkh)
+        .subTypeEqualTo(isar_models.AddressSubType.change)
+        .derivationPath((q) => q.not().valueStartsWith("m/44'/0'"))
+        .sortByDerivationIndex()
+        .findAll();
+
+    final List<isar_models.Address> unused = [];
+
+    for (final addr in changeAddresses) {
+      if (await _isUnused(addr.value)) {
+        unused.add(addr);
+        if (unused.length == numberOfAddresses) {
+          return unused;
+        }
+      }
+    }
+
+    // if not returned by now, we need to create more addresses
+    int countMissing = numberOfAddresses - unused.length;
+
+    int nextIndex =
+        changeAddresses.isEmpty ? 0 : changeAddresses.last.derivationIndex + 1;
+
+    while (countMissing > 0) {
+      //   create a new address
+      final address = await _generateAddressForChain(
+        1,
+        nextIndex,
+        DerivePathTypeExt.primaryFor(coin),
+      );
+      nextIndex++;
+      await db.putAddress(address);
+
+      // check if it has been used before adding
+      if (await _isUnused(address.value)) {
+        unused.add(address);
+        countMissing--;
+      }
+    }
+
+    return unused;
+  }
+
+  Future<bool> _isUnused(String address) async {
+    final txCountInDB = await db
+        .getTransactions(_walletId)
+        .filter()
+        .address((q) => q.valueEqualTo(address))
+        .count();
+    if (txCountInDB == 0) {
+      // double check via electrumx
+      // _getTxCountForAddress can throw!
+      final count = await getTxCount(address: address);
+      if (count == 0) {
+        return true;
+      }
+    }
+
+    return false;
+  }
 
   @override
   Future<void> exit() async {
@@ -888,7 +949,6 @@ class BitcoinCashWallet extends CoinServiceAPI
 
       if (currentHeight != storedHeight) {
         GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.2, walletId));
-        await _checkChangeAddressForTransactions();
 
         GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.3, walletId));
         await _checkCurrentReceivingAddressesForTransactions();
@@ -1810,52 +1870,6 @@ class BitcoinCashWallet extends CoinServiceAPI
     }
   }
 
-  Future<void> _checkChangeAddressForTransactions() async {
-    try {
-      final currentChange = await _currentChangeAddress;
-      final int txCount = await getTxCount(address: currentChange.value);
-      Logging.instance.log(
-          'Number of txs for current change address $currentChange: $txCount',
-          level: LogLevel.Info);
-
-      if (txCount >= 1 || currentChange.derivationIndex < 0) {
-        // First increment the change index
-        final newChangeIndex = currentChange.derivationIndex + 1;
-
-        // Use new index to derive a new change address
-        final newChangeAddress = await _generateAddressForChain(
-            1, newChangeIndex, DerivePathTypeExt.primaryFor(coin));
-
-        final existing = await db
-            .getAddresses(walletId)
-            .filter()
-            .valueEqualTo(newChangeAddress.value)
-            .findFirst();
-        if (existing == null) {
-          // Add that new change address
-          await db.putAddress(newChangeAddress);
-        } else {
-          if (existing.otherData != kReservedFusionAddress) {
-            // we need to update the address
-            await db.updateAddress(existing, newChangeAddress);
-          }
-        }
-        // keep checking until address with no tx history is set as current
-        await _checkChangeAddressForTransactions();
-      }
-    } on SocketException catch (se, s) {
-      Logging.instance.log(
-          "SocketException caught in _checkReceivingAddressForTransactions(${DerivePathTypeExt.primaryFor(coin)}): $se\n$s",
-          level: LogLevel.Error);
-      return;
-    } catch (e, s) {
-      Logging.instance.log(
-          "Exception rethrown from _checkReceivingAddressForTransactions(${DerivePathTypeExt.primaryFor(coin)}): $e\n$s",
-          level: LogLevel.Error);
-      rethrow;
-    }
-  }
-
   Future<void> _checkCurrentReceivingAddressesForTransactions() async {
     try {
       // for (final type in DerivePathType.values) {
@@ -1874,30 +1888,6 @@ class BitcoinCashWallet extends CoinServiceAPI
     if (Platform.environment["FLUTTER_TEST"] == "true") {
       try {
         return _checkCurrentReceivingAddressesForTransactions();
-      } catch (_) {
-        rethrow;
-      }
-    }
-  }
-
-  Future<void> _checkCurrentChangeAddressesForTransactions() async {
-    try {
-      // for (final type in DerivePathType.values) {
-      await _checkChangeAddressForTransactions();
-      // }
-    } catch (e, s) {
-      Logging.instance.log(
-          "Exception rethrown from _checkCurrentChangeAddressesForTransactions(): $e\n$s",
-          level: LogLevel.Error);
-      rethrow;
-    }
-  }
-
-  /// public wrapper because dart can't test private...
-  Future<void> checkCurrentChangeAddressesForTransactions() async {
-    if (Platform.environment["FLUTTER_TEST"] == "true") {
-      try {
-        return _checkCurrentChangeAddressesForTransactions();
       } catch (_) {
         rethrow;
       }
@@ -2485,10 +2475,11 @@ class BitcoinCashWallet extends CoinServiceAPI
         if (changeOutputSize > DUST_LIMIT.raw.toInt() &&
             satoshisBeingUsed - satoshiAmountToSend - changeOutputSize ==
                 feeForTwoOutputs) {
-          // generate new change address if current change address has been used
-          await _checkChangeAddressForTransactions();
-          final String newChangeAddress = await _getCurrentAddressForChain(
-              1, DerivePathTypeExt.primaryFor(coin));
+          // get the next unused change address
+          final String newChangeAddress =
+              (await _getUnusedChangeAddresses(numberOfAddresses: 1))
+                  .first
+                  .value;
 
           int feeBeingPaid =
               satoshisBeingUsed - satoshiAmountToSend - changeOutputSize;
