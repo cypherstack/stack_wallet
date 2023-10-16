@@ -131,7 +131,8 @@ class FusionRoundCountSelectSheet extends HookWidget {
                                       height: 2,
                                     ),
                                     Text(
-                                      option.value == FusionOption.continuous
+                                      FusionOption.values[i] ==
+                                              FusionOption.continuous
                                           ? "Keep fusing until manually stopped"
                                           : "Stop after a set number of fusions",
                                       style: STextStyles.itemSubtitle12(context)
