@@ -14,6 +14,7 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -407,6 +408,9 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                             enableSuggestions: false,
                             controller: portController,
                             focusNode: portFocusNode,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly
+                            ],
                             onChanged: (value) {
                               setState(() {
                                 _portTerm = value;
