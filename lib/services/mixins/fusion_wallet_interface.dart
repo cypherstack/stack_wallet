@@ -295,13 +295,14 @@ mixin FusionWalletInterface {
   Future<void> fuse(
       {required String serverHost,
       required int serverPort,
-      required bool serverSsl}) async {
+      required bool serverSsl,
+      required int roundCount}) async {
     // Initial attempt for CashFusion integration goes here.
 
     // Use server host and port which ultimately come from text fields.
     // TODO validate.
     fusion.FusionParams serverParams = fusion.FusionParams(
-        serverHost: serverHost, serverPort: serverPort, serverSsl: serverSsl);
+        serverHost: serverHost, serverPort: serverPort, serverSsl: serverSsl, roundCount: roundCount);
 
     // Instantiate a Fusion object with custom parameters.
     final mainFusionObject = fusion.Fusion(serverParams);

@@ -340,6 +340,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                                 serverHost: serverController.text,
                                 serverPort: int.parse(portController.text),
                                 serverSsl: _enableSSLCheckbox,
+                                roundCount: 0, // TODO update fusion rounds.
                               ));
 
                               // TODO: navigate to progress screen

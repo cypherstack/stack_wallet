@@ -511,6 +511,7 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                               serverHost: serverController.text,
                               serverPort: int.parse(portController.text),
                               serverSsl: ref.read(checkBoxStateProvider),
+                              roundCount: 0, // TODO update fusion rounds.
                             ));
                             // unawaited(fusionWallet.stepThruUiStates());
 
