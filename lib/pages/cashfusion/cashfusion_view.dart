@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -17,6 +18,7 @@ import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -145,7 +147,11 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                           const SizedBox(
                             height: 12,
                           ),
-                          TextField(
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                              Constants.size.circularBorderRadius,
+                            ),
+                            child: TextField(
                               autocorrect: false,
                               enableSuggestions: false,
                               controller: serverController,
@@ -161,28 +167,36 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                                 serverFocusNode,
                                 context,
                                 desktopMed: true,
-                              )
-                              // .copyWith(labelStyle: ),
                               ),
+                            ),
+                          ),
                           const SizedBox(
                             height: 10,
                           ),
-                          TextField(
-                            autocorrect: false,
-                            enableSuggestions: false,
-                            controller: portController,
-                            focusNode: portFocusNode,
-                            onChanged: (value) {
-                              setState(() {
-                                _portTerm = value;
-                              });
-                            },
-                            style: STextStyles.field(context),
-                            decoration: standardInputDecoration(
-                              "Port",
-                              portFocusNode,
-                              context,
-                              desktopMed: true,
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                              Constants.size.circularBorderRadius,
+                            ),
+                            child: TextField(
+                              autocorrect: false,
+                              enableSuggestions: false,
+                              controller: portController,
+                              focusNode: portFocusNode,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly
+                              ],
+                              keyboardType: TextInputType.number,
+                              onChanged: (value) {
+                                setState(() {
+                                  _portTerm = value;
+                                });
+                              },
+                              style: STextStyles.field(context),
+                              decoration: standardInputDecoration(
+                                "Port",
+                                portFocusNode,
+                                context,
+                              ),
                             ),
                           ),
                           const SizedBox(
