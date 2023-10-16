@@ -117,7 +117,7 @@ class _FusionProgressViewState extends State<FusionProgressView> {
                               child: Text(
                                 "Do not close this window. If you exit, "
                                 "the process will be canceled.",
-                                style: STextStyles.smallMed14(context).copyWith(
+                                style: STextStyles.w500_14(context).copyWith(
                                   color: Theme.of(context)
                                       .extension<StackColors>()!
                                       .snackBarTextError,
