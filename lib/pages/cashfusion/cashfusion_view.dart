@@ -23,6 +23,7 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:stackwallet/widgets/stack_text_field.dart';
 
 class CashFusionView extends ConsumerStatefulWidget {
   const CashFusionView({
@@ -39,7 +40,37 @@ class CashFusionView extends ConsumerStatefulWidget {
 }
 
 class _CashFusionViewState extends ConsumerState<CashFusionView> {
+  late final TextEditingController serverController;
+  late final FocusNode serverFocusNode;
+  late final TextEditingController portController;
+  late final FocusNode portFocusNode;
+
+  String _serverTerm = "";
+  String _portTerm = "";
+  int? port;
+  late bool enableSSLCheckbox;
+
   FusionOption _option = FusionOption.continuous;
+
+  @override
+  void initState() {
+    serverController = TextEditingController();
+    portController = TextEditingController();
+
+    serverFocusNode = FocusNode();
+    portFocusNode = FocusNode();
+  }
+
+  @override
+  void dispose() {
+    serverController.dispose();
+    portController.dispose();
+
+    serverFocusNode.dispose();
+    portFocusNode.dispose();
+
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -114,11 +145,46 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                           const SizedBox(
                             height: 12,
                           ),
-                          TextField(), // TODO replace placholder textfield
+                          TextField(
+                              autocorrect: false,
+                              enableSuggestions: false,
+                              controller: serverController,
+                              focusNode: serverFocusNode,
+                              onChanged: (value) {
+                                setState(() {
+                                  _serverTerm = value;
+                                });
+                              },
+                              style: STextStyles.field(context),
+                              decoration: standardInputDecoration(
+                                "Server",
+                                serverFocusNode,
+                                context,
+                                desktopMed: true,
+                              )
+                              // .copyWith(labelStyle: ),
+                              ),
                           const SizedBox(
                             height: 10,
                           ),
-                          TextField(), // TODO replace placholder textfield
+                          TextField(
+                            autocorrect: false,
+                            enableSuggestions: false,
+                            controller: portController,
+                            focusNode: portFocusNode,
+                            onChanged: (value) {
+                              setState(() {
+                                _portTerm = value;
+                              });
+                            },
+                            style: STextStyles.field(context),
+                            decoration: standardInputDecoration(
+                              "Port",
+                              portFocusNode,
+                              context,
+                              desktopMed: true,
+                            ),
+                          ),
                           const SizedBox(
                             height: 10,
                           ),
