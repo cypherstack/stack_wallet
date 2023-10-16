@@ -15,12 +15,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:stackwallet/db/hive/db.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/debug_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/services/mixins/electrum_x_parsing.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -341,6 +344,80 @@ class HiddenSettings extends StatelessWidget {
                             } else {
                               return Container();
                             }
+                          },
+                        ),
+                        const SizedBox(
+                          height: 12,
+                        ),
+                        Consumer(
+                          builder: (_, ref, __) {
+                            return GestureDetector(
+                              onTap: () async {
+                                try {
+                                  final p = TT();
+
+                                  final n = ref
+                                      .read(nodeServiceChangeNotifierProvider)
+                                      .getPrimaryNodeFor(
+                                          coin: Coin.bitcoincash)!;
+
+                                  final e = ElectrumX.from(
+                                    node: ElectrumXNode(
+                                      address: n.host,
+                                      port: n.port,
+                                      name: n.name,
+                                      id: n.id,
+                                      useSSL: n.useSSL,
+                                    ),
+                                    prefs:
+                                        ref.read(prefsChangeNotifierProvider),
+                                    failovers: [],
+                                  );
+
+                                  final txids = [
+                                    "", //  cashTokenTxid
+                                    "6a0444358bc41913c5b04a8dc06896053184b3641bc62502d18f954865b6ce1e", // normalTxid
+                                    "67f13c375f9be897036cac77b7900dc74312c4ba6fe22f419f5cb21d4151678c", // fusionTxid
+                                    "c0ac3f88b238a023d2a87226dc90c3b0f9abc3eeb227e2730087b0b95ee5b3f9", // slpTokenSendTxid
+                                    "7a427a156fe70f83d3ccdd17e75804cc0df8c95c64ce04d256b3851385002a0b", // slpTokenGenesisTxid
+                                  ];
+
+                                  // final json =
+                                  //     await e.getTransaction(txHash: txids[1]);
+                                  // await p.parseBchTx(json, "NORMAL TXID:");
+                                  //
+                                  // final json2 =
+                                  //     await e.getTransaction(txHash: txids[2]);
+                                  // await p.parseBchTx(json2, "FUSION TXID:");
+                                  //
+                                  // // print("CASH TOKEN TXID:");
+                                  // // final json3 =
+                                  // //     await e.getTransaction(txHash: txids[2]);
+                                  // // await p.parseBchTx(json3);
+                                  //
+                                  final json4 =
+                                      await e.getTransaction(txHash: txids[3]);
+                                  await p.parseBchTx(
+                                      json4, "SLP TOKEN SEND TXID:");
+
+                                  final json5 =
+                                      await e.getTransaction(txHash: txids[4]);
+                                  await p.parseBchTx(
+                                      json5, "SLP TOKEN GENESIS TXID:");
+                                } catch (e, s) {
+                                  print("$e\n$s");
+                                }
+                              },
+                              child: RoundedWhiteContainer(
+                                child: Text(
+                                  "Parse BCH tx test",
+                                  style: STextStyles.button(context).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark),
+                                ),
+                              ),
+                            );
                           },
                         ),
                         // const SizedBox(

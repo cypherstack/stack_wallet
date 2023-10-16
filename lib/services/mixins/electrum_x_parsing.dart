@@ -16,9 +16,23 @@ import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/util.dart' as util;
 import 'package:tuple/tuple.dart';
 
+class TT with ElectrumXParsing {
+  //
+}
+
 mixin ElectrumXParsing {
+  Future<dynamic> parseBchTx(
+    Map<String, dynamic> json, [
+    String? debugTitle,
+  ]) async {
+    print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    util.Util.printJson(json, debugTitle);
+    print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+  }
+
   Future<Tuple2<Transaction, Address>> parseTransaction(
     Map<String, dynamic> txData,
     dynamic electrumxClient,
