@@ -47,7 +47,6 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
 
   String _serverTerm = "";
   String _portTerm = "";
-  int? port;
   late bool enableSSLCheckbox;
 
   FusionOption _option = FusionOption.continuous;
@@ -265,7 +264,9 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                                       .read(walletsChangeNotifierProvider)
                                       .getManager(widget.walletId)
                                       .wallet as FusionWalletInterface)
-                                  .fuse()
+                                  .fuse(
+                                      serverHost: _serverTerm,
+                                      serverPort: int.parse(_portTerm))
                             },
                           ),
                         ],

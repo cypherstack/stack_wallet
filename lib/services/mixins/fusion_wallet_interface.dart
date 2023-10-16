@@ -292,9 +292,19 @@ mixin FusionWalletInterface {
   /// Fuse the wallet's UTXOs.
   ///
   /// This function is called when the user taps the "Fuse" button in the UI.
-  Future<void> fuse() async {
+  Future<void> fuse(
+      {required String serverHost, required int serverPort}) async {
     // Initial attempt for CashFusion integration goes here.
-    final mainFusionObject = fusion.Fusion(fusion.FusionParams());
+
+    // Use server host and port which ultimately come from text fields.
+    // TODO validate.
+    fusion.FusionParams serverParams = fusion.FusionParams(
+      serverHost: serverHost,
+      serverPort: serverPort,
+    );
+
+    // Instantiate a Fusion object with custom parameters.
+    final mainFusionObject = fusion.Fusion(serverParams);
 
     // Pass wallet functions to the Fusion object
     await mainFusionObject.initFusion(
