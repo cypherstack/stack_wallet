@@ -570,7 +570,7 @@ class BitcoinCashWallet extends CoinServiceAPI
   Future<void> _recoverWalletFromBIP32SeedPhrase({
     required String mnemonic,
     required String mnemonicPassphrase,
-    int maxUnusedAddressGap = 20,
+    int maxUnusedAddressGap = 50,
     int maxNumberOfIndexesToCheck = 1000,
     bool isRescan = false,
     Coin? coin,
