@@ -648,8 +648,10 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                             }
 
                             unawaited(fusionWallet.fuse(
-                                serverHost: _serverTerm,
-                                serverPort: int.parse(_portTerm)));
+                              serverHost: _serverTerm,
+                              serverPort: int.parse(_portTerm),
+                              serverSsl: _useSSL,
+                            ));
                             // unawaited(fusionWallet.stepThruUiStates());
 
                             await showDialog<void>(

@@ -299,8 +299,10 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                                       .getManager(widget.walletId)
                                       .wallet as FusionWalletInterface)
                                   .fuse(
-                                      serverHost: _serverTerm,
-                                      serverPort: int.parse(_portTerm))
+                                serverHost: _serverTerm,
+                                serverPort: int.parse(_portTerm),
+                                serverSsl: _enableSSLCheckbox,
+                              )
                             },
                           ),
                         ],
