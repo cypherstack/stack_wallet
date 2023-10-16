@@ -20,8 +20,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/cashfusion/fusion_rounds_selection_sheet.dart';
 import 'package:stackwallet/pages_desktop_specific/cashfusion/sub_widgets/fusion_dialog.dart';
 import 'package:stackwallet/providers/cash_fusion/fusion_progress_ui_state_provider.dart';
+import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/providers/ui/check_box_state_provider.dart';
 import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -58,9 +58,8 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
   late final TextEditingController fusionRoundController;
   late final FocusNode fusionRoundFocusNode;
 
-  String _fusionRoundTerm = "";
-
   bool _enableStartButton = false;
+  bool _enableSSLCheckbox = false;
 
   FusionOption _roundType = FusionOption.continuous;
 
@@ -74,7 +73,13 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
     portFocusNode = FocusNode();
     fusionRoundFocusNode = FocusNode();
 
-    // TODO set controller text values to saved info
+    final info = ref.read(prefsChangeNotifierProvider).fusionServerInfo;
+    serverController.text = info.host;
+    portController.text = info.port.toString();
+    _enableSSLCheckbox = info.ssl;
+    _roundType =
+        info.rounds == 0 ? FusionOption.continuous : FusionOption.custom;
+    fusionRoundController.text = info.rounds.toString();
 
     _enableStartButton =
         serverController.text.isNotEmpty && portController.text.isNotEmpty;
@@ -285,25 +290,25 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                             Constants.size.circularBorderRadius,
                           ),
                           child: TextField(
-                              autocorrect: false,
-                              enableSuggestions: false,
-                              controller: serverController,
-                              focusNode: serverFocusNode,
-                              onChanged: (value) {
-                                setState(() {
-                                  _enableStartButton = value.isNotEmpty &
-                                      portController.text.isNotEmpty;
-                                });
-                              },
-                              style: STextStyles.field(context),
-                              decoration: standardInputDecoration(
-                                "Server",
-                                serverFocusNode,
-                                context,
-                                desktopMed: true,
-                              )
-                              // .copyWith(labelStyle: ),
-                              ),
+                            autocorrect: false,
+                            enableSuggestions: false,
+                            controller: serverController,
+                            focusNode: serverFocusNode,
+                            onChanged: (value) {
+                              setState(() {
+                                _enableStartButton = value.isNotEmpty &&
+                                    portController.text.isNotEmpty &&
+                                    fusionRoundController.text.isNotEmpty;
+                              });
+                            },
+                            style: STextStyles.field(context),
+                            decoration: standardInputDecoration(
+                              "Server",
+                              serverFocusNode,
+                              context,
+                              desktopMed: true,
+                            ),
+                          ),
                         ),
                         const SizedBox(
                           height: 12,
@@ -322,8 +327,9 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                             ],
                             onChanged: (value) {
                               setState(() {
-                                _enableStartButton = value.isNotEmpty &
-                                    serverController.text.isNotEmpty;
+                                _enableStartButton = value.isNotEmpty &&
+                                    serverController.text.isNotEmpty &&
+                                    fusionRoundController.text.isNotEmpty;
                               });
                             },
                             style: STextStyles.field(context),
@@ -340,10 +346,9 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                         ),
                         GestureDetector(
                           onTap: () {
-                            final value =
-                                ref.read(checkBoxStateProvider.state).state;
-                            ref.read(checkBoxStateProvider.state).state =
-                                !value;
+                            setState(() {
+                              _enableSSLCheckbox = !_enableSSLCheckbox;
+                            });
                           },
                           child: Container(
                             color: Colors.transparent,
@@ -355,13 +360,14 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                                   child: Checkbox(
                                     materialTapTargetSize:
                                         MaterialTapTargetSize.shrinkWrap,
-                                    value: ref
-                                        .watch(checkBoxStateProvider.state)
-                                        .state,
+                                    value: _enableSSLCheckbox,
                                     onChanged: (newValue) {
-                                      ref
-                                          .watch(checkBoxStateProvider.state)
-                                          .state = newValue!;
+                                      setState(
+                                        () {
+                                          _enableSSLCheckbox =
+                                              !_enableSSLCheckbox;
+                                        },
+                                      );
                                     },
                                   ),
                                 ),
@@ -464,14 +470,21 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                                       enableSuggestions: false,
                                       controller: fusionRoundController,
                                       focusNode: fusionRoundFocusNode,
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.digitsOnly
+                                      ],
                                       onChanged: (value) {
                                         setState(() {
-                                          _fusionRoundTerm = value;
+                                          _enableStartButton = value
+                                                  .isNotEmpty &&
+                                              serverController
+                                                  .text.isNotEmpty &&
+                                              portController.text.isNotEmpty;
                                         });
                                       },
                                       style: STextStyles.field(context),
                                       decoration: standardInputDecoration(
-                                        "",
+                                        "Number of fusions",
                                         fusionRoundFocusNode,
                                         context,
                                         desktopMed: true,
@@ -507,12 +520,28 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                               }
                             }
 
-                            unawaited(fusionWallet.fuse(
-                              serverHost: serverController.text,
-                              serverPort: int.parse(portController.text),
-                              serverSsl: ref.read(checkBoxStateProvider),
-                              roundCount: 0, // TODO update fusion rounds.
-                            ));
+                            final int rounds =
+                                _roundType == FusionOption.continuous
+                                    ? 0
+                                    : int.parse(fusionRoundController.text);
+
+                            final newInfo = FusionInfo(
+                              host: serverController.text,
+                              port: int.parse(portController.text),
+                              ssl: _enableSSLCheckbox,
+                              rounds: rounds,
+                            );
+
+                            // update user prefs (persistent)
+                            ref
+                                .read(prefsChangeNotifierProvider)
+                                .fusionServerInfo = newInfo;
+
+                            unawaited(
+                              fusionWallet.fuse(
+                                fusionInfo: newInfo,
+                              ),
+                            );
                             // unawaited(fusionWallet.stepThruUiStates());
 
                             await showDialog<void>(

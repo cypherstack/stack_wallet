@@ -17,6 +17,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/cashfusion/fusion_rounds_selection_sheet.dart';
 import 'package:stackwallet/providers/cash_fusion/fusion_progress_ui_state_provider.dart';
+import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -49,6 +50,8 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
   late final FocusNode serverFocusNode;
   late final TextEditingController portController;
   late final FocusNode portFocusNode;
+  late final TextEditingController fusionRoundController;
+  late final FocusNode fusionRoundFocusNode;
 
   bool _enableSSLCheckbox = false;
   bool _enableStartButton = false;
@@ -59,11 +62,18 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
   void initState() {
     serverController = TextEditingController();
     portController = TextEditingController();
+    fusionRoundController = TextEditingController();
 
     serverFocusNode = FocusNode();
     portFocusNode = FocusNode();
+    fusionRoundFocusNode = FocusNode();
 
-    // TODO set controller text values to saved info
+    final info = ref.read(prefsChangeNotifierProvider).fusionServerInfo;
+    serverController.text = info.host;
+    portController.text = info.port.toString();
+    _enableSSLCheckbox = info.ssl;
+    _option = info.rounds == 0 ? FusionOption.continuous : FusionOption.custom;
+    fusionRoundController.text = info.rounds.toString();
 
     _enableStartButton =
         serverController.text.isNotEmpty && portController.text.isNotEmpty;
@@ -75,9 +85,11 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
   void dispose() {
     serverController.dispose();
     portController.dispose();
+    fusionRoundController.dispose();
 
     serverFocusNode.dispose();
     portFocusNode.dispose();
+    fusionRoundFocusNode.dispose();
 
     super.dispose();
   }
@@ -166,8 +178,9 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                               focusNode: serverFocusNode,
                               onChanged: (value) {
                                 setState(() {
-                                  _enableStartButton = value.isNotEmpty &
-                                      portController.text.isNotEmpty;
+                                  _enableStartButton = value.isNotEmpty &&
+                                      portController.text.isNotEmpty &&
+                                      fusionRoundController.text.isNotEmpty;
                                 });
                               },
                               style: STextStyles.field(context),
@@ -197,8 +210,9 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                               keyboardType: TextInputType.number,
                               onChanged: (value) {
                                 setState(() {
-                                  _enableStartButton = value.isNotEmpty &
-                                      serverController.text.isNotEmpty;
+                                  _enableStartButton = value.isNotEmpty &&
+                                      serverController.text.isNotEmpty &&
+                                      fusionRoundController.text.isNotEmpty;
                                 });
                               },
                               style: STextStyles.field(context),
@@ -311,6 +325,40 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                               ),
                             ),
                           ),
+                          if (_option == FusionOption.custom)
+                            const SizedBox(
+                              height: 10,
+                            ),
+                          if (_option == FusionOption.custom)
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(
+                                Constants.size.circularBorderRadius,
+                              ),
+                              child: TextField(
+                                autocorrect: false,
+                                enableSuggestions: false,
+                                controller: fusionRoundController,
+                                focusNode: fusionRoundFocusNode,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly
+                                ],
+                                keyboardType: TextInputType.number,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _enableStartButton = value.isNotEmpty &&
+                                        serverController.text.isNotEmpty &&
+                                        portController.text.isNotEmpty;
+                                  });
+                                },
+                                style: STextStyles.field(context),
+                                decoration: standardInputDecoration(
+                                  "Number of fusions",
+                                  fusionRoundFocusNode,
+                                  context,
+                                ).copyWith(
+                                    labelText: "Enter number of fusions.."),
+                              ),
+                            ),
                           const SizedBox(
                             height: 16,
                           ),
@@ -336,12 +384,28 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                                 }
                               }
 
-                              unawaited(fusionWallet.fuse(
-                                serverHost: serverController.text,
-                                serverPort: int.parse(portController.text),
-                                serverSsl: _enableSSLCheckbox,
-                                roundCount: 0, // TODO update fusion rounds.
-                              ));
+                              final int rounds =
+                                  _option == FusionOption.continuous
+                                      ? 0
+                                      : int.parse(fusionRoundController.text);
+
+                              final newInfo = FusionInfo(
+                                host: serverController.text,
+                                port: int.parse(portController.text),
+                                ssl: _enableSSLCheckbox,
+                                rounds: rounds,
+                              );
+
+                              // update user prefs (persistent)
+                              ref
+                                  .read(prefsChangeNotifierProvider)
+                                  .fusionServerInfo = newInfo;
+
+                              unawaited(
+                                fusionWallet.fuse(
+                                  fusionInfo: newInfo,
+                                ),
+                              );
 
                               // TODO: navigate to progress screen
                             },

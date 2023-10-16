@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -18,6 +19,77 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 
 const String kReservedFusionAddress = "reserved_fusion_address";
+
+class FusionInfo {
+  final String host;
+  final int port;
+  final bool ssl;
+
+  /// set to 0 for continuous
+  final int rounds;
+
+  const FusionInfo({
+    required this.host,
+    required this.port,
+    required this.ssl,
+    required this.rounds,
+  }) : assert(rounds >= 0);
+
+  // TODO update defaults
+  static const DEFAULTS = FusionInfo(
+    host: "cashfusion.stackwallet.com",
+    port: 8787,
+    ssl: false,
+    rounds: 0, // 0 is continuous
+  );
+
+  factory FusionInfo.fromJsonString(String jsonString) {
+    final json = jsonDecode(jsonString);
+    return FusionInfo(
+      host: json['host'] as String,
+      port: json['port'] as int,
+      ssl: json['ssl'] as bool,
+      rounds: json['rounds'] as int,
+    );
+  }
+
+  String toJsonString() {
+    return {
+      'host': host,
+      'port': port,
+      'ssl': ssl,
+      'rounds': rounds,
+    }.toString();
+  }
+
+  @override
+  String toString() {
+    return toJsonString();
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+
+    return other is FusionInfo &&
+        other.host == host &&
+        other.port == port &&
+        other.ssl == ssl &&
+        other.rounds == rounds;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(
+      host.hashCode,
+      port.hashCode,
+      ssl.hashCode,
+      rounds.hashCode,
+    );
+  }
+}
 
 /// A mixin for the BitcoinCashWallet class that adds CashFusion functionality.
 mixin FusionWalletInterface {
@@ -292,17 +364,20 @@ mixin FusionWalletInterface {
   /// Fuse the wallet's UTXOs.
   ///
   /// This function is called when the user taps the "Fuse" button in the UI.
-  Future<void> fuse(
-      {required String serverHost,
-      required int serverPort,
-      required bool serverSsl,
-      required int roundCount}) async {
+  Future<void> fuse({
+    required FusionInfo fusionInfo,
+  }) async {
     // Initial attempt for CashFusion integration goes here.
 
     // Use server host and port which ultimately come from text fields.
-    // TODO validate.
     fusion.FusionParams serverParams = fusion.FusionParams(
-        serverHost: serverHost, serverPort: serverPort, serverSsl: serverSsl, roundCount: roundCount);
+      serverHost: fusionInfo.host,
+      serverPort: fusionInfo.port,
+      serverSsl: fusionInfo.ssl,
+    );
+
+    // TODO use as required. Zero indicates continuous
+    final roundCount = fusionInfo.rounds;
 
     // Instantiate a Fusion object with custom parameters.
     final mainFusionObject = fusion.Fusion(serverParams);
