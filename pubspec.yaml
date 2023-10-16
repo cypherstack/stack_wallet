@@ -371,6 +371,7 @@ flutter:
     - assets/svg/up-from-line.svg
     - assets/svg/peers.svg
     - assets/svg/fusing.svg
+    - assets/svg/cashfusion-icon.svg
 
     # coin control icons
     - assets/svg/coin_control/
