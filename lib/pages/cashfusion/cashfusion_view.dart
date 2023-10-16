@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages/cashfusion/fusion_progress_view.dart';
 import 'package:stackwallet/pages/cashfusion/fusion_rounds_selection_sheet.dart';
 import 'package:stackwallet/providers/cash_fusion/fusion_progress_ui_state_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
@@ -407,7 +408,10 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                                 ),
                               );
 
-                              // TODO: navigate to progress screen
+                              await Navigator.of(context).pushNamed(
+                                FusionProgressView.routeName,
+                                arguments: widget.walletId,
+                              );
                             },
                           ),
                         ],

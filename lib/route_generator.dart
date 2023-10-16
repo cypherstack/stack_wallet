@@ -45,6 +45,7 @@ import 'package:stackwallet/pages/buy_view/buy_in_wallet_view.dart';
 import 'package:stackwallet/pages/buy_view/buy_quote_preview.dart';
 import 'package:stackwallet/pages/buy_view/buy_view.dart';
 import 'package:stackwallet/pages/cashfusion/cashfusion_view.dart';
+import 'package:stackwallet/pages/cashfusion/fusion_progress_view.dart';
 import 'package:stackwallet/pages/coin_control/coin_control_view.dart';
 import 'package:stackwallet/pages/coin_control/utxo_details_view.dart';
 import 'package:stackwallet/pages/exchange_view/choose_from_stack_view.dart';
@@ -586,6 +587,20 @@ class RouteGenerator {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => CashFusionView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case FusionProgressView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => FusionProgressView(
               walletId: args,
             ),
             settings: RouteSettings(

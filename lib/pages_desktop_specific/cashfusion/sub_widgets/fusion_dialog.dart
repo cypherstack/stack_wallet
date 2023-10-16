@@ -96,7 +96,7 @@ class FusionDialog extends StatelessWidget {
                             style: STextStyles.smallMed14(context).copyWith(
                               color: Theme.of(context)
                                   .extension<StackColors>()!
-                                  .textDark,
+                                  .snackBarTextError,
                             ),
                           ),
                         ],
