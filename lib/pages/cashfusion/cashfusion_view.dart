@@ -9,8 +9,10 @@
  */
 
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages/cashfusion/fusion_rounds_selection_sheet.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -19,6 +21,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class CashFusionView extends ConsumerStatefulWidget {
@@ -36,15 +39,7 @@ class CashFusionView extends ConsumerStatefulWidget {
 }
 
 class _CashFusionViewState extends ConsumerState<CashFusionView> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
+  FusionOption _option = FusionOption.continuous;
 
   @override
   Widget build(BuildContext context) {
@@ -145,135 +140,57 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                           const SizedBox(
                             height: 12,
                           ),
-                          TextField(), // TODO replace placholder textfield with button for bottom sheet
+                          RoundedContainer(
+                            onPressed: () async {
+                              final option =
+                                  await showModalBottomSheet<FusionOption?>(
+                                backgroundColor: Colors.transparent,
+                                context: context,
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(20),
+                                  ),
+                                ),
+                                builder: (_) {
+                                  return FusionRoundCountSelectSheet(
+                                    currentOption: _option,
+                                  );
+                                },
+                              );
+                              if (option != null) {
+                                setState(() {
+                                  _option = option;
+                                });
+                              }
+                            },
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFieldActiveBG,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    _option.name.capitalize(),
+                                    style: STextStyles.w500_12(context),
+                                  ),
+                                  SvgPicture.asset(
+                                    Assets.svg.chevronDown,
+                                    width: 12,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textSubtitle1,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                           const SizedBox(
                             height: 16,
                           ),
-                          // Row(
-                          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          //   children: [
-                          //     Text(
-                          //       "Tor status",
-                          //       textAlign: TextAlign.left,
-                          //       style: isDesktop
-                          //           ? STextStyles.desktopTextExtraExtraSmall(context)
-                          //           : STextStyles.smallMed12(context),
-                          //     ),
-                          //     CustomTextButton(
-                          //       text: ref.watch(prefsChangeNotifierProvider
-                          //           .select((value) => value.useTor))
-                          //           ? "Disconnect"
-                          //           : "Connect",
-                          //       onTap: onTorTapped,
-                          //     ),
-                          //   ],
-                          // ),
-                          // const SizedBox(
-                          //   height: 12,
-                          // ),RoundedWhiteContainer(
-                          //   borderColor: isDesktop
-                          //       ? Theme.of(context).extension<StackColors>()!.background
-                          //       : null,
-                          //   padding:
-                          //   isDesktop ? const EdgeInsets.all(16) : const EdgeInsets.all(12),
-                          //   child: Row(
-                          //     children: [
-                          //       if (ref.watch(prefsChangeNotifierProvider
-                          //           .select((value) => value.useTor)))
-                          //         Container(
-                          //           width: _iconSize,
-                          //           height: _iconSize,
-                          //           decoration: BoxDecoration(
-                          //             color: Theme.of(context)
-                          //                 .extension<StackColors>()!
-                          //                 .accentColorGreen
-                          //                 .withOpacity(0.2),
-                          //             borderRadius: BorderRadius.circular(_iconSize),
-                          //           ),
-                          //           child: Center(
-                          //             child: SvgPicture.asset(
-                          //               Assets.svg.tor,
-                          //               height: isDesktop ? 19 : 14,
-                          //               width: isDesktop ? 19 : 14,
-                          //               color: Theme.of(context)
-                          //                   .extension<StackColors>()!
-                          //                   .accentColorGreen,
-                          //             ),
-                          //           ),
-                          //         ),
-                          //       if (!ref.watch(prefsChangeNotifierProvider
-                          //           .select((value) => value.useTor)))
-                          //         Container(
-                          //           width: _iconSize,
-                          //           height: _iconSize,
-                          //           decoration: BoxDecoration(
-                          //             color: Theme.of(context)
-                          //                 .extension<StackColors>()!
-                          //                 .textDark
-                          //                 .withOpacity(0.08),
-                          //             borderRadius: BorderRadius.circular(_iconSize),
-                          //           ),
-                          //           child: Center(
-                          //             child: SvgPicture.asset(
-                          //               Assets.svg.tor,
-                          //               height: isDesktop ? 19 : 14,
-                          //               width: isDesktop ? 19 : 14,
-                          //               color: Theme.of(context)
-                          //                   .extension<StackColors>()!
-                          //                   .textDark,
-                          //             ),
-                          //           ),
-                          //         ),
-                          //       SizedBox(
-                          //         width: _boxPadding,
-                          //       ),
-                          //       TorSubscription(
-                          //         onTorStatusChanged: (status) {
-                          //           setState(() {
-                          //             _torConnectionStatus = status;
-                          //           });
-                          //         },
-                          //         child: Column(
-                          //           crossAxisAlignment: CrossAxisAlignment.start,
-                          //           children: [
-                          //             Text(
-                          //               "Tor status",
-                          //               style: STextStyles.desktopTextExtraExtraSmall(context)
-                          //                   .copyWith(
-                          //                 color: Theme.of(context)
-                          //                     .extension<StackColors>()!
-                          //                     .textDark,
-                          //               ),
-                          //             ),
-                          //             if (_torConnectionStatus == TorConnectionStatus.connected)
-                          //               Text(
-                          //                 "Connected",
-                          //                 style:
-                          //                 STextStyles.desktopTextExtraExtraSmall(context),
-                          //               ),
-                          //             if (_torConnectionStatus ==
-                          //                 TorConnectionStatus.connecting)
-                          //               Text(
-                          //                 "Connecting...",
-                          //                 style:
-                          //                 STextStyles.desktopTextExtraExtraSmall(context),
-                          //               ),
-                          //             if (_torConnectionStatus ==
-                          //                 TorConnectionStatus.disconnected)
-                          //               Text(
-                          //                 "Disconnected",
-                          //                 style:
-                          //                 STextStyles.desktopTextExtraExtraSmall(context),
-                          //               ),
-                          //           ],
-                          //         ),
-                          //       ),
-                          //     ],
-                          //   ),
-                          // ),
-                          const SizedBox(
-                            height: 16,
-                          ),
+
                           const Spacer(),
                           PrimaryButton(
                             label: "Start",
