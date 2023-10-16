@@ -11,24 +11,18 @@
 import 'dart:async';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:event_bus/event_bus.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages/cashfusion/fusion_rounds_selection_sheet.dart';
 import 'package:stackwallet/pages_desktop_specific/cashfusion/sub_widgets/fusion_dialog.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_menu.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu.dart';
 import 'package:stackwallet/providers/cash_fusion/fusion_progress_ui_state_provider.dart';
-import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/ui/check_box_state_provider.dart';
-import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
-import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -41,11 +35,6 @@ import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
-
-enum FusionRounds {
-  Continuous,
-  Custom;
-}
 
 class DesktopCashFusionView extends ConsumerStatefulWidget {
   const DesktopCashFusionView({
@@ -69,78 +58,11 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
   late final TextEditingController fusionRoundController;
   late final FocusNode fusionRoundFocusNode;
 
-  String _serverTerm = "";
-  String _portTerm = "";
   String _fusionRoundTerm = "";
 
-  bool _useSSL = false;
-  bool _trusted = false;
-  int? port;
-  late bool enableSSLCheckbox;
-  late final bool enableAuthFields;
+  bool _enableStartButton = false;
 
-  FusionRounds _roundType = FusionRounds.Continuous;
-
-  /// The global event bus.
-  late final EventBus eventBus;
-
-  /// The subscription to the TorConnectionStatusChangedEvent.
-  late final StreamSubscription<TorConnectionStatusChangedEvent>
-      _torConnectionStatusSubscription;
-
-  /// The current status of the Tor connection.
-  late TorConnectionStatus _torConnectionStatus =
-      TorConnectionStatus.disconnected;
-
-  /// Build the connect/disconnect button
-  /// pushes to Tor settings
-  Widget _buildConnectButton(TorConnectionStatus status) {
-    switch (status) {
-      case TorConnectionStatus.disconnected:
-        return MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: GestureDetector(
-            onTap: () {
-              ref.read(currentDesktopMenuItemProvider.state).state =
-                  DesktopMenuItemId.settings;
-              ref.watch(selectedSettingsMenuItemStateProvider.state).state = 4;
-            },
-            child: Text(
-              "Connect",
-              style: STextStyles.richLink(context).copyWith(
-                fontSize: 14,
-              ),
-            ),
-          ),
-        );
-      case TorConnectionStatus.connecting:
-        return AbsorbPointer(
-          child: Text(
-            "Connecting",
-            style: STextStyles.richLink(context).copyWith(
-              fontSize: 14,
-            ),
-          ),
-        );
-      case TorConnectionStatus.connected:
-        return MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: GestureDetector(
-            onTap: () {
-              ref.read(currentDesktopMenuItemProvider.state).state =
-                  DesktopMenuItemId.settings;
-              ref.watch(selectedSettingsMenuItemStateProvider.state).state = 4;
-            },
-            child: Text(
-              "Disconnect",
-              style: STextStyles.richLink(context).copyWith(
-                fontSize: 14,
-              ),
-            ),
-          ),
-        );
-    }
-  }
+  FusionOption _roundType = FusionOption.continuous;
 
   @override
   void initState() {
@@ -152,24 +74,10 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
     portFocusNode = FocusNode();
     fusionRoundFocusNode = FocusNode();
 
-    enableSSLCheckbox = true;
+    // TODO set controller text values to saved info
 
-    // Initialize the global event bus.
-    eventBus = GlobalEventBus.instance;
-
-    // Initialize the TorConnectionStatus.
-    _torConnectionStatus = ref.read(pTorService).status;
-
-    // Subscribe to the TorConnectionStatusChangedEvent.
-    _torConnectionStatusSubscription =
-        eventBus.on<TorConnectionStatusChangedEvent>().listen(
-      (event) async {
-        // Rebuild the widget.
-        setState(() {
-          _torConnectionStatus = event.newStatus;
-        });
-      },
-    );
+    _enableStartButton =
+        serverController.text.isNotEmpty && portController.text.isNotEmpty;
 
     super.initState();
   }
@@ -383,7 +291,8 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                               focusNode: serverFocusNode,
                               onChanged: (value) {
                                 setState(() {
-                                  _serverTerm = value;
+                                  _enableStartButton = value.isNotEmpty &
+                                      portController.text.isNotEmpty;
                                 });
                               },
                               style: STextStyles.field(context),
@@ -413,7 +322,8 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                             ],
                             onChanged: (value) {
                               setState(() {
-                                _portTerm = value;
+                                _enableStartButton = value.isNotEmpty &
+                                    serverController.text.isNotEmpty;
                               });
                             },
                             style: STextStyles.field(context),
@@ -443,12 +353,6 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                                   width: 20,
                                   height: 20,
                                   child: Checkbox(
-                                    // fillColor: enableSSLCheckbox
-                                    //     ? null
-                                    //     : MaterialStateProperty.all(
-                                    //         Theme.of(context)
-                                    //             .extension<StackColors>()!
-                                    //             .checkboxBGDisabled),
                                     materialTapTargetSize:
                                         MaterialTapTargetSize.shrinkWrap,
                                     value: ref
@@ -484,14 +388,14 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                           height: 10,
                         ),
                         DropdownButtonHideUnderline(
-                          child: DropdownButton2<FusionRounds>(
+                          child: DropdownButton2<FusionOption>(
                             value: _roundType,
                             items: [
-                              ...FusionRounds.values.map(
+                              ...FusionOption.values.map(
                                 (e) => DropdownMenuItem(
                                   value: e,
                                   child: Text(
-                                    e.name,
+                                    e.name.capitalize(),
                                     style: STextStyles.smallMed14(context)
                                         .copyWith(
                                       color: Theme.of(context)
@@ -503,7 +407,7 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                               ),
                             ],
                             onChanged: (value) {
-                              if (value is FusionRounds) {
+                              if (value is FusionOption) {
                                 setState(() {
                                   _roundType = value;
                                 });
@@ -540,11 +444,11 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                             ),
                           ),
                         ),
-                        if (_roundType == FusionRounds.Custom)
+                        if (_roundType == FusionOption.custom)
                           const SizedBox(
                             height: 10,
                           ),
-                        if (_roundType == FusionRounds.Custom)
+                        if (_roundType == FusionOption.custom)
                           SizedBox(
                             width: 460,
                             child: RoundedWhiteContainer(
@@ -583,57 +487,9 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                         const SizedBox(
                           height: 20,
                         ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Tor status",
-                              style: STextStyles.desktopTextExtraExtraSmall(
-                                  context),
-                            ),
-                            _buildConnectButton(_torConnectionStatus),
-                          ],
-                        ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        RoundedWhiteContainer(
-                          borderColor: Theme.of(context)
-                              .extension<StackColors>()!
-                              .shadow,
-                          child: Row(
-                            children: [
-                              SvgPicture.asset(
-                                Assets.svg.circleTor,
-                                width: 48,
-                                height: 48,
-                              ),
-                              const SizedBox(
-                                width: 10,
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Tor Network",
-                                    style: STextStyles.itemSubtitle12(context),
-                                  ),
-                                  const SizedBox(
-                                    height: 4,
-                                  ),
-                                  Text(_torConnectionStatus.name.capitalize(),
-                                      style: STextStyles
-                                          .desktopTextExtraExtraSmall(context)),
-                                ],
-                              )
-                            ],
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 20,
-                        ),
                         PrimaryButton(
                           label: "Start",
+                          enabled: _enableStartButton,
                           onPressed: () async {
                             final fusionWallet = ref
                                 .read(walletsChangeNotifierProvider)
@@ -652,9 +508,9 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                             }
 
                             unawaited(fusionWallet.fuse(
-                              serverHost: _serverTerm,
-                              serverPort: int.parse(_portTerm),
-                              serverSsl: _useSSL,
+                              serverHost: serverController.text,
+                              serverPort: int.parse(portController.text),
+                              serverSsl: ref.read(checkBoxStateProvider),
                             ));
                             // unawaited(fusionWallet.stepThruUiStates());
 

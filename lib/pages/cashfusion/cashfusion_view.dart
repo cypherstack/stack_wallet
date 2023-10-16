@@ -8,12 +8,15 @@
  *
  */
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/cashfusion/fusion_rounds_selection_sheet.dart';
+import 'package:stackwallet/providers/cash_fusion/fusion_progress_ui_state_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -47,20 +50,25 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
   late final TextEditingController portController;
   late final FocusNode portFocusNode;
 
-  String _serverTerm = "";
-  String _portTerm = "";
   bool _enableSSLCheckbox = false;
+  bool _enableStartButton = false;
 
   FusionOption _option = FusionOption.continuous;
 
   @override
   void initState() {
-    super.initState();
     serverController = TextEditingController();
     portController = TextEditingController();
 
     serverFocusNode = FocusNode();
     portFocusNode = FocusNode();
+
+    // TODO set controller text values to saved info
+
+    _enableStartButton =
+        serverController.text.isNotEmpty && portController.text.isNotEmpty;
+
+    super.initState();
   }
 
   @override
@@ -158,7 +166,8 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                               focusNode: serverFocusNode,
                               onChanged: (value) {
                                 setState(() {
-                                  _serverTerm = value;
+                                  _enableStartButton = value.isNotEmpty &
+                                      portController.text.isNotEmpty;
                                 });
                               },
                               style: STextStyles.field(context),
@@ -188,7 +197,8 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                               keyboardType: TextInputType.number,
                               onChanged: (value) {
                                 setState(() {
-                                  _portTerm = value;
+                                  _enableStartButton = value.isNotEmpty &
+                                      serverController.text.isNotEmpty;
                                 });
                               },
                               style: STextStyles.field(context),
@@ -307,16 +317,32 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                           const Spacer(),
                           PrimaryButton(
                             label: "Start",
-                            onPressed: () => {
-                              (ref
-                                      .read(walletsChangeNotifierProvider)
-                                      .getManager(widget.walletId)
-                                      .wallet as FusionWalletInterface)
-                                  .fuse(
-                                serverHost: _serverTerm,
-                                serverPort: int.parse(_portTerm),
+                            enabled: _enableStartButton,
+                            onPressed: () async {
+                              final fusionWallet = ref
+                                  .read(walletsChangeNotifierProvider)
+                                  .getManager(widget.walletId)
+                                  .wallet as FusionWalletInterface;
+
+                              try {
+                                fusionWallet.uiState = ref.read(
+                                  fusionProgressUIStateProvider(
+                                      widget.walletId),
+                                );
+                              } catch (e) {
+                                if (!e.toString().contains(
+                                    "FusionProgressUIState was already set for ${widget.walletId}")) {
+                                  rethrow;
+                                }
+                              }
+
+                              unawaited(fusionWallet.fuse(
+                                serverHost: serverController.text,
+                                serverPort: int.parse(portController.text),
                                 serverSsl: _enableSSLCheckbox,
-                              )
+                              ));
+
+                              // TODO: navigate to progress screen
                             },
                           ),
                         ],
