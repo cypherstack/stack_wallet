@@ -9,7 +9,9 @@
  */
 
 import 'dart:async';
+import 'dart:typed_data';
 
+import 'package:bitcoindart/bitcoindart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -19,8 +21,10 @@ import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/debug_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart';
 import 'package:stackwallet/services/mixins/electrum_x_parsing.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -420,6 +424,90 @@ class HiddenSettings extends StatelessWidget {
                             );
                           },
                         ),
+                        const SizedBox(
+                          height: 12,
+                        ),
+                        Consumer(
+                          builder: (_, ref, __) {
+                            return GestureDetector(
+                              onTap: () async {
+                                try {
+                                  final p = TT();
+
+                                  final n = ref
+                                      .read(nodeServiceChangeNotifierProvider)
+                                      .getPrimaryNodeFor(
+                                          coin: Coin.bitcoincash)!;
+
+                                  final e = ElectrumX.from(
+                                    node: ElectrumXNode(
+                                      address: n.host,
+                                      port: n.port,
+                                      name: n.name,
+                                      id: n.id,
+                                      useSSL: n.useSSL,
+                                    ),
+                                    prefs:
+                                        ref.read(prefsChangeNotifierProvider),
+                                    failovers: [],
+                                  );
+
+                                  final address =
+                                      "qzmd5vxgh9m22m6fgvm57yd6kjnjl9qnwyztz2p80d";
+
+                                  List<int> _base32Decode(String string) {
+                                    final data = Uint8List(string.length);
+                                    for (int i = 0; i < string.length; i++) {
+                                      final value = string[i];
+                                      if (!_CHARSET_INVERSE_INDEX
+                                          .containsKey(value))
+                                        throw FormatException(
+                                            "Invalid character '$value'");
+                                      data[i] =
+                                          _CHARSET_INVERSE_INDEX[string[i]]!;
+                                    }
+
+                                    return data.sublist(1);
+                                  }
+
+                                  final dec = _base32Decode(address);
+
+                                  final pd = PaymentData(
+                                      pubkey: Uint8List.fromList(dec));
+
+                                  final p2pkh =
+                                      P2PKH(data: pd, network: bitcoincash);
+
+                                  final addr = p2pkh.data.address!;
+
+                                  final scripthash =
+                                      AddressUtils.convertToScriptHash(
+                                          addr, bitcoincash);
+
+                                  final hist = await e.getHistory(
+                                      scripthash: scripthash);
+
+                                  Util.printJson(hist, "HISTORY for $address");
+                                  final utxos =
+                                      await e.getUTXOs(scripthash: scripthash);
+
+                                  Util.printJson(utxos, "UTXOS for $address");
+                                } catch (e, s) {
+                                  print("$e\n$s");
+                                }
+                              },
+                              child: RoundedWhiteContainer(
+                                child: Text(
+                                  "UTXOs",
+                                  style: STextStyles.button(context).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                         // const SizedBox(
                         //   height: 12,
                         // ),
@@ -461,3 +549,38 @@ class HiddenSettings extends StatelessWidget {
     );
   }
 }
+
+const _CHARSET_INVERSE_INDEX = {
+  'q': 0,
+  'p': 1,
+  'z': 2,
+  'r': 3,
+  'y': 4,
+  '9': 5,
+  'x': 6,
+  '8': 7,
+  'g': 8,
+  'f': 9,
+  '2': 10,
+  't': 11,
+  'v': 12,
+  'd': 13,
+  'w': 14,
+  '0': 15,
+  's': 16,
+  '3': 17,
+  'j': 18,
+  'n': 19,
+  '5': 20,
+  '4': 21,
+  'k': 22,
+  'h': 23,
+  'c': 24,
+  'e': 25,
+  '6': 26,
+  'm': 27,
+  'u': 28,
+  'a': 29,
+  '7': 30,
+  'l': 31,
+};
