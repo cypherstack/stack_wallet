@@ -15,10 +15,11 @@ import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class CashFusionView extends ConsumerStatefulWidget {
   const CashFusionView({
@@ -66,7 +67,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                 child: AppBarIconButton(
                   size: 36,
                   icon: SvgPicture.asset(
-                    Assets.svg.arrowRotate,
+                    Assets.svg.circleQuestion,
                     width: 20,
                     height: 20,
                     color: Theme.of(context)
@@ -74,55 +75,223 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                         .topNavIconPrimary,
                   ),
                   onPressed: () async {
-                    // show loading for a minimum of 2 seconds on refreshing
-                    await showLoading(
-                        whileFuture: Future.wait<void>([
-                          Future.delayed(const Duration(seconds: 2)),
-                          (ref
-                                  .read(walletsChangeNotifierProvider)
-                                  .getManager(widget.walletId)
-                                  .wallet as FusionWalletInterface)
-                              .refreshFusion()
-                        ]),
-                        context: context,
-                        message: "Refreshing...");
+                    //' TODO show about?
                   },
                 ),
               ),
             ],
           ),
-          body: Padding(
-            padding: const EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 8,
-            ),
-            child: Column(
-              children: [
-                Expanded(
-                  // child: CashFusionParticipantList(
-                  //   walletId: widget.walletId,
-                  // ),
-                  child: Text(
-                    "TODO CashFusionView",
-                    style: STextStyles.desktopTextMedium(context),
+          body: LayoutBuilder(
+            builder: (builderContext, constraints) {
+              return SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
+                  ),
+                  child: IntrinsicHeight(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          RoundedWhiteContainer(
+                            child: Text(
+                              "CashFusion allows you to anonymize your BCH coins."
+                              " You must be connected to the Tor network.",
+                              style: STextStyles.w500_12(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textSubtitle1,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 16,
+                          ),
+                          Text(
+                            "Server settings",
+                            style: STextStyles.w500_14(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark3,
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 12,
+                          ),
+                          TextField(), // TODO replace placholder textfield
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          TextField(), // TODO replace placholder textfield
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          Checkbox(
+                            value: true,
+                            onChanged: (_) {},
+                          ), // TODO replace placholder Checkbox
+                          const SizedBox(
+                            height: 16,
+                          ),
+                          Text(
+                            "Rounds of fusion",
+                            style: STextStyles.w500_14(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark3,
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 12,
+                          ),
+                          TextField(), // TODO replace placholder textfield with button for bottom sheet
+                          const SizedBox(
+                            height: 16,
+                          ),
+                          // Row(
+                          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          //   children: [
+                          //     Text(
+                          //       "Tor status",
+                          //       textAlign: TextAlign.left,
+                          //       style: isDesktop
+                          //           ? STextStyles.desktopTextExtraExtraSmall(context)
+                          //           : STextStyles.smallMed12(context),
+                          //     ),
+                          //     CustomTextButton(
+                          //       text: ref.watch(prefsChangeNotifierProvider
+                          //           .select((value) => value.useTor))
+                          //           ? "Disconnect"
+                          //           : "Connect",
+                          //       onTap: onTorTapped,
+                          //     ),
+                          //   ],
+                          // ),
+                          // const SizedBox(
+                          //   height: 12,
+                          // ),RoundedWhiteContainer(
+                          //   borderColor: isDesktop
+                          //       ? Theme.of(context).extension<StackColors>()!.background
+                          //       : null,
+                          //   padding:
+                          //   isDesktop ? const EdgeInsets.all(16) : const EdgeInsets.all(12),
+                          //   child: Row(
+                          //     children: [
+                          //       if (ref.watch(prefsChangeNotifierProvider
+                          //           .select((value) => value.useTor)))
+                          //         Container(
+                          //           width: _iconSize,
+                          //           height: _iconSize,
+                          //           decoration: BoxDecoration(
+                          //             color: Theme.of(context)
+                          //                 .extension<StackColors>()!
+                          //                 .accentColorGreen
+                          //                 .withOpacity(0.2),
+                          //             borderRadius: BorderRadius.circular(_iconSize),
+                          //           ),
+                          //           child: Center(
+                          //             child: SvgPicture.asset(
+                          //               Assets.svg.tor,
+                          //               height: isDesktop ? 19 : 14,
+                          //               width: isDesktop ? 19 : 14,
+                          //               color: Theme.of(context)
+                          //                   .extension<StackColors>()!
+                          //                   .accentColorGreen,
+                          //             ),
+                          //           ),
+                          //         ),
+                          //       if (!ref.watch(prefsChangeNotifierProvider
+                          //           .select((value) => value.useTor)))
+                          //         Container(
+                          //           width: _iconSize,
+                          //           height: _iconSize,
+                          //           decoration: BoxDecoration(
+                          //             color: Theme.of(context)
+                          //                 .extension<StackColors>()!
+                          //                 .textDark
+                          //                 .withOpacity(0.08),
+                          //             borderRadius: BorderRadius.circular(_iconSize),
+                          //           ),
+                          //           child: Center(
+                          //             child: SvgPicture.asset(
+                          //               Assets.svg.tor,
+                          //               height: isDesktop ? 19 : 14,
+                          //               width: isDesktop ? 19 : 14,
+                          //               color: Theme.of(context)
+                          //                   .extension<StackColors>()!
+                          //                   .textDark,
+                          //             ),
+                          //           ),
+                          //         ),
+                          //       SizedBox(
+                          //         width: _boxPadding,
+                          //       ),
+                          //       TorSubscription(
+                          //         onTorStatusChanged: (status) {
+                          //           setState(() {
+                          //             _torConnectionStatus = status;
+                          //           });
+                          //         },
+                          //         child: Column(
+                          //           crossAxisAlignment: CrossAxisAlignment.start,
+                          //           children: [
+                          //             Text(
+                          //               "Tor status",
+                          //               style: STextStyles.desktopTextExtraExtraSmall(context)
+                          //                   .copyWith(
+                          //                 color: Theme.of(context)
+                          //                     .extension<StackColors>()!
+                          //                     .textDark,
+                          //               ),
+                          //             ),
+                          //             if (_torConnectionStatus == TorConnectionStatus.connected)
+                          //               Text(
+                          //                 "Connected",
+                          //                 style:
+                          //                 STextStyles.desktopTextExtraExtraSmall(context),
+                          //               ),
+                          //             if (_torConnectionStatus ==
+                          //                 TorConnectionStatus.connecting)
+                          //               Text(
+                          //                 "Connecting...",
+                          //                 style:
+                          //                 STextStyles.desktopTextExtraExtraSmall(context),
+                          //               ),
+                          //             if (_torConnectionStatus ==
+                          //                 TorConnectionStatus.disconnected)
+                          //               Text(
+                          //                 "Disconnected",
+                          //                 style:
+                          //                 STextStyles.desktopTextExtraExtraSmall(context),
+                          //               ),
+                          //           ],
+                          //         ),
+                          //       ),
+                          //     ],
+                          //   ),
+                          // ),
+                          const SizedBox(
+                            height: 16,
+                          ),
+                          const Spacer(),
+                          PrimaryButton(
+                            label: "Start",
+                            onPressed: () => {
+                              (ref
+                                      .read(walletsChangeNotifierProvider)
+                                      .getManager(widget.walletId)
+                                      .wallet as FusionWalletInterface)
+                                  .fuse()
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-                TextButton(
-                  onPressed: () => {
-                    (ref
-                            .read(walletsChangeNotifierProvider)
-                            .getManager(widget.walletId)
-                            .wallet as FusionWalletInterface)
-                        .fuse()
-                  },
-                  child: Text(
-                    "Fuse",
-                    style: STextStyles.desktopTextMedium(context),
-                  ),
-                )
-              ],
-            ),
+              );
+            },
           ),
         ),
       ),
