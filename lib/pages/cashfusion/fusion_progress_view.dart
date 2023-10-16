@@ -9,11 +9,8 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/pages_desktop_specific/cashfusion/sub_widgets/fusion_dialog.dart';
 import 'package:stackwallet/pages_desktop_specific/cashfusion/sub_widgets/fusion_progress.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -34,32 +31,6 @@ class FusionProgressView extends StatefulWidget {
 }
 
 class _FusionProgressViewState extends State<FusionProgressView> {
-  Widget _getIconForState(CashFusionStatus state) {
-    switch (state) {
-      case CashFusionStatus.waiting:
-        return SvgPicture.asset(
-          Assets.svg.loader,
-          color:
-              Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
-        );
-      case CashFusionStatus.running:
-        return SvgPicture.asset(
-          Assets.svg.loader,
-          color: Theme.of(context).extension<StackColors>()!.accentColorGreen,
-        );
-      case CashFusionStatus.success:
-        return SvgPicture.asset(
-          Assets.svg.checkCircle,
-          color: Theme.of(context).extension<StackColors>()!.accentColorGreen,
-        );
-      case CashFusionStatus.failed:
-        return SvgPicture.asset(
-          Assets.svg.circleAlert,
-          color: Theme.of(context).extension<StackColors>()!.textError,
-        );
-    }
-  }
-
   /// return true on will cancel, false if cancel cancelled
   Future<bool> _requestCancel() async {
     //
