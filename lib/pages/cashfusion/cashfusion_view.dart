@@ -47,7 +47,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
 
   String _serverTerm = "";
   String _portTerm = "";
-  late bool enableSSLCheckbox;
+  bool _enableSSLCheckbox = false;
 
   FusionOption _option = FusionOption.continuous;
 
@@ -187,10 +187,44 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                           const SizedBox(
                             height: 10,
                           ),
-                          Checkbox(
-                            value: true,
-                            onChanged: (_) {},
-                          ), // TODO replace placholder Checkbox
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _enableSSLCheckbox = !_enableSSLCheckbox;
+                              });
+                            },
+                            child: Container(
+                              color: Colors.transparent,
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: Checkbox(
+                                      materialTapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                      value: _enableSSLCheckbox,
+                                      onChanged: (newValue) {
+                                        setState(
+                                          () {
+                                            _enableSSLCheckbox =
+                                                !_enableSSLCheckbox;
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    width: 12,
+                                  ),
+                                  Text(
+                                    "Use SSL",
+                                    style: STextStyles.itemSubtitle12(context),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                           const SizedBox(
                             height: 16,
                           ),
@@ -255,7 +289,6 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                           const SizedBox(
                             height: 16,
                           ),
-
                           const Spacer(),
                           PrimaryButton(
                             label: "Start",
