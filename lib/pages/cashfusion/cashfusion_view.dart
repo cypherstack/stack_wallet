@@ -53,6 +53,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
 
   @override
   void initState() {
+    super.initState();
     serverController = TextEditingController();
     portController = TextEditingController();
 
