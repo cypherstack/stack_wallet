@@ -10,7 +10,7 @@ void main() {
   // Replace "var1" with a hex string containing an output (script pub key)
   test("testUnwrapSPK", () {
     // Example Hex format string
-    String var1 = "YOUR-SCRIPT-PUBKEY-AS-HEX-STRING-FOR-TESTING-GOES-HERE";
+    String var1 = "76a91463456150b05a67084d795fbce22c8fbbca37697288ac";
     // Convert the Hex string to Uint8List
     Uint8List wrapped_spk = Uint8List.fromList(HEX.decode(var1));
 
