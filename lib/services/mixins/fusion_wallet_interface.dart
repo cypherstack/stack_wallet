@@ -187,15 +187,15 @@ mixin FusionWalletInterface {
         break;
       case fusion.FusionStatus.failed:
         // _uiState?.fusing = CashFusionStatus.failed;
-        _uiState?.complete =
-            CashFusionState(status: CashFusionStatus.failed, info: info);
+        // _uiState?.complete =
+        //     CashFusionState(status: CashFusionStatus.failed, info: info);
 
         failCurrentUiState(info);
 
         break;
       case fusion.FusionStatus.exception:
-        _uiState?.complete =
-            CashFusionState(status: CashFusionStatus.failed, info: info);
+        // _uiState?.complete =
+        //     CashFusionState(status: CashFusionStatus.failed, info: info);
 
         failCurrentUiState(info);
         break;
