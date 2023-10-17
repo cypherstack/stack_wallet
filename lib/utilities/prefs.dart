@@ -958,10 +958,10 @@ class Prefs extends ChangeNotifier {
       key: "fusionServerInfo",
     ) as String?;
 
-    if (saved == null) {
+    try {
+      return FusionInfo.fromJsonString(saved!);
+    } catch (_) {
       return FusionInfo.DEFAULTS;
-    } else {
-      return FusionInfo.fromJsonString(saved);
     }
   }
 }
