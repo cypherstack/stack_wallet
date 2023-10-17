@@ -169,7 +169,12 @@ class _ProgressItem extends StatelessWidget {
         ),
         title: label,
         subTitle: info != null
-            ? Text(info!) // TODO style error message eg. red.
+            ? Text(
+                info!,
+                style: STextStyles.w500_12(context).copyWith(
+                  color: Theme.of(context).extension<StackColors>()!.textError,
+                ),
+              )
             : null,
       ),
     );
