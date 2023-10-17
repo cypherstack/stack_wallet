@@ -156,68 +156,85 @@ mixin FusionWalletInterface {
   void _updateStatus({required fusion.FusionStatus status, String? info}) {
     switch (status) {
       case fusion.FusionStatus.connecting:
-        _uiState?.connecting = CashFusionStatus.running;
+        _uiState?.connecting =
+            CashFusionState(status: CashFusionStatus.running, info: info);
         break;
       case fusion.FusionStatus.setup:
-        _uiState?.connecting = CashFusionStatus.success;
-        _uiState?.outputs = CashFusionStatus.running;
+        _uiState?.connecting =
+            CashFusionState(status: CashFusionStatus.success, info: info);
+        _uiState?.outputs =
+            CashFusionState(status: CashFusionStatus.running, info: info);
         break;
       case fusion.FusionStatus.waiting:
-        _uiState?.outputs = CashFusionStatus.success;
-        _uiState?.peers = CashFusionStatus.running;
+        _uiState?.outputs =
+            CashFusionState(status: CashFusionStatus.success, info: info);
+        _uiState?.peers =
+            CashFusionState(status: CashFusionStatus.running, info: info);
         break;
       case fusion.FusionStatus.running:
-        _uiState?.peers = CashFusionStatus.success;
-        _uiState?.fusing = CashFusionStatus.running;
+        _uiState?.peers =
+            CashFusionState(status: CashFusionStatus.success, info: info);
+        _uiState?.fusing =
+            CashFusionState(status: CashFusionStatus.running, info: info);
         break;
       case fusion.FusionStatus.complete:
-        _uiState?.fusing = CashFusionStatus.success;
-        _uiState?.complete = CashFusionStatus.success;
+        _uiState?.fusing =
+            CashFusionState(status: CashFusionStatus.success, info: info);
+        _uiState?.complete =
+            CashFusionState(status: CashFusionStatus.success, info: info);
         break;
       case fusion.FusionStatus.failed:
         // _uiState?.fusing = CashFusionStatus.failed;
-        _uiState?.complete = CashFusionStatus.failed;
+        _uiState?.complete =
+            CashFusionState(status: CashFusionStatus.failed, info: info);
 
         failCurrentUiState(info);
 
         break;
       case fusion.FusionStatus.exception:
-        _uiState?.complete = CashFusionStatus.failed;
+        _uiState?.complete =
+            CashFusionState(status: CashFusionStatus.failed, info: info);
 
         failCurrentUiState(info);
         break;
       case fusion.FusionStatus.reset:
-        _uiState?.outputs = CashFusionStatus.waiting;
-        _uiState?.peers = CashFusionStatus.waiting;
-        _uiState?.connecting = CashFusionStatus.waiting;
-        _uiState?.fusing = CashFusionStatus.waiting;
-        _uiState?.complete = CashFusionStatus.waiting;
-        _uiState?.fusionState = CashFusionStatus.waiting;
+        _uiState?.outputs =
+            CashFusionState(status: CashFusionStatus.waiting, info: info);
+        _uiState?.peers =
+            CashFusionState(status: CashFusionStatus.waiting, info: info);
+        _uiState?.connecting =
+            CashFusionState(status: CashFusionStatus.waiting, info: info);
+        _uiState?.fusing =
+            CashFusionState(status: CashFusionStatus.waiting, info: info);
+        _uiState?.complete =
+            CashFusionState(status: CashFusionStatus.waiting, info: info);
+        _uiState?.fusionState =
+            CashFusionState(status: CashFusionStatus.waiting, info: info);
         break;
     }
   }
 
   void failCurrentUiState(String? info) {
     // Check each _uiState value to see if it is running.  If so, set it to failed.
-    if (_uiState?.connecting == CashFusionStatus.running) {
-      _uiState?.connecting = CashFusionStatus.failed;
-      _uiState?.connectionInfo = info;
+    if (_uiState?.connecting.status == CashFusionStatus.running) {
+      _uiState?.connecting =
+          CashFusionState(status: CashFusionStatus.failed, info: info);
     }
-    if (_uiState?.outputs == CashFusionStatus.running) {
-      _uiState?.outputs = CashFusionStatus.failed;
-      _uiState?.outputsInfo = info;
+    if (_uiState?.outputs.status == CashFusionStatus.running) {
+      _uiState?.outputs =
+          CashFusionState(status: CashFusionStatus.failed, info: info);
     }
-    if (_uiState?.peers == CashFusionStatus.running) {
-      _uiState?.peers = CashFusionStatus.failed;
-      _uiState?.connectionInfo = info;
+    if (_uiState?.peers.status == CashFusionStatus.running) {
+      _uiState?.peers =
+          CashFusionState(status: CashFusionStatus.failed, info: info);
     }
-    if (_uiState?.fusing == CashFusionStatus.running) {
-      _uiState?.fusing = CashFusionStatus.failed;
-      _uiState?.fusingInfo = info;
+    if (_uiState?.fusing.status == CashFusionStatus.running) {
+      _uiState?.fusing =
+          CashFusionState(status: CashFusionStatus.failed, info: info);
     }
-    if (_uiState?.complete == CashFusionStatus.running) {
-      _uiState?.complete = CashFusionStatus.failed;
-      _uiState?.completeInfo = info;
+    if (_uiState?.complete.status == CashFusionStatus.running) {
+      _uiState?.complete =
+          CashFusionState(status: CashFusionStatus.failed, info: info);
     }
   }
 

@@ -7,6 +7,13 @@ import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 
 enum CashFusionStatus { waiting, running, success, failed }
 
+class CashFusionState {
+  final CashFusionStatus status;
+  final String? info;
+
+  CashFusionState({required this.status, this.info});
+}
+
 class FusionDialog extends StatelessWidget {
   const FusionDialog({
     Key? key,

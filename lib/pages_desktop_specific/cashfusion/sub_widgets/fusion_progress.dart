@@ -95,7 +95,7 @@ class _ProgressItem extends StatelessWidget {
 
   final String iconAsset;
   final String label;
-  final ({CashFusionStatus status, String? info}) state;
+  final CashFusionState state;
 
   Widget _getIconForState(CashFusionStatus state, BuildContext context) {
     switch (state) {

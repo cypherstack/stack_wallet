@@ -31,101 +31,62 @@ class FusionProgressUIState extends ChangeNotifier {
       return false;
     }
 
-    bool _succeeded = _connecting == CashFusionStatus.success;
-    _succeeded &= _outputs == CashFusionStatus.success;
-    _succeeded &= _peers == CashFusionStatus.success;
-    _succeeded &= _fusing == CashFusionStatus.success;
-    _succeeded &= _complete == CashFusionStatus.success;
+    bool _succeeded = _connecting.status == CashFusionStatus.success;
+    _succeeded &= _outputs.status == CashFusionStatus.success;
+    _succeeded &= _peers.status == CashFusionStatus.success;
+    _succeeded &= _fusing.status == CashFusionStatus.success;
+    _succeeded &= _complete.status == CashFusionStatus.success;
 
     _succeeded &= fusionState == CashFusionStatus.success;
 
     return _succeeded;
   }
 
-  ({CashFusionStatus status, String? info}) _connecting =
-      (status: CashFusionStatus.waiting, info: null);
-  ({CashFusionStatus status, String? info}) get connecting => _connecting;
-  set connecting(({CashFusionStatus status, String? info}) state) {
+  CashFusionState _connecting =
+      CashFusionState(status: CashFusionStatus.waiting, info: null);
+  CashFusionState get connecting => _connecting;
+  set connecting(CashFusionState state) {
     _connecting = state;
     notifyListeners();
   }
 
-  CashFusionStatus _outputs = CashFusionStatus.waiting;
-  CashFusionStatus get outputs => _outputs;
-  set outputs(CashFusionStatus state) {
+  CashFusionState _outputs =
+      CashFusionState(status: CashFusionStatus.waiting, info: null);
+  CashFusionState get outputs => _outputs;
+  set outputs(CashFusionState state) {
     _outputs = state;
     notifyListeners();
   }
 
-  CashFusionStatus _peers = CashFusionStatus.waiting;
-  CashFusionStatus get peers => _peers;
-  set peers(CashFusionStatus state) {
+  CashFusionState _peers =
+      CashFusionState(status: CashFusionStatus.waiting, info: null);
+  CashFusionState get peers => _peers;
+  set peers(CashFusionState state) {
     _peers = state;
     notifyListeners();
   }
 
-  CashFusionStatus _fusing = CashFusionStatus.waiting;
-  CashFusionStatus get fusing => _fusing;
-  set fusing(CashFusionStatus state) {
+  CashFusionState _fusing =
+      CashFusionState(status: CashFusionStatus.waiting, info: null);
+  CashFusionState get fusing => _fusing;
+  set fusing(CashFusionState state) {
     _fusing = state;
     notifyListeners();
   }
 
-  CashFusionStatus _complete = CashFusionStatus.waiting;
-  CashFusionStatus get complete => _complete;
-  set complete(CashFusionStatus state) {
+  CashFusionState _complete =
+      CashFusionState(status: CashFusionStatus.waiting, info: null);
+  CashFusionState get complete => _complete;
+  set complete(CashFusionState state) {
     _complete = state;
     notifyListeners();
   }
 
-  CashFusionStatus _fusionStatus = CashFusionStatus.waiting;
-  CashFusionStatus get fusionState => _fusionStatus;
-  set fusionState(CashFusionStatus fusionStatus) {
+  CashFusionState _fusionStatus =
+      CashFusionState(status: CashFusionStatus.waiting, info: null);
+  CashFusionState get fusionState => _fusionStatus;
+  set fusionState(CashFusionState fusionStatus) {
     _fusionStatus = fusionStatus;
-    notifyListeners();
-  }
-
-  // Instance variables for info labels on fusion progress steps.
-  //
-  // "Connecting to server"
-  String? _connectionInfo;
-  String? get connectionInfo => _connectionInfo;
-  set connectionInfo(String? fusionInfo) {
-    _connectionInfo = fusionInfo;
-    notifyListeners();
-  }
-
-  // "Allocating outputs"
-  String? _outputsInfo;
-  String? get outputsInfo => _outputsInfo;
-  set outputsInfo(String? fusionInfo) {
-    _outputsInfo = fusionInfo;
-    notifyListeners();
-  }
-
-  // "Waiting for peers"
-  String? _peersInfo;
-  String? get peersInfo => _peersInfo;
-  set peersInfo(String? fusionInfo) {
-    _peersInfo = fusionInfo;
-    notifyListeners();
-  }
-
-  // "Fusing"
-  String? _fusingInfo;
-  String? get fusingInfo => _fusingInfo;
-  set fusingInfo(String? fusionInfo) {
-    _fusingInfo = fusionInfo;
-    notifyListeners();
-  }
-
-  // "Complete"
-  //
-  // Should show txId if successful.
-  String? _completeInfo;
-  String? get completeInfo => _completeInfo;
-  set completeInfo(String? fusionInfo) {
-    _completeInfo = fusionInfo;
     notifyListeners();
   }
 }
