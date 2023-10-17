@@ -1,6 +1,4 @@
 import 'dart:typed_data';
-import 'package:hex/hex.dart';
-import 'package:convert/convert.dart';
 
 // The Structure enum
 enum Structure {
@@ -25,8 +23,6 @@ class CompactSizeResult {
   CompactSizeResult({required this.amount, required this.bytesRead});
 }
 
-
-
 // This class is a data structure representing the entire output, comprised of both the
 // normal Script pub key and the token data.  We get this after we parse/unwrap the raw
 // output.
@@ -35,7 +31,6 @@ class ParsedOutput {
   TokenOutputData? token_data;
   ParsedOutput({this.script_pub_key, this.token_data});
 }
-
 
 // This is equivalent to the Electron Cash python's "OutputData" in token.py.
 // Named here specifically as "TokenOutputData" to reflect the fact that
@@ -54,7 +49,6 @@ class TokenOutputData {
     this.commitment,
     this.bitfield,
   });
-
 
   // Get the "capability", see Capability enum.
   int getCapability() {
@@ -86,7 +80,6 @@ class TokenOutputData {
     return false;
   }
 
-
   // Functions to return specific attributes based on the Capability.
   bool isMintingNFT() {
     return hasNFT() && getCapability() == Capability.Minting.index;
@@ -99,7 +92,6 @@ class TokenOutputData {
   bool isImmutableNFT() {
     return hasNFT() && getCapability() == Capability.NoCapability.index;
   }
-
 
   // This function validates if the bitfield makes sense or violates known rules/logic.
   bool isValidBitfield() {
@@ -126,21 +118,17 @@ class TokenOutputData {
     return true;
   }
 
-
   // The serialze and deserialize functions are the nuts and bolts of how we unpack
   // and pack outputs.  These are called by the wrap and unwrap functions.
   int deserialize(Uint8List buffer, {int cursor = 0, bool strict = false}) {
     try {
-
       this.id = buffer.sublist(cursor, cursor + 32);
       cursor += 32;
-
 
       this.bitfield = Uint8List.fromList([buffer[cursor]]);
       cursor += 1;
 
       if (this.hasCommitmentLength()) {
-
         // Read the first byte to determine the length of the commitment data
         int commitmentLength = buffer[cursor];
 
@@ -156,33 +144,29 @@ class TokenOutputData {
         this.commitment = null;
       }
 
-
       if (this.hasAmount()) {
         // Use readCompactSize that returns CompactSizeResult
-        CompactSizeResult result = readCompactSize(buffer, cursor, strict: strict);
+        CompactSizeResult result =
+            readCompactSize(buffer, cursor, strict: strict);
         this.amount = result.amount;
         cursor += result.bytesRead;
       } else {
         this.amount = 0;
       }
 
-
       if (!this.isValidBitfield() ||
           (this.hasAmount() && this.amount == 0) ||
           (this.amount! < 0 || this.amount! > (1 << 63) - 1) ||
           (this.hasCommitmentLength() && this.commitment!.isEmpty) ||
-          (this.amount! == 0 && !this.hasNFT())
-      ) {
+          (this.amount! == 0 && !this.hasNFT())) {
         throw Exception('Unable to parse token data or token data is invalid');
       }
 
-      return cursor;  // Return the number of bytes read
-
+      return cursor; // Return the number of bytes read
     } catch (e) {
       throw Exception('Deserialization failed: $e');
     }
   }
-
 
   // Serialize method
   Uint8List serialize() {
@@ -204,9 +188,7 @@ class TokenOutputData {
 
     return buffer.toBytes();
   }
-
-}  //END OF OUTPUTDATA CLASS
-
+} //END OF OUTPUTDATA CLASS
 
 // The prefix byte is specified by the CashTokens spec.
 final List<int> PREFIX_BYTE = [0xef];
@@ -232,9 +214,7 @@ ParsedOutput wrap_spk(TokenOutputData? token_data, Uint8List script_pub_key) {
   return parsedOutput;
 }
 
-
-
-// This function unwraps any output, either "normal" (containing no token data) 
+// This function unwraps any output, either "normal" (containing no token data)
 // or an output with token data.  If no token data, just the output is returned,
 // and if token data exists, both the output and token data are returned.
 // Note that the data returend in both cases in of ParsedOutput type, which
@@ -242,12 +222,10 @@ ParsedOutput wrap_spk(TokenOutputData? token_data, Uint8List script_pub_key) {
 ParsedOutput unwrap_spk(Uint8List wrapped_spk) {
   ParsedOutput parsedOutput = ParsedOutput();
 
-
   if (wrapped_spk.isEmpty || wrapped_spk[0] != PREFIX_BYTE[0]) {
     parsedOutput.script_pub_key = wrapped_spk;
     return parsedOutput;
   }
-
 
   int read_cursor = 1; // Start after the PREFIX_BYTE
   TokenOutputData token_data = TokenOutputData();
@@ -256,14 +234,12 @@ ParsedOutput unwrap_spk(Uint8List wrapped_spk) {
   try {
     // Deserialize updates read_cursor by the number of bytes read
 
-    wrapped_spk_without_prefix_byte= wrapped_spk.sublist(read_cursor);
+    wrapped_spk_without_prefix_byte = wrapped_spk.sublist(read_cursor);
     int bytesRead = token_data.deserialize(wrapped_spk_without_prefix_byte);
-
 
     read_cursor += bytesRead;
     parsedOutput.token_data = token_data;
     parsedOutput.script_pub_key = wrapped_spk.sublist(read_cursor);
-
   } catch (e) {
     // If unable to deserialize, return all bytes as the full scriptPubKey
     parsedOutput.script_pub_key = wrapped_spk;
@@ -277,9 +253,11 @@ ParsedOutput unwrap_spk(Uint8List wrapped_spk) {
 //These are part of a "length value " scheme where the length (and endianness) are given first
 // and inform the program of how many bytes to grab next.  These are in turn used by the serialize
 // and deserialize functions.-
-CompactSizeResult readCompactSize(Uint8List buffer, int cursor, {bool strict = false}) {
-
-
+CompactSizeResult readCompactSize(
+  Uint8List buffer,
+  int cursor, {
+  bool strict = false,
+}) {
   int bytesRead = 0; // Variable to count bytes read
   int val;
   try {
@@ -314,6 +292,7 @@ CompactSizeResult readCompactSize(Uint8List buffer, int cursor, {bool strict = f
     throw Exception("attempt to read past end of buffer");
   }
 }
+
 Uint8List writeCompactSize(int size) {
   var buffer = ByteData(9); // Maximum needed size for compact size is 9 bytes
   if (size < 0) {
@@ -336,4 +315,3 @@ Uint8List writeCompactSize(int size) {
     throw Exception("Size too large to represent as CompactSize");
   }
 }
-
