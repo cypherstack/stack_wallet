@@ -221,22 +221,27 @@ mixin FusionWalletInterface {
     if (_uiState?.connecting.status == CashFusionStatus.running) {
       _uiState?.connecting =
           CashFusionState(status: CashFusionStatus.failed, info: info);
+      return;
     }
     if (_uiState?.outputs.status == CashFusionStatus.running) {
       _uiState?.outputs =
           CashFusionState(status: CashFusionStatus.failed, info: info);
+      return;
     }
     if (_uiState?.peers.status == CashFusionStatus.running) {
       _uiState?.peers =
           CashFusionState(status: CashFusionStatus.failed, info: info);
+      return;
     }
     if (_uiState?.fusing.status == CashFusionStatus.running) {
       _uiState?.fusing =
           CashFusionState(status: CashFusionStatus.failed, info: info);
+      return;
     }
     if (_uiState?.complete.status == CashFusionStatus.running) {
       _uiState?.complete =
           CashFusionState(status: CashFusionStatus.failed, info: info);
+      return;
     }
   }
 
