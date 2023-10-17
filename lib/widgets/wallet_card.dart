@@ -157,7 +157,7 @@ class SimpleWalletCard extends ConsumerWidget {
         } else {
           await nav.pushNamed(
             TokenView.routeName,
-            arguments: walletId,
+            arguments: (walletId: walletId, popPrevious: !Util.isDesktop),
           );
         }
       }

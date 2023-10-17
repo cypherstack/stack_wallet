@@ -1992,6 +1992,17 @@ class RouteGenerator {
               name: settings.name,
             ),
           );
+        } else if (args is ({String walletId, bool popPrevious})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => TokenView(
+              walletId: args.walletId,
+              popPrevious: args.popPrevious,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
