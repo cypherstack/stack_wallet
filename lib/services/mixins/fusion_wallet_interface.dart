@@ -54,12 +54,12 @@ class FusionInfo {
   }
 
   String toJsonString() {
-    return {
+    return jsonEncode({
       'host': host,
       'port': port,
       'ssl': ssl,
       'rounds': rounds,
-    }.toString();
+    });
   }
 
   @override
