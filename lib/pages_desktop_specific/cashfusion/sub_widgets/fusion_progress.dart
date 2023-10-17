@@ -47,7 +47,9 @@ class FusionProgress extends ConsumerWidget {
             iconAsset: Assets.svg.node,
             label: "Connecting to server",
             status: ref.watch(fusionProgressUIStateProvider(walletId)
-                .select((value) => value.connecting))),
+                .select((value) => value.connecting)),
+            info: ref.watch(fusionProgressUIStateProvider(walletId)
+                .select((value) => value.connectionInfo))),
         const SizedBox(
           height: 12,
         ),
@@ -55,7 +57,9 @@ class FusionProgress extends ConsumerWidget {
             iconAsset: Assets.svg.upFromLine,
             label: "Allocating outputs",
             status: ref.watch(fusionProgressUIStateProvider(walletId)
-                .select((value) => value.outputs))),
+                .select((value) => value.outputs)),
+            info: ref.watch(fusionProgressUIStateProvider(walletId)
+                .select((value) => value.outputsInfo))),
         const SizedBox(
           height: 12,
         ),
@@ -63,7 +67,9 @@ class FusionProgress extends ConsumerWidget {
             iconAsset: Assets.svg.peers,
             label: "Waiting for peers",
             status: ref.watch(fusionProgressUIStateProvider(walletId)
-                .select((value) => value.peers))),
+                .select((value) => value.peers)),
+            info: ref.watch(fusionProgressUIStateProvider(walletId)
+                .select((value) => value.peersInfo))),
         const SizedBox(
           height: 12,
         ),
@@ -71,7 +77,9 @@ class FusionProgress extends ConsumerWidget {
             iconAsset: Assets.svg.fusing,
             label: "Fusing",
             status: ref.watch(fusionProgressUIStateProvider(walletId)
-                .select((value) => value.fusing))),
+                .select((value) => value.fusing)),
+            info: ref.watch(fusionProgressUIStateProvider(walletId)
+                .select((value) => value.fusingInfo))),
         const SizedBox(
           height: 12,
         ),
@@ -79,7 +87,9 @@ class FusionProgress extends ConsumerWidget {
             iconAsset: Assets.svg.checkCircle,
             label: "Complete",
             status: ref.watch(fusionProgressUIStateProvider(walletId)
-                .select((value) => value.complete))),
+                .select((value) => value.complete)),
+            info: ref.watch(fusionProgressUIStateProvider(walletId)
+                .select((value) => value.completeInfo))),
       ],
     );
   }
@@ -91,11 +101,13 @@ class _ProgressItem extends StatelessWidget {
     required this.iconAsset,
     required this.label,
     required this.status,
+    this.info,
   });
 
   final String iconAsset;
   final String label;
   final CashFusionStatus status;
+  final String? info;
 
   Widget _getIconForState(CashFusionStatus state, BuildContext context) {
     switch (state) {
@@ -156,6 +168,9 @@ class _ProgressItem extends StatelessWidget {
           child: _getIconForState(status, context),
         ),
         title: label,
+        subTitle: info != null
+            ? Text(info!) // TODO style error message eg. red.
+            : null,
       ),
     );
   }

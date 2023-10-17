@@ -83,4 +83,48 @@ class FusionProgressUIState extends ChangeNotifier {
     _fusionStatus = fusionStatus;
     notifyListeners();
   }
+
+  // Instance variables for info labels on fusion progress steps.
+  //
+  // "Connecting to server"
+  String? _connectionInfo;
+  String? get connectionInfo => _connectionInfo;
+  set connectionInfo(String? fusionInfo) {
+    _connectionInfo = fusionInfo;
+    notifyListeners();
+  }
+
+  // "Allocating outputs"
+  String? _outputsInfo;
+  String? get outputsInfo => _outputsInfo;
+  set outputsInfo(String? fusionInfo) {
+    _outputsInfo = fusionInfo;
+    notifyListeners();
+  }
+
+  // "Waiting for peers"
+  String? _peersInfo;
+  String? get peersInfo => _peersInfo;
+  set peersInfo(String? fusionInfo) {
+    _peersInfo = fusionInfo;
+    notifyListeners();
+  }
+
+  // "Fusing"
+  String? _fusingInfo;
+  String? get fusingInfo => _fusingInfo;
+  set fusingInfo(String? fusionInfo) {
+    _fusingInfo = fusionInfo;
+    notifyListeners();
+  }
+
+  // "Complete"
+  //
+  // Should show txId if successful.
+  String? _completeInfo;
+  String? get completeInfo => _completeInfo;
+  set completeInfo(String? fusionInfo) {
+    _completeInfo = fusionInfo;
+    notifyListeners();
+  }
 }
