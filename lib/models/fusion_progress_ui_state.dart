@@ -9,19 +9,19 @@ class FusionProgressUIState extends ChangeNotifier {
       return false;
     }
 
-    bool _done = (_connecting == CashFusionStatus.success) ||
-        (_connecting == CashFusionStatus.failed);
-    _done &= (_outputs == CashFusionStatus.success) ||
-        (_outputs == CashFusionStatus.failed);
-    _done &= (_peers == CashFusionStatus.success) ||
-        (_peers == CashFusionStatus.failed);
-    _done &= (_fusing == CashFusionStatus.success) ||
-        (_fusing == CashFusionStatus.failed);
-    _done &= (_complete == CashFusionStatus.success) ||
-        (_complete == CashFusionStatus.failed);
+    bool _done = (_connecting.status == CashFusionStatus.success) ||
+        (_connecting.status == CashFusionStatus.failed);
+    _done &= (_outputs.status == CashFusionStatus.success) ||
+        (_outputs.status == CashFusionStatus.failed);
+    _done &= (_peers.status == CashFusionStatus.success) ||
+        (_peers.status == CashFusionStatus.failed);
+    _done &= (_fusing.status == CashFusionStatus.success) ||
+        (_fusing.status == CashFusionStatus.failed);
+    _done &= (_complete.status == CashFusionStatus.success) ||
+        (_complete.status == CashFusionStatus.failed);
 
-    _done &= (fusionState == CashFusionStatus.success) ||
-        (fusionState == CashFusionStatus.failed);
+    _done &= (fusionState.status == CashFusionStatus.success) ||
+        (fusionState.status == CashFusionStatus.failed);
 
     return _done;
   }
@@ -37,7 +37,7 @@ class FusionProgressUIState extends ChangeNotifier {
     _succeeded &= _fusing.status == CashFusionStatus.success;
     _succeeded &= _complete.status == CashFusionStatus.success;
 
-    _succeeded &= fusionState == CashFusionStatus.success;
+    _succeeded &= fusionState.status == CashFusionStatus.success;
 
     return _succeeded;
   }
