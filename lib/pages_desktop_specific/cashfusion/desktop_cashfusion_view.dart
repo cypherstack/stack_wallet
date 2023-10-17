@@ -28,6 +28,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
@@ -277,10 +278,29 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          "Server settings",
-                          style:
-                              STextStyles.desktopTextExtraExtraSmall(context),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Server settings",
+                              style: STextStyles.desktopTextExtraExtraSmall(
+                                  context),
+                            ),
+                            CustomTextButton(
+                              text: "Default",
+                              onTap: () {
+                                const def = FusionInfo.DEFAULTS;
+                                serverController.text = def.host;
+                                portController.text = def.port.toString();
+                                fusionRoundController.text =
+                                    def.rounds.toString();
+                                _roundType = FusionOption.continuous;
+                                setState(() {
+                                  _enableSSLCheckbox = def.ssl;
+                                });
+                              },
+                            ),
+                          ],
                         ),
                         const SizedBox(
                           height: 12,

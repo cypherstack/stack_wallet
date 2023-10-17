@@ -27,6 +27,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -157,13 +158,32 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                           const SizedBox(
                             height: 16,
                           ),
-                          Text(
-                            "Server settings",
-                            style: STextStyles.w500_14(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textDark3,
-                            ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Server settings",
+                                style: STextStyles.w500_14(context).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark3,
+                                ),
+                              ),
+                              CustomTextButton(
+                                text: "Default",
+                                onTap: () {
+                                  const def = FusionInfo.DEFAULTS;
+                                  serverController.text = def.host;
+                                  portController.text = def.port.toString();
+                                  fusionRoundController.text =
+                                      def.rounds.toString();
+                                  _option = FusionOption.continuous;
+                                  setState(() {
+                                    _enableSSLCheckbox = def.ssl;
+                                  });
+                                },
+                              ),
+                            ],
                           ),
                           const SizedBox(
                             height: 12,
