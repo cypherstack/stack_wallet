@@ -11,6 +11,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:bitbox/bitbox.dart' as bb;
 import 'package:bitcoindart/bitcoindart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -478,20 +479,26 @@ class HiddenSettings extends StatelessWidget {
                                   final p2pkh =
                                       P2PKH(data: pd, network: bitcoincash);
 
-                                  final addr = p2pkh.data.address!;
+                                  // final addr = p2pkh.data.address!;
+
+                                  final addr = bb.Address.toLegacyAddress(
+                                    "bitcoincash:qp352c2skpdxwzzd090mec3v37au5dmfwgwfw686sz",
+                                  );
 
                                   final scripthash =
                                       AddressUtils.convertToScriptHash(
                                           addr, bitcoincash);
 
-                                  final hist = await e.getHistory(
-                                      scripthash: scripthash);
-
-                                  Util.printJson(hist, "HISTORY for $address");
                                   final utxos =
                                       await e.getUTXOs(scripthash: scripthash);
 
                                   Util.printJson(utxos, "UTXOS for $address");
+
+                                  final hist = await e.getTransaction(
+                                    txHash: utxos.first["tx_hash"] as String,
+                                  );
+
+                                  Util.printJson(hist, "HISTORY for $address");
                                 } catch (e, s) {
                                   print("$e\n$s");
                                 }
