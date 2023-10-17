@@ -406,10 +406,8 @@ mixin FusionWalletInterface {
       serverHost: fusionInfo.host,
       serverPort: fusionInfo.port,
       serverSsl: fusionInfo.ssl,
+      roundCount: fusionInfo.rounds,
     );
-
-    // TODO use as required. Zero indicates continuous
-    final roundCount = fusionInfo.rounds;
 
     // Instantiate a Fusion object with custom parameters.
     final mainFusionObject = fusion.Fusion(serverParams);
