@@ -156,32 +156,34 @@ mixin FusionWalletInterface {
   void _updateStatus({required fusion.FusionStatus status, String? info}) {
     switch (status) {
       case fusion.FusionStatus.connecting:
-        _uiState?.connecting =
-            CashFusionState(status: CashFusionStatus.running, info: info);
+        _uiState?.connecting = CashFusionState(
+            status: CashFusionStatus.running,
+            info:
+                null); // We only want to show error messages for failed states.
         break;
       case fusion.FusionStatus.setup:
         _uiState?.connecting =
-            CashFusionState(status: CashFusionStatus.success, info: info);
+            CashFusionState(status: CashFusionStatus.success, info: null);
         _uiState?.outputs =
-            CashFusionState(status: CashFusionStatus.running, info: info);
+            CashFusionState(status: CashFusionStatus.running, info: null);
         break;
       case fusion.FusionStatus.waiting:
         _uiState?.outputs =
-            CashFusionState(status: CashFusionStatus.success, info: info);
+            CashFusionState(status: CashFusionStatus.success, info: null);
         _uiState?.peers =
-            CashFusionState(status: CashFusionStatus.running, info: info);
+            CashFusionState(status: CashFusionStatus.running, info: null);
         break;
       case fusion.FusionStatus.running:
         _uiState?.peers =
-            CashFusionState(status: CashFusionStatus.success, info: info);
+            CashFusionState(status: CashFusionStatus.success, info: null);
         _uiState?.fusing =
-            CashFusionState(status: CashFusionStatus.running, info: info);
+            CashFusionState(status: CashFusionStatus.running, info: null);
         break;
       case fusion.FusionStatus.complete:
         _uiState?.fusing =
-            CashFusionState(status: CashFusionStatus.success, info: info);
+            CashFusionState(status: CashFusionStatus.success, info: null);
         _uiState?.complete =
-            CashFusionState(status: CashFusionStatus.success, info: info);
+            CashFusionState(status: CashFusionStatus.success, info: null);
         break;
       case fusion.FusionStatus.failed:
         // _uiState?.fusing = CashFusionStatus.failed;
