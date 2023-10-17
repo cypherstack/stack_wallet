@@ -272,43 +272,6 @@ ParsedOutput unwrap_spk(Uint8List wrapped_spk) {
   return parsedOutput;
 }
 
-
-// Just a testing function which can be called in standalone fashion.
-// Replace "var1" with a hex string containing an output (script pub key)
-void testUnwrapSPK() {
-
-
-  // Example Hex format string
-  String var1 = "YOUR-SCRIPT-PUBKEY-AS-HEX-STRING-FOR-TESTING-GOES-HERE";
-  // Convert the Hex string to Uint8List
-  Uint8List wrapped_spk = Uint8List.fromList(HEX.decode(var1));
-
-  // Call unwrap_spk
-  ParsedOutput parsedOutput = unwrap_spk(wrapped_spk);
-
-  print("Parsed Output: $parsedOutput");
-
-  // Access token_data inside parsedOutput
-  TokenOutputData? tokenData = parsedOutput.token_data;
-
-  // Check if tokenData is null
-  if (tokenData != null) {
-  // Print specific fields
-  if (tokenData.id != null) {
-  print("ID: ${hex.encode(tokenData.id!)}");  // hex is imported
-  } else {
-  print("ID: null");
-  }
-  print ("amount of tokens");
-  print (tokenData.amount);
-  print("Is it an NFT?: ${tokenData.hasNFT()}");
-  } else {
-  print("Token data is null.");
-  }
-
-} //end function
-
-
 // HELPER FUNCTIONS
 
 //These are part of a "length value " scheme where the length (and endianness) are given first
