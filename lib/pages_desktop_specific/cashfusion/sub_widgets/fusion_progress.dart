@@ -46,50 +46,40 @@ class FusionProgress extends ConsumerWidget {
         _ProgressItem(
             iconAsset: Assets.svg.node,
             label: "Connecting to server",
-            status: ref.watch(fusionProgressUIStateProvider(walletId)
-                .select((value) => value.connecting)),
-            info: ref.watch(fusionProgressUIStateProvider(walletId)
-                .select((value) => value.connectionInfo))),
+            state: ref.watch(fusionProgressUIStateProvider(walletId)
+                .select((value) => value.connecting))),
         const SizedBox(
           height: 12,
         ),
         _ProgressItem(
             iconAsset: Assets.svg.upFromLine,
             label: "Allocating outputs",
-            status: ref.watch(fusionProgressUIStateProvider(walletId)
-                .select((value) => value.outputs)),
-            info: ref.watch(fusionProgressUIStateProvider(walletId)
-                .select((value) => value.outputsInfo))),
+            state: ref.watch(fusionProgressUIStateProvider(walletId)
+                .select((value) => value.outputs))),
         const SizedBox(
           height: 12,
         ),
         _ProgressItem(
             iconAsset: Assets.svg.peers,
             label: "Waiting for peers",
-            status: ref.watch(fusionProgressUIStateProvider(walletId)
-                .select((value) => value.peers)),
-            info: ref.watch(fusionProgressUIStateProvider(walletId)
-                .select((value) => value.peersInfo))),
+            state: ref.watch(fusionProgressUIStateProvider(walletId)
+                .select((value) => value.peers))),
         const SizedBox(
           height: 12,
         ),
         _ProgressItem(
             iconAsset: Assets.svg.fusing,
             label: "Fusing",
-            status: ref.watch(fusionProgressUIStateProvider(walletId)
-                .select((value) => value.fusing)),
-            info: ref.watch(fusionProgressUIStateProvider(walletId)
-                .select((value) => value.fusingInfo))),
+            state: ref.watch(fusionProgressUIStateProvider(walletId)
+                .select((value) => value.fusing))),
         const SizedBox(
           height: 12,
         ),
         _ProgressItem(
             iconAsset: Assets.svg.checkCircle,
             label: "Complete",
-            status: ref.watch(fusionProgressUIStateProvider(walletId)
-                .select((value) => value.complete)),
-            info: ref.watch(fusionProgressUIStateProvider(walletId)
-                .select((value) => value.completeInfo))),
+            state: ref.watch(fusionProgressUIStateProvider(walletId)
+                .select((value) => value.complete))),
       ],
     );
   }
@@ -100,14 +90,12 @@ class _ProgressItem extends StatelessWidget {
     super.key,
     required this.iconAsset,
     required this.label,
-    required this.status,
-    this.info,
+    required this.state,
   });
 
   final String iconAsset;
   final String label;
-  final CashFusionStatus status;
-  final String? info;
+  final ({CashFusionStatus status, String? info}) state;
 
   Widget _getIconForState(CashFusionStatus state, BuildContext context) {
     switch (state) {
@@ -165,12 +153,12 @@ class _ProgressItem extends StatelessWidget {
         right: SizedBox(
           width: 20,
           height: 20,
-          child: _getIconForState(status, context),
+          child: _getIconForState(state.status, context),
         ),
         title: label,
-        subTitle: info != null
+        subTitle: state.info != null
             ? Text(
-                info!,
+                state.info!,
                 style: STextStyles.w500_12(context).copyWith(
                   color: Theme.of(context).extension<StackColors>()!.textError,
                 ),

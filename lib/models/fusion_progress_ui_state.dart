@@ -42,9 +42,10 @@ class FusionProgressUIState extends ChangeNotifier {
     return _succeeded;
   }
 
-  CashFusionStatus _connecting = CashFusionStatus.waiting;
-  CashFusionStatus get connecting => _connecting;
-  set connecting(CashFusionStatus state) {
+  ({CashFusionStatus status, String? info}) _connecting =
+      (status: CashFusionStatus.waiting, info: null);
+  ({CashFusionStatus status, String? info}) get connecting => _connecting;
+  set connecting(({CashFusionStatus status, String? info}) state) {
     _connecting = state;
     notifyListeners();
   }
