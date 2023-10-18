@@ -85,17 +85,6 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
 
   @override
   void dispose() {
-    // Stop the fusion process on dispose.
-    //
-    // Hack to stop fusion when a mobile user clicks back.
-    final fusionWallet = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .wallet as FusionWalletInterface;
-
-    // We probably want to await this and showLoading while it stops.
-    unawaited(fusionWallet.stop());
-
     serverController.dispose();
     portController.dispose();
     fusionRoundController.dispose();
@@ -116,7 +105,9 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
               Theme.of(context).extension<StackColors>()!.background,
           appBar: AppBar(
             automaticallyImplyLeading: false,
-            leading: const AppBarBackButton(),
+            leading: AppBarBackButton(onPressed: () {
+              _stop();
+            }),
             title: Text(
               "CashFusion",
               style: STextStyles.navBarTitle(context),
@@ -456,5 +447,22 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
         ),
       ),
     );
+  }
+
+  /// Stops the fusion process.
+  ///
+  /// This is called when the user presses the back button.
+  void _stop() async {
+    final fusionWallet = ref
+        .read(walletsChangeNotifierProvider)
+        .getManager(widget.walletId)
+        .wallet as FusionWalletInterface;
+
+    await fusionWallet.stop();
+    // TODO await successful cancellation and showLoading while it stops.
+
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
   }
 }

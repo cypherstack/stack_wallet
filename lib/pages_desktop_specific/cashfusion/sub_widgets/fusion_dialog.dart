@@ -55,7 +55,9 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                     ),
                   ),
                   DesktopDialogCloseButton(
-                    onPressedOverride: () => Navigator.of(context).pop(true),
+                    onPressedOverride: () {
+                      _stop();
+                    },
                   ),
                 ],
               ),
@@ -106,5 +108,23 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
         ),
       ),
     );
+  }
+
+  /// Stops the fusion process.
+  ///
+  /// This is called when the user presses the back button.
+  void _stop() async {
+    print(12121212);
+    final fusionWallet = ref
+        .read(walletsChangeNotifierProvider)
+        .getManager(widget.walletId)
+        .wallet as FusionWalletInterface;
+
+    await fusionWallet.stop();
+    // TODO await successful cancellation and showLoading while it stops.
+
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
   }
 }
