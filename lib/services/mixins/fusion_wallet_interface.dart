@@ -124,6 +124,9 @@ mixin FusionWalletInterface {
   late final CachedElectrumX Function() _getWalletCachedElectrumX;
   late final Future<int> Function() _getChainHeight;
 
+  // Fusion object.
+  fusion.Fusion? _mainFusionObject;
+
   /// Initializes the FusionWalletInterface mixin.
   ///
   /// This function must be called before any other functions in this mixin.
@@ -410,10 +413,10 @@ mixin FusionWalletInterface {
     );
 
     // Instantiate a Fusion object with custom parameters.
-    final mainFusionObject = fusion.Fusion(serverParams);
+    _mainFusionObject = fusion.Fusion(serverParams);
 
     // Pass wallet functions to the Fusion object
-    await mainFusionObject.initFusion(
+    await _mainFusionObject!.initFusion(
       getTransactionsByAddress: _getTransactionsByAddress,
       getUnusedReservedChangeAddresses: _getUnusedReservedChangeAddresses,
       getSocksProxyAddress: _getSocksProxyAddress,
@@ -511,7 +514,7 @@ mixin FusionWalletInterface {
     }
 
     // Fuse UTXOs.
-    return await mainFusionObject.fuse(
+    return await _mainFusionObject!.fuse(
       inputsFromWallet: coinList,
       network:
           _coin.isTestNet ? fusion.Utilities.testNet : fusion.Utilities.mainNet,
@@ -522,5 +525,13 @@ mixin FusionWalletInterface {
     // TODO
     throw UnimplementedError(
         "TODO refreshFusion eg look up number of fusion participants connected/coordinating");
+  }
+
+  /// Stop the fusion process.
+  ///
+  /// This function is called when the user taps the "Cancel" button in the UI
+  /// or closes the fusion progress dialog.
+  Future<void>? stop() {
+    return _mainFusionObject?.stop();
   }
 }
