@@ -225,8 +225,8 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
           _hasLoaded = true;
         }
         if (!_hasLoaded) {
-          return Column(
-            children: const [
+          return const Column(
+            children: [
               Spacer(),
               Center(
                 child: LoadingIndicator(
