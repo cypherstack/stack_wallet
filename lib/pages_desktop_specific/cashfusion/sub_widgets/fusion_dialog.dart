@@ -42,7 +42,7 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
         child: Padding(
           padding: const EdgeInsets.only(
             left: 32,
-            right: 32,
+            right: 0,
             top: 0,
             bottom: 32,
           ),
@@ -60,32 +60,44 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
-              Text(
-                "Do you really want to cancel the fusion process?",
-                style: STextStyles.smallMed14(context),
-              ),
-              const SizedBox(height: 40),
-              Row(
-                children: [
-                  Expanded(
-                    child: SecondaryButton(
-                      label: "No",
-                      onPressed: () {
-                        Navigator.of(context).pop(false);
-                      },
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 0,
+                  right: 32,
+                  top: 0,
+                  bottom: 0,
+                ),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    Text(
+                      "Do you really want to cancel the fusion process?",
+                      style: STextStyles.smallMed14(context),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: PrimaryButton(
-                      label: "Yes",
-                      onPressed: () {
-                        Navigator.of(context).pop(true);
-                      },
+                    const SizedBox(height: 40),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SecondaryButton(
+                            label: "No",
+                            onPressed: () {
+                              Navigator.of(context).pop(false);
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: PrimaryButton(
+                            label: "Yes",
+                            onPressed: () {
+                              Navigator.of(context).pop(true);
+                            },
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
