@@ -68,6 +68,7 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                   bottom: 0,
                 ),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 20),
                     Text(
