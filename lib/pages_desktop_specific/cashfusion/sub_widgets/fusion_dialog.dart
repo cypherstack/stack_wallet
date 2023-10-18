@@ -9,7 +9,6 @@ import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
 
 enum CashFusionStatus { waiting, running, success, failed }
 
@@ -37,21 +36,59 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
     final shouldCancel = await showDialog<bool?>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => StackDialog(
-        title: "Cancel fusion?",
-        leftButton: SecondaryButton(
-          label: "No",
-          buttonHeight: ButtonHeight.l,
-          onPressed: () {
-            Navigator.of(context).pop(false);
-          },
-        ),
-        rightButton: PrimaryButton(
-          label: "Yes",
-          buttonHeight: ButtonHeight.l,
-          onPressed: () {
-            Navigator.of(context).pop(true);
-          },
+      builder: (_) => DesktopDialog(
+        maxWidth: 580,
+        maxHeight: double.infinity,
+        child: Padding(
+          padding: const EdgeInsets.only(
+            left: 32,
+            right: 32,
+            top: 0,
+            bottom: 32,
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Cancel fusion?",
+                    style: STextStyles.desktopH3(context),
+                  ),
+                  DesktopDialogCloseButton(
+                    onPressedOverride: () => Navigator.of(context).pop(true),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Text(
+                "Do you really want to cancel the fusion process?",
+                style: STextStyles.smallMed14(context),
+              ),
+              const SizedBox(height: 40),
+              Row(
+                children: [
+                  Expanded(
+                    child: SecondaryButton(
+                      label: "No",
+                      onPressed: () {
+                        Navigator.of(context).pop(false);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: PrimaryButton(
+                      label: "Yes",
+                      onPressed: () {
+                        Navigator.of(context).pop(true);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
