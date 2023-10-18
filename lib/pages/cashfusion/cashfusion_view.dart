@@ -85,6 +85,17 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
 
   @override
   void dispose() {
+    // Stop the fusion process on dispose.
+    //
+    // Hack to stop fusion when a mobile user clicks back.
+    final fusionWallet = ref
+        .read(walletsChangeNotifierProvider)
+        .getManager(widget.walletId)
+        .wallet as FusionWalletInterface;
+
+    // We probably want to await this and showLoading while it stops.
+    unawaited(fusionWallet.stop());
+
     serverController.dispose();
     portController.dispose();
     fusionRoundController.dispose();
