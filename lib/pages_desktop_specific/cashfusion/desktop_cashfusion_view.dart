@@ -260,8 +260,7 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                     child: Row(
                       children: [
                         Text(
-                          "CashFusion allows you to anonymize your BCH coins."
-                          "\nYou must be connected to the Tor network.",
+                          "CashFusion allows you to anonymize your BCH coins.",
                           style:
                               STextStyles.desktopTextExtraExtraSmall(context),
                         ),

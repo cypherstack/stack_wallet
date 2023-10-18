@@ -148,8 +148,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                         children: [
                           RoundedWhiteContainer(
                             child: Text(
-                              "CashFusion allows you to anonymize your BCH coins."
-                              " You must be connected to the Tor network.",
+                              "CashFusion allows you to anonymize your BCH coins.",
                               style: STextStyles.w500_12(context).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
