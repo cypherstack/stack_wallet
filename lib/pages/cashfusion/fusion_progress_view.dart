@@ -14,10 +14,14 @@ import 'package:stackwallet/pages_desktop_specific/cashfusion/sub_widgets/fusion
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class FusionProgressView extends ConsumerStatefulWidget {
   const FusionProgressView({
@@ -34,17 +38,56 @@ class FusionProgressView extends ConsumerStatefulWidget {
 }
 
 class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
-  /// return true on will cancel, false if cancel cancelled
-  Future<bool> _requestCancel() async {
-    // TODO
-    return false;
+  Future<bool> _requestAndProcessCancel() async {
+    final shouldCancel = await showDialog<bool?>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => StackDialog(
+        title: "Cancel fusion?",
+        leftButton: SecondaryButton(
+          label: "No",
+          buttonHeight: ButtonHeight.l,
+          onPressed: () {
+            Navigator.of(context).pop(false);
+          },
+        ),
+        rightButton: PrimaryButton(
+          label: "Yes",
+          buttonHeight: ButtonHeight.l,
+          onPressed: () {
+            Navigator.of(context).pop(true);
+          },
+        ),
+      ),
+    );
+
+    if (shouldCancel == true && mounted) {
+      final fusionWallet = ref
+          .read(walletsChangeNotifierProvider)
+          .getManager(widget.walletId)
+          .wallet as FusionWalletInterface;
+
+      await showLoading(
+        whileFuture: Future.wait([
+          fusionWallet.stop(),
+          Future<void>.delayed(const Duration(seconds: 2)),
+        ]),
+        context: context,
+        isDesktop: Util.isDesktop,
+        message: "Stopping fusion",
+      );
+
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        return await _requestCancel();
+        return await _requestAndProcessCancel();
       },
       child: Background(
         child: SafeArea(
@@ -55,7 +98,7 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
               automaticallyImplyLeading: false,
               leading: AppBarBackButton(
                 onPressed: () async {
-                  if (await _requestCancel()) {
+                  if (await _requestAndProcessCancel()) {
                     if (mounted) {
                       Navigator.of(context).pop();
                     }
@@ -90,17 +133,9 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
                             // TODO: various button states
                             // tempt only show cancel button
                             SecondaryButton(
-                              label: "Cancela",
+                              label: "Cancel",
                               onPressed: () async {
-                                final fusionWallet = ref
-                                    .read(walletsChangeNotifierProvider)
-                                    .getManager(widget.walletId)
-                                    .wallet as FusionWalletInterface;
-
-                                await fusionWallet.stop();
-                                // TODO should this stop be unawaited?
-
-                                if (await _requestCancel()) {
+                                if (await _requestAndProcessCancel()) {
                                   if (mounted) {
                                     Navigator.of(context).pop();
                                   }

@@ -64,6 +64,55 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
 
   FusionOption _roundType = FusionOption.continuous;
 
+  Future<void> _startFusion() async {
+    final fusionWallet = ref
+        .read(walletsChangeNotifierProvider)
+        .getManager(widget.walletId)
+        .wallet as FusionWalletInterface;
+
+    try {
+      fusionWallet.uiState = ref.read(
+        fusionProgressUIStateProvider(widget.walletId),
+      );
+    } catch (e) {
+      if (!e.toString().contains(
+          "FusionProgressUIState was already set for ${widget.walletId}")) {
+        rethrow;
+      }
+    }
+
+    final int rounds = _roundType == FusionOption.continuous
+        ? 0
+        : int.parse(fusionRoundController.text);
+
+    final newInfo = FusionInfo(
+      host: serverController.text,
+      port: int.parse(portController.text),
+      ssl: _enableSSLCheckbox,
+      rounds: rounds,
+    );
+
+    // update user prefs (persistent)
+    ref.read(prefsChangeNotifierProvider).fusionServerInfo = newInfo;
+
+    unawaited(
+      fusionWallet.fuse(
+        fusionInfo: newInfo,
+      ),
+    );
+    // unawaited(fusionWallet.stepThruUiStates());
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return FusionDialogView(
+          walletId: widget.walletId,
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     serverController = TextEditingController();
@@ -522,57 +571,7 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                         PrimaryButton(
                           label: "Start",
                           enabled: _enableStartButton,
-                          onPressed: () async {
-                            final fusionWallet = ref
-                                .read(walletsChangeNotifierProvider)
-                                .getManager(widget.walletId)
-                                .wallet as FusionWalletInterface;
-
-                            try {
-                              fusionWallet.uiState = ref.read(
-                                fusionProgressUIStateProvider(widget.walletId),
-                              );
-                            } catch (e) {
-                              if (!e.toString().contains(
-                                  "FusionProgressUIState was already set for ${widget.walletId}")) {
-                                rethrow;
-                              }
-                            }
-
-                            final int rounds =
-                                _roundType == FusionOption.continuous
-                                    ? 0
-                                    : int.parse(fusionRoundController.text);
-
-                            final newInfo = FusionInfo(
-                              host: serverController.text,
-                              port: int.parse(portController.text),
-                              ssl: _enableSSLCheckbox,
-                              rounds: rounds,
-                            );
-
-                            // update user prefs (persistent)
-                            ref
-                                .read(prefsChangeNotifierProvider)
-                                .fusionServerInfo = newInfo;
-
-                            unawaited(
-                              fusionWallet.fuse(
-                                fusionInfo: newInfo,
-                              ),
-                            );
-                            // unawaited(fusionWallet.stepThruUiStates());
-
-                            await showDialog<void>(
-                              context: context,
-                              barrierDismissible: false,
-                              builder: (context) {
-                                return FusionDialogView(
-                                  walletId: widget.walletId,
-                                );
-                              },
-                            );
-                          },
+                          onPressed: _startFusion,
                         ),
                       ],
                     ),

@@ -531,7 +531,7 @@ mixin FusionWalletInterface {
   ///
   /// This function is called when the user taps the "Cancel" button in the UI
   /// or closes the fusion progress dialog.
-  Future<void>? stop() {
-    return _mainFusionObject?.stop();
+  Future<void> stop() async {
+    await _mainFusionObject?.stop();
   }
 }
