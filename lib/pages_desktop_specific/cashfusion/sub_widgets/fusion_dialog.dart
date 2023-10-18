@@ -70,7 +70,6 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 20),
                     Text(
                       "Do you really want to cancel the fusion process?",
                       style: STextStyles.smallMed14(context),
