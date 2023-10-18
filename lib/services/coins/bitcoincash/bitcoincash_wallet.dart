@@ -31,6 +31,7 @@ import 'package:stackwallet/models/isar/models/blockchain_data/address.dart'
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/signing_data.dart';
+import 'package:stackwallet/services/coins/bitcoincash/bch_utils.dart';
 import 'package:stackwallet/services/coins/bitcoincash/cashtokens.dart' as ct;
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
@@ -1748,7 +1749,7 @@ class BitcoinCashWallet extends CoinServiceAPI
               if (ctOutput.token_data != null) {
                 // found a token!
                 blocked = true;
-                blockedReason = "Cash token detected on output";
+                blockedReason = "Cash token output detected";
               }
             } catch (e, s) {
               // Probably doesn't contain a cash token so just log failure
@@ -1757,6 +1758,12 @@ class BitcoinCashWallet extends CoinServiceAPI
                 " parsing check failed: $e\n$s",
                 level: LogLevel.Warning,
               );
+            }
+
+            // check for SLP tokens if not already blocked
+            if (!blocked && BchUtils.isSLP(scriptPubKey.toUint8ListFromHex)) {
+              blocked = true;
+              blockedReason = "SLP token output detected";
             }
           }
 
