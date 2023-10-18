@@ -249,7 +249,7 @@ class BitcoinCashWallet extends CoinServiceAPI
         DerivePathTypeExt.primaryFor(coin),
       );
       nextIndex++;
-      await db.putAddress(address);
+      await db.updateOrPutAddresses([address]);
 
       // check if it has been used before adding
       if (await _isUnused(address.value)) {
