@@ -135,54 +135,53 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
     return DesktopDialog(
       maxHeight: 600,
       child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.only(
-            top: 10,
-            left: 20,
-            bottom: 20,
-            right: 10,
-          ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 10.0),
-                    child: Text(
-                      "Fusion progress",
-                      style: STextStyles.desktopH2(context),
-                    ),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 32),
+                  child: Text(
+                    "Fusion progress",
+                    style: STextStyles.desktopH2(context),
                   ),
-                  DesktopDialogCloseButton(
-                    onPressedOverride: () async {
-                      if (await _requestAndProcessCancel()) {
-                        if (mounted) {
-                          Navigator.of(context).pop();
-                        }
+                ),
+                DesktopDialogCloseButton(
+                  onPressedOverride: () async {
+                    if (await _requestAndProcessCancel()) {
+                      if (mounted) {
+                        Navigator.of(context).pop();
                       }
-                    },
-                  ),
-                ],
+                    }
+                  },
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.only(
+                top: 20,
+                left: 32,
+                right: 32,
+                bottom: 32,
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: Column(
-                  children: [
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    FusionProgress(
-                      walletId: widget.walletId,
-                    ),
-                    const SizedBox(
-                      height: 12,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        SecondaryButton(
-                          width: 248,
+              child: Column(
+                children: [
+                  FusionProgress(
+                    walletId: widget.walletId,
+                  ),
+                  const SizedBox(
+                    height: 12,
+                  ),
+                  Row(
+                    children: [
+                      // spacer can be replaced with a button inside an expanded if a second button is wanted here
+                      const Spacer(),
+                      const SizedBox(
+                        width: 16,
+                      ),
+                      Expanded(
+                        child: SecondaryButton(
                           buttonHeight: ButtonHeight.m,
                           enabled: true,
                           label: "Cancel",
@@ -194,13 +193,13 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                             }
                           },
                         ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
