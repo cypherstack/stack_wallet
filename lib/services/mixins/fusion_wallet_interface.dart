@@ -527,12 +527,20 @@ mixin FusionWalletInterface {
       }
 
       // Fuse UTXOs.
-      await _mainFusionObject!.fuse(
-        inputsFromWallet: coinList,
-        network: _coin.isTestNet
-            ? fusion.Utilities.testNet
-            : fusion.Utilities.mainNet,
-      );
+      try {
+        await _mainFusionObject!.fuse(
+          inputsFromWallet: coinList,
+          network: _coin.isTestNet
+              ? fusion.Utilities.testNet
+              : fusion.Utilities.mainNet,
+        );
+      } catch (e, s) {
+        Logging.instance.log(
+          "$e\n$s",
+          level: LogLevel.Error,
+        );
+        // just continue on attempt failure
+      }
     }
   }
 
