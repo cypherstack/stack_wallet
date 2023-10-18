@@ -73,6 +73,7 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                     Text(
                       "Do you really want to cancel the fusion process?",
                       style: STextStyles.smallMed14(context),
+                      textAlign: TextAlign.left,
                     ),
                     const SizedBox(height: 40),
                     Row(
@@ -80,15 +81,17 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                         Expanded(
                           child: SecondaryButton(
                             label: "No",
+                            buttonHeight: ButtonHeight.l,
                             onPressed: () {
                               Navigator.of(context).pop(false);
                             },
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 16),
                         Expanded(
                           child: PrimaryButton(
                             label: "Yes",
+                            buttonHeight: ButtonHeight.l,
                             onPressed: () {
                               Navigator.of(context).pop(true);
                             },
