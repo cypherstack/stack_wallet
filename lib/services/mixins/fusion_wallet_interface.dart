@@ -123,9 +123,11 @@ mixin FusionWalletInterface {
       _getNextUnusedChangeAddresses;
   late final CachedElectrumX Function() _getWalletCachedElectrumX;
   late final Future<int> Function() _getChainHeight;
+  late final Future<void> Function() _updateWalletUTXOS;
 
   // Fusion object.
   fusion.Fusion? _mainFusionObject;
+  bool _stopRequested = false;
 
   /// Initializes the FusionWalletInterface mixin.
   ///
@@ -138,6 +140,7 @@ mixin FusionWalletInterface {
         getNextUnusedChangeAddress,
     required CachedElectrumX Function() getWalletCachedElectrumX,
     required Future<int> Function() getChainHeight,
+    required Future<void> Function() updateWalletUTXOS,
     required Future<String?> mnemonic,
     required Future<String?> mnemonicPassphrase,
     required btcdart.NetworkType network,
@@ -150,6 +153,7 @@ mixin FusionWalletInterface {
     _torService = FusionTorService.sharedInstance;
     _getWalletCachedElectrumX = getWalletCachedElectrumX;
     _getChainHeight = getChainHeight;
+    _updateWalletUTXOS = updateWalletUTXOS;
     _mnemonic = mnemonic;
     _mnemonicPassphrase = mnemonicPassphrase;
     _network = network;
@@ -409,7 +413,6 @@ mixin FusionWalletInterface {
       serverHost: fusionInfo.host,
       serverPort: fusionInfo.port,
       serverSsl: fusionInfo.ssl,
-      roundCount: fusionInfo.rounds,
     );
 
     // Instantiate a Fusion object with custom parameters.
@@ -453,78 +456,84 @@ mixin FusionWalletInterface {
       },
     );
 
-    // Add unfrozen stack UTXOs.
-    final List<UTXO> walletUtxos = await _db
-        .getUTXOs(_walletId)
-        .filter()
-        .isBlockedEqualTo(false)
-        .and()
-        .addressIsNotNull()
-        .findAll();
-    final List<fusion.UtxoDTO> coinList = [];
+    int fuzeCount = fusionInfo.rounds;
+    _stopRequested = false;
 
-    // Loop through UTXOs, checking and adding valid ones.
-    for (final utxo in walletUtxos) {
-      final String addressString = utxo.address!;
-      final List<String> possibleAddresses = [addressString];
+    while (fuzeCount > 0 && !_stopRequested) {
+      fuzeCount--;
 
-      if (bitbox.Address.detectFormat(addressString) ==
-          bitbox.Address.formatCashAddr) {
-        possibleAddresses.add(bitbox.Address.toLegacyAddress(addressString));
-      } else {
-        possibleAddresses.add(bitbox.Address.toCashAddress(addressString));
-      }
+      //   refresh wallet utxos
+      await _updateWalletUTXOS();
 
-      // Fetch address to get pubkey
-      final addr = await _db
-          .getAddresses(_walletId)
+      // Add unfrozen stack UTXOs.
+      final List<UTXO> walletUtxos = await _db
+          .getUTXOs(_walletId)
           .filter()
-          .anyOf<String, QueryBuilder<Address, Address, QAfterFilterCondition>>(
-              possibleAddresses, (q, e) => q.valueEqualTo(e))
+          .isBlockedEqualTo(false)
           .and()
-          .group((q) => q
-              .subTypeEqualTo(AddressSubType.change)
-              .or()
-              .subTypeEqualTo(AddressSubType.receiving))
-          .and()
-          .typeEqualTo(AddressType.p2pkh)
-          .findFirst();
+          .addressIsNotNull()
+          .findAll();
 
-      // depending on the address type in the query above this can be null
-      if (addr == null) {
-        // A utxo object should always have a non null address.
-        // If non found then just ignore the UTXO (aka don't fuse it)
-        Logging.instance.log(
-          "Ignoring utxo=$utxo for address=\"$addressString\" while selecting UTXOs for Fusion",
-          level: LogLevel.Info,
+      final List<fusion.UtxoDTO> coinList = [];
+      // Loop through UTXOs, checking and adding valid ones.
+      for (final utxo in walletUtxos) {
+        final String addressString = utxo.address!;
+        final List<String> possibleAddresses = [addressString];
+
+        if (bitbox.Address.detectFormat(addressString) ==
+            bitbox.Address.formatCashAddr) {
+          possibleAddresses.add(bitbox.Address.toLegacyAddress(addressString));
+        } else {
+          possibleAddresses.add(bitbox.Address.toCashAddress(addressString));
+        }
+
+        // Fetch address to get pubkey
+        final addr = await _db
+            .getAddresses(_walletId)
+            .filter()
+            .anyOf<String,
+                    QueryBuilder<Address, Address, QAfterFilterCondition>>(
+                possibleAddresses, (q, e) => q.valueEqualTo(e))
+            .and()
+            .group((q) => q
+                .subTypeEqualTo(AddressSubType.change)
+                .or()
+                .subTypeEqualTo(AddressSubType.receiving))
+            .and()
+            .typeEqualTo(AddressType.p2pkh)
+            .findFirst();
+
+        // depending on the address type in the query above this can be null
+        if (addr == null) {
+          // A utxo object should always have a non null address.
+          // If non found then just ignore the UTXO (aka don't fuse it)
+          Logging.instance.log(
+            "Ignoring utxo=$utxo for address=\"$addressString\" while selecting UTXOs for Fusion",
+            level: LogLevel.Info,
+          );
+          continue;
+        }
+
+        final dto = fusion.UtxoDTO(
+          txid: utxo.txid,
+          vout: utxo.vout,
+          value: utxo.value,
+          address: utxo.address!,
+          pubKey: addr.publicKey,
         );
-        continue;
+
+        // Add UTXO to coinList.
+        coinList.add(dto);
       }
 
-      final dto = fusion.UtxoDTO(
-        txid: utxo.txid,
-        vout: utxo.vout,
-        value: utxo.value,
-        address: utxo.address!,
-        pubKey: addr.publicKey,
+      // Fuse UTXOs.
+      await _mainFusionObject!.fuse(
+        inputsFromWallet: coinList,
+        network: _coin.isTestNet
+            ? fusion.Utilities.testNet
+            : fusion.Utilities.mainNet,
       );
-
-      // Add UTXO to coinList.
-      coinList.add(dto);
     }
-
-    // Fuse UTXOs.
-    return await _mainFusionObject!.fuse(
-      inputsFromWallet: coinList,
-      network:
-          _coin.isTestNet ? fusion.Utilities.testNet : fusion.Utilities.mainNet,
-    );
-  }
-
-  Future<void> refreshFusion() {
-    // TODO
-    throw UnimplementedError(
-        "TODO refreshFusion eg look up number of fusion participants connected/coordinating");
   }
 
   /// Stop the fusion process.
@@ -532,6 +541,7 @@ mixin FusionWalletInterface {
   /// This function is called when the user taps the "Cancel" button in the UI
   /// or closes the fusion progress dialog.
   Future<void> stop() async {
+    _stopRequested = true;
     await _mainFusionObject?.stop();
   }
 }

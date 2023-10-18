@@ -142,6 +142,7 @@ class BitcoinCashWallet extends CoinServiceAPI
       getWalletCachedElectrumX: () => cachedElectrumXClient,
       getNextUnusedChangeAddress: _getUnusedChangeAddresses,
       getChainHeight: () async => chainHeight,
+      updateWalletUTXOS: _updateUTXOs,
       mnemonic: mnemonicString,
       mnemonicPassphrase: mnemonicPassphrase,
       network: _network,
