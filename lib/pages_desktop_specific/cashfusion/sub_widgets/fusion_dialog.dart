@@ -56,7 +56,7 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                     style: STextStyles.desktopH3(context),
                   ),
                   DesktopDialogCloseButton(
-                    onPressedOverride: () => Navigator.of(context).pop(true),
+                    onPressedOverride: () => Navigator.of(context).pop(false),
                   ),
                 ],
               ),
