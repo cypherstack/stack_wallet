@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages_desktop_specific/cashfusion/sub_widgets/fusion_progress.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
@@ -14,14 +17,19 @@ class CashFusionState {
   CashFusionState({required this.status, this.info});
 }
 
-class FusionDialog extends StatelessWidget {
-  const FusionDialog({
+class FusionDialogView extends ConsumerStatefulWidget {
+  const FusionDialogView({
     Key? key,
     required this.walletId,
   }) : super(key: key);
 
   final String walletId;
 
+  @override
+  ConsumerState<FusionDialogView> createState() => _FusionDialogViewState();
+}
+
+class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
   @override
   Widget build(BuildContext context) {
     return DesktopDialog(
@@ -59,7 +67,7 @@ class FusionDialog extends StatelessWidget {
                       height: 20,
                     ),
                     FusionProgress(
-                      walletId: walletId,
+                      walletId: widget.walletId,
                     ),
                     const SizedBox(
                       height: 12,
@@ -72,8 +80,20 @@ class FusionDialog extends StatelessWidget {
                           buttonHeight: ButtonHeight.m,
                           enabled: true,
                           label: "Cancel",
-                          onPressed: () {
-                            Navigator.of(context).pop(true);
+                          onPressed: () async {
+                            final fusionWallet = ref
+                                .read(walletsChangeNotifierProvider)
+                                .getManager(widget.walletId)
+                                .wallet as FusionWalletInterface;
+
+                            await fusionWallet.stop();
+                            // TODO should this stop be unawaited?
+
+                            // if (await _requestCancel()) {
+                            if (mounted) {
+                              Navigator.of(context).pop();
+                            }
+                            // }
                           },
                         ),
                       ],
