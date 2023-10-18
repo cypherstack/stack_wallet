@@ -12,6 +12,7 @@ import 'dart:convert';
 
 import 'package:bip47/src/util.dart';
 import 'package:decimal/decimal.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -24,13 +25,15 @@ class TT with ElectrumXParsing {
 }
 
 mixin ElectrumXParsing {
-  Future<dynamic> parseBchTx(
+  Future<TransactionV2> parseBchTx(
     Map<String, dynamic> json, [
     String? debugTitle,
   ]) async {
     print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     util.Util.printJson(json, debugTitle);
     print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+
+    return TransactionV2.fromElectrumXJson(json);
   }
 
   Future<Tuple2<Transaction, Address>> parseTransaction(
