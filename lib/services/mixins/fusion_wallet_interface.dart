@@ -456,11 +456,17 @@ mixin FusionWalletInterface {
       },
     );
 
-    int fuzeCount = fusionInfo.rounds;
+    int fuzeCount = 0;
     _stopRequested = false;
 
-    while (fuzeCount > 0 && !_stopRequested) {
-      fuzeCount--;
+    while (!_stopRequested) {
+      if (fusionInfo.rounds > 0) {
+        if (fuzeCount >= fusionInfo.rounds) {
+          _stopRequested = true;
+        }
+      }
+
+      fuzeCount++;
 
       //   refresh wallet utxos
       await _updateWalletUTXOS();
