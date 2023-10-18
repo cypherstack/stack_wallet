@@ -31,6 +31,7 @@ import 'package:stackwallet/models/isar/models/blockchain_data/address.dart'
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/signing_data.dart';
+import 'package:stackwallet/services/coins/bitcoincash/cashtokens.dart' as ct;
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
@@ -52,6 +53,7 @@ import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
+import 'package:stackwallet/utilities/extensions/impl/string.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -1724,13 +1726,37 @@ class BitcoinCashWallet extends CoinServiceAPI
 
           final outputs = txn["vout"] as List;
 
+          String? scriptPubKey;
           String? utxoOwnerAddress;
           // get UTXO owner address
           for (final output in outputs) {
             if (output["n"] == vout) {
+              scriptPubKey = output["scriptPubKey"]?["hex"] as String?;
               utxoOwnerAddress =
                   output["scriptPubKey"]?["addresses"]?[0] as String? ??
                       output["scriptPubKey"]?["address"] as String?;
+            }
+          }
+
+          bool blocked = false;
+          String? blockedReason;
+
+          if (scriptPubKey != null) {
+            // check for cash tokens
+            try {
+              final ctOutput = ct.unwrap_spk(scriptPubKey.toUint8ListFromHex);
+              if (ctOutput.token_data != null) {
+                // found a token!
+                blocked = true;
+                blockedReason = "Cash token detected on output";
+              }
+            } catch (e, s) {
+              // Probably doesn't contain a cash token so just log failure
+              Logging.instance.log(
+                "Script pub key \"$scriptPubKey\" cash token"
+                " parsing check failed: $e\n$s",
+                level: LogLevel.Warning,
+              );
             }
           }
 
@@ -1740,8 +1766,8 @@ class BitcoinCashWallet extends CoinServiceAPI
             vout: vout,
             value: jsonUTXO["value"] as int,
             name: "",
-            isBlocked: false,
-            blockedReason: null,
+            isBlocked: blocked,
+            blockedReason: blockedReason,
             isCoinbase: txn["is_coinbase"] as bool? ?? false,
             blockHash: txn["blockhash"] as String?,
             blockHeight: jsonUTXO["height"] as int?,
