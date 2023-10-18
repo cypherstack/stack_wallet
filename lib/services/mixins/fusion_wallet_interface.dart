@@ -128,6 +128,7 @@ mixin FusionWalletInterface {
   // Fusion object.
   fusion.Fusion? _mainFusionObject;
   bool _stopRequested = false;
+  int _currentFuseCount = 0;
 
   /// Initializes the FusionWalletInterface mixin.
   ///
@@ -456,17 +457,23 @@ mixin FusionWalletInterface {
       },
     );
 
-    int fuzeCount = 0;
+    // reset count and flag
+    _currentFuseCount = 0;
     _stopRequested = false;
 
-    while (!_stopRequested) {
-      if (fusionInfo.rounds > 0) {
-        if (fuzeCount >= fusionInfo.rounds) {
-          _stopRequested = true;
-        }
+    bool shouldFuzeAgain() {
+      if (fusionInfo.rounds <= 0) {
+        // ignore count if continuous
+        return !_stopRequested;
+      } else {
+        // not continuous
+        // check to make sure we aren't doing more fusions than requested
+        return !_stopRequested && _currentFuseCount < fusionInfo.rounds;
       }
+    }
 
-      fuzeCount++;
+    while (shouldFuzeAgain()) {
+      _currentFuseCount++;
 
       //   refresh wallet utxos
       await _updateWalletUTXOS();
