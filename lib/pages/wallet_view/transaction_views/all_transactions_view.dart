@@ -17,6 +17,7 @@ import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart'
 import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/models/transaction_filter.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_search_filter_view.dart';
@@ -50,11 +51,13 @@ class AllTransactionsView extends ConsumerStatefulWidget {
   const AllTransactionsView({
     Key? key,
     required this.walletId,
+    this.isTokens = false,
   }) : super(key: key);
 
   static const String routeName = "/allTransactions";
 
   final String walletId;
+  final bool isTokens;
 
   @override
   ConsumerState<AllTransactionsView> createState() =>
@@ -445,12 +448,12 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
               ),
             if (isDesktop &&
                 ref.watch(transactionFilterProvider.state).state != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(
+              const Padding(
+                padding: EdgeInsets.symmetric(
                   vertical: 8,
                 ),
                 child: Row(
-                  children: const [
+                  children: [
                     TransactionFilterOptionBar(),
                   ],
                 ),
@@ -472,8 +475,11 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                   // debugPrint("Consumer build called");
 
                   return FutureBuilder(
-                    future: ref.watch(
-                        managerProvider.select((value) => value.transactions)),
+                    future: widget.isTokens
+                        ? ref.watch(tokenServiceProvider
+                            .select((value) => value!.transactions))
+                        : ref.watch(managerProvider
+                            .select((value) => value.transactions)),
                     builder: (_, AsyncSnapshot<List<Transaction>> snapshot) {
                       if (snapshot.connectionState == ConnectionState.done &&
                           snapshot.hasData) {
