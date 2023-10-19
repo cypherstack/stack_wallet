@@ -72,7 +72,7 @@ class InputV2 {
       InputV2()
         ..scriptSigHex = scriptSigHex
         ..sequence = sequence
-        ..sequence = sequence
+        ..outpoint = outpoint
         ..addresses = List.unmodifiable(addresses)
         ..valueStringSats = valueStringSats
         ..witness = witness

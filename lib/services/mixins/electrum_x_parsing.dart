@@ -112,6 +112,8 @@ mixin ElectrumXParsing {
           DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
       inputs: List.unmodifiable(inputs),
       outputs: List.unmodifiable(outputs),
+      subType: TransactionSubType.none,
+      type: TransactionType.unknown,
     );
   }
 
