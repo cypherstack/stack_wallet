@@ -223,7 +223,7 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                         onPressed: () => _fuseAgain,
                       ),
                     ),
-                  if (!_succeeded! && !_failed!) const Spacer(),
+                  // if (!_succeeded && !_failed) const Spacer(),
                   const SizedBox(
                     height: 12,
                   ),
@@ -237,6 +237,7 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                             onPressed: () => _fuseAgain,
                           ),
                         ),
+                      if (_succeeded) const Spacer(),
                       if (_failed)
                         Expanded(
                           child: PrimaryButton(
@@ -245,10 +246,12 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                             onPressed: () => _fuseAgain,
                           ),
                         ),
-                      if (!_succeeded! && !_failed!) const Spacer(),
-                      const SizedBox(
-                        width: 16,
-                      ),
+                      if (_failed) const Spacer(),
+                      // if (!_succeeded && !_failed) const Spacer(),
+                      // if (!_succeeded && !_failed)
+                      //   const SizedBox(
+                      //     width: 16,
+                      //   ),
                       Expanded(
                         child: SecondaryButton(
                           buttonHeight: ButtonHeight.m,
