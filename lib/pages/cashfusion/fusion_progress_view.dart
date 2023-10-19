@@ -140,7 +140,7 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
                           children: [
                             // TODO if (_succeeded but roundCount > roundCount)
                             // show "Fusion completed" as snackBarBackSuccess.
-                            if (_succeeded)
+                            if (_fusionRoundsCompleted > 0)
                               RoundedContainer(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
@@ -155,7 +155,7 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
                                   textAlign: TextAlign.center,
                                 ),
                               ),
-                            if (_succeeded)
+                            if (_fusionRoundsCompleted > 0)
                               const SizedBox(
                                 height: 20,
                               ),

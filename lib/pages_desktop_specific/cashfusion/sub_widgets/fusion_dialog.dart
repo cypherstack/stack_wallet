@@ -7,12 +7,14 @@ import 'package:stackwallet/providers/cash_fusion/fusion_progress_ui_state_provi
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 
 enum CashFusionStatus { waiting, running, success, failed }
 
@@ -142,6 +144,10 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
     bool _failed =
         ref.watch(fusionProgressUIStateProvider(widget.walletId)).failed;
 
+    int _fusionRoundsCompleted = ref
+        .watch(fusionProgressUIStateProvider(widget.walletId))
+        .fusionRoundsCompleted;
+
     return DesktopDialog(
       maxHeight: 600,
       child: SingleChildScrollView(
@@ -177,6 +183,45 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
               ),
               child: Column(
                 children: [
+                  if (_fusionRoundsCompleted > 0)
+                    RoundedContainer(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .snackBarBackInfo,
+                      child: Text(
+                        "Fusion rounds completed: $_fusionRoundsCompleted",
+                        style: STextStyles.w500_14(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .snackBarTextInfo,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  if (_fusionRoundsCompleted > 0)
+                    const SizedBox(
+                      height: 20,
+                    ),
+                  FusionProgress(
+                    walletId: widget.walletId,
+                  ),
+                  if (_succeeded)
+                    Expanded(
+                      child: PrimaryButton(
+                        buttonHeight: ButtonHeight.m,
+                        label: "Fuse again",
+                        onPressed: () => _fuseAgain,
+                      ),
+                    ),
+                  if (_failed)
+                    Expanded(
+                      child: PrimaryButton(
+                        buttonHeight: ButtonHeight.m,
+                        label: "Try again",
+                        onPressed: () => _fuseAgain,
+                      ),
+                    ),
+                  if (!_succeeded! && !_failed!) const Spacer(),
                   FusionProgress(
                     walletId: widget.walletId,
                   ),
