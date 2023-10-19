@@ -184,18 +184,20 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
               child: Column(
                 children: [
                   if (_fusionRoundsCompleted > 0)
-                    RoundedContainer(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .snackBarBackInfo,
-                      child: Text(
-                        "Fusion rounds completed: $_fusionRoundsCompleted",
-                        style: STextStyles.w500_14(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .snackBarTextInfo,
+                    Expanded(
+                      child: RoundedContainer(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .snackBarBackInfo,
+                        child: Text(
+                          "Fusion rounds completed: $_fusionRoundsCompleted",
+                          style: STextStyles.w500_14(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .snackBarTextInfo,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
                       ),
                     ),
                   if (_fusionRoundsCompleted > 0)
