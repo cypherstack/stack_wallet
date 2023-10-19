@@ -184,39 +184,40 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
               child: Column(
                 children: [
                   if (_fusionRoundsCompleted == 0)
-                    RoundedContainer(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .snackBarBackError,
-                      child: Text(
-                        "Do not close this window. If you exit, "
-                        "the process will be canceled.",
-                        style: STextStyles.smallMed14(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .snackBarTextError,
+                    Expanded(
+                      child: RoundedContainer(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .snackBarBackError,
+                        child: Text(
+                          "Do not close this window. If you exit, "
+                          "the process will be canceled.",
+                          style: STextStyles.smallMed14(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .snackBarTextError,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
                       ),
                     ),
                   if (_fusionRoundsCompleted > 0)
-                    /*Expanded(
-                      child: */
-                    RoundedContainer(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .snackBarBackInfo,
-                      child: Text(
-                        "Fusion rounds completed: $_fusionRoundsCompleted",
-                        style: STextStyles.w500_14(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .snackBarTextInfo,
+                    Expanded(
+                      child: RoundedContainer(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .snackBarBackInfo,
+                        child: Text(
+                          "Fusion rounds completed: $_fusionRoundsCompleted",
+                          style: STextStyles.w500_14(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .snackBarTextInfo,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
                       ),
                     ),
-                  // ),
                   const SizedBox(
                     height: 20,
                   ),
@@ -229,27 +230,25 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                   Row(
                     children: [
                       if (_succeeded)
-                        /*Expanded(
-                          child: */
-                        PrimaryButton(
-                          buttonHeight: ButtonHeight.m,
-                          label: "Fuse again",
-                          onPressed: () => _fuseAgain,
+                        Expanded(
+                          child: PrimaryButton(
+                            buttonHeight: ButtonHeight.m,
+                            label: "Fuse again",
+                            onPressed: () => _fuseAgain,
+                          ),
                         ),
-                      // ),
                       if (_succeeded)
                         const SizedBox(
                           width: 16,
                         ),
                       if (_failed)
-                        /*Expanded(
-                          child: */
-                        PrimaryButton(
-                          buttonHeight: ButtonHeight.m,
-                          label: "Try again",
-                          onPressed: () => _fuseAgain,
+                        Expanded(
+                          child: PrimaryButton(
+                            buttonHeight: ButtonHeight.m,
+                            label: "Try again",
+                            onPressed: () => _fuseAgain,
+                          ),
                         ),
-                      // ),
                       if (_failed)
                         const SizedBox(
                           width: 16,
