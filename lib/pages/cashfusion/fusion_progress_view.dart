@@ -25,6 +25,7 @@ import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class FusionProgressView extends ConsumerStatefulWidget {
@@ -95,6 +96,10 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
     bool _failed =
         ref.watch(fusionProgressUIStateProvider(widget.walletId)).failed;
 
+    int _fusionRoundsCompleted = ref
+        .watch(fusionProgressUIStateProvider(widget.walletId))
+        .fusionRoundsCompleted;
+
     return WillPopScope(
       onWillPop: () async {
         return await _requestAndProcessCancel();
@@ -133,6 +138,27 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           children: [
+                            // TODO if (_succeeded but roundCount > roundCount)
+                            // show "Fusion completed" as snackBarBackSuccess.
+                            if (_succeeded)
+                              RoundedContainer(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .snackBarBackInfo,
+                                child: Text(
+                                  "Fusion rounds completed: $_fusionRoundsCompleted",
+                                  style: STextStyles.w500_14(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .snackBarTextInfo,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            if (_succeeded)
+                              const SizedBox(
+                                height: 20,
+                              ),
                             FusionProgress(
                               walletId: widget.walletId,
                             ),
