@@ -188,6 +188,7 @@ class BitcoinCashWallet extends CoinServiceAPI
   @override
   Future<List<isar_models.UTXO>> get utxos => db.getUTXOs(walletId).findAll();
 
+  @Deprecated("V2 soon (tm)")
   @override
   Future<List<isar_models.Transaction>> get transactions =>
       db.getTransactions(walletId).sortByTimestampDesc().findAll();
@@ -793,18 +794,20 @@ class BitcoinCashWallet extends CoinServiceAPI
 
   Future<void> getAllTxsToWatch() async {
     if (_hasCalledExit) return;
-    List<isar_models.Transaction> unconfirmedTxnsToNotifyPending = [];
-    List<isar_models.Transaction> unconfirmedTxnsToNotifyConfirmed = [];
+    List<TransactionV2> unconfirmedTxnsToNotifyPending = [];
+    List<TransactionV2> unconfirmedTxnsToNotifyConfirmed = [];
 
     final currentChainHeight = await chainHeight;
 
-    final txCount = await db.getTransactions(walletId).count();
+    final txCount =
+        await db.isar.transactionV2s.where().walletIdEqualTo(walletId).count();
 
     const paginateLimit = 50;
 
     for (int i = 0; i < txCount; i += paginateLimit) {
-      final transactions = await db
-          .getTransactions(walletId)
+      final transactions = await db.isar.transactionV2s
+          .where()
+          .walletIdEqualTo(walletId)
           .offset(i)
           .limit(paginateLimit)
           .findAll();
@@ -1282,37 +1285,38 @@ class BitcoinCashWallet extends CoinServiceAPI
   // transactions locally in a good way
   @override
   Future<void> updateSentCachedTxData(Map<String, dynamic> txData) async {
-    final transaction = isar_models.Transaction(
-      walletId: walletId,
-      txid: txData["txid"] as String,
-      timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      type: isar_models.TransactionType.outgoing,
-      subType: isar_models.TransactionSubType.none,
-      // precision may be lost here hence the following amountString
-      amount: (txData["recipientAmt"] as Amount).raw.toInt(),
-      amountString: (txData["recipientAmt"] as Amount).toJsonString(),
-      fee: txData["fee"] as int,
-      height: null,
-      isCancelled: false,
-      isLelantus: false,
-      otherData: null,
-      slateId: null,
-      nonce: null,
-      inputs: [],
-      outputs: [],
-      numberOfMessages: null,
-    );
-
-    final address = txData["address"] is String
-        ? await db.getAddress(walletId, txData["address"] as String)
-        : null;
-
-    await db.addNewTransactionData(
-      [
-        Tuple2(transaction, address),
-      ],
-      walletId,
-    );
+    //. TODO update this to V2 properly
+    // final transaction = TransactionV2(
+    //   walletId: walletId,
+    //   txid: txData["txid"] as String,
+    //   timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    //   type: isar_models.TransactionType.outgoing,
+    //   subType: isar_models.TransactionSubType.none,
+    //   // precision may be lost here hence the following amountString
+    //   amount: (txData["recipientAmt"] as Amount).raw.toInt(),
+    //   amountString: (txData["recipientAmt"] as Amount).toJsonString(),
+    //   fee: txData["fee"] as int,
+    //   height: null,
+    //   isCancelled: false,
+    //   isLelantus: false,
+    //   otherData: null,
+    //   slateId: null,
+    //   nonce: null,
+    //   inputs: [],
+    //   outputs: [],
+    //   numberOfMessages: null,
+    // );
+    //
+    // final address = txData["address"] is String
+    //     ? await db.getAddress(walletId, txData["address"] as String)
+    //     : null;
+    //
+    // await db.addNewTransactionData(
+    //   [
+    //     Tuple2(transaction, address),
+    //   ],
+    //   walletId,
+    // );
   }
 
   bool validateCashAddr(String cashAddr) {
@@ -2060,12 +2064,10 @@ class BitcoinCashWallet extends CoinServiceAPI
     final List<TransactionV2> txns = [];
 
     for (final txData in allTransactions) {
-      Set<String> inputAddresses = {};
-      Set<String> outputAddresses = {};
-
       // set to true if any inputs were detected as owned by this wallet
       bool wasSentFromThisWallet = false;
-      BigInt amountSentFromThisWallet = BigInt.zero;
+      BigInt amountSentFromThisWallet =
+          BigInt.zero; // unsure if needed. Not used rn
 
       // set to true if any outputs were detected as owned by this wallet
       bool wasReceivedInThisWallet = false;
@@ -2126,8 +2128,6 @@ class BitcoinCashWallet extends CoinServiceAPI
           wasSentFromThisWallet = true;
           amountSentFromThisWallet += input.value;
         }
-
-        inputAddresses.addAll(input.addresses);
       }
 
       // parse outputs
@@ -2141,12 +2141,6 @@ class BitcoinCashWallet extends CoinServiceAPI
       }
 
       for (final output in outputs) {
-        if (allAddressesSet
-            .intersection(output.addresses.toSet())
-            .isNotEmpty) {}
-
-        outputAddresses.addAll(output.addresses);
-
         // if output was to my wallet, add value to amount received
         if (receivingAddresses
             .intersection(output.addresses.toSet())
@@ -2171,6 +2165,8 @@ class BitcoinCashWallet extends CoinServiceAPI
       final fee = totalIn - totalOut;
 
       isar_models.TransactionType type;
+      isar_models.TransactionSubType subType =
+          isar_models.TransactionSubType.none;
 
       // at least one input was owned by this wallet
       if (wasSentFromThisWallet) {
@@ -2184,6 +2180,18 @@ class BitcoinCashWallet extends CoinServiceAPI
           } else if (amountReceivedInThisWallet == BigInt.zero) {
             // most likely just a typical send
             // do nothing here yet
+          }
+
+          // check vout 0 for special scripts
+          if (outputs.isNotEmpty) {
+            final output = outputs.first;
+
+            // check for fusion
+            if (BchUtils.isFUZE(output.scriptPubKeyHex.toUint8ListFromHex)) {
+              subType = isar_models.TransactionSubType.cashFusion;
+            } else {
+              // check other cases here such as SLP or cash tokens etc
+            }
           }
         }
       } else if (wasReceivedInThisWallet) {
@@ -2205,7 +2213,7 @@ class BitcoinCashWallet extends CoinServiceAPI
         inputs: List.unmodifiable(inputs),
         outputs: List.unmodifiable(outputs),
         type: type,
-        subType: isar_models.TransactionSubType.none,
+        subType: subType,
       );
 
       txns.add(tx);

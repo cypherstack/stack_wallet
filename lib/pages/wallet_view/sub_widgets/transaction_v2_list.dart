@@ -367,7 +367,6 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
   late final TransactionType txType;
 
   String whatIsIt(
-    TransactionType type,
     Coin coin,
     int currentHeight,
   ) {
@@ -376,7 +375,15 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
       coin.requiredConfirmations,
     );
 
-    if (type == TransactionType.incoming) {
+    if (_transaction.subType == TransactionSubType.cashFusion) {
+      if (confirmedStatus) {
+        return "Anonymized";
+      } else {
+        return "Anonymizing";
+      }
+    }
+
+    if (_transaction.type == TransactionType.incoming) {
       // if (_transaction.isMinting) {
       //   return "Minting";
       // } else
@@ -385,16 +392,16 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
       } else {
         return "Receiving";
       }
-    } else if (type == TransactionType.outgoing) {
+    } else if (_transaction.type == TransactionType.outgoing) {
       if (confirmedStatus) {
         return "Sent";
       } else {
         return "Sending";
       }
-    } else if (type == TransactionType.sentToSelf) {
+    } else if (_transaction.type == TransactionType.sentToSelf) {
       return "Sent to self";
     } else {
-      return type.name;
+      return _transaction.type.name;
     }
   }
 
@@ -506,7 +513,6 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
                               fit: BoxFit.scaleDown,
                               child: Text(
                                 whatIsIt(
-                                  _transaction.type,
                                   coin,
                                   currentHeight,
                                 ),
