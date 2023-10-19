@@ -572,7 +572,7 @@ mixin FusionWalletInterface {
         // If we fail too many times in a row, stop trying.
         if (_failedFuseCount >= maxFailedFuseCount) {
           _stopRequested = true;
-          _uiState?.maxConsecutiveFusionRoundsFailed = true;
+          _uiState?.failed = true;
         }
       } finally {
         // Increment the number of successfully completed fusion rounds.

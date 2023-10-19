@@ -109,7 +109,7 @@ class FusionProgressUIState extends ChangeNotifier {
   void incrementFusionRoundsCompleted() {
     _fusionRoundsCompleted++;
     _fusionRoundsFailed = 0; // Reset failed round count on success.
-    _maxConsecutiveFusionRoundsFailed = false; // Reset failed flag on success.
+    _failed = false; // Reset failed flag on success.
     notifyListeners();
   }
 
@@ -129,11 +129,14 @@ class FusionProgressUIState extends ChangeNotifier {
 
   /// A flag indicating that fusion has stopped because the maximum number of
   /// consecutive failed fusion rounds has been reached.
-  bool _maxConsecutiveFusionRoundsFailed = false;
-  bool get maxConsecutiveFusionRoundsFailed =>
-      _maxConsecutiveFusionRoundsFailed;
-  set maxConsecutiveFusionRoundsFailed(bool maxConsecutiveFusionRoundsFailed) {
-    _maxConsecutiveFusionRoundsFailed = maxConsecutiveFusionRoundsFailed;
+  ///
+  /// Set from the interface.  I didn't want to have to configure
+  ///
+  /// Used to be named maxConsecutiveFusionRoundsFailed.
+  bool _failed = true;
+  bool get failed => _failed;
+  set failed(bool failed) {
+    _failed = failed;
     notifyListeners();
   }
 }
