@@ -3,38 +3,40 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i7;
-import 'dart:ui' as _i10;
+import 'dart:async' as _i8;
+import 'dart:ui' as _i11;
 
-import 'package:decimal/decimal.dart' as _i16;
+import 'package:decimal/decimal.dart' as _i17;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/models/exchange/change_now/cn_exchange_estimate.dart'
-    as _i19;
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart'
-    as _i21;
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart'
-    as _i22;
-import 'package:stackwallet/models/exchange/response_objects/estimate.dart'
-    as _i18;
-import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart'
     as _i20;
+import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart'
+    as _i22;
+import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart'
+    as _i23;
+import 'package:stackwallet/models/exchange/response_objects/estimate.dart'
+    as _i19;
+import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart'
+    as _i21;
 import 'package:stackwallet/models/exchange/response_objects/range.dart'
-    as _i17;
+    as _i18;
 import 'package:stackwallet/models/exchange/response_objects/trade.dart'
-    as _i12;
-import 'package:stackwallet/models/isar/exchange_cache/currency.dart' as _i15;
-import 'package:stackwallet/models/isar/exchange_cache/pair.dart' as _i23;
-import 'package:stackwallet/networking/http.dart' as _i2;
+    as _i13;
+import 'package:stackwallet/models/isar/exchange_cache/currency.dart' as _i16;
+import 'package:stackwallet/models/isar/exchange_cache/pair.dart' as _i24;
+import 'package:stackwallet/networking/http.dart' as _i3;
 import 'package:stackwallet/services/exchange/change_now/change_now_api.dart'
-    as _i14;
-import 'package:stackwallet/services/exchange/exchange_response.dart' as _i3;
-import 'package:stackwallet/services/trade_notes_service.dart' as _i13;
-import 'package:stackwallet/services/trade_service.dart' as _i11;
-import 'package:stackwallet/utilities/amount/amount_unit.dart' as _i8;
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i6;
-import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i9;
-import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i5;
-import 'package:stackwallet/utilities/prefs.dart' as _i4;
+    as _i15;
+import 'package:stackwallet/services/exchange/exchange_response.dart' as _i4;
+import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart'
+    as _i2;
+import 'package:stackwallet/services/trade_notes_service.dart' as _i14;
+import 'package:stackwallet/services/trade_service.dart' as _i12;
+import 'package:stackwallet/utilities/amount/amount_unit.dart' as _i9;
+import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i7;
+import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i10;
+import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i6;
+import 'package:stackwallet/utilities/prefs.dart' as _i5;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -47,8 +49,8 @@ import 'package:stackwallet/utilities/prefs.dart' as _i4;
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
-class _FakeHTTP_0 extends _i1.SmartFake implements _i2.HTTP {
-  _FakeHTTP_0(
+class _FakeFusionInfo_0 extends _i1.SmartFake implements _i2.FusionInfo {
+  _FakeFusionInfo_0(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -57,9 +59,19 @@ class _FakeHTTP_0 extends _i1.SmartFake implements _i2.HTTP {
         );
 }
 
-class _FakeExchangeResponse_1<T> extends _i1.SmartFake
-    implements _i3.ExchangeResponse<T> {
-  _FakeExchangeResponse_1(
+class _FakeHTTP_1 extends _i1.SmartFake implements _i3.HTTP {
+  _FakeHTTP_1(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeExchangeResponse_2<T> extends _i1.SmartFake
+    implements _i4.ExchangeResponse<T> {
+  _FakeExchangeResponse_2(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -71,7 +83,7 @@ class _FakeExchangeResponse_1<T> extends _i1.SmartFake
 /// A class which mocks [Prefs].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockPrefs extends _i1.Mock implements _i4.Prefs {
+class MockPrefs extends _i1.Mock implements _i5.Prefs {
   MockPrefs() {
     _i1.throwOnMissingStub(this);
   }
@@ -127,12 +139,12 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i5.SyncingType get syncType => (super.noSuchMethod(
+  _i6.SyncingType get syncType => (super.noSuchMethod(
         Invocation.getter(#syncType),
-        returnValue: _i5.SyncingType.currentWalletOnly,
-      ) as _i5.SyncingType);
+        returnValue: _i6.SyncingType.currentWalletOnly,
+      ) as _i6.SyncingType);
   @override
-  set syncType(_i5.SyncingType? syncType) => super.noSuchMethod(
+  set syncType(_i6.SyncingType? syncType) => super.noSuchMethod(
         Invocation.setter(
           #syncType,
           syncType,
@@ -291,12 +303,12 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i6.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
+  _i7.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
         Invocation.getter(#backupFrequencyType),
-        returnValue: _i6.BackupFrequencyType.everyTenMinutes,
-      ) as _i6.BackupFrequencyType);
+        returnValue: _i7.BackupFrequencyType.everyTenMinutes,
+      ) as _i7.BackupFrequencyType);
   @override
-  set backupFrequencyType(_i6.BackupFrequencyType? backupFrequencyType) =>
+  set backupFrequencyType(_i7.BackupFrequencyType? backupFrequencyType) =>
       super.noSuchMethod(
         Invocation.setter(
           #backupFrequencyType,
@@ -442,66 +454,82 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
         returnValueForMissingStub: null,
       );
   @override
+  _i2.FusionInfo get fusionServerInfo => (super.noSuchMethod(
+        Invocation.getter(#fusionServerInfo),
+        returnValue: _FakeFusionInfo_0(
+          this,
+          Invocation.getter(#fusionServerInfo),
+        ),
+      ) as _i2.FusionInfo);
+  @override
+  set fusionServerInfo(_i2.FusionInfo? fusionServerInfo) => super.noSuchMethod(
+        Invocation.setter(
+          #fusionServerInfo,
+          fusionServerInfo,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
       ) as bool);
   @override
-  _i7.Future<void> init() => (super.noSuchMethod(
+  _i8.Future<void> init() => (super.noSuchMethod(
         Invocation.method(
           #init,
           [],
         ),
-        returnValue: _i7.Future<void>.value(),
-        returnValueForMissingStub: _i7.Future<void>.value(),
-      ) as _i7.Future<void>);
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
   @override
-  _i7.Future<void> incrementCurrentNotificationIndex() => (super.noSuchMethod(
+  _i8.Future<void> incrementCurrentNotificationIndex() => (super.noSuchMethod(
         Invocation.method(
           #incrementCurrentNotificationIndex,
           [],
         ),
-        returnValue: _i7.Future<void>.value(),
-        returnValueForMissingStub: _i7.Future<void>.value(),
-      ) as _i7.Future<void>);
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
   @override
-  _i7.Future<bool> isExternalCallsSet() => (super.noSuchMethod(
+  _i8.Future<bool> isExternalCallsSet() => (super.noSuchMethod(
         Invocation.method(
           #isExternalCallsSet,
           [],
         ),
-        returnValue: _i7.Future<bool>.value(false),
-      ) as _i7.Future<bool>);
+        returnValue: _i8.Future<bool>.value(false),
+      ) as _i8.Future<bool>);
   @override
-  _i7.Future<void> saveUserID(String? userId) => (super.noSuchMethod(
+  _i8.Future<void> saveUserID(String? userId) => (super.noSuchMethod(
         Invocation.method(
           #saveUserID,
           [userId],
         ),
-        returnValue: _i7.Future<void>.value(),
-        returnValueForMissingStub: _i7.Future<void>.value(),
-      ) as _i7.Future<void>);
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
   @override
-  _i7.Future<void> saveSignupEpoch(int? signupEpoch) => (super.noSuchMethod(
+  _i8.Future<void> saveSignupEpoch(int? signupEpoch) => (super.noSuchMethod(
         Invocation.method(
           #saveSignupEpoch,
           [signupEpoch],
         ),
-        returnValue: _i7.Future<void>.value(),
-        returnValueForMissingStub: _i7.Future<void>.value(),
-      ) as _i7.Future<void>);
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
   @override
-  _i8.AmountUnit amountUnit(_i9.Coin? coin) => (super.noSuchMethod(
+  _i9.AmountUnit amountUnit(_i10.Coin? coin) => (super.noSuchMethod(
         Invocation.method(
           #amountUnit,
           [coin],
         ),
-        returnValue: _i8.AmountUnit.normal,
-      ) as _i8.AmountUnit);
+        returnValue: _i9.AmountUnit.normal,
+      ) as _i9.AmountUnit);
   @override
   void updateAmountUnit({
-    required _i9.Coin? coin,
-    required _i8.AmountUnit? amountUnit,
+    required _i10.Coin? coin,
+    required _i9.AmountUnit? amountUnit,
   }) =>
       super.noSuchMethod(
         Invocation.method(
@@ -515,7 +543,7 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  int maxDecimals(_i9.Coin? coin) => (super.noSuchMethod(
+  int maxDecimals(_i10.Coin? coin) => (super.noSuchMethod(
         Invocation.method(
           #maxDecimals,
           [coin],
@@ -524,7 +552,7 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
       ) as int);
   @override
   void updateMaxDecimals({
-    required _i9.Coin? coin,
+    required _i10.Coin? coin,
     required int? maxDecimals,
   }) =>
       super.noSuchMethod(
@@ -539,7 +567,7 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  void addListener(_i10.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i11.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -547,7 +575,7 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  void removeListener(_i10.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i11.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],
@@ -575,29 +603,29 @@ class MockPrefs extends _i1.Mock implements _i4.Prefs {
 /// A class which mocks [TradesService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockTradesService extends _i1.Mock implements _i11.TradesService {
+class MockTradesService extends _i1.Mock implements _i12.TradesService {
   MockTradesService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  List<_i12.Trade> get trades => (super.noSuchMethod(
+  List<_i13.Trade> get trades => (super.noSuchMethod(
         Invocation.getter(#trades),
-        returnValue: <_i12.Trade>[],
-      ) as List<_i12.Trade>);
+        returnValue: <_i13.Trade>[],
+      ) as List<_i13.Trade>);
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
       ) as bool);
   @override
-  _i12.Trade? get(String? tradeId) => (super.noSuchMethod(Invocation.method(
+  _i13.Trade? get(String? tradeId) => (super.noSuchMethod(Invocation.method(
         #get,
         [tradeId],
-      )) as _i12.Trade?);
+      )) as _i13.Trade?);
   @override
-  _i7.Future<void> add({
-    required _i12.Trade? trade,
+  _i8.Future<void> add({
+    required _i13.Trade? trade,
     required bool? shouldNotifyListeners,
   }) =>
       (super.noSuchMethod(
@@ -609,12 +637,12 @@ class MockTradesService extends _i1.Mock implements _i11.TradesService {
             #shouldNotifyListeners: shouldNotifyListeners,
           },
         ),
-        returnValue: _i7.Future<void>.value(),
-        returnValueForMissingStub: _i7.Future<void>.value(),
-      ) as _i7.Future<void>);
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
   @override
-  _i7.Future<void> edit({
-    required _i12.Trade? trade,
+  _i8.Future<void> edit({
+    required _i13.Trade? trade,
     required bool? shouldNotifyListeners,
   }) =>
       (super.noSuchMethod(
@@ -626,12 +654,12 @@ class MockTradesService extends _i1.Mock implements _i11.TradesService {
             #shouldNotifyListeners: shouldNotifyListeners,
           },
         ),
-        returnValue: _i7.Future<void>.value(),
-        returnValueForMissingStub: _i7.Future<void>.value(),
-      ) as _i7.Future<void>);
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
   @override
-  _i7.Future<void> delete({
-    required _i12.Trade? trade,
+  _i8.Future<void> delete({
+    required _i13.Trade? trade,
     required bool? shouldNotifyListeners,
   }) =>
       (super.noSuchMethod(
@@ -643,11 +671,11 @@ class MockTradesService extends _i1.Mock implements _i11.TradesService {
             #shouldNotifyListeners: shouldNotifyListeners,
           },
         ),
-        returnValue: _i7.Future<void>.value(),
-        returnValueForMissingStub: _i7.Future<void>.value(),
-      ) as _i7.Future<void>);
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
   @override
-  _i7.Future<void> deleteByUuid({
+  _i8.Future<void> deleteByUuid({
     required String? uuid,
     required bool? shouldNotifyListeners,
   }) =>
@@ -660,11 +688,11 @@ class MockTradesService extends _i1.Mock implements _i11.TradesService {
             #shouldNotifyListeners: shouldNotifyListeners,
           },
         ),
-        returnValue: _i7.Future<void>.value(),
-        returnValueForMissingStub: _i7.Future<void>.value(),
-      ) as _i7.Future<void>);
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
   @override
-  void addListener(_i10.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i11.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -672,7 +700,7 @@ class MockTradesService extends _i1.Mock implements _i11.TradesService {
         returnValueForMissingStub: null,
       );
   @override
-  void removeListener(_i10.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i11.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],
@@ -700,7 +728,7 @@ class MockTradesService extends _i1.Mock implements _i11.TradesService {
 /// A class which mocks [TradeNotesService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockTradeNotesService extends _i1.Mock implements _i13.TradeNotesService {
+class MockTradeNotesService extends _i1.Mock implements _i14.TradeNotesService {
   MockTradeNotesService() {
     _i1.throwOnMissingStub(this);
   }
@@ -725,7 +753,7 @@ class MockTradeNotesService extends _i1.Mock implements _i13.TradeNotesService {
         returnValue: '',
       ) as String);
   @override
-  _i7.Future<void> set({
+  _i8.Future<void> set({
     required String? tradeId,
     required String? note,
   }) =>
@@ -738,21 +766,21 @@ class MockTradeNotesService extends _i1.Mock implements _i13.TradeNotesService {
             #note: note,
           },
         ),
-        returnValue: _i7.Future<void>.value(),
-        returnValueForMissingStub: _i7.Future<void>.value(),
-      ) as _i7.Future<void>);
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
   @override
-  _i7.Future<void> delete({required String? tradeId}) => (super.noSuchMethod(
+  _i8.Future<void> delete({required String? tradeId}) => (super.noSuchMethod(
         Invocation.method(
           #delete,
           [],
           {#tradeId: tradeId},
         ),
-        returnValue: _i7.Future<void>.value(),
-        returnValueForMissingStub: _i7.Future<void>.value(),
-      ) as _i7.Future<void>);
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
   @override
-  void addListener(_i10.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i11.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -760,7 +788,7 @@ class MockTradeNotesService extends _i1.Mock implements _i13.TradeNotesService {
         returnValueForMissingStub: null,
       );
   @override
-  void removeListener(_i10.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i11.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],
@@ -788,21 +816,21 @@ class MockTradeNotesService extends _i1.Mock implements _i13.TradeNotesService {
 /// A class which mocks [ChangeNowAPI].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
+class MockChangeNowAPI extends _i1.Mock implements _i15.ChangeNowAPI {
   MockChangeNowAPI() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i2.HTTP get client => (super.noSuchMethod(
+  _i3.HTTP get client => (super.noSuchMethod(
         Invocation.getter(#client),
-        returnValue: _FakeHTTP_0(
+        returnValue: _FakeHTTP_1(
           this,
           Invocation.getter(#client),
         ),
-      ) as _i2.HTTP);
+      ) as _i3.HTTP);
   @override
-  _i7.Future<_i3.ExchangeResponse<List<_i15.Currency>>> getAvailableCurrencies({
+  _i8.Future<_i4.ExchangeResponse<List<_i16.Currency>>> getAvailableCurrencies({
     bool? fixedRate,
     bool? active,
   }) =>
@@ -816,8 +844,8 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
           },
         ),
         returnValue:
-            _i7.Future<_i3.ExchangeResponse<List<_i15.Currency>>>.value(
-                _FakeExchangeResponse_1<List<_i15.Currency>>(
+            _i8.Future<_i4.ExchangeResponse<List<_i16.Currency>>>.value(
+                _FakeExchangeResponse_2<List<_i16.Currency>>(
           this,
           Invocation.method(
             #getAvailableCurrencies,
@@ -828,26 +856,26 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
             },
           ),
         )),
-      ) as _i7.Future<_i3.ExchangeResponse<List<_i15.Currency>>>);
+      ) as _i8.Future<_i4.ExchangeResponse<List<_i16.Currency>>>);
   @override
-  _i7.Future<_i3.ExchangeResponse<List<_i15.Currency>>> getCurrenciesV2() =>
+  _i8.Future<_i4.ExchangeResponse<List<_i16.Currency>>> getCurrenciesV2() =>
       (super.noSuchMethod(
         Invocation.method(
           #getCurrenciesV2,
           [],
         ),
         returnValue:
-            _i7.Future<_i3.ExchangeResponse<List<_i15.Currency>>>.value(
-                _FakeExchangeResponse_1<List<_i15.Currency>>(
+            _i8.Future<_i4.ExchangeResponse<List<_i16.Currency>>>.value(
+                _FakeExchangeResponse_2<List<_i16.Currency>>(
           this,
           Invocation.method(
             #getCurrenciesV2,
             [],
           ),
         )),
-      ) as _i7.Future<_i3.ExchangeResponse<List<_i15.Currency>>>);
+      ) as _i8.Future<_i4.ExchangeResponse<List<_i16.Currency>>>);
   @override
-  _i7.Future<_i3.ExchangeResponse<List<_i15.Currency>>> getPairedCurrencies({
+  _i8.Future<_i4.ExchangeResponse<List<_i16.Currency>>> getPairedCurrencies({
     required String? ticker,
     bool? fixedRate,
   }) =>
@@ -861,8 +889,8 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
           },
         ),
         returnValue:
-            _i7.Future<_i3.ExchangeResponse<List<_i15.Currency>>>.value(
-                _FakeExchangeResponse_1<List<_i15.Currency>>(
+            _i8.Future<_i4.ExchangeResponse<List<_i16.Currency>>>.value(
+                _FakeExchangeResponse_2<List<_i16.Currency>>(
           this,
           Invocation.method(
             #getPairedCurrencies,
@@ -873,9 +901,9 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
             },
           ),
         )),
-      ) as _i7.Future<_i3.ExchangeResponse<List<_i15.Currency>>>);
+      ) as _i8.Future<_i4.ExchangeResponse<List<_i16.Currency>>>);
   @override
-  _i7.Future<_i3.ExchangeResponse<_i16.Decimal>> getMinimalExchangeAmount({
+  _i8.Future<_i4.ExchangeResponse<_i17.Decimal>> getMinimalExchangeAmount({
     required String? fromTicker,
     required String? toTicker,
     String? apiKey,
@@ -890,8 +918,8 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
             #apiKey: apiKey,
           },
         ),
-        returnValue: _i7.Future<_i3.ExchangeResponse<_i16.Decimal>>.value(
-            _FakeExchangeResponse_1<_i16.Decimal>(
+        returnValue: _i8.Future<_i4.ExchangeResponse<_i17.Decimal>>.value(
+            _FakeExchangeResponse_2<_i17.Decimal>(
           this,
           Invocation.method(
             #getMinimalExchangeAmount,
@@ -903,9 +931,9 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
             },
           ),
         )),
-      ) as _i7.Future<_i3.ExchangeResponse<_i16.Decimal>>);
+      ) as _i8.Future<_i4.ExchangeResponse<_i17.Decimal>>);
   @override
-  _i7.Future<_i3.ExchangeResponse<_i17.Range>> getRange({
+  _i8.Future<_i4.ExchangeResponse<_i18.Range>> getRange({
     required String? fromTicker,
     required String? toTicker,
     required bool? isFixedRate,
@@ -922,8 +950,8 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
             #apiKey: apiKey,
           },
         ),
-        returnValue: _i7.Future<_i3.ExchangeResponse<_i17.Range>>.value(
-            _FakeExchangeResponse_1<_i17.Range>(
+        returnValue: _i8.Future<_i4.ExchangeResponse<_i18.Range>>.value(
+            _FakeExchangeResponse_2<_i18.Range>(
           this,
           Invocation.method(
             #getRange,
@@ -936,12 +964,12 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
             },
           ),
         )),
-      ) as _i7.Future<_i3.ExchangeResponse<_i17.Range>>);
+      ) as _i8.Future<_i4.ExchangeResponse<_i18.Range>>);
   @override
-  _i7.Future<_i3.ExchangeResponse<_i18.Estimate>> getEstimatedExchangeAmount({
+  _i8.Future<_i4.ExchangeResponse<_i19.Estimate>> getEstimatedExchangeAmount({
     required String? fromTicker,
     required String? toTicker,
-    required _i16.Decimal? fromAmount,
+    required _i17.Decimal? fromAmount,
     String? apiKey,
   }) =>
       (super.noSuchMethod(
@@ -955,8 +983,8 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
             #apiKey: apiKey,
           },
         ),
-        returnValue: _i7.Future<_i3.ExchangeResponse<_i18.Estimate>>.value(
-            _FakeExchangeResponse_1<_i18.Estimate>(
+        returnValue: _i8.Future<_i4.ExchangeResponse<_i19.Estimate>>.value(
+            _FakeExchangeResponse_2<_i19.Estimate>(
           this,
           Invocation.method(
             #getEstimatedExchangeAmount,
@@ -969,13 +997,13 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
             },
           ),
         )),
-      ) as _i7.Future<_i3.ExchangeResponse<_i18.Estimate>>);
+      ) as _i8.Future<_i4.ExchangeResponse<_i19.Estimate>>);
   @override
-  _i7.Future<_i3.ExchangeResponse<_i18.Estimate>>
+  _i8.Future<_i4.ExchangeResponse<_i19.Estimate>>
       getEstimatedExchangeAmountFixedRate({
     required String? fromTicker,
     required String? toTicker,
-    required _i16.Decimal? fromAmount,
+    required _i17.Decimal? fromAmount,
     required bool? reversed,
     bool? useRateId = true,
     String? apiKey,
@@ -993,8 +1021,8 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
                 #apiKey: apiKey,
               },
             ),
-            returnValue: _i7.Future<_i3.ExchangeResponse<_i18.Estimate>>.value(
-                _FakeExchangeResponse_1<_i18.Estimate>(
+            returnValue: _i8.Future<_i4.ExchangeResponse<_i19.Estimate>>.value(
+                _FakeExchangeResponse_2<_i19.Estimate>(
               this,
               Invocation.method(
                 #getEstimatedExchangeAmountFixedRate,
@@ -1009,17 +1037,17 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
                 },
               ),
             )),
-          ) as _i7.Future<_i3.ExchangeResponse<_i18.Estimate>>);
+          ) as _i8.Future<_i4.ExchangeResponse<_i19.Estimate>>);
   @override
-  _i7.Future<_i3.ExchangeResponse<_i19.CNExchangeEstimate>>
+  _i8.Future<_i4.ExchangeResponse<_i20.CNExchangeEstimate>>
       getEstimatedExchangeAmountV2({
     required String? fromTicker,
     required String? toTicker,
-    required _i19.CNEstimateType? fromOrTo,
-    required _i16.Decimal? amount,
+    required _i20.CNEstimateType? fromOrTo,
+    required _i17.Decimal? amount,
     String? fromNetwork,
     String? toNetwork,
-    _i19.CNFlowType? flow = _i19.CNFlowType.standard,
+    _i20.CNFlowType? flow = _i20.CNFlowType.standard,
     String? apiKey,
   }) =>
           (super.noSuchMethod(
@@ -1038,8 +1066,8 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
               },
             ),
             returnValue:
-                _i7.Future<_i3.ExchangeResponse<_i19.CNExchangeEstimate>>.value(
-                    _FakeExchangeResponse_1<_i19.CNExchangeEstimate>(
+                _i8.Future<_i4.ExchangeResponse<_i20.CNExchangeEstimate>>.value(
+                    _FakeExchangeResponse_2<_i20.CNExchangeEstimate>(
               this,
               Invocation.method(
                 #getEstimatedExchangeAmountV2,
@@ -1056,18 +1084,18 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
                 },
               ),
             )),
-          ) as _i7.Future<_i3.ExchangeResponse<_i19.CNExchangeEstimate>>);
+          ) as _i8.Future<_i4.ExchangeResponse<_i20.CNExchangeEstimate>>);
   @override
-  _i7.Future<_i3.ExchangeResponse<List<_i20.FixedRateMarket>>>
+  _i8.Future<_i4.ExchangeResponse<List<_i21.FixedRateMarket>>>
       getAvailableFixedRateMarkets({String? apiKey}) => (super.noSuchMethod(
             Invocation.method(
               #getAvailableFixedRateMarkets,
               [],
               {#apiKey: apiKey},
             ),
-            returnValue: _i7
-                .Future<_i3.ExchangeResponse<List<_i20.FixedRateMarket>>>.value(
-                _FakeExchangeResponse_1<List<_i20.FixedRateMarket>>(
+            returnValue: _i8
+                .Future<_i4.ExchangeResponse<List<_i21.FixedRateMarket>>>.value(
+                _FakeExchangeResponse_2<List<_i21.FixedRateMarket>>(
               this,
               Invocation.method(
                 #getAvailableFixedRateMarkets,
@@ -1075,14 +1103,14 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
                 {#apiKey: apiKey},
               ),
             )),
-          ) as _i7.Future<_i3.ExchangeResponse<List<_i20.FixedRateMarket>>>);
+          ) as _i8.Future<_i4.ExchangeResponse<List<_i21.FixedRateMarket>>>);
   @override
-  _i7.Future<_i3.ExchangeResponse<_i21.ExchangeTransaction>>
+  _i8.Future<_i4.ExchangeResponse<_i22.ExchangeTransaction>>
       createStandardExchangeTransaction({
     required String? fromTicker,
     required String? toTicker,
     required String? receivingAddress,
-    required _i16.Decimal? amount,
+    required _i17.Decimal? amount,
     String? extraId = r'',
     String? userId = r'',
     String? contactEmail = r'',
@@ -1107,9 +1135,9 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
                 #apiKey: apiKey,
               },
             ),
-            returnValue: _i7
-                .Future<_i3.ExchangeResponse<_i21.ExchangeTransaction>>.value(
-                _FakeExchangeResponse_1<_i21.ExchangeTransaction>(
+            returnValue: _i8
+                .Future<_i4.ExchangeResponse<_i22.ExchangeTransaction>>.value(
+                _FakeExchangeResponse_2<_i22.ExchangeTransaction>(
               this,
               Invocation.method(
                 #createStandardExchangeTransaction,
@@ -1128,14 +1156,14 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
                 },
               ),
             )),
-          ) as _i7.Future<_i3.ExchangeResponse<_i21.ExchangeTransaction>>);
+          ) as _i8.Future<_i4.ExchangeResponse<_i22.ExchangeTransaction>>);
   @override
-  _i7.Future<_i3.ExchangeResponse<_i21.ExchangeTransaction>>
+  _i8.Future<_i4.ExchangeResponse<_i22.ExchangeTransaction>>
       createFixedRateExchangeTransaction({
     required String? fromTicker,
     required String? toTicker,
     required String? receivingAddress,
-    required _i16.Decimal? amount,
+    required _i17.Decimal? amount,
     required String? rateId,
     required bool? reversed,
     String? extraId = r'',
@@ -1164,9 +1192,9 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
                 #apiKey: apiKey,
               },
             ),
-            returnValue: _i7
-                .Future<_i3.ExchangeResponse<_i21.ExchangeTransaction>>.value(
-                _FakeExchangeResponse_1<_i21.ExchangeTransaction>(
+            returnValue: _i8
+                .Future<_i4.ExchangeResponse<_i22.ExchangeTransaction>>.value(
+                _FakeExchangeResponse_2<_i22.ExchangeTransaction>(
               this,
               Invocation.method(
                 #createFixedRateExchangeTransaction,
@@ -1187,11 +1215,11 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
                 },
               ),
             )),
-          ) as _i7.Future<_i3.ExchangeResponse<_i21.ExchangeTransaction>>);
+          ) as _i8.Future<_i4.ExchangeResponse<_i22.ExchangeTransaction>>);
   @override
-  _i7.Future<
-      _i3
-      .ExchangeResponse<_i22.ExchangeTransactionStatus>> getTransactionStatus({
+  _i8.Future<
+      _i4
+      .ExchangeResponse<_i23.ExchangeTransactionStatus>> getTransactionStatus({
     required String? id,
     String? apiKey,
   }) =>
@@ -1204,9 +1232,9 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
             #apiKey: apiKey,
           },
         ),
-        returnValue: _i7
-            .Future<_i3.ExchangeResponse<_i22.ExchangeTransactionStatus>>.value(
-            _FakeExchangeResponse_1<_i22.ExchangeTransactionStatus>(
+        returnValue: _i8
+            .Future<_i4.ExchangeResponse<_i23.ExchangeTransactionStatus>>.value(
+            _FakeExchangeResponse_2<_i23.ExchangeTransactionStatus>(
           this,
           Invocation.method(
             #getTransactionStatus,
@@ -1217,9 +1245,9 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
             },
           ),
         )),
-      ) as _i7.Future<_i3.ExchangeResponse<_i22.ExchangeTransactionStatus>>);
+      ) as _i8.Future<_i4.ExchangeResponse<_i23.ExchangeTransactionStatus>>);
   @override
-  _i7.Future<_i3.ExchangeResponse<List<_i23.Pair>>>
+  _i8.Future<_i4.ExchangeResponse<List<_i24.Pair>>>
       getAvailableFloatingRatePairs({bool? includePartners = false}) =>
           (super.noSuchMethod(
             Invocation.method(
@@ -1228,8 +1256,8 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
               {#includePartners: includePartners},
             ),
             returnValue:
-                _i7.Future<_i3.ExchangeResponse<List<_i23.Pair>>>.value(
-                    _FakeExchangeResponse_1<List<_i23.Pair>>(
+                _i8.Future<_i4.ExchangeResponse<List<_i24.Pair>>>.value(
+                    _FakeExchangeResponse_2<List<_i24.Pair>>(
               this,
               Invocation.method(
                 #getAvailableFloatingRatePairs,
@@ -1237,5 +1265,5 @@ class MockChangeNowAPI extends _i1.Mock implements _i14.ChangeNowAPI {
                 {#includePartners: includePartners},
               ),
             )),
-          ) as _i7.Future<_i3.ExchangeResponse<List<_i23.Pair>>>);
+          ) as _i8.Future<_i4.ExchangeResponse<List<_i24.Pair>>>);
 }

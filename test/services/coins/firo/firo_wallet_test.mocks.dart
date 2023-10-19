@@ -855,6 +855,33 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
         ),
       ) as _i4.QueryBuilder<_i12.UTXO, _i12.UTXO, _i4.QAfterWhereClause>);
   @override
+  _i4.QueryBuilder<_i12.UTXO, _i12.UTXO, _i4.QAfterFilterCondition>
+      getUTXOsByAddress(
+    String? walletId,
+    String? address,
+  ) =>
+          (super.noSuchMethod(
+            Invocation.method(
+              #getUTXOsByAddress,
+              [
+                walletId,
+                address,
+              ],
+            ),
+            returnValue: _FakeQueryBuilder_4<_i12.UTXO, _i12.UTXO,
+                _i4.QAfterFilterCondition>(
+              this,
+              Invocation.method(
+                #getUTXOsByAddress,
+                [
+                  walletId,
+                  address,
+                ],
+              ),
+            ),
+          ) as _i4
+              .QueryBuilder<_i12.UTXO, _i12.UTXO, _i4.QAfterFilterCondition>);
+  @override
   _i5.Future<void> putUTXO(_i12.UTXO? utxo) => (super.noSuchMethod(
         Invocation.method(
           #putUTXO,
