@@ -128,7 +128,15 @@ mixin FusionWalletInterface {
   // Fusion object.
   fusion.Fusion? _mainFusionObject;
   bool _stopRequested = false;
-  int _currentFuseCount = 0;
+
+  /// An int storing the number of successfully completed fusion rounds.
+  int _completedFuseCount = 0;
+
+  /// An int storing the number of failed fusion rounds.
+  int _failedFuseCount = 0;
+
+  /// The maximum number of consecutive failed fusion rounds before stopping.
+  int get maxFailedFuseCount => 5;
 
   /// Initializes the FusionWalletInterface mixin.
   ///
@@ -457,8 +465,11 @@ mixin FusionWalletInterface {
       },
     );
 
-    // reset count and flag
-    _currentFuseCount = 0;
+    // Reset internal and UI counts and flag.
+    _completedFuseCount = 0;
+    _uiState?.fusionRoundsCompleted = 0;
+    _failedFuseCount = 0;
+    _uiState?.fusionRoundsFailed = 0;
     _stopRequested = false;
 
     bool shouldFuzeAgain() {
@@ -468,13 +479,11 @@ mixin FusionWalletInterface {
       } else {
         // not continuous
         // check to make sure we aren't doing more fusions than requested
-        return !_stopRequested && _currentFuseCount < fusionInfo.rounds;
+        return !_stopRequested && _completedFuseCount < fusionInfo.rounds;
       }
     }
 
     while (shouldFuzeAgain()) {
-      _currentFuseCount++;
-
       //   refresh wallet utxos
       await _updateWalletUTXOS();
 
@@ -553,6 +562,27 @@ mixin FusionWalletInterface {
           level: LogLevel.Error,
         );
         // just continue on attempt failure
+
+        // Increment the number of failed fusion rounds.
+        _failedFuseCount++;
+
+        // Do the same for the UI state.
+        _uiState?.incrementFusionRoundsFailed();
+
+        // If we fail 5 times in a row, stop trying.
+        if (_failedFuseCount >= maxFailedFuseCount) {
+          _stopRequested = true;
+        }
+      } finally {
+        // Increment the number of successfully completed fusion rounds.
+        _completedFuseCount++;
+
+        // Do the same for the UI state.  This also resets the failed count (for
+        // the UI state only).
+        _uiState?.incrementFusionRoundsCompleted();
+
+        // Also reset the failed count here.
+        _failedFuseCount = 0;
       }
     }
   }

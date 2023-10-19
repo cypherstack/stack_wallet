@@ -2,7 +2,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:stackwallet/pages_desktop_specific/cashfusion/sub_widgets/fusion_dialog.dart';
 
 class FusionProgressUIState extends ChangeNotifier {
-  bool _ableToConnect = true; // set to true for now
+  /// Whether we are able to connect to the server.
+  bool _ableToConnect = false;
+
+  // _ableToConnect setter.
+  set ableToConnect(bool ableToConnect) {
+    _ableToConnect = ableToConnect;
+    notifyListeners();
+  }
 
   bool get done {
     if (!_ableToConnect) {
@@ -87,6 +94,35 @@ class FusionProgressUIState extends ChangeNotifier {
   CashFusionState get fusionState => _fusionStatus;
   set fusionState(CashFusionState fusionStatus) {
     _fusionStatus = fusionStatus;
+    notifyListeners();
+  }
+
+  /// An int storing the number of successfully completed fusion rounds.
+  int _fusionRoundsCompleted = 0;
+  int get fusionRoundsCompleted => _fusionRoundsCompleted;
+  set fusionRoundsCompleted(int fusionRoundsCompleted) {
+    _fusionRoundsCompleted = fusionRoundsCompleted;
+    notifyListeners();
+  }
+
+  /// A helper for incrementing the number of successfully completed fusion rounds.
+  void incrementFusionRoundsCompleted() {
+    _fusionRoundsCompleted++;
+    _fusionRoundsFailed = 0; // Reset failed round count on success.
+    notifyListeners();
+  }
+
+  /// An int storing the number of failed fusion rounds.
+  int _fusionRoundsFailed = 0;
+  int get fusionRoundsFailed => _fusionRoundsFailed;
+  set fusionRoundsFailed(int fusionRoundsFailed) {
+    _fusionRoundsFailed = fusionRoundsFailed;
+    notifyListeners();
+  }
+
+  /// A helper for incrementing the number of failed fusion rounds.
+  void incrementFusionRoundsFailed() {
+    _fusionRoundsFailed++;
     notifyListeners();
   }
 }
