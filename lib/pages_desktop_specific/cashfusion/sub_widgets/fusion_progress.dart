@@ -21,28 +21,6 @@ class FusionProgress extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        RoundedContainer(
-          color: Theme.of(context).extension<StackColors>()!.snackBarBackError,
-          child: Text(
-            "Do not close this window. If you exit, "
-            "the process will be canceled.",
-            style: Util.isDesktop
-                ? STextStyles.smallMed14(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .snackBarTextError,
-                  )
-                : STextStyles.w500_14(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .snackBarTextError,
-                  ),
-            textAlign: TextAlign.center,
-          ),
-        ),
-        const SizedBox(
-          height: 20,
-        ),
         _ProgressItem(
             iconAsset: Assets.svg.node,
             label: "Connecting to server",

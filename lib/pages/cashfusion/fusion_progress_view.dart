@@ -138,8 +138,23 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           children: [
-                            // TODO if (_succeeded but roundCount > roundCount)
-                            // show "Fusion completed" as snackBarBackSuccess.
+                            if (_fusionRoundsCompleted == 0)
+                              RoundedContainer(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .snackBarBackError,
+                                child: Text(
+                                  "Do not close this window. If you exit, "
+                                  "the process will be canceled.",
+                                  style:
+                                      STextStyles.smallMed14(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .snackBarTextError,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
                             if (_fusionRoundsCompleted > 0)
                               Expanded(
                                 child: RoundedContainer(
@@ -158,10 +173,9 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
                                   ),
                                 ),
                               ),
-                            if (_fusionRoundsCompleted > 0)
-                              const SizedBox(
-                                height: 20,
-                              ),
+                            const SizedBox(
+                              height: 20,
+                            ),
                             FusionProgress(
                               walletId: widget.walletId,
                             ),
