@@ -100,7 +100,6 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
         fusionInfo: newInfo,
       ),
     );
-    // unawaited(fusionWallet.stepThruUiStates());
 
     await showDialog<void>(
       context: context,
