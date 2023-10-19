@@ -207,23 +207,6 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                   FusionProgress(
                     walletId: widget.walletId,
                   ),
-                  if (_succeeded)
-                    Expanded(
-                      child: PrimaryButton(
-                        buttonHeight: ButtonHeight.m,
-                        label: "Fuse again",
-                        onPressed: () => _fuseAgain,
-                      ),
-                    ),
-                  if (_failed)
-                    Expanded(
-                      child: PrimaryButton(
-                        buttonHeight: ButtonHeight.m,
-                        label: "Try again",
-                        onPressed: () => _fuseAgain,
-                      ),
-                    ),
-                  if (!_succeeded && !_failed) const Spacer(),
                   const SizedBox(
                     height: 12,
                   ),
@@ -237,7 +220,10 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                             onPressed: () => _fuseAgain,
                           ),
                         ),
-                      if (_succeeded) const Spacer(),
+                      if (_succeeded)
+                        const SizedBox(
+                          width: 16,
+                        ),
                       if (_failed)
                         Expanded(
                           child: PrimaryButton(
@@ -246,7 +232,10 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                             onPressed: () => _fuseAgain,
                           ),
                         ),
-                      if (_failed) const Spacer(),
+                      if (_failed)
+                        const SizedBox(
+                          width: 16,
+                        ),
                       if (!_succeeded && !_failed) const Spacer(),
                       if (!_succeeded && !_failed)
                         const SizedBox(
