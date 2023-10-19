@@ -138,13 +138,13 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
 
   @override
   Widget build(BuildContext context) {
-    bool _succeeded =
+    final bool _succeeded =
         ref.watch(fusionProgressUIStateProvider(widget.walletId)).succeeded;
 
-    bool _failed =
+    final bool _failed =
         ref.watch(fusionProgressUIStateProvider(widget.walletId)).failed;
 
-    int _fusionRoundsCompleted = ref
+    final int _fusionRoundsCompleted = ref
         .watch(fusionProgressUIStateProvider(widget.walletId))
         .fusionRoundsCompleted;
 
@@ -223,7 +223,7 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                         onPressed: () => _fuseAgain,
                       ),
                     ),
-                  // if (!_succeeded && !_failed) const Spacer(),
+                  if (!_succeeded && !_failed) const Spacer(),
                   const SizedBox(
                     height: 12,
                   ),
@@ -247,11 +247,11 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                           ),
                         ),
                       if (_failed) const Spacer(),
-                      // if (!_succeeded && !_failed) const Spacer(),
-                      // if (!_succeeded && !_failed)
-                      //   const SizedBox(
-                      //     width: 16,
-                      //   ),
+                      if (!_succeeded && !_failed) const Spacer(),
+                      if (!_succeeded && !_failed)
+                        const SizedBox(
+                          width: 16,
+                        ),
                       Expanded(
                         child: SecondaryButton(
                           buttonHeight: ButtonHeight.m,

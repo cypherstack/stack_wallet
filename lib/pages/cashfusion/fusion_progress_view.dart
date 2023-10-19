@@ -90,13 +90,13 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
 
   @override
   Widget build(BuildContext context) {
-    bool _succeeded =
+    final bool _succeeded =
         ref.watch(fusionProgressUIStateProvider(widget.walletId)).succeeded;
 
-    bool _failed =
+    final bool _failed =
         ref.watch(fusionProgressUIStateProvider(widget.walletId)).failed;
 
-    int _fusionRoundsCompleted = ref
+    final int _fusionRoundsCompleted = ref
         .watch(fusionProgressUIStateProvider(widget.walletId))
         .fusionRoundsCompleted;
 
@@ -141,18 +141,21 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
                             // TODO if (_succeeded but roundCount > roundCount)
                             // show "Fusion completed" as snackBarBackSuccess.
                             if (_fusionRoundsCompleted > 0)
-                              RoundedContainer(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .snackBarBackInfo,
-                                child: Text(
-                                  "Fusion rounds completed: $_fusionRoundsCompleted",
-                                  style: STextStyles.w500_14(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .snackBarTextInfo,
+                              Expanded(
+                                child: RoundedContainer(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .snackBarBackInfo,
+                                  child: Text(
+                                    "Fusion rounds completed: $_fusionRoundsCompleted",
+                                    style:
+                                        STextStyles.w500_14(context).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .snackBarTextInfo,
+                                    ),
+                                    textAlign: TextAlign.center,
                                   ),
-                                  textAlign: TextAlign.center,
                                 ),
                               ),
                             if (_fusionRoundsCompleted > 0)
