@@ -556,6 +556,16 @@ mixin FusionWalletInterface {
               ? fusion.Utilities.testNet
               : fusion.Utilities.mainNet,
         );
+
+        // Increment the number of successfully completed fusion rounds.
+        _completedFuseCount++;
+
+        // Do the same for the UI state.  This also resets the failed count (for
+        // the UI state only).
+        _uiState?.incrementFusionRoundsCompleted();
+
+        // Also reset the failed count here.
+        _failedFuseCount = 0;
       } catch (e, s) {
         Logging.instance.log(
           "$e\n$s",
@@ -574,16 +584,6 @@ mixin FusionWalletInterface {
           _stopRequested = true;
           _uiState?.failed = true;
         }
-      } finally {
-        // Increment the number of successfully completed fusion rounds.
-        _completedFuseCount++;
-
-        // Do the same for the UI state.  This also resets the failed count (for
-        // the UI state only).
-        _uiState?.incrementFusionRoundsCompleted();
-
-        // Also reset the failed count here.
-        _failedFuseCount = 0;
       }
     }
   }
