@@ -417,6 +417,12 @@ mixin FusionWalletInterface {
   }) async {
     // Initial attempt for CashFusion integration goes here.
 
+    _updateStatus(status: fusion.FusionStatus.reset);
+    _updateStatus(
+      status: fusion.FusionStatus.connecting,
+      info: "Connecting to the CashFusion server.",
+    );
+
     // Use server host and port which ultimately come from text fields.
     fusion.FusionParams serverParams = fusion.FusionParams(
       serverHost: fusionInfo.host,
@@ -484,6 +490,14 @@ mixin FusionWalletInterface {
     }
 
     while (shouldFuzeAgain()) {
+      if (_completedFuseCount > 0 || _failedFuseCount > 0) {
+        _updateStatus(status: fusion.FusionStatus.reset);
+        _updateStatus(
+          status: fusion.FusionStatus.connecting,
+          info: "Connecting to the CashFusion server.",
+        );
+      }
+
       //   refresh wallet utxos
       await _updateWalletUTXOS();
 
