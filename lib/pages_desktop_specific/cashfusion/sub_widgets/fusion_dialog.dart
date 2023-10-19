@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages_desktop_specific/cashfusion/sub_widgets/fusion_progress.dart';
+import 'package:stackwallet/providers/cash_fusion/fusion_progress_ui_state_provider.dart';
+import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
@@ -175,8 +179,27 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                   ),
                   Row(
                     children: [
-                      // spacer can be replaced with a button inside an expanded if a second button is wanted here
-                      const Spacer(),
+                      if (ref
+                          .watch(fusionProgressUIStateProvider(widget.walletId))
+                          .succeeded)
+                        Expanded(
+                          child: PrimaryButton(
+                            buttonHeight: ButtonHeight.m,
+                            label: "Fuse again",
+                            onPressed: () => _fuseAgain,
+                          ),
+                        ),
+                      if (ref
+                          .watch(fusionProgressUIStateProvider(widget.walletId))
+                          .failed)
+                        Expanded(
+                          child: PrimaryButton(
+                            buttonHeight: ButtonHeight.m,
+                            label: "Try again",
+                            onPressed: () => _fuseAgain,
+                          ),
+                        ),
+                      // if (!_succeeded! && !_failed!) const Spacer(),
                       const SizedBox(
                         width: 16,
                       ),
@@ -203,5 +226,17 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
         ),
       ),
     );
+  }
+
+  /// Fuse again.
+  void _fuseAgain() async {
+    final fusionWallet = ref
+        .read(walletsChangeNotifierProvider)
+        .getManager(widget.walletId)
+        .wallet as FusionWalletInterface;
+
+    final fusionInfo = ref.read(prefsChangeNotifierProvider).fusionServerInfo;
+
+    unawaited(fusionWallet.fuse(fusionInfo: fusionInfo));
   }
 }
