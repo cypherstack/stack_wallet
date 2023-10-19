@@ -89,6 +89,12 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
 
   @override
   Widget build(BuildContext context) {
+    bool _succeeded =
+        ref.watch(fusionProgressUIStateProvider(widget.walletId)).succeeded;
+
+    bool _failed =
+        ref.watch(fusionProgressUIStateProvider(widget.walletId)).failed;
+
     return WillPopScope(
       onWillPop: () async {
         return await _requestAndProcessCancel();
@@ -130,10 +136,7 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
                             FusionProgress(
                               walletId: widget.walletId,
                             ),
-                            if (ref
-                                .watch(fusionProgressUIStateProvider(
-                                    widget.walletId))
-                                .succeeded)
+                            if (_succeeded)
                               Expanded(
                                 child: PrimaryButton(
                                   buttonHeight: ButtonHeight.m,
@@ -141,10 +144,7 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
                                   onPressed: () => _fuseAgain,
                                 ),
                               ),
-                            if (ref
-                                .watch(fusionProgressUIStateProvider(
-                                    widget.walletId))
-                                .failed)
+                            if (_failed)
                               Expanded(
                                 child: PrimaryButton(
                                   buttonHeight: ButtonHeight.m,
@@ -152,7 +152,7 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
                                   onPressed: () => _fuseAgain,
                                 ),
                               ),
-                            // if (!_succeeded! && !_failed!) const Spacer(),
+                            if (!_succeeded! && !_failed!) const Spacer(),
                             const SizedBox(
                               height: 16,
                             ),

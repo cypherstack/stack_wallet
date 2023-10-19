@@ -136,6 +136,12 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
 
   @override
   Widget build(BuildContext context) {
+    bool _succeeded =
+        ref.watch(fusionProgressUIStateProvider(widget.walletId)).succeeded;
+
+    bool _failed =
+        ref.watch(fusionProgressUIStateProvider(widget.walletId)).failed;
+
     return DesktopDialog(
       maxHeight: 600,
       child: SingleChildScrollView(
@@ -179,9 +185,7 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                   ),
                   Row(
                     children: [
-                      if (ref
-                          .watch(fusionProgressUIStateProvider(widget.walletId))
-                          .succeeded)
+                      if (_succeeded)
                         Expanded(
                           child: PrimaryButton(
                             buttonHeight: ButtonHeight.m,
@@ -189,9 +193,7 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                             onPressed: () => _fuseAgain,
                           ),
                         ),
-                      if (ref
-                          .watch(fusionProgressUIStateProvider(widget.walletId))
-                          .failed)
+                      if (_failed)
                         Expanded(
                           child: PrimaryButton(
                             buttonHeight: ButtonHeight.m,
@@ -199,7 +201,7 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                             onPressed: () => _fuseAgain,
                           ),
                         ),
-                      // if (!_succeeded! && !_failed!) const Spacer(),
+                      if (!_succeeded! && !_failed!) const Spacer(),
                       const SizedBox(
                         width: 16,
                       ),
