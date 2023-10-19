@@ -178,7 +178,7 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
                                   onPressed: () => _fuseAgain,
                                 ),
                               ),
-                            if (!_succeeded! && !_failed!) const Spacer(),
+                            if (!_succeeded && !_failed) const Spacer(),
                             const SizedBox(
                               height: 16,
                             ),
