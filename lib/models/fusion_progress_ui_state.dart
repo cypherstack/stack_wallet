@@ -133,7 +133,7 @@ class FusionProgressUIState extends ChangeNotifier {
   /// Set from the interface.  I didn't want to have to configure
   ///
   /// Used to be named maxConsecutiveFusionRoundsFailed.
-  bool _failed = true;
+  bool _failed = false;
   bool get failed => _failed;
   set failed(bool failed) {
     _failed = failed;
