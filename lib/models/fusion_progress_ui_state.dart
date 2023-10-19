@@ -109,6 +109,7 @@ class FusionProgressUIState extends ChangeNotifier {
   void incrementFusionRoundsCompleted() {
     _fusionRoundsCompleted++;
     _fusionRoundsFailed = 0; // Reset failed round count on success.
+    _maxConsecutiveFusionRoundsFailed = false; // Reset failed flag on success.
     notifyListeners();
   }
 
@@ -123,6 +124,16 @@ class FusionProgressUIState extends ChangeNotifier {
   /// A helper for incrementing the number of failed fusion rounds.
   void incrementFusionRoundsFailed() {
     _fusionRoundsFailed++;
+    notifyListeners();
+  }
+
+  /// A flag indicating that fusion has stopped because the maximum number of
+  /// consecutive failed fusion rounds has been reached.
+  bool _maxConsecutiveFusionRoundsFailed = false;
+  bool get maxConsecutiveFusionRoundsFailed =>
+      _maxConsecutiveFusionRoundsFailed;
+  set maxConsecutiveFusionRoundsFailed(bool maxConsecutiveFusionRoundsFailed) {
+    _maxConsecutiveFusionRoundsFailed = maxConsecutiveFusionRoundsFailed;
     notifyListeners();
   }
 }

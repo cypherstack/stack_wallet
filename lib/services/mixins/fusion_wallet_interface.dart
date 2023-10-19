@@ -569,9 +569,10 @@ mixin FusionWalletInterface {
         // Do the same for the UI state.
         _uiState?.incrementFusionRoundsFailed();
 
-        // If we fail 5 times in a row, stop trying.
+        // If we fail too many times in a row, stop trying.
         if (_failedFuseCount >= maxFailedFuseCount) {
           _stopRequested = true;
+          _uiState?.maxConsecutiveFusionRoundsFailed = true;
         }
       } finally {
         // Increment the number of successfully completed fusion rounds.
