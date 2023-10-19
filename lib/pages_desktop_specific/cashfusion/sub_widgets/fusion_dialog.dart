@@ -224,9 +224,6 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                       ),
                     ),
                   if (!_succeeded! && !_failed!) const Spacer(),
-                  FusionProgress(
-                    walletId: widget.walletId,
-                  ),
                   const SizedBox(
                     height: 12,
                   ),
