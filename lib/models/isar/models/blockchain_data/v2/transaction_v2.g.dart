@@ -44,23 +44,35 @@ const TransactionV2Schema = CollectionSchema(
       type: IsarType.objectList,
       target: r'OutputV2',
     ),
-    r'timestamp': PropertySchema(
+    r'subType': PropertySchema(
       id: 5,
+      name: r'subType',
+      type: IsarType.byte,
+      enumMap: _TransactionV2subTypeEnumValueMap,
+    ),
+    r'timestamp': PropertySchema(
+      id: 6,
       name: r'timestamp',
       type: IsarType.long,
     ),
     r'txid': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'txid',
       type: IsarType.string,
     ),
+    r'type': PropertySchema(
+      id: 8,
+      name: r'type',
+      type: IsarType.byte,
+      enumMap: _TransactionV2typeEnumValueMap,
+    ),
     r'version': PropertySchema(
-      id: 7,
+      id: 9,
       name: r'version',
       type: IsarType.long,
     ),
     r'walletId': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'walletId',
       type: IsarType.string,
     )
@@ -183,10 +195,12 @@ void _transactionV2Serialize(
     OutputV2Schema.serialize,
     object.outputs,
   );
-  writer.writeLong(offsets[5], object.timestamp);
-  writer.writeString(offsets[6], object.txid);
-  writer.writeLong(offsets[7], object.version);
-  writer.writeString(offsets[8], object.walletId);
+  writer.writeByte(offsets[5], object.subType.index);
+  writer.writeLong(offsets[6], object.timestamp);
+  writer.writeString(offsets[7], object.txid);
+  writer.writeByte(offsets[8], object.type.index);
+  writer.writeLong(offsets[9], object.version);
+  writer.writeString(offsets[10], object.walletId);
 }
 
 TransactionV2 _transactionV2Deserialize(
@@ -213,11 +227,17 @@ TransactionV2 _transactionV2Deserialize(
           OutputV2(),
         ) ??
         [],
-    timestamp: reader.readLong(offsets[5]),
-    txid: reader.readString(offsets[6]),
-    version: reader.readLong(offsets[7]),
-    walletId: reader.readString(offsets[8]),
+    subType:
+        _TransactionV2subTypeValueEnumMap[reader.readByteOrNull(offsets[5])] ??
+            TransactionSubType.none,
+    timestamp: reader.readLong(offsets[6]),
+    txid: reader.readString(offsets[7]),
+    type: _TransactionV2typeValueEnumMap[reader.readByteOrNull(offsets[8])] ??
+        TransactionType.outgoing,
+    version: reader.readLong(offsets[9]),
+    walletId: reader.readString(offsets[10]),
   );
+  object.id = id;
   return object;
 }
 
@@ -251,17 +271,53 @@ P _transactionV2DeserializeProp<P>(
           ) ??
           []) as P;
     case 5:
-      return (reader.readLong(offset)) as P;
+      return (_TransactionV2subTypeValueEnumMap[
+              reader.readByteOrNull(offset)] ??
+          TransactionSubType.none) as P;
     case 6:
-      return (reader.readString(offset)) as P;
-    case 7:
       return (reader.readLong(offset)) as P;
+    case 7:
+      return (reader.readString(offset)) as P;
     case 8:
+      return (_TransactionV2typeValueEnumMap[reader.readByteOrNull(offset)] ??
+          TransactionType.outgoing) as P;
+    case 9:
+      return (reader.readLong(offset)) as P;
+    case 10:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
 }
+
+const _TransactionV2subTypeEnumValueMap = {
+  'none': 0,
+  'bip47Notification': 1,
+  'mint': 2,
+  'join': 3,
+  'ethToken': 4,
+  'cashFusion': 5,
+};
+const _TransactionV2subTypeValueEnumMap = {
+  0: TransactionSubType.none,
+  1: TransactionSubType.bip47Notification,
+  2: TransactionSubType.mint,
+  3: TransactionSubType.join,
+  4: TransactionSubType.ethToken,
+  5: TransactionSubType.cashFusion,
+};
+const _TransactionV2typeEnumValueMap = {
+  'outgoing': 0,
+  'incoming': 1,
+  'sentToSelf': 2,
+  'unknown': 3,
+};
+const _TransactionV2typeValueEnumMap = {
+  0: TransactionType.outgoing,
+  1: TransactionType.incoming,
+  2: TransactionType.sentToSelf,
+  3: TransactionType.unknown,
+};
 
 Id _transactionV2GetId(TransactionV2 object) {
   return object.id;
@@ -272,7 +328,9 @@ List<IsarLinkBase<dynamic>> _transactionV2GetLinks(TransactionV2 object) {
 }
 
 void _transactionV2Attach(
-    IsarCollection<dynamic> col, Id id, TransactionV2 object) {}
+    IsarCollection<dynamic> col, Id id, TransactionV2 object) {
+  object.id = id;
+}
 
 extension TransactionV2ByIndex on IsarCollection<TransactionV2> {
   Future<TransactionV2?> getByTxidWalletId(String txid, String walletId) {
@@ -1276,6 +1334,62 @@ extension TransactionV2QueryFilter
   }
 
   QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      subTypeEqualTo(TransactionSubType value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'subType',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      subTypeGreaterThan(
+    TransactionSubType value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'subType',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      subTypeLessThan(
+    TransactionSubType value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'subType',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      subTypeBetween(
+    TransactionSubType lower,
+    TransactionSubType upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'subType',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
       timestampEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -1462,6 +1576,61 @@ extension TransactionV2QueryFilter
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'txid',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition> typeEqualTo(
+      TransactionType value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'type',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      typeGreaterThan(
+    TransactionType value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'type',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      typeLessThan(
+    TransactionType value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'type',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition> typeBetween(
+    TransactionType lower,
+    TransactionType upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'type',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -1718,6 +1887,18 @@ extension TransactionV2QuerySortBy
     });
   }
 
+  QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> sortBySubType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'subType', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> sortBySubTypeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'subType', Sort.desc);
+    });
+  }
+
   QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> sortByTimestamp() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'timestamp', Sort.asc);
@@ -1740,6 +1921,18 @@ extension TransactionV2QuerySortBy
   QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> sortByTxidDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'txid', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> sortByType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> sortByTypeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.desc);
     });
   }
 
@@ -1820,6 +2013,18 @@ extension TransactionV2QuerySortThenBy
     });
   }
 
+  QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> thenBySubType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'subType', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> thenBySubTypeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'subType', Sort.desc);
+    });
+  }
+
   QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> thenByTimestamp() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'timestamp', Sort.asc);
@@ -1842,6 +2047,18 @@ extension TransactionV2QuerySortThenBy
   QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> thenByTxidDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'txid', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> thenByType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> thenByTypeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.desc);
     });
   }
 
@@ -1893,6 +2110,12 @@ extension TransactionV2QueryWhereDistinct
     });
   }
 
+  QueryBuilder<TransactionV2, TransactionV2, QDistinct> distinctBySubType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'subType');
+    });
+  }
+
   QueryBuilder<TransactionV2, TransactionV2, QDistinct> distinctByTimestamp() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'timestamp');
@@ -1903,6 +2126,12 @@ extension TransactionV2QueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'txid', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QDistinct> distinctByType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'type');
     });
   }
 
@@ -1960,6 +2189,13 @@ extension TransactionV2QueryProperty
     });
   }
 
+  QueryBuilder<TransactionV2, TransactionSubType, QQueryOperations>
+      subTypeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'subType');
+    });
+  }
+
   QueryBuilder<TransactionV2, int, QQueryOperations> timestampProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'timestamp');
@@ -1969,6 +2205,13 @@ extension TransactionV2QueryProperty
   QueryBuilder<TransactionV2, String, QQueryOperations> txidProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'txid');
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionType, QQueryOperations>
+      typeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'type');
     });
   }
 

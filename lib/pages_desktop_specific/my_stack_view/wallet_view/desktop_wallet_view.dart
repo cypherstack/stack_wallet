@@ -19,6 +19,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
 import 'package:stackwallet/pages/special/firo_rescan_recovery_error_dialog.dart';
 import 'package:stackwallet/pages/token_view/my_tokens_view.dart';
+import 'package:stackwallet/pages/wallet_view/sub_widgets/transaction_v2_list.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/transactions_list.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_wallet_features.dart';
@@ -514,13 +515,18 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                           ? MyTokensView(
                               walletId: widget.walletId,
                             )
-                          : TransactionsList(
-                              managerProvider: ref.watch(
-                                  walletsChangeNotifierProvider.select(
-                                      (value) => value.getManagerProvider(
-                                          widget.walletId))),
-                              walletId: widget.walletId,
-                            ),
+                          : coin == Coin.bitcoincash ||
+                                  coin == Coin.bitcoincashTestnet
+                              ? TransactionsV2List(
+                                  walletId: widget.walletId,
+                                )
+                              : TransactionsList(
+                                  managerProvider: ref.watch(
+                                      walletsChangeNotifierProvider.select(
+                                          (value) => value.getManagerProvider(
+                                              widget.walletId))),
+                                  walletId: widget.walletId,
+                                ),
                     ),
                   ],
                 ),

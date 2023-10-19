@@ -17,6 +17,8 @@ import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i13;
 import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i12;
 import 'package:stackwallet/models/balance.dart' as _i9;
 import 'package:stackwallet/models/isar/models/block_explorer.dart' as _i38;
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart'
+    as _i39;
 import 'package:stackwallet/models/isar/models/contact_entry.dart' as _i37;
 import 'package:stackwallet/models/isar/models/isar_models.dart' as _i24;
 import 'package:stackwallet/models/isar/stack_theme.dart' as _i35;
@@ -3589,6 +3591,16 @@ class MockMainDB extends _i1.Mock implements _i14.MainDB {
         returnValue: _i21.Future<void>.value(),
         returnValueForMissingStub: _i21.Future<void>.value(),
       ) as _i21.Future<void>);
+  @override
+  _i21.Future<List<int>> updateOrPutTransactionV2s(
+          List<_i39.TransactionV2>? transactions) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateOrPutTransactionV2s,
+          [transactions],
+        ),
+        returnValue: _i21.Future<List<int>>.value(<int>[]),
+      ) as _i21.Future<List<int>>);
   @override
   _i18.QueryBuilder<_i24.EthContract, _i24.EthContract, _i18.QWhere>
       getEthContracts() => (super.noSuchMethod(

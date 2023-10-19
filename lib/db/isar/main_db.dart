@@ -13,6 +13,7 @@ import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/exceptions/main_db/main_db_exception.dart';
 import 'package:stackwallet/models/isar/models/block_explorer.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/isar/ordinal.dart';
@@ -57,6 +58,7 @@ class MainDB {
         ContactEntrySchema,
         OrdinalSchema,
         LelantusCoinSchema,
+        TransactionV2Schema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
       // inspector: kDebugMode,
@@ -503,6 +505,35 @@ class MainDB {
       });
     } catch (e) {
       throw MainDBException("failed addNewTransactionData", e);
+    }
+  }
+
+  Future<List<int>> updateOrPutTransactionV2s(
+    List<TransactionV2> transactions,
+  ) async {
+    try {
+      List<int> ids = [];
+      await isar.writeTxn(() async {
+        for (final tx in transactions) {
+          final storedTx = await isar.transactionV2s
+              .where()
+              .txidWalletIdEqualTo(tx.txid, tx.walletId)
+              .findFirst();
+
+          Id id;
+          if (storedTx == null) {
+            id = await isar.transactionV2s.put(tx);
+          } else {
+            tx.id = storedTx.id;
+            await isar.transactionV2s.delete(storedTx.id);
+            id = await isar.transactionV2s.put(tx);
+          }
+          ids.add(id);
+        }
+      });
+      return ids;
+    } catch (e) {
+      throw MainDBException("failed updateOrPutAddresses: $transactions", e);
     }
   }
 

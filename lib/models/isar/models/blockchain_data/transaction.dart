@@ -251,5 +251,6 @@ enum TransactionSubType {
   bip47Notification, // bip47 payment code notification transaction flag
   mint, // firo specific
   join, // firo specific
-  ethToken; // eth token
+  ethToken, // eth token
+  cashFusion;
 }
