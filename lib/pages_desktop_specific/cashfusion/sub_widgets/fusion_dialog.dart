@@ -15,6 +15,7 @@ import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
+import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 enum CashFusionStatus { waiting, running, success, failed }
 
@@ -182,42 +183,35 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                 bottom: 32,
               ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (_fusionRoundsCompleted == 0)
-                    Expanded(
-                      child: RoundedContainer(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .snackBarBackError,
-                        child: Text(
-                          "Do not close this window. If you exit, "
-                          "the process will be canceled.",
-                          style: STextStyles.smallMed14(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .snackBarTextError,
+                  _fusionRoundsCompleted > 0
+                      ? RoundedWhiteContainer(
+                          child: Text(
+                            "Fusion rounds completed: $_fusionRoundsCompleted",
+                            style: STextStyles.w500_14(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textSubtitle1,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                  if (_fusionRoundsCompleted > 0)
-                    Expanded(
-                      child: RoundedContainer(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .snackBarBackInfo,
-                        child: Text(
-                          "Fusion rounds completed: $_fusionRoundsCompleted",
-                          style: STextStyles.w500_14(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .snackBarTextInfo,
+                        )
+                      : RoundedContainer(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .snackBarBackError,
+                          child: Text(
+                            "Do not close this window. If you exit, "
+                            "the process will be canceled.",
+                            style: STextStyles.smallMed14(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .snackBarTextError,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                          textAlign: TextAlign.center,
                         ),
-                      ),
-                    ),
                   const SizedBox(
                     height: 20,
                   ),
