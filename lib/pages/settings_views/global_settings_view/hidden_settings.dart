@@ -18,6 +18,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:stackwallet/db/hive/db.dart';
+import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/debug_service_provider.dart';
@@ -379,6 +380,9 @@ class HiddenSettings extends StatelessWidget {
                                     failovers: [],
                                   );
 
+                                  final ce =
+                                      CachedElectrumX(electrumXClient: e);
+
                                   final txids = [
                                     "", //  cashTokenTxid
                                     "6a0444358bc41913c5b04a8dc06896053184b3641bc62502d18f954865b6ce1e", // normalTxid
@@ -400,15 +404,23 @@ class HiddenSettings extends StatelessWidget {
                                   // //     await e.getTransaction(txHash: txids[2]);
                                   // // await p.parseBchTx(json3);
                                   //
-                                  final json4 =
-                                      await e.getTransaction(txHash: txids[3]);
-                                  await p.parseBchTx(
-                                      json4, "SLP TOKEN SEND TXID:");
+                                  await p.getTransaction(
+                                      txids[3],
+                                      Coin.bitcoincash,
+                                      "lol",
+                                      ce,
+                                      "SLP TOKEN SEND TXID:");
+                                  await p.getTransaction(
+                                      "009d31380d2dbfb5c91500c861d55b531a8b762b0abb19353db884548dbac8b6",
+                                      Coin.bitcoincash,
+                                      "lol",
+                                      ce,
+                                      "COINBASE TXID:");
 
-                                  final json5 =
-                                      await e.getTransaction(txHash: txids[4]);
-                                  await p.parseBchTx(
-                                      json5, "SLP TOKEN GENESIS TXID:");
+                                  // final json5 =
+                                  //     await e.getTransaction(txHash: txids[4]);
+                                  // await p.parseBchTx(
+                                  //     json5, "SLP TOKEN GENESIS TXID:");
                                 } catch (e, s) {
                                   print("$e\n$s");
                                 }

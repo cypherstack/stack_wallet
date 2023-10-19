@@ -1,27 +1,83 @@
-class InputV2 {
-  final String scriptSigHex;
-  final int sequence;
-  final String txid;
-  final int vout;
+import 'package:isar/isar.dart';
 
-  InputV2({
-    required this.scriptSigHex,
-    required this.sequence,
-    required this.txid,
-    required this.vout,
-  });
+part 'input_v2.g.dart';
 
-  static InputV2 fromElectrumXJson(Map<String, dynamic> json) {
-    try {
-      return InputV2(
-          scriptSigHex: json["scriptSig"]["hex"] as String,
-          sequence: json["sequence"] as int,
-          txid: json["txid"] as String,
-          vout: json["vout"] as int);
-    } catch (e) {
-      throw Exception("Failed to parse InputV2 from $json");
-    }
+@Embedded()
+class OutpointV2 {
+  late final String txid;
+  late final int vout;
+
+  OutpointV2();
+
+  static OutpointV2 isarCantDoRequiredInDefaultConstructor({
+    required String txid,
+    required int vout,
+  }) =>
+      OutpointV2()
+        ..vout = vout
+        ..txid = txid;
+
+  @override
+  String toString() {
+    return 'OutpointV2(\n'
+        '  txid: $txid,\n'
+        '  vout: $vout,\n'
+        ')';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is OutpointV2 && other.txid == txid && other.vout == vout;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(
+      txid.hashCode,
+      vout.hashCode,
+    );
+  }
+}
+
+@Embedded()
+class InputV2 {
+  late final String? scriptSigHex;
+  late final int? sequence;
+  late final OutpointV2? outpoint;
+  late final List<String> addresses;
+  late final String valueStringSats;
+
+  late final String? coinbase;
+
+  late final String? witness;
+  late final String? innerRedeemScriptAsm;
+
+  @ignore
+  BigInt get value => BigInt.parse(valueStringSats);
+
+  InputV2();
+
+  static InputV2 isarCantDoRequiredInDefaultConstructor({
+    required String? scriptSigHex,
+    required int? sequence,
+    required OutpointV2? outpoint,
+    required List<String> addresses,
+    required String valueStringSats,
+    required String? witness,
+    required String? innerRedeemScriptAsm,
+    required String? coinbase,
+  }) =>
+      InputV2()
+        ..scriptSigHex = scriptSigHex
+        ..sequence = sequence
+        ..sequence = sequence
+        ..addresses = List.unmodifiable(addresses)
+        ..valueStringSats = valueStringSats
+        ..witness = witness
+        ..innerRedeemScriptAsm = innerRedeemScriptAsm
+        ..coinbase = coinbase;
 
   @override
   bool operator ==(Object other) {
@@ -30,16 +86,14 @@ class InputV2 {
     return other is InputV2 &&
         other.scriptSigHex == scriptSigHex &&
         other.sequence == sequence &&
-        other.txid == txid &&
-        other.vout == vout;
+        other.outpoint == outpoint;
   }
 
   @override
   int get hashCode => Object.hash(
         scriptSigHex,
         sequence,
-        txid,
-        vout,
+        outpoint,
       );
 
   @override
@@ -47,8 +101,12 @@ class InputV2 {
     return 'InputV2(\n'
         '  scriptSigHex: $scriptSigHex,\n'
         '  sequence: $sequence,\n'
-        '  txid: $txid,\n'
-        '  vout: $vout,\n'
+        '  outpoint: $outpoint,\n'
+        '  addresses: $addresses,\n'
+        '  valueStringSats: $valueStringSats,\n'
+        '  coinbase: $coinbase,\n'
+        '  witness: $witness,\n'
+        '  innerRedeemScriptAsm: $innerRedeemScriptAsm,\n'
         ')';
   }
 }
