@@ -42,7 +42,7 @@ class TxIcon extends ConsumerWidget {
     IThemeAssets assets,
   ) {
     if (subType == TransactionSubType.cashFusion) {
-      return Assets.svg.cashFusion;
+      return Assets.svg.txCashFusion;
     }
 
     if (!isReceived && subType == TransactionSubType.mint) {
