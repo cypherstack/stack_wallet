@@ -13,8 +13,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/no_transactions_found.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/fusion_tx_group_card.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_list_item.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
@@ -102,6 +104,59 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
           return const NoTransActionsFound();
         } else {
           _transactions.sort((a, b) => b.timestamp - a.timestamp);
+
+          final List<Object> _txns = [];
+
+          List<TransactionV2> fusions = [];
+
+          for (int i = 0; i < _transactions.length; i++) {
+            final tx = _transactions[i];
+
+            if (tx.subType == TransactionSubType.cashFusion) {
+              if (fusions.isNotEmpty) {
+                final prevTime = DateTime.fromMillisecondsSinceEpoch(
+                    fusions.last.timestamp * 1000);
+                final thisTime =
+                    DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000);
+
+                print(
+                    "DIFFERERNCE: ${prevTime.difference(thisTime).inMinutes}");
+
+                if (prevTime.difference(thisTime).inMinutes > 30) {
+                  _txns.add(FusionTxGroup(fusions));
+                  fusions = [tx];
+                  continue;
+                }
+              }
+
+              fusions.add(tx);
+            }
+
+            if (i + 1 < _transactions.length) {
+              final nextTx = _transactions[i + 1];
+              if (nextTx.subType != TransactionSubType.cashFusion &&
+                  fusions.isNotEmpty) {
+                _txns.add(FusionTxGroup(fusions));
+                fusions = [];
+              }
+            }
+
+            if (tx.subType != TransactionSubType.cashFusion) {
+              _txns.add(tx);
+            }
+          }
+
+          // sanity check
+          int count = 0;
+          for (final e in _txns) {
+            if (e is TransactionV2) {
+              count++;
+            } else if (e is FusionTxGroup) {
+              count += e.transactions.length;
+            }
+          }
+          assert(count == _transactions.length);
+
           return RefreshIndicator(
             onRefresh: () async {
               final managerProvider = ref
@@ -116,16 +171,16 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
                     shrinkWrap: true,
                     itemBuilder: (context, index) {
                       BorderRadius? radius;
-                      if (_transactions.length == 1) {
+                      if (_txns.length == 1) {
                         radius = BorderRadius.circular(
                           Constants.size.circularBorderRadius,
                         );
-                      } else if (index == _transactions.length - 1) {
+                      } else if (index == _txns.length - 1) {
                         radius = _borderRadiusLast;
                       } else if (index == 0) {
                         radius = _borderRadiusFirst;
                       }
-                      final tx = _transactions[index];
+                      final tx = _txns[index];
                       return TxListItem(
                         tx: tx,
                         coin: manager.coin,
@@ -141,24 +196,24 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
                             .background,
                       );
                     },
-                    itemCount: _transactions.length,
+                    itemCount: _txns.length,
                   )
                 : ListView.builder(
-                    itemCount: _transactions.length,
+                    itemCount: _txns.length,
                     itemBuilder: (context, index) {
                       BorderRadius? radius;
                       bool shouldWrap = false;
-                      if (_transactions.length == 1) {
+                      if (_txns.length == 1) {
                         radius = BorderRadius.circular(
                           Constants.size.circularBorderRadius,
                         );
-                      } else if (index == _transactions.length - 1) {
+                      } else if (index == _txns.length - 1) {
                         radius = _borderRadiusLast;
                         shouldWrap = true;
                       } else if (index == 0) {
                         radius = _borderRadiusFirst;
                       }
-                      final tx = _transactions[index];
+                      final tx = _txns[index];
                       if (shouldWrap) {
                         return Column(
                           children: [

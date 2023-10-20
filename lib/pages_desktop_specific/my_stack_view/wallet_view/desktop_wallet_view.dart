@@ -446,7 +446,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                                       .getManager(widget.walletId)
                                       .hasTokenSupport))
                               ? "Tokens"
-                              : "Recent transactions",
+                              : "Recent activity",
                           style: STextStyles.desktopTextExtraSmall(context)
                               .copyWith(
                             color: Theme.of(context)
