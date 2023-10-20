@@ -417,191 +417,204 @@ mixin FusionWalletInterface {
   }) async {
     // Initial attempt for CashFusion integration goes here.
 
-    _updateStatus(status: fusion.FusionStatus.reset);
-    _updateStatus(
-      status: fusion.FusionStatus.connecting,
-      info: "Connecting to the CashFusion server.",
-    );
+    try {
+      _updateStatus(status: fusion.FusionStatus.reset);
+      _updateStatus(
+        status: fusion.FusionStatus.connecting,
+        info: "Connecting to the CashFusion server.",
+      );
 
-    // Use server host and port which ultimately come from text fields.
-    fusion.FusionParams serverParams = fusion.FusionParams(
-      serverHost: fusionInfo.host,
-      serverPort: fusionInfo.port,
-      serverSsl: fusionInfo.ssl,
-    );
+      // Use server host and port which ultimately come from text fields.
+      fusion.FusionParams serverParams = fusion.FusionParams(
+        serverHost: fusionInfo.host,
+        serverPort: fusionInfo.port,
+        serverSsl: fusionInfo.ssl,
+      );
 
-    // Instantiate a Fusion object with custom parameters.
-    _mainFusionObject = fusion.Fusion(serverParams);
+      // Instantiate a Fusion object with custom parameters.
+      _mainFusionObject = fusion.Fusion(serverParams);
 
-    // Pass wallet functions to the Fusion object
-    await _mainFusionObject!.initFusion(
-      getTransactionsByAddress: _getTransactionsByAddress,
-      getUnusedReservedChangeAddresses: _getUnusedReservedChangeAddresses,
-      getSocksProxyAddress: _getSocksProxyAddress,
-      getChainHeight: _getChainHeight,
-      updateStatusCallback: _updateStatus,
-      getTransactionJson: (String txid) async =>
-          await _getWalletCachedElectrumX().getTransaction(
-        coin: _coin,
-        txHash: txid,
-      ),
-      getPrivateKeyForPubKey: _getPrivateKeyForPubKey,
-      broadcastTransaction: (String txHex) => _getWalletCachedElectrumX()
-          .electrumXClient
-          .broadcastTransaction(rawTx: txHex),
-      unReserveAddresses: (List<fusion.Address> addresses) async {
-        final List<Future<void>> futures = [];
-        for (final addr in addresses) {
-          futures.add(
-            _db.getAddress(_walletId, addr.address).then(
-              (address) async {
-                if (address == null) {
-                  // matching address not found in db so cannot mark as unreserved
-                  // just ignore I guess. Should never actually happen in practice.
-                  // Might be useful check in debugging cases?
-                  return;
-                } else {
-                  await _unReserveAddress(address);
-                }
-              },
-            ),
-          );
-        }
-        await Future.wait(futures);
-      },
-    );
+      // Pass wallet functions to the Fusion object
+      await _mainFusionObject!.initFusion(
+        getTransactionsByAddress: _getTransactionsByAddress,
+        getUnusedReservedChangeAddresses: _getUnusedReservedChangeAddresses,
+        getSocksProxyAddress: _getSocksProxyAddress,
+        getChainHeight: _getChainHeight,
+        updateStatusCallback: _updateStatus,
+        getTransactionJson: (String txid) async =>
+            await _getWalletCachedElectrumX().getTransaction(
+          coin: _coin,
+          txHash: txid,
+        ),
+        getPrivateKeyForPubKey: _getPrivateKeyForPubKey,
+        broadcastTransaction: (String txHex) => _getWalletCachedElectrumX()
+            .electrumXClient
+            .broadcastTransaction(rawTx: txHex),
+        unReserveAddresses: (List<fusion.Address> addresses) async {
+          final List<Future<void>> futures = [];
+          for (final addr in addresses) {
+            futures.add(
+              _db.getAddress(_walletId, addr.address).then(
+                (address) async {
+                  if (address == null) {
+                    // matching address not found in db so cannot mark as unreserved
+                    // just ignore I guess. Should never actually happen in practice.
+                    // Might be useful check in debugging cases?
+                    return;
+                  } else {
+                    await _unReserveAddress(address);
+                  }
+                },
+              ),
+            );
+          }
+          await Future.wait(futures);
+        },
+      );
 
-    // Reset internal and UI counts and flag.
-    _completedFuseCount = 0;
-    _uiState?.fusionRoundsCompleted = 0;
-    _failedFuseCount = 0;
-    _uiState?.fusionRoundsFailed = 0;
-    _stopRequested = false;
+      // Reset internal and UI counts and flag.
+      _completedFuseCount = 0;
+      _uiState?.fusionRoundsCompleted = 0;
+      _failedFuseCount = 0;
+      _uiState?.fusionRoundsFailed = 0;
+      _stopRequested = false;
 
-    bool shouldFuzeAgain() {
-      if (fusionInfo.rounds <= 0) {
-        // ignore count if continuous
-        return !_stopRequested;
-      } else {
-        // not continuous
-        // check to make sure we aren't doing more fusions than requested
-        return !_stopRequested && _completedFuseCount < fusionInfo.rounds;
-      }
-    }
-
-    while (shouldFuzeAgain()) {
-      if (_completedFuseCount > 0 || _failedFuseCount > 0) {
-        _updateStatus(status: fusion.FusionStatus.reset);
-        _updateStatus(
-          status: fusion.FusionStatus.connecting,
-          info: "Connecting to the CashFusion server.",
-        );
-      }
-
-      //   refresh wallet utxos
-      await _updateWalletUTXOS();
-
-      // Add unfrozen stack UTXOs.
-      final List<UTXO> walletUtxos = await _db
-          .getUTXOs(_walletId)
-          .filter()
-          .isBlockedEqualTo(false)
-          .and()
-          .addressIsNotNull()
-          .findAll();
-
-      final List<fusion.UtxoDTO> coinList = [];
-      // Loop through UTXOs, checking and adding valid ones.
-      for (final utxo in walletUtxos) {
-        final String addressString = utxo.address!;
-        final List<String> possibleAddresses = [addressString];
-
-        if (bitbox.Address.detectFormat(addressString) ==
-            bitbox.Address.formatCashAddr) {
-          possibleAddresses.add(bitbox.Address.toLegacyAddress(addressString));
+      bool shouldFuzeAgain() {
+        if (fusionInfo.rounds <= 0) {
+          // ignore count if continuous
+          return !_stopRequested;
         } else {
-          possibleAddresses.add(bitbox.Address.toCashAddress(addressString));
+          // not continuous
+          // check to make sure we aren't doing more fusions than requested
+          return !_stopRequested && _completedFuseCount < fusionInfo.rounds;
         }
-
-        // Fetch address to get pubkey
-        final addr = await _db
-            .getAddresses(_walletId)
-            .filter()
-            .anyOf<String,
-                    QueryBuilder<Address, Address, QAfterFilterCondition>>(
-                possibleAddresses, (q, e) => q.valueEqualTo(e))
-            .and()
-            .group((q) => q
-                .subTypeEqualTo(AddressSubType.change)
-                .or()
-                .subTypeEqualTo(AddressSubType.receiving))
-            .and()
-            .typeEqualTo(AddressType.p2pkh)
-            .findFirst();
-
-        // depending on the address type in the query above this can be null
-        if (addr == null) {
-          // A utxo object should always have a non null address.
-          // If non found then just ignore the UTXO (aka don't fuse it)
-          Logging.instance.log(
-            "Ignoring utxo=$utxo for address=\"$addressString\" while selecting UTXOs for Fusion",
-            level: LogLevel.Info,
-          );
-          continue;
-        }
-
-        final dto = fusion.UtxoDTO(
-          txid: utxo.txid,
-          vout: utxo.vout,
-          value: utxo.value,
-          address: utxo.address!,
-          pubKey: addr.publicKey,
-        );
-
-        // Add UTXO to coinList.
-        coinList.add(dto);
       }
 
-      // Fuse UTXOs.
-      try {
-        await _mainFusionObject!.fuse(
-          inputsFromWallet: coinList,
-          network: _coin.isTestNet
-              ? fusion.Utilities.testNet
-              : fusion.Utilities.mainNet,
-        );
-
-        // Increment the number of successfully completed fusion rounds.
-        _completedFuseCount++;
-
-        // Do the same for the UI state.  This also resets the failed count (for
-        // the UI state only).
-        _uiState?.incrementFusionRoundsCompleted();
-
-        // Also reset the failed count here.
-        _failedFuseCount = 0;
-      } catch (e, s) {
-        Logging.instance.log(
-          "$e\n$s",
-          level: LogLevel.Error,
-        );
-        // just continue on attempt failure
-
-        // Increment the number of failed fusion rounds.
-        _failedFuseCount++;
-
-        // Do the same for the UI state.
-        _uiState?.incrementFusionRoundsFailed();
-
-        // If we fail too many times in a row, stop trying.
-        if (_failedFuseCount >= maxFailedFuseCount) {
+      while (shouldFuzeAgain()) {
+        if (_completedFuseCount > 0 || _failedFuseCount > 0) {
+          _updateStatus(status: fusion.FusionStatus.reset);
           _updateStatus(
-              status: fusion.FusionStatus.failed,
-              info: "Failed $maxFailedFuseCount times in a row, stopping.");
-          _stopRequested = true;
-          _uiState?.failed = true;
+            status: fusion.FusionStatus.connecting,
+            info: "Connecting to the CashFusion server.",
+          );
+        }
+
+        //   refresh wallet utxos
+        await _updateWalletUTXOS();
+
+        // Add unfrozen stack UTXOs.
+        final List<UTXO> walletUtxos = await _db
+            .getUTXOs(_walletId)
+            .filter()
+            .isBlockedEqualTo(false)
+            .and()
+            .addressIsNotNull()
+            .findAll();
+
+        final List<fusion.UtxoDTO> coinList = [];
+        // Loop through UTXOs, checking and adding valid ones.
+        for (final utxo in walletUtxos) {
+          final String addressString = utxo.address!;
+          final List<String> possibleAddresses = [addressString];
+
+          if (bitbox.Address.detectFormat(addressString) ==
+              bitbox.Address.formatCashAddr) {
+            possibleAddresses
+                .add(bitbox.Address.toLegacyAddress(addressString));
+          } else {
+            possibleAddresses.add(bitbox.Address.toCashAddress(addressString));
+          }
+
+          // Fetch address to get pubkey
+          final addr = await _db
+              .getAddresses(_walletId)
+              .filter()
+              .anyOf<String,
+                      QueryBuilder<Address, Address, QAfterFilterCondition>>(
+                  possibleAddresses, (q, e) => q.valueEqualTo(e))
+              .and()
+              .group((q) => q
+                  .subTypeEqualTo(AddressSubType.change)
+                  .or()
+                  .subTypeEqualTo(AddressSubType.receiving))
+              .and()
+              .typeEqualTo(AddressType.p2pkh)
+              .findFirst();
+
+          // depending on the address type in the query above this can be null
+          if (addr == null) {
+            // A utxo object should always have a non null address.
+            // If non found then just ignore the UTXO (aka don't fuse it)
+            Logging.instance.log(
+              "Ignoring utxo=$utxo for address=\"$addressString\" while selecting UTXOs for Fusion",
+              level: LogLevel.Info,
+            );
+            continue;
+          }
+
+          final dto = fusion.UtxoDTO(
+            txid: utxo.txid,
+            vout: utxo.vout,
+            value: utxo.value,
+            address: utxo.address!,
+            pubKey: addr.publicKey,
+          );
+
+          // Add UTXO to coinList.
+          coinList.add(dto);
+        }
+
+        // Fuse UTXOs.
+        try {
+          await _mainFusionObject!.fuse(
+            inputsFromWallet: coinList,
+            network: _coin.isTestNet
+                ? fusion.Utilities.testNet
+                : fusion.Utilities.mainNet,
+          );
+
+          // Increment the number of successfully completed fusion rounds.
+          _completedFuseCount++;
+
+          // Do the same for the UI state.  This also resets the failed count (for
+          // the UI state only).
+          _uiState?.incrementFusionRoundsCompleted();
+
+          // Also reset the failed count here.
+          _failedFuseCount = 0;
+        } catch (e, s) {
+          Logging.instance.log(
+            "$e\n$s",
+            level: LogLevel.Error,
+          );
+          // just continue on attempt failure
+
+          // Increment the number of failed fusion rounds.
+          _failedFuseCount++;
+
+          // Do the same for the UI state.
+          _uiState?.incrementFusionRoundsFailed();
+
+          // If we fail too many times in a row, stop trying.
+          if (_failedFuseCount >= maxFailedFuseCount) {
+            _updateStatus(
+                status: fusion.FusionStatus.failed,
+                info: "Failed $maxFailedFuseCount times in a row, stopping.");
+            _stopRequested = true;
+            _uiState?.failed = true;
+          }
         }
       }
+    } catch (e, s) {
+      Logging.instance.log(
+        "$e\n$s",
+        level: LogLevel.Error,
+      );
+
+      // Stop the fusion process and update the UI state.
+      await _mainFusionObject?.stop();
+      _mainFusionObject = null;
+      _uiState?.running = false;
     }
   }
 

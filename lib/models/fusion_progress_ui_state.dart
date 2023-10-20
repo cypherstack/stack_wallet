@@ -149,6 +149,10 @@ class FusionProgressUIState extends ChangeNotifier {
   /// A flag indicating that fusion is running.
   bool _running = false;
   bool get running => _running;
+  set running(bool running) {
+    _running = running;
+    notifyListeners();
+  }
 
   /// A helper method for setting the running flag.
   ///
