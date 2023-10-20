@@ -595,6 +595,9 @@ mixin FusionWalletInterface {
 
         // If we fail too many times in a row, stop trying.
         if (_failedFuseCount >= maxFailedFuseCount) {
+          _updateStatus(
+              status: fusion.FusionStatus.failed,
+              info: "Failed $maxFailedFuseCount times in a row, stopping.");
           _stopRequested = true;
           _uiState?.failed = true;
         }
