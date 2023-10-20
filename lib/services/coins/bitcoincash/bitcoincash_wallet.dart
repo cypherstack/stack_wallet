@@ -2099,6 +2099,7 @@ class BitcoinCashWallet extends CoinServiceAPI
           final prevOut = OutputV2.fromElectrumXJson(
             prevOutJson,
             decimalPlaces: coin.decimals,
+            walletOwns: false, // doesn't matter here as this is not saved
           );
 
           outpoint = OutpointV2.isarCantDoRequiredInDefaultConstructor(
@@ -2136,11 +2137,10 @@ class BitcoinCashWallet extends CoinServiceAPI
         final output = OutputV2.fromElectrumXJson(
           Map<String, dynamic>.from(outputJson as Map),
           decimalPlaces: coin.decimals,
+          // don't know yet if wallet owns. Need addresses first
+          walletOwns: false,
         );
-        outputs.add(output);
-      }
 
-      for (final output in outputs) {
         // if output was to my wallet, add value to amount received
         if (receivingAddresses
             .intersection(output.addresses.toSet())
@@ -2153,6 +2153,10 @@ class BitcoinCashWallet extends CoinServiceAPI
           wasReceivedInThisWallet = true;
           changeAmountReceivedInThisWallet += output.value;
         }
+
+        outputs.add(wasReceivedInThisWallet
+            ? output.copyWith(walletOwns: true)
+            : output);
       }
 
       final totalIn = inputs

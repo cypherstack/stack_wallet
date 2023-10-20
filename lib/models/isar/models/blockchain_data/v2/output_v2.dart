@@ -9,6 +9,8 @@ class OutputV2 {
   late final String valueStringSats;
   late final List<String> addresses;
 
+  late final bool walletOwns;
+
   @ignore
   BigInt get value => BigInt.parse(valueStringSats);
 
@@ -18,14 +20,31 @@ class OutputV2 {
     required String scriptPubKeyHex,
     required String valueStringSats,
     required List<String> addresses,
+    required bool walletOwns,
   }) =>
       OutputV2()
         ..scriptPubKeyHex = scriptPubKeyHex
         ..valueStringSats = valueStringSats
+        ..walletOwns = walletOwns
         ..addresses = List.unmodifiable(addresses);
+
+  OutputV2 copyWith({
+    String? scriptPubKeyHex,
+    String? valueStringSats,
+    List<String>? addresses,
+    bool? walletOwns,
+  }) {
+    return OutputV2.isarCantDoRequiredInDefaultConstructor(
+      scriptPubKeyHex: scriptPubKeyHex ?? this.scriptPubKeyHex,
+      valueStringSats: valueStringSats ?? this.valueStringSats,
+      addresses: addresses ?? this.addresses,
+      walletOwns: walletOwns ?? this.walletOwns,
+    );
+  }
 
   static OutputV2 fromElectrumXJson(
     Map<String, dynamic> json, {
+    required bool walletOwns,
     required int decimalPlaces,
   }) {
     try {
@@ -46,6 +65,7 @@ class OutputV2 {
           decimalPlaces: decimalPlaces,
         ),
         addresses: addresses,
+        walletOwns: walletOwns,
       );
     } catch (e) {
       throw Exception("Failed to parse OutputV2 from $json");
@@ -84,6 +104,7 @@ class OutputV2 {
   @override
   int get hashCode => Object.hash(
         scriptPubKeyHex,
+        addresses,
         valueStringSats,
       );
 
