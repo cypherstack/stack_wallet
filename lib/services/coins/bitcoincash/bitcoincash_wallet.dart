@@ -1696,9 +1696,7 @@ class BitcoinCashWallet extends CoinServiceAPI
         }
         final scripthash =
             _convertToScriptHash(allAddresses[i].value, _network);
-        if (kDebugMode) {
-          print("SCRIPT_HASH_FOR_ADDRESS ${allAddresses[i]} IS $scripthash");
-        }
+
         batches[batchNumber]!.addAll({
           scripthash: [scripthash]
         });
