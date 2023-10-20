@@ -2119,16 +2119,17 @@ class BitcoinCashWallet extends CoinServiceAPI
           witness: map["witness"] as String?,
           coinbase: coinbase,
           innerRedeemScriptAsm: map["innerRedeemscriptAsm"] as String?,
+          // don't know yet if wallet owns. Need addresses first
+          walletOwns: false,
         );
 
-        inputs.add(input);
-      }
-
-      for (final input in inputs) {
         if (allAddressesSet.intersection(input.addresses.toSet()).isNotEmpty) {
           wasSentFromThisWallet = true;
           amountSentFromThisWallet += input.value;
         }
+
+        inputs.add(
+            wasSentFromThisWallet ? input.copyWith(walletOwns: true) : input);
       }
 
       // parse outputs

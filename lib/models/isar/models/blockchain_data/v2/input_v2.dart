@@ -54,6 +54,8 @@ class InputV2 {
   late final String? witness;
   late final String? innerRedeemScriptAsm;
 
+  late final bool walletOwns;
+
   @ignore
   BigInt get value => BigInt.parse(valueStringSats);
 
@@ -68,6 +70,7 @@ class InputV2 {
     required String? witness,
     required String? innerRedeemScriptAsm,
     required String? coinbase,
+    required bool walletOwns,
   }) =>
       InputV2()
         ..scriptSigHex = scriptSigHex
@@ -77,7 +80,32 @@ class InputV2 {
         ..valueStringSats = valueStringSats
         ..witness = witness
         ..innerRedeemScriptAsm = innerRedeemScriptAsm
-        ..coinbase = coinbase;
+        ..innerRedeemScriptAsm = innerRedeemScriptAsm
+        ..walletOwns = walletOwns;
+
+  InputV2 copyWith({
+    String? scriptSigHex,
+    int? sequence,
+    OutpointV2? outpoint,
+    List<String>? addresses,
+    String? valueStringSats,
+    String? coinbase,
+    String? witness,
+    String? innerRedeemScriptAsm,
+    bool? walletOwns,
+  }) {
+    return InputV2.isarCantDoRequiredInDefaultConstructor(
+      scriptSigHex: scriptSigHex ?? this.scriptSigHex,
+      sequence: sequence ?? this.sequence,
+      outpoint: outpoint ?? this.outpoint,
+      addresses: addresses ?? this.addresses,
+      valueStringSats: valueStringSats ?? this.valueStringSats,
+      coinbase: coinbase ?? this.coinbase,
+      witness: witness ?? this.witness,
+      innerRedeemScriptAsm: innerRedeemScriptAsm ?? this.innerRedeemScriptAsm,
+      walletOwns: walletOwns ?? this.walletOwns,
+    );
+  }
 
   @override
   bool operator ==(Object other) {
