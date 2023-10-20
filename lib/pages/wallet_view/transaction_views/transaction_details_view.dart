@@ -831,7 +831,7 @@ class _TransactionDetailsViewState
                                     ),
                                     if (isDesktop)
                                       IconCopyButton(
-                                        data: _transaction.address.value!.value,
+                                        data: _transaction.otherData ?? "",
                                       ),
                                   ],
                                 ),
