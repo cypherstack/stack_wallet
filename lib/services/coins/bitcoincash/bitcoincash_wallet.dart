@@ -2110,7 +2110,7 @@ class BitcoinCashWallet extends CoinServiceAPI
           addresses.addAll(prevOut.addresses);
         }
 
-        final input = InputV2.isarCantDoRequiredInDefaultConstructor(
+        InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
           scriptSigHex: map["scriptSig"]?["hex"] as String?,
           sequence: map["sequence"] as int?,
           outpoint: outpoint,
@@ -2126,16 +2126,16 @@ class BitcoinCashWallet extends CoinServiceAPI
         if (allAddressesSet.intersection(input.addresses.toSet()).isNotEmpty) {
           wasSentFromThisWallet = true;
           amountSentFromThisWallet += input.value;
+          input = input.copyWith(walletOwns: true);
         }
 
-        inputs.add(
-            wasSentFromThisWallet ? input.copyWith(walletOwns: true) : input);
+        inputs.add(input);
       }
 
       // parse outputs
       final List<OutputV2> outputs = [];
       for (final outputJson in txData["vout"] as List) {
-        final output = OutputV2.fromElectrumXJson(
+        OutputV2 output = OutputV2.fromElectrumXJson(
           Map<String, dynamic>.from(outputJson as Map),
           decimalPlaces: coin.decimals,
           // don't know yet if wallet owns. Need addresses first
@@ -2148,16 +2148,16 @@ class BitcoinCashWallet extends CoinServiceAPI
             .isNotEmpty) {
           wasReceivedInThisWallet = true;
           amountReceivedInThisWallet += output.value;
+          output = output.copyWith(walletOwns: true);
         } else if (changeAddresses
             .intersection(output.addresses.toSet())
             .isNotEmpty) {
           wasReceivedInThisWallet = true;
           changeAmountReceivedInThisWallet += output.value;
+          output = output.copyWith(walletOwns: true);
         }
 
-        outputs.add(wasReceivedInThisWallet
-            ? output.copyWith(walletOwns: true)
-            : output);
+        outputs.add(output);
       }
 
       final totalIn = inputs

@@ -411,7 +411,8 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
     walletId = _transaction.walletId;
 
     if (Util.isDesktop) {
-      if (_transaction.type == TransactionType.outgoing) {
+      if (_transaction.type == TransactionType.outgoing &&
+          _transaction.subType != TransactionSubType.cashFusion) {
         prefix = "-";
       } else if (_transaction.type == TransactionType.incoming) {
         prefix = "+";
@@ -443,7 +444,26 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
     final currentHeight = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManager(walletId).currentHeight));
 
-    final amount = _transaction.getAmount(coin: coin);
+    final Amount amount;
+
+    if (_transaction.subType == TransactionSubType.cashFusion) {
+      amount = _transaction.getAmountReceivedThisWallet(coin: coin);
+    } else {
+      switch (_transaction.type) {
+        case TransactionType.outgoing:
+          amount = _transaction.getAmountSentFromThisWallet(coin: coin);
+          break;
+
+        case TransactionType.incoming:
+        case TransactionType.sentToSelf:
+          amount = _transaction.getAmountReceivedThisWallet(coin: coin);
+          break;
+
+        case TransactionType.unknown:
+          amount = _transaction.getAmountSentFromThisWallet(coin: coin);
+          break;
+      }
+    }
 
     return Material(
       color: Theme.of(context).extension<StackColors>()!.popupBG,

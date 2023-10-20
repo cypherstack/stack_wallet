@@ -71,12 +71,20 @@ class TransactionV2 {
     return Amount(rawValue: inSum - outSum, fractionDigits: coin.decimals);
   }
 
-  Amount getAmount({required Coin coin}) {
+  Amount getAmountReceivedThisWallet({required Coin coin}) {
     final outSum = outputs
-        .map((e) => e.value)
-        .reduce((value, element) => value += element);
+        .where((e) => e.walletOwns)
+        .fold(BigInt.zero, (p, e) => p + e.value);
 
     return Amount(rawValue: outSum, fractionDigits: coin.decimals);
+  }
+
+  Amount getAmountSentFromThisWallet({required Coin coin}) {
+    final inSum = inputs
+        .where((e) => e.walletOwns)
+        .fold(BigInt.zero, (p, e) => p + e.value);
+
+    return Amount(rawValue: inSum, fractionDigits: coin.decimals);
   }
 
   @override
