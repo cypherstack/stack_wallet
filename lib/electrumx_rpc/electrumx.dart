@@ -387,7 +387,14 @@ class ElectrumX {
         throw jsonRpcResponse.exception!;
       }
 
-      final response = jsonRpcResponse.data as List;
+      final List<dynamic> response;
+      try {
+        response = jsonRpcResponse.data as List;
+      } catch (_) {
+        throw Exception(
+          "Expected json list but got a map: ${jsonRpcResponse.data}",
+        );
+      }
 
       // check for errors, format and throw if there are any
       final List<String> errors = [];
