@@ -17,6 +17,7 @@ import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/eth_token_
 import 'package:stackwallet/models/buy/response_objects/quote.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/isar/ordinal.dart';
@@ -131,6 +132,7 @@ import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions
 import 'package:stackwallet/pages/wallet_view/transaction_views/edit_note_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_search_filter_view.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages/wallets_view/wallets_overview.dart';
 import 'package:stackwallet/pages/wallets_view/wallets_view.dart';
@@ -1251,6 +1253,22 @@ class RouteGenerator {
               transaction: args.item1,
               coin: args.item2,
               walletId: args.item3,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case TransactionV2DetailsView.routeName:
+        if (args is ({TransactionV2 tx, Coin coin, String walletId})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => TransactionV2DetailsView(
+              transaction: args.tx,
+              coin: args.coin,
+              walletId: args.walletId,
             ),
             settings: RouteSettings(
               name: settings.name,
