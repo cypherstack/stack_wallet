@@ -108,23 +108,6 @@ class InputV2 {
   }
 
   @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is InputV2 &&
-        other.scriptSigHex == scriptSigHex &&
-        other.sequence == sequence &&
-        other.outpoint == outpoint;
-  }
-
-  @override
-  int get hashCode => Object.hash(
-        scriptSigHex,
-        sequence,
-        outpoint,
-      );
-
-  @override
   String toString() {
     return 'InputV2(\n'
         '  scriptSigHex: $scriptSigHex,\n'
@@ -135,6 +118,7 @@ class InputV2 {
         '  coinbase: $coinbase,\n'
         '  witness: $witness,\n'
         '  innerRedeemScriptAsm: $innerRedeemScriptAsm,\n'
+        '  walletOwns: $walletOwns,\n'
         ')';
   }
 }

@@ -92,27 +92,11 @@ class OutputV2 {
   }
 
   @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is OutputV2 &&
-        other.scriptPubKeyHex == scriptPubKeyHex &&
-        _listEquals(other.addresses, addresses) &&
-        other.valueStringSats == valueStringSats;
-  }
-
-  @override
-  int get hashCode => Object.hash(
-        scriptPubKeyHex,
-        addresses,
-        valueStringSats,
-      );
-
-  @override
   String toString() {
     return 'OutputV2(\n'
         '  scriptPubKeyHex: $scriptPubKeyHex,\n'
         '  value: $value,\n'
+        '  walletOwns: $walletOwns,\n'
         '  addresses: $addresses,\n'
         ')';
   }
