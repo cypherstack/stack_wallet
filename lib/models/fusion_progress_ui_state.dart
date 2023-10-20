@@ -54,6 +54,7 @@ class FusionProgressUIState extends ChangeNotifier {
   CashFusionState get connecting => _connecting;
   set connecting(CashFusionState state) {
     _connecting = state;
+    _running = true;
     notifyListeners();
   }
 
@@ -62,6 +63,7 @@ class FusionProgressUIState extends ChangeNotifier {
   CashFusionState get outputs => _outputs;
   set outputs(CashFusionState state) {
     _outputs = state;
+    _running = true;
     notifyListeners();
   }
 
@@ -70,6 +72,7 @@ class FusionProgressUIState extends ChangeNotifier {
   CashFusionState get peers => _peers;
   set peers(CashFusionState state) {
     _peers = state;
+    _running = true;
     notifyListeners();
   }
 
@@ -78,6 +81,7 @@ class FusionProgressUIState extends ChangeNotifier {
   CashFusionState get fusing => _fusing;
   set fusing(CashFusionState state) {
     _fusing = state;
+    _updateRunningState(state.status);
     notifyListeners();
   }
 
@@ -86,14 +90,16 @@ class FusionProgressUIState extends ChangeNotifier {
   CashFusionState get complete => _complete;
   set complete(CashFusionState state) {
     _complete = state;
+    _updateRunningState(state.status);
     notifyListeners();
   }
 
   CashFusionState _fusionStatus =
       CashFusionState(status: CashFusionStatus.waiting, info: null);
   CashFusionState get fusionState => _fusionStatus;
-  set fusionState(CashFusionState fusionStatus) {
-    _fusionStatus = fusionStatus;
+  set fusionState(CashFusionState state) {
+    _fusionStatus = state;
+    _updateRunningState(state.status);
     notifyListeners();
   }
 
@@ -138,5 +144,24 @@ class FusionProgressUIState extends ChangeNotifier {
   set failed(bool failed) {
     _failed = failed;
     notifyListeners();
+  }
+
+  /// A flag indicating that fusion is running.
+  bool _running = false;
+  bool get running => _running;
+
+  /// A helper method for setting the running flag.
+  ///
+  /// Sets the running flag to true if the status is running.  Sets the flag to
+  /// false if succeeded or failed or the global failed flag is set.
+  void _updateRunningState(CashFusionStatus status) {
+    if (status == CashFusionStatus.running) {
+      _running = true;
+    } else if (((status == CashFusionStatus.success ||
+                status == CashFusionStatus.failed) &&
+            (done || succeeded)) ||
+        _failed) {
+      _running = false;
+    }
   }
 }
