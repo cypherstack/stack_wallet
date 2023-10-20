@@ -346,36 +346,36 @@ const InputV2Schema = Schema(
       name: r'coinbase',
       type: IsarType.string,
     ),
-    r'hashCode': PropertySchema(
-      id: 2,
-      name: r'hashCode',
-      type: IsarType.long,
-    ),
     r'innerRedeemScriptAsm': PropertySchema(
-      id: 3,
+      id: 2,
       name: r'innerRedeemScriptAsm',
       type: IsarType.string,
     ),
     r'outpoint': PropertySchema(
-      id: 4,
+      id: 3,
       name: r'outpoint',
       type: IsarType.object,
       target: r'OutpointV2',
     ),
     r'scriptSigHex': PropertySchema(
-      id: 5,
+      id: 4,
       name: r'scriptSigHex',
       type: IsarType.string,
     ),
     r'sequence': PropertySchema(
-      id: 6,
+      id: 5,
       name: r'sequence',
       type: IsarType.long,
     ),
     r'valueStringSats': PropertySchema(
-      id: 7,
+      id: 6,
       name: r'valueStringSats',
       type: IsarType.string,
+    ),
+    r'walletOwns': PropertySchema(
+      id: 7,
+      name: r'walletOwns',
+      type: IsarType.bool,
     ),
     r'witness': PropertySchema(
       id: 8,
@@ -446,17 +446,17 @@ void _inputV2Serialize(
 ) {
   writer.writeStringList(offsets[0], object.addresses);
   writer.writeString(offsets[1], object.coinbase);
-  writer.writeLong(offsets[2], object.hashCode);
-  writer.writeString(offsets[3], object.innerRedeemScriptAsm);
+  writer.writeString(offsets[2], object.innerRedeemScriptAsm);
   writer.writeObject<OutpointV2>(
-    offsets[4],
+    offsets[3],
     allOffsets,
     OutpointV2Schema.serialize,
     object.outpoint,
   );
-  writer.writeString(offsets[5], object.scriptSigHex);
-  writer.writeLong(offsets[6], object.sequence);
-  writer.writeString(offsets[7], object.valueStringSats);
+  writer.writeString(offsets[4], object.scriptSigHex);
+  writer.writeLong(offsets[5], object.sequence);
+  writer.writeString(offsets[6], object.valueStringSats);
+  writer.writeBool(offsets[7], object.walletOwns);
   writer.writeString(offsets[8], object.witness);
 }
 
@@ -469,15 +469,16 @@ InputV2 _inputV2Deserialize(
   final object = InputV2();
   object.addresses = reader.readStringList(offsets[0]) ?? [];
   object.coinbase = reader.readStringOrNull(offsets[1]);
-  object.innerRedeemScriptAsm = reader.readStringOrNull(offsets[3]);
+  object.innerRedeemScriptAsm = reader.readStringOrNull(offsets[2]);
   object.outpoint = reader.readObjectOrNull<OutpointV2>(
-    offsets[4],
+    offsets[3],
     OutpointV2Schema.deserialize,
     allOffsets,
   );
-  object.scriptSigHex = reader.readStringOrNull(offsets[5]);
-  object.sequence = reader.readLongOrNull(offsets[6]);
-  object.valueStringSats = reader.readString(offsets[7]);
+  object.scriptSigHex = reader.readStringOrNull(offsets[4]);
+  object.sequence = reader.readLongOrNull(offsets[5]);
+  object.valueStringSats = reader.readString(offsets[6]);
+  object.walletOwns = reader.readBool(offsets[7]);
   object.witness = reader.readStringOrNull(offsets[8]);
   return object;
 }
@@ -494,21 +495,21 @@ P _inputV2DeserializeProp<P>(
     case 1:
       return (reader.readStringOrNull(offset)) as P;
     case 2:
-      return (reader.readLong(offset)) as P;
-    case 3:
       return (reader.readStringOrNull(offset)) as P;
-    case 4:
+    case 3:
       return (reader.readObjectOrNull<OutpointV2>(
         offset,
         OutpointV2Schema.deserialize,
         allOffsets,
       )) as P;
-    case 5:
+    case 4:
       return (reader.readStringOrNull(offset)) as P;
-    case 6:
+    case 5:
       return (reader.readLongOrNull(offset)) as P;
-    case 7:
+    case 6:
       return (reader.readString(offset)) as P;
+    case 7:
+      return (reader.readBool(offset)) as P;
     case 8:
       return (reader.readStringOrNull(offset)) as P;
     default:
@@ -880,59 +881,6 @@ extension InputV2QueryFilter
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'coinbase',
         value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<InputV2, InputV2, QAfterFilterCondition> hashCodeEqualTo(
-      int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'hashCode',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<InputV2, InputV2, QAfterFilterCondition> hashCodeGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'hashCode',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<InputV2, InputV2, QAfterFilterCondition> hashCodeLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'hashCode',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<InputV2, InputV2, QAfterFilterCondition> hashCodeBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'hashCode',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
       ));
     });
   }
@@ -1454,6 +1402,16 @@ extension InputV2QueryFilter
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'valueStringSats',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<InputV2, InputV2, QAfterFilterCondition> walletOwnsEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'walletOwns',
+        value: value,
       ));
     });
   }

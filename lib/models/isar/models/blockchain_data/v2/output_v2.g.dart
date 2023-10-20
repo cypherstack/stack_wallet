@@ -18,20 +18,20 @@ const OutputV2Schema = Schema(
       name: r'addresses',
       type: IsarType.stringList,
     ),
-    r'hashCode': PropertySchema(
-      id: 1,
-      name: r'hashCode',
-      type: IsarType.long,
-    ),
     r'scriptPubKeyHex': PropertySchema(
-      id: 2,
+      id: 1,
       name: r'scriptPubKeyHex',
       type: IsarType.string,
     ),
     r'valueStringSats': PropertySchema(
-      id: 3,
+      id: 2,
       name: r'valueStringSats',
       type: IsarType.string,
+    ),
+    r'walletOwns': PropertySchema(
+      id: 3,
+      name: r'walletOwns',
+      type: IsarType.bool,
     )
   },
   estimateSize: _outputV2EstimateSize,
@@ -65,9 +65,9 @@ void _outputV2Serialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeStringList(offsets[0], object.addresses);
-  writer.writeLong(offsets[1], object.hashCode);
-  writer.writeString(offsets[2], object.scriptPubKeyHex);
-  writer.writeString(offsets[3], object.valueStringSats);
+  writer.writeString(offsets[1], object.scriptPubKeyHex);
+  writer.writeString(offsets[2], object.valueStringSats);
+  writer.writeBool(offsets[3], object.walletOwns);
 }
 
 OutputV2 _outputV2Deserialize(
@@ -78,8 +78,9 @@ OutputV2 _outputV2Deserialize(
 ) {
   final object = OutputV2();
   object.addresses = reader.readStringList(offsets[0]) ?? [];
-  object.scriptPubKeyHex = reader.readString(offsets[2]);
-  object.valueStringSats = reader.readString(offsets[3]);
+  object.scriptPubKeyHex = reader.readString(offsets[1]);
+  object.valueStringSats = reader.readString(offsets[2]);
+  object.walletOwns = reader.readBool(offsets[3]);
   return object;
 }
 
@@ -93,11 +94,11 @@ P _outputV2DeserializeProp<P>(
     case 0:
       return (reader.readStringList(offset) ?? []) as P;
     case 1:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 2:
       return (reader.readString(offset)) as P;
     case 3:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -326,59 +327,6 @@ extension OutputV2QueryFilter
         upper,
         includeUpper,
       );
-    });
-  }
-
-  QueryBuilder<OutputV2, OutputV2, QAfterFilterCondition> hashCodeEqualTo(
-      int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'hashCode',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<OutputV2, OutputV2, QAfterFilterCondition> hashCodeGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'hashCode',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<OutputV2, OutputV2, QAfterFilterCondition> hashCodeLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'hashCode',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<OutputV2, OutputV2, QAfterFilterCondition> hashCodeBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'hashCode',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
     });
   }
 
@@ -650,6 +598,16 @@ extension OutputV2QueryFilter
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'valueStringSats',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<OutputV2, OutputV2, QAfterFilterCondition> walletOwnsEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'walletOwns',
+        value: value,
       ));
     });
   }

@@ -80,7 +80,7 @@ class InputV2 {
         ..valueStringSats = valueStringSats
         ..witness = witness
         ..innerRedeemScriptAsm = innerRedeemScriptAsm
-        ..innerRedeemScriptAsm = innerRedeemScriptAsm
+        ..coinbase = coinbase
         ..walletOwns = walletOwns;
 
   InputV2 copyWith({

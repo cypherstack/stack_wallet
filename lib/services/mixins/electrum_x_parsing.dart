@@ -67,6 +67,7 @@ mixin ElectrumXParsing {
         final prevOut = OutputV2.fromElectrumXJson(
           prevOutJson,
           decimalPlaces: coin.decimals,
+          walletOwns: false,
         );
 
         outpoint = OutpointV2.isarCantDoRequiredInDefaultConstructor(
@@ -86,6 +87,7 @@ mixin ElectrumXParsing {
         witness: map["witness"] as String?,
         coinbase: coinbase,
         innerRedeemScriptAsm: map["innerRedeemscriptAsm"] as String?,
+        walletOwns: false,
       );
 
       inputs.add(input);
@@ -97,6 +99,7 @@ mixin ElectrumXParsing {
       final output = OutputV2.fromElectrumXJson(
         Map<String, dynamic>.from(outputJson as Map),
         decimalPlaces: coin.decimals,
+        walletOwns: false,
       );
       outputs.add(output);
     }
