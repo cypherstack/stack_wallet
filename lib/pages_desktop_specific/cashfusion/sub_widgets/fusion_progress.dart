@@ -134,7 +134,7 @@ class _ProgressItem extends StatelessWidget {
           child: _getIconForState(state.status, context),
         ),
         title: label,
-        subTitle: state.info != null
+        subTitle: state.info != null && state.info!.isNotEmpty
             ? Text(
                 state.info!,
                 style: STextStyles.w500_12(context).copyWith(
