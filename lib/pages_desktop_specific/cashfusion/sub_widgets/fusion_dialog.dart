@@ -40,100 +40,106 @@ class FusionDialogView extends ConsumerStatefulWidget {
 
 class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
   Future<bool> _requestAndProcessCancel() async {
-    final shouldCancel = await showDialog<bool?>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => DesktopDialog(
-        maxWidth: 580,
-        maxHeight: double.infinity,
-        child: Padding(
-          padding: const EdgeInsets.only(
-            left: 32,
-            right: 0,
-            top: 0,
-            bottom: 32,
-          ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Cancel fusion?",
-                    style: STextStyles.desktopH3(context),
-                  ),
-                  DesktopDialogCloseButton(
-                    onPressedOverride: () => Navigator.of(context).pop(false),
-                  ),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.only(
-                  left: 0,
-                  right: 32,
-                  top: 0,
-                  bottom: 0,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    if (!ref
+        .read(fusionProgressUIStateProvider(widget.walletId).notifier)
+        .running) {
+      return true;
+    } else {
+      bool? shouldCancel = await showDialog<bool?>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => DesktopDialog(
+          maxWidth: 580,
+          maxHeight: double.infinity,
+          child: Padding(
+            padding: const EdgeInsets.only(
+              left: 32,
+              right: 0,
+              top: 0,
+              bottom: 32,
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Do you really want to cancel the fusion process?",
-                      style: STextStyles.smallMed14(context),
-                      textAlign: TextAlign.left,
+                      "Cancel fusion?",
+                      style: STextStyles.desktopH3(context),
                     ),
-                    const SizedBox(height: 40),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: SecondaryButton(
-                            label: "No",
-                            buttonHeight: ButtonHeight.l,
-                            onPressed: () {
-                              Navigator.of(context).pop(false);
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: PrimaryButton(
-                            label: "Yes",
-                            buttonHeight: ButtonHeight.l,
-                            onPressed: () {
-                              Navigator.of(context).pop(true);
-                            },
-                          ),
-                        ),
-                      ],
+                    DesktopDialogCloseButton(
+                      onPressedOverride: () => Navigator.of(context).pop(false),
                     ),
                   ],
                 ),
-              ),
-            ],
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: 0,
+                    right: 32,
+                    top: 0,
+                    bottom: 0,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Do you really want to cancel the fusion process?",
+                        style: STextStyles.smallMed14(context),
+                        textAlign: TextAlign.left,
+                      ),
+                      const SizedBox(height: 40),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SecondaryButton(
+                              label: "No",
+                              buttonHeight: ButtonHeight.l,
+                              onPressed: () {
+                                Navigator.of(context).pop(false);
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: PrimaryButton(
+                              label: "Yes",
+                              buttonHeight: ButtonHeight.l,
+                              onPressed: () {
+                                Navigator.of(context).pop(true);
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    );
-
-    if (shouldCancel == true && mounted) {
-      final fusionWallet = ref
-          .read(walletsChangeNotifierProvider)
-          .getManager(widget.walletId)
-          .wallet as FusionWalletInterface;
-
-      await showLoading(
-        whileFuture: Future.wait([
-          fusionWallet.stop(),
-          Future<void>.delayed(const Duration(seconds: 2)),
-        ]),
-        context: context,
-        isDesktop: true,
-        message: "Stopping fusion",
       );
 
-      return true;
-    } else {
-      return false;
+      if (shouldCancel == true && mounted) {
+        final fusionWallet = ref
+            .read(walletsChangeNotifierProvider)
+            .getManager(widget.walletId)
+            .wallet as FusionWalletInterface;
+
+        await showLoading(
+          whileFuture: Future.wait([
+            fusionWallet.stop(),
+            Future<void>.delayed(const Duration(seconds: 2)),
+          ]),
+          context: context,
+          isDesktop: true,
+          message: "Stopping fusion",
+        );
+
+        return true;
+      } else {
+        return false;
+      }
     }
   }
 
