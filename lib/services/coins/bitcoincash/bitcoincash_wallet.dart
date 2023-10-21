@@ -391,8 +391,14 @@ class BitcoinCashWallet extends CoinServiceAPI
     int gapCounter = 0;
     int highestIndexWithHistory = 0;
 
+    // Loop until either the index limit or the highest index with history,
+    // whichever is greater, plus the gap limit, so that we if there is activity
+    // above the max index, the limit is raised to that index plus the gap limit.
     for (int index = 0;
-        index < maxNumberOfIndexesToCheck && gapCounter < maxUnusedAddressGap;
+        index <
+                max(maxNumberOfIndexesToCheck,
+                    highestIndexWithHistory + maxUnusedAddressGap) &&
+            gapCounter < maxUnusedAddressGap;
         index += txCountBatchSize) {
       List<String> iterationsAddressArray = [];
       Logging.instance.log(
