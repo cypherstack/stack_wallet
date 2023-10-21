@@ -511,7 +511,7 @@ class ParticlWallet extends CoinServiceAPI
     required String mnemonic,
     required String mnemonicPassphrase,
     int maxUnusedAddressGap = 20,
-    int minNumberOfIndexesToCheck = 1000,
+    int minNumberOfIndexesToCheck = 100,
     bool isRescan = false,
   }) async {
     longMutex = true;

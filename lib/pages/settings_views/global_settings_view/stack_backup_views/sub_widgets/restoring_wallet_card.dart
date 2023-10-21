@@ -117,7 +117,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                       if (coin == Coin.firo) {
                         maxUnusedAddressGap = 50;
                       }
-                      const minNumberOfIndexesToCheck = 1000;
+                      const minNumberOfIndexesToCheck = 100;
 
                       if (mnemonicList.isEmpty) {
                         await manager.recoverFromMnemonic(
@@ -262,7 +262,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                         if (coin == Coin.firo) {
                           maxUnusedAddressGap = 50;
                         }
-                        const minNumberOfIndexesToCheck = 1000;
+                        const minNumberOfIndexesToCheck = 100;
 
                         if (mnemonicList.isEmpty) {
                           await manager.recoverFromMnemonic(

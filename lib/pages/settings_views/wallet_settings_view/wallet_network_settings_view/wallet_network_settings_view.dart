@@ -124,7 +124,7 @@ class _WalletNetworkSettingsViewState
 
     int maxUnusedAddressGap = 20;
 
-    const int minNumberOfIndexesToCheck = 1000;
+    const int minNumberOfIndexesToCheck = 100;
 
     unawaited(
       showDialog<dynamic>(

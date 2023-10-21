@@ -309,7 +309,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             mnemonic: mnemonic,
             mnemonicPassphrase: widget.mnemonicPassphrase,
             maxUnusedAddressGap: widget.coin == Coin.firo ? 50 : 20,
-            minNumberOfIndexesToCheck: 1000,
+            minNumberOfIndexesToCheck: 100,
             height: height,
           );
 
