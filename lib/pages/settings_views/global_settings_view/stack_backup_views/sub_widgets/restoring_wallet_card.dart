@@ -117,12 +117,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                       if (coin == Coin.firo) {
                         maxUnusedAddressGap = 50;
                       }
-
-                      int maxNumberOfIndexesToCheck = 1000;
-                      // If Bitcoin Cash, multiply by 100.
-                      if (coin == Coin.bitcoincash) {
-                        maxNumberOfIndexesToCheck *= 100;
-                      }
+                      const maxNumberOfIndexesToCheck = 1000;
 
                       if (mnemonicList.isEmpty) {
                         await manager.recoverFromMnemonic(
@@ -267,12 +262,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                         if (coin == Coin.firo) {
                           maxUnusedAddressGap = 50;
                         }
-
-                        int maxNumberOfIndexesToCheck = 1000;
-                        // If Bitcoin Cash, multiply by 100.
-                        if (coin == Coin.bitcoincash) {
-                          maxNumberOfIndexesToCheck *= 100;
-                        }
+                        const maxNumberOfIndexesToCheck = 1000;
 
                         if (mnemonicList.isEmpty) {
                           await manager.recoverFromMnemonic(
