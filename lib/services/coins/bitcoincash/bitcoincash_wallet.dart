@@ -380,7 +380,7 @@ class BitcoinCashWallet extends CoinServiceAPI
   }
 
   Future<Tuple3<List<isar_models.Address>, DerivePathType, int>> _checkGaps(
-    int maxNumberOfIndexesToCheck,
+    int minNumberOfIndexesToCheck,
     int maxUnusedAddressGap,
     int txCountBatchSize,
     bip32.BIP32 root,
@@ -391,12 +391,13 @@ class BitcoinCashWallet extends CoinServiceAPI
     int gapCounter = 0;
     int highestIndexWithHistory = 0;
 
-    // Loop until either the index limit or the highest index with history,
-    // whichever is greater, plus the gap limit, so that we if there is activity
-    // above the max index, the limit is raised to that index plus the gap limit.
+    // Scan addresses until the minimum required addresses have been scanned or
+    // until the highest index with activity, plus the gap limit, whichever is
+    // higher, so that we if there is activity above the minimum index, we don't
+    // miss it.
     for (int index = 0;
         index <
-                max(maxNumberOfIndexesToCheck,
+                max(minNumberOfIndexesToCheck,
                     highestIndexWithHistory + maxUnusedAddressGap) &&
             gapCounter < maxUnusedAddressGap;
         index += txCountBatchSize) {
