@@ -724,7 +724,7 @@ class MockManager extends _i1.Mock implements _i6.Manager {
     required String? mnemonic,
     String? mnemonicPassphrase,
     required int? maxUnusedAddressGap,
-    required int? maxNumberOfIndexesToCheck,
+    required int? minNumberOfIndexesToCheck,
     required int? height,
   }) =>
       (super.noSuchMethod(
@@ -735,7 +735,7 @@ class MockManager extends _i1.Mock implements _i6.Manager {
             #mnemonic: mnemonic,
             #mnemonicPassphrase: mnemonicPassphrase,
             #maxUnusedAddressGap: maxUnusedAddressGap,
-            #maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+            #minNumberOfIndexesToCheck: minNumberOfIndexesToCheck,
             #height: height,
           },
         ),
@@ -754,14 +754,14 @@ class MockManager extends _i1.Mock implements _i6.Manager {
   @override
   _i20.Future<void> fullRescan(
     int? maxUnusedAddressGap,
-    int? maxNumberOfIndexesToCheck,
+    int? minNumberOfIndexesToCheck,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
           #fullRescan,
           [
             maxUnusedAddressGap,
-            maxNumberOfIndexesToCheck,
+            minNumberOfIndexesToCheck,
           ],
         ),
         returnValue: _i20.Future<void>.value(),
@@ -1040,7 +1040,7 @@ class MockCoinServiceAPI extends _i1.Mock implements _i7.CoinServiceAPI {
     required String? mnemonic,
     String? mnemonicPassphrase,
     required int? maxUnusedAddressGap,
-    required int? maxNumberOfIndexesToCheck,
+    required int? minNumberOfIndexesToCheck,
     required int? height,
   }) =>
       (super.noSuchMethod(
@@ -1051,7 +1051,7 @@ class MockCoinServiceAPI extends _i1.Mock implements _i7.CoinServiceAPI {
             #mnemonic: mnemonic,
             #mnemonicPassphrase: mnemonicPassphrase,
             #maxUnusedAddressGap: maxUnusedAddressGap,
-            #maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+            #minNumberOfIndexesToCheck: minNumberOfIndexesToCheck,
             #height: height,
           },
         ),
@@ -1090,14 +1090,14 @@ class MockCoinServiceAPI extends _i1.Mock implements _i7.CoinServiceAPI {
   @override
   _i20.Future<void> fullRescan(
     int? maxUnusedAddressGap,
-    int? maxNumberOfIndexesToCheck,
+    int? minNumberOfIndexesToCheck,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
           #fullRescan,
           [
             maxUnusedAddressGap,
-            maxNumberOfIndexesToCheck,
+            minNumberOfIndexesToCheck,
           ],
         ),
         returnValue: _i20.Future<void>.value(),
@@ -1711,14 +1711,14 @@ class MockFiroWallet extends _i1.Mock implements _i24.FiroWallet {
   @override
   _i20.Future<void> fullRescan(
     int? maxUnusedAddressGap,
-    int? maxNumberOfIndexesToCheck,
+    int? minNumberOfIndexesToCheck,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
           #fullRescan,
           [
             maxUnusedAddressGap,
-            maxNumberOfIndexesToCheck,
+            minNumberOfIndexesToCheck,
           ],
         ),
         returnValue: _i20.Future<void>.value(),
@@ -1729,7 +1729,7 @@ class MockFiroWallet extends _i1.Mock implements _i24.FiroWallet {
     required String? mnemonic,
     String? mnemonicPassphrase,
     required int? maxUnusedAddressGap,
-    required int? maxNumberOfIndexesToCheck,
+    required int? minNumberOfIndexesToCheck,
     required int? height,
   }) =>
       (super.noSuchMethod(
@@ -1740,7 +1740,7 @@ class MockFiroWallet extends _i1.Mock implements _i24.FiroWallet {
             #mnemonic: mnemonic,
             #mnemonicPassphrase: mnemonicPassphrase,
             #maxUnusedAddressGap: maxUnusedAddressGap,
-            #maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+            #minNumberOfIndexesToCheck: minNumberOfIndexesToCheck,
             #height: height,
           },
         ),

@@ -687,14 +687,14 @@ class MockFiroWallet extends _i1.Mock implements _i10.FiroWallet {
   @override
   _i11.Future<void> fullRescan(
     int? maxUnusedAddressGap,
-    int? maxNumberOfIndexesToCheck,
+    int? minNumberOfIndexesToCheck,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
           #fullRescan,
           [
             maxUnusedAddressGap,
-            maxNumberOfIndexesToCheck,
+            minNumberOfIndexesToCheck,
           ],
         ),
         returnValue: _i11.Future<void>.value(),
@@ -705,7 +705,7 @@ class MockFiroWallet extends _i1.Mock implements _i10.FiroWallet {
     required String? mnemonic,
     String? mnemonicPassphrase,
     required int? maxUnusedAddressGap,
-    required int? maxNumberOfIndexesToCheck,
+    required int? minNumberOfIndexesToCheck,
     required int? height,
   }) =>
       (super.noSuchMethod(
@@ -716,7 +716,7 @@ class MockFiroWallet extends _i1.Mock implements _i10.FiroWallet {
             #mnemonic: mnemonic,
             #mnemonicPassphrase: mnemonicPassphrase,
             #maxUnusedAddressGap: maxUnusedAddressGap,
-            #maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+            #minNumberOfIndexesToCheck: minNumberOfIndexesToCheck,
             #height: height,
           },
         ),

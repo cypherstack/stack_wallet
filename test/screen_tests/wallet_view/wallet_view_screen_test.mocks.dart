@@ -351,7 +351,7 @@ class MockManager extends _i1.Mock implements _i6.Manager {
     required String? mnemonic,
     String? mnemonicPassphrase,
     required int? maxUnusedAddressGap,
-    required int? maxNumberOfIndexesToCheck,
+    required int? minNumberOfIndexesToCheck,
     required int? height,
   }) =>
       (super.noSuchMethod(
@@ -362,7 +362,7 @@ class MockManager extends _i1.Mock implements _i6.Manager {
             #mnemonic: mnemonic,
             #mnemonicPassphrase: mnemonicPassphrase,
             #maxUnusedAddressGap: maxUnusedAddressGap,
-            #maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+            #minNumberOfIndexesToCheck: minNumberOfIndexesToCheck,
             #height: height,
           },
         ),
@@ -381,14 +381,14 @@ class MockManager extends _i1.Mock implements _i6.Manager {
   @override
   _i8.Future<void> fullRescan(
     int? maxUnusedAddressGap,
-    int? maxNumberOfIndexesToCheck,
+    int? minNumberOfIndexesToCheck,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
           #fullRescan,
           [
             maxUnusedAddressGap,
-            maxNumberOfIndexesToCheck,
+            minNumberOfIndexesToCheck,
           ],
         ),
         returnValue: _i8.Future<void>.value(),

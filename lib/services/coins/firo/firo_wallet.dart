@@ -4098,7 +4098,7 @@ class FiroWallet extends CoinServiceAPI
   @override
   Future<void> fullRescan(
     int maxUnusedAddressGap,
-    int maxNumberOfIndexesToCheck,
+    int minNumberOfIndexesToCheck,
   ) async {
     Logging.instance.log("Starting full rescan!", level: LogLevel.Info);
     // timer?.cancel();
@@ -4138,7 +4138,7 @@ class FiroWallet extends CoinServiceAPI
         _mnemonic!,
         _mnemonicPassphrase!,
         maxUnusedAddressGap,
-        maxNumberOfIndexesToCheck,
+        minNumberOfIndexesToCheck,
         true,
       );
 
@@ -4183,7 +4183,7 @@ class FiroWallet extends CoinServiceAPI
     required String mnemonic,
     String? mnemonicPassphrase,
     required int maxUnusedAddressGap,
-    required int maxNumberOfIndexesToCheck,
+    required int minNumberOfIndexesToCheck,
     required int height,
   }) async {
     try {
@@ -4237,7 +4237,7 @@ class FiroWallet extends CoinServiceAPI
         mnemonic.trim(),
         mnemonicPassphrase ?? "",
         maxUnusedAddressGap,
-        maxNumberOfIndexesToCheck,
+        minNumberOfIndexesToCheck,
         false,
       );
       await setLelantusCoinIsarRescanRequiredDone();
@@ -4300,7 +4300,7 @@ class FiroWallet extends CoinServiceAPI
   }
 
   Future<Tuple2<List<isar_models.Address>, int>> _checkGaps(
-    int maxNumberOfIndexesToCheck,
+    int minNumberOfIndexesToCheck,
     int maxUnusedAddressGap,
     int txCountBatchSize,
     bip32.BIP32 root,
@@ -4312,7 +4312,7 @@ class FiroWallet extends CoinServiceAPI
 
     for (int index = 0;
         index <
-                max(maxNumberOfIndexesToCheck,
+                max(minNumberOfIndexesToCheck,
                     highestIndexWithHistory + maxUnusedAddressGap) &&
             gapCounter < maxUnusedAddressGap;
         index += txCountBatchSize) {
@@ -4410,7 +4410,7 @@ class FiroWallet extends CoinServiceAPI
     String suppliedMnemonic,
     String mnemonicPassphrase,
     int maxUnusedAddressGap,
-    int maxNumberOfIndexesToCheck,
+    int minNumberOfIndexesToCheck,
     bool isRescan,
   ) async {
     final root = await Bip32Utils.getBip32Root(
@@ -4440,7 +4440,7 @@ class FiroWallet extends CoinServiceAPI
 
       receiveFutures.add(
         _checkGaps(
-          maxNumberOfIndexesToCheck,
+          minNumberOfIndexesToCheck,
           maxUnusedAddressGap,
           txCountBatchSize,
           root,
@@ -4455,7 +4455,7 @@ class FiroWallet extends CoinServiceAPI
       );
       changeFutures.add(
         _checkGaps(
-          maxNumberOfIndexesToCheck,
+          minNumberOfIndexesToCheck,
           maxUnusedAddressGap,
           txCountBatchSize,
           root,
@@ -4548,7 +4548,7 @@ class FiroWallet extends CoinServiceAPI
     String suppliedMnemonic,
     String mnemonicPassphrase,
     int maxUnusedAddressGap,
-    int maxNumberOfIndexesToCheck,
+    int minNumberOfIndexesToCheck,
     bool isRescan,
   ) async {
     longMutex = true;
@@ -4563,7 +4563,7 @@ class FiroWallet extends CoinServiceAPI
         suppliedMnemonic,
         mnemonicPassphrase,
         maxUnusedAddressGap,
-        maxNumberOfIndexesToCheck,
+        minNumberOfIndexesToCheck,
         isRescan,
       );
 

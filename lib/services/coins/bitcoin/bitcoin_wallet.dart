@@ -370,7 +370,7 @@ class BitcoinWallet extends CoinServiceAPI
     required String mnemonic,
     String? mnemonicPassphrase,
     required int maxUnusedAddressGap,
-    required int maxNumberOfIndexesToCheck,
+    required int minNumberOfIndexesToCheck,
     required int height,
   }) async {
     longMutex = true;
@@ -415,7 +415,7 @@ class BitcoinWallet extends CoinServiceAPI
         mnemonic: mnemonic.trim(),
         mnemonicPassphrase: mnemonicPassphrase ?? "",
         maxUnusedAddressGap: maxUnusedAddressGap,
-        maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+        minNumberOfIndexesToCheck: minNumberOfIndexesToCheck,
       );
     } catch (e, s) {
       Logging.instance.log(
@@ -433,7 +433,7 @@ class BitcoinWallet extends CoinServiceAPI
   }
 
   Future<Tuple3<List<isar_models.Address>, DerivePathType, int>> _checkGaps(
-    int maxNumberOfIndexesToCheck,
+    int minNumberOfIndexesToCheck,
     int maxUnusedAddressGap,
     int txCountBatchSize,
     bip32.BIP32 root,
@@ -446,7 +446,7 @@ class BitcoinWallet extends CoinServiceAPI
 
     for (int index = 0;
         index <
-                max(maxNumberOfIndexesToCheck,
+                max(minNumberOfIndexesToCheck,
                     highestIndexWithHistory + maxUnusedAddressGap) &&
             gapCounter < maxUnusedAddressGap;
         index += txCountBatchSize) {
@@ -562,7 +562,7 @@ class BitcoinWallet extends CoinServiceAPI
     required String mnemonic,
     required String mnemonicPassphrase,
     int maxUnusedAddressGap = 20,
-    int maxNumberOfIndexesToCheck = 1000,
+    int minNumberOfIndexesToCheck = 1000,
     bool isRescan = false,
   }) async {
     longMutex = true;
@@ -601,7 +601,7 @@ class BitcoinWallet extends CoinServiceAPI
       for (final type in deriveTypes) {
         receiveFutures.add(
           _checkGaps(
-            maxNumberOfIndexesToCheck,
+            minNumberOfIndexesToCheck,
             maxUnusedAddressGap,
             txCountBatchSize,
             root,
@@ -619,7 +619,7 @@ class BitcoinWallet extends CoinServiceAPI
       for (final type in deriveTypes) {
         changeFutures.add(
           _checkGaps(
-            maxNumberOfIndexesToCheck,
+            minNumberOfIndexesToCheck,
             maxUnusedAddressGap,
             txCountBatchSize,
             root,
@@ -712,7 +712,7 @@ class BitcoinWallet extends CoinServiceAPI
         // restore paynym transactions
         await restoreAllHistory(
           maxUnusedAddressGap: maxUnusedAddressGap,
-          maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+          minNumberOfIndexesToCheck: minNumberOfIndexesToCheck,
           paymentCodeStrings: codesToCheck,
         );
       } catch (e, s) {
@@ -2890,7 +2890,7 @@ class BitcoinWallet extends CoinServiceAPI
   @override
   Future<void> fullRescan(
     int maxUnusedAddressGap,
-    int maxNumberOfIndexesToCheck,
+    int minNumberOfIndexesToCheck,
   ) async {
     Logging.instance.log("Starting full rescan!", level: LogLevel.Info);
     longMutex = true;
@@ -2924,7 +2924,7 @@ class BitcoinWallet extends CoinServiceAPI
         mnemonic: _mnemonic!,
         mnemonicPassphrase: _mnemonicPassphrase!,
         maxUnusedAddressGap: maxUnusedAddressGap,
-        maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+        minNumberOfIndexesToCheck: minNumberOfIndexesToCheck,
         isRescan: true,
       );
 

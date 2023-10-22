@@ -504,7 +504,7 @@ void main() {
     //     await nmc?.recoverFromMnemonic(
     //         mnemonic: TEST_MNEMONIC,
     //         maxUnusedAddressGap: 2,
-    //         maxNumberOfIndexesToCheck: 1000,
+    //         minNumberOfIndexesToCheck: 1000,
     //         height: 4000);
     //   } catch (_) {
     //     hasThrown = true;
@@ -541,7 +541,7 @@ void main() {
         await nmc?.recoverFromMnemonic(
             mnemonic: TEST_MNEMONIC,
             maxUnusedAddressGap: 2,
-            maxNumberOfIndexesToCheck: 1000,
+            minNumberOfIndexesToCheck: 1000,
             height: 4000);
       } catch (_) {
         hasThrown = true;
@@ -585,7 +585,7 @@ void main() {
     //     await nmc?.recoverFromMnemonic(
     //         mnemonic: TEST_MNEMONIC,
     //         maxUnusedAddressGap: 2,
-    //         maxNumberOfIndexesToCheck: 1000,
+    //         minNumberOfIndexesToCheck: 1000,
     //         height: 4000);
     //   } catch (_) {
     //     hasThrown = true;
@@ -638,7 +638,7 @@ void main() {
     //   await nmc?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000,
+    //       minNumberOfIndexesToCheck: 1000,
     //       height: 4000);
     //
     //   expect(await nmc?.mnemonic, TEST_MNEMONIC.split(" "));
@@ -698,7 +698,7 @@ void main() {
     //     await nmc?.recoverFromMnemonic(
     //         mnemonic: TEST_MNEMONIC,
     //         maxUnusedAddressGap: 2,
-    //         maxNumberOfIndexesToCheck: 1000,
+    //         minNumberOfIndexesToCheck: 1000,
     //         height: 4000);
     //   } catch (_) {
     //     hasThrown = true;
@@ -796,7 +796,7 @@ void main() {
     //   await nmc?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000,
+    //       minNumberOfIndexesToCheck: 1000,
     //       height: 4000);
     //
     //   // fetch valid wallet data
@@ -1066,7 +1066,7 @@ void main() {
     //   await nmc?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000,
+    //       minNumberOfIndexesToCheck: 1000,
     //       height: 4000);
     //
     //   // fetch wallet data
@@ -1266,7 +1266,7 @@ void main() {
     //   await nmc?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000,
+    //       minNumberOfIndexesToCheck: 1000,
     //       height: 4000);
     //
     //   // modify addresses to properly mock data to build a tx
@@ -1534,7 +1534,7 @@ void main() {
     //   await nmc?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000,
+    //       minNumberOfIndexesToCheck: 1000,
     //       height: 4000);
     //
     //   nmc?.refreshMutex = true;
@@ -1599,7 +1599,7 @@ void main() {
     //   await nmc?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000,
+    //       minNumberOfIndexesToCheck: 1000,
     //       height: 4000);
     //
     //   when(client?.getBatchHistory(args: anyNamed("args")))

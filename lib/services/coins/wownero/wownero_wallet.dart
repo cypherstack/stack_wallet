@@ -257,7 +257,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<void> fullRescan(
     int maxUnusedAddressGap,
-    int maxNumberOfIndexesToCheck,
+    int minNumberOfIndexesToCheck,
   ) async {
     // clear blockchain info
     await db.deleteWalletBlockchainData(walletId);
@@ -562,7 +562,7 @@ class WowneroWallet extends CoinServiceAPI with WalletCache, WalletDB {
     required String mnemonic,
     String? mnemonicPassphrase, // not used at the moment
     required int maxUnusedAddressGap,
-    required int maxNumberOfIndexesToCheck,
+    required int minNumberOfIndexesToCheck,
     required int height,
   }) async {
     final int seedLength = mnemonic.trim().split(" ").length;

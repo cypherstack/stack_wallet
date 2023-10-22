@@ -1846,11 +1846,11 @@ void main() async {
     //
     //   await Hive.openBox<dynamic>(testWalletId);
     //
-    //   // add maxNumberOfIndexesToCheck and height
+    //   // add minNumberOfIndexesToCheck and height
     //   await bch?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000,
+    //       minNumberOfIndexesToCheck: 1000,
     //       height: 4000);
     //
     //   expect(await bch?.mnemonic, TEST_MNEMONIC.split(" "));
@@ -1885,7 +1885,7 @@ void main() async {
         await bch?.recoverFromMnemonic(
             mnemonic: TEST_MNEMONIC,
             maxUnusedAddressGap: 2,
-            maxNumberOfIndexesToCheck: 1000,
+            minNumberOfIndexesToCheck: 1000,
             height: 4000);
       } catch (_) {
         hasThrown = true;
@@ -1927,7 +1927,7 @@ void main() async {
         await bch?.recoverFromMnemonic(
             mnemonic: TEST_MNEMONIC,
             maxUnusedAddressGap: 2,
-            maxNumberOfIndexesToCheck: 1000,
+            minNumberOfIndexesToCheck: 1000,
             height: 4000);
       } catch (_) {
         hasThrown = true;
@@ -1963,7 +1963,7 @@ void main() async {
         await bch?.recoverFromMnemonic(
             mnemonic: TEST_MNEMONIC,
             maxUnusedAddressGap: 2,
-            maxNumberOfIndexesToCheck: 1000,
+            minNumberOfIndexesToCheck: 1000,
             height: 4000);
       } catch (_) {
         hasThrown = true;
@@ -2017,7 +2017,7 @@ void main() async {
     //     await bch?.recoverFromMnemonic(
     //         mnemonic: TEST_MNEMONIC,
     //         maxUnusedAddressGap: 2,
-    //         maxNumberOfIndexesToCheck: 1000,
+    //         minNumberOfIndexesToCheck: 1000,
     //         height: 4000);
     //   } catch (_) {
     //     hasThrown = true;
@@ -2097,7 +2097,7 @@ void main() async {
     //   await bch?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000,
+    //       minNumberOfIndexesToCheck: 1000,
     //       height: 4000);
     //
     //   // fetch valid wallet data
@@ -2288,7 +2288,7 @@ void main() async {
     //   await bch?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000,
+    //       minNumberOfIndexesToCheck: 1000,
     //       height: 4000);
     //
     //   // fetch wallet data
@@ -2408,7 +2408,7 @@ void main() async {
     // //   await bch.recoverFromMnemonic(
     // //       mnemonic: TEST_MNEMONIC,
     // //       maxUnusedAddressGap: 2,
-    // //       maxNumberOfIndexesToCheck: 1000,
+    // //       minNumberOfIndexesToCheck: 1000,
     // //       height: 4000);
     // //
     // //   // modify addresses to trigger all change code branches
@@ -2585,7 +2585,7 @@ void main() async {
     //   await bch?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000,
+    //       minNumberOfIndexesToCheck: 1000,
     //       height: 4000);
     //
     //   bool didThrow = false;
@@ -2666,7 +2666,7 @@ void main() async {
     //   await bch?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000,
+    //       minNumberOfIndexesToCheck: 1000,
     //       height: 4000);
     //
     //   // modify addresses to properly mock data to build a tx
@@ -2876,7 +2876,7 @@ void main() async {
     //   await bch?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000,
+    //       minNumberOfIndexesToCheck: 1000,
     //       height: 4000);
     //
     //   bch?.refreshMutex = true;
@@ -2971,7 +2971,7 @@ void main() async {
     //   await bch?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000,
+    //       minNumberOfIndexesToCheck: 1000,
     //       height: 4000);
     //
     //   await bch?.refresh();
@@ -3047,7 +3047,7 @@ void main() async {
     //   await bch?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000,
+    //       minNumberOfIndexesToCheck: 1000,
     //       height: 4000);
     //
     //   when(client?.getBatchHistory(args: anyNamed("args")))

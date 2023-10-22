@@ -646,7 +646,7 @@ class EpicCashWallet extends CoinServiceAPI
   @override
   Future<void> fullRescan(
     int maxUnusedAddressGap,
-    int maxNumberOfIndexesToCheck,
+    int minNumberOfIndexesToCheck,
   ) async {
     refreshMutex = true;
     try {
@@ -1273,7 +1273,7 @@ class EpicCashWallet extends CoinServiceAPI
     required String mnemonic,
     String? mnemonicPassphrase, // unused in epic
     required int maxUnusedAddressGap,
-    required int maxNumberOfIndexesToCheck,
+    required int minNumberOfIndexesToCheck,
     required int height,
   }) async {
     try {

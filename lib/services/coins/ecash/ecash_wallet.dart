@@ -2007,7 +2007,7 @@ class ECashWallet extends CoinServiceAPI
   @override
   Future<void> fullRescan(
     int maxUnusedAddressGap,
-    int maxNumberOfIndexesToCheck,
+    int minNumberOfIndexesToCheck,
   ) async {
     Logging.instance.log("Starting full rescan!", level: LogLevel.Info);
     longMutex = true;
@@ -2040,7 +2040,7 @@ class ECashWallet extends CoinServiceAPI
         mnemonic: _mnemonic!,
         mnemonicPassphrase: _mnemonicPassphrase!,
         maxUnusedAddressGap: maxUnusedAddressGap,
-        maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+        minNumberOfIndexesToCheck: minNumberOfIndexesToCheck,
         isRescan: true,
       );
 
@@ -2077,7 +2077,7 @@ class ECashWallet extends CoinServiceAPI
     required String mnemonic,
     required String mnemonicPassphrase,
     int maxUnusedAddressGap = 20,
-    int maxNumberOfIndexesToCheck = 1000,
+    int minNumberOfIndexesToCheck = 1000,
     bool isRescan = false,
   }) async {
     longMutex = true;
@@ -2114,7 +2114,7 @@ class ECashWallet extends CoinServiceAPI
         for (final type in deriveTypes) {
           receiveFutures.add(
             _checkGapsBatched(
-              maxNumberOfIndexesToCheck,
+              minNumberOfIndexesToCheck,
               maxUnusedAddressGap,
               txCountBatchSize,
               root,
@@ -2127,7 +2127,7 @@ class ECashWallet extends CoinServiceAPI
         for (final type in deriveTypes) {
           receiveFutures.add(
             _checkGaps(
-              maxNumberOfIndexesToCheck,
+              minNumberOfIndexesToCheck,
               maxUnusedAddressGap,
               root,
               type,
@@ -2147,7 +2147,7 @@ class ECashWallet extends CoinServiceAPI
         for (final type in deriveTypes) {
           changeFutures.add(
             _checkGapsBatched(
-              maxNumberOfIndexesToCheck,
+              minNumberOfIndexesToCheck,
               maxUnusedAddressGap,
               txCountBatchSize,
               root,
@@ -2160,7 +2160,7 @@ class ECashWallet extends CoinServiceAPI
         for (final type in deriveTypes) {
           changeFutures.add(
             _checkGaps(
-              maxNumberOfIndexesToCheck,
+              minNumberOfIndexesToCheck,
               maxUnusedAddressGap,
               root,
               type,
@@ -2236,7 +2236,7 @@ class ECashWallet extends CoinServiceAPI
   }
 
   Future<Tuple2<List<isar_models.Address>, DerivePathType>> _checkGaps(
-    int maxNumberOfIndexesToCheck,
+    int minNumberOfIndexesToCheck,
     int maxUnusedAddressGap,
     bip32.BIP32 root,
     DerivePathType type,
@@ -2247,7 +2247,7 @@ class ECashWallet extends CoinServiceAPI
     int highestIndexWithHistory = 0;
     for (int index = 0;
         index <
-                max(maxNumberOfIndexesToCheck,
+                max(minNumberOfIndexesToCheck,
                     highestIndexWithHistory + maxUnusedAddressGap) &&
             gapCounter < maxUnusedAddressGap;
         index++) {
@@ -2312,7 +2312,7 @@ class ECashWallet extends CoinServiceAPI
   }
 
   Future<Tuple2<List<isar_models.Address>, DerivePathType>> _checkGapsBatched(
-    int maxNumberOfIndexesToCheck,
+    int minNumberOfIndexesToCheck,
     int maxUnusedAddressGap,
     int txCountBatchSize,
     bip32.BIP32 root,
@@ -2324,7 +2324,7 @@ class ECashWallet extends CoinServiceAPI
     int highestIndexWithHistory = 0;
     for (int index = 0;
         index <
-                max(maxNumberOfIndexesToCheck,
+                max(minNumberOfIndexesToCheck,
                     highestIndexWithHistory + maxUnusedAddressGap) &&
             gapCounter < maxUnusedAddressGap;
         index += txCountBatchSize) {
@@ -3179,7 +3179,7 @@ class ECashWallet extends CoinServiceAPI
     required String mnemonic,
     String? mnemonicPassphrase,
     required int maxUnusedAddressGap,
-    required int maxNumberOfIndexesToCheck,
+    required int minNumberOfIndexesToCheck,
     required int height,
   }) async {
     longMutex = true;
@@ -3226,7 +3226,7 @@ class ECashWallet extends CoinServiceAPI
         mnemonic: mnemonic.trim(),
         mnemonicPassphrase: mnemonicPassphrase ?? "",
         maxUnusedAddressGap: maxUnusedAddressGap,
-        maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+        minNumberOfIndexesToCheck: minNumberOfIndexesToCheck,
       );
     } catch (e, s) {
       Logging.instance.log(

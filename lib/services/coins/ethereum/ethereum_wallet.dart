@@ -268,7 +268,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<void> fullRescan(
     int maxUnusedAddressGap,
-    int maxNumberOfIndexesToCheck,
+    int minNumberOfIndexesToCheck,
   ) async {
     await db.deleteWalletBlockchainData(walletId);
     await _generateAndSaveAddress(
@@ -582,7 +582,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
     required String mnemonic,
     String? mnemonicPassphrase,
     required int maxUnusedAddressGap,
-    required int maxNumberOfIndexesToCheck,
+    required int minNumberOfIndexesToCheck,
     required int height,
   }) async {
     longMutex = true;

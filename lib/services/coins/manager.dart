@@ -188,7 +188,7 @@ class Manager with ChangeNotifier {
     required String mnemonic,
     String? mnemonicPassphrase,
     required int maxUnusedAddressGap,
-    required int maxNumberOfIndexesToCheck,
+    required int minNumberOfIndexesToCheck,
     required int height,
   }) async {
     try {
@@ -196,7 +196,7 @@ class Manager with ChangeNotifier {
         mnemonic: mnemonic,
         mnemonicPassphrase: mnemonicPassphrase,
         maxUnusedAddressGap: maxUnusedAddressGap,
-        maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+        minNumberOfIndexesToCheck: minNumberOfIndexesToCheck,
         height: height,
       );
     } catch (e, s) {
@@ -218,10 +218,10 @@ class Manager with ChangeNotifier {
   }
 
   Future<void> fullRescan(
-      int maxUnusedAddressGap, int maxNumberOfIndexesToCheck) async {
+      int maxUnusedAddressGap, int minNumberOfIndexesToCheck) async {
     try {
       await _currentWallet.fullRescan(
-          maxUnusedAddressGap, maxNumberOfIndexesToCheck);
+          maxUnusedAddressGap, minNumberOfIndexesToCheck);
     } catch (e) {
       rethrow;
     }

@@ -117,7 +117,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                       if (coin == Coin.firo) {
                         maxUnusedAddressGap = 50;
                       }
-                      const maxNumberOfIndexesToCheck = 1000;
+                      const minNumberOfIndexesToCheck = 1000;
 
                       if (mnemonicList.isEmpty) {
                         await manager.recoverFromMnemonic(
@@ -125,13 +125,13 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                           mnemonicPassphrase:
                               ref.read(provider).mnemonicPassphrase!,
                           maxUnusedAddressGap: maxUnusedAddressGap,
-                          maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+                          minNumberOfIndexesToCheck: minNumberOfIndexesToCheck,
                           height: ref.read(provider).height ?? 0,
                         );
                       } else {
                         await manager.fullRescan(
                           maxUnusedAddressGap,
-                          maxNumberOfIndexesToCheck,
+                          minNumberOfIndexesToCheck,
                         );
                       }
 
@@ -262,7 +262,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                         if (coin == Coin.firo) {
                           maxUnusedAddressGap = 50;
                         }
-                        const maxNumberOfIndexesToCheck = 1000;
+                        const minNumberOfIndexesToCheck = 1000;
 
                         if (mnemonicList.isEmpty) {
                           await manager.recoverFromMnemonic(
@@ -270,14 +270,14 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                             mnemonicPassphrase:
                                 ref.read(provider).mnemonicPassphrase!,
                             maxUnusedAddressGap: maxUnusedAddressGap,
-                            maxNumberOfIndexesToCheck:
-                                maxNumberOfIndexesToCheck,
+                            minNumberOfIndexesToCheck:
+                                minNumberOfIndexesToCheck,
                             height: ref.read(provider).height ?? 0,
                           );
                         } else {
                           await manager.fullRescan(
                             maxUnusedAddressGap,
-                            maxNumberOfIndexesToCheck,
+                            minNumberOfIndexesToCheck,
                           );
                         }
 

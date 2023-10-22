@@ -47,7 +47,7 @@ class FakeCoinServiceAPI extends CoinServiceAPI {
 
   @override
   Future<void> fullRescan(
-      int maxUnusedAddressGap, int maxNumberOfIndexesToCheck) {
+      int maxUnusedAddressGap, int minNumberOfIndexesToCheck) {
     // TODO: implement fullRescan
     throw UnimplementedError();
   }
@@ -132,7 +132,7 @@ class FakeCoinServiceAPI extends CoinServiceAPI {
     required String mnemonic,
     String? mnemonicPassphrase,
     required int maxUnusedAddressGap,
-    required int maxNumberOfIndexesToCheck,
+    required int minNumberOfIndexesToCheck,
     required int height,
   }) {
     // TODO: implement recoverFromMnemonic

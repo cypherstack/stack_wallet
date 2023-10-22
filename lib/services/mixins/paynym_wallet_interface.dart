@@ -1134,7 +1134,7 @@ mixin PaynymWalletInterface {
 
   Future<void> restoreAllHistory({
     required int maxUnusedAddressGap,
-    required int maxNumberOfIndexesToCheck,
+    required int minNumberOfIndexesToCheck,
     required Set<String> paymentCodeStrings,
   }) async {
     final codes = await getAllPaymentCodesFromNotificationTransactions();
@@ -1159,7 +1159,7 @@ mixin PaynymWalletInterface {
         restoreHistoryWith(
           other: code,
           maxUnusedAddressGap: maxUnusedAddressGap,
-          maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+          minNumberOfIndexesToCheck: minNumberOfIndexesToCheck,
           checkSegwitAsWell: code.isSegWitEnabled(),
         ),
       );
@@ -1172,11 +1172,11 @@ mixin PaynymWalletInterface {
     required PaymentCode other,
     required bool checkSegwitAsWell,
     required int maxUnusedAddressGap,
-    required int maxNumberOfIndexesToCheck,
+    required int minNumberOfIndexesToCheck,
   }) async {
     // https://en.bitcoin.it/wiki/BIP_0047#Path_levels
     const maxCount = 2147483647;
-    assert(maxNumberOfIndexesToCheck < maxCount);
+    assert(minNumberOfIndexesToCheck < maxCount);
 
     final mySendBip32Node = await deriveNotificationBip32Node();
 
@@ -1186,7 +1186,7 @@ mixin PaynymWalletInterface {
 
     // non segwit receiving
     for (int i = 0;
-        i < maxNumberOfIndexesToCheck &&
+        i < minNumberOfIndexesToCheck &&
             receivingGapCounter < maxUnusedAddressGap;
         i++) {
       if (receivingGapCounter < maxUnusedAddressGap) {
@@ -1210,7 +1210,7 @@ mixin PaynymWalletInterface {
 
     // non segwit sends
     for (int i = 0;
-        i < maxNumberOfIndexesToCheck &&
+        i < minNumberOfIndexesToCheck &&
             outgoingGapCounter < maxUnusedAddressGap;
         i++) {
       if (outgoingGapCounter < maxUnusedAddressGap) {
@@ -1238,7 +1238,7 @@ mixin PaynymWalletInterface {
       int outgoingGapCounterSegwit = 0;
       // segwit receiving
       for (int i = 0;
-          i < maxNumberOfIndexesToCheck &&
+          i < minNumberOfIndexesToCheck &&
               receivingGapCounterSegwit < maxUnusedAddressGap;
           i++) {
         if (receivingGapCounterSegwit < maxUnusedAddressGap) {
@@ -1262,7 +1262,7 @@ mixin PaynymWalletInterface {
 
       // segwit sends
       for (int i = 0;
-          i < maxNumberOfIndexesToCheck &&
+          i < minNumberOfIndexesToCheck &&
               outgoingGapCounterSegwit < maxUnusedAddressGap;
           i++) {
         if (outgoingGapCounterSegwit < maxUnusedAddressGap) {

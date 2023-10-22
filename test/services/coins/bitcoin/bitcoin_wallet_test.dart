@@ -2026,7 +2026,7 @@ void main() async {
         await btc?.recoverFromMnemonic(
             mnemonic: TEST_MNEMONIC,
             maxUnusedAddressGap: 2,
-            maxNumberOfIndexesToCheck: 1000,
+            minNumberOfIndexesToCheck: 1000,
             height: 4000);
       } catch (_) {
         hasThrown = true;
@@ -2069,7 +2069,7 @@ void main() async {
         await btc?.recoverFromMnemonic(
             mnemonic: TEST_MNEMONIC,
             maxUnusedAddressGap: 2,
-            maxNumberOfIndexesToCheck: 1000,
+            minNumberOfIndexesToCheck: 1000,
             height: 4000);
       } catch (_) {
         hasThrown = true;
@@ -2105,7 +2105,7 @@ void main() async {
         await btc?.recoverFromMnemonic(
             mnemonic: TEST_MNEMONIC,
             maxUnusedAddressGap: 2,
-            maxNumberOfIndexesToCheck: 1000,
+            minNumberOfIndexesToCheck: 1000,
             height: 4000);
       } catch (_) {
         hasThrown = true;
@@ -2149,7 +2149,7 @@ void main() async {
     //     await btc?.recoverFromMnemonic(
     //         mnemonic: TEST_MNEMONIC,
     //         maxUnusedAddressGap: 2,
-    //         maxNumberOfIndexesToCheck: 1000,
+    //         minNumberOfIndexesToCheck: 1000,
     //         height: 4000);
     //   } catch (_) {
     //     hasThrown = true;
@@ -2202,7 +2202,7 @@ void main() async {
     //   await btc?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000,
+    //       minNumberOfIndexesToCheck: 1000,
     //       height: 4000);
     //
     //   expect(await btc?.mnemonic, TEST_MNEMONIC.split(" "));
@@ -2262,7 +2262,7 @@ void main() async {
     //     await btc?.recoverFromMnemonic(
     //         mnemonic: TEST_MNEMONIC,
     //         maxUnusedAddressGap: 2,
-    //         maxNumberOfIndexesToCheck: 1000,
+    //         minNumberOfIndexesToCheck: 1000,
     //         height: 4000);
     //   } catch (_) {
     //     hasThrown = true;
@@ -2357,7 +2357,7 @@ void main() async {
     //   await btc?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000,
+    //       minNumberOfIndexesToCheck: 1000,
     //       height: 4000);
     //
     //   // fetch valid wallet data
@@ -2593,7 +2593,7 @@ void main() async {
     //   await btc?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000,
+    //       minNumberOfIndexesToCheck: 1000,
     //       height: 4000);
     //
     //   // fetch wallet data
@@ -2774,7 +2774,7 @@ void main() async {
     //   await btc?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000);
+    //       minNumberOfIndexesToCheck: 1000);
     //
     //   // modify addresses to trigger all change code branches
     //   final chg44 = await secureStore?.read(
@@ -2976,7 +2976,7 @@ void main() async {
     //   await btc?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000);
+    //       minNumberOfIndexesToCheck: 1000);
     //
     //   bool didThrow = false;
     //   try {
@@ -3056,7 +3056,7 @@ void main() async {
     //   await btc?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000);
+    //       minNumberOfIndexesToCheck: 1000);
     //
     //   // modify addresses to properly mock data to build a tx
     //   final rcv44 = await secureStore?.read(
@@ -3161,7 +3161,7 @@ void main() async {
     //   await btc?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000);
+    //       minNumberOfIndexesToCheck: 1000);
     //
     //   // modify addresses to properly mock data to build a tx
     //   final rcv44 = await secureStore?.read(
@@ -3276,7 +3276,7 @@ void main() async {
     //   await btc?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000);
+    //       minNumberOfIndexesToCheck: 1000);
     //
     //   // modify addresses to properly mock data to build a tx
     //   final rcv44 = await secureStore?.read(
@@ -3381,7 +3381,7 @@ void main() async {
     //   await btc?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000);
+    //       minNumberOfIndexesToCheck: 1000);
     //
     //   // modify addresses to properly mock data to build a tx
     //   final rcv44 = await secureStore?.read(
@@ -3485,7 +3485,7 @@ void main() async {
     //   await btc?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000);
+    //       minNumberOfIndexesToCheck: 1000);
     //
     //   // modify addresses to properly mock data to build a tx
     //   final rcv44 = await secureStore?.read(
@@ -3567,7 +3567,7 @@ void main() async {
     //   await btc?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000);
+    //       minNumberOfIndexesToCheck: 1000);
     //
     //   // modify addresses to properly mock data to build a tx
     //   final rcv44 = await secureStore?.read(
@@ -3630,7 +3630,7 @@ void main() async {
     //   await btc?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000);
+    //       minNumberOfIndexesToCheck: 1000);
     //
     //   // modify addresses to properly mock data to build a tx
     //   final rcv44 = await secureStore?.read(
@@ -3711,7 +3711,7 @@ void main() async {
     //   await btc?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000);
+    //       minNumberOfIndexesToCheck: 1000);
     //
     //   // modify addresses to properly mock data to build a tx
     //   final rcv44 = await secureStore?.read(
@@ -3810,7 +3810,7 @@ void main() async {
     //   await btc?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000);
+    //       minNumberOfIndexesToCheck: 1000);
     //
     //   // modify addresses to properly mock data to build a tx
     //   final rcv44 = await secureStore?.read(
@@ -3920,7 +3920,7 @@ void main() async {
     //   await btc?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000);
+    //       minNumberOfIndexesToCheck: 1000);
     //
     //   // modify addresses to properly mock data to build a tx
     //   final rcv44 = await secureStore?.read(
@@ -4052,7 +4052,7 @@ void main() async {
     //   await btc?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000,
+    //       minNumberOfIndexesToCheck: 1000,
     //       height: 4000);
     //
     //   // modify addresses to properly mock data to build a tx
@@ -4319,7 +4319,7 @@ void main() async {
     //   await btc?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000,
+    //       minNumberOfIndexesToCheck: 1000,
     //       height: 4000);
     //
     //   btc?.refreshMutex = true;
@@ -4384,7 +4384,7 @@ void main() async {
     //   await btc?.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 2,
-    //       maxNumberOfIndexesToCheck: 1000,
+    //       minNumberOfIndexesToCheck: 1000,
     //       height: 4000);
     //
     //   when(client?.getBatchHistory(args: anyNamed("args")))

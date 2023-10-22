@@ -329,7 +329,7 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<void> fullRescan(
     int maxUnusedAddressGap,
-    int maxNumberOfIndexesToCheck,
+    int minNumberOfIndexesToCheck,
   ) async {
     try {
       Logging.instance.log("Starting full rescan!", level: LogLevel.Info);
@@ -525,7 +525,7 @@ class StellarWallet extends CoinServiceAPI with WalletCache, WalletDB {
     required String mnemonic,
     String? mnemonicPassphrase,
     required int maxUnusedAddressGap,
-    required int maxNumberOfIndexesToCheck,
+    required int minNumberOfIndexesToCheck,
     required int height,
   }) async {
     longMutex = true;

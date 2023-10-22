@@ -614,7 +614,7 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<void> fullRescan(
     int maxUnusedAddressGap,
-    int maxNumberOfIndexesToCheck,
+    int minNumberOfIndexesToCheck,
   ) async {
     await _prefs.init();
     await updateTransactions();
@@ -737,7 +737,7 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB {
       {required String mnemonic,
       String? mnemonicPassphrase,
       required int maxUnusedAddressGap,
-      required int maxNumberOfIndexesToCheck,
+      required int minNumberOfIndexesToCheck,
       required int height}) async {
     try {
       if ((await mnemonicString) != null ||

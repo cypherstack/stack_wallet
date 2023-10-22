@@ -323,7 +323,7 @@ class LitecoinWallet extends CoinServiceAPI
     required String mnemonic,
     String? mnemonicPassphrase,
     required int maxUnusedAddressGap,
-    required int maxNumberOfIndexesToCheck,
+    required int minNumberOfIndexesToCheck,
     required int height,
   }) async {
     longMutex = true;
@@ -376,7 +376,7 @@ class LitecoinWallet extends CoinServiceAPI
         mnemonic: mnemonic.trim(),
         mnemonicPassphrase: mnemonicPassphrase ?? "",
         maxUnusedAddressGap: maxUnusedAddressGap,
-        maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+        minNumberOfIndexesToCheck: minNumberOfIndexesToCheck,
       );
     } catch (e, s) {
       Logging.instance.log(
@@ -394,7 +394,7 @@ class LitecoinWallet extends CoinServiceAPI
   }
 
   Future<Map<String, dynamic>> _checkGaps(
-      int maxNumberOfIndexesToCheck,
+      int minNumberOfIndexesToCheck,
       int maxUnusedAddressGap,
       int txCountBatchSize,
       bip32.BIP32 root,
@@ -406,7 +406,7 @@ class LitecoinWallet extends CoinServiceAPI
     int gapCounter = 0;
     for (int index = 0;
         index <
-                max(maxNumberOfIndexesToCheck,
+                max(minNumberOfIndexesToCheck,
                     returningIndex + maxUnusedAddressGap) &&
             gapCounter < maxUnusedAddressGap;
         index += txCountBatchSize) {
@@ -548,7 +548,7 @@ class LitecoinWallet extends CoinServiceAPI
     required String mnemonic,
     required String mnemonicPassphrase,
     int maxUnusedAddressGap = 20,
-    int maxNumberOfIndexesToCheck = 1000,
+    int minNumberOfIndexesToCheck = 1000,
     bool isRescan = false,
   }) async {
     longMutex = true;
@@ -587,25 +587,25 @@ class LitecoinWallet extends CoinServiceAPI
       // receiving addresses
       Logging.instance
           .log("checking receiving addresses...", level: LogLevel.Info);
-      final resultReceive44 = _checkGaps(maxNumberOfIndexesToCheck,
+      final resultReceive44 = _checkGaps(minNumberOfIndexesToCheck,
           maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip44, 0);
 
-      final resultReceive49 = _checkGaps(maxNumberOfIndexesToCheck,
+      final resultReceive49 = _checkGaps(minNumberOfIndexesToCheck,
           maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip49, 0);
 
-      final resultReceive84 = _checkGaps(maxNumberOfIndexesToCheck,
+      final resultReceive84 = _checkGaps(minNumberOfIndexesToCheck,
           maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip84, 0);
 
       Logging.instance
           .log("checking change addresses...", level: LogLevel.Info);
       // change addresses
-      final resultChange44 = _checkGaps(maxNumberOfIndexesToCheck,
+      final resultChange44 = _checkGaps(minNumberOfIndexesToCheck,
           maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip44, 1);
 
-      final resultChange49 = _checkGaps(maxNumberOfIndexesToCheck,
+      final resultChange49 = _checkGaps(minNumberOfIndexesToCheck,
           maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip49, 1);
 
-      final resultChange84 = _checkGaps(maxNumberOfIndexesToCheck,
+      final resultChange84 = _checkGaps(minNumberOfIndexesToCheck,
           maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip84, 1);
 
       await Future.wait([
@@ -2974,7 +2974,7 @@ class LitecoinWallet extends CoinServiceAPI
   @override
   Future<void> fullRescan(
     int maxUnusedAddressGap,
-    int maxNumberOfIndexesToCheck,
+    int minNumberOfIndexesToCheck,
   ) async {
     Logging.instance.log("Starting full rescan!", level: LogLevel.Info);
     longMutex = true;
@@ -3009,7 +3009,7 @@ class LitecoinWallet extends CoinServiceAPI
         mnemonic: _mnemonic!,
         mnemonicPassphrase: _mnemonicPassphrase!,
         maxUnusedAddressGap: maxUnusedAddressGap,
-        maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+        minNumberOfIndexesToCheck: minNumberOfIndexesToCheck,
         isRescan: true,
       );
 

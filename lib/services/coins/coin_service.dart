@@ -354,7 +354,7 @@ abstract class CoinServiceAPI {
     required String mnemonic,
     String? mnemonicPassphrase,
     required int maxUnusedAddressGap,
-    required int maxNumberOfIndexesToCheck,
+    required int minNumberOfIndexesToCheck,
     required int height,
   });
 
@@ -367,7 +367,7 @@ abstract class CoinServiceAPI {
   bool get hasCalledExit;
 
   Future<void> fullRescan(
-      int maxUnusedAddressGap, int maxNumberOfIndexesToCheck);
+      int maxUnusedAddressGap, int minNumberOfIndexesToCheck);
 
   void Function(bool isActive)? onIsActiveWalletChanged;
 

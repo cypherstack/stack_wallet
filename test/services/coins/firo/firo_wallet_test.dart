@@ -1427,7 +1427,7 @@ void main() {
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 20,
     //       height: 0,
-    //       maxNumberOfIndexesToCheck: 1000);
+    //       minNumberOfIndexesToCheck: 1000);
     //
     //   final receivingAddresses = await wallet.get('receivingAddresses');
     //   expect(receivingAddresses, ["a8VV7vMzJdTQj1eLEJNskhLEBUxfNWhpAg"]);
@@ -1995,7 +1995,7 @@ void main() {
     //   await firo.recoverFromMnemonic(
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 20,
-    //       maxNumberOfIndexesToCheck: 1000,
+    //       minNumberOfIndexesToCheck: 1000,
     //       height: 0);
     //
     //   final receivingAddresses = await wallet.get('receivingAddresses');
@@ -2140,7 +2140,7 @@ void main() {
           () async => await firo.recoverFromMnemonic(
               mnemonic: TEST_MNEMONIC,
               maxUnusedAddressGap: 20,
-              maxNumberOfIndexesToCheck: 1000,
+              minNumberOfIndexesToCheck: 1000,
               height: 0),
           throwsA(isA<Exception>()));
     }, timeout: const Timeout(Duration(minutes: 3)));
@@ -2177,7 +2177,7 @@ void main() {
               mnemonic: TEST_MNEMONIC,
               maxUnusedAddressGap: 20,
               height: 0,
-              maxNumberOfIndexesToCheck: 1000),
+              minNumberOfIndexesToCheck: 1000),
           throwsA(isA<Exception>()));
     });
 
@@ -3174,7 +3174,7 @@ void main() {
     //       mnemonic: TEST_MNEMONIC,
     //       maxUnusedAddressGap: 20,
     //       height: 0,
-    //       maxNumberOfIndexesToCheck: 1000);
+    //       minNumberOfIndexesToCheck: 1000);
     //
     //   firo.timer = Timer(const Duration(minutes: 3), () {});
     //

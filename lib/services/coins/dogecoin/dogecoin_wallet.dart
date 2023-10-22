@@ -317,7 +317,7 @@ class DogecoinWallet extends CoinServiceAPI
     required String mnemonic,
     String? mnemonicPassphrase,
     required int maxUnusedAddressGap,
-    required int maxNumberOfIndexesToCheck,
+    required int minNumberOfIndexesToCheck,
     required int height,
   }) async {
     longMutex = true;
@@ -361,7 +361,7 @@ class DogecoinWallet extends CoinServiceAPI
         mnemonic: mnemonic.trim(),
         mnemonicPassphrase: mnemonicPassphrase ?? "",
         maxUnusedAddressGap: maxUnusedAddressGap,
-        maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+        minNumberOfIndexesToCheck: minNumberOfIndexesToCheck,
       );
     } catch (e, s) {
       Logging.instance.log(
@@ -379,7 +379,7 @@ class DogecoinWallet extends CoinServiceAPI
   }
 
   Future<Map<String, dynamic>> _checkGaps(
-      int maxNumberOfIndexesToCheck,
+      int minNumberOfIndexesToCheck,
       int maxUnusedAddressGap,
       int txCountBatchSize,
       bip32.BIP32 root,
@@ -391,7 +391,7 @@ class DogecoinWallet extends CoinServiceAPI
     int gapCounter = 0;
     for (int index = 0;
         index <
-                max(maxNumberOfIndexesToCheck,
+                max(minNumberOfIndexesToCheck,
                     returningIndex + maxUnusedAddressGap) &&
             gapCounter < maxUnusedAddressGap;
         index += txCountBatchSize) {
@@ -509,7 +509,7 @@ class DogecoinWallet extends CoinServiceAPI
     required String mnemonic,
     required String mnemonicPassphrase,
     int maxUnusedAddressGap = 20,
-    int maxNumberOfIndexesToCheck = 1000,
+    int minNumberOfIndexesToCheck = 1000,
     bool isRescan = false,
   }) async {
     longMutex = true;
@@ -536,13 +536,13 @@ class DogecoinWallet extends CoinServiceAPI
       // receiving addresses
       Logging.instance
           .log("checking receiving addresses...", level: LogLevel.Info);
-      final resultReceive44 = _checkGaps(maxNumberOfIndexesToCheck,
+      final resultReceive44 = _checkGaps(minNumberOfIndexesToCheck,
           maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip44, 0);
 
       Logging.instance
           .log("checking change addresses...", level: LogLevel.Info);
       // change addresses
-      final resultChange44 = _checkGaps(maxNumberOfIndexesToCheck,
+      final resultChange44 = _checkGaps(minNumberOfIndexesToCheck,
           maxUnusedAddressGap, txCountBatchSize, root, DerivePathType.bip44, 1);
 
       await Future.wait([
@@ -613,7 +613,7 @@ class DogecoinWallet extends CoinServiceAPI
       // // restore paynym transactions
       // await restoreAllHistory(
       //   maxUnusedAddressGap: maxUnusedAddressGap,
-      //   maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+      //   minNumberOfIndexesToCheck: minNumberOfIndexesToCheck,
       // );
 
       await _updateUTXOs();
@@ -2728,7 +2728,7 @@ class DogecoinWallet extends CoinServiceAPI
   @override
   Future<void> fullRescan(
     int maxUnusedAddressGap,
-    int maxNumberOfIndexesToCheck,
+    int minNumberOfIndexesToCheck,
   ) async {
     Logging.instance.log("Starting full rescan!", level: LogLevel.Info);
     longMutex = true;
@@ -2763,7 +2763,7 @@ class DogecoinWallet extends CoinServiceAPI
         mnemonic: _mnemonic!,
         mnemonicPassphrase: _mnemonicPassphrase!,
         maxUnusedAddressGap: maxUnusedAddressGap,
-        maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+        minNumberOfIndexesToCheck: minNumberOfIndexesToCheck,
         isRescan: true,
       );
 

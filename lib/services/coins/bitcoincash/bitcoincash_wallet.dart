@@ -316,7 +316,7 @@ class BitcoinCashWallet extends CoinServiceAPI
     required String mnemonic,
     String? mnemonicPassphrase,
     required int maxUnusedAddressGap,
-    required int maxNumberOfIndexesToCheck,
+    required int minNumberOfIndexesToCheck,
     required int height,
   }) async {
     longMutex = true;
@@ -361,7 +361,7 @@ class BitcoinCashWallet extends CoinServiceAPI
         mnemonic: mnemonic.trim(),
         mnemonicPassphrase: mnemonicPassphrase ?? "",
         maxUnusedAddressGap: maxUnusedAddressGap,
-        maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+        minNumberOfIndexesToCheck: minNumberOfIndexesToCheck,
         coin: coin,
       );
     } catch (e, s) {
@@ -504,7 +504,7 @@ class BitcoinCashWallet extends CoinServiceAPI
     required String mnemonic,
     required String mnemonicPassphrase,
     int maxUnusedAddressGap = 20,
-    int maxNumberOfIndexesToCheck = 1000,
+    int minNumberOfIndexesToCheck = 1000,
     bool isRescan = false,
     Coin? coin,
   }) async {
@@ -546,7 +546,7 @@ class BitcoinCashWallet extends CoinServiceAPI
       for (final type in deriveTypes) {
         receiveFutures.add(
           _checkGaps(
-            maxNumberOfIndexesToCheck,
+            minNumberOfIndexesToCheck,
             maxUnusedAddressGap,
             txCountBatchSize,
             root,
@@ -564,7 +564,7 @@ class BitcoinCashWallet extends CoinServiceAPI
       for (final type in deriveTypes) {
         changeFutures.add(
           _checkGaps(
-            maxNumberOfIndexesToCheck,
+            minNumberOfIndexesToCheck,
             maxUnusedAddressGap,
             txCountBatchSize,
             root,
@@ -2882,7 +2882,7 @@ class BitcoinCashWallet extends CoinServiceAPI
   @override
   Future<void> fullRescan(
     int maxUnusedAddressGap,
-    int maxNumberOfIndexesToCheck,
+    int minNumberOfIndexesToCheck,
   ) async {
     Logging.instance.log("Starting full rescan!", level: LogLevel.Info);
     longMutex = true;
@@ -2914,7 +2914,7 @@ class BitcoinCashWallet extends CoinServiceAPI
         mnemonic: _mnemonic!,
         mnemonicPassphrase: _mnemonicPassphrase!,
         maxUnusedAddressGap: maxUnusedAddressGap,
-        maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
+        minNumberOfIndexesToCheck: minNumberOfIndexesToCheck,
         isRescan: true,
       );
 

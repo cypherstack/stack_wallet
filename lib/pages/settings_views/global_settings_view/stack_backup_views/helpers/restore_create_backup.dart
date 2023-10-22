@@ -416,7 +416,7 @@ abstract class SWB {
         mnemonic: mnemonic,
         mnemonicPassphrase: mnemonicPassphrase,
         maxUnusedAddressGap: manager.coin == Coin.firo ? 50 : 20,
-        maxNumberOfIndexesToCheck: 1000,
+        minNumberOfIndexesToCheck: 1000,
         height: restoreHeight,
       );
 

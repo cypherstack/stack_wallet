@@ -215,7 +215,7 @@ void main() {
       when(wallet.recoverFromMnemonic(
               mnemonic: "Some valid mnemonic",
               maxUnusedAddressGap: 20,
-              maxNumberOfIndexesToCheck: 1000,
+              minNumberOfIndexesToCheck: 1000,
               height: 0))
           .thenAnswer((realInvocation) => Future(() => {}));
 
@@ -224,13 +224,13 @@ void main() {
       await manager.recoverFromMnemonic(
           mnemonic: "Some valid mnemonic",
           maxUnusedAddressGap: 20,
-          maxNumberOfIndexesToCheck: 1000,
+          minNumberOfIndexesToCheck: 1000,
           height: 0);
 
       verify(wallet.recoverFromMnemonic(
               mnemonic: "Some valid mnemonic",
               maxUnusedAddressGap: 20,
-              maxNumberOfIndexesToCheck: 1000,
+              minNumberOfIndexesToCheck: 1000,
               height: 0))
           .called(1);
     });
@@ -240,7 +240,7 @@ void main() {
       when(wallet.recoverFromMnemonic(
               mnemonic: "Some invalid mnemonic",
               maxUnusedAddressGap: 20,
-              maxNumberOfIndexesToCheck: 1000,
+              minNumberOfIndexesToCheck: 1000,
               height: 0))
           .thenThrow(Exception("Invalid mnemonic"));
 
@@ -250,14 +250,14 @@ void main() {
           () => manager.recoverFromMnemonic(
               mnemonic: "Some invalid mnemonic",
               maxUnusedAddressGap: 20,
-              maxNumberOfIndexesToCheck: 1000,
+              minNumberOfIndexesToCheck: 1000,
               height: 0),
           throwsA(isA<Exception>()));
 
       verify(wallet.recoverFromMnemonic(
               mnemonic: "Some invalid mnemonic",
               maxUnusedAddressGap: 20,
-              maxNumberOfIndexesToCheck: 1000,
+              minNumberOfIndexesToCheck: 1000,
               height: 0))
           .called(1);
     });
@@ -267,7 +267,7 @@ void main() {
       when(wallet.recoverFromMnemonic(
               mnemonic: "Some valid mnemonic",
               maxUnusedAddressGap: 20,
-              maxNumberOfIndexesToCheck: 1000,
+              minNumberOfIndexesToCheck: 1000,
               height: 0))
           .thenThrow(Error());
 
@@ -277,14 +277,14 @@ void main() {
           () => manager.recoverFromMnemonic(
               mnemonic: "Some valid mnemonic",
               maxUnusedAddressGap: 20,
-              maxNumberOfIndexesToCheck: 1000,
+              minNumberOfIndexesToCheck: 1000,
               height: 0),
           throwsA(isA<Error>()));
 
       verify(wallet.recoverFromMnemonic(
               mnemonic: "Some valid mnemonic",
               maxUnusedAddressGap: 20,
-              maxNumberOfIndexesToCheck: 1000,
+              minNumberOfIndexesToCheck: 1000,
               height: 0))
           .called(1);
     });

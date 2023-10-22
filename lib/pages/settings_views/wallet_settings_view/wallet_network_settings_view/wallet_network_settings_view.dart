@@ -124,7 +124,7 @@ class _WalletNetworkSettingsViewState
 
     int maxUnusedAddressGap = 20;
 
-    const int maxNumberOfIndexesToCheck = 1000;
+    const int minNumberOfIndexesToCheck = 1000;
 
     unawaited(
       showDialog<dynamic>(
@@ -148,7 +148,7 @@ class _WalletNetworkSettingsViewState
           .getManager(widget.walletId)
           .fullRescan(
             maxUnusedAddressGap,
-            maxNumberOfIndexesToCheck,
+            minNumberOfIndexesToCheck,
           );
 
       if (mounted) {
