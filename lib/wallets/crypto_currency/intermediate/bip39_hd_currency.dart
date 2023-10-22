@@ -1,6 +1,7 @@
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
+
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
@@ -16,7 +17,6 @@ abstract class Bip39HDCurrency extends Bip39Currency {
   List<DerivePathType> get supportedDerivationPathTypes;
 
   int get maxUnusedAddressGap => 50;
-  int get maxNumberOfIndexesToCheck => 10000;
 
   String constructDerivePath({
     required DerivePathType derivePathType,
