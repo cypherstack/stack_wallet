@@ -2244,8 +2244,12 @@ class ECashWallet extends CoinServiceAPI
   ) async {
     List<isar_models.Address> addressArray = [];
     int gapCounter = 0;
+    int highestIndexWithHistory = 0;
     for (int index = 0;
-        index < maxNumberOfIndexesToCheck && gapCounter < maxUnusedAddressGap;
+        index <
+                max(maxNumberOfIndexesToCheck,
+                    highestIndexWithHistory + maxUnusedAddressGap) &&
+            gapCounter < maxUnusedAddressGap;
         index++) {
       Logging.instance.log(
           "index: $index, \t GapCounter chain=$chain ${type.name}: $gapCounter",
@@ -2295,6 +2299,9 @@ class ECashWallet extends CoinServiceAPI
         // reset counter
         gapCounter = 0;
         // add info to derivations
+
+        // Add to highestIndexWithHistory.
+        highestIndexWithHistory = index;
       } else {
         // increase counter when no tx history found
         gapCounter++;
@@ -2314,8 +2321,12 @@ class ECashWallet extends CoinServiceAPI
   ) async {
     List<isar_models.Address> addressArray = [];
     int gapCounter = 0;
+    int highestIndexWithHistory = 0;
     for (int index = 0;
-        index < maxNumberOfIndexesToCheck && gapCounter < maxUnusedAddressGap;
+        index <
+                max(maxNumberOfIndexesToCheck,
+                    highestIndexWithHistory + maxUnusedAddressGap) &&
+            gapCounter < maxUnusedAddressGap;
         index += txCountBatchSize) {
       List<String> iterationsAddressArray = [];
       Logging.instance.log(
@@ -2388,6 +2399,9 @@ class ECashWallet extends CoinServiceAPI
           // reset counter
           gapCounter = 0;
           // add info to derivations
+
+          // Add to highestIndexWithHistory.
+          highestIndexWithHistory = index;
         }
 
         // increase counter when no tx history found

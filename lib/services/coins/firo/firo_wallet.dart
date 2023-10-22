@@ -4311,7 +4311,10 @@ class FiroWallet extends CoinServiceAPI
     int highestIndexWithHistory = 0;
 
     for (int index = 0;
-        index < maxNumberOfIndexesToCheck && gapCounter < maxUnusedAddressGap;
+        index <
+                max(maxNumberOfIndexesToCheck,
+                    highestIndexWithHistory + maxUnusedAddressGap) &&
+            gapCounter < maxUnusedAddressGap;
         index += txCountBatchSize) {
       List<String> iterationsAddressArray = [];
       Logging.instance.log(

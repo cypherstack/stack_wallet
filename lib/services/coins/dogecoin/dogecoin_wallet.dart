@@ -11,6 +11,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:bech32/bech32.dart';
 import 'package:bip32/bip32.dart' as bip32;
@@ -385,11 +386,14 @@ class DogecoinWallet extends CoinServiceAPI
       DerivePathType type,
       int chain) async {
     List<isar_models.Address> addressArray = [];
-    int returningIndex = -1;
+    int returningIndex = 0;
     Map<String, Map<String, String>> derivations = {};
     int gapCounter = 0;
     for (int index = 0;
-        index < maxNumberOfIndexesToCheck && gapCounter < maxUnusedAddressGap;
+        index <
+                max(maxNumberOfIndexesToCheck,
+                    returningIndex + maxUnusedAddressGap) &&
+            gapCounter < maxUnusedAddressGap;
         index += txCountBatchSize) {
       List<String> iterationsAddressArray = [];
       Logging.instance.log(
