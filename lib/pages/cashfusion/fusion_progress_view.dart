@@ -137,42 +137,38 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             if (_fusionRoundsCompleted == 0)
-                              Expanded(
-                                child: RoundedContainer(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .snackBarBackError,
-                                  child: Text(
-                                    "Do not close this window. If you exit, "
-                                    "the process will be canceled.",
-                                    style: STextStyles.smallMed14(context)
-                                        .copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .snackBarTextError,
-                                    ),
-                                    textAlign: TextAlign.center,
+                              RoundedContainer(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .snackBarBackError,
+                                child: Text(
+                                  "Do not close this window. If you exit, "
+                                  "the process will be canceled.",
+                                  style:
+                                      STextStyles.smallMed14(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .snackBarTextError,
                                   ),
+                                  textAlign: TextAlign.center,
                                 ),
                               ),
                             if (_fusionRoundsCompleted > 0)
-                              Expanded(
-                                child: RoundedContainer(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .snackBarBackInfo,
-                                  child: Text(
-                                    "Fusion rounds completed: $_fusionRoundsCompleted",
-                                    style:
-                                        STextStyles.w500_14(context).copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .snackBarTextInfo,
-                                    ),
-                                    textAlign: TextAlign.center,
+                              RoundedContainer(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .snackBarBackInfo,
+                                child: Text(
+                                  "Fusion rounds completed: $_fusionRoundsCompleted",
+                                  style: STextStyles.w500_14(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .snackBarTextInfo,
                                   ),
+                                  textAlign: TextAlign.center,
                                 ),
                               ),
                             const SizedBox(
