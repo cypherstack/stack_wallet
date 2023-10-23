@@ -119,9 +119,6 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
                 final thisTime =
                     DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000);
 
-                print(
-                    "DIFFERERNCE: ${prevTime.difference(thisTime).inMinutes}");
-
                 if (prevTime.difference(thisTime).inMinutes > 30) {
                   _txns.add(FusionTxGroup(fusions));
                   fusions = [tx];
@@ -145,17 +142,6 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
               _txns.add(tx);
             }
           }
-
-          // sanity check
-          int count = 0;
-          for (final e in _txns) {
-            if (e is TransactionV2) {
-              count++;
-            } else if (e is FusionTxGroup) {
-              count += e.transactions.length;
-            }
-          }
-          assert(count == _transactions.length);
 
           return RefreshIndicator(
             onRefresh: () async {
