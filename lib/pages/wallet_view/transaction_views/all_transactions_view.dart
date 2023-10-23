@@ -47,6 +47,12 @@ import 'package:stackwallet/widgets/textfield_icon_button.dart';
 import 'package:stackwallet/widgets/transaction_card.dart';
 import 'package:tuple/tuple.dart';
 
+typedef _GroupedTransactions = ({
+  String label,
+  DateTime startDate,
+  List<Transaction> transactions
+});
+
 class AllTransactionsView extends ConsumerStatefulWidget {
   const AllTransactionsView({
     Key? key,
@@ -192,25 +198,24 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
         .toList();
   }
 
-  List<Tuple2<String, List<Transaction>>> groupTransactionsByMonth(
-      List<Transaction> transactions) {
-    Map<String, List<Transaction>> map = {};
+  List<_GroupedTransactions> groupTransactionsByMonth(
+    List<Transaction> transactions,
+  ) {
+    Map<String, _GroupedTransactions> map = {};
 
     for (var tx in transactions) {
       final date = DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000);
       final monthYear = "${Constants.monthMap[date.month]} ${date.year}";
       if (map[monthYear] == null) {
-        map[monthYear] = [];
+        map[monthYear] =
+            (label: monthYear, startDate: date, transactions: [tx]);
+      } else {
+        map[monthYear]!.transactions.add(tx);
       }
-      map[monthYear]!.add(tx);
     }
 
-    List<Tuple2<String, List<Transaction>>> result = [];
-    map.forEach((key, value) {
-      result.add(Tuple2(key, value));
-    });
-
-    return result;
+    return map.values.toList()
+      ..sort((a, b) => b.startDate.compareTo(a.startDate));
   }
 
   @override
@@ -504,7 +509,7 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                                       height: 12,
                                     ),
                                   Text(
-                                    month.item1,
+                                    month.label,
                                     style: STextStyles.smallMed12(context),
                                   ),
                                   const SizedBox(
@@ -523,14 +528,15 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                                               .extension<StackColors>()!
                                               .background,
                                         ),
-                                        itemCount: month.item2.length,
+                                        itemCount: month.transactions.length,
                                         itemBuilder: (context, index) =>
                                             Padding(
                                           padding: const EdgeInsets.all(4),
                                           child: DesktopTransactionCardRow(
                                             key: Key(
-                                                "transactionCard_key_${month.item2[index].txid}"),
-                                            transaction: month.item2[index],
+                                                "transactionCard_key_${month.transactions[index].txid}"),
+                                            transaction:
+                                                month.transactions[index],
                                             walletId: walletId,
                                           ),
                                         ),
@@ -541,7 +547,7 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                                       padding: const EdgeInsets.all(0),
                                       child: Column(
                                         children: [
-                                          ...month.item2.map(
+                                          ...month.transactions.map(
                                             (tx) => TransactionCard(
                                               key: Key(
                                                   "transactionCard_key_${tx.txid}"),
