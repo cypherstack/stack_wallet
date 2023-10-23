@@ -37,6 +37,8 @@ import 'package:stackwallet/pages/token_view/my_tokens_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/transactions_list.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_summary.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/all_transactions_v2_view.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_list.dart';
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/global/paynym_api_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
@@ -842,7 +844,10 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                 text: "See all",
                                 onTap: () {
                                   Navigator.of(context).pushNamed(
-                                    AllTransactionsView.routeName,
+                                    coin == Coin.bitcoincash ||
+                                            coin == Coin.bitcoincashTestnet
+                                        ? AllTransactionsV2View.routeName
+                                        : AllTransactionsView.routeName,
                                     arguments: walletId,
                                   );
                                 },
@@ -881,7 +886,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                       0.0,
                                       0.8,
                                       1.0,
-                                    ], // 10% purple, 80% transparent, 10% purple
+                                    ],
                                   ).createShader(bounds);
                                 },
                                 child: Container(
@@ -896,10 +901,16 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                         CrossAxisAlignment.stretch,
                                     children: [
                                       Expanded(
-                                        child: TransactionsList(
-                                          managerProvider: managerProvider,
-                                          walletId: walletId,
-                                        ),
+                                        child: coin == Coin.bitcoincash ||
+                                                coin == Coin.bitcoincashTestnet
+                                            ? TransactionsV2List(
+                                                walletId: widget.walletId,
+                                              )
+                                            : TransactionsList(
+                                                managerProvider:
+                                                    managerProvider,
+                                                walletId: walletId,
+                                              ),
                                       ),
                                     ],
                                   ),

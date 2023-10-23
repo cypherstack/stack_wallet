@@ -12,14 +12,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_list_item.dart';
-import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -80,147 +78,66 @@ class _FusionGroupDetailsViewState
 
   @override
   Widget build(BuildContext context) {
-    return ConditionalParent(
-      condition: !isDesktop,
-      builder: (child) => Background(
-        child: child,
-      ),
-      child: Scaffold(
-        backgroundColor: isDesktop
-            ? Colors.transparent
-            : Theme.of(context).extension<StackColors>()!.background,
-        appBar: isDesktop
-            ? null
-            : AppBar(
-                backgroundColor:
-                    Theme.of(context).extension<StackColors>()!.background,
-                leading: AppBarBackButton(
-                  onPressed: () async {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                title: Text(
-                  "Fusion transactions",
-                  style: STextStyles.navBarTitle(context),
-                ),
-              ),
-        body: Padding(
-          padding: isDesktop
-              ? const EdgeInsets.only(left: 32)
-              : const EdgeInsets.all(12),
+    if (isDesktop) {
+      return Material(
+        color: Colors.transparent,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 32),
           child: Column(
             children: [
-              if (isDesktop)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Fusion transactions",
-                      style: STextStyles.desktopH3(context),
-                    ),
-                    const DesktopDialogCloseButton(),
-                  ],
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Fusion transactions",
+                    style: STextStyles.desktopH3(context),
+                  ),
+                  const DesktopDialogCloseButton(),
+                ],
+              ),
               Flexible(
                 child: Padding(
-                  padding: isDesktop
-                      ? const EdgeInsets.only(
-                          right: 32,
-                          bottom: 32,
-                        )
-                      : const EdgeInsets.all(0),
-                  child: ConditionalParent(
-                    condition: isDesktop,
-                    builder: (child) {
-                      return RoundedWhiteContainer(
-                        borderColor: isDesktop
-                            ? Theme.of(context)
-                                .extension<StackColors>()!
-                                .backgroundAppBar
-                            : null,
-                        padding: const EdgeInsets.all(0),
-                        child: child,
-                      );
-                    },
-                    child: SingleChildScrollView(
-                      primary: isDesktop ? false : null,
-                      child: Padding(
-                        padding: isDesktop
-                            ? const EdgeInsets.all(0)
-                            : const EdgeInsets.all(4),
-                        child: Util.isDesktop
-                            ? ListView.separated(
-                                shrinkWrap: true,
-                                itemBuilder: (context, index) {
-                                  BorderRadius? radius;
-                                  if (widget.transactions.length == 1) {
-                                    radius = BorderRadius.circular(
-                                      Constants.size.circularBorderRadius,
-                                    );
-                                  } else if (index ==
-                                      widget.transactions.length - 1) {
-                                    radius = _borderRadiusLast;
-                                  } else if (index == 0) {
-                                    radius = _borderRadiusFirst;
-                                  }
-                                  final tx = widget.transactions[index];
-                                  return TxListItem(
-                                    tx: tx,
-                                    coin: widget.coin,
-                                    radius: radius,
-                                  );
-                                },
-                                separatorBuilder: (context, index) {
-                                  return Container(
-                                    width: double.infinity,
-                                    height: 1.2,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .background,
-                                  );
-                                },
-                                itemCount: widget.transactions.length,
-                              )
-                            : ListView.builder(
-                                itemCount: widget.transactions.length,
-                                itemBuilder: (context, index) {
-                                  BorderRadius? radius;
-                                  bool shouldWrap = false;
-                                  if (widget.transactions.length == 1) {
-                                    radius = BorderRadius.circular(
-                                      Constants.size.circularBorderRadius,
-                                    );
-                                  } else if (index ==
-                                      widget.transactions.length - 1) {
-                                    radius = _borderRadiusLast;
-                                    shouldWrap = true;
-                                  } else if (index == 0) {
-                                    radius = _borderRadiusFirst;
-                                  }
-                                  final tx = widget.transactions[index];
-                                  if (shouldWrap) {
-                                    return Column(
-                                      children: [
-                                        TxListItem(
-                                          tx: tx,
-                                          coin: widget.coin,
-                                          radius: radius,
-                                        ),
-                                        const SizedBox(
-                                          height: WalletView.navBarHeight + 14,
-                                        ),
-                                      ],
-                                    );
-                                  } else {
-                                    return TxListItem(
-                                      tx: tx,
-                                      coin: widget.coin,
-                                      radius: radius,
-                                    );
-                                  }
-                                },
-                              ),
-                      ),
+                  padding: const EdgeInsets.only(
+                    right: 32,
+                    bottom: 32,
+                  ),
+                  child: RoundedWhiteContainer(
+                    borderColor: isDesktop
+                        ? Theme.of(context)
+                            .extension<StackColors>()!
+                            .backgroundAppBar
+                        : null,
+                    padding: const EdgeInsets.all(0),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemBuilder: (context, index) {
+                        BorderRadius? radius;
+                        if (widget.transactions.length == 1) {
+                          radius = BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          );
+                        } else if (index == widget.transactions.length - 1) {
+                          radius = _borderRadiusLast;
+                        } else if (index == 0) {
+                          radius = _borderRadiusFirst;
+                        }
+                        final tx = widget.transactions[index];
+                        return TxListItem(
+                          tx: tx,
+                          coin: widget.coin,
+                          radius: radius,
+                        );
+                      },
+                      separatorBuilder: (context, index) {
+                        return Container(
+                          width: double.infinity,
+                          height: 1.2,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
+                        );
+                      },
+                      itemCount: widget.transactions.length,
                     ),
                   ),
                 ),
@@ -228,7 +145,52 @@ class _FusionGroupDetailsViewState
             ],
           ),
         ),
-      ),
-    );
+      );
+    } else {
+      return Background(
+        child: Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
+          appBar: AppBar(
+            backgroundColor:
+                Theme.of(context).extension<StackColors>()!.background,
+            leading: AppBarBackButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+              },
+            ),
+            title: Text(
+              "Fusion transactions",
+              style: STextStyles.navBarTitle(context),
+            ),
+          ),
+          body: Padding(
+            padding: const EdgeInsets.all(16),
+            child: ListView.builder(
+              itemCount: widget.transactions.length,
+              itemBuilder: (context, index) {
+                BorderRadius? radius;
+                if (widget.transactions.length == 1) {
+                  radius = BorderRadius.circular(
+                    Constants.size.circularBorderRadius,
+                  );
+                } else if (index == widget.transactions.length - 1) {
+                  radius = _borderRadiusLast;
+                } else if (index == 0) {
+                  radius = _borderRadiusFirst;
+                }
+                final tx = widget.transactions[index];
+
+                return TxListItem(
+                  tx: tx,
+                  coin: widget.coin,
+                  radius: radius,
+                );
+              },
+            ),
+          ),
+        ),
+      );
+    }
   }
 }
