@@ -124,6 +124,7 @@ class _ProgressItem extends StatelessWidget {
                 iconAsset,
                 width: 18,
                 height: 18,
+                color: Theme.of(context).extension<StackColors>()!.textDark,
               ),
             ),
           ),
