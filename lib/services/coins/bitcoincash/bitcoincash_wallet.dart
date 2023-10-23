@@ -2071,8 +2071,6 @@ class BitcoinCashWallet extends CoinServiceAPI
     for (final txData in allTransactions) {
       // set to true if any inputs were detected as owned by this wallet
       bool wasSentFromThisWallet = false;
-      BigInt amountSentFromThisWallet =
-          BigInt.zero; // unsure if needed. Not used rn
 
       // set to true if any outputs were detected as owned by this wallet
       bool wasReceivedInThisWallet = false;
@@ -2130,7 +2128,6 @@ class BitcoinCashWallet extends CoinServiceAPI
 
         if (allAddressesSet.intersection(input.addresses.toSet()).isNotEmpty) {
           wasSentFromThisWallet = true;
-          amountSentFromThisWallet += input.value;
           input = input.copyWith(walletOwns: true);
         }
 
@@ -2165,14 +2162,9 @@ class BitcoinCashWallet extends CoinServiceAPI
         outputs.add(output);
       }
 
-      final totalIn = inputs
-          .map((e) => e.value)
-          .reduce((value, element) => value += element);
       final totalOut = outputs
           .map((e) => e.value)
           .reduce((value, element) => value += element);
-
-      final fee = totalIn - totalOut;
 
       isar_models.TransactionType type;
       isar_models.TransactionSubType subType =
