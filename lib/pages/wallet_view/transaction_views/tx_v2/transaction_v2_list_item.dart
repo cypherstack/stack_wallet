@@ -171,7 +171,6 @@ class TxListItem extends ConsumerWidget {
         borderRadius: radius,
       ),
       child: FusionTxGroupCard(
-        // this may mess with combined firo transactions
         key: UniqueKey(),
         group: group,
       ),

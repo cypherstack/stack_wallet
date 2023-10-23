@@ -1,13 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/fusion_group_details_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 
 class FusionTxGroup {
   final List<TransactionV2> transactions;
@@ -46,29 +50,28 @@ class FusionTxGroupCard extends ConsumerWidget {
           ),
           onPressed: () async {
             if (Util.isDesktop) {
-              // await showDialog<void>(
-              //   context: context,
-              //   builder: (context) => DesktopDialog(
-              //     maxHeight: MediaQuery.of(context).size.height - 64,
-              //     maxWidth: 580,
-              //     child: TransactionV2DetailsView(
-              //       transaction: _transaction,
-              //       coin: coin,
-              //       walletId: walletId,
-              //     ),
-              //   ),
-              // );
+              await showDialog<void>(
+                context: context,
+                builder: (context) => DesktopDialog(
+                  maxWidth: 580,
+                  child: FusionGroupDetailsView(
+                    transactions: group.transactions,
+                    coin: coin,
+                    walletId: walletId,
+                  ),
+                ),
+              );
             } else {
-              // unawaited(
-              //   Navigator.of(context).pushNamed(
-              //     TransactionV2DetailsView.routeName,
-              //     arguments: (
-              //     tx: _transaction,
-              //     coin: coin,
-              //     walletId: walletId,
-              //     ),
-              //   ),
-              // );
+              unawaited(
+                Navigator.of(context).pushNamed(
+                  FusionGroupDetailsView.routeName,
+                  arguments: (
+                    transactions: group.transactions,
+                    coin: coin,
+                    walletId: walletId,
+                  ),
+                ),
+              );
             }
           },
           child: Padding(

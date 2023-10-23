@@ -132,6 +132,7 @@ import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions
 import 'package:stackwallet/pages/wallet_view/transaction_views/edit_note_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_search_filter_view.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/fusion_group_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages/wallets_view/wallets_overview.dart';
@@ -1267,6 +1268,26 @@ class RouteGenerator {
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => TransactionV2DetailsView(
               transaction: args.tx,
+              coin: args.coin,
+              walletId: args.walletId,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case FusionGroupDetailsView.routeName:
+        if (args is ({
+          List<TransactionV2> transactions,
+          Coin coin,
+          String walletId
+        })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => FusionGroupDetailsView(
+              transactions: args.transactions,
               coin: args.coin,
               walletId: args.walletId,
             ),
