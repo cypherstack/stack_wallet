@@ -626,7 +626,8 @@ class _TransactionV2DetailsViewState
                                                     context)
                                             .copyWith(
                                             color: _transaction.type ==
-                                                    TransactionType.outgoing
+                                                    TransactionType.outgoing && _transaction.subType !=
+                                                TransactionSubType.cashFusion
                                                 ? Theme.of(context)
                                                     .extension<StackColors>()!
                                                     .accentColorOrange
