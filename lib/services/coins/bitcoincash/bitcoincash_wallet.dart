@@ -2164,7 +2164,7 @@ class BitcoinCashWallet extends CoinServiceAPI
 
       final totalOut = outputs
           .map((e) => e.value)
-          .reduce((value, element) => value += element);
+          .fold(BigInt.zero, (value, element) => value + element);
 
       isar_models.TransactionType type;
       isar_models.TransactionSubType subType =
