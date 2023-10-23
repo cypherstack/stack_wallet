@@ -51,14 +51,14 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
         title: "Cancel fusion?",
         leftButton: SecondaryButton(
           label: "No",
-          buttonHeight: ButtonHeight.l,
+          buttonHeight: null,
           onPressed: () {
             Navigator.of(context).pop(false);
           },
         ),
         rightButton: PrimaryButton(
           label: "Yes",
-          buttonHeight: ButtonHeight.l,
+          buttonHeight: null,
           onPressed: () {
             Navigator.of(context).pop(true);
           },
