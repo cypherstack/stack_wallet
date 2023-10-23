@@ -21,6 +21,7 @@ import 'package:stackwallet/pages/special/firo_rescan_recovery_error_dialog.dart
 import 'package:stackwallet/pages/token_view/my_tokens_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/transactions_list.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/all_transactions_v2_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_list.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_wallet_features.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_wallet_summary.dart';
@@ -461,30 +462,33 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                                       .hasTokenSupport))
                               ? "Edit"
                               : "See all",
-                          onTap: ref.watch(walletsChangeNotifierProvider.select(
-                                  (value) => value
-                                      .getManager(widget.walletId)
-                                      .hasTokenSupport))
-                              ? () async {
-                                  final result = await showDialog<int?>(
-                                    context: context,
-                                    builder: (context) => EditWalletTokensView(
-                                      walletId: widget.walletId,
-                                      isDesktopPopup: true,
-                                    ),
-                                  );
+                          onTap: () async {
+                            if (ref
+                                .read(walletsChangeNotifierProvider)
+                                .getManager(widget.walletId)
+                                .hasTokenSupport) {
+                              final result = await showDialog<int?>(
+                                context: context,
+                                builder: (context) => EditWalletTokensView(
+                                  walletId: widget.walletId,
+                                  isDesktopPopup: true,
+                                ),
+                              );
 
-                                  if (result == 42) {
-                                    // wallet tokens were edited so update ui
-                                    setState(() {});
-                                  }
-                                }
-                              : () {
-                                  Navigator.of(context).pushNamed(
-                                    AllTransactionsView.routeName,
-                                    arguments: widget.walletId,
-                                  );
-                                },
+                              if (result == 42) {
+                                // wallet tokens were edited so update ui
+                                setState(() {});
+                              }
+                            } else {
+                              await Navigator.of(context).pushNamed(
+                                coin == Coin.bitcoincash ||
+                                        coin == Coin.bitcoincashTestnet
+                                    ? AllTransactionsV2View.routeName
+                                    : AllTransactionsView.routeName,
+                                arguments: widget.walletId,
+                              );
+                            }
+                          },
                         ),
                       ],
                     ),

@@ -87,6 +87,11 @@ class TransactionV2 {
     return Amount(rawValue: inSum, fractionDigits: coin.decimals);
   }
 
+  Set<String> associatedAddresses() => {
+        ...inputs.map((e) => e.addresses).expand((e) => e),
+        ...outputs.map((e) => e.addresses).expand((e) => e),
+      };
+
   @override
   String toString() {
     return 'TransactionV2(\n'
