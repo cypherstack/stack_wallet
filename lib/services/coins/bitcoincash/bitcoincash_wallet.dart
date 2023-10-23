@@ -2200,7 +2200,11 @@ class BitcoinCashWallet extends CoinServiceAPI
         // only found outputs owned by this wallet
         type = isar_models.TransactionType.incoming;
       } else {
-        throw Exception("Unexpected tx found: $txData");
+        Logging.instance.log(
+          "Unexpected tx found: $txData",
+          level: LogLevel.Error,
+        );
+        continue;
       }
 
       final tx = TransactionV2(
