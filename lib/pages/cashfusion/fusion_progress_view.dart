@@ -177,22 +177,28 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
                             FusionProgress(
                               walletId: widget.walletId,
                             ),
-                            if (_succeeded)
-                              PrimaryButton(
-                                buttonHeight: ButtonHeight.m,
-                                label: "Fuse again",
-                                onPressed: () => _fuseAgain,
-                              ),
-                            if (_failed)
-                              PrimaryButton(
-                                buttonHeight: ButtonHeight.m,
-                                label: "Try again",
-                                onPressed: () => _fuseAgain,
-                              ),
-                            if (!_succeeded && !_failed) const Spacer(),
+                            const Spacer(),
                             const SizedBox(
                               height: 16,
                             ),
+                            if (_succeeded)
+                              PrimaryButton(
+                                label: "Fuse again",
+                                onPressed: () => _fuseAgain,
+                              ),
+                            if (_succeeded)
+                              const SizedBox(
+                                height: 16,
+                              ),
+                            if (_failed)
+                              PrimaryButton(
+                                label: "Try again",
+                                onPressed: () => _fuseAgain,
+                              ),
+                            if (_failed)
+                              const SizedBox(
+                                height: 16,
+                              ),
                             SecondaryButton(
                               label: "Cancel",
                               onPressed: () async {
