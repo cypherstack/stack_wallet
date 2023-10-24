@@ -184,7 +184,7 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
                             if (_succeeded)
                               PrimaryButton(
                                 label: "Fuse again",
-                                onPressed: () => _fuseAgain,
+                                onPressed: _fuseAgain,
                               ),
                             if (_succeeded)
                               const SizedBox(
@@ -193,7 +193,7 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
                             if (_failed)
                               PrimaryButton(
                                 label: "Try again",
-                                onPressed: () => _fuseAgain,
+                                onPressed: _fuseAgain,
                               ),
                             if (_failed)
                               const SizedBox(

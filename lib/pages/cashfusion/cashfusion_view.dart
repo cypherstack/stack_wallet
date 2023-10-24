@@ -148,9 +148,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
               Theme.of(context).extension<StackColors>()!.background,
           appBar: AppBar(
             automaticallyImplyLeading: false,
-            leading: AppBarBackButton(onPressed: () {
-              _stop();
-            }),
+            leading: const AppBarBackButton(),
             title: Text(
               "CashFusion",
               style: STextStyles.navBarTitle(context),
@@ -444,22 +442,5 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
         ),
       ),
     );
-  }
-
-  /// Stops the fusion process.
-  ///
-  /// This is called when the user presses the back button.
-  void _stop() async {
-    final fusionWallet = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .wallet as FusionWalletInterface;
-
-    await fusionWallet.stop();
-    // TODO await successful cancellation and showLoading while it stops.
-
-    if (mounted) {
-      Navigator.of(context).pop();
-    }
   }
 }
