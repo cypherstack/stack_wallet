@@ -228,6 +228,7 @@ mixin FusionWalletInterface {
             CashFusionState(status: CashFusionStatus.waiting, info: info);
         _uiState?.fusionState =
             CashFusionState(status: CashFusionStatus.waiting, info: info);
+        _uiState?.failed = false;
         break;
     }
   }

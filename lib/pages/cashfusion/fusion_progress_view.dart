@@ -232,6 +232,17 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
 
     final fusionInfo = ref.read(prefsChangeNotifierProvider).fusionServerInfo;
 
+    try {
+      fusionWallet.uiState = ref.read(
+        fusionProgressUIStateProvider(widget.walletId),
+      );
+    } catch (e) {
+      if (!e.toString().contains(
+          "FusionProgressUIState was already set for ${widget.walletId}")) {
+        rethrow;
+      }
+    }
+
     unawaited(fusionWallet.fuse(fusionInfo: fusionInfo));
   }
 }
