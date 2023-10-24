@@ -400,6 +400,20 @@ class _TransactionV2DetailsViewState
     final currentHeight = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManager(walletId).currentHeight));
 
+    final String outputLabel;
+
+    if (_transaction.subType == TransactionSubType.cashFusion) {
+      outputLabel = "Outputs";
+    } else if (_transaction.type == TransactionType.incoming) {
+      if (data.length == 1 && data.first.addresses.length == 1) {
+        outputLabel = "Receiving address";
+      } else {
+        outputLabel = "Receiving addresses";
+      }
+    } else {
+      outputLabel = "Sent to";
+    }
+
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
@@ -626,8 +640,11 @@ class _TransactionV2DetailsViewState
                                                     context)
                                             .copyWith(
                                             color: _transaction.type ==
-                                                    TransactionType.outgoing && _transaction.subType !=
-                                                TransactionSubType.cashFusion
+                                                        TransactionType
+                                                            .outgoing &&
+                                                    _transaction.subType !=
+                                                        TransactionSubType
+                                                            .cashFusion
                                                 ? Theme.of(context)
                                                     .extension<StackColors>()!
                                                     .accentColorOrange
@@ -731,10 +748,7 @@ class _TransactionV2DetailsViewState
                                               );
                                             },
                                             child: Text(
-                                              _transaction.type ==
-                                                      TransactionType.outgoing
-                                                  ? "Sent to"
-                                                  : "Received at",
+                                              outputLabel,
                                               style: isDesktop
                                                   ? STextStyles
                                                       .desktopTextExtraExtraSmall(
@@ -750,82 +764,102 @@ class _TransactionV2DetailsViewState
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                              ...data.map(
-                                                (e) {
-                                                  return Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        ...e.addresses.map(
-                                                          (e) {
-                                                            return FutureBuilder(
-                                                              future:
-                                                                  fetchContactNameFor(
-                                                                      e),
-                                                              builder: (builderContext,
-                                                                  AsyncSnapshot<
-                                                                          String>
-                                                                      snapshot) {
-                                                                final String
-                                                                    addressOrContactName;
-                                                                if (snapshot.connectionState ==
-                                                                        ConnectionState
-                                                                            .done &&
-                                                                    snapshot
-                                                                        .hasData) {
-                                                                  addressOrContactName =
+                                              if (data.length == 1 &&
+                                                  data.first.addresses.length ==
+                                                      1)
+                                                FutureBuilder(
+                                                  future: fetchContactNameFor(
+                                                      data.first.addresses
+                                                          .first),
+                                                  builder: (builderContext,
+                                                      AsyncSnapshot<String>
+                                                          snapshot) {
+                                                    String
+                                                        addressOrContactName =
+                                                        data.first.addresses
+                                                            .first;
+                                                    if (snapshot.connectionState ==
+                                                            ConnectionState
+                                                                .done &&
+                                                        snapshot.hasData) {
+                                                      addressOrContactName =
+                                                          snapshot.data!;
+                                                    }
+                                                    return SelectableText(
+                                                      addressOrContactName,
+                                                      style: isDesktop
+                                                          ? STextStyles
+                                                                  .desktopTextExtraExtraSmall(
+                                                                      context)
+                                                              .copyWith(
+                                                              color: Theme.of(
+                                                                      context)
+                                                                  .extension<
+                                                                      StackColors>()!
+                                                                  .textDark,
+                                                            )
+                                                          : STextStyles
+                                                              .itemSubtitle12(
+                                                                  context),
+                                                    );
+                                                  },
+                                                ),
+                                              if (!(data.length == 1 &&
+                                                  data.first.addresses.length ==
+                                                      1))
+                                                ...data.map(
+                                                  (group) {
+                                                    return Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              8.0),
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          ...group.addresses
+                                                              .map(
+                                                            (e) {
+                                                              return FutureBuilder(
+                                                                future:
+                                                                    fetchContactNameFor(
+                                                                        e),
+                                                                builder: (builderContext,
+                                                                    AsyncSnapshot<
+                                                                            String>
+                                                                        snapshot) {
+                                                                  final String
+                                                                      addressOrContactName;
+                                                                  if (snapshot.connectionState ==
+                                                                          ConnectionState
+                                                                              .done &&
                                                                       snapshot
-                                                                          .data!;
-                                                                } else {
-                                                                  addressOrContactName =
-                                                                      e;
-                                                                }
+                                                                          .hasData) {
+                                                                    addressOrContactName =
+                                                                        snapshot
+                                                                            .data!;
+                                                                  } else {
+                                                                    addressOrContactName =
+                                                                        e;
+                                                                  }
 
-                                                                return SelectableText(
-                                                                  addressOrContactName,
-                                                                  style: isDesktop
-                                                                      ? STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                                                                          color: Theme.of(context)
-                                                                              .extension<StackColors>()!
-                                                                              .textDark,
-                                                                        )
-                                                                      : STextStyles.itemSubtitle12(context),
-                                                                );
-                                                              },
-                                                            );
-                                                          },
-                                                        ),
-                                                        SelectableText(
-                                                          ref
-                                                              .watch(
-                                                                  pAmountFormatter(
-                                                                      coin))
-                                                              .format(e.amount),
-                                                          style: isDesktop
-                                                              ? STextStyles
-                                                                      .desktopTextExtraExtraSmall(
-                                                                          context)
-                                                                  .copyWith(
-                                                                  color: Theme.of(
-                                                                          context)
-                                                                      .extension<
-                                                                          StackColors>()!
-                                                                      .textDark,
-                                                                )
-                                                              : STextStyles
-                                                                  .titleBold12(
-                                                                      context),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  );
-                                                },
-                                              ),
+                                                                  return OutputCard(
+                                                                    address:
+                                                                        addressOrContactName,
+                                                                    amount: group
+                                                                        .amount,
+                                                                    coin: coin,
+                                                                  );
+                                                                },
+                                                              );
+                                                            },
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
                                             ],
                                           ),
                                         ],
@@ -1475,6 +1509,65 @@ class _TransactionV2DetailsViewState
           ),
         ),
       ),
+    );
+  }
+}
+
+class OutputCard extends ConsumerWidget {
+  const OutputCard({
+    super.key,
+    required this.address,
+    required this.amount,
+    required this.coin,
+  });
+
+  final String address;
+  final Amount amount;
+  final Coin coin;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Address",
+          style: Util.isDesktop
+              ? STextStyles.desktopTextExtraExtraSmall(context)
+              : STextStyles.itemSubtitle(context),
+        ),
+        SelectableText(
+          address,
+          style: Util.isDesktop
+              ? STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+                  color: Theme.of(context).extension<StackColors>()!.textDark,
+                )
+              : STextStyles.itemSubtitle12(context),
+        ),
+        const SizedBox(
+          height: 10,
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "Amount",
+              style: Util.isDesktop
+                  ? STextStyles.desktopTextExtraExtraSmall(context)
+                  : STextStyles.itemSubtitle(context),
+            ),
+            SelectableText(
+              ref.watch(pAmountFormatter(coin)).format(amount),
+              style: Util.isDesktop
+                  ? STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+                      color:
+                          Theme.of(context).extension<StackColors>()!.textDark,
+                    )
+                  : STextStyles.itemSubtitle12(context),
+            ),
+          ],
+        )
+      ],
     );
   }
 }
