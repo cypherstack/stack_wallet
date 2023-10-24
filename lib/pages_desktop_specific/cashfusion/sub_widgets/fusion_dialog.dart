@@ -40,9 +40,7 @@ class FusionDialogView extends ConsumerStatefulWidget {
 
 class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
   Future<bool> _requestAndProcessCancel() async {
-    if (!ref
-        .read(fusionProgressUIStateProvider(widget.walletId).notifier)
-        .running) {
+    if (!ref.read(fusionProgressUIStateProvider(widget.walletId)).running) {
       return true;
     } else {
       bool? shouldCancel = await showDialog<bool?>(
