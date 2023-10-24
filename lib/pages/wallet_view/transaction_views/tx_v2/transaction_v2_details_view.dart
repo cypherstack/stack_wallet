@@ -447,6 +447,7 @@ class _TransactionV2DetailsViewState
               ? const EdgeInsets.only(left: 32)
               : const EdgeInsets.all(12),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               if (isDesktop)
                 Row(
@@ -459,7 +460,7 @@ class _TransactionV2DetailsViewState
                     const DesktopDialogCloseButton(),
                   ],
                 ),
-              Expanded(
+              Flexible(
                 child: Padding(
                   padding: isDesktop
                       ? const EdgeInsets.only(
@@ -487,6 +488,7 @@ class _TransactionV2DetailsViewState
                             ? const EdgeInsets.all(0)
                             : const EdgeInsets.all(4),
                         child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             RoundedWhiteContainer(
@@ -803,13 +805,23 @@ class _TransactionV2DetailsViewState
                                                                   context),
                                                     );
                                                   },
-                                                ),
-                                              if (!(data.length == 1 &&
-                                                  data.first.addresses.length ==
-                                                      1))
-                                                ...data.map(
-                                                  (group) {
-                                                    return Padding(
+                                                )
+                                              else
+                                                for (int i = 0;
+                                                    i < data.length;
+                                                    i++)
+                                                  ConditionalParent(
+                                                    condition: i > 0,
+                                                    builder: (child) => Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .stretch,
+                                                      children: [
+                                                        const _Divider(),
+                                                        child,
+                                                      ],
+                                                    ),
+                                                    child: Padding(
                                                       padding:
                                                           const EdgeInsets.all(
                                                               8.0),
@@ -818,7 +830,8 @@ class _TransactionV2DetailsViewState
                                                             CrossAxisAlignment
                                                                 .start,
                                                         children: [
-                                                          ...group.addresses
+                                                          ...data[i]
+                                                              .addresses
                                                               .map(
                                                             (e) {
                                                               return FutureBuilder(
@@ -847,7 +860,8 @@ class _TransactionV2DetailsViewState
                                                                   return OutputCard(
                                                                     address:
                                                                         addressOrContactName,
-                                                                    amount: group
+                                                                    amount: data[
+                                                                            i]
                                                                         .amount,
                                                                     coin: coin,
                                                                   );
@@ -857,9 +871,8 @@ class _TransactionV2DetailsViewState
                                                           ),
                                                         ],
                                                       ),
-                                                    );
-                                                  },
-                                                ),
+                                                    ),
+                                                  ),
                                             ],
                                           ),
                                         ],
