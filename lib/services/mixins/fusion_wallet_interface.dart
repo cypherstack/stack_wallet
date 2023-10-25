@@ -12,6 +12,7 @@ import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/models/fusion_progress_ui_state.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages_desktop_specific/cashfusion/sub_widgets/fusion_dialog.dart';
+import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart';
 import 'package:stackwallet/services/fusion_tor_service.dart';
 import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -430,6 +431,9 @@ mixin FusionWalletInterface {
         serverHost: fusionInfo.host,
         serverPort: fusionInfo.port,
         serverSsl: fusionInfo.ssl,
+        genesisHashHex:
+            _coin.isTestNet ? GENESIS_HASH_TESTNET : GENESIS_HASH_MAINNET,
+        enableDebugPrint: true, // TODO set to false on release
       );
 
       // Instantiate a Fusion object with custom parameters.
