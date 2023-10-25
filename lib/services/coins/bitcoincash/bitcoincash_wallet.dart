@@ -151,6 +151,7 @@ class BitcoinCashWallet extends CoinServiceAPI
       mnemonic: mnemonicString,
       mnemonicPassphrase: mnemonicPassphrase,
       network: _network,
+      convertToScriptHash: _convertToScriptHash,
     );
     initCoinControlInterface(
       walletId: walletId,

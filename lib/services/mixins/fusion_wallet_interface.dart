@@ -125,6 +125,8 @@ mixin FusionWalletInterface {
   late final CachedElectrumX Function() _getWalletCachedElectrumX;
   late final Future<int> Function() _getChainHeight;
   late final Future<void> Function() _updateWalletUTXOS;
+  late final String Function(String bchAddress, btcdart.NetworkType network)
+      _convertToScriptHash;
 
   // Fusion object.
   fusion.Fusion? _mainFusionObject;
@@ -154,6 +156,9 @@ mixin FusionWalletInterface {
     required Future<String?> mnemonic,
     required Future<String?> mnemonicPassphrase,
     required btcdart.NetworkType network,
+    required final String Function(
+            String bchAddress, btcdart.NetworkType network)
+        convertToScriptHash,
   }) async {
     // Set passed in wallet data.
     _walletId = walletId;
@@ -167,6 +172,7 @@ mixin FusionWalletInterface {
     _mnemonic = mnemonic;
     _mnemonicPassphrase = mnemonicPassphrase;
     _network = network;
+    _convertToScriptHash = convertToScriptHash;
   }
 
   // callback to update the ui state object
@@ -409,6 +415,26 @@ mixin FusionWalletInterface {
     }
   }
 
+  Future<bool> _checkUtxoExists(
+    String address,
+    String prevTxid,
+    int prevIndex,
+  ) async {
+    final scriptHash = _convertToScriptHash(address, _network);
+
+    final utxos = await _getWalletCachedElectrumX()
+        .electrumXClient
+        .getUTXOs(scripthash: scriptHash);
+
+    for (final utxo in utxos) {
+      if (utxo["tx_hash"] == prevTxid && utxo["tx_pos"] == prevIndex) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   // Initial attempt for CashFusion integration goes here.
 
   /// Fuse the wallet's UTXOs.
@@ -446,6 +472,7 @@ mixin FusionWalletInterface {
         getSocksProxyAddress: _getSocksProxyAddress,
         getChainHeight: _getChainHeight,
         updateStatusCallback: _updateStatus,
+        checkUtxoExists: _checkUtxoExists,
         getTransactionJson: (String txid) async =>
             await _getWalletCachedElectrumX().getTransaction(
           coin: _coin,
