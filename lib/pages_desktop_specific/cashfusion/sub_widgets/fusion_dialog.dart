@@ -232,7 +232,7 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                           child: PrimaryButton(
                             buttonHeight: ButtonHeight.m,
                             label: "Fuse again",
-                            onPressed: () => _fuseAgain,
+                            onPressed: _fuseAgain,
                           ),
                         ),
                       if (_succeeded)
@@ -244,7 +244,7 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
                           child: PrimaryButton(
                             buttonHeight: ButtonHeight.m,
                             label: "Try again",
-                            onPressed: () => _fuseAgain,
+                            onPressed: _fuseAgain,
                           ),
                         ),
                       if (_failed)
@@ -289,6 +289,17 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
         .wallet as FusionWalletInterface;
 
     final fusionInfo = ref.read(prefsChangeNotifierProvider).fusionServerInfo;
+
+    try {
+      fusionWallet.uiState = ref.read(
+        fusionProgressUIStateProvider(widget.walletId),
+      );
+    } catch (e) {
+      if (!e.toString().contains(
+          "FusionProgressUIState was already set for ${widget.walletId}")) {
+        rethrow;
+      }
+    }
 
     unawaited(fusionWallet.fuse(fusionInfo: fusionInfo));
   }
