@@ -326,18 +326,22 @@ mixin FusionWalletInterface {
   }
 
   /// Reserve an address for fusion.
-  Future<Address> _reserveAddress(Address address) async {
-    address = address.copyWith(otherData: kReservedFusionAddress);
-
-    // Make sure the address is updated in the database as reserved for Fusion.
-    final _address = await _db.getAddress(_walletId, address.value);
-    if (_address != null) {
-      await _db.updateAddress(_address, address);
-    } else {
-      await _db.putAddress(address);
+  Future<List<Address>> _reserveAddresses(Iterable<Address> addresses) async {
+    if (addresses.isEmpty) {
+      return [];
     }
 
-    return address;
+    final updatedAddresses = addresses
+        .map((e) => e.copyWith(otherData: kReservedFusionAddress))
+        .toList();
+
+    await _db.isar.writeTxn(() async {
+      await _db.isar.addresses
+          .deleteAll(updatedAddresses.map((e) => e.id).toList());
+      await _db.isar.addresses.putAll(updatedAddresses);
+    });
+
+    return updatedAddresses;
   }
 
   /// un reserve a fusion reserved address.
@@ -366,10 +370,12 @@ mixin FusionWalletInterface {
     );
 
     // Initialize a list of unused reserved change addresses.
-    final List<Address> unusedReservedAddresses = [];
-    for (final address in unusedChangeAddresses) {
-      unusedReservedAddresses.add(await _reserveAddress(address));
-    }
+    final List<Address> unusedReservedAddresses = unusedChangeAddresses
+        .where((e) => e.otherData == kReservedFusionAddress)
+        .toList();
+
+    unusedReservedAddresses.addAll(await _reserveAddresses(
+        unusedChangeAddresses.where((e) => e.otherData == null)));
 
     // Return the list of unused reserved change addresses.
     return unusedReservedAddresses
