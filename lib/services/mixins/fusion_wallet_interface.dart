@@ -336,9 +336,19 @@ mixin FusionWalletInterface {
         .toList();
 
     await _db.isar.writeTxn(() async {
-      await _db.isar.addresses
-          .deleteAll(updatedAddresses.map((e) => e.id).toList());
-      await _db.isar.addresses.putAll(updatedAddresses);
+      for (final newAddress in updatedAddresses) {
+        final oldAddress = await _db.getAddress(
+          newAddress.walletId,
+          newAddress.value,
+        );
+
+        if (oldAddress != null) {
+          newAddress.id = oldAddress.id;
+          await _db.isar.addresses.delete(oldAddress.id);
+        }
+
+        await _db.isar.addresses.put(newAddress);
+      }
     });
 
     return updatedAddresses;
