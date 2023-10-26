@@ -805,9 +805,11 @@ packages:
   fusiondart:
     dependency: "direct main"
     description:
-      path: fusiondart
-      relative: true
-    source: path
+      path: "."
+      ref: "0e7ebee90d90ba0967f773c96e08410d2c87b417"
+      resolved-ref: "0e7ebee90d90ba0967f773c96e08410d2c87b417"
+      url: "https://github.com/cypherstack/fusiondart.git"
+    source: git
     version: "1.0.0"
   glob:
     dependency: transitive

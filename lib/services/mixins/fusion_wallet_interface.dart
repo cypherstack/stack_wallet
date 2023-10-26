@@ -17,6 +17,7 @@ import 'package:stackwallet/services/fusion_tor_service.dart';
 import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 
 const String kReservedFusionAddress = "reserved_fusion_address";
@@ -104,6 +105,8 @@ mixin FusionWalletInterface {
   late final Future<String?> _mnemonic;
   late final Future<String?> _mnemonicPassphrase;
   late final btcdart.NetworkType _network;
+
+  final _prefs = Prefs.instance;
 
   // setting values on this should notify any listeners (the GUI)
   FusionProgressUIState? _uiState;
@@ -462,6 +465,7 @@ mixin FusionWalletInterface {
         genesisHashHex:
             _coin.isTestNet ? GENESIS_HASH_TESTNET : GENESIS_HASH_MAINNET,
         enableDebugPrint: kDebugMode,
+        torForOvert: _prefs.useTor,
         mode: fusion.FusionMode.normal,
       );
 
