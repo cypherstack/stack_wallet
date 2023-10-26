@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:bitbox/bitbox.dart' as bitbox;
 import 'package:bitcoindart/bitcoindart.dart' as btcdart;
+import 'package:flutter/foundation.dart';
 import 'package:fusiondart/fusiondart.dart' as fusion;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
@@ -36,11 +36,13 @@ class FusionInfo {
     required this.rounds,
   }) : assert(rounds >= 0);
 
-  // TODO update defaults
   static const DEFAULTS = FusionInfo(
-    host: "cashfusion.stackwallet.com",
-    port: 8787,
-    ssl: false,
+    host: "fusion.servo.cash",
+    port: 8789,
+    ssl: true,
+    // host: "cashfusion.stackwallet.com",
+    // port: 8787,
+    // ssl: false,
     rounds: 0, // 0 is continuous
   );
 
@@ -459,7 +461,7 @@ mixin FusionWalletInterface {
         serverSsl: fusionInfo.ssl,
         genesisHashHex:
             _coin.isTestNet ? GENESIS_HASH_TESTNET : GENESIS_HASH_MAINNET,
-        enableDebugPrint: true, // TODO set to false on release
+        enableDebugPrint: kDebugMode,
         mode: fusion.FusionMode.normal,
       );
 
