@@ -62,6 +62,11 @@ dependencies:
       url: https://github.com/cypherstack/tor.git
       ref: 0a6888282f4e98401051a396e9d2293bd55ac2c2
 
+  fusiondart:
+    git:
+      url: https://github.com/cypherstack/fusiondart.git
+      ref: 30b9495eaeb3bfcd80b57a1879113a7d85ed054c
+
   # Utility plugins
   http: ^0.13.0
   local_auth: ^1.1.10
@@ -144,8 +149,6 @@ dependencies:
   nanodart: ^2.0.0
   basic_utils: ^5.5.4
   stellar_flutter_sdk: ^1.5.3
-  fusiondart:
-    path: ./fusiondart
   socks_socket:
     git:
       url: https://github.com/cypherstack/socks_socket.git
