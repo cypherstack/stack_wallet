@@ -278,10 +278,10 @@ class BitcoinCashWallet extends CoinServiceAPI
     if (txCountInDB == 0) {
       // double check via electrumx
       // _getTxCountForAddress can throw!
-      final count = await getTxCount(address: address);
-      if (count == 0) {
-        return true;
-      }
+      // final count = await getTxCount(address: address);
+      // if (count == 0) {
+      return true;
+      // }
     }
 
     return false;
