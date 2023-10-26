@@ -460,6 +460,7 @@ mixin FusionWalletInterface {
         genesisHashHex:
             _coin.isTestNet ? GENESIS_HASH_TESTNET : GENESIS_HASH_MAINNET,
         enableDebugPrint: true, // TODO set to false on release
+        mode: fusion.FusionMode.normal,
       );
 
       // Instantiate a Fusion object with custom parameters.
