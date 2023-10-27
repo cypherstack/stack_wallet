@@ -52,55 +52,67 @@ class FusionProgressUIState extends ChangeNotifier {
   CashFusionState _connecting =
       CashFusionState(status: CashFusionStatus.waiting, info: null);
   CashFusionState get connecting => _connecting;
-  set connecting(CashFusionState state) {
+  void setConnecting(CashFusionState state, {bool shouldNotify = true}) {
     _connecting = state;
     _running = true;
-    notifyListeners();
+    if (shouldNotify) {
+      notifyListeners();
+    }
   }
 
   CashFusionState _outputs =
       CashFusionState(status: CashFusionStatus.waiting, info: null);
   CashFusionState get outputs => _outputs;
-  set outputs(CashFusionState state) {
+  void setOutputs(CashFusionState state, {bool shouldNotify = true}) {
     _outputs = state;
     _running = true;
-    notifyListeners();
+    if (shouldNotify) {
+      notifyListeners();
+    }
   }
 
   CashFusionState _peers =
       CashFusionState(status: CashFusionStatus.waiting, info: null);
   CashFusionState get peers => _peers;
-  set peers(CashFusionState state) {
+  void setPeers(CashFusionState state, {bool shouldNotify = true}) {
     _peers = state;
     _running = true;
-    notifyListeners();
+    if (shouldNotify) {
+      notifyListeners();
+    }
   }
 
   CashFusionState _fusing =
       CashFusionState(status: CashFusionStatus.waiting, info: null);
   CashFusionState get fusing => _fusing;
-  set fusing(CashFusionState state) {
+  void setFusing(CashFusionState state, {bool shouldNotify = true}) {
     _fusing = state;
-    _updateRunningState(state.status);
-    notifyListeners();
+    _running = true;
+    if (shouldNotify) {
+      notifyListeners();
+    }
   }
 
   CashFusionState _complete =
       CashFusionState(status: CashFusionStatus.waiting, info: null);
   CashFusionState get complete => _complete;
-  set complete(CashFusionState state) {
+  void setComplete(CashFusionState state, {bool shouldNotify = true}) {
     _complete = state;
-    _updateRunningState(state.status);
-    notifyListeners();
+    _running = true;
+    if (shouldNotify) {
+      notifyListeners();
+    }
   }
 
   CashFusionState _fusionStatus =
       CashFusionState(status: CashFusionStatus.waiting, info: null);
   CashFusionState get fusionState => _fusionStatus;
-  set fusionState(CashFusionState state) {
+  void setFusionState(CashFusionState state, {bool shouldNotify = true}) {
     _fusionStatus = state;
     _updateRunningState(state.status);
-    notifyListeners();
+    if (shouldNotify) {
+      notifyListeners();
+    }
   }
 
   /// An int storing the number of successfully completed fusion rounds.
@@ -141,17 +153,21 @@ class FusionProgressUIState extends ChangeNotifier {
   /// Used to be named maxConsecutiveFusionRoundsFailed.
   bool _failed = false;
   bool get failed => _failed;
-  set failed(bool failed) {
+  void setFailed(bool failed, {bool shouldNotify = true}) {
     _failed = failed;
-    notifyListeners();
+    if (shouldNotify) {
+      notifyListeners();
+    }
   }
 
   /// A flag indicating that fusion is running.
   bool _running = false;
   bool get running => _running;
-  set running(bool running) {
+  void setRunning(bool running, {bool shouldNotify = true}) {
     _running = running;
-    notifyListeners();
+    if (shouldNotify) {
+      notifyListeners();
+    }
   }
 
   /// A helper method for setting the running flag.
