@@ -28,4 +28,15 @@ class SigningData {
   Uint8List? output;
   ECPair? keyPair;
   Uint8List? redeemScript;
+
+  @override
+  String toString() {
+    return "SigningData{\n"
+        "  derivePathType: $derivePathType,\n"
+        "  utxo: $utxo,\n"
+        "  output: $output,\n"
+        "  keyPair: $keyPair,\n"
+        "  redeemScript: $redeemScript,\n"
+        "}";
+  }
 }
