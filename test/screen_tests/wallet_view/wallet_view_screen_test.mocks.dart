@@ -236,6 +236,11 @@ class MockManager extends _i1.Mock implements _i6.Manager {
         returnValue: false,
       ) as bool);
   @override
+  bool get hasFusionSupport => (super.noSuchMethod(
+        Invocation.getter(#hasFusionSupport),
+        returnValue: false,
+      ) as bool);
+  @override
   int get rescanOnOpenVersion => (super.noSuchMethod(
         Invocation.getter(#rescanOnOpenVersion),
         returnValue: 0,
