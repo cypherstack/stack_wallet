@@ -2668,28 +2668,30 @@ class BitcoinCashWallet extends CoinServiceAPI
     try {
       // Populating the addresses to check
       for (var i = 0; i < utxosToUse.length; i++) {
-        final txid = utxosToUse[i].txid;
-        final tx = await _cachedElectrumXClient.getTransaction(
-          txHash: txid,
-          coin: coin,
-        );
+        if (utxosToUse[i].address == null) {
+          final txid = utxosToUse[i].txid;
+          final tx = await _cachedElectrumXClient.getTransaction(
+            txHash: txid,
+            coin: coin,
+          );
 
-        for (final output in tx["vout"] as List) {
-          final n = output["n"];
-          if (n != null && n == utxosToUse[i].vout) {
-            String address =
-                output["scriptPubKey"]?["addresses"]?[0] as String? ??
-                    output["scriptPubKey"]["address"] as String;
-            if (bitbox.Address.detectFormat(address) !=
-                bitbox.Address.formatCashAddr) {
-              try {
-                address = bitbox.Address.toCashAddress(address);
-              } catch (_) {
-                rethrow;
+          for (final output in tx["vout"] as List) {
+            final n = output["n"];
+            if (n != null && n == utxosToUse[i].vout) {
+              String address =
+                  output["scriptPubKey"]?["addresses"]?[0] as String? ??
+                      output["scriptPubKey"]["address"] as String;
+              if (bitbox.Address.detectFormat(address) !=
+                  bitbox.Address.formatCashAddr) {
+                try {
+                  address = bitbox.Address.toCashAddress(address);
+                } catch (_) {
+                  rethrow;
+                }
               }
-            }
 
-            utxosToUse[i] = utxosToUse[i].copyWith(address: address);
+              utxosToUse[i] = utxosToUse[i].copyWith(address: address);
+            }
           }
         }
 
