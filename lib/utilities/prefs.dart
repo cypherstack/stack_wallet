@@ -12,6 +12,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/services/event_bus/events/global/tor_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
@@ -64,6 +65,7 @@ class Prefs extends ChangeNotifier {
       await _setAmountUnits();
       await _setMaxDecimals();
       _useTor = await _getUseTor();
+      _fusionServerInfo = await _getFusionServerInfo();
 
       _initialized = true;
     }
@@ -930,5 +932,36 @@ class Prefs extends ChangeNotifier {
           key: "useTor",
         ) as bool? ??
         false;
+  }
+
+  // fusion server info
+
+  FusionInfo _fusionServerInfo = FusionInfo.DEFAULTS;
+
+  FusionInfo get fusionServerInfo => _fusionServerInfo;
+
+  set fusionServerInfo(FusionInfo fusionServerInfo) {
+    if (this.fusionServerInfo != fusionServerInfo) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "fusionServerInfo",
+        value: fusionServerInfo.toJsonString(),
+      );
+      _fusionServerInfo = fusionServerInfo;
+      notifyListeners();
+    }
+  }
+
+  Future<FusionInfo> _getFusionServerInfo() async {
+    final saved = await DB.instance.get<dynamic>(
+      boxName: DB.boxNamePrefs,
+      key: "fusionServerInfo",
+    ) as String?;
+
+    try {
+      return FusionInfo.fromJsonString(saved!);
+    } catch (_) {
+      return FusionInfo.DEFAULTS;
+    }
   }
 }

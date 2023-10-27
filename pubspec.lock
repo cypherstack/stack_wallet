@@ -98,6 +98,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
+  bip340:
+    dependency: "direct main"
+    description:
+      name: bip340
+      sha256: "2a92f6ed68959f75d67c9a304c17928b9c9449587d4f75ee68f34152f7f69e87"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
   bip39:
     dependency: "direct main"
     description:
@@ -254,6 +262,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.6.0"
+  coinlib:
+    dependency: transitive
+    description:
+      name: coinlib
+      sha256: "410993f49aef30e48b76bbad8a33fef33f6b90e103b15b6be0277683ffe15399"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
+  coinlib_flutter:
+    dependency: "direct main"
+    description:
+      name: coinlib_flutter
+      sha256: d0a6a3694fc8c851f6b912bb1c552e33998e3f453efab3d62f75c0b1773d1ab9
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   collection:
     dependency: transitive
     description:
@@ -279,7 +303,7 @@ packages:
     source: hosted
     version: "1.2.4"
   convert:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: convert
       sha256: "0f08b14755d163f6e2134cb58222dd25ea2a2ee8a195e53983d57c075324d592"
@@ -597,6 +621,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0+1"
+  flutter_hooks:
+    dependency: "direct main"
+    description:
+      name: flutter_hooks
+      sha256: "7c8db779c2d1010aa7f9ea3fbefe8f86524fcb87b69e8b0af31e1a4b55422dec"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.20.3"
   flutter_launcher_icons:
     dependency: "direct dev"
     description:
@@ -770,6 +802,15 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  fusiondart:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: df8f7c627cfc77eaa3e364c0d166f3d04169ae05
+      resolved-ref: df8f7c627cfc77eaa3e364c0d166f3d04169ae05
+      url: "https://github.com/cypherstack/fusiondart.git"
+    source: git
+    version: "1.0.0"
   glob:
     dependency: transitive
     description:
@@ -1451,6 +1492,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.3+dev.3"
+  socks_socket:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: master
+      resolved-ref: ac6d721fe655208a6d488a088a35bab0ddc25702
+      url: "https://github.com/cypherstack/socks_socket.git"
+    source: git
+    version: "0.1.0"
   source_gen:
     dependency: transitive
     description:
@@ -1648,8 +1698,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: c8b97bc118c7bbfe1027d0442cfadea44dc285aa
-      resolved-ref: c8b97bc118c7bbfe1027d0442cfadea44dc285aa
+      ref: "0a6888282f4e98401051a396e9d2293bd55ac2c2"
+      resolved-ref: "0a6888282f4e98401051a396e9d2293bd55ac2c2"
       url: "https://github.com/cypherstack/tor.git"
     source: git
     version: "0.0.1"
@@ -1846,6 +1896,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.0.12+1"
+  wasm_interop:
+    dependency: transitive
+    description:
+      name: wasm_interop
+      sha256: b1b378f07a4cf0103c25faf34d9a64d2c3312135b9efb47e0ec116ec3b14e48f
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
   watcher:
     dependency: transitive
     description:
@@ -1960,5 +2018,5 @@ packages:
     source: hosted
     version: "1.0.0"
 sdks:
-  dart: ">=3.0.2 <4.0.0"
+  dart: ">=3.0.6 <4.0.0"
   flutter: ">=3.10.3"

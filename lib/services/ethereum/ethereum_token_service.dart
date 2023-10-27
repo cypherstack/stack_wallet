@@ -468,7 +468,7 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
     }
 
     final response2 = await EthereumAPI.getEthTokenTransactionsByTxids(
-      response.value!.map((e) => e.transactionHash).toList(),
+      response.value!.map((e) => e.transactionHash).toSet().toList(),
     );
 
     if (response2.value == null) {
@@ -477,14 +477,25 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
     }
     final List<Tuple2<EthTokenTxDto, EthTokenTxExtraDTO>> data = [];
     for (final tokenDto in response.value!) {
-      data.add(
-        Tuple2(
-          tokenDto,
-          response2.value!.firstWhere(
-            (e) => e.hash == tokenDto.transactionHash,
+      try {
+        final txExtra = response2.value!.firstWhere(
+          (e) => e.hash == tokenDto.transactionHash,
+        );
+        data.add(
+          Tuple2(
+            tokenDto,
+            txExtra,
           ),
-        ),
-      );
+        );
+      } catch (_) {
+        // Server indexing failed for some reason. Instead of hard crashing or
+        // showing no transactions we just skip it here. Not ideal but better
+        // than nothing showing up
+        Logging.instance.log(
+          "Server error: Transaction ${tokenDto.transactionHash} not found.",
+          level: LogLevel.Error,
+        );
+      }
     }
 
     final List<Tuple2<Transaction, Address?>> txnsData = [];

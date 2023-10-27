@@ -12,13 +12,114 @@ import 'dart:convert';
 
 import 'package:bip47/src/util.dart';
 import 'package:decimal/decimal.dart';
+import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/util.dart' as util;
 import 'package:tuple/tuple.dart';
 
+class TT with ElectrumXParsing {
+  //
+}
+
 mixin ElectrumXParsing {
+  Future<TransactionV2> getTransaction(
+    String txHash,
+    Coin coin,
+    String walletId,
+    CachedElectrumX cachedElectrumX, [
+    String? debugTitle,
+  ]) async {
+    final jsonTx = await cachedElectrumX.getTransaction(
+      txHash: txHash,
+      coin: coin,
+    );
+    print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    util.Util.printJson(jsonTx, debugTitle);
+    print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+
+    // parse inputs
+    final List<InputV2> inputs = [];
+    for (final jsonInput in jsonTx["vin"] as List) {
+      final map = Map<String, dynamic>.from(jsonInput as Map);
+
+      final List<String> addresses = [];
+      String valueStringSats = "0";
+      OutpointV2? outpoint;
+
+      final coinbase = map["coinbase"] as String?;
+
+      if (coinbase == null) {
+        final txid = map["txid"] as String;
+        final vout = map["vout"] as int;
+
+        final inputTx =
+            await cachedElectrumX.getTransaction(txHash: txid, coin: coin);
+
+        final prevOutJson = Map<String, dynamic>.from(
+            (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout) as Map);
+
+        final prevOut = OutputV2.fromElectrumXJson(
+          prevOutJson,
+          decimalPlaces: coin.decimals,
+          walletOwns: false,
+        );
+
+        outpoint = OutpointV2.isarCantDoRequiredInDefaultConstructor(
+          txid: txid,
+          vout: vout,
+        );
+        valueStringSats = prevOut.valueStringSats;
+        addresses.addAll(prevOut.addresses);
+      }
+
+      final input = InputV2.isarCantDoRequiredInDefaultConstructor(
+        scriptSigHex: map["scriptSig"]?["hex"] as String?,
+        sequence: map["sequence"] as int?,
+        outpoint: outpoint,
+        valueStringSats: valueStringSats,
+        addresses: addresses,
+        witness: map["witness"] as String?,
+        coinbase: coinbase,
+        innerRedeemScriptAsm: map["innerRedeemscriptAsm"] as String?,
+        walletOwns: false,
+      );
+
+      inputs.add(input);
+    }
+
+    // parse outputs
+    final List<OutputV2> outputs = [];
+    for (final outputJson in jsonTx["vout"] as List) {
+      final output = OutputV2.fromElectrumXJson(
+        Map<String, dynamic>.from(outputJson as Map),
+        decimalPlaces: coin.decimals,
+        walletOwns: false,
+      );
+      outputs.add(output);
+    }
+
+    return TransactionV2(
+      walletId: walletId,
+      blockHash: jsonTx["blockhash"] as String?,
+      hash: jsonTx["hash"] as String,
+      txid: jsonTx["txid"] as String,
+      height: jsonTx["height"] as int?,
+      version: jsonTx["version"] as int,
+      timestamp: jsonTx["blocktime"] as int? ??
+          DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
+      inputs: List.unmodifiable(inputs),
+      outputs: List.unmodifiable(outputs),
+      subType: TransactionSubType.none,
+      type: TransactionType.unknown,
+    );
+  }
+
   Future<Tuple2<Transaction, Address>> parseTransaction(
     Map<String, dynamic> txData,
     dynamic electrumxClient,

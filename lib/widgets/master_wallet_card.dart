@@ -16,6 +16,7 @@ import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/animated_widgets/rotate_icon.dart';
 import 'package:stackwallet/widgets/expandable.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -141,7 +142,7 @@ class _MasterWalletCardState extends ConsumerState<MasterWalletCard> {
                 child: SimpleWalletCard(
                   walletId: widget.walletId,
                   contractAddress: e,
-                  popPrevious: true,
+                  popPrevious: Util.isDesktop,
                 ),
               ),
             ),

@@ -12,6 +12,8 @@ import 'package:stackwallet/db/isar/main_db.dart' as _i9;
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i6;
 import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i3;
 import 'package:stackwallet/models/isar/models/block_explorer.dart' as _i11;
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart'
+    as _i14;
 import 'package:stackwallet/models/isar/models/contact_entry.dart' as _i10;
 import 'package:stackwallet/models/isar/models/isar_models.dart' as _i12;
 import 'package:stackwallet/services/transaction_notification_tracker.dart'
@@ -855,6 +857,33 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
         ),
       ) as _i4.QueryBuilder<_i12.UTXO, _i12.UTXO, _i4.QAfterWhereClause>);
   @override
+  _i4.QueryBuilder<_i12.UTXO, _i12.UTXO, _i4.QAfterFilterCondition>
+      getUTXOsByAddress(
+    String? walletId,
+    String? address,
+  ) =>
+          (super.noSuchMethod(
+            Invocation.method(
+              #getUTXOsByAddress,
+              [
+                walletId,
+                address,
+              ],
+            ),
+            returnValue: _FakeQueryBuilder_4<_i12.UTXO, _i12.UTXO,
+                _i4.QAfterFilterCondition>(
+              this,
+              Invocation.method(
+                #getUTXOsByAddress,
+                [
+                  walletId,
+                  address,
+                ],
+              ),
+            ),
+          ) as _i4
+              .QueryBuilder<_i12.UTXO, _i12.UTXO, _i4.QAfterFilterCondition>);
+  @override
   _i5.Future<void> putUTXO(_i12.UTXO? utxo) => (super.noSuchMethod(
         Invocation.method(
           #putUTXO,
@@ -1116,6 +1145,16 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
+  @override
+  _i5.Future<List<int>> updateOrPutTransactionV2s(
+          List<_i14.TransactionV2>? transactions) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateOrPutTransactionV2s,
+          [transactions],
+        ),
+        returnValue: _i5.Future<List<int>>.value(<int>[]),
+      ) as _i5.Future<List<int>>);
   @override
   _i4.QueryBuilder<_i12.EthContract, _i12.EthContract, _i4.QWhere>
       getEthContracts() => (super.noSuchMethod(
