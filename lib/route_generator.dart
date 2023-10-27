@@ -17,6 +17,7 @@ import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/eth_token_
 import 'package:stackwallet/models/buy/response_objects/quote.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/isar/ordinal.dart';
@@ -44,6 +45,8 @@ import 'package:stackwallet/pages/address_book_views/subviews/edit_contact_name_
 import 'package:stackwallet/pages/buy_view/buy_in_wallet_view.dart';
 import 'package:stackwallet/pages/buy_view/buy_quote_preview.dart';
 import 'package:stackwallet/pages/buy_view/buy_view.dart';
+import 'package:stackwallet/pages/cashfusion/cashfusion_view.dart';
+import 'package:stackwallet/pages/cashfusion/fusion_progress_view.dart';
 import 'package:stackwallet/pages/coin_control/coin_control_view.dart';
 import 'package:stackwallet/pages/coin_control/utxo_details_view.dart';
 import 'package:stackwallet/pages/exchange_view/choose_from_stack_view.dart';
@@ -129,11 +132,15 @@ import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions
 import 'package:stackwallet/pages/wallet_view/transaction_views/edit_note_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_search_filter_view.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/all_transactions_v2_view.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/fusion_group_details_view.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages/wallets_view/wallets_overview.dart';
 import 'package:stackwallet/pages/wallets_view/wallets_view.dart';
 import 'package:stackwallet/pages_desktop_specific/address_book_view/desktop_address_book.dart';
 import 'package:stackwallet/pages_desktop_specific/addresses/desktop_wallet_addresses_view.dart';
+import 'package:stackwallet/pages_desktop_specific/cashfusion/desktop_cashfusion_view.dart';
 import 'package:stackwallet/pages_desktop_specific/coin_control/desktop_coin_control_view.dart';
 // import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_all_buys_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_buy/desktop_buy_view.dart';
@@ -570,6 +577,48 @@ class RouteGenerator {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => AddNewPaynymFollowView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case CashFusionView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => CashFusionView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case FusionProgressView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => FusionProgressView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case DesktopCashFusionView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => DesktopCashFusionView(
               walletId: args,
             ),
             settings: RouteSettings(
@@ -1214,6 +1263,42 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      case TransactionV2DetailsView.routeName:
+        if (args is ({TransactionV2 tx, Coin coin, String walletId})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => TransactionV2DetailsView(
+              transaction: args.tx,
+              coin: args.coin,
+              walletId: args.walletId,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case FusionGroupDetailsView.routeName:
+        if (args is ({
+          List<TransactionV2> transactions,
+          Coin coin,
+          String walletId
+        })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => FusionGroupDetailsView(
+              transactions: args.transactions,
+              coin: args.coin,
+              walletId: args.walletId,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       case AllTransactionsView.routeName:
         if (args is ({String walletId, bool isTokens})) {
           return getRoute(
@@ -1231,6 +1316,20 @@ class RouteGenerator {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => AllTransactionsView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case AllTransactionsV2View.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => AllTransactionsV2View(
               walletId: args,
             ),
             settings: RouteSettings(

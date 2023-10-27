@@ -13,13 +13,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/receive_view/addresses/address_tag.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/no_transactions_found.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_card.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -145,6 +151,8 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
 
   @override
   Widget build(BuildContext context) {
+    final coin = ref.watch(walletsChangeNotifierProvider
+        .select((value) => value.getManager(widget.walletId).coin));
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
@@ -258,10 +266,16 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                           borderColor: Theme.of(context)
                               .extension<StackColors>()!
                               .backgroundAppBar,
-                          child: _AddressDetailsTxList(
-                            walletId: widget.walletId,
-                            address: address,
-                          ),
+                          child: coin == Coin.bitcoincash ||
+                                  coin == Coin.bitcoincashTestnet
+                              ? _AddressDetailsTxV2List(
+                                  walletId: widget.walletId,
+                                  address: address,
+                                )
+                              : _AddressDetailsTxList(
+                                  walletId: widget.walletId,
+                                  address: address,
+                                ),
                         ),
                       ],
                     ),
@@ -377,10 +391,15 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                     height: 12,
                   ),
                 if (!isDesktop)
-                  _AddressDetailsTxList(
-                    walletId: widget.walletId,
-                    address: address,
-                  ),
+                  coin == Coin.bitcoincash || coin == Coin.bitcoincashTestnet
+                      ? _AddressDetailsTxV2List(
+                          walletId: widget.walletId,
+                          address: address,
+                        )
+                      : _AddressDetailsTxList(
+                          walletId: widget.walletId,
+                          address: address,
+                        ),
               ],
             ),
           );
@@ -433,6 +452,66 @@ class _AddressDetailsTxList extends StatelessWidget {
                   (e) => TransactionCard(
                     transaction: e,
                     walletId: walletId,
+                  ),
+                )
+                .toList(),
+          ),
+        );
+      }
+    } else {
+      return const NoTransActionsFound();
+    }
+  }
+}
+
+class _AddressDetailsTxV2List extends ConsumerWidget {
+  const _AddressDetailsTxV2List({
+    Key? key,
+    required this.walletId,
+    required this.address,
+  }) : super(key: key);
+
+  final String walletId;
+  final Address address;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final query = ref
+        .watch(mainDBProvider)
+        .isar
+        .transactionV2s
+        .where()
+        .walletIdEqualTo(walletId)
+        .filter()
+        .inputsElement((q) => q.addressesElementContains(address.value))
+        .or()
+        .outputsElement((q) => q.addressesElementContains(address.value))
+        .sortByTimestampDesc();
+
+    final count = query.countSync();
+
+    if (count > 0) {
+      if (Util.isDesktop) {
+        final txns = query.findAllSync();
+        return ListView.separated(
+          shrinkWrap: true,
+          primary: false,
+          itemBuilder: (_, index) => TransactionCardV2(
+            transaction: txns[index],
+          ),
+          separatorBuilder: (_, __) => const _Div(height: 1),
+          itemCount: count,
+        );
+      } else {
+        return RoundedWhiteContainer(
+          padding: EdgeInsets.zero,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: query
+                .findAllSync()
+                .map(
+                  (e) => TransactionCardV2(
+                    transaction: e,
                   ),
                 )
                 .toList(),

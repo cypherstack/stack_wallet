@@ -93,6 +93,9 @@ class _SVG {
 
   final coinControl = const _COIN_CONTROL();
 
+  String get peers => "assets/svg/peers.svg";
+  String get fusing => "assets/svg/fusing.svg";
+  String get upFromLine => "assets/svg/up-from-line.svg";
   String get connectedButton => "assets/svg/connected-button.svg";
   String get connectingButton => "assets/svg/connecting-button.svg";
   String get disconnectedButton => "assets/svg/disconnected-button.svg";
@@ -195,6 +198,7 @@ class _SVG {
   String get arrowDown => "assets/svg/arrow-down.svg";
   String get robotHead => "assets/svg/robot-head.svg";
   String get whirlPool => "assets/svg/whirlpool.svg";
+  String get cashFusion => "assets/svg/cashfusion-icon.svg";
   String get fingerprint => "assets/svg/fingerprint.svg";
   String get faceId => "assets/svg/faceid.svg";
   String get tokens => "assets/svg/tokens.svg";
@@ -202,6 +206,7 @@ class _SVG {
   String get creditCard => "assets/svg/cc.svg";
   String get file => "assets/svg/file.svg";
   String get fileUpload => "assets/svg/file-upload.svg";
+  String get txCashFusion => "assets/svg/tx-cashfusion.svg";
 
   String get ellipse1 => "assets/svg/Ellipse-43.svg";
   String get ellipse2 => "assets/svg/Ellipse-42.svg";

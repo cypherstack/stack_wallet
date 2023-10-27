@@ -50,16 +50,27 @@ abstract class Format {
   // }
 
   // format date string from unix timestamp
-  static String extractDateFrom(int timestamp, {bool localized = true}) {
+  static String extractDateFrom(
+    int timestamp, {
+    bool localized = true,
+    bool noTime = false,
+  }) {
     var date = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
 
     if (!localized) {
       date = date.toUtc();
     }
 
+    final dayAndYear =
+        "${date.day} ${Constants.monthMapShort[date.month]} ${date.year}";
+
+    if (noTime) {
+      return dayAndYear;
+    }
+
     final minutes =
         date.minute < 10 ? "0${date.minute}" : date.minute.toString();
-    return "${date.day} ${Constants.monthMapShort[date.month]} ${date.year}, ${date.hour}:$minutes";
+    return "$dayAndYear, ${date.hour}:$minutes";
   }
 
   // static String localizedStringAsFixed({

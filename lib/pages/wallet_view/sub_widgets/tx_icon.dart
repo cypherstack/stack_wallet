@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
@@ -27,15 +28,24 @@ class TxIcon extends ConsumerWidget {
     required this.coin,
   }) : super(key: key);
 
-  final Transaction transaction;
+  final Object transaction;
   final int currentHeight;
   final Coin coin;
 
   static const Size size = Size(32, 32);
 
   String _getAssetName(
-      bool isCancelled, bool isReceived, bool isPending, IThemeAssets assets) {
-    if (!isReceived && transaction.subType == TransactionSubType.mint) {
+    bool isCancelled,
+    bool isReceived,
+    bool isPending,
+    TransactionSubType subType,
+    IThemeAssets assets,
+  ) {
+    if (subType == TransactionSubType.cashFusion) {
+      return Assets.svg.txCashFusion;
+    }
+
+    if (!isReceived && subType == TransactionSubType.mint) {
       if (isCancelled) {
         return Assets.svg.anonymizeFailed;
       }
@@ -66,37 +76,61 @@ class TxIcon extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final txIsReceived = transaction.type == TransactionType.incoming;
+    final bool txIsReceived;
+    final String assetName;
 
-    final assetName = _getAssetName(
-      transaction.isCancelled,
-      txIsReceived,
-      !transaction.isConfirmed(
-        currentHeight,
-        coin.requiredConfirmations,
-      ),
-      ref.watch(themeAssetsProvider),
-    );
+    if (transaction is Transaction) {
+      final tx = transaction as Transaction;
+      txIsReceived = tx.type == TransactionType.incoming;
+      assetName = _getAssetName(
+        tx.isCancelled,
+        txIsReceived,
+        !tx.isConfirmed(
+          currentHeight,
+          coin.requiredConfirmations,
+        ),
+        tx.subType,
+        ref.watch(themeAssetsProvider),
+      );
+    } else if (transaction is TransactionV2) {
+      final tx = transaction as TransactionV2;
+      txIsReceived = tx.type == TransactionType.incoming;
+      assetName = _getAssetName(
+        false,
+        txIsReceived,
+        !tx.isConfirmed(
+          currentHeight,
+          coin.requiredConfirmations,
+        ),
+        tx.subType,
+        ref.watch(themeAssetsProvider),
+      );
+    } else {
+      throw ArgumentError(
+        "Unknown transaction type ${transaction.runtimeType}",
+      );
+    }
 
     return SizedBox(
       width: size.width,
       height: size.height,
       child: Center(
-          // if it starts with "assets" we assume its local
-          // TODO: a more thorough check
-          child: assetName.startsWith("assets")
-              ? SvgPicture.asset(
+        // if it starts with "assets" we assume its local
+        // TODO: a more thorough check
+        child: assetName.startsWith("assets")
+            ? SvgPicture.asset(
+                assetName,
+                width: size.width,
+                height: size.height,
+              )
+            : SvgPicture.file(
+                File(
                   assetName,
-                  width: size.width,
-                  height: size.height,
-                )
-              : SvgPicture.file(
-                  File(
-                    assetName,
-                  ),
-                  width: size.width,
-                  height: size.height,
-                )),
+                ),
+                width: size.width,
+                height: size.height,
+              ),
+      ),
     );
   }
 }

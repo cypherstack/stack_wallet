@@ -12,7 +12,7 @@ class TorService {
   Tor? _tor;
   String? _torDataDirPath;
 
-  /// Current status. Same as that fired on the event bus
+  /// Current status. Same as that fired on the event bus.
   TorConnectionStatus get status => _status;
   TorConnectionStatus _status = TorConnectionStatus.disconnected;
 
@@ -26,7 +26,7 @@ class TorService {
 
   /// Getter for the proxyInfo.
   ///
-  /// Returns null if disabled on the stack wallet level.
+  /// Throws if Tor is not connected.
   ({
     InternetAddress host,
     int port,
@@ -55,7 +55,8 @@ class TorService {
   ///
   /// This will start the Tor service and establish a Tor circuit.
   ///
-  /// Throws an exception if the Tor service fails to start.
+  /// Throws an exception if the Tor library was not inited or if the Tor
+  /// service fails to start.
   ///
   /// Returns a Future that completes when the Tor service has started.
   Future<void> start() async {
@@ -79,6 +80,9 @@ class TorService {
         status: TorConnectionStatus.connected,
         message: "TorService.start call success",
       );
+
+      // Complete the future.
+      return;
     } catch (e, s) {
       Logging.instance.log(
         "TorService.start failed: $e\n$s",
@@ -110,6 +114,8 @@ class TorService {
       status: TorConnectionStatus.disconnected,
       message: "TorService.disable call success",
     );
+
+    return;
   }
 
   void _updateStatusAndFireEvent({

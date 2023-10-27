@@ -387,7 +387,14 @@ class ElectrumX {
         throw jsonRpcResponse.exception!;
       }
 
-      final response = jsonRpcResponse.data as List;
+      final List<dynamic> response;
+      try {
+        response = jsonRpcResponse.data as List;
+      } catch (_) {
+        throw Exception(
+          "Expected json list but got a map: ${jsonRpcResponse.data}",
+        );
+      }
 
       // check for errors, format and throw if there are any
       final List<String> errors = [];
@@ -724,6 +731,14 @@ class ElectrumX {
       );
       if (!verbose) {
         return {"rawtx": response["result"] as String};
+      }
+
+      if (response["result"] == null) {
+        Logging.instance.log(
+          "getTransaction($txHash) returned null response",
+          level: LogLevel.Error,
+        );
+        throw 'getTransaction($txHash) returned null response';
       }
 
       return Map<String, dynamic>.from(response["result"] as Map);
