@@ -29,7 +29,6 @@ class EthTxDTO {
     required this.maxPriorityFeePerGas,
     required this.isError,
     required this.hasToken,
-    required this.compressedTx,
     required this.gasCost,
     required this.gasUsed,
   });
@@ -42,16 +41,15 @@ class EthTxDTO {
         timestamp: map['timestamp'] as int,
         from: map['from'] as String,
         to: map['to'] as String,
-        value: _amountFromJsonNum(map['value']),
-        gas: _amountFromJsonNum(map['gas']),
-        gasPrice: _amountFromJsonNum(map['gasPrice']),
+        value: _amountFromJsonNum(map['value'])!,
+        gas: _amountFromJsonNum(map['gas'])!,
+        gasPrice: _amountFromJsonNum(map['gasPrice'])!,
         maxFeePerGas: _amountFromJsonNum(map['maxFeePerGas']),
         maxPriorityFeePerGas: _amountFromJsonNum(map['maxPriorityFeePerGas']),
-        isError: map['isError'] as int,
-        hasToken: map['hasToken'] as int,
-        compressedTx: map['compressedTx'] as String,
-        gasCost: _amountFromJsonNum(map['gasCost']),
-        gasUsed: _amountFromJsonNum(map['gasUsed']),
+        isError: map['isError'] as bool? ?? false,
+        hasToken: map['hasToken'] as bool? ?? false,
+        gasCost: _amountFromJsonNum(map['gasCost'])!,
+        gasUsed: _amountFromJsonNum(map['gasUsed'])!,
       );
 
   final String hash;
@@ -64,17 +62,19 @@ class EthTxDTO {
   final Amount value;
   final Amount gas;
   final Amount gasPrice;
-  final Amount maxFeePerGas;
-  final Amount maxPriorityFeePerGas;
-  final int isError;
-  final int hasToken;
-  final String compressedTx;
+  final Amount? maxFeePerGas;
+  final Amount? maxPriorityFeePerGas;
+  final bool isError;
+  final bool hasToken;
   final Amount gasCost;
   final Amount gasUsed;
 
-  static Amount _amountFromJsonNum(dynamic json) {
+  static Amount? _amountFromJsonNum(dynamic json) {
+    if (json == null) {
+      return null;
+    }
     return Amount(
-      rawValue: BigInt.from(json as num),
+      rawValue: BigInt.parse(json.toString()),
       fractionDigits: Coin.ethereum.decimals,
     );
   }
@@ -92,8 +92,8 @@ class EthTxDTO {
     Amount? gasPrice,
     Amount? maxFeePerGas,
     Amount? maxPriorityFeePerGas,
-    int? isError,
-    int? hasToken,
+    bool? isError,
+    bool? hasToken,
     String? compressedTx,
     Amount? gasCost,
     Amount? gasUsed,
@@ -113,7 +113,6 @@ class EthTxDTO {
         maxPriorityFeePerGas: maxPriorityFeePerGas ?? this.maxPriorityFeePerGas,
         isError: isError ?? this.isError,
         hasToken: hasToken ?? this.hasToken,
-        compressedTx: compressedTx ?? this.compressedTx,
         gasCost: gasCost ?? this.gasCost,
         gasUsed: gasUsed ?? this.gasUsed,
       );
@@ -134,7 +133,6 @@ class EthTxDTO {
     map['maxPriorityFeePerGas'] = maxPriorityFeePerGas.toString();
     map['isError'] = isError;
     map['hasToken'] = hasToken;
-    map['compressedTx'] = compressedTx;
     map['gasCost'] = gasCost.toString();
     map['gasUsed'] = gasUsed.toString();
     return map;
