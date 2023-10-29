@@ -31,6 +31,7 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
     required this.onWhirlpoolPressed,
     required this.onOrdinalsPressed,
     required this.onMonkeyPressed,
+    required this.onFusionPressed,
   }) : super(key: key);
 
   final String walletId;
@@ -40,6 +41,7 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
   final VoidCallback? onWhirlpoolPressed;
   final VoidCallback? onOrdinalsPressed;
   final VoidCallback? onMonkeyPressed;
+  final VoidCallback? onFusionPressed;
 
   @override
   ConsumerState<MoreFeaturesDialog> createState() => _MoreFeaturesDialogState();
@@ -120,6 +122,13 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               detail: "Generate Banano MonKey",
               iconAsset: Assets.svg.monkey,
               onPressed: () => widget.onMonkeyPressed?.call(),
+            ),
+          if (manager.hasFusionSupport)
+            _MoreFeaturesItem(
+              label: "CashFusion",
+              detail: "Decentralized Bitcoin Cash mixing protocol",
+              iconAsset: Assets.svg.cashFusion,
+              onPressed: () => widget.onFusionPressed?.call(),
             ),
           const SizedBox(
             height: 28,

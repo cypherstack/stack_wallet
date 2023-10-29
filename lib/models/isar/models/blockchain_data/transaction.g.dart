@@ -364,6 +364,7 @@ const _TransactionsubTypeEnumValueMap = {
   'mint': 2,
   'join': 3,
   'ethToken': 4,
+  'cashFusion': 5,
 };
 const _TransactionsubTypeValueEnumMap = {
   0: TransactionSubType.none,
@@ -371,6 +372,7 @@ const _TransactionsubTypeValueEnumMap = {
   2: TransactionSubType.mint,
   3: TransactionSubType.join,
   4: TransactionSubType.ethToken,
+  5: TransactionSubType.cashFusion,
 };
 const _TransactiontypeEnumValueMap = {
   'outgoing': 0,

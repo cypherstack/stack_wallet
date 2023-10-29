@@ -91,7 +91,7 @@ void main() async {
           mainnetWallet?.addressType(
               address: "1DP3PUePwMa5CoZwzjznVKhzdLsZftjcAT"),
           DerivePathType.bip44);
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -102,7 +102,7 @@ void main() async {
           () => mainnetWallet?.addressType(
               address: "mhqpGtwhcR6gFuuRjLTpHo41919QfuGy8Y"),
           throwsArgumentError);
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -113,7 +113,7 @@ void main() async {
           () => mainnetWallet?.addressType(
               address: "tb1qzzlm6mnc8k54mx6akehl8p9ray8r439va5ndyq"),
           throwsArgumentError);
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -124,7 +124,7 @@ void main() async {
           () => mainnetWallet?.addressType(
               address: "mpMk94ETazqonHutyC1v6ajshgtP8oiFKU"),
           throwsArgumentError);
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -136,7 +136,7 @@ void main() async {
               address:
                   "bitcoincash:qrwjyc4pewj9utzrtnh0whkzkuvy5q8wg52n254x6k"),
           DerivePathType.bip44);
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -147,7 +147,7 @@ void main() async {
           mainnetWallet?.addressType(
               address: "qrwjyc4pewj9utzrtnh0whkzkuvy5q8wg52n254x6k"),
           DerivePathType.bip44);
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -159,7 +159,7 @@ void main() async {
               address:
                   "bitcoincash:pzpp3nchmzzf0gr69lj82ymurg5u3ds6kcwr5m07np"),
           throwsArgumentError);
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -170,7 +170,7 @@ void main() async {
           () => mainnetWallet?.addressType(
               address: "pzpp3nchmzzf0gr69lj82ymurg5u3ds6kcwr5m07np"),
           throwsArgumentError);
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -208,7 +208,7 @@ void main() async {
       expect(
           mainnetWallet?.validateAddress("1DP3PUePwMa5CoZwzjznVKhzdLsZftjcAT"),
           true);
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -219,7 +219,7 @@ void main() async {
           mainnetWallet?.validateAddress(
               "bitcoincash:qrwjyc4pewj9utzrtnh0whkzkuvy5q8wg52n254x6k"),
           true);
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -230,7 +230,7 @@ void main() async {
           mainnetWallet
               ?.validateAddress("qrwjyc4pewj9utzrtnh0whkzkuvy5q8wg52n254x6k"),
           true);
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -240,7 +240,7 @@ void main() async {
       expect(
           mainnetWallet?.validateAddress("mhqpGtwhcR6gFuuRjLTpHo41919QfuGy8Y"),
           false);
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -253,7 +253,7 @@ void main() async {
           mainnetWallet
               ?.validateAddress("pzpp3nchmzzf0gr69lj82ymurg5u3ds6kcwr5m07np"),
           false);
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -263,7 +263,7 @@ void main() async {
       expect(
           mainnetWallet?.validateAddress("3DYuVEmuKWQFxJcF7jDPhwPiXLTiNnyMFb"),
           false);
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -273,7 +273,7 @@ void main() async {
       expect(
           mainnetWallet?.validateAddress("mhqpGtwhcR6gFuuRjLTpHo41919QfuGy8Y"),
           false);
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -311,7 +311,7 @@ void main() async {
       when(client?.ping()).thenAnswer((_) async => false);
       final bool? result = await bch?.testNetworkConnection();
       expect(result, false);
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verify(client?.ping()).called(1);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
@@ -322,7 +322,7 @@ void main() async {
       when(client?.ping()).thenThrow(Exception);
       final bool? result = await bch?.testNetworkConnection();
       expect(result, false);
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verify(client?.ping()).called(1);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
@@ -333,7 +333,7 @@ void main() async {
       when(client?.ping()).thenAnswer((_) async => true);
       final bool? result = await bch?.testNetworkConnection();
       expect(result, true);
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verify(client?.ping()).called(1);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
@@ -374,7 +374,7 @@ void main() async {
 
     test("get networkType main", () async {
       expect(bch?.coin, bchcoin);
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -391,7 +391,7 @@ void main() async {
         secureStore: secureStore,
       );
       expect(bch?.coin, bchcoin);
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 4);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -399,7 +399,7 @@ void main() async {
 
     test("get cryptoCurrency", () async {
       expect(Coin.bitcoincash, Coin.bitcoincash);
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -407,7 +407,7 @@ void main() async {
 
     test("get coinName", () async {
       expect(Coin.bitcoincash, Coin.bitcoincash);
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -415,7 +415,7 @@ void main() async {
 
     test("get coinTicker", () async {
       expect(Coin.bitcoincash, Coin.bitcoincash);
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -425,7 +425,7 @@ void main() async {
       expect(Coin.bitcoincash, Coin.bitcoincash);
       bch?.walletName = "new name";
       expect(bch?.walletName, "new name");
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -440,7 +440,7 @@ void main() async {
       expect(bch?.estimateTxFee(vSize: 356, feeRatePerKB: 1699), 712);
       expect(bch?.estimateTxFee(vSize: 356, feeRatePerKB: 2000), 712);
       expect(bch?.estimateTxFee(vSize: 356, feeRatePerKB: 12345), 4628);
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -474,7 +474,7 @@ void main() async {
       verify(client?.estimateFee(blocks: 1)).called(1);
       verify(client?.estimateFee(blocks: 5)).called(1);
       verify(client?.estimateFee(blocks: 20)).called(1);
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -511,7 +511,7 @@ void main() async {
       verify(client?.estimateFee(blocks: 1)).called(1);
       verify(client?.estimateFee(blocks: 5)).called(1);
       verify(client?.estimateFee(blocks: 20)).called(1);
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -629,7 +629,7 @@ void main() async {
       await expectLater(
               () => bch?.initializeNew(null), throwsA(isA<Exception>()))
           .then((_) {
-        expect(secureStore.interactions, 2);
+        expect(secureStore.interactions, 4);
         verifyNever(client?.ping()).called(0);
         verify(client?.getServerFeatures()).called(1);
         verifyNoMoreInteractions(client);
@@ -1209,7 +1209,7 @@ void main() async {
                   "1df1cab6d109d506aa424b00b6a013c5e1947dc13b78d62b4d0e9f518b3035d1"))
           .called(1);
 
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -1234,7 +1234,7 @@ void main() async {
                   "64953f7db441a21172de206bf70b920c8c718ed4f03df9a85073c0400be0053c"))
           .called(0);
 
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -1894,7 +1894,7 @@ void main() async {
 
       verify(client?.getServerFeatures()).called(1);
 
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
     });
@@ -1936,7 +1936,7 @@ void main() async {
 
       verify(client?.getServerFeatures()).called(1);
 
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 4);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
     });
@@ -1972,7 +1972,7 @@ void main() async {
 
       verify(client?.getServerFeatures()).called(1);
 
-      expect(secureStore.interactions, 2);
+      expect(secureStore.interactions, 4);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
     });
@@ -2731,7 +2731,7 @@ void main() async {
 
       expect(didThrow, true);
 
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -2747,7 +2747,7 @@ void main() async {
 
       expect(didThrow, true);
 
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -2763,7 +2763,7 @@ void main() async {
 
       expect(didThrow, true);
 
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -2779,7 +2779,7 @@ void main() async {
 
       expect(didThrow, true);
 
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -2800,7 +2800,7 @@ void main() async {
               rawTx: "a string", requestID: anyNamed("requestID")))
           .called(1);
 
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);
@@ -2825,7 +2825,7 @@ void main() async {
               rawTx: "a string", requestID: anyNamed("requestID")))
           .called(1);
 
-      expect(secureStore.interactions, 0);
+      expect(secureStore.interactions, 2);
       verifyNoMoreInteractions(client);
       verifyNoMoreInteractions(cachedClient);
       verifyNoMoreInteractions(tracker);

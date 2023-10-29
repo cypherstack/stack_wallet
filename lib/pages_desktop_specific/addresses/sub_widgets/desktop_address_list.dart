@@ -210,30 +210,27 @@ class _DesktopAddressListState extends ConsumerState<DesktopAddressList> {
           height: 20,
         ),
         Expanded(
-          child: SingleChildScrollView(
-            child: RoundedWhiteContainer(
-              padding: EdgeInsets.zero,
-              child: ListView.separated(
-                shrinkWrap: true,
-                itemCount: ids.length,
-                separatorBuilder: (_, __) => Container(
-                  height: 1,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .backgroundAppBar,
-                ),
-                itemBuilder: (_, index) => Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: AddressCard(
-                    key: Key("addressCardDesktop_key_${ids[index]}"),
-                    walletId: widget.walletId,
-                    addressId: ids[index],
-                    coin: coin,
-                    onPressed: () {
-                      ref.read(desktopSelectedAddressId.state).state =
-                          ids[index];
-                    },
-                  ),
+          child: RoundedWhiteContainer(
+            padding: EdgeInsets.zero,
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: ids.length,
+              separatorBuilder: (_, __) => Container(
+                height: 1,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .backgroundAppBar,
+              ),
+              itemBuilder: (_, index) => Padding(
+                padding: const EdgeInsets.all(4),
+                child: AddressCard(
+                  key: Key("addressCardDesktop_key_${ids[index]}"),
+                  walletId: widget.walletId,
+                  addressId: ids[index],
+                  coin: coin,
+                  onPressed: () {
+                    ref.read(desktopSelectedAddressId.state).state = ids[index];
+                  },
                 ),
               ),
             ),

@@ -218,7 +218,10 @@ class _DesktopTokenViewState extends ConsumerState<DesktopTokenView> {
                         onTap: () {
                           Navigator.of(context).pushNamed(
                             AllTransactionsView.routeName,
-                            arguments: widget.walletId,
+                            arguments: (
+                              walletId: widget.walletId,
+                              isTokens: true,
+                            ),
                           );
                         },
                       ),

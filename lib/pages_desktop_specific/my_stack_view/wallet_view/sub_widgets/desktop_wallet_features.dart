@@ -19,6 +19,7 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/monkey/monkey_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
+import 'package:stackwallet/pages_desktop_specific/cashfusion/desktop_cashfusion_view.dart';
 import 'package:stackwallet/pages_desktop_specific/coin_control/desktop_coin_control_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_menu.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
@@ -84,6 +85,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         onWhirlpoolPressed: _onWhirlpoolPressed,
         onOrdinalsPressed: _onOrdinalsPressed,
         onMonkeyPressed: _onMonkeyPressed,
+        onFusionPressed: _onFusionPressed,
       ),
     );
   }
@@ -335,6 +337,15 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     );
   }
 
+  void _onFusionPressed() {
+    Navigator.of(context, rootNavigator: true).pop();
+
+    Navigator.of(context).pushNamed(
+      DesktopCashFusionView.routeName,
+      arguments: widget.walletId,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final manager = ref.watch(
@@ -354,7 +365,9 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         manager.coin == Coin.firoTestNet ||
         manager.hasWhirlpoolSupport ||
         manager.coin == Coin.banano ||
-        manager.hasOrdinalsSupport;
+        manager.hasOrdinalsSupport ||
+        manager.hasFusionSupport;
+
     return Row(
       children: [
         if (Constants.enableExchange)

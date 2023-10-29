@@ -141,10 +141,10 @@ class CachedElectrumX {
           await box.put(txHash, result);
         }
 
-        Logging.instance.log("using fetched result", level: LogLevel.Info);
+        // Logging.instance.log("using fetched result", level: LogLevel.Info);
         return result;
       } else {
-        Logging.instance.log("using cached result", level: LogLevel.Info);
+        // Logging.instance.log("using cached result", level: LogLevel.Info);
         return Map<String, dynamic>.from(cachedTx);
       }
     } catch (e, s) {

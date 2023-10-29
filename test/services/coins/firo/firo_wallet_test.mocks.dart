@@ -11,14 +11,15 @@ import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/db/isar/main_db.dart' as _i9;
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i6;
 import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i3;
-import 'package:stackwallet/models/isar/models/block_explorer.dart' as _i12;
-import 'package:stackwallet/models/isar/models/contact_entry.dart' as _i11;
-import 'package:stackwallet/models/isar/models/isar_models.dart' as _i13;
+import 'package:stackwallet/models/isar/models/block_explorer.dart' as _i11;
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart'
+    as _i14;
+import 'package:stackwallet/models/isar/models/contact_entry.dart' as _i10;
+import 'package:stackwallet/models/isar/models/isar_models.dart' as _i12;
 import 'package:stackwallet/services/transaction_notification_tracker.dart'
     as _i8;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i7;
-import 'package:stackwallet/wallets/isar_models/wallet_info.dart' as _i10;
-import 'package:tuple/tuple.dart' as _i14;
+import 'package:tuple/tuple.dart' as _i13;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -636,44 +637,13 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
         returnValue: _i5.Future<bool>.value(false),
       ) as _i5.Future<bool>);
   @override
-  _i5.Future<void> putWalletInfo(_i10.WalletInfo? walletInfo) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #putWalletInfo,
-          [walletInfo],
-        ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
-  @override
-  _i5.Future<void> updateWalletInfo(_i10.WalletInfo? walletInfo) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #updateWalletInfo,
-          [walletInfo],
-        ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
-  @override
-  _i5.Future<void> deleteWallet({required String? walletId}) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #deleteWallet,
-          [],
-          {#walletId: walletId},
-        ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
-  @override
-  List<_i11.ContactEntry> getContactEntries() => (super.noSuchMethod(
+  List<_i10.ContactEntry> getContactEntries() => (super.noSuchMethod(
         Invocation.method(
           #getContactEntries,
           [],
         ),
-        returnValue: <_i11.ContactEntry>[],
-      ) as List<_i11.ContactEntry>);
+        returnValue: <_i10.ContactEntry>[],
+      ) as List<_i10.ContactEntry>);
   @override
   _i5.Future<bool> deleteContactEntry({required String? id}) =>
       (super.noSuchMethod(
@@ -695,15 +665,15 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
         returnValue: _i5.Future<bool>.value(false),
       ) as _i5.Future<bool>);
   @override
-  _i11.ContactEntry? getContactEntry({required String? id}) =>
+  _i10.ContactEntry? getContactEntry({required String? id}) =>
       (super.noSuchMethod(Invocation.method(
         #getContactEntry,
         [],
         {#id: id},
-      )) as _i11.ContactEntry?);
+      )) as _i10.ContactEntry?);
   @override
   _i5.Future<bool> putContactEntry(
-          {required _i11.ContactEntry? contactEntry}) =>
+          {required _i10.ContactEntry? contactEntry}) =>
       (super.noSuchMethod(
         Invocation.method(
           #putContactEntry,
@@ -713,16 +683,16 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
         returnValue: _i5.Future<bool>.value(false),
       ) as _i5.Future<bool>);
   @override
-  _i12.TransactionBlockExplorer? getTransactionBlockExplorer(
+  _i11.TransactionBlockExplorer? getTransactionBlockExplorer(
           {required _i7.Coin? coin}) =>
       (super.noSuchMethod(Invocation.method(
         #getTransactionBlockExplorer,
         [],
         {#coin: coin},
-      )) as _i12.TransactionBlockExplorer?);
+      )) as _i11.TransactionBlockExplorer?);
   @override
   _i5.Future<int> putTransactionBlockExplorer(
-          _i12.TransactionBlockExplorer? explorer) =>
+          _i11.TransactionBlockExplorer? explorer) =>
       (super.noSuchMethod(
         Invocation.method(
           #putTransactionBlockExplorer,
@@ -731,13 +701,13 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
         returnValue: _i5.Future<int>.value(0),
       ) as _i5.Future<int>);
   @override
-  _i4.QueryBuilder<_i13.Address, _i13.Address, _i4.QAfterWhereClause>
+  _i4.QueryBuilder<_i12.Address, _i12.Address, _i4.QAfterWhereClause>
       getAddresses(String? walletId) => (super.noSuchMethod(
             Invocation.method(
               #getAddresses,
               [walletId],
             ),
-            returnValue: _FakeQueryBuilder_4<_i13.Address, _i13.Address,
+            returnValue: _FakeQueryBuilder_4<_i12.Address, _i12.Address,
                 _i4.QAfterWhereClause>(
               this,
               Invocation.method(
@@ -746,9 +716,9 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
               ),
             ),
           ) as _i4
-              .QueryBuilder<_i13.Address, _i13.Address, _i4.QAfterWhereClause>);
+              .QueryBuilder<_i12.Address, _i12.Address, _i4.QAfterWhereClause>);
   @override
-  _i5.Future<int> putAddress(_i13.Address? address) => (super.noSuchMethod(
+  _i5.Future<int> putAddress(_i12.Address? address) => (super.noSuchMethod(
         Invocation.method(
           #putAddress,
           [address],
@@ -756,7 +726,7 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
         returnValue: _i5.Future<int>.value(0),
       ) as _i5.Future<int>);
   @override
-  _i5.Future<List<int>> putAddresses(List<_i13.Address>? addresses) =>
+  _i5.Future<List<int>> putAddresses(List<_i12.Address>? addresses) =>
       (super.noSuchMethod(
         Invocation.method(
           #putAddresses,
@@ -765,7 +735,7 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
         returnValue: _i5.Future<List<int>>.value(<int>[]),
       ) as _i5.Future<List<int>>);
   @override
-  _i5.Future<List<int>> updateOrPutAddresses(List<_i13.Address>? addresses) =>
+  _i5.Future<List<int>> updateOrPutAddresses(List<_i12.Address>? addresses) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateOrPutAddresses,
@@ -774,7 +744,7 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
         returnValue: _i5.Future<List<int>>.value(<int>[]),
       ) as _i5.Future<List<int>>);
   @override
-  _i5.Future<_i13.Address?> getAddress(
+  _i5.Future<_i12.Address?> getAddress(
     String? walletId,
     String? address,
   ) =>
@@ -786,12 +756,12 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
             address,
           ],
         ),
-        returnValue: _i5.Future<_i13.Address?>.value(),
-      ) as _i5.Future<_i13.Address?>);
+        returnValue: _i5.Future<_i12.Address?>.value(),
+      ) as _i5.Future<_i12.Address?>);
   @override
   _i5.Future<int> updateAddress(
-    _i13.Address? oldAddress,
-    _i13.Address? newAddress,
+    _i12.Address? oldAddress,
+    _i12.Address? newAddress,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -804,13 +774,13 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
         returnValue: _i5.Future<int>.value(0),
       ) as _i5.Future<int>);
   @override
-  _i4.QueryBuilder<_i13.Transaction, _i13.Transaction, _i4.QAfterWhereClause>
+  _i4.QueryBuilder<_i12.Transaction, _i12.Transaction, _i4.QAfterWhereClause>
       getTransactions(String? walletId) => (super.noSuchMethod(
             Invocation.method(
               #getTransactions,
               [walletId],
             ),
-            returnValue: _FakeQueryBuilder_4<_i13.Transaction, _i13.Transaction,
+            returnValue: _FakeQueryBuilder_4<_i12.Transaction, _i12.Transaction,
                 _i4.QAfterWhereClause>(
               this,
               Invocation.method(
@@ -818,10 +788,10 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
                 [walletId],
               ),
             ),
-          ) as _i4.QueryBuilder<_i13.Transaction, _i13.Transaction,
+          ) as _i4.QueryBuilder<_i12.Transaction, _i12.Transaction,
               _i4.QAfterWhereClause>);
   @override
-  _i5.Future<int> putTransaction(_i13.Transaction? transaction) =>
+  _i5.Future<int> putTransaction(_i12.Transaction? transaction) =>
       (super.noSuchMethod(
         Invocation.method(
           #putTransaction,
@@ -830,7 +800,7 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
         returnValue: _i5.Future<int>.value(0),
       ) as _i5.Future<int>);
   @override
-  _i5.Future<List<int>> putTransactions(List<_i13.Transaction>? transactions) =>
+  _i5.Future<List<int>> putTransactions(List<_i12.Transaction>? transactions) =>
       (super.noSuchMethod(
         Invocation.method(
           #putTransactions,
@@ -839,7 +809,7 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
         returnValue: _i5.Future<List<int>>.value(<int>[]),
       ) as _i5.Future<List<int>>);
   @override
-  _i5.Future<_i13.Transaction?> getTransaction(
+  _i5.Future<_i12.Transaction?> getTransaction(
     String? walletId,
     String? txid,
   ) =>
@@ -851,10 +821,10 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
             txid,
           ],
         ),
-        returnValue: _i5.Future<_i13.Transaction?>.value(),
-      ) as _i5.Future<_i13.Transaction?>);
+        returnValue: _i5.Future<_i12.Transaction?>.value(),
+      ) as _i5.Future<_i12.Transaction?>);
   @override
-  _i5.Stream<_i13.Transaction?> watchTransaction({
+  _i5.Stream<_i12.Transaction?> watchTransaction({
     required int? id,
     bool? fireImmediately = false,
   }) =>
@@ -867,10 +837,10 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
             #fireImmediately: fireImmediately,
           },
         ),
-        returnValue: _i5.Stream<_i13.Transaction?>.empty(),
-      ) as _i5.Stream<_i13.Transaction?>);
+        returnValue: _i5.Stream<_i12.Transaction?>.empty(),
+      ) as _i5.Stream<_i12.Transaction?>);
   @override
-  _i4.QueryBuilder<_i13.UTXO, _i13.UTXO, _i4.QAfterWhereClause> getUTXOs(
+  _i4.QueryBuilder<_i12.UTXO, _i12.UTXO, _i4.QAfterWhereClause> getUTXOs(
           String? walletId) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -878,16 +848,43 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
           [walletId],
         ),
         returnValue:
-            _FakeQueryBuilder_4<_i13.UTXO, _i13.UTXO, _i4.QAfterWhereClause>(
+            _FakeQueryBuilder_4<_i12.UTXO, _i12.UTXO, _i4.QAfterWhereClause>(
           this,
           Invocation.method(
             #getUTXOs,
             [walletId],
           ),
         ),
-      ) as _i4.QueryBuilder<_i13.UTXO, _i13.UTXO, _i4.QAfterWhereClause>);
+      ) as _i4.QueryBuilder<_i12.UTXO, _i12.UTXO, _i4.QAfterWhereClause>);
   @override
-  _i5.Future<void> putUTXO(_i13.UTXO? utxo) => (super.noSuchMethod(
+  _i4.QueryBuilder<_i12.UTXO, _i12.UTXO, _i4.QAfterFilterCondition>
+      getUTXOsByAddress(
+    String? walletId,
+    String? address,
+  ) =>
+          (super.noSuchMethod(
+            Invocation.method(
+              #getUTXOsByAddress,
+              [
+                walletId,
+                address,
+              ],
+            ),
+            returnValue: _FakeQueryBuilder_4<_i12.UTXO, _i12.UTXO,
+                _i4.QAfterFilterCondition>(
+              this,
+              Invocation.method(
+                #getUTXOsByAddress,
+                [
+                  walletId,
+                  address,
+                ],
+              ),
+            ),
+          ) as _i4
+              .QueryBuilder<_i12.UTXO, _i12.UTXO, _i4.QAfterFilterCondition>);
+  @override
+  _i5.Future<void> putUTXO(_i12.UTXO? utxo) => (super.noSuchMethod(
         Invocation.method(
           #putUTXO,
           [utxo],
@@ -896,7 +893,7 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
   @override
-  _i5.Future<void> putUTXOs(List<_i13.UTXO>? utxos) => (super.noSuchMethod(
+  _i5.Future<void> putUTXOs(List<_i12.UTXO>? utxos) => (super.noSuchMethod(
         Invocation.method(
           #putUTXOs,
           [utxos],
@@ -907,7 +904,7 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
   @override
   _i5.Future<bool> updateUTXOs(
     String? walletId,
-    List<_i13.UTXO>? utxos,
+    List<_i12.UTXO>? utxos,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -920,7 +917,7 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
         returnValue: _i5.Future<bool>.value(false),
       ) as _i5.Future<bool>);
   @override
-  _i5.Stream<_i13.UTXO?> watchUTXO({
+  _i5.Stream<_i12.UTXO?> watchUTXO({
     required int? id,
     bool? fireImmediately = false,
   }) =>
@@ -933,10 +930,10 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
             #fireImmediately: fireImmediately,
           },
         ),
-        returnValue: _i5.Stream<_i13.UTXO?>.empty(),
-      ) as _i5.Stream<_i13.UTXO?>);
+        returnValue: _i5.Stream<_i12.UTXO?>.empty(),
+      ) as _i5.Stream<_i12.UTXO?>);
   @override
-  _i4.QueryBuilder<_i13.TransactionNote, _i13.TransactionNote,
+  _i4.QueryBuilder<_i12.TransactionNote, _i12.TransactionNote,
       _i4.QAfterWhereClause> getTransactionNotes(
           String? walletId) =>
       (super.noSuchMethod(
@@ -944,18 +941,18 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
           #getTransactionNotes,
           [walletId],
         ),
-        returnValue: _FakeQueryBuilder_4<_i13.TransactionNote,
-            _i13.TransactionNote, _i4.QAfterWhereClause>(
+        returnValue: _FakeQueryBuilder_4<_i12.TransactionNote,
+            _i12.TransactionNote, _i4.QAfterWhereClause>(
           this,
           Invocation.method(
             #getTransactionNotes,
             [walletId],
           ),
         ),
-      ) as _i4.QueryBuilder<_i13.TransactionNote, _i13.TransactionNote,
+      ) as _i4.QueryBuilder<_i12.TransactionNote, _i12.TransactionNote,
           _i4.QAfterWhereClause>);
   @override
-  _i5.Future<void> putTransactionNote(_i13.TransactionNote? transactionNote) =>
+  _i5.Future<void> putTransactionNote(_i12.TransactionNote? transactionNote) =>
       (super.noSuchMethod(
         Invocation.method(
           #putTransactionNote,
@@ -966,7 +963,7 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
       ) as _i5.Future<void>);
   @override
   _i5.Future<void> putTransactionNotes(
-          List<_i13.TransactionNote>? transactionNotes) =>
+          List<_i12.TransactionNote>? transactionNotes) =>
       (super.noSuchMethod(
         Invocation.method(
           #putTransactionNotes,
@@ -976,7 +973,7 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
   @override
-  _i5.Future<_i13.TransactionNote?> getTransactionNote(
+  _i5.Future<_i12.TransactionNote?> getTransactionNote(
     String? walletId,
     String? txid,
   ) =>
@@ -988,10 +985,10 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
             txid,
           ],
         ),
-        returnValue: _i5.Future<_i13.TransactionNote?>.value(),
-      ) as _i5.Future<_i13.TransactionNote?>);
+        returnValue: _i5.Future<_i12.TransactionNote?>.value(),
+      ) as _i5.Future<_i12.TransactionNote?>);
   @override
-  _i5.Stream<_i13.TransactionNote?> watchTransactionNote({
+  _i5.Stream<_i12.TransactionNote?> watchTransactionNote({
     required int? id,
     bool? fireImmediately = false,
   }) =>
@@ -1004,27 +1001,27 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
             #fireImmediately: fireImmediately,
           },
         ),
-        returnValue: _i5.Stream<_i13.TransactionNote?>.empty(),
-      ) as _i5.Stream<_i13.TransactionNote?>);
+        returnValue: _i5.Stream<_i12.TransactionNote?>.empty(),
+      ) as _i5.Stream<_i12.TransactionNote?>);
   @override
-  _i4.QueryBuilder<_i13.AddressLabel, _i13.AddressLabel, _i4.QAfterWhereClause>
+  _i4.QueryBuilder<_i12.AddressLabel, _i12.AddressLabel, _i4.QAfterWhereClause>
       getAddressLabels(String? walletId) => (super.noSuchMethod(
             Invocation.method(
               #getAddressLabels,
               [walletId],
             ),
-            returnValue: _FakeQueryBuilder_4<_i13.AddressLabel,
-                _i13.AddressLabel, _i4.QAfterWhereClause>(
+            returnValue: _FakeQueryBuilder_4<_i12.AddressLabel,
+                _i12.AddressLabel, _i4.QAfterWhereClause>(
               this,
               Invocation.method(
                 #getAddressLabels,
                 [walletId],
               ),
             ),
-          ) as _i4.QueryBuilder<_i13.AddressLabel, _i13.AddressLabel,
+          ) as _i4.QueryBuilder<_i12.AddressLabel, _i12.AddressLabel,
               _i4.QAfterWhereClause>);
   @override
-  _i5.Future<int> putAddressLabel(_i13.AddressLabel? addressLabel) =>
+  _i5.Future<int> putAddressLabel(_i12.AddressLabel? addressLabel) =>
       (super.noSuchMethod(
         Invocation.method(
           #putAddressLabel,
@@ -1033,7 +1030,7 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
         returnValue: _i5.Future<int>.value(0),
       ) as _i5.Future<int>);
   @override
-  int putAddressLabelSync(_i13.AddressLabel? addressLabel) =>
+  int putAddressLabelSync(_i12.AddressLabel? addressLabel) =>
       (super.noSuchMethod(
         Invocation.method(
           #putAddressLabelSync,
@@ -1042,7 +1039,7 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
         returnValue: 0,
       ) as int);
   @override
-  _i5.Future<void> putAddressLabels(List<_i13.AddressLabel>? addressLabels) =>
+  _i5.Future<void> putAddressLabels(List<_i12.AddressLabel>? addressLabels) =>
       (super.noSuchMethod(
         Invocation.method(
           #putAddressLabels,
@@ -1052,7 +1049,7 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
   @override
-  _i5.Future<_i13.AddressLabel?> getAddressLabel(
+  _i5.Future<_i12.AddressLabel?> getAddressLabel(
     String? walletId,
     String? addressString,
   ) =>
@@ -1064,10 +1061,10 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
             addressString,
           ],
         ),
-        returnValue: _i5.Future<_i13.AddressLabel?>.value(),
-      ) as _i5.Future<_i13.AddressLabel?>);
+        returnValue: _i5.Future<_i12.AddressLabel?>.value(),
+      ) as _i5.Future<_i12.AddressLabel?>);
   @override
-  _i13.AddressLabel? getAddressLabelSync(
+  _i12.AddressLabel? getAddressLabelSync(
     String? walletId,
     String? addressString,
   ) =>
@@ -1077,9 +1074,9 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
           walletId,
           addressString,
         ],
-      )) as _i13.AddressLabel?);
+      )) as _i12.AddressLabel?);
   @override
-  _i5.Stream<_i13.AddressLabel?> watchAddressLabel({
+  _i5.Stream<_i12.AddressLabel?> watchAddressLabel({
     required int? id,
     bool? fireImmediately = false,
   }) =>
@@ -1092,10 +1089,10 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
             #fireImmediately: fireImmediately,
           },
         ),
-        returnValue: _i5.Stream<_i13.AddressLabel?>.empty(),
-      ) as _i5.Stream<_i13.AddressLabel?>);
+        returnValue: _i5.Stream<_i12.AddressLabel?>.empty(),
+      ) as _i5.Stream<_i12.AddressLabel?>);
   @override
-  _i5.Future<int> updateAddressLabel(_i13.AddressLabel? addressLabel) =>
+  _i5.Future<int> updateAddressLabel(_i12.AddressLabel? addressLabel) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateAddressLabel,
@@ -1134,7 +1131,7 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
       ) as _i5.Future<void>);
   @override
   _i5.Future<void> addNewTransactionData(
-    List<_i14.Tuple2<_i13.Transaction, _i13.Address?>>? transactionsData,
+    List<_i13.Tuple2<_i12.Transaction, _i12.Address?>>? transactionsData,
     String? walletId,
   ) =>
       (super.noSuchMethod(
@@ -1149,13 +1146,23 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
   @override
-  _i4.QueryBuilder<_i13.EthContract, _i13.EthContract, _i4.QWhere>
+  _i5.Future<List<int>> updateOrPutTransactionV2s(
+          List<_i14.TransactionV2>? transactions) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateOrPutTransactionV2s,
+          [transactions],
+        ),
+        returnValue: _i5.Future<List<int>>.value(<int>[]),
+      ) as _i5.Future<List<int>>);
+  @override
+  _i4.QueryBuilder<_i12.EthContract, _i12.EthContract, _i4.QWhere>
       getEthContracts() => (super.noSuchMethod(
             Invocation.method(
               #getEthContracts,
               [],
             ),
-            returnValue: _FakeQueryBuilder_4<_i13.EthContract, _i13.EthContract,
+            returnValue: _FakeQueryBuilder_4<_i12.EthContract, _i12.EthContract,
                 _i4.QWhere>(
               this,
               Invocation.method(
@@ -1164,24 +1171,24 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
               ),
             ),
           ) as _i4
-              .QueryBuilder<_i13.EthContract, _i13.EthContract, _i4.QWhere>);
+              .QueryBuilder<_i12.EthContract, _i12.EthContract, _i4.QWhere>);
   @override
-  _i5.Future<_i13.EthContract?> getEthContract(String? contractAddress) =>
+  _i5.Future<_i12.EthContract?> getEthContract(String? contractAddress) =>
       (super.noSuchMethod(
         Invocation.method(
           #getEthContract,
           [contractAddress],
         ),
-        returnValue: _i5.Future<_i13.EthContract?>.value(),
-      ) as _i5.Future<_i13.EthContract?>);
+        returnValue: _i5.Future<_i12.EthContract?>.value(),
+      ) as _i5.Future<_i12.EthContract?>);
   @override
-  _i13.EthContract? getEthContractSync(String? contractAddress) =>
+  _i12.EthContract? getEthContractSync(String? contractAddress) =>
       (super.noSuchMethod(Invocation.method(
         #getEthContractSync,
         [contractAddress],
-      )) as _i13.EthContract?);
+      )) as _i12.EthContract?);
   @override
-  _i5.Future<int> putEthContract(_i13.EthContract? contract) =>
+  _i5.Future<int> putEthContract(_i12.EthContract? contract) =>
       (super.noSuchMethod(
         Invocation.method(
           #putEthContract,
@@ -1190,7 +1197,7 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
         returnValue: _i5.Future<int>.value(0),
       ) as _i5.Future<int>);
   @override
-  _i5.Future<void> putEthContracts(List<_i13.EthContract>? contracts) =>
+  _i5.Future<void> putEthContracts(List<_i12.EthContract>? contracts) =>
       (super.noSuchMethod(
         Invocation.method(
           #putEthContracts,
