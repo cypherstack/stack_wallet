@@ -75,7 +75,7 @@ abstract class EthereumAPI {
           for (final map in list!) {
             final txn = EthTxDTO.fromMap(Map<String, dynamic>.from(map as Map));
 
-            if (txn.hasToken == 0 || includeTokens) {
+            if (!txn.hasToken || includeTokens) {
               txns.add(txn);
             }
           }

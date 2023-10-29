@@ -227,7 +227,9 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   Future<void> updateBalance() async {
     web3.Web3Client client = getEthClient();
-    web3.EtherAmount ethBalance = await client.getBalance(_credentials.address);
+
+    final address = web3.EthereumAddress.fromHex(await currentReceivingAddress);
+    web3.EtherAmount ethBalance = await client.getBalance(address);
     _balance = Balance(
       total: Amount(
         rawValue: ethBalance.getInWei,
