@@ -16,10 +16,10 @@ import 'package:stackwallet/db/isar/main_db.dart' as _i14;
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i13;
 import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i12;
 import 'package:stackwallet/models/balance.dart' as _i9;
-import 'package:stackwallet/models/isar/models/block_explorer.dart' as _i38;
+import 'package:stackwallet/models/isar/models/block_explorer.dart' as _i39;
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart'
-    as _i39;
-import 'package:stackwallet/models/isar/models/contact_entry.dart' as _i37;
+    as _i40;
+import 'package:stackwallet/models/isar/models/contact_entry.dart' as _i38;
 import 'package:stackwallet/models/isar/models/isar_models.dart' as _i24;
 import 'package:stackwallet/models/isar/stack_theme.dart' as _i35;
 import 'package:stackwallet/models/models.dart' as _i8;
@@ -45,6 +45,7 @@ import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i29;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i20;
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i28;
 import 'package:stackwallet/utilities/prefs.dart' as _i22;
+import 'package:stackwallet/wallets/isar_models/wallet_info.dart' as _i37;
 import 'package:tuple/tuple.dart' as _i16;
 
 // ignore_for_file: type=lint
@@ -3079,13 +3080,44 @@ class MockMainDB extends _i1.Mock implements _i14.MainDB {
         returnValue: _i21.Future<bool>.value(false),
       ) as _i21.Future<bool>);
   @override
-  List<_i37.ContactEntry> getContactEntries() => (super.noSuchMethod(
+  _i21.Future<void> putWalletInfo(_i37.WalletInfo? walletInfo) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #putWalletInfo,
+          [walletInfo],
+        ),
+        returnValue: _i21.Future<void>.value(),
+        returnValueForMissingStub: _i21.Future<void>.value(),
+      ) as _i21.Future<void>);
+  @override
+  _i21.Future<void> updateWalletInfo(_i37.WalletInfo? walletInfo) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateWalletInfo,
+          [walletInfo],
+        ),
+        returnValue: _i21.Future<void>.value(),
+        returnValueForMissingStub: _i21.Future<void>.value(),
+      ) as _i21.Future<void>);
+  @override
+  _i21.Future<void> deleteWallet({required String? walletId}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #deleteWallet,
+          [],
+          {#walletId: walletId},
+        ),
+        returnValue: _i21.Future<void>.value(),
+        returnValueForMissingStub: _i21.Future<void>.value(),
+      ) as _i21.Future<void>);
+  @override
+  List<_i38.ContactEntry> getContactEntries() => (super.noSuchMethod(
         Invocation.method(
           #getContactEntries,
           [],
         ),
-        returnValue: <_i37.ContactEntry>[],
-      ) as List<_i37.ContactEntry>);
+        returnValue: <_i38.ContactEntry>[],
+      ) as List<_i38.ContactEntry>);
   @override
   _i21.Future<bool> deleteContactEntry({required String? id}) =>
       (super.noSuchMethod(
@@ -3107,15 +3139,15 @@ class MockMainDB extends _i1.Mock implements _i14.MainDB {
         returnValue: _i21.Future<bool>.value(false),
       ) as _i21.Future<bool>);
   @override
-  _i37.ContactEntry? getContactEntry({required String? id}) =>
+  _i38.ContactEntry? getContactEntry({required String? id}) =>
       (super.noSuchMethod(Invocation.method(
         #getContactEntry,
         [],
         {#id: id},
-      )) as _i37.ContactEntry?);
+      )) as _i38.ContactEntry?);
   @override
   _i21.Future<bool> putContactEntry(
-          {required _i37.ContactEntry? contactEntry}) =>
+          {required _i38.ContactEntry? contactEntry}) =>
       (super.noSuchMethod(
         Invocation.method(
           #putContactEntry,
@@ -3125,16 +3157,16 @@ class MockMainDB extends _i1.Mock implements _i14.MainDB {
         returnValue: _i21.Future<bool>.value(false),
       ) as _i21.Future<bool>);
   @override
-  _i38.TransactionBlockExplorer? getTransactionBlockExplorer(
+  _i39.TransactionBlockExplorer? getTransactionBlockExplorer(
           {required _i20.Coin? coin}) =>
       (super.noSuchMethod(Invocation.method(
         #getTransactionBlockExplorer,
         [],
         {#coin: coin},
-      )) as _i38.TransactionBlockExplorer?);
+      )) as _i39.TransactionBlockExplorer?);
   @override
   _i21.Future<int> putTransactionBlockExplorer(
-          _i38.TransactionBlockExplorer? explorer) =>
+          _i39.TransactionBlockExplorer? explorer) =>
       (super.noSuchMethod(
         Invocation.method(
           #putTransactionBlockExplorer,
@@ -3593,7 +3625,7 @@ class MockMainDB extends _i1.Mock implements _i14.MainDB {
       ) as _i21.Future<void>);
   @override
   _i21.Future<List<int>> updateOrPutTransactionV2s(
-          List<_i39.TransactionV2>? transactions) =>
+          List<_i40.TransactionV2>? transactions) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateOrPutTransactionV2s,
