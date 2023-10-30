@@ -1,4 +1,4 @@
-import 'package:coinlib/coinlib.dart' as coinlib;
+import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
