@@ -21,5 +21,8 @@ abstract class CryptoCurrency {
 
   int get minConfirms;
 
+  // TODO: [prio=low] could be handled differently as (at least) epiccash does not use this
+  String get genesisHash;
+
   bool validateAddress(String address);
 }

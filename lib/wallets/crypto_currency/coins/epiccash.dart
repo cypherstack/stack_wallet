@@ -14,6 +14,11 @@ class Epiccash extends Bip39Currency {
   }
 
   @override
+  String get genesisHash {
+    return "not used in epiccash";
+  }
+
+  @override
   // change this to change the number of confirms a tx needs in order to show as confirmed
   int get minConfirms => 3;
 
