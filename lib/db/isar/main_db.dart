@@ -60,6 +60,7 @@ class MainDB {
         OrdinalSchema,
         LelantusCoinSchema,
         WalletInfoSchema,
+        TransactionV2Schema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
       // inspector: kDebugMode,
