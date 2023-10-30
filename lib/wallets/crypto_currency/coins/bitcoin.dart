@@ -161,7 +161,11 @@ class Bitcoin extends Bip39HDCurrency {
 
   @override
   bool validateAddress(String address) {
-    // TODO: implement validateAddress
-    throw UnimplementedError();
+    try {
+      coinlib.Address.fromString(address, networkParams);
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 }
