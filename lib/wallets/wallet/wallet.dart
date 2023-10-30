@@ -12,6 +12,8 @@ import 'package:stackwallet/wallets/wallet/impl/bitcoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/mixins/electrumx_mixin.dart';
 
 abstract class Wallet<T extends CryptoCurrency> {
+  int get isarTransactionVersion => 1;
+
   Wallet(this.cryptoCurrency);
 
   //============================================================================

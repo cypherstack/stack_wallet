@@ -10,6 +10,9 @@ import 'package:stackwallet/wallets/wallet/mixins/electrumx_mixin.dart';
 import 'package:tuple/tuple.dart';
 
 class BitcoinWallet extends Bip39HDWallet with ElectrumXMixin {
+  @override
+  int get isarTransactionVersion => 2;
+
   BitcoinWallet(
     super.cryptoCurrency, {
     required NodeService nodeService,
