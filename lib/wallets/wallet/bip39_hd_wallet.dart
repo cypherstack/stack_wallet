@@ -1,5 +1,5 @@
 import 'package:bip39/bip39.dart' as bip39;
-import 'package:coinlib/coinlib.dart' as coinlib;
+import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
