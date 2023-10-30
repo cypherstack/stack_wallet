@@ -284,118 +284,115 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                 ),
                 Padding(
                   padding: const EdgeInsets.all(10.0),
-                  child: Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Tor killswitch",
-                              style: STextStyles.desktopTextExtraExtraSmall(
-                                      context)
-                                  .copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textDark),
-                            ),
-                            const SizedBox(
-                              height: 8,
-                            ),
-                            RichText(
-                              textAlign: TextAlign.start,
-                              text: TextSpan(
-                                text: "What is Tor killswitch?",
-                                style: STextStyles.richLink(context).copyWith(
-                                  fontSize: 14,
-                                ),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () {
-                                    showDialog<dynamic>(
-                                      context: context,
-                                      useSafeArea: false,
-                                      barrierDismissible: true,
-                                      builder: (context) {
-                                        return DesktopDialog(
-                                          maxWidth: 580,
-                                          maxHeight: double.infinity,
-                                          child: Padding(
-                                            padding: const EdgeInsets.only(
-                                              top: 10,
-                                              left: 20,
-                                              bottom: 20,
-                                              right: 10,
-                                            ),
-                                            child: Column(
-                                              children: [
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    Text(
-                                                      "What is Tor killswitch?",
-                                                      style:
-                                                          STextStyles.desktopH2(
-                                                              context),
-                                                    ),
-                                                    DesktopDialogCloseButton(
-                                                      onPressedOverride: () =>
-                                                          Navigator.of(context)
-                                                              .pop(true),
-                                                    ),
-                                                  ],
-                                                ),
-                                                const SizedBox(
-                                                  height: 16,
-                                                ),
-                                                Text(
-                                                  "A security feature that protects your information from accidental exposure by"
-                                                  " disconnecting your device from the Tor network if the"
-                                                  " connection is disrupted or compromised.",
-                                                  style: STextStyles
-                                                          .desktopTextMedium(
-                                                              context)
-                                                      .copyWith(
-                                                    color: Theme.of(context)
-                                                        .extension<
-                                                            StackColors>()!
-                                                        .textDark3,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  },
-                              ),
-                            ),
-                          ],
-                        ),
-                        const Spacer(),
-                        SizedBox(
-                          height: 20,
-                          width: 40,
-                          child: DraggableSwitchButton(
-                            isOn: ref.watch(
-                              prefsChangeNotifierProvider
-                                  .select((value) => value.torKillSwitch),
-                            ),
-                            onValueChanged: (newValue) {
-                              ref
-                                  .read(prefsChangeNotifierProvider)
-                                  .torKillSwitch = newValue;
-                            },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Tor killswitch",
+                            style:
+                                STextStyles.desktopTextExtraExtraSmall(context)
+                                    .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textDark),
                           ),
+                          const SizedBox(
+                            height: 8,
+                          ),
+                          RichText(
+                            textAlign: TextAlign.start,
+                            text: TextSpan(
+                              text: "What is Tor killswitch?",
+                              style: STextStyles.richLink(context).copyWith(
+                                fontSize: 14,
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  showDialog<dynamic>(
+                                    context: context,
+                                    useSafeArea: false,
+                                    barrierDismissible: true,
+                                    builder: (context) {
+                                      return DesktopDialog(
+                                        maxWidth: 580,
+                                        maxHeight: double.infinity,
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 10,
+                                            left: 20,
+                                            bottom: 20,
+                                            right: 10,
+                                          ),
+                                          child: Column(
+                                            children: [
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Text(
+                                                    "What is Tor killswitch?",
+                                                    style:
+                                                        STextStyles.desktopH2(
+                                                            context),
+                                                  ),
+                                                  DesktopDialogCloseButton(
+                                                    onPressedOverride: () =>
+                                                        Navigator.of(context)
+                                                            .pop(true),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(
+                                                height: 16,
+                                              ),
+                                              Text(
+                                                "A security feature that protects your information from accidental exposure by"
+                                                " disconnecting your device from the Tor network if the"
+                                                " connection is disrupted or compromised.",
+                                                style: STextStyles
+                                                        .desktopTextMedium(
+                                                            context)
+                                                    .copyWith(
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .textDark3,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      SizedBox(
+                        height: 20,
+                        width: 40,
+                        child: DraggableSwitchButton(
+                          isOn: ref.watch(
+                            prefsChangeNotifierProvider
+                                .select((value) => value.torKillSwitch),
+                          ),
+                          onValueChanged: (newValue) {
+                            ref
+                                .read(prefsChangeNotifierProvider)
+                                .torKillSwitch = newValue;
+                          },
                         ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                    ],
                   ),
                 ),
               ],
