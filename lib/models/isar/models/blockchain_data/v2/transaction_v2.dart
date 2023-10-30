@@ -109,12 +109,3 @@ class TransactionV2 {
         ')';
   }
 }
-
-enum TxDirection {
-  outgoing,
-  incoming;
-}
-
-enum TxType {
-  normal,
-}

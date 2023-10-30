@@ -108,7 +108,7 @@ class Bitcoin extends Bip39HDCurrency {
         );
 
         return (address: addr, addressType: AddressType.p2sh);
-        break;
+
       case DerivePathType.bip49:
         // addressString = P2SH(
         //         data: PaymentData(
@@ -137,7 +137,7 @@ class Bitcoin extends Bip39HDCurrency {
         );
 
         return (address: addr, addressType: AddressType.p2wpkh);
-        break;
+
       default:
         throw Exception("DerivePathType $derivePathType not supported");
     }
