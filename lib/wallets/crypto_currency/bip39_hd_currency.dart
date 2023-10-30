@@ -1,3 +1,5 @@
+import 'package:bech32/bech32.dart';
+import 'package:bs58check/bs58check.dart' as bs58check;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
@@ -47,5 +49,40 @@ abstract class Bip39HDCurrency extends Bip39Currency {
       i -= 2;
     }
     return reversedPairs.join("");
+  }
+
+  DerivePathType addressType({required String address}) {
+    Uint8List? decodeBase58;
+    Segwit? decodeBech32;
+    try {
+      decodeBase58 = bs58check.decode(address);
+    } catch (err) {
+      // Base58check decode fail
+    }
+    if (decodeBase58 != null) {
+      if (decodeBase58[0] == networkParams.p2pkhPrefix) {
+        // P2PKH
+        return DerivePathType.bip44;
+      }
+      if (decodeBase58[0] == networkParams.p2shPrefix) {
+        // P2SH
+        return DerivePathType.bip49;
+      }
+      throw ArgumentError('Invalid version or Network mismatch');
+    } else {
+      try {
+        decodeBech32 = segwit.decode(address);
+      } catch (err) {
+        // Bech32 decode fail
+      }
+      if (networkParams.bech32Hrp != decodeBech32!.hrp) {
+        throw ArgumentError('Invalid prefix or Network mismatch');
+      }
+      if (decodeBech32.version != 0) {
+        throw ArgumentError('Invalid address version');
+      }
+      // P2WPKH
+      return DerivePathType.bip84;
+    }
   }
 }

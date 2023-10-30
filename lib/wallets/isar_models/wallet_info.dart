@@ -94,6 +94,28 @@ class WalletInfo {
       : Map<String, dynamic>.from(jsonDecode(otherDataJsonString!) as Map);
 
   //============================================================================
+  //============= Updaters      ================================================
+
+  /// copies this with a new balance and updates the db
+  Future<void> updateBalance({
+    required Balance newBalance,
+    required Isar isar,
+  }) async {
+    final newEncoded = newBalance.toJsonIgnoreCoin();
+
+    // only update if there were changes to the balance
+    if (cachedBalanceString != newEncoded) {
+      final updated = copyWith(
+        cachedBalanceString: newEncoded,
+      );
+      await isar.writeTxn(() async {
+        await isar.walletInfo.delete(id);
+        await isar.walletInfo.put(updated);
+      });
+    }
+  }
+
+  //============================================================================
 
   WalletInfo({
     required this.coinName,

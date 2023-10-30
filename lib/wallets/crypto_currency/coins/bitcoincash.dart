@@ -1,4 +1,8 @@
+import 'dart:typed_data';
+
+import 'package:bech32/bech32.dart';
 import 'package:bitbox/bitbox.dart' as bitbox;
+import 'package:bs58check/bs58check.dart' as bs58check;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -160,5 +164,53 @@ class Bitcoincash extends Bip39HDCurrency {
     }
 
     return addr.startsWith("q");
+  }
+
+  // TODO: [prio=med] bch p2sh addresses?
+  @override
+  DerivePathType addressType({required String address}) {
+    Uint8List? decodeBase58;
+    Segwit? decodeBech32;
+    try {
+      if (bitbox.Address.detectFormat(address) ==
+          bitbox.Address.formatCashAddr) {
+        if (_validateCashAddr(address)) {
+          address = bitbox.Address.toLegacyAddress(address);
+        } else {
+          throw ArgumentError('$address is not currently supported');
+        }
+      }
+    } catch (_) {
+      // invalid cash addr format
+    }
+    try {
+      decodeBase58 = bs58check.decode(address);
+    } catch (err) {
+      // Base58check decode fail
+    }
+    if (decodeBase58 != null) {
+      if (decodeBase58[0] == networkParams.p2pkhPrefix) {
+        // P2PKH
+        return DerivePathType.bip44;
+      }
+
+      throw ArgumentError('Invalid version or Network mismatch');
+    } else {
+      try {
+        decodeBech32 = segwit.decode(address);
+      } catch (err) {
+        // Bech32 decode fail
+      }
+
+      if (decodeBech32 != null) {
+        if (networkParams.bech32Hrp != decodeBech32.hrp) {
+          throw ArgumentError('Invalid prefix or Network mismatch');
+        }
+        if (decodeBech32.version != 0) {
+          throw ArgumentError('Invalid address version');
+        }
+      }
+    }
+    throw ArgumentError('$address has no matching Script');
   }
 }

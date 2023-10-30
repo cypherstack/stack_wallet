@@ -4,10 +4,7 @@ import 'package:bip47/src/util.dart';
 import 'package:decimal/decimal.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/input.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/output.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -31,12 +28,13 @@ mixin ElectrumXMixin on Bip39HDWallet {
     }
   }
 
-  Future<List<({Transaction transaction, Address address})>> fetchTransactions({
+  Future<List<({Transaction transaction, Address address})>>
+      fetchTransactionsV1({
     required List<Address> addresses,
     required int currentChainHeight,
   }) async {
     final List<({String txHash, int height, String address})> allTxHashes =
-        (await _fetchHistory(addresses.map((e) => e.value).toList()))
+        (await fetchHistory(addresses.map((e) => e.value).toList()))
             .map(
               (e) => (
                 txHash: e["tx_hash"] as String,
@@ -55,7 +53,10 @@ mixin ElectrumXMixin on Bip39HDWallet {
         coin: cryptoCurrency.coin,
       );
 
-      if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
+      // check for duplicates before adding to list
+      if (allTransactions
+              .indexWhere((e) => e["txid"] == tx["txid"] as String) ==
+          -1) {
         tx["address"] = addresses.firstWhere((e) => e.value == data.address);
         tx["height"] = data.height;
         allTransactions.add(tx);
@@ -65,7 +66,7 @@ mixin ElectrumXMixin on Bip39HDWallet {
     final List<({Transaction transaction, Address address})> txnsData = [];
 
     for (final txObject in allTransactions) {
-      final data = await parseTransaction(
+      final data = await _parseTransactionV1(
         txObject,
         addresses,
       );
@@ -114,18 +115,8 @@ mixin ElectrumXMixin on Bip39HDWallet {
 
   //============================================================================
 
-  bool _duplicateTxCheck(
-      List<Map<String, dynamic>> allTransactions, String txid) {
-    for (int i = 0; i < allTransactions.length; i++) {
-      if (allTransactions[i]["txid"] == txid) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  Future<List<Map<String, dynamic>>> _fetchHistory(
-    List<String> allAddresses,
+  Future<List<Map<String, dynamic>>> fetchHistory(
+    Iterable<String> allAddresses,
   ) async {
     try {
       List<Map<String, dynamic>> allTxHashes = [];
@@ -139,10 +130,10 @@ mixin ElectrumXMixin on Bip39HDWallet {
           batches[batchNumber] = {};
         }
         final scriptHash = cryptoCurrency.addressToScriptHash(
-          address: allAddresses[i],
+          address: allAddresses.elementAt(i),
         );
         final id = Logger.isTestEnv ? "$i" : const Uuid().v1();
-        requestIdToAddressMap[id] = allAddresses[i];
+        requestIdToAddressMap[id] = allAddresses.elementAt(i);
         batches[batchNumber]!.addAll({
           id: [scriptHash]
         });
@@ -170,7 +161,60 @@ mixin ElectrumXMixin on Bip39HDWallet {
     }
   }
 
-  Future<({Transaction transaction, Address address})> parseTransaction(
+  Future<UTXO> parseUTXO({
+    required Map<String, dynamic> jsonUTXO,
+    ({
+      String? blockedReason,
+      bool blocked,
+    })
+        Function(
+      Map<String, dynamic>,
+      String? scriptPubKeyHex,
+    )? checkBlock,
+  }) async {
+    final txn = await electrumXCached.getTransaction(
+      txHash: jsonUTXO["tx_hash"] as String,
+      verbose: true,
+      coin: cryptoCurrency.coin,
+    );
+
+    final vout = jsonUTXO["tx_pos"] as int;
+
+    final outputs = txn["vout"] as List;
+
+    String? scriptPubKey;
+    String? utxoOwnerAddress;
+    // get UTXO owner address
+    for (final output in outputs) {
+      if (output["n"] == vout) {
+        scriptPubKey = output["scriptPubKey"]?["hex"] as String?;
+        utxoOwnerAddress =
+            output["scriptPubKey"]?["addresses"]?[0] as String? ??
+                output["scriptPubKey"]?["address"] as String?;
+      }
+    }
+
+    final checkBlockResult = checkBlock?.call(jsonUTXO, scriptPubKey);
+
+    final utxo = UTXO(
+      walletId: walletId,
+      txid: txn["txid"] as String,
+      vout: vout,
+      value: jsonUTXO["value"] as int,
+      name: "",
+      isBlocked: checkBlockResult?.blocked ?? false,
+      blockedReason: checkBlockResult?.blockedReason,
+      isCoinbase: txn["is_coinbase"] as bool? ?? false,
+      blockHash: txn["blockhash"] as String?,
+      blockHeight: jsonUTXO["height"] as int?,
+      blockTime: txn["blocktime"] as int?,
+      address: utxoOwnerAddress,
+    );
+
+    return utxo;
+  }
+
+  Future<({Transaction transaction, Address address})> _parseTransactionV1(
     Map<String, dynamic> txData,
     List<Address> myAddresses,
   ) async {

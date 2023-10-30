@@ -25,11 +25,11 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T> {
         break;
 
       case AddressType.p2sh:
-        derivePathType = DerivePathType.bip44;
+        derivePathType = DerivePathType.bip49;
         break;
 
       case AddressType.p2wpkh:
-        derivePathType = DerivePathType.bip44;
+        derivePathType = DerivePathType.bip84;
         break;
 
       default:
@@ -96,7 +96,7 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T> {
     } else if (chain == 1) {
       subType = AddressSubType.change;
     } else {
-      // TODO others?
+      // TODO: [prio=low] others or throw?
       subType = AddressSubType.unknown;
     }
 

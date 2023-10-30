@@ -1,14 +1,27 @@
+import 'dart:async';
+
 import 'package:isar/isar.dart';
+import 'package:mutex/mutex.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
+import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
+import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/node_service.dart';
+import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
+import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/bitcoincash.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/epiccash.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar_models/wallet_info.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/bitcoincash_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/mixins/electrumx_mixin.dart';
 
 abstract class Wallet<T extends CryptoCurrency> {
@@ -23,8 +36,38 @@ abstract class Wallet<T extends CryptoCurrency> {
 
   late final MainDB mainDB;
   late final SecureStorageInterface secureStorageInterface;
-  late final WalletInfo walletInfo;
   late final Prefs prefs;
+
+  final refreshMutex = Mutex();
+
+  WalletInfo get walletInfo => _walletInfo;
+
+  bool get shouldAutoSync => _shouldAutoSync;
+  set shouldAutoSync(bool shouldAutoSync) {
+    if (_shouldAutoSync != shouldAutoSync) {
+      _shouldAutoSync = shouldAutoSync;
+      if (!shouldAutoSync) {
+        _periodicRefreshTimer?.cancel();
+        _periodicRefreshTimer = null;
+        _stopNetworkAlivePinging();
+      } else {
+        _startNetworkAlivePinging();
+        refresh();
+      }
+    }
+  }
+
+  // ===== private properties ===========================================
+
+  late WalletInfo _walletInfo;
+  late final Stream<WalletInfo?> _walletInfoStream;
+
+  Timer? _periodicRefreshTimer;
+  Timer? _networkAliveTimer;
+
+  bool _shouldAutoSync = false;
+
+  bool _isConnected = false;
 
   //============================================================================
   // ========== Wallet Info Convenience Getters ================================
@@ -143,8 +186,9 @@ abstract class Wallet<T extends CryptoCurrency> {
     final Wallet wallet = _loadWallet(
       walletInfo: walletInfo,
       nodeService: nodeService,
-      prefs: prefs,
     );
+
+    wallet.prefs = prefs;
 
     if (wallet is ElectrumXMixin) {
       // initialize electrumx instance
@@ -154,32 +198,99 @@ abstract class Wallet<T extends CryptoCurrency> {
     return wallet
       ..secureStorageInterface = secureStorageInterface
       ..mainDB = mainDB
-      ..walletInfo = walletInfo;
+      .._walletInfo = walletInfo
+      .._watchWalletInfo();
   }
 
   static Wallet _loadWallet({
     required WalletInfo walletInfo,
     required NodeService nodeService,
-    required Prefs prefs,
   }) {
     switch (walletInfo.coin) {
       case Coin.bitcoin:
         return BitcoinWallet(
           Bitcoin(CryptoCurrencyNetwork.main),
           nodeService: nodeService,
-          prefs: prefs,
         );
+
       case Coin.bitcoinTestNet:
         return BitcoinWallet(
           Bitcoin(CryptoCurrencyNetwork.test),
           nodeService: nodeService,
-          prefs: prefs,
+        );
+
+      case Coin.bitcoincash:
+        return BitcoincashWallet(
+          Bitcoincash(CryptoCurrencyNetwork.main),
+          nodeService: nodeService,
+        );
+
+      case Coin.bitcoincashTestnet:
+        return BitcoincashWallet(
+          Bitcoincash(CryptoCurrencyNetwork.test),
+          nodeService: nodeService,
+        );
+
+      case Coin.epicCash:
+        return EpiccashWallet(
+          Epiccash(CryptoCurrencyNetwork.main),
+          nodeService: nodeService,
         );
 
       default:
         // should never hit in reality
         throw Exception("Unknown crypto currency");
     }
+  }
+
+  // listen to changes in db and updated wallet info property as required
+  void _watchWalletInfo() {
+    _walletInfoStream = mainDB.isar.walletInfo.watchObject(_walletInfo.id);
+    _walletInfoStream.forEach((element) {
+      if (element != null) {
+        _walletInfo = element;
+      }
+    });
+  }
+
+  void _startNetworkAlivePinging() {
+    // call once on start right away
+    _periodicPingCheck();
+
+    // then periodically check
+    _networkAliveTimer = Timer.periodic(
+      Constants.networkAliveTimerDuration,
+      (_) async {
+        _periodicPingCheck();
+      },
+    );
+  }
+
+  void _periodicPingCheck() async {
+    bool hasNetwork = await pingCheck();
+
+    if (_isConnected != hasNetwork) {
+      NodeConnectionStatus status = hasNetwork
+          ? NodeConnectionStatus.connected
+          : NodeConnectionStatus.disconnected;
+      GlobalEventBus.instance.fire(
+        NodeConnectionStatusChangedEvent(
+          status,
+          walletId,
+          cryptoCurrency.coin,
+        ),
+      );
+
+      _isConnected = hasNetwork;
+      if (hasNetwork) {
+        unawaited(refresh());
+      }
+    }
+  }
+
+  void _stopNetworkAlivePinging() {
+    _networkAliveTimer?.cancel();
+    _networkAliveTimer = null;
   }
 
   //============================================================================
@@ -198,15 +309,113 @@ abstract class Wallet<T extends CryptoCurrency> {
   /// delete all locally stored blockchain data and refetch it.
   Future<void> recover({required bool isRescan});
 
+  Future<bool> pingCheck();
+
   Future<void> updateTransactions();
   Future<void> updateUTXOs();
   Future<void> updateBalance();
 
-  // Should probably call the above 3 functions
-  // Should fire events
-  Future<void> refresh();
-
   //===========================================
+
+  // Should fire events
+  Future<void> refresh() async {
+    // Awaiting this lock could be dangerous.
+    // Since refresh is periodic (generally)
+    if (refreshMutex.isLocked) {
+      return;
+    }
+
+    try {
+      // this acquire should be almost instant due to above check.
+      // Slight possibility of race but should be irrelevant
+      await refreshMutex.acquire();
+
+      GlobalEventBus.instance.fire(
+        WalletSyncStatusChangedEvent(
+          WalletSyncStatus.syncing,
+          walletId,
+          cryptoCurrency.coin,
+        ),
+      );
+
+      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.0, walletId));
+
+      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.1, walletId));
+
+      // if (currentHeight != storedHeight) {
+      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.2, walletId));
+
+      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.3, walletId));
+      // await _checkCurrentReceivingAddressesForTransactions();
+
+      final fetchFuture = updateTransactions();
+      final utxosRefreshFuture = updateUTXOs();
+
+      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.50, walletId));
+
+      // final feeObj = _getFees();
+      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.60, walletId));
+
+      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.70, walletId));
+      // _feeObject = Future(() => feeObj);
+
+      await utxosRefreshFuture;
+      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.80, walletId));
+
+      await fetchFuture;
+      // await getAllTxsToWatch();
+      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.90, walletId));
+
+      await updateBalance();
+
+      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(1.0, walletId));
+      GlobalEventBus.instance.fire(
+        WalletSyncStatusChangedEvent(
+          WalletSyncStatus.synced,
+          walletId,
+          cryptoCurrency.coin,
+        ),
+      );
+
+      if (shouldAutoSync) {
+        _periodicRefreshTimer ??=
+            Timer.periodic(const Duration(seconds: 150), (timer) async {
+          // chain height check currently broken
+          // if ((await chainHeight) != (await storedChainHeight)) {
+
+          // TODO: [prio=med] some kind of quick check if wallet needs to refresh to replace the old refreshIfThereIsNewData call
+          // if (await refreshIfThereIsNewData()) {
+          unawaited(refresh());
+
+          // }
+          // }
+        });
+      }
+    } catch (error, strace) {
+      GlobalEventBus.instance.fire(
+        NodeConnectionStatusChangedEvent(
+          NodeConnectionStatus.disconnected,
+          walletId,
+          cryptoCurrency.coin,
+        ),
+      );
+      GlobalEventBus.instance.fire(
+        WalletSyncStatusChangedEvent(
+          WalletSyncStatus.unableToSync,
+          walletId,
+          cryptoCurrency.coin,
+        ),
+      );
+      Logging.instance.log(
+        "Caught exception in refreshWalletData(): $error\n$strace",
+        level: LogLevel.Error,
+      );
+    } finally {
+      refreshMutex.release();
+    }
+  }
+
+  Future<void> exit() async {}
 
   Future<void> updateNode();
 }
