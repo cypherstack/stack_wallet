@@ -328,6 +328,8 @@ abstract class Wallet<T extends CryptoCurrency> {
 
   Future<bool> pingCheck();
 
+  Future<void> updateNode();
+
   Future<void> updateTransactions();
   Future<void> updateUTXOs();
   Future<void> updateBalance();
@@ -436,7 +438,12 @@ abstract class Wallet<T extends CryptoCurrency> {
     }
   }
 
-  Future<void> exit() async {}
+  Future<void> exit() async {
+    // TODO:
+  }
 
-  Future<void> updateNode();
+  Future<void> init() async {
+    // TODO: make sure subclasses override this if they require some set up
+    // especially xmr/wow/epiccash
+  }
 }
