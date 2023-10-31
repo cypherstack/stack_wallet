@@ -37,6 +37,7 @@ import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_int
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 
 abstract class Wallet<T extends CryptoCurrency> {
   // default to Transaction class. For TransactionV2 set to 2
@@ -270,7 +271,7 @@ abstract class Wallet<T extends CryptoCurrency> {
       case Coin.firo:
         return FiroWallet(CryptoCurrencyNetwork.main);
       case Coin.firoTestNet:
-        return FiroWallet(CryptoCurrencyNetwork.main);
+        return FiroWallet(CryptoCurrencyNetwork.test);
 
       case Coin.nano:
         return NanoWallet(CryptoCurrencyNetwork.main);
@@ -438,6 +439,9 @@ abstract class Wallet<T extends CryptoCurrency> {
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       if (this is LelantusInterface) {
         await (this as LelantusInterface).refreshLelantusData();
+      }
+      if (this is SparkInterface) {
+        await (this as SparkInterface).refreshSparkData();
       }
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.90, walletId));
 

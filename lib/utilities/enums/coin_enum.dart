@@ -42,7 +42,7 @@ enum Coin {
   stellarTestnet,
 }
 
-final int kTestNetCoinCount = 5; // Util.isDesktop ? 5 : 4;
+final int kTestNetCoinCount = 6; // Util.isDesktop ? 5 : 4;
 // remove firotestnet for now
 
 extension CoinExt on Coin {
