@@ -42,11 +42,11 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final maxHeight = MediaQuery.of(context).size.height * 0.60;
 
-    final coin = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId).coin));
+    final coin =
+        ref.watch(pWallets.select((value) => value.getManager(walletId).coin));
 
-    final balance = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId).balance));
+    final balance = ref
+        .watch(pWallets.select((value) => value.getManager(walletId).balance));
 
     _BalanceType _bal =
         ref.watch(walletBalanceToggleStateProvider.state).state ==
@@ -58,7 +58,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
     if (coin == Coin.firo || coin == Coin.firoTestNet) {
       balanceSecondary = ref
           .watch(
-            walletsChangeNotifierProvider.select(
+            pWallets.select(
               (value) => value.getManager(walletId).wallet as FiroWallet?,
             ),
           )

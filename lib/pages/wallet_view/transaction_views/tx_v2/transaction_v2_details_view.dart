@@ -397,8 +397,8 @@ class _TransactionV2DetailsViewState
 
   @override
   Widget build(BuildContext context) {
-    final currentHeight = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId).currentHeight));
+    final currentHeight = ref.watch(
+        pWallets.select((value) => value.getManager(walletId).currentHeight));
 
     final String outputLabel;
 

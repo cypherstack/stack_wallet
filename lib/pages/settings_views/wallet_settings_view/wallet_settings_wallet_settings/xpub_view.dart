@@ -60,8 +60,7 @@ class _XPubViewState extends ConsumerState<XPubView> {
   @override
   void initState() {
     _clipboardInterface = widget.clipboardInterface;
-    manager =
-        ref.read(walletsChangeNotifierProvider).getManager(widget.walletId);
+    manager = ref.read(pWallets).getManager(widget.walletId);
 
     super.initState();
   }

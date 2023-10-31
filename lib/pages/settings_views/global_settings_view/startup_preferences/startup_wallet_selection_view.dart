@@ -38,8 +38,7 @@ class _StartupWalletSelectionViewState
 
   @override
   Widget build(BuildContext context) {
-    final managers = ref
-        .watch(walletsChangeNotifierProvider.select((value) => value.managers));
+    final managers = ref.watch(pWallets.select((value) => value.managers));
 
     _controllers.clear();
     for (final manager in managers) {

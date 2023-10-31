@@ -213,10 +213,8 @@ class _DesktopOrdinals extends ConsumerState<DesktopOrdinalsView> {
                         isDesktop: true,
                         whileFuture: Future.wait<void>([
                           Future.delayed(const Duration(seconds: 2)),
-                          (ref
-                                  .read(walletsChangeNotifierProvider)
-                                  .getManager(widget.walletId)
-                                  .wallet as OrdinalsInterface)
+                          (ref.read(pWallets).getManager(widget.walletId).wallet
+                                  as OrdinalsInterface)
                               .refreshInscriptions()
                         ]),
                         context: context,

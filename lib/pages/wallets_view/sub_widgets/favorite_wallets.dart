@@ -196,9 +196,8 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
 
                     if (index < favorites.length) {
                       walletId = ref.read(favorites[index]).walletId;
-                      managerProvider = ref
-                          .read(walletsChangeNotifierProvider)
-                          .getManagerProvider(walletId);
+                      managerProvider =
+                          ref.read(pWallets).getManagerProvider(walletId);
                     }
 
                     const double scaleDown = 0.95;

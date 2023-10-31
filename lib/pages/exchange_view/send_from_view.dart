@@ -85,8 +85,8 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final walletIds = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getWalletIdsFor(coin: coin)));
+    final walletIds = ref
+        .watch(pWallets.select((value) => value.getWalletIdsFor(coin: coin)));
 
     final isDesktop = Util.isDesktop;
 
@@ -396,9 +396,8 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
 
   @override
   Widget build(BuildContext context) {
-    final manager = ref.watch(ref
-        .watch(walletsChangeNotifierProvider.notifier)
-        .getManagerProvider(walletId));
+    final manager =
+        ref.watch(ref.watch(pWallets.notifier).getManagerProvider(walletId));
 
     final locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));

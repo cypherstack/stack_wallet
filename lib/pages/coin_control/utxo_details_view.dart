@@ -20,7 +20,6 @@ import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -92,13 +91,13 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
   @override
   Widget build(BuildContext context) {
     final coin = ref.watch(
-      walletsChangeNotifierProvider.select(
+      pWallets.select(
         (value) => value.getManager(widget.walletId).coin,
       ),
     );
 
     final currentHeight = ref.watch(
-      walletsChangeNotifierProvider.select(
+      pWallets.select(
         (value) => value.getManager(widget.walletId).currentHeight,
       ),
     );

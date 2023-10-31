@@ -95,8 +95,7 @@ class SimpleWalletCard extends ConsumerWidget {
   void _openWallet(BuildContext context, WidgetRef ref) async {
     final nav = Navigator.of(context);
 
-    final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(walletId);
+    final manager = ref.read(pWallets).getManager(walletId);
     if (manager.coin == Coin.monero || manager.coin == Coin.wownero) {
       await manager.initializeExisting();
     }
@@ -116,9 +115,7 @@ class SimpleWalletCard extends ConsumerWidget {
             WalletView.routeName,
             arguments: Tuple2(
               walletId,
-              ref
-                  .read(walletsChangeNotifierProvider)
-                  .getManagerProvider(walletId),
+              ref.read(pWallets).getManagerProvider(walletId),
             ),
           ),
         );

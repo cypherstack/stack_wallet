@@ -137,8 +137,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   ];
 
   Future<void> previewSend() async {
-    final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(walletId);
+    final manager = ref.read(pWallets).getManager(walletId);
 
     final Amount amount = _amountToSend!;
     final Amount availableBalance;
@@ -522,7 +521,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           (amount != null && amount > Amount.zero);
     } else {
       final isValidAddress = ref
-          .read(walletsChangeNotifierProvider)
+          .read(pWallets)
           .getManager(walletId)
           .validateAddress(address ?? "");
       ref.read(previewTxButtonStateProvider.state).state =
@@ -626,7 +625,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
         // now check for non standard encoded basic address
       } else if (ref
-          .read(walletsChangeNotifierProvider)
+          .read(pWallets)
           .getManager(walletId)
           .validateAddress(qrResult.rawContent)) {
         _address = qrResult.rawContent;
@@ -735,10 +734,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   Future<void> sendAllTapped() async {
     if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      final firoWallet = ref
-          .read(walletsChangeNotifierProvider)
-          .getManager(walletId)
-          .wallet as FiroWallet;
+      final firoWallet =
+          ref.read(pWallets).getManager(walletId).wallet as FiroWallet;
       if (ref.read(publicPrivateBalanceStateProvider.state).state ==
           "Private") {
         cryptoAmountController.text = firoWallet
@@ -753,7 +750,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       }
     } else {
       cryptoAmountController.text = ref
-          .read(walletsChangeNotifierProvider)
+          .read(pWallets)
           .getManager(walletId)
           .balance
           .spendable
@@ -782,7 +779,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     // _calculateFeesFuture = calculateFees(0);
     _data = widget.autoFillData;
     walletId = widget.walletId;
-    coin = ref.read(walletsChangeNotifierProvider).getManager(walletId).coin;
+    coin = ref.read(pWallets).getManager(walletId).coin;
     clipboard = widget.clipboard;
     scanner = widget.barcodeScanner;
     isStellar = coin == Coin.stellar || coin == Coin.stellarTestnet;
@@ -852,8 +849,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final provider = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManagerProvider(walletId)));
+    final provider = ref
+        .watch(pWallets.select((value) => value.getManagerProvider(walletId)));
     final String locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
 
@@ -1367,7 +1364,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             builder: (_) {
               final error = _updateInvalidAddressText(
                 _address ?? "",
-                ref.read(walletsChangeNotifierProvider).getManager(walletId),
+                ref.read(pWallets).getManager(walletId),
               );
 
               if (error == null || error.isEmpty) {
@@ -1521,7 +1518,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               child: (feeSelectionResult?.$2 == null)
                   ? FutureBuilder(
                       future: ref.watch(
-                        walletsChangeNotifierProvider.select(
+                        pWallets.select(
                           (value) => value.getManager(walletId).fees,
                         ),
                       ),
@@ -1543,9 +1540,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                                       .read(feeSheetSessionCacheProvider)
                                       .average[amount] ==
                                   null) {
-                                final manager = ref
-                                    .read(walletsChangeNotifierProvider)
-                                    .getManager(walletId);
+                                final manager =
+                                    ref.read(pWallets).getManager(walletId);
 
                                 if (coin == Coin.monero ||
                                     coin == Coin.wownero) {

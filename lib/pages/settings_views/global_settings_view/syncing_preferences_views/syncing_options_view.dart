@@ -95,10 +95,7 @@ class SyncingOptionsView extends ConsumerWidget {
                             SyncingType.currentWalletOnly;
 
                         // disable auto sync on all wallets that aren't active/current
-                        ref
-                            .read(walletsChangeNotifierProvider)
-                            .managers
-                            .forEach((e) {
+                        ref.read(pWallets).managers.forEach((e) {
                           if (!e.isActiveWallet) {
                             e.shouldAutoSync = false;
                           }
@@ -178,7 +175,7 @@ class SyncingOptionsView extends ConsumerWidget {
 
                         // enable auto sync on all wallets
                         ref
-                            .read(walletsChangeNotifierProvider)
+                            .read(pWallets)
                             .managers
                             .forEach((e) => e.shouldAutoSync = true);
                       }
@@ -259,11 +256,8 @@ class SyncingOptionsView extends ConsumerWidget {
                             .walletIdsSyncOnStartup;
 
                         // enable auto sync on selected wallets only
-                        ref
-                            .read(walletsChangeNotifierProvider)
-                            .managers
-                            .forEach((e) =>
-                                e.shouldAutoSync = ids.contains(e.walletId));
+                        ref.read(pWallets).managers.forEach(
+                            (e) => e.shouldAutoSync = ids.contains(e.walletId));
                       }
                     },
                     child: Container(

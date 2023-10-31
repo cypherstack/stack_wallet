@@ -81,7 +81,7 @@ class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
     // managerProvider = widget.managerProvider;
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       final address = await ref
-          .read(walletsChangeNotifierProvider)
+          .read(pWallets)
           .getManager(widget.walletId)
           .currentReceivingAddress;
       setState(() {
@@ -103,14 +103,14 @@ class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
 
     bool isMonkey = true;
 
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(widget.walletId)));
+    final manager = ref
+        .watch(pWallets.select((value) => value.getManager(widget.walletId)));
 
     final externalCalls = ref.watch(
         prefsChangeNotifierProvider.select((value) => value.externalCalls));
     final coin = manager.coin;
-    final balance = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(widget.walletId).balance));
+    final balance = ref.watch(
+        pWallets.select((value) => value.getManager(widget.walletId).balance));
 
     final locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
@@ -132,7 +132,7 @@ class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
       final _showPrivate =
           ref.watch(publicPrivateBalanceStateProvider.state).state == "Private";
 
-      final firoWallet = ref.watch(walletsChangeNotifierProvider.select(
+      final firoWallet = ref.watch(pWallets.select(
           (value) => value.getManager(widget.walletId).wallet)) as FiroWallet;
 
       final bal = _showPrivate ? firoWallet.balancePrivate : firoWallet.balance;

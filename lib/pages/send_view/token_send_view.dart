@@ -193,7 +193,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
         // now check for non standard encoded basic address
       } else if (ref
-          .read(walletsChangeNotifierProvider)
+          .read(pWallets)
           .getManager(walletId)
           .validateAddress(qrResult.rawContent)) {
         _address = qrResult.rawContent.trim();
@@ -336,10 +336,8 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
   }
 
   void _updatePreviewButtonState(String? address, Amount? amount) {
-    final isValidAddress = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(walletId)
-        .validateAddress(address ?? "");
+    final isValidAddress =
+        ref.read(pWallets).getManager(walletId).validateAddress(address ?? "");
     ref.read(previewTxButtonStateProvider.state).state =
         (isValidAddress && amount != null && amount > Amount.zero);
   }
@@ -380,8 +378,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
     await Future<void>.delayed(
       const Duration(milliseconds: 100),
     );
-    final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(walletId);
+    final manager = ref.read(pWallets).getManager(walletId);
     final tokenWallet = ref.read(tokenServiceProvider)!;
 
     final Amount amount = _amountToSend!;
@@ -598,8 +595,8 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final provider = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManagerProvider(walletId)));
+    final provider = ref
+        .watch(pWallets.select((value) => value.getManagerProvider(walletId)));
     final String locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
 
@@ -860,9 +857,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                             builder: (_) {
                               final error = _updateInvalidAddressText(
                                 _address ?? "",
-                                ref
-                                    .read(walletsChangeNotifierProvider)
-                                    .getManager(walletId),
+                                ref.read(pWallets).getManager(walletId),
                               );
 
                               if (error == null || error.isEmpty) {

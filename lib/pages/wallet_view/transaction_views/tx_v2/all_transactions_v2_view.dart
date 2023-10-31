@@ -308,10 +308,8 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                       onPressed: () {
                         Navigator.of(context).pushNamed(
                           TransactionSearchFilterView.routeName,
-                          arguments: ref
-                              .read(walletsChangeNotifierProvider)
-                              .getManager(walletId)
-                              .coin,
+                          arguments:
+                              ref.read(pWallets).getManager(walletId).coin,
                         );
                       },
                     ),
@@ -425,10 +423,8 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                         height: 20,
                       ),
                       onPressed: () {
-                        final coin = ref
-                            .read(walletsChangeNotifierProvider)
-                            .getManager(walletId)
-                            .coin;
+                        final coin =
+                            ref.read(pWallets).getManager(walletId).coin;
                         if (isDesktop) {
                           showDialog<void>(
                             context: context,
@@ -471,9 +467,8 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
             Expanded(
               child: Consumer(
                 builder: (_, ref, __) {
-                  final managerProvider = ref.watch(
-                      walletsChangeNotifierProvider.select(
-                          (value) => value.getManagerProvider(walletId)));
+                  final managerProvider = ref.watch(pWallets
+                      .select((value) => value.getManagerProvider(walletId)));
 
                   final criteria =
                       ref.watch(transactionFilterProvider.state).state;
@@ -857,8 +852,8 @@ class _DesktopTransactionCardRowState
   Widget build(BuildContext context) {
     final locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId)));
+    final manager =
+        ref.watch(pWallets.select((value) => value.getManager(walletId)));
 
     final baseCurrency = ref
         .watch(prefsChangeNotifierProvider.select((value) => value.currency));
@@ -883,8 +878,8 @@ class _DesktopTransactionCardRowState
       prefix = "";
     }
 
-    final currentHeight = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId).currentHeight));
+    final currentHeight = ref.watch(
+        pWallets.select((value) => value.getManager(walletId).currentHeight));
 
     final Amount amount;
 

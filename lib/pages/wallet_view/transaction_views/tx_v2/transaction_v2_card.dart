@@ -96,7 +96,7 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
     } else {
       prefix = "";
     }
-    coin = ref.read(walletsChangeNotifierProvider).getManager(walletId).coin;
+    coin = ref.read(pWallets).getManager(walletId).coin;
 
     unit = coin.ticker;
     super.initState();
@@ -115,8 +115,8 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
             .select((value) => value.getPrice(coin)))
         .item1;
 
-    final currentHeight = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId).currentHeight));
+    final currentHeight = ref.watch(
+        pWallets.select((value) => value.getManager(walletId).currentHeight));
 
     final Amount amount;
 

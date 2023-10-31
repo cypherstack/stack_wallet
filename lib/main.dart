@@ -44,6 +44,7 @@ import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/restore_from_encrypted_string_view.dart';
 import 'package:stackwallet/pages_desktop_specific/password/desktop_login_view.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/global/base_currencies_provider.dart';
@@ -344,9 +345,10 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         prefs: ref.read(prefsChangeNotifierProvider),
       );
       ref.read(priceAnd24hChangeNotifierProvider).start(true);
-      await ref
-          .read(walletsChangeNotifierProvider)
-          .load(ref.read(prefsChangeNotifierProvider));
+      await ref.read(pWallets).load(
+            ref.read(prefsChangeNotifierProvider),
+            ref.read(mainDBProvider),
+          );
       loadingCompleter.complete();
       // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
       //  unawaited(_nodeService.updateCommunityNodes());
@@ -735,7 +737,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
                 builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
                   if (snapshot.connectionState == ConnectionState.done) {
                     // FlutterNativeSplash.remove();
-                    if (ref.read(walletsChangeNotifierProvider).hasWallets ||
+                    if (ref.read(pWallets).hasWallets ||
                         ref.read(prefsChangeNotifierProvider).hasPin) {
                       // return HomeView();
 

@@ -98,10 +98,8 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
         .map((e) => e.token.address)
         .toList();
 
-    final ethWallet = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .wallet as EthereumWallet;
+    final ethWallet =
+        ref.read(pWallets).getManager(widget.walletId).wallet as EthereumWallet;
 
     await ethWallet.updateTokenContracts(selectedTokens);
     if (mounted) {
@@ -182,7 +180,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
     tokenEntities.addAll(contracts.map((e) => AddTokenListElementData(e)));
 
     final walletContracts = (ref
-            .read(walletsChangeNotifierProvider)
+            .read(pWallets)
             .getManager(widget.walletId)
             .wallet as EthereumWallet)
         .getWalletTokenContractAddresses();
@@ -209,7 +207,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final walletName = ref.watch(walletsChangeNotifierProvider
+    final walletName = ref.watch(pWallets
         .select((value) => value.getManager(widget.walletId).walletName));
 
     if (isDesktop) {

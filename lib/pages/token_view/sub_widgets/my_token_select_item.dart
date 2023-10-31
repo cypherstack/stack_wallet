@@ -85,7 +85,7 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
       token: widget.token,
       secureStore: ref.read(secureStoreProvider),
       ethWallet: ref
-          .read(walletsChangeNotifierProvider)
+          .read(pWallets)
           .getManager(widget.walletId)
           .wallet as EthereumWallet,
       tracker: TransactionNotificationTracker(
@@ -118,7 +118,7 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final address = await ref
-          .read(walletsChangeNotifierProvider)
+          .read(pWallets)
           .getManager(widget.walletId)
           .currentReceivingAddress;
       await cachedBalance.fetchAndUpdateCachedBalance(address);

@@ -27,11 +27,11 @@ class FusionTxGroupCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final walletId = group.transactions.first.walletId;
 
-    final coin = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId).coin));
+    final coin =
+        ref.watch(pWallets.select((value) => value.getManager(walletId).coin));
 
-    final currentHeight = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId).currentHeight));
+    final currentHeight = ref.watch(
+        pWallets.select((value) => value.getManager(walletId).currentHeight));
 
     return Material(
       color: Theme.of(context).extension<StackColors>()!.popupBG,

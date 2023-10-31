@@ -71,7 +71,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
     try {
       final coin = coinFromTickerCaseInsensitive(ticker);
       return ref
-          .read(walletsChangeNotifierProvider)
+          .read(pWallets)
           .managers
           .where((element) => element.coin == coin)
           .isNotEmpty;
@@ -134,10 +134,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
   }
 
   Future<bool?> _showSendFromFiroBalanceSelectSheet(String walletId) async {
-    final firoWallet = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(walletId)
-        .wallet as FiroWallet;
+    final firoWallet =
+        ref.read(pWallets).getManager(walletId).wallet as FiroWallet;
     final locale = ref.read(localeServiceChangeNotifierProvider).locale;
 
     return await showModalBottomSheet<bool?>(
@@ -206,8 +204,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
       firoPublicSend = false;
     }
 
-    final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(tuple.item1);
+    final manager = ref.read(pWallets).getManager(tuple.item1);
 
     final Amount amount = model.sendAmount.toAmount(
       fractionDigits: manager.coin.decimals,
@@ -815,7 +812,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                       model.sendTicker.toLowerCase() ==
                                           tuple.item2.ticker.toLowerCase()) {
                                     final walletName = ref
-                                        .read(walletsChangeNotifierProvider)
+                                        .read(pWallets)
                                         .getManager(tuple.item1)
                                         .walletName;
                                     buttonTitle = "Send from $walletName";

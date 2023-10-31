@@ -88,8 +88,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
   void initState() {
     walletId = widget.walletId;
     coin = widget.coin;
-    xPubEnabled =
-        ref.read(walletsChangeNotifierProvider).getManager(walletId).hasXPub;
+    xPubEnabled = ref.read(pWallets).getManager(walletId).hasXPub;
     xpub = "";
 
     _currentSyncStatus = widget.initialSyncStatus;
@@ -231,7 +230,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                       title: "Wallet backup",
                                       onPressed: () async {
                                         final mnemonic = await ref
-                                            .read(walletsChangeNotifierProvider)
+                                            .read(pWallets)
                                             .getManager(walletId)
                                             .mnemonic;
 
@@ -407,7 +406,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                               return TextButton(
                                 onPressed: () {
                                   ref
-                                      .read(walletsChangeNotifierProvider)
+                                      .read(pWallets)
                                       .getManager(walletId)
                                       .isActiveWallet = false;
                                   ref
@@ -465,10 +464,8 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
 
   @override
   void initState() {
-    wallet = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .wallet as EpicCashWallet;
+    wallet =
+        ref.read(pWallets).getManager(widget.walletId).wallet as EpicCashWallet;
 
     wallet.getEpicBoxConfig().then((EpicBoxConfigModel epicBoxConfig) {
       hostController.text = epicBoxConfig.host;

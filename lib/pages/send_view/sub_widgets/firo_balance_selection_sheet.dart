@@ -52,8 +52,8 @@ class _FiroBalanceSelectionSheetState
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId)));
+    final manager =
+        ref.watch(pWallets.select((value) => value.getManager(walletId)));
     final firoWallet = manager.wallet as FiroWallet;
 
     return Container(

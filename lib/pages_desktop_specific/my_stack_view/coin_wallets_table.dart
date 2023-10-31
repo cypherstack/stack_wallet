@@ -29,8 +29,8 @@ class CoinWalletsTable extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final walletIds = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getWalletIdsFor(coin: coin)));
+    final walletIds = ref
+        .watch(pWallets.select((value) => value.getWalletIdsFor(coin: coin)));
 
     return Container(
       decoration: BoxDecoration(
@@ -71,9 +71,8 @@ class CoinWalletsTable extends ConsumerWidget {
                             ref.read(currentWalletIdProvider.state).state =
                                 walletIds[i];
 
-                            final manager = ref
-                                .read(walletsChangeNotifierProvider)
-                                .getManager(walletIds[i]);
+                            final manager =
+                                ref.read(pWallets).getManager(walletIds[i]);
                             if (manager.coin == Coin.monero ||
                                 manager.coin == Coin.wownero) {
                               await manager.initializeExisting();

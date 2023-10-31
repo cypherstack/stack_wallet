@@ -65,10 +65,8 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
   FusionOption _roundType = FusionOption.continuous;
 
   Future<void> _startFusion() async {
-    final fusionWallet = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .wallet as FusionWalletInterface;
+    final fusionWallet = ref.read(pWallets).getManager(widget.walletId).wallet
+        as FusionWalletInterface;
 
     try {
       fusionWallet.uiState = ref.read(

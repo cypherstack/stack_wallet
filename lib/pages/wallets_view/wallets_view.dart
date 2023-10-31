@@ -25,7 +25,7 @@ class WalletsView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: $runtimeType");
-    final hasWallets = ref.watch(walletsChangeNotifierProvider).hasWallets;
+    final hasWallets = ref.watch(pWallets).hasWallets;
 
     final showFavorites = ref.watch(prefsChangeNotifierProvider
         .select((value) => value.showFavoriteWallets));

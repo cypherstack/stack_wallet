@@ -111,7 +111,7 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       List<ContactAddressEntry> addresses = [];
-      final managers = ref.read(walletsChangeNotifierProvider).managers;
+      final managers = ref.read(pWallets).managers;
       for (final manager in managers) {
         addresses.add(
           ContactAddressEntry()

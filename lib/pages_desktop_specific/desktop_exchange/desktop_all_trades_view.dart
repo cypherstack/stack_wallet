@@ -367,9 +367,7 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
         ),
         onPressed: () async {
           if (txid != null && walletIds != null && walletIds.isNotEmpty) {
-            final manager = ref
-                .read(walletsChangeNotifierProvider)
-                .getManager(walletIds.first);
+            final manager = ref.read(pWallets).getManager(walletIds.first);
 
             //todo: check if print needed
             // debugPrint("name: ${manager.walletName}");

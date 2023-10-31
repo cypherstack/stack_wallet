@@ -92,9 +92,8 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
   }
 
   Future<void> _logout() async {
-    final managerProvider = ref
-        .read(walletsChangeNotifierProvider)
-        .getManagerProvider(widget.walletId);
+    final managerProvider =
+        ref.read(pWallets).getManagerProvider(widget.walletId);
     if (_shouldDisableAutoSyncOnLogOut) {
       // disable auto sync if it was enabled only when loading wallet
       ref.read(managerProvider).shouldAutoSync = false;
@@ -109,10 +108,8 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
   }
 
   Future<void> _firoRescanRecovery() async {
-    final success = await (ref
-            .read(walletsChangeNotifierProvider)
-            .getManager(widget.walletId)
-            .wallet as FiroWallet)
+    final success = await (ref.read(pWallets).getManager(widget.walletId).wallet
+            as FiroWallet)
         .firoRescanRecovery();
 
     if (success) {
@@ -143,9 +140,8 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
   @override
   void initState() {
     controller = TextEditingController();
-    final managerProvider = ref
-        .read(walletsChangeNotifierProvider)
-        .getManagerProvider(widget.walletId);
+    final managerProvider =
+        ref.read(pWallets).getManagerProvider(widget.walletId);
 
     controller.text = ref.read(managerProvider).walletName;
 
@@ -192,11 +188,11 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
 
   @override
   Widget build(BuildContext context) {
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(widget.walletId)));
+    final manager = ref
+        .watch(pWallets.select((value) => value.getManager(widget.walletId)));
     final coin = manager.coin;
-    final managerProvider = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManagerProvider(widget.walletId)));
+    final managerProvider = ref.watch(
+        pWallets.select((value) => value.getManagerProvider(widget.walletId)));
 
     final monke = coin == Coin.banano
         ? (manager.wallet as BananoWallet).getMonkeyImageBytes()
@@ -442,10 +438,9 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          ref.watch(walletsChangeNotifierProvider.select(
-                                  (value) => value
-                                      .getManager(widget.walletId)
-                                      .hasTokenSupport))
+                          ref.watch(pWallets.select((value) => value
+                                  .getManager(widget.walletId)
+                                  .hasTokenSupport))
                               ? "Tokens"
                               : "Recent activity",
                           style: STextStyles.desktopTextExtraSmall(context)
@@ -456,15 +451,14 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                           ),
                         ),
                         CustomTextButton(
-                          text: ref.watch(walletsChangeNotifierProvider.select(
-                                  (value) => value
-                                      .getManager(widget.walletId)
-                                      .hasTokenSupport))
+                          text: ref.watch(pWallets.select((value) => value
+                                  .getManager(widget.walletId)
+                                  .hasTokenSupport))
                               ? "Edit"
                               : "See all",
                           onTap: () async {
                             if (ref
-                                .read(walletsChangeNotifierProvider)
+                                .read(pWallets)
                                 .getManager(widget.walletId)
                                 .hasTokenSupport) {
                               final result = await showDialog<int?>(
@@ -512,10 +506,9 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                       width: 16,
                     ),
                     Expanded(
-                      child: ref.watch(walletsChangeNotifierProvider.select(
-                              (value) => value
-                                  .getManager(widget.walletId)
-                                  .hasTokenSupport))
+                      child: ref.watch(pWallets.select((value) => value
+                              .getManager(widget.walletId)
+                              .hasTokenSupport))
                           ? MyTokensView(
                               walletId: widget.walletId,
                             )
@@ -525,10 +518,9 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                                   walletId: widget.walletId,
                                 )
                               : TransactionsList(
-                                  managerProvider: ref.watch(
-                                      walletsChangeNotifierProvider.select(
-                                          (value) => value.getManagerProvider(
-                                              widget.walletId))),
+                                  managerProvider: ref.watch(pWallets.select(
+                                      (value) => value.getManagerProvider(
+                                          widget.walletId))),
                                   walletId: widget.walletId,
                                 ),
                     ),

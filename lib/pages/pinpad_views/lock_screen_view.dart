@@ -98,8 +98,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
       if (loadIntoWallet) {
         final walletId = widget.routeOnSuccessArguments as String;
 
-        final manager =
-            ref.read(walletsChangeNotifierProvider).getManager(walletId);
+        final manager = ref.read(pWallets).getManager(walletId);
         if (manager.coin == Coin.monero) {
           await showLoading(
             opaqueBG: true,
@@ -126,9 +125,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
               WalletView.routeName,
               arguments: Tuple2(
                 walletId,
-                ref
-                    .read(walletsChangeNotifierProvider)
-                    .getManagerProvider(walletId),
+                ref.read(pWallets).getManagerProvider(walletId),
               ),
             ),
           );

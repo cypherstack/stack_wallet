@@ -52,7 +52,7 @@ class ContactPopUp extends ConsumerWidget {
         .select((value) => value.getContactById(contactId)));
 
     final active = ref
-        .read(walletsChangeNotifierProvider)
+        .read(pWallets)
         .managers
         .where((e) => e.isActiveWallet)
         .toList(growable: false);

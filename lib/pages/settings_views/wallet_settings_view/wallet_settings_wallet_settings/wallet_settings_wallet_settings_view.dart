@@ -111,7 +111,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                         context: context,
                         builder: (_) => StackDialog(
                           title:
-                              "Do you want to delete ${ref.read(walletsChangeNotifierProvider).getManager(walletId).walletName}?",
+                              "Do you want to delete ${ref.read(pWallets).getManager(walletId).walletName}?",
                           leftButton: TextButton(
                             style: Theme.of(context)
                                 .extension<StackColors>()!

@@ -71,10 +71,7 @@ class _DesktopCoinControlViewState
   @override
   void initState() {
     _searchController = TextEditingController();
-    coin = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .coin;
+    coin = ref.read(pWallets).getManager(widget.walletId).coin;
     super.initState();
   }
 

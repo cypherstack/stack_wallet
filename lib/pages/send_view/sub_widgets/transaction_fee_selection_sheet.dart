@@ -83,8 +83,7 @@ class _TransactionFeeSelectionSheetState
       case FeeRateType.fast:
         if (ref.read(feeSheetSessionCacheProvider).fast[amount] == null) {
           if (widget.isToken == false) {
-            final manager =
-                ref.read(walletsChangeNotifierProvider).getManager(walletId);
+            final manager = ref.read(pWallets).getManager(walletId);
 
             if (coin == Coin.monero || coin == Coin.wownero) {
               final fee = await manager.estimateFeeFor(
@@ -111,8 +110,7 @@ class _TransactionFeeSelectionSheetState
       case FeeRateType.average:
         if (ref.read(feeSheetSessionCacheProvider).average[amount] == null) {
           if (widget.isToken == false) {
-            final manager =
-                ref.read(walletsChangeNotifierProvider).getManager(walletId);
+            final manager = ref.read(pWallets).getManager(walletId);
             if (coin == Coin.monero || coin == Coin.wownero) {
               final fee = await manager.estimateFeeFor(
                   amount, MoneroTransactionPriority.regular.raw!);
@@ -138,8 +136,7 @@ class _TransactionFeeSelectionSheetState
       case FeeRateType.slow:
         if (ref.read(feeSheetSessionCacheProvider).slow[amount] == null) {
           if (widget.isToken == false) {
-            final manager =
-                ref.read(walletsChangeNotifierProvider).getManager(walletId);
+            final manager = ref.read(pWallets).getManager(walletId);
             if (coin == Coin.monero || coin == Coin.wownero) {
               final fee = await manager.estimateFeeFor(
                   amount, MoneroTransactionPriority.slow.raw!);
@@ -203,8 +200,8 @@ class _TransactionFeeSelectionSheetState
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId)));
+    final manager =
+        ref.watch(pWallets.select((value) => value.getManager(walletId)));
 
     return Container(
       decoration: BoxDecoration(

@@ -46,10 +46,8 @@ class _HoverTextFieldState extends ConsumerState<DesktopWalletNameField> {
   );
 
   Future<void> onDone() async {
-    final currentWalletName = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .walletName;
+    final currentWalletName =
+        ref.read(pWallets).getManager(widget.walletId).walletName;
     final newName = controller.text;
     if (newName != currentWalletName) {
       final success =
@@ -59,10 +57,7 @@ class _HoverTextFieldState extends ConsumerState<DesktopWalletNameField> {
                 shouldNotifyListeners: true,
               );
       if (success) {
-        ref
-            .read(walletsChangeNotifierProvider)
-            .getManager(widget.walletId)
-            .walletName = newName;
+        ref.read(pWallets).getManager(widget.walletId).walletName = newName;
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.success,
@@ -100,10 +95,8 @@ class _HoverTextFieldState extends ConsumerState<DesktopWalletNameField> {
     focusNode.addListener(listenerFunc);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      controller.text = ref
-          .read(walletsChangeNotifierProvider)
-          .getManager(widget.walletId)
-          .walletName;
+      controller.text =
+          ref.read(pWallets).getManager(widget.walletId).walletName;
     });
 
     super.initState();

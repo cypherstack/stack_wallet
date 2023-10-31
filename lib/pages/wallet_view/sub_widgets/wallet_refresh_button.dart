@@ -133,9 +133,8 @@ class _RefreshButtonState extends ConsumerState<WalletRefreshButton> {
             splashColor: Theme.of(context).extension<StackColors>()!.highlight,
             onPressed: () {
               if (widget.tokenContractAddress == null) {
-                final managerProvider = ref
-                    .read(walletsChangeNotifierProvider)
-                    .getManagerProvider(widget.walletId);
+                final managerProvider =
+                    ref.read(pWallets).getManagerProvider(widget.walletId);
                 final isRefreshing = ref.read(managerProvider).isRefreshing;
                 if (!isRefreshing) {
                   _spinController.repeat?.call();

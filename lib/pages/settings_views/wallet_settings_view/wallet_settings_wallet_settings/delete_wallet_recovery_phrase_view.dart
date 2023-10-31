@@ -194,7 +194,7 @@ class _DeleteWalletRecoveryPhraseViewState
                         onPressed: () async {
                           final walletId = _manager.walletId;
                           final walletsInstance =
-                              ref.read(walletsChangeNotifierProvider);
+                              ref.read(pWallets);
                           await ref
                               .read(walletsServiceChangeNotifierProvider)
                               .deleteWallet(_manager.walletName, true);

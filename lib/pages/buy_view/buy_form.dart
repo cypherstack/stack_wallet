@@ -1160,9 +1160,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                         )
                             .then((value) async {
                           if (value is String) {
-                            final manager = ref
-                                .read(walletsChangeNotifierProvider)
-                                .getManager(value);
+                            final manager =
+                                ref.read(pWallets).getManager(value);
 
                             // _toController.text = manager.walletName;
                             // model.recipientAddress =

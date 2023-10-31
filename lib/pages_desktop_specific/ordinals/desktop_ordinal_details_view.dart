@@ -18,7 +18,6 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -97,8 +96,8 @@ class _DesktopOrdinalDetailsViewState
 
   @override
   Widget build(BuildContext context) {
-    final coin = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(widget.walletId).coin));
+    final coin = ref.watch(
+        pWallets.select((value) => value.getManager(widget.walletId).coin));
 
     return DesktopScaffold(
       appBar: DesktopAppBar(

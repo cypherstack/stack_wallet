@@ -89,7 +89,7 @@ void main() {
     await widgetTester.pumpWidget(
       ProviderScope(
         overrides: [
-          walletsChangeNotifierProvider.overrideWithValue(wallets),
+          pWallets.overrideWithValue(wallets),
           pThemeService.overrideWithValue(mockThemeService),
           prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
           coinIconProvider.overrideWithProvider(
@@ -174,7 +174,7 @@ void main() {
     await widgetTester.pumpWidget(
       ProviderScope(
         overrides: [
-          walletsChangeNotifierProvider.overrideWithValue(wallets),
+          pWallets.overrideWithValue(wallets),
           localeServiceChangeNotifierProvider
               .overrideWithValue(mockLocaleService),
           favoritesProvider.overrideWithValue(favorites),
@@ -264,7 +264,7 @@ void main() {
     await widgetTester.pumpWidget(
       ProviderScope(
         overrides: [
-          walletsChangeNotifierProvider.overrideWithValue(wallets),
+          pWallets.overrideWithValue(wallets),
           localeServiceChangeNotifierProvider
               .overrideWithValue(mockLocaleService),
           favoritesProvider.overrideWithValue(favorites),

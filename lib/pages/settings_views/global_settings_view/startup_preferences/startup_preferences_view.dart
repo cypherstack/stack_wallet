@@ -45,7 +45,7 @@ class _StartupPreferencesViewState
     // check if wallet exists (hasn't been deleted or otherwise missing)
     if (possibleWalletId != null) {
       try {
-        ref.read(walletsChangeNotifierProvider).getManager(possibleWalletId);
+        ref.read(pWallets).getManager(possibleWalletId);
       } catch (_) {
         safe = false;
         WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -254,7 +254,7 @@ class _StartupPreferencesViewState
                                                                   coinIconProvider(
                                                                     ref
                                                                         .watch(
-                                                                          walletsChangeNotifierProvider
+                                                                          pWallets
                                                                               .select(
                                                                             (value) =>
                                                                                 value.getManager(
@@ -275,7 +275,7 @@ class _StartupPreferencesViewState
                                                             Text(
                                                               ref
                                                                   .watch(
-                                                                    walletsChangeNotifierProvider
+                                                                    pWallets
                                                                         .select(
                                                                       (value) =>
                                                                           value

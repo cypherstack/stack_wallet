@@ -132,8 +132,8 @@ class _DesktopAddressListState extends ConsumerState<DesktopAddressList> {
 
   @override
   Widget build(BuildContext context) {
-    final coin = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(widget.walletId).coin));
+    final coin = ref.watch(
+        pWallets.select((value) => value.getManager(widget.walletId).coin));
 
     final ids = _search(_searchString);
 

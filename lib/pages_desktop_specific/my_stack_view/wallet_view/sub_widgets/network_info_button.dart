@@ -55,8 +55,7 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
   @override
   void initState() {
     walletId = widget.walletId;
-    final managerProvider =
-        ref.read(walletsChangeNotifierProvider).getManagerProvider(walletId);
+    final managerProvider = ref.read(pWallets).getManagerProvider(walletId);
 
     eventBus =
         widget.eventBus != null ? widget.eventBus! : GlobalEventBus.instance;

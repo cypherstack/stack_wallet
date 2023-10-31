@@ -78,10 +78,8 @@ class _UnlockWalletKeysDesktopState
     if (verified) {
       Navigator.of(context, rootNavigator: true).pop();
 
-      final words = await ref
-          .read(walletsChangeNotifierProvider)
-          .getManager(widget.walletId)
-          .mnemonic;
+      final words =
+          await ref.read(pWallets).getManager(widget.walletId).mnemonic;
 
       if (mounted) {
         await Navigator.of(context).pushReplacementNamed(
@@ -296,7 +294,7 @@ class _UnlockWalletKeysDesktopState
                               Navigator.of(context, rootNavigator: true).pop();
 
                               final words = await ref
-                                  .read(walletsChangeNotifierProvider)
+                                  .read(pWallets)
                                   .getManager(widget.walletId)
                                   .mnemonic;
 

@@ -64,8 +64,7 @@ class _XPubViewState extends ConsumerState<ChangeRepresentativeView> {
   String? representative;
 
   Future<String> loadRepresentative() async {
-    final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(widget.walletId);
+    final manager = ref.read(pWallets).getManager(widget.walletId);
 
     if (manager.coin == Coin.nano) {
       return (manager.wallet as NanoWallet).getCurrentRepresentative();
@@ -76,8 +75,7 @@ class _XPubViewState extends ConsumerState<ChangeRepresentativeView> {
   }
 
   Future<void> _save() async {
-    final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(widget.walletId);
+    final manager = ref.read(pWallets).getManager(widget.walletId);
 
     final changeFuture = manager.coin == Coin.nano
         ? (manager.wallet as NanoWallet).changeRepresentative

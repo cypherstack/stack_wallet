@@ -33,8 +33,8 @@ class EthWalletRadio extends ConsumerStatefulWidget {
 class _EthWalletRadioState extends ConsumerState<EthWalletRadio> {
   @override
   Widget build(BuildContext context) {
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(widget.walletId)));
+    final manager = ref
+        .watch(pWallets.select((value) => value.getManager(widget.walletId)));
 
     return Padding(
       padding: EdgeInsets.zero,

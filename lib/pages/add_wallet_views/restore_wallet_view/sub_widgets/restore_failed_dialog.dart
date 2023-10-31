@@ -63,9 +63,7 @@ class _RestoreFailedDialogState extends ConsumerState<RestoreFailedDialog> {
             style: STextStyles.itemSubtitle12(context),
           ),
           onPressed: () async {
-            ref
-                .read(walletsChangeNotifierProvider.notifier)
-                .removeWallet(walletId: walletId);
+            ref.read(pWallets.notifier).removeWallet(walletId: walletId);
 
             await ref.read(walletsServiceChangeNotifierProvider).deleteWallet(
                   walletName,

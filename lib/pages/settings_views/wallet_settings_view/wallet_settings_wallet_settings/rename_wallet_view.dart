@@ -47,8 +47,7 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
   void initState() {
     _controller = TextEditingController();
     walletId = widget.walletId;
-    originalName =
-        ref.read(walletsChangeNotifierProvider).getManager(walletId).walletName;
+    originalName = ref.read(pWallets).getManager(walletId).walletName;
     _controller.text = originalName;
     super.initState();
   }
@@ -135,10 +134,8 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
                       );
 
                   if (success) {
-                    ref
-                        .read(walletsChangeNotifierProvider)
-                        .getManager(walletId)
-                        .walletName = newName;
+                    ref.read(pWallets).getManager(walletId).walletName =
+                        newName;
                     Navigator.of(context).pop();
                     showFloatingFlushBar(
                       type: FlushBarType.success,

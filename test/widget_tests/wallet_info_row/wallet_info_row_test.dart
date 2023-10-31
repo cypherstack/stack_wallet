@@ -66,7 +66,7 @@ void main() {
     await widgetTester.pumpWidget(
       ProviderScope(
         overrides: [
-          walletsChangeNotifierProvider.overrideWithValue(wallets),
+          pWallets.overrideWithValue(wallets),
           pThemeService.overrideWithValue(mockThemeService),
           coinIconProvider.overrideWithProvider(
             (argument) => Provider<String>((_) =>

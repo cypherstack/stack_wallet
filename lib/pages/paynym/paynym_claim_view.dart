@@ -47,8 +47,7 @@ class PaynymClaimView extends ConsumerStatefulWidget {
 
 class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
   Future<bool> _addSegwitCode(PaynymAccount myAccount) async {
-    final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(widget.walletId);
+    final manager = ref.read(pWallets).getManager(widget.walletId);
 
     // get wallet to access paynym calls
     final wallet = manager.wallet as PaynymWalletInterface;
@@ -190,9 +189,8 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
                     ).then((value) => shouldCancel = value == true),
                   );
 
-                  final manager = ref
-                      .read(walletsChangeNotifierProvider)
-                      .getManager(widget.walletId);
+                  final manager =
+                      ref.read(pWallets).getManager(widget.walletId);
 
                   // get wallet to access paynym calls
                   final wallet = manager.wallet as PaynymWalletInterface;

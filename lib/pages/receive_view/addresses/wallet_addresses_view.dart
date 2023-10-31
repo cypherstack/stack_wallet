@@ -135,8 +135,8 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
 
   @override
   Widget build(BuildContext context) {
-    final coin = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(widget.walletId).coin));
+    final coin = ref.watch(
+        pWallets.select((value) => value.getManager(widget.walletId).coin));
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(

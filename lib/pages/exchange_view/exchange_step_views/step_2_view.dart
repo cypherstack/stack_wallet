@@ -96,7 +96,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
       if (model.receiveTicker.toLowerCase() ==
           tuple.item2.ticker.toLowerCase()) {
         ref
-            .read(walletsChangeNotifierProvider)
+            .read(pWallets)
             .getManager(tuple.item1)
             .currentReceivingAddress
             .then((value) {
@@ -107,7 +107,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
         if (model.sendTicker.toUpperCase() ==
             tuple.item2.ticker.toUpperCase()) {
           ref
-              .read(walletsChangeNotifierProvider)
+              .read(pWallets)
               .getManager(tuple.item1)
               .currentReceivingAddress
               .then((value) {
@@ -219,8 +219,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                           .then((value) async {
                                         if (value is String) {
                                           final manager = ref
-                                              .read(
-                                                  walletsChangeNotifierProvider)
+                                              .read(pWallets)
                                               .getManager(value);
 
                                           _toController.text =
@@ -491,8 +490,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                             .then((value) async {
                                           if (value is String) {
                                             final manager = ref
-                                                .read(
-                                                    walletsChangeNotifierProvider)
+                                                .read(pWallets)
                                                 .getManager(value);
 
                                             _refundController.text =

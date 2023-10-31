@@ -107,7 +107,7 @@ class TxListItem extends ConsumerWidget {
                                         // transactionIfSentFromStack: tx,
                                         transactionIfSentFromStack: null,
                                         walletName: ref.watch(
-                                          walletsChangeNotifierProvider.select(
+                                          pWallets.select(
                                             (value) => value
                                                 .getManager(_tx.walletId)
                                                 .walletName,
@@ -136,7 +136,7 @@ class TxListItem extends ConsumerWidget {
                           _tx,
                           _tx.walletId,
                           ref
-                              .read(walletsChangeNotifierProvider)
+                              .read(pWallets)
                               .getManager(_tx.walletId)
                               .walletName,
                         ),

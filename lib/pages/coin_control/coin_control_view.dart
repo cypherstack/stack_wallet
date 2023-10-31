@@ -83,7 +83,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
 
   Future<void> _refreshBalance() async {
     final coinControlInterface = ref
-        .read(walletsChangeNotifierProvider)
+        .read(pWallets)
         .getManager(widget.walletId)
         .wallet as CoinControlInterface;
     await coinControlInterface.refreshBalance(notify: true);
@@ -114,7 +114,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
     debugPrint("BUILD: $runtimeType");
 
     final coin = ref.watch(
-      walletsChangeNotifierProvider.select(
+      pWallets.select(
         (value) => value
             .getManager(
               widget.walletId,
@@ -124,7 +124,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
     );
 
     final currentChainHeight = ref.watch(
-      walletsChangeNotifierProvider.select(
+      pWallets.select(
         (value) => value
             .getManager(
               widget.walletId,

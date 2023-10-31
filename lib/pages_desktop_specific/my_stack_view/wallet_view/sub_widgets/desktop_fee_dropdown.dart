@@ -77,8 +77,7 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
                 .fast[amount] ==
             null) {
           if (widget.isToken == false) {
-            final manager =
-                ref.read(walletsChangeNotifierProvider).getManager(walletId);
+            final manager = ref.read(pWallets).getManager(walletId);
 
             if (coin == Coin.monero || coin == Coin.wownero) {
               final fee = await manager.estimateFeeFor(
@@ -114,8 +113,7 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
                 .average[amount] ==
             null) {
           if (widget.isToken == false) {
-            final manager =
-                ref.read(walletsChangeNotifierProvider).getManager(walletId);
+            final manager = ref.read(pWallets).getManager(walletId);
 
             if (coin == Coin.monero || coin == Coin.wownero) {
               final fee = await manager.estimateFeeFor(
@@ -151,8 +149,7 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
                 .slow[amount] ==
             null) {
           if (widget.isToken == false) {
-            final manager =
-                ref.read(walletsChangeNotifierProvider).getManager(walletId);
+            final manager = ref.read(pWallets).getManager(walletId);
 
             if (coin == Coin.monero || coin == Coin.wownero) {
               final fee = await manager.estimateFeeFor(
@@ -198,8 +195,8 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId)));
+    final manager =
+        ref.watch(pWallets.select((value) => value.getManager(walletId)));
 
     return FutureBuilder(
       future: manager.fees,
@@ -324,8 +321,8 @@ class FeeDropDownChild extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: $runtimeType : $feeRateType");
 
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId)));
+    final manager =
+        ref.watch(pWallets.select((value) => value.getManager(walletId)));
 
     if (feeObject == null) {
       return AnimatedText(

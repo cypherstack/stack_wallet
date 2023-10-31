@@ -99,8 +99,8 @@ class WalletBackupView extends ConsumerWidget {
               ),
               Text(
                 ref
-                    .watch(walletsChangeNotifierProvider
-                        .select((value) => value.getManager(walletId)))
+                    .watch(
+                        pWallets.select((value) => value.getManager(walletId)))
                     .walletName,
                 textAlign: TextAlign.center,
                 style: STextStyles.label(context).copyWith(

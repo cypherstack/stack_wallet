@@ -217,8 +217,8 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId)));
+    final manager =
+        ref.watch(pWallets.select((value) => value.getManager(walletId)));
     final bool xpubEnabled = manager.hasXPub;
 
     final bool canChangeRep =

@@ -75,9 +75,8 @@ class DesktopFavoriteWallets extends ConsumerWidget {
                       ...favorites.map((p0) {
                         final walletId = ref.read(p0).walletId;
                         final walletName = ref.read(p0).walletName;
-                        final managerProvider = ref
-                            .read(walletsChangeNotifierProvider)
-                            .getManagerProvider(walletId);
+                        final managerProvider =
+                            ref.read(pWallets).getManagerProvider(walletId);
 
                         return FavoriteCard(
                           walletId: walletId,

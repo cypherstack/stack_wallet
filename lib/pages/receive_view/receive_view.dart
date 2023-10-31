@@ -80,10 +80,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
       ),
     );
 
-    await ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(walletId)
-        .generateNewAddress();
+    await ref.read(pWallets).getManager(walletId).generateNewAddress();
 
     shouldPop = true;
 
@@ -98,14 +95,12 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
   @override
   void initState() {
     walletId = widget.walletId;
-    coin = ref.read(walletsChangeNotifierProvider).getManager(walletId).coin;
+    coin = ref.read(pWallets).getManager(walletId).coin;
     clipboard = widget.clipboard;
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      final address = await ref
-          .read(walletsChangeNotifierProvider)
-          .getManager(walletId)
-          .currentReceivingAddress;
+      final address =
+          await ref.read(pWallets).getManager(walletId).currentReceivingAddress;
       setState(() {
         receivingAddress = address;
       });
@@ -120,7 +115,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
 
     ref.listen(
         ref
-            .read(walletsChangeNotifierProvider)
+            .read(pWallets)
             .getManagerProvider(walletId)
             .select((value) => value.currentReceivingAddress),
         (previous, next) {

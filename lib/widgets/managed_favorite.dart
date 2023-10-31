@@ -41,14 +41,14 @@ class ManagedFavorite extends ConsumerStatefulWidget {
 class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
   @override
   Widget build(BuildContext context) {
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(widget.walletId)));
+    final manager = ref
+        .watch(pWallets.select((value) => value.getManager(widget.walletId)));
     debugPrint("BUILD: $runtimeType with walletId ${widget.walletId}");
 
     final isDesktop = Util.isDesktop;
 
     final balance = ref.watch(
-      walletsChangeNotifierProvider.select(
+      pWallets.select(
         (value) => value.getManager(widget.walletId).balance,
       ),
     );
@@ -56,7 +56,7 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
     Amount total = balance.total;
     if (manager.coin == Coin.firo || manager.coin == Coin.firoTestNet) {
       final balancePrivate = ref.watch(
-        walletsChangeNotifierProvider.select(
+        pWallets.select(
           (value) => (value
                   .getManager(
                     widget.walletId,
@@ -73,9 +73,8 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
       padding: EdgeInsets.all(isDesktop ? 0 : 4.0),
       child: RawMaterialButton(
         onPressed: () {
-          final provider = ref
-              .read(walletsChangeNotifierProvider)
-              .getManagerProvider(manager.walletId);
+          final provider =
+              ref.read(pWallets).getManagerProvider(manager.walletId);
           if (!manager.isFavorite) {
             ref.read(favoritesProvider).add(provider, true);
             ref.read(nonFavoritesProvider).remove(provider, true);

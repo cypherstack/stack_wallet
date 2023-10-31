@@ -422,10 +422,8 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
   }
 
   void _updatePreviewButtonState(String? address, Amount? amount) {
-    final isValidAddress = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(walletId)
-        .validateAddress(address ?? "");
+    final isValidAddress =
+        ref.read(pWallets).getManager(walletId).validateAddress(address ?? "");
     ref.read(previewTokenTxButtonStateProvider.state).state =
         (isValidAddress && amount != null && amount > Amount.zero);
   }
@@ -479,7 +477,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
 
         // now check for non standard encoded basic address
       } else if (ref
-          .read(walletsChangeNotifierProvider)
+          .read(pWallets)
           .getManager(walletId)
           .validateAddress(qrResult.rawContent)) {
         _address = qrResult.rawContent;
@@ -592,7 +590,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
     // _calculateFeesFuture = calculateFees(0);
     _data = widget.autoFillData;
     walletId = widget.walletId;
-    coin = ref.read(walletsChangeNotifierProvider).getManager(walletId).coin;
+    coin = ref.read(pWallets).getManager(walletId).coin;
     clipboard = widget.clipboard;
     scanner = widget.barcodeScanner;
 
@@ -993,7 +991,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
           builder: (_) {
             final error = _updateInvalidAddressText(
               _address ?? "",
-              ref.read(walletsChangeNotifierProvider).getManager(walletId),
+              ref.read(pWallets).getManager(walletId),
             );
 
             if (error == null || error.isEmpty) {

@@ -99,9 +99,7 @@ class DeleteWalletWarningView extends ConsumerWidget {
                     .extension<StackColors>()!
                     .getPrimaryEnabledButtonStyle(context),
                 onPressed: () async {
-                  final manager = ref
-                      .read(walletsChangeNotifierProvider)
-                      .getManager(walletId);
+                  final manager = ref.read(pWallets).getManager(walletId);
                   final mnemonic = await manager.mnemonic;
                   Navigator.of(context).pushNamed(
                     DeleteWalletRecoveryPhraseView.routeName,

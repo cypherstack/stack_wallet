@@ -241,7 +241,7 @@ class _SendViewState extends ConsumerState<SendView> {
           (amount != null && amount > Amount.zero);
     } else {
       final isValidAddress = ref
-          .read(walletsChangeNotifierProvider)
+          .read(pWallets)
           .getManager(walletId)
           .validateAddress(address ?? "");
       ref.read(previewTxButtonStateProvider.state).state =
@@ -276,7 +276,7 @@ class _SendViewState extends ConsumerState<SendView> {
     }
 
     final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(walletId);
+        ref.read(pWallets).getManager(walletId);
     final feeObject = await manager.fees;
 
     late final int feeRate;
@@ -384,7 +384,7 @@ class _SendViewState extends ConsumerState<SendView> {
       const Duration(milliseconds: 100),
     );
     final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(walletId);
+        ref.read(pWallets).getManager(walletId);
 
     final Amount amount = _amountToSend!;
     final Amount availableBalance;
@@ -729,13 +729,13 @@ class _SendViewState extends ConsumerState<SendView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final provider = ref.watch(walletsChangeNotifierProvider
+    final provider = ref.watch(pWallets
         .select((value) => value.getManagerProvider(walletId)));
     final String locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
 
     final showCoinControl = ref.watch(
-          walletsChangeNotifierProvider.select(
+          pWallets.select(
             (value) => value.getManager(walletId).hasCoinControlSupport,
           ),
         ) &&
@@ -1270,7 +1270,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                     // now check for non standard encoded basic address
                                                   } else if (ref
                                                       .read(
-                                                          walletsChangeNotifierProvider)
+                                                          pWallets)
                                                       .getManager(walletId)
                                                       .validateAddress(qrResult
                                                           .rawContent)) {
@@ -1398,7 +1398,7 @@ class _SendViewState extends ConsumerState<SendView> {
                               final error = _updateInvalidAddressText(
                                 _address ?? "",
                                 ref
-                                    .read(walletsChangeNotifierProvider)
+                                    .read(pWallets)
                                     .getManager(walletId),
                               );
 
@@ -1853,7 +1853,7 @@ class _SendViewState extends ConsumerState<SendView> {
 
                                       if (mounted) {
                                         final spendable = ref
-                                            .read(walletsChangeNotifierProvider)
+                                            .read(pWallets)
                                             .getManager(widget.walletId)
                                             .balance
                                             .spendable;

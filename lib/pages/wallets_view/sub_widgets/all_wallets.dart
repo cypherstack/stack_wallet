@@ -48,7 +48,7 @@ class AllWallets extends StatelessWidget {
         Expanded(
           child: Consumer(
             builder: (_, ref, __) {
-              final providersByCoin = ref.watch(walletsChangeNotifierProvider
+              final providersByCoin = ref.watch(pWallets
                   .select((value) => value.getManagerProvidersByCoin()));
 
               return ListView.builder(

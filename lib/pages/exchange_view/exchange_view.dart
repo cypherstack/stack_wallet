@@ -196,7 +196,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                     walletIds != null &&
                                     walletIds.isNotEmpty) {
                                   final manager = ref
-                                      .read(walletsChangeNotifierProvider)
+                                      .read(pWallets)
                                       .getManager(walletIds.first);
 
                                   //todo: check if print needed

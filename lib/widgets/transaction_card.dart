@@ -123,10 +123,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
     } else {
       prefix = "";
     }
-    coin = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .coin;
+    coin = ref.read(pWallets).getManager(widget.walletId).coin;
 
     tokenContract = ref
         .read(mainDBProvider)
@@ -150,8 +147,8 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
             : value.getPrice(coin)))
         .item1;
 
-    final currentHeight = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId).currentHeight));
+    final currentHeight = ref.watch(
+        pWallets.select((value) => value.getManager(walletId).currentHeight));
 
     return Material(
       color: Theme.of(context).extension<StackColors>()!.popupBG,

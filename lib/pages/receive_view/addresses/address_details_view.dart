@@ -95,9 +95,8 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                       key: _qrKey,
                       child: QrImageView(
                         data: AddressUtils.buildUriString(
-                          ref.watch(walletsChangeNotifierProvider.select(
-                              (value) =>
-                                  value.getManager(widget.walletId).coin)),
+                          ref.watch(pWallets.select((value) =>
+                              value.getManager(widget.walletId).coin)),
                           address.value,
                           {},
                         ),
@@ -151,8 +150,8 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
 
   @override
   Widget build(BuildContext context) {
-    final coin = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(widget.walletId).coin));
+    final coin = ref.watch(
+        pWallets.select((value) => value.getManager(widget.walletId).coin));
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
@@ -292,9 +291,8 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                       key: _qrKey,
                       child: QrImageView(
                         data: AddressUtils.buildUriString(
-                          ref.watch(walletsChangeNotifierProvider.select(
-                              (value) =>
-                                  value.getManager(widget.walletId).coin)),
+                          ref.watch(pWallets.select((value) =>
+                              value.getManager(widget.walletId).coin)),
                           address.value,
                           {},
                         ),

@@ -36,7 +36,7 @@ class _MyStackViewState extends ConsumerState<MyStackView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final hasWallets = ref.watch(walletsChangeNotifierProvider).hasWallets;
+    final hasWallets = ref.watch(pWallets).hasWallets;
 
     return Background(
       child: Column(

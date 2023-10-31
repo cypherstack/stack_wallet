@@ -88,7 +88,7 @@ class _DesktopTokenViewState extends ConsumerState<DesktopTokenView> {
                 ),
                 buttonHeight: ButtonHeight.s,
                 label: ref.watch(
-                  walletsChangeNotifierProvider.select(
+                  pWallets.select(
                     (value) => value.getManager(widget.walletId).walletName,
                   ),
                 ),
@@ -168,9 +168,8 @@ class _DesktopTokenViewState extends ConsumerState<DesktopTokenView> {
                   DesktopWalletSummary(
                     walletId: widget.walletId,
                     isToken: true,
-                    initialSyncStatus: ref.watch(
-                            walletsChangeNotifierProvider.select((value) =>
-                                value.getManager(widget.walletId).isRefreshing))
+                    initialSyncStatus: ref.watch(pWallets.select((value) =>
+                            value.getManager(widget.walletId).isRefreshing))
                         ? WalletSyncStatus.syncing
                         : WalletSyncStatus.synced,
                   ),

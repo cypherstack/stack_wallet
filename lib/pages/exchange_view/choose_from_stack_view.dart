@@ -47,8 +47,8 @@ class _ChooseFromStackViewState extends ConsumerState<ChooseFromStackView> {
 
   @override
   Widget build(BuildContext context) {
-    final walletIds = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getWalletIdsFor(coin: coin)));
+    final walletIds = ref
+        .watch(pWallets.select((value) => value.getWalletIdsFor(coin: coin)));
 
     return Background(
       child: Scaffold(
@@ -78,7 +78,7 @@ class _ChooseFromStackViewState extends ConsumerState<ChooseFromStackView> {
               : ListView.builder(
                   itemCount: walletIds.length,
                   itemBuilder: (context, index) {
-                    final manager = ref.watch(walletsChangeNotifierProvider
+                    final manager = ref.watch(pWallets
                         .select((value) => value.getManager(walletIds[index])));
 
                     return Padding(

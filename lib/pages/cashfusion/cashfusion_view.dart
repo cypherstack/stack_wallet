@@ -61,10 +61,8 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
   FusionOption _option = FusionOption.continuous;
 
   Future<void> _startFusion() async {
-    final fusionWallet = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .wallet as FusionWalletInterface;
+    final fusionWallet = ref.read(pWallets).getManager(widget.walletId).wallet
+        as FusionWalletInterface;
 
     try {
       fusionWallet.uiState = ref.read(

@@ -36,11 +36,12 @@ class CoinCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final coin = ref.watch(
-      walletsChangeNotifierProvider
-          .select((value) => value.getManager(walletId).coin),
+      pWallets.select((value) => value.getManager(walletId).coin),
     );
 
-    final bool hasCardImageBg = (isFavorite) ? ref.watch(coinCardFavoritesProvider(coin)) != null : ref.watch(coinCardProvider(coin)) != null;
+    final bool hasCardImageBg = (isFavorite)
+        ? ref.watch(coinCardFavoritesProvider(coin)) != null
+        : ref.watch(coinCardProvider(coin)) != null;
 
     return Stack(
       children: [

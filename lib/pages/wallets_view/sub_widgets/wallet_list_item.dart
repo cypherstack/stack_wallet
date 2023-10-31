@@ -58,7 +58,7 @@ class WalletListItem extends ConsumerWidget {
         onPressed: () async {
           if (walletCount == 1 && coin != Coin.ethereum) {
             final providersByCoin = ref
-                .watch(walletsChangeNotifierProvider
+                .watch(pWallets
                     .select((value) => value.getManagerProvidersByCoin()))
                 .where((e) => e.item1 == coin)
                 .map((e) => e.item2)

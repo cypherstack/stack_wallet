@@ -47,10 +47,7 @@ class NodeOptionsSheet extends ConsumerWidget {
   final String popBackToRoute;
 
   Future<void> _notifyWalletsOfUpdatedNode(WidgetRef ref) async {
-    final managers = ref
-        .read(walletsChangeNotifierProvider)
-        .managers
-        .where((e) => e.coin == coin);
+    final managers = ref.read(pWallets).managers.where((e) => e.coin == coin);
     final prefs = ref.read(prefsChangeNotifierProvider);
 
     switch (prefs.syncType) {

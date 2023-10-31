@@ -117,8 +117,7 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
     if (widget.coin == Coin.ethereum) {
       for (final data in walletsData.values) {
         final List<EthContract> contracts = [];
-        final manager =
-            ref.read(walletsChangeNotifierProvider).getManager(data.walletId);
+        final manager = ref.read(pWallets).getManager(data.walletId);
         final contractAddresses = (manager.wallet as EthereumWallet)
             .getWalletTokenContractAddresses();
 
@@ -141,7 +140,7 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
         // add tuple to list
         wallets.add(
           Tuple2(
-            ref.read(walletsChangeNotifierProvider).getManager(
+            ref.read(pWallets).getManager(
                   data.walletId,
                 ),
             contracts,
@@ -153,7 +152,7 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
       for (final data in walletsData.values) {
         wallets.add(
           Tuple2(
-            ref.read(walletsChangeNotifierProvider).getManager(
+            ref.read(pWallets).getManager(
                   data.walletId,
                 ),
             [],

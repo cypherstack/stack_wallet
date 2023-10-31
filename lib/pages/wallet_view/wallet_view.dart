@@ -984,7 +984,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                 ],
                 moreItems: [
                   if (ref.watch(
-                    walletsChangeNotifierProvider.select(
+                    pWallets.select(
                       (value) =>
                           value.getManager(widget.walletId).hasTokenSupport,
                     ),
@@ -1017,7 +1017,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           );
                         }),
                   if (ref.watch(
-                        walletsChangeNotifierProvider.select(
+                        pWallets.select(
                           (value) => value
                               .getManager(widget.walletId)
                               .hasCoinControlSupport,
@@ -1041,7 +1041,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         );
                       },
                     ),
-                  if (ref.watch(walletsChangeNotifierProvider.select((value) =>
+                  if (ref.watch(pWallets.select((value) =>
                       value.getManager(widget.walletId).hasPaynymSupport)))
                     WalletNavigationBarItemData(
                       label: "PayNym",
@@ -1057,7 +1057,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         );
 
                         final manager = ref
-                            .read(walletsChangeNotifierProvider)
+                            .read(pWallets)
                             .getManager(widget.walletId);
 
                         final paynymInterface =
@@ -1100,7 +1100,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       },
                     ),
                   if (ref.watch(
-                    walletsChangeNotifierProvider.select(
+                    pWallets.select(
                       (value) =>
                           value.getManager(widget.walletId).hasOrdinalsSupport,
                     ),
@@ -1116,7 +1116,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       },
                     ),
                   if (ref.watch(
-                    walletsChangeNotifierProvider.select(
+                    pWallets.select(
                       (value) =>
                           value.getManager(widget.walletId).hasFusionSupport,
                     ),

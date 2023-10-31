@@ -51,7 +51,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
   @override
   Widget build(BuildContext context) {
     final manager = ref.watch(
-      walletsChangeNotifierProvider.select(
+      pWallets.select(
         (value) => value.getManager(widget.walletId),
       ),
     );

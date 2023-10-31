@@ -214,8 +214,8 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
 
   @override
   Widget build(BuildContext context) {
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(widget.walletId)));
+    final manager = ref
+        .watch(pWallets.select((value) => value.getManager(widget.walletId)));
 
     return FutureBuilder(
       future: manager.transactions,
@@ -249,9 +249,8 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
             onRefresh: () async {
               //todo: check if print needed
               // debugPrint("pulled down to refresh on transaction list");
-              final managerProvider = ref
-                  .read(walletsChangeNotifierProvider)
-                  .getManagerProvider(widget.walletId);
+              final managerProvider =
+                  ref.read(pWallets).getManagerProvider(widget.walletId);
               if (!ref.read(managerProvider).isRefreshing) {
                 unawaited(ref.read(managerProvider).refresh());
               }

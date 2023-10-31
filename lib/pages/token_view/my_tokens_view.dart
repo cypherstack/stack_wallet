@@ -89,7 +89,7 @@ class _MyTokensViewState extends ConsumerState<MyTokensView> {
             ),
             title: Text(
               "${ref.watch(
-                walletsChangeNotifierProvider.select(
+                pWallets.select(
                     (value) => value.getManager(widget.walletId).walletName),
               )} Tokens",
               style: STextStyles.navBarTitle(context),
@@ -234,7 +234,7 @@ class _MyTokensViewState extends ConsumerState<MyTokensView> {
               walletId: widget.walletId,
               searchTerm: _searchString,
               tokenContracts: ref
-                  .watch(walletsChangeNotifierProvider.select((value) => value
+                  .watch(pWallets.select((value) => value
                       .getManager(widget.walletId)
                       .wallet as EthereumWallet))
                   .getWalletTokenContractAddresses(),

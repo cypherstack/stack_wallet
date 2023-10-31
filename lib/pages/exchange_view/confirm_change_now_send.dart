@@ -25,7 +25,6 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -76,8 +75,7 @@ class _ConfirmChangeNowSendViewState
   final isDesktop = Util.isDesktop;
 
   Future<void> _attemptSend(BuildContext context) async {
-    final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(walletId);
+    final manager = ref.read(pWallets).getManager(walletId);
 
     final sendProgressController = ProgressAndSuccessController();
 
@@ -199,8 +197,7 @@ class _ConfirmChangeNowSendViewState
   Future<void> _confirmSend() async {
     final dynamic unlocked;
 
-    final coin =
-        ref.read(walletsChangeNotifierProvider).getManager(walletId).coin;
+    final coin = ref.read(pWallets).getManager(walletId).coin;
 
     if (Util.isDesktop) {
       unlocked = await showDialog<bool?>(
@@ -266,8 +263,8 @@ class _ConfirmChangeNowSendViewState
 
   @override
   Widget build(BuildContext context) {
-    final managerProvider = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManagerProvider(walletId)));
+    final managerProvider = ref
+        .watch(pWallets.select((value) => value.getManagerProvider(walletId)));
 
     return ConditionalParent(
       condition: !isDesktop,
@@ -536,10 +533,7 @@ class _ConfirmChangeNowSendViewState
                     height: 4,
                   ),
                   Text(
-                    ref
-                        .watch(walletsChangeNotifierProvider)
-                        .getManager(walletId)
-                        .walletName,
+                    ref.watch(pWallets).getManager(walletId).walletName,
                     style: STextStyles.itemSubtitle12(context),
                   ),
                 ],
@@ -595,9 +589,8 @@ class _ConfirmChangeNowSendViewState
                       children: [
                         child,
                         Builder(builder: (context) {
-                          final coin = ref.watch(
-                              walletsChangeNotifierProvider.select(
-                                  (value) => value.getManager(walletId).coin));
+                          final coin = ref.watch(pWallets.select(
+                              (value) => value.getManager(walletId).coin));
                           final price = ref.watch(
                               priceAnd24hChangeNotifierProvider
                                   .select((value) => value.getPrice(coin)));
@@ -628,9 +621,8 @@ class _ConfirmChangeNowSendViewState
                     ),
                     child: Text(
                       ref
-                          .watch(pAmountFormatter(ref.watch(
-                              walletsChangeNotifierProvider.select(
-                                  (value) => value.getManager(walletId).coin))))
+                          .watch(pAmountFormatter(ref.watch(pWallets.select(
+                              (value) => value.getManager(walletId).coin))))
                           .format((transactionInfo["recipientAmt"] as Amount)),
                       style: STextStyles.itemSubtitle12(context),
                       textAlign: TextAlign.right,

@@ -95,7 +95,7 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
             TransactionCard(
               // this may mess with combined firo transactions
               key: tx.isConfirmed(
-                      ref.watch(walletsChangeNotifierProvider.select((value) =>
+                      ref.watch(pWallets.select((value) =>
                           value.getManager(widget.walletId).currentHeight)),
                       coin.requiredConfirmations)
                   ? Key(tx.txid + tx.type.name + tx.address.value.toString())
@@ -111,10 +111,8 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
                   trade.uuid), //
               trade: trade,
               onTap: () async {
-                final walletName = ref
-                    .read(walletsChangeNotifierProvider)
-                    .getManager(widget.walletId)
-                    .walletName;
+                final walletName =
+                    ref.read(pWallets).getManager(widget.walletId).walletName;
                 if (Util.isDesktop) {
                   await showDialog<void>(
                     context: context,
@@ -198,7 +196,7 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
         child: TransactionCard(
           // this may mess with combined firo transactions
           key: tx.isConfirmed(
-                  ref.watch(walletsChangeNotifierProvider.select((value) =>
+                  ref.watch(pWallets.select((value) =>
                       value.getManager(widget.walletId).currentHeight)),
                   coin.requiredConfirmations)
               ? Key(tx.txid + tx.type.name + tx.address.value.toString())
@@ -212,8 +210,8 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
 
   @override
   Widget build(BuildContext context) {
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(widget.walletId)));
+    final manager = ref
+        .watch(pWallets.select((value) => value.getManager(widget.walletId)));
 
     return FutureBuilder(
       future: ref

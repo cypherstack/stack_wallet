@@ -114,7 +114,7 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
           .popUntil(ModalRoute.withName(MyStackView.routeName));
       if (ref.read(currentWalletIdProvider.state).state != null) {
         final managerProvider = ref
-            .read(walletsChangeNotifierProvider)
+            .read(pWallets)
             .getManagerProvider(ref.read(currentWalletIdProvider.state).state!);
         if (ref.read(managerProvider).shouldAutoSync) {
           ref.read(managerProvider).shouldAutoSync = false;

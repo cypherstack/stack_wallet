@@ -56,8 +56,7 @@ class _DesktopChooseFromStackState
 
     final List<String> result = [];
     for (final walletId in walletIds) {
-      final manager =
-          ref.read(walletsChangeNotifierProvider).getManager(walletId);
+      final manager = ref.read(pWallets).getManager(walletId);
 
       if (manager.walletName.toLowerCase().contains(searchTerm.toLowerCase())) {
         result.add(walletId);
@@ -160,7 +159,7 @@ class _DesktopChooseFromStackState
           child: Builder(
             builder: (context) {
               List<String> walletIds = ref.watch(
-                walletsChangeNotifierProvider.select(
+                pWallets.select(
                   (value) => value.getWalletIdsFor(coin: widget.coin),
                 ),
               );
@@ -193,7 +192,7 @@ class _DesktopChooseFromStackState
                   height: 5,
                 ),
                 itemBuilder: (context, index) {
-                  final manager = ref.watch(walletsChangeNotifierProvider
+                  final manager = ref.watch(pWallets
                       .select((value) => value.getManager(walletIds[index])));
 
                   return RoundedWhiteContainer(
@@ -288,8 +287,8 @@ class _BalanceDisplay extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId)));
+    final manager =
+        ref.watch(pWallets.select((value) => value.getManager(walletId)));
 
     Amount total = manager.balance.total;
     if (manager.coin == Coin.firo || manager.coin == Coin.firoTestNet) {

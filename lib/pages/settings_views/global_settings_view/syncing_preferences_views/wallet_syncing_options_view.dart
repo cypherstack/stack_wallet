@@ -34,8 +34,7 @@ class WalletSyncingOptionsView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final managers = ref
-        .watch(walletsChangeNotifierProvider.select((value) => value.managers));
+    final managers = ref.watch(pWallets.select((value) => value.managers));
 
     final isDesktop = Util.isDesktop;
     return ConditionalParent(
@@ -197,9 +196,9 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                               }
                                               break;
                                             case SyncingType
-                                                .selectedWalletsAtStartup:
+                                                  .selectedWalletsAtStartup:
                                             case SyncingType
-                                                .allWalletsOnStartup:
+                                                  .allWalletsOnStartup:
                                               manager.shouldAutoSync = value;
                                               break;
                                           }

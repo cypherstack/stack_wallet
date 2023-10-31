@@ -48,8 +48,7 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
   List<int>? imageBytes;
 
   Future<void> _updateWalletMonKey(Uint8List monKeyBytes) async {
-    final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(walletId);
+    final manager = ref.read(pWallets).getManager(walletId);
     await (manager.wallet as BananoWallet)
         .updateMonkeyImageBytes(monKeyBytes.toList());
   }
@@ -82,10 +81,8 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
       throw Exception("Failed to get documents directory to save monKey image");
     }
 
-    final address = await ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(walletId)
-        .currentReceivingAddress;
+    final address =
+        await ref.read(pWallets).getManager(walletId).currentReceivingAddress;
     final docPath = dir.path;
     String filePath = "$docPath/monkey_$address";
 
@@ -110,8 +107,8 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
 
   @override
   Widget build(BuildContext context) {
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(widget.walletId)));
+    final manager = ref
+        .watch(pWallets.select((value) => value.getManager(widget.walletId)));
     final Coin coin = manager.coin;
 
     final bool isDesktop = Util.isDesktop;

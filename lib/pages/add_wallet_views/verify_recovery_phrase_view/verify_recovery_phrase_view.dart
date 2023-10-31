@@ -124,7 +124,7 @@ class _VerifyRecoveryPhraseViewState
           );
 
       ref
-          .read(walletsChangeNotifierProvider.notifier)
+          .read(pWallets.notifier)
           .addWallet(walletId: _manager.walletId, manager: _manager);
 
       final isCreateSpecialEthWallet =

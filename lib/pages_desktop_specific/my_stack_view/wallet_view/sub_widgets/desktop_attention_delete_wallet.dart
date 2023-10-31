@@ -111,7 +111,7 @@ class _DesktopAttentionDeleteWallet
                       label: "View Backup Key",
                       onPressed: () async {
                         final words = await ref
-                            .read(walletsChangeNotifierProvider)
+                            .read(pWallets)
                             .getManager(widget.walletId)
                             .mnemonic;
 

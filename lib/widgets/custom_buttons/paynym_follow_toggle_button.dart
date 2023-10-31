@@ -67,8 +67,7 @@ class _PaynymFollowToggleButtonState
       ),
     );
 
-    final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(widget.walletId);
+    final manager = ref.read(pWallets).getManager(widget.walletId);
 
     // get wallet to access paynym calls
     final wallet = manager.wallet as PaynymWalletInterface;
@@ -168,8 +167,7 @@ class _PaynymFollowToggleButtonState
       ),
     );
 
-    final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(widget.walletId);
+    final manager = ref.read(pWallets).getManager(widget.walletId);
 
     final wallet = manager.wallet as PaynymWalletInterface;
 

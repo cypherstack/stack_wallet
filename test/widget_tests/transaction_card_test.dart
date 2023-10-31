@@ -134,7 +134,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          walletsChangeNotifierProvider.overrideWithValue(wallets),
+          pWallets.overrideWithValue(wallets),
           localeServiceChangeNotifierProvider
               .overrideWithValue(mockLocaleService),
           pThemeService.overrideWithValue(mockThemeService),
@@ -277,7 +277,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          walletsChangeNotifierProvider.overrideWithValue(wallets),
+          pWallets.overrideWithValue(wallets),
           localeServiceChangeNotifierProvider
               .overrideWithValue(mockLocaleService),
           prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
@@ -419,7 +419,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          walletsChangeNotifierProvider.overrideWithValue(wallets),
+          pWallets.overrideWithValue(wallets),
           localeServiceChangeNotifierProvider
               .overrideWithValue(mockLocaleService),
           prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
@@ -559,7 +559,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          walletsChangeNotifierProvider.overrideWithValue(wallets),
+          pWallets.overrideWithValue(wallets),
           localeServiceChangeNotifierProvider
               .overrideWithValue(mockLocaleService),
           prefsChangeNotifierProvider.overrideWithValue(mockPrefs),

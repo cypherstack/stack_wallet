@@ -136,7 +136,7 @@ class _FiroRescanRecoveryErrorViewState
                               context: context,
                               builder: (_) => StackDialog(
                                 title:
-                                    "Do you want to delete ${ref.read(walletsChangeNotifierProvider).getManager(widget.walletId).walletName}?",
+                                    "Do you want to delete ${ref.read(pWallets).getManager(widget.walletId).walletName}?",
                                 leftButton: TextButton(
                                   style: Theme.of(context)
                                       .extension<StackColors>()!
@@ -254,7 +254,7 @@ class _FiroRescanRecoveryErrorViewState
                         );
                       } else {
                         final mnemonic = await ref
-                            .read(walletsChangeNotifierProvider)
+                            .read(pWallets)
                             .getManager(widget.walletId)
                             .mnemonic;
 

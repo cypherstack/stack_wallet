@@ -160,7 +160,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
   Future<void> _attemptAnonymize() async {
     final managerProvider = ref
-        .read(walletsChangeNotifierProvider)
+        .read(pWallets)
         .getManagerProvider(widget.walletId);
 
     bool shouldPop = false;
@@ -284,7 +284,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     );
 
     final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(widget.walletId);
+        ref.read(pWallets).getManager(widget.walletId);
 
     final wallet = manager.wallet as PaynymWalletInterface;
 
@@ -349,7 +349,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
   @override
   Widget build(BuildContext context) {
     final manager = ref.watch(
-      walletsChangeNotifierProvider.select(
+      pWallets.select(
         (value) => value.getManager(widget.walletId),
       ),
     );

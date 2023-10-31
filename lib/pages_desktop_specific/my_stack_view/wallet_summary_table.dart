@@ -37,7 +37,7 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
     final providersByCoin = ref.watch(
-      walletsChangeNotifierProvider.select(
+      pWallets.select(
         (value) => value.getManagerProvidersByCoin(),
       ),
     );

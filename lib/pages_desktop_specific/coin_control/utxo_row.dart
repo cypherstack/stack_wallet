@@ -18,7 +18,6 @@ import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -97,10 +96,10 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final coin = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(widget.walletId).coin));
+    final coin = ref.watch(
+        pWallets.select((value) => value.getManager(widget.walletId).coin));
 
-    final currentChainHeight = ref.watch(walletsChangeNotifierProvider
+    final currentChainHeight = ref.watch(pWallets
         .select((value) => value.getManager(widget.walletId).currentHeight));
 
     return StreamBuilder<UTXO?>(

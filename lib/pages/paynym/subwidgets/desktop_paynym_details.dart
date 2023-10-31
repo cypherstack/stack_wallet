@@ -28,7 +28,6 @@ import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/paynym_follow_toggle_button.dart';
@@ -70,8 +69,7 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
       ),
     );
 
-    final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(widget.walletId);
+    final manager = ref.read(pWallets).getManager(widget.walletId);
 
     final wallet = manager.wallet as PaynymWalletInterface;
 
@@ -174,8 +172,8 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
 
   @override
   Widget build(BuildContext context) {
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(widget.walletId)));
+    final manager = ref
+        .watch(pWallets.select((value) => value.getManager(widget.walletId)));
 
     final wallet = manager.wallet as PaynymWalletInterface;
 
@@ -315,7 +313,7 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                           "Adding a PayNym to your contacts requires a one-time "
                           "transaction fee for creating the record on the "
                           "blockchain. Please deposit more "
-                          "${ref.read(walletsChangeNotifierProvider).getManager(widget.walletId).wallet.coin.ticker} "
+                          "${ref.read(pWallets).getManager(widget.walletId).wallet.coin.ticker} "
                           "into your wallet and try again.",
                           style: STextStyles.desktopTextExtraExtraSmall(context)
                               .copyWith(

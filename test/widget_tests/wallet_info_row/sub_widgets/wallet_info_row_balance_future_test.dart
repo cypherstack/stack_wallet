@@ -56,7 +56,7 @@ void main() {
     await widgetTester.pumpWidget(
       ProviderScope(
         overrides: [
-          walletsChangeNotifierProvider.overrideWithValue(wallets),
+          pWallets.overrideWithValue(wallets),
         ],
         child: MaterialApp(
           theme: ThemeData(

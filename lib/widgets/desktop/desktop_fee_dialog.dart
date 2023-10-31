@@ -55,8 +55,7 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
                 .fast[amount] ==
             null) {
           if (widget.isToken == false) {
-            final manager =
-                ref.read(walletsChangeNotifierProvider).getManager(walletId);
+            final manager = ref.read(pWallets).getManager(walletId);
 
             if (coin == Coin.monero || coin == Coin.wownero) {
               final fee = await manager.estimateFeeFor(
@@ -92,8 +91,7 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
                 .average[amount] ==
             null) {
           if (widget.isToken == false) {
-            final manager =
-                ref.read(walletsChangeNotifierProvider).getManager(walletId);
+            final manager = ref.read(pWallets).getManager(walletId);
 
             if (coin == Coin.monero || coin == Coin.wownero) {
               final fee = await manager.estimateFeeFor(
@@ -129,8 +127,7 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
                 .slow[amount] ==
             null) {
           if (widget.isToken == false) {
-            final manager =
-                ref.read(walletsChangeNotifierProvider).getManager(walletId);
+            final manager = ref.read(pWallets).getManager(walletId);
 
             if (coin == Coin.monero || coin == Coin.wownero) {
               final fee = await manager.estimateFeeFor(
@@ -175,7 +172,7 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
       maxHeight: double.infinity,
       child: FutureBuilder(
         future: ref.watch(
-          walletsChangeNotifierProvider.select(
+          pWallets.select(
             (value) => value.getManager(walletId).fees,
           ),
         ),
@@ -313,7 +310,7 @@ class _DesktopFeeItemState extends ConsumerState<DesktopFeeItem> {
         builder: (_) {
           if (!widget.isButton) {
             final coin = ref.watch(
-              walletsChangeNotifierProvider.select(
+              pWallets.select(
                 (value) => value.getManager(widget.walletId).coin,
               ),
             );
@@ -356,8 +353,8 @@ class _DesktopFeeItemState extends ConsumerState<DesktopFeeItem> {
             );
           }
 
-          final manager = ref.watch(walletsChangeNotifierProvider
-              .select((value) => value.getManager(widget.walletId)));
+          final manager = ref.watch(
+              pWallets.select((value) => value.getManager(widget.walletId)));
 
           if (widget.feeObject == null) {
             return AnimatedText(

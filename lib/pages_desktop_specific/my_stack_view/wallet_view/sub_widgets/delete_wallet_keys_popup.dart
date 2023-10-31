@@ -235,11 +235,9 @@ class _ConfirmDeleteState extends ConsumerState<ConfirmDelete> {
                     buttonHeight: ButtonHeight.xl,
                     label: "Continue",
                     onPressed: () async {
-                      final walletsInstance =
-                          ref.read(walletsChangeNotifierProvider);
-                      final manager = ref
-                          .read(walletsChangeNotifierProvider)
-                          .getManager(widget.walletId);
+                      final walletsInstance = ref.read(pWallets);
+                      final manager =
+                          ref.read(pWallets).getManager(widget.walletId);
 
                       final _managerWalletId = manager.walletId;
                       //

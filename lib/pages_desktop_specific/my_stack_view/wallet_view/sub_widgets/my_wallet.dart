@@ -43,11 +43,8 @@ class _MyWalletState extends ConsumerState<MyWallet> {
 
   @override
   void initState() {
-    isEth = ref
-            .read(walletsChangeNotifierProvider)
-            .getManager(widget.walletId)
-            .coin ==
-        Coin.ethereum;
+    isEth =
+        ref.read(pWallets).getManager(widget.walletId).coin == Coin.ethereum;
 
     if (isEth && widget.contractAddress == null) {
       titles.add("Transactions");
@@ -96,7 +93,7 @@ class _MyWalletState extends ConsumerState<MyWallet> {
                     child: TransactionsList(
                       walletId: widget.walletId,
                       managerProvider: ref.watch(
-                        walletsChangeNotifierProvider.select(
+                        pWallets.select(
                           (value) => value.getManagerProvider(
                             widget.walletId,
                           ),

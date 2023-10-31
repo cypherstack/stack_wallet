@@ -136,7 +136,7 @@ class _ForgottenPassphraseRestoreFromSWBState
         return;
       }
 
-      ref.read(walletsChangeNotifierProvider);
+      ref.read(pWallets);
 
       await showDialog<void>(
         context: context,

@@ -37,9 +37,8 @@ class WalletInfoRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final manager = ref.watch(ref
-        .watch(walletsChangeNotifierProvider.notifier)
-        .getManagerProvider(walletId));
+    final manager =
+        ref.watch(ref.watch(pWallets.notifier).getManagerProvider(walletId));
 
     EthContract? contract;
     if (contractAddress != null) {

@@ -61,7 +61,7 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
       ),
     );
     final coin = ref.watch(
-      walletsChangeNotifierProvider.select(
+      pWallets.select(
         (value) => value.getManager(widget.walletId).coin,
       ),
     );
@@ -88,14 +88,14 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
 
     Balance balance = widget.isToken
         ? ref.watch(tokenServiceProvider.select((value) => value!.balance))
-        : ref.watch(walletsChangeNotifierProvider
-            .select((value) => value.getManager(walletId).balance));
+        : ref.watch(
+            pWallets.select((value) => value.getManager(walletId).balance));
 
     Amount balanceToShow;
     if (coin == Coin.firo || coin == Coin.firoTestNet) {
       Balance? balanceSecondary = ref
           .watch(
-            walletsChangeNotifierProvider.select(
+            pWallets.select(
               (value) =>
                   value.getManager(widget.walletId).wallet as FiroWallet?,
             ),

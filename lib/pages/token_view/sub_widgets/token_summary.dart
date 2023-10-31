@@ -78,7 +78,7 @@ class TokenSummary extends ConsumerWidget {
                   ),
                   Text(
                     ref.watch(
-                      walletsChangeNotifierProvider.select(
+                      pWallets.select(
                         (value) => value.getManager(walletId).walletName,
                       ),
                     ),
@@ -367,8 +367,7 @@ class CoinTickerTag extends ConsumerWidget {
       color: Theme.of(context).extension<StackColors>()!.ethTagBG,
       child: Text(
         ref.watch(
-          walletsChangeNotifierProvider
-              .select((value) => value.getManager(walletId).coin.ticker),
+          pWallets.select((value) => value.getManager(walletId).coin.ticker),
         ),
         style: STextStyles.w600_12(context).copyWith(
           color: Theme.of(context).extension<StackColors>()!.ethTagText,

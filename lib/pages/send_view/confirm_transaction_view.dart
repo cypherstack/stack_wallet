@@ -94,8 +94,7 @@ class _ConfirmTransactionViewState
   late final TextEditingController onChainNoteController;
 
   Future<void> _attemptSend(BuildContext context) async {
-    final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(walletId);
+ pWalletsf.read(walletsChangeNotifierProvider).getManager(walletId);
 
     final sendProgressController = ProgressAndSuccessController();
 
@@ -299,11 +298,8 @@ class _ConfirmTransactionViewState
   }
 
   @override
-  Widget build(BuildContext context) {
-    final managerProvider = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManagerProvider(walletId)));
-
-    final coin = ref.watch(walletsChangeNotifierProvider
+  Widget build(BuildContext contepWalletser = ref.watch(walletsChangeNotifierProvider
+        .select((value) => value.getManagerProvidpWalletsin = ref.watch(walletsChangeNotifierProvider
         .select((value) => value.getManager(walletId).coin));
 
     final String unit;
@@ -778,7 +774,7 @@ class _ConfirmTransactionViewState
                               Builder(
                                 builder: (context) {
                                   final coin = ref
-                                      .watch(walletsChangeNotifierProvider
+ pWallets        .watch(walletsChangeNotifierProvider
                                           .select((value) =>
                                               value.getManager(walletId)))
                                       .coin;
@@ -1008,8 +1004,7 @@ class _ConfirmTransactionViewState
                   color: Theme.of(context)
                       .extension<StackColors>()!
                       .textFieldDefaultBG,
-                  child: Builder(
-                    builder: (context) {
+           pWallets              builder: (context) {
                       final coin = ref
                           .watch(walletsChangeNotifierProvider
                               .select((value) => value.getManager(walletId)))
@@ -1104,8 +1099,7 @@ class _ConfirmTransactionViewState
                                     .extension<StackColors>()!
                                     .textConfirmTotalAmount,
                               ),
-                      ),
-                      Builder(builder: (context) {
+                pWallets  Builder(builder: (context) {
                         final coin = ref.watch(
                             walletsChangeNotifierProvider.select(
                                 (value) => value.getManager(walletId).coin));
@@ -1151,7 +1145,7 @@ class _ConfirmTransactionViewState
               child: PrimaryButton(
                 label: "Send",
                 buttonHeight: isDesktop ? ButtonHeight.l : null,
-                onPressed: () async {
+        pWallets
                   final dynamic unlocked;
 
                   final coin = ref

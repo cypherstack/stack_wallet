@@ -355,8 +355,8 @@ class _TransactionDetailsViewState
 
   @override
   Widget build(BuildContext context) {
-    final currentHeight = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId).currentHeight));
+    final currentHeight = ref.watch(
+        pWallets.select((value) => value.getManager(walletId).currentHeight));
 
     return ConditionalParent(
       condition: !isDesktop,
@@ -1597,9 +1597,8 @@ class _TransactionDetailsViewState
                       ),
                     ),
                     onPressed: () async {
-                      final Manager manager = ref
-                          .read(walletsChangeNotifierProvider)
-                          .getManager(walletId);
+                      final Manager manager =
+                          ref.read(pWallets).getManager(walletId);
 
                       if (manager.wallet is EpicCashWallet) {
                         final String? id = _transaction.slateId;

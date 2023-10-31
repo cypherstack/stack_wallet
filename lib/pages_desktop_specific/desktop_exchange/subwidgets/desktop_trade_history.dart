@@ -117,9 +117,8 @@ class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
                       if (txid != null &&
                           walletIds != null &&
                           walletIds.isNotEmpty) {
-                        final manager = ref
-                            .read(walletsChangeNotifierProvider)
-                            .getManager(walletIds.first);
+                        final manager =
+                            ref.read(pWallets).getManager(walletIds.first);
 
                         //todo: check if print needed
                         // debugPrint("name: ${manager.walletName}");

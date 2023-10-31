@@ -239,7 +239,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
       if (ref.read(desktopExchangeModelProvider)!.receiveTicker.toLowerCase() ==
           tuple.item2.ticker.toLowerCase()) {
         ref
-            .read(walletsChangeNotifierProvider)
+            .read(pWallets)
             .getManager(tuple.item1)
             .currentReceivingAddress
             .then((value) {
@@ -251,7 +251,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
         if (ref.read(desktopExchangeModelProvider)!.sendTicker.toUpperCase() ==
             tuple.item2.ticker.toUpperCase()) {
           ref
-              .read(walletsChangeNotifierProvider)
+              .read(pWallets)
               .getManager(tuple.item1)
               .currentReceivingAddress
               .then((value) {

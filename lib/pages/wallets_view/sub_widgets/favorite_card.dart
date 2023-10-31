@@ -60,8 +60,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
   @override
   Widget build(BuildContext context) {
     final coin = ref.watch(
-      walletsChangeNotifierProvider
-          .select((value) => value.getManager(walletId).coin),
+      pWallets.select((value) => value.getManager(walletId).coin),
     );
     final externalCalls = ref.watch(
       prefsChangeNotifierProvider.select((value) => value.externalCalls),
@@ -117,10 +116,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
       child: GestureDetector(
         onTap: () async {
           if (coin == Coin.monero || coin == Coin.wownero) {
-            await ref
-                .read(walletsChangeNotifierProvider)
-                .getManager(walletId)
-                .initializeExisting();
+            await ref.read(pWallets).getManager(walletId).initializeExisting();
           }
           if (mounted) {
             if (Util.isDesktop) {
@@ -133,9 +129,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                 WalletView.routeName,
                 arguments: Tuple2(
                   walletId,
-                  ref
-                      .read(walletsChangeNotifierProvider)
-                      .getManagerProvider(walletId),
+                  ref.read(pWallets).getManagerProvider(walletId),
                 ),
               );
             }
@@ -164,7 +158,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                         Expanded(
                           child: Text(
                             ref.watch(
-                              walletsChangeNotifierProvider.select(
+                              pWallets.select(
                                 (value) =>
                                     value.getManager(walletId).walletName,
                               ),
@@ -190,7 +184,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                   Builder(
                     builder: (context) {
                       final balance = ref.watch(
-                        walletsChangeNotifierProvider.select(
+                        pWallets.select(
                           (value) => value.getManager(walletId).balance,
                         ),
                       );
@@ -198,7 +192,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                       Amount total = balance.total;
                       if (coin == Coin.firo || coin == Coin.firoTestNet) {
                         final balancePrivate = ref.watch(
-                          walletsChangeNotifierProvider.select(
+                          pWallets.select(
                             (value) => (value.getManager(walletId).wallet
                                     as FiroWallet)
                                 .balancePrivate,
