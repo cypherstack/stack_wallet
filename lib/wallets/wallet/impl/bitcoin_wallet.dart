@@ -48,12 +48,6 @@ class BitcoinWallet extends Bip39HDWallet with ElectrumXMixin {
   }
 
   @override
-  Future<void> updateBalance() {
-    // TODO: implement updateBalance
-    throw UnimplementedError();
-  }
-
-  @override
   Future<void> updateTransactions() async {
     final currentChainHeight = await fetchChainHeight();
 
@@ -101,5 +95,14 @@ class BitcoinWallet extends Bip39HDWallet with ElectrumXMixin {
     } catch (_) {
       return false;
     }
+  }
+
+  @override
+  Future<void> updateChainHeight() async {
+    final height = await fetchChainHeight();
+    await walletInfo.updateCachedChainHeight(
+      newHeight: height,
+      isar: mainDB.isar,
+    );
   }
 }

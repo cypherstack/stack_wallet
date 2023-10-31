@@ -1,6 +1,5 @@
 import 'package:bitbox/bitbox.dart' as bitbox;
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
@@ -11,7 +10,6 @@ import 'package:stackwallet/services/coins/bitcoincash/bch_utils.dart';
 import 'package:stackwallet/services/coins/bitcoincash/cashtokens.dart'
     as cash_tokens;
 import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -51,61 +49,6 @@ class BitcoincashWallet extends Bip39HDWallet with ElectrumXMixin {
   }
 
   // ===========================================================================
-
-  @override
-  Future<void> updateBalance() async {
-    final utxos = await mainDB.getUTXOs(walletId).findAll();
-
-    final currentChainHeight = await fetchChainHeight();
-
-    Amount satoshiBalanceTotal = Amount(
-      rawValue: BigInt.zero,
-      fractionDigits: cryptoCurrency.fractionDigits,
-    );
-    Amount satoshiBalancePending = Amount(
-      rawValue: BigInt.zero,
-      fractionDigits: cryptoCurrency.fractionDigits,
-    );
-    Amount satoshiBalanceSpendable = Amount(
-      rawValue: BigInt.zero,
-      fractionDigits: cryptoCurrency.fractionDigits,
-    );
-    Amount satoshiBalanceBlocked = Amount(
-      rawValue: BigInt.zero,
-      fractionDigits: cryptoCurrency.fractionDigits,
-    );
-
-    for (final utxo in utxos) {
-      final utxoAmount = Amount(
-        rawValue: BigInt.from(utxo.value),
-        fractionDigits: cryptoCurrency.fractionDigits,
-      );
-
-      satoshiBalanceTotal += utxoAmount;
-
-      if (utxo.isBlocked) {
-        satoshiBalanceBlocked += utxoAmount;
-      } else {
-        if (utxo.isConfirmed(
-          currentChainHeight,
-          cryptoCurrency.minConfirms,
-        )) {
-          satoshiBalanceSpendable += utxoAmount;
-        } else {
-          satoshiBalancePending += utxoAmount;
-        }
-      }
-    }
-
-    final balance = Balance(
-      total: satoshiBalanceTotal,
-      spendable: satoshiBalanceSpendable,
-      blockedTotal: satoshiBalanceBlocked,
-      pendingSpendable: satoshiBalancePending,
-    );
-
-    await walletInfo.updateBalance(newBalance: balance, isar: mainDB.isar);
-  }
 
   @override
   Future<void> updateTransactions() async {
@@ -430,5 +373,14 @@ class BitcoincashWallet extends Bip39HDWallet with ElectrumXMixin {
     } catch (_) {
       return false;
     }
+  }
+
+  @override
+  Future<void> updateChainHeight() async {
+    final height = await fetchChainHeight();
+    await walletInfo.updateCachedChainHeight(
+      newHeight: height,
+      isar: mainDB.isar,
+    );
   }
 }

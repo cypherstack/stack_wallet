@@ -77,4 +77,13 @@ class EpiccashWallet extends Bip39Wallet {
       return false;
     }
   }
+
+  @override
+  Future<void> updateChainHeight() async {
+    // final height = await fetchChainHeight();
+    // await walletInfo.updateCachedChainHeight(
+    //   newHeight: height,
+    //   isar: mainDB.isar,
+    // );
+  }
 }

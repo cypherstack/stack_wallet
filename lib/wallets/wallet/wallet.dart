@@ -25,6 +25,7 @@ import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/mixins/electrumx_mixin.dart';
 
 abstract class Wallet<T extends CryptoCurrency> {
+  // default to Transaction class. For TransactionV2 set to 2
   int get isarTransactionVersion => 1;
 
   Wallet(this.cryptoCurrency);
@@ -74,6 +75,22 @@ abstract class Wallet<T extends CryptoCurrency> {
 
   String get walletId => walletInfo.walletId;
   WalletType get walletType => walletInfo.walletType;
+
+  /// Attempt to fetch the most recent chain height.
+  /// On failure return the last cached height.
+  Future<int> get chainHeight async {
+    try {
+      // attempt updating the walletInfo's cached height
+      await updateChainHeight();
+    } catch (e, s) {
+      // do nothing on failure (besides logging)
+      Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+    }
+
+    // return regardless of whether it was updated or not as we want a
+    // number even if it isn't the most recent
+    return walletInfo.cachedChainHeight;
+  }
 
   //============================================================================
   // ========== Static Main ====================================================
@@ -143,7 +160,7 @@ abstract class Wallet<T extends CryptoCurrency> {
     }
 
     return await _construct(
-      walletInfo: walletInfo!,
+      walletInfo: walletInfo,
       mainDB: mainDB,
       secureStorageInterface: secureStorageInterface,
       nodeService: nodeService,
@@ -315,6 +332,9 @@ abstract class Wallet<T extends CryptoCurrency> {
   Future<void> updateUTXOs();
   Future<void> updateBalance();
 
+  /// updates the wallet info's cachedChainHeight
+  Future<void> updateChainHeight();
+
   //===========================================
 
   // Should fire events
@@ -339,6 +359,7 @@ abstract class Wallet<T extends CryptoCurrency> {
       );
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.0, walletId));
+      await updateChainHeight();
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.1, walletId));
 

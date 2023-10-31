@@ -1,7 +1,9 @@
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:isar/isar.dart';
+import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/bip39_hd_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
@@ -112,6 +114,61 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T> {
   }
 
   // ========== Overrides ======================================================
+
+  @override
+  Future<void> updateBalance() async {
+    final utxos = await mainDB.getUTXOs(walletId).findAll();
+
+    final currentChainHeight = await chainHeight;
+
+    Amount satoshiBalanceTotal = Amount(
+      rawValue: BigInt.zero,
+      fractionDigits: cryptoCurrency.fractionDigits,
+    );
+    Amount satoshiBalancePending = Amount(
+      rawValue: BigInt.zero,
+      fractionDigits: cryptoCurrency.fractionDigits,
+    );
+    Amount satoshiBalanceSpendable = Amount(
+      rawValue: BigInt.zero,
+      fractionDigits: cryptoCurrency.fractionDigits,
+    );
+    Amount satoshiBalanceBlocked = Amount(
+      rawValue: BigInt.zero,
+      fractionDigits: cryptoCurrency.fractionDigits,
+    );
+
+    for (final utxo in utxos) {
+      final utxoAmount = Amount(
+        rawValue: BigInt.from(utxo.value),
+        fractionDigits: cryptoCurrency.fractionDigits,
+      );
+
+      satoshiBalanceTotal += utxoAmount;
+
+      if (utxo.isBlocked) {
+        satoshiBalanceBlocked += utxoAmount;
+      } else {
+        if (utxo.isConfirmed(
+          currentChainHeight,
+          cryptoCurrency.minConfirms,
+        )) {
+          satoshiBalanceSpendable += utxoAmount;
+        } else {
+          satoshiBalancePending += utxoAmount;
+        }
+      }
+    }
+
+    final balance = Balance(
+      total: satoshiBalanceTotal,
+      spendable: satoshiBalanceSpendable,
+      blockedTotal: satoshiBalanceBlocked,
+      pendingSpendable: satoshiBalancePending,
+    );
+
+    await walletInfo.updateBalance(newBalance: balance, isar: mainDB.isar);
+  }
 
   @override
   Future<TxData> confirmSend({required TxData txData}) {

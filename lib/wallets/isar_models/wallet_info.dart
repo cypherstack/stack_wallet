@@ -115,6 +115,23 @@ class WalletInfo {
     }
   }
 
+  /// copies this with a new chain height and updates the db
+  Future<void> updateCachedChainHeight({
+    required int newHeight,
+    required Isar isar,
+  }) async {
+    // only update if there were changes to the height
+    if (cachedChainHeight != newHeight) {
+      final updated = copyWith(
+        cachedChainHeight: newHeight,
+      );
+      await isar.writeTxn(() async {
+        await isar.walletInfo.delete(id);
+        await isar.walletInfo.put(updated);
+      });
+    }
+  }
+
   //============================================================================
 
   WalletInfo({
