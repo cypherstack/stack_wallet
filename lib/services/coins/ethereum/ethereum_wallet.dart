@@ -1069,7 +1069,7 @@ class EthereumWallet extends CoinServiceAPI with WalletCache, WalletDB {
         bool isIncoming;
         bool txFailed = false;
         if (checksumEthereumAddress(element.from) == thisAddress) {
-          if (element.isError != 0) {
+          if (element.isError) {
             txFailed = true;
           }
           isIncoming = false;
