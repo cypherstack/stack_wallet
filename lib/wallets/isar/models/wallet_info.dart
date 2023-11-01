@@ -4,11 +4,13 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/wallets/isar/isar_id_interface.dart';
 
 part 'wallet_info.g.dart';
 
 @Collection(accessor: "walletInfo", inheritance: false)
-class WalletInfo {
+class WalletInfo implements IsarId {
+  @override
   Id id = Isar.autoIncrement;
 
   @Index(unique: true, replace: false)
@@ -124,6 +126,63 @@ class WalletInfo {
     if (cachedChainHeight != newHeight) {
       final updated = copyWith(
         cachedChainHeight: newHeight,
+      );
+      await isar.writeTxn(() async {
+        await isar.walletInfo.delete(id);
+        await isar.walletInfo.put(updated);
+      });
+    }
+  }
+
+  /// update favourite wallet and its index it the ui list.
+  /// When [customIndexOverride] is not null the [flag] will be ignored.
+  Future<void> updateIsFavourite(
+    bool flag, {
+    required Isar isar,
+    int? customIndexOverride,
+  }) async {
+    final int index;
+
+    if (customIndexOverride != null) {
+      index = customIndexOverride;
+    } else if (flag) {
+      final highest = await isar.walletInfo
+          .where()
+          .walletIdEqualTo(walletId)
+          .sortByFavouriteOrderIndexDesc()
+          .favouriteOrderIndexProperty()
+          .findFirst();
+      index = highest ?? 0;
+    } else {
+      index = -1;
+    }
+
+    // only update if there were changes to the height
+    if (favouriteOrderIndex != index) {
+      final updated = copyWith(
+        favouriteOrderIndex: index,
+      );
+      await isar.writeTxn(() async {
+        await isar.walletInfo.delete(id);
+        await isar.walletInfo.put(updated);
+      });
+    }
+  }
+
+  /// copies this with a new name and updates the db
+  Future<void> updateName({
+    required String newName,
+    required Isar isar,
+  }) async {
+    // don't allow empty names
+    if (newName.isEmpty) {
+      throw Exception("Empty wallet name not allowed!");
+    }
+
+    // only update if there were changes to the name
+    if (name != newName) {
+      final updated = copyWith(
+        name: newName,
       );
       await isar.writeTxn(() async {
         await isar.walletInfo.delete(id);
