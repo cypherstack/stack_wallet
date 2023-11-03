@@ -89,7 +89,7 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
                     await showLoading(
                       whileFuture: Future.wait<void>([
                         Future.delayed(const Duration(seconds: 2)),
-                        (ref.read(pWallets).getManager(widget.walletId).wallet
+                        (ref.read(pWallets).getWallet(widget.walletId)
                                 as OrdinalsInterface)
                             .refreshInscriptions()
                       ]),

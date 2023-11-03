@@ -27,6 +27,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/animated_widgets/rotate_icon.dart';
 import 'package:stackwallet/widgets/app_bar_field.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -82,10 +83,8 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
   final Set<UTXO> _selectedBlocked = {};
 
   Future<void> _refreshBalance() async {
-    final coinControlInterface = ref
-        .read(pWallets)
-        .getManager(widget.walletId)
-        .wallet as CoinControlInterface;
+    final coinControlInterface =
+        ref.read(pWallets).getWallet(widget.walletId) as CoinControlInterface;
     await coinControlInterface.refreshBalance(notify: true);
   }
 
@@ -113,25 +112,8 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final coin = ref.watch(
-      pWallets.select(
-        (value) => value
-            .getManager(
-              widget.walletId,
-            )
-            .coin,
-      ),
-    );
-
-    final currentChainHeight = ref.watch(
-      pWallets.select(
-        (value) => value
-            .getManager(
-              widget.walletId,
-            )
-            .currentHeight,
-      ),
-    );
+    final coin = ref.watch(pWalletCoin(widget.walletId));
+    final currentHeight = ref.watch(pWalletChainHeight(widget.walletId));
 
     if (_sort == CCSortDescriptor.address && !_isSearching) {
       _list = null;
@@ -357,7 +339,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                       (widget.type == CoinControlViewType.use &&
                                           !utxo.isBlocked &&
                                           utxo.isConfirmed(
-                                            currentChainHeight,
+                                            currentHeight,
                                             coin.requiredConfirmations,
                                           )),
                                   initialSelectedState: isSelected,
@@ -420,7 +402,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                                     CoinControlViewType.use &&
                                                 !_showBlocked &&
                                                 utxo.isConfirmed(
-                                                  currentChainHeight,
+                                                  currentHeight,
                                                   coin.requiredConfirmations,
                                                 )),
                                         initialSelectedState: isSelected,
@@ -562,7 +544,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                                               .use &&
                                                       !utxo.isBlocked &&
                                                       utxo.isConfirmed(
-                                                        currentChainHeight,
+                                                        currentHeight,
                                                         coin.requiredConfirmations,
                                                       )),
                                               initialSelectedState: isSelected,

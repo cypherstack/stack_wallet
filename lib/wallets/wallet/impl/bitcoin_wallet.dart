@@ -3,6 +3,8 @@ import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/node_service.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
 import 'package:stackwallet/wallets/wallet/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/mixins/electrumx_mixin.dart';
@@ -74,7 +76,7 @@ class BitcoinWallet extends Bip39HDWallet with ElectrumXMixin {
     if (data.isNotEmpty) {
       GlobalEventBus.instance.fire(
         UpdatedInBackgroundEvent(
-          "Transactions updated/added for: $walletId ${walletInfo.name}",
+          "Transactions updated/added for: $walletId ${info.name}",
           walletId,
         ),
       );
@@ -100,9 +102,19 @@ class BitcoinWallet extends Bip39HDWallet with ElectrumXMixin {
   @override
   Future<void> updateChainHeight() async {
     final height = await fetchChainHeight();
-    await walletInfo.updateCachedChainHeight(
+    await info.updateCachedChainHeight(
       newHeight: height,
       isar: mainDB.isar,
+    );
+  }
+
+  @override
+  Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
+    return Amount(
+      rawValue: BigInt.from(
+          ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
+              (feeRatePerKB / 1000).ceil()),
+      fractionDigits: info.coin.decimals,
     );
   }
 }

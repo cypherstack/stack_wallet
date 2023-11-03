@@ -25,6 +25,7 @@ import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
@@ -87,11 +88,7 @@ class _DesktopTokenViewState extends ConsumerState<DesktopTokenView> {
                   right: 18,
                 ),
                 buttonHeight: ButtonHeight.s,
-                label: ref.watch(
-                  pWallets.select(
-                    (value) => value.getManager(widget.walletId).walletName,
-                  ),
-                ),
+                label: ref.watch(pWalletName(widget.walletId)),
                 icon: SvgPicture.asset(
                   Assets.svg.arrowLeft,
                   width: 18,
@@ -168,8 +165,11 @@ class _DesktopTokenViewState extends ConsumerState<DesktopTokenView> {
                   DesktopWalletSummary(
                     walletId: widget.walletId,
                     isToken: true,
-                    initialSyncStatus: ref.watch(pWallets.select((value) =>
-                            value.getManager(widget.walletId).isRefreshing))
+                    initialSyncStatus: ref
+                            .watch(pWallets)
+                            .getWallet(widget.walletId)
+                            .refreshMutex
+                            .isLocked
                         ? WalletSyncStatus.syncing
                         : WalletSyncStatus.synced,
                   ),

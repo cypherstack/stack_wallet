@@ -17,7 +17,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/wallets/isar_models/wallet_info.dart';
+import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
 
 class Wallets {
@@ -31,11 +31,47 @@ class Wallets {
 
   bool get hasWallets => _wallets.isNotEmpty;
 
+  List<Wallet> get wallets => _wallets.values.toList();
+
+  List<({Coin coin, List<Wallet> wallets})> get walletsByCoin {
+    final Map<Coin, ({Coin coin, List<Wallet> wallets})> map = {};
+
+    for (final wallet in wallets) {
+      if (map[wallet.info.coin] == null) {
+        map[wallet.info.coin] = (coin: wallet.info.coin, wallets: []);
+      }
+
+      map[wallet.info.coin]!.wallets.add(wallet);
+    }
+
+    final List<({Coin coin, List<Wallet> wallets})> results = [];
+    for (final coin in Coin.values) {
+      if (map[coin] != null) {
+        results.add(map[coin]!);
+      }
+    }
+
+    return results;
+  }
+
   static bool hasLoaded = false;
 
   final Map<String, Wallet> _wallets = {};
 
   Wallet getWallet(String walletId) => _wallets[walletId]!;
+
+  void addWallet(Wallet wallet) {
+    if (_wallets[wallet.walletId] != null) {
+      throw Exception(
+        "Tried to add wallet that already exists, according to it's wallet Id!",
+      );
+    }
+    _wallets[wallet.walletId] = wallet;
+  }
+
+  Future<void> deleteWallet(String walletId) async {
+    throw UnimplementedError("Delete wallet unimplemented");
+  }
 
   Future<void> load(Prefs prefs, MainDB mainDB) async {
     if (hasLoaded) {
@@ -160,16 +196,16 @@ class Wallets {
 
     for (final wallet in wallets) {
       Logging.instance.log(
-        "LOADING WALLET: ${wallet.walletInfo.name}:${wallet.walletId} IS VERIFIED: ${wallet.walletInfo.isMnemonicVerified}",
+        "LOADING WALLET: ${wallet.info.name}:${wallet.walletId} IS VERIFIED: ${wallet.info.isMnemonicVerified}",
         level: LogLevel.Info,
       );
 
-      if (wallet.walletInfo.isMnemonicVerified) {
+      if (wallet.info.isMnemonicVerified) {
         final shouldSetAutoSync = shouldAutoSyncAll ||
             walletIdsToEnableAutoSync.contains(wallet.walletId);
 
-        if (wallet.walletInfo.coin == Coin.monero ||
-            wallet.walletInfo.coin == Coin.wownero) {
+        if (wallet.info.coin == Coin.monero ||
+            wallet.info.coin == Coin.wownero) {
           // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
         } else {
           walletInitFutures.add(wallet.init().then((value) {

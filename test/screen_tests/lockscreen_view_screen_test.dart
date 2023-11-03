@@ -15,7 +15,7 @@ void main() {
     // final navigator = mockingjay.MockNavigator();
     // final walletsService = MockWalletsService();
     // final nodeService = MockNodeService();
-    // final manager = MockManager();
+    // final wallet =  MockManager();
     // final secureStore = FakeSecureStorage();
     //
     // secureStore.write(key: "walletID", value: "1234");
@@ -63,7 +63,7 @@ void main() {
     // final navigator = mockingjay.MockNavigator();
     // final walletsService = MockWalletsService();
     // final nodeService = MockNodeService();
-    // final manager = MockManager();
+    // final wallet =  MockManager();
     // final secureStore = FakeSecureStorage();
     //
     // secureStore.write(key: "walletID_pin", value: "1234");
@@ -128,7 +128,7 @@ void main() {
     // final navigator = mockingjay.MockNavigator();
     // final walletsService = MockWalletsService();
     // final nodeService = MockNodeService();
-    // final manager = MockManager();
+    // final wallet =  MockManager();
     // final secureStore = FakeSecureStorage();
     //
     // secureStore.write(key: "walletID_pin", value: "1234");
@@ -207,7 +207,7 @@ void main() {
     // final navigator = mockingjay.MockNavigator();
     // final walletsService = MockWalletsService();
     // final nodeService = MockNodeService();
-    // final manager = MockManager();
+    // final wallet =  MockManager();
     // final secureStore = FakeSecureStorage();
     //
     // secureStore.write(key: "walletID_pin", value: "1234");
@@ -270,7 +270,7 @@ void main() {
     // final navigator = mockingjay.MockNavigator();
     // final walletsService = MockWalletsService();
     // final nodeService = MockNodeService();
-    // final manager = MockManager();
+    // final wallet =  MockManager();
     // final secureStore = FakeSecureStorage();
     //
     // mockingjay.when(() => navigator.pop()).thenAnswer((_) async => {});

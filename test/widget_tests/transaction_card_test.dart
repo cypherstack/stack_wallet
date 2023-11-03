@@ -115,7 +115,7 @@ void main() {
 
     when(wallet.coin).thenAnswer((_) => Coin.firo);
 
-    when(wallets.getManager("wallet-id"))
+    when(wallets.getWallet"wallet-id"))
         .thenAnswer((realInvocation) => Manager(wallet));
 
     when(wallet.storedChainHeight).thenAnswer((_) => 6000000);
@@ -271,7 +271,7 @@ void main() {
       (_) => null,
     );
 
-    when(wallets.getManager("wallet-id"))
+    when(wallets.getWallet"wallet-id"))
         .thenAnswer((realInvocation) => Manager(wallet));
     //
     await tester.pumpWidget(
@@ -400,7 +400,7 @@ void main() {
 
     when(wallet.coin).thenAnswer((_) => Coin.firo);
 
-    when(wallets.getManager("wallet-id"))
+    when(wallets.getWallet"wallet-id"))
         .thenAnswer((realInvocation) => Manager(wallet));
 
     when(wallet.storedChainHeight).thenAnswer((_) => 6000000);
@@ -535,7 +535,7 @@ void main() {
 
     when(wallet.coin).thenAnswer((_) => Coin.firo);
 
-    when(wallets.getManager("wallet id"))
+    when(wallets.getWallet"wallet id"))
         .thenAnswer((realInvocation) => Manager(wallet));
 
     when(wallet.storedChainHeight).thenAnswer((_) => 6000000);

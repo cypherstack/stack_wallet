@@ -29,7 +29,7 @@ import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 ])
 void main() {
 //   testWidgets("SendView builds correctly", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //
 //     when(manager.coinTicker).thenAnswer((_) => "FIRO");
@@ -88,7 +88,7 @@ void main() {
 //   });
 //
 //   testWidgets("SendView loads correctly", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //
 //     when(manager.coinTicker).thenAnswer((_) => "FIRO");
@@ -157,7 +157,7 @@ void main() {
 //     addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
 //     addTearDown(tester.binding.window.clearDevicePixelRatioTestValue);
 //
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //
 //     when(manager.coinTicker).thenAnswer((_) => "FIRO");
@@ -219,7 +219,7 @@ void main() {
 //   });
 //
 //   testWidgets("SendView load fails to fetch data", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //
 //     when(manager.coinTicker).thenAnswer((_) => "FIRO");
@@ -279,7 +279,7 @@ void main() {
 //   });
 //
 //   testWidgets("paste and clear a valid address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final clipboard = FakeClipboard();
 //
@@ -339,7 +339,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap fee tooltips", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final clipboard = FakeClipboard();
 //
@@ -403,7 +403,7 @@ void main() {
 //   });
 //
 //   testWidgets("paste and clear an invalid address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final clipboard = FakeClipboard();
 //
@@ -462,7 +462,7 @@ void main() {
 //   });
 //
 //   testWidgets("enter and clear a valid address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final clipboard = FakeClipboard();
 //
@@ -521,7 +521,7 @@ void main() {
 //   });
 //
 //   testWidgets("enter an invalid address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final clipboard = FakeClipboard();
 //
@@ -574,7 +574,7 @@ void main() {
 //   });
 //
 //   testWidgets("enter a firo amount", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final clipboard = FakeClipboard();
 //
@@ -626,7 +626,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap available to autofill maximum amount", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final clipboard = FakeClipboard();
 //
@@ -684,7 +684,7 @@ void main() {
 //   });
 //
 //   testWidgets("enter a fiat amount", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final clipboard = FakeClipboard();
 //
@@ -736,7 +736,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap addressbook icon", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final clipboard = FakeClipboard();
 //     final navigator = mockingjay.MockNavigator();
@@ -796,7 +796,7 @@ void main() {
 //
 //   testWidgets("tap scan qr code icon and do not give camera permissions",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final clipboard = FakeClipboard();
 //     final scanner = MockBarcodeScannerWrapper();
@@ -851,7 +851,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap scan qr code for basic address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final clipboard = FakeClipboard();
 //     final scanner = MockBarcodeScannerWrapper();
@@ -908,7 +908,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap scan qr code for firo uri", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final clipboard = FakeClipboard();
 //     final scanner = MockBarcodeScannerWrapper();
@@ -968,7 +968,7 @@ void main() {
 //   });
 //
 //   testWidgets("attempt send to own address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final clipboard = FakeClipboard();
 //     final scanner = MockBarcodeScannerWrapper();
@@ -1032,7 +1032,7 @@ void main() {
 //   });
 //
 //   testWidgets("attempt send to invalid address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final clipboard = FakeClipboard();
 //     final scanner = MockBarcodeScannerWrapper();
@@ -1089,7 +1089,7 @@ void main() {
 //   });
 //
 //   testWidgets("attempt send more than available balance", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final clipboard = FakeClipboard();
 //     final scanner = MockBarcodeScannerWrapper();
@@ -1151,7 +1151,7 @@ void main() {
 //   });
 //
 //   testWidgets("attempt valid send succeeds", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final clipboard = FakeClipboard();
 //     final scanner = MockBarcodeScannerWrapper();
@@ -1228,7 +1228,7 @@ void main() {
 //   });
 //
 //   testWidgets("attempt valid send fails", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final clipboard = FakeClipboard();
 //     final scanner = MockBarcodeScannerWrapper();
@@ -1305,7 +1305,7 @@ void main() {
 //   });
 //
 //   testWidgets("autofill args send", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final clipboard = FakeClipboard();
 //     final scanner = MockBarcodeScannerWrapper();

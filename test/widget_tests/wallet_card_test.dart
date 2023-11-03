@@ -62,7 +62,7 @@ void main() {
         );
 
     final wallets = MockWallets();
-    final manager = Manager(wallet);
+    final wallet = Manager(wallet);
 
     mockito.when(wallets.getManagerProvider("wallet id")).thenAnswer(
         (realInvocation) => ChangeNotifierProvider((ref) => manager));

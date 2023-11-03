@@ -13,8 +13,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -23,6 +22,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/custom_buttons/favorite_toggle.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -41,55 +41,31 @@ class ManagedFavorite extends ConsumerStatefulWidget {
 class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
   @override
   Widget build(BuildContext context) {
-    final manager = ref
-        .watch(pWallets.select((value) => value.getManager(widget.walletId)));
-    debugPrint("BUILD: $runtimeType with walletId ${widget.walletId}");
+    final walletId = widget.walletId;
+
+    debugPrint("BUILD: $runtimeType with walletId $walletId");
 
     final isDesktop = Util.isDesktop;
 
-    final balance = ref.watch(
-      pWallets.select(
-        (value) => value.getManager(widget.walletId).balance,
-      ),
-    );
+    final coin = ref.watch(pWalletCoin(walletId));
 
-    Amount total = balance.total;
-    if (manager.coin == Coin.firo || manager.coin == Coin.firoTestNet) {
-      final balancePrivate = ref.watch(
-        pWallets.select(
-          (value) => (value
-                  .getManager(
-                    widget.walletId,
-                  )
-                  .wallet as FiroWallet)
-              .balancePrivate,
-        ),
-      );
+    Amount total = ref.watch(pWalletBalance(walletId)).total;
+    if (coin == Coin.firo || coin == Coin.firoTestNet) {
+      final balancePrivate = ref.watch(pWalletBalanceSecondary(walletId));
 
       total += balancePrivate.total;
     }
+
+    final isFavourite = ref.watch(pWalletIsFavourite(walletId));
 
     return RoundedWhiteContainer(
       padding: EdgeInsets.all(isDesktop ? 0 : 4.0),
       child: RawMaterialButton(
         onPressed: () {
-          final provider =
-              ref.read(pWallets).getManagerProvider(manager.walletId);
-          if (!manager.isFavorite) {
-            ref.read(favoritesProvider).add(provider, true);
-            ref.read(nonFavoritesProvider).remove(provider, true);
-            ref
-                .read(walletsServiceChangeNotifierProvider)
-                .addFavorite(manager.walletId);
-          } else {
-            ref.read(favoritesProvider).remove(provider, true);
-            ref.read(nonFavoritesProvider).add(provider, true);
-            ref
-                .read(walletsServiceChangeNotifierProvider)
-                .removeFavorite(manager.walletId);
-          }
-
-          manager.isFavorite = !manager.isFavorite;
+          ref.read(pWalletInfo(walletId)).updateIsFavourite(
+                !isFavourite,
+                isar: ref.read(mainDBProvider).isar,
+              );
         },
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(
@@ -109,7 +85,7 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
                 decoration: BoxDecoration(
                   color: Theme.of(context)
                       .extension<StackColors>()!
-                      .colorForCoin(manager.coin)
+                      .colorForCoin(coin)
                       .withOpacity(0.5),
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
@@ -119,7 +95,7 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
                   padding: EdgeInsets.all(isDesktop ? 6 : 4),
                   child: SvgPicture.file(
                     File(
-                      ref.watch(coinIconProvider(manager.coin)),
+                      ref.watch(coinIconProvider(coin)),
                     ),
                     width: 20,
                     height: 20,
@@ -135,7 +111,7 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
                     children: [
                       Expanded(
                         child: Text(
-                          manager.walletName,
+                          ref.watch(pWalletName(walletId)),
                           style: STextStyles.titleBold12(context),
                         ),
                       ),
@@ -143,19 +119,19 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
                         child: Text(
                           ref
                               .watch(
-                                pAmountFormatter(manager.coin),
+                                pAmountFormatter(coin),
                               )
                               .format(total),
                           style: STextStyles.itemSubtitle(context),
                         ),
                       ),
                       Text(
-                        manager.isFavorite
+                        isFavourite
                             ? "Remove from favorites"
                             : "Add to favorites",
                         style:
                             STextStyles.desktopTextExtraSmall(context).copyWith(
-                          color: manager.isFavorite
+                          color: isFavourite
                               ? Theme.of(context)
                                   .extension<StackColors>()!
                                   .accentColorRed
@@ -174,7 +150,7 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        manager.walletName,
+                        ref.watch(pWalletName(walletId)),
                         style: STextStyles.titleBold12(context),
                       ),
                       const SizedBox(
@@ -183,7 +159,7 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
                       Text(
                         ref
                             .watch(
-                              pAmountFormatter(manager.coin),
+                              pAmountFormatter(coin),
                             )
                             .format(total),
                         style: STextStyles.itemSubtitle(context),
@@ -196,7 +172,7 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
-                  initialState: manager.isFavorite,
+                  initialState: isFavourite,
                   onChanged: null,
                 ),
             ],

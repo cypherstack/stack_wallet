@@ -10,6 +10,8 @@ import 'package:stackwallet/services/coins/bitcoincash/bch_utils.dart';
 import 'package:stackwallet/services/coins/bitcoincash/cashtokens.dart'
     as cash_tokens;
 import 'package:stackwallet/services/node_service.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -378,9 +380,19 @@ class BitcoincashWallet extends Bip39HDWallet with ElectrumXMixin {
   @override
   Future<void> updateChainHeight() async {
     final height = await fetchChainHeight();
-    await walletInfo.updateCachedChainHeight(
+    await info.updateCachedChainHeight(
       newHeight: height,
       isar: mainDB.isar,
+    );
+  }
+
+  // TODO: correct formula for bch?
+  @override
+  Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
+    return Amount(
+      rawValue: BigInt.from(((181 * inputCount) + (34 * outputCount) + 10) *
+          (feeRatePerKB / 1000).ceil()),
+      fractionDigits: info.coin.decimals,
     );
   }
 }

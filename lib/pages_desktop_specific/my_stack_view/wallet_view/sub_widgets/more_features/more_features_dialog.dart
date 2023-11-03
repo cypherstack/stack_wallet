@@ -13,6 +13,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/services/mixins/coin_control_interface.dart';
+import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
+import 'package:stackwallet/services/mixins/ordinals_interface.dart';
+import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -50,9 +54,9 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
 class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
   @override
   Widget build(BuildContext context) {
-    final manager = ref.watch(
+    final wallet = ref.watch(
       pWallets.select(
-        (value) => value.getManager(widget.walletId),
+        (value) => value.getWallet(widget.walletId),
       ),
     );
 
@@ -81,49 +85,51 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               const DesktopDialogCloseButton(),
             ],
           ),
-          if (manager.coin == Coin.firo || manager.coin == Coin.firoTestNet)
+          if (wallet.info.coin == Coin.firo ||
+              wallet.info.coin == Coin.firoTestNet)
             _MoreFeaturesItem(
               label: "Anonymize funds",
               detail: "Anonymize funds",
               iconAsset: Assets.svg.recycle,
               onPressed: () => widget.onAnonymizeAllPressed?.call(),
             ),
-          if (manager.hasWhirlpoolSupport)
-            _MoreFeaturesItem(
-              label: "Whirlpool",
-              detail: "Powerful Bitcoin privacy enhancer",
-              iconAsset: Assets.svg.whirlPool,
-              onPressed: () => widget.onWhirlpoolPressed?.call(),
-            ),
-          if (manager.hasCoinControlSupport && coinControlPrefEnabled)
+          // TODO: [prio=med]
+          // if (manager.hasWhirlpoolSupport)
+          //   _MoreFeaturesItem(
+          //     label: "Whirlpool",
+          //     detail: "Powerful Bitcoin privacy enhancer",
+          //     iconAsset: Assets.svg.whirlPool,
+          //     onPressed: () => widget.onWhirlpoolPressed?.call(),
+          //   ),
+          if (wallet is CoinControlInterface && coinControlPrefEnabled)
             _MoreFeaturesItem(
               label: "Coin control",
               detail: "Control, freeze, and utilize outputs at your discretion",
               iconAsset: Assets.svg.coinControl.gamePad,
               onPressed: () => widget.onCoinControlPressed?.call(),
             ),
-          if (manager.hasPaynymSupport)
+          if (wallet is PaynymWalletInterface)
             _MoreFeaturesItem(
               label: "PayNym",
               detail: "Increased address privacy using BIP47",
               iconAsset: Assets.svg.robotHead,
               onPressed: () => widget.onPaynymPressed?.call(),
             ),
-          if (manager.hasOrdinalsSupport)
+          if (wallet is OrdinalsInterface)
             _MoreFeaturesItem(
               label: "Ordinals",
               detail: "View and control your ordinals in Stack",
               iconAsset: Assets.svg.ordinal,
               onPressed: () => widget.onOrdinalsPressed?.call(),
             ),
-          if (manager.coin == Coin.banano)
+          if (wallet.info.coin == Coin.banano)
             _MoreFeaturesItem(
               label: "MonKey",
               detail: "Generate Banano MonKey",
               iconAsset: Assets.svg.monkey,
               onPressed: () => widget.onMonkeyPressed?.call(),
             ),
-          if (manager.hasFusionSupport)
+          if (wallet is FusionWalletInterface)
             _MoreFeaturesItem(
               label: "CashFusion",
               detail: "Decentralized Bitcoin Cash mixing protocol",

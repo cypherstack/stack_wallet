@@ -10,7 +10,6 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
@@ -175,12 +174,13 @@ import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/nodes_
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/security_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/syncing_preferences_settings.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/tor_settings/tor_settings.dart';
-import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/wallets/models/tx_data.dart';
+import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/widgets/choose_coin_view.dart';
 import 'package:tuple/tuple.dart';
 
@@ -1198,11 +1198,11 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case NewWalletRecoveryPhraseView.routeName:
-        if (args is Tuple2<Manager, List<String>>) {
+        if (args is Tuple2<Wallet, List<String>>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => NewWalletRecoveryPhraseView(
-              manager: args.item1,
+              wallet: args.item1,
               mnemonic: args.item2,
             ),
             settings: RouteSettings(
@@ -1213,11 +1213,11 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case VerifyRecoveryPhraseView.routeName:
-        if (args is Tuple2<Manager, List<String>>) {
+        if (args is Tuple2<Wallet, List<String>>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => VerifyRecoveryPhraseView(
-              manager: args.item1,
+              wallet: args.item1,
               mnemonic: args.item2,
             ),
             settings: RouteSettings(
@@ -1233,12 +1233,11 @@ class RouteGenerator {
             builder: (_) => const ManageFavoritesView());
 
       case WalletView.routeName:
-        if (args is Tuple2<String, ChangeNotifierProvider<Manager>>) {
+        if (args is String) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => WalletView(
-              walletId: args.item1,
-              managerProvider: args.item2,
+              walletId: args,
             ),
             settings: RouteSettings(
               name: settings.name,
@@ -1463,11 +1462,11 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case ConfirmTransactionView.routeName:
-        if (args is Tuple2<Map<String, dynamic>, String>) {
+        if (args is Tuple2<TxData, String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => ConfirmTransactionView(
-              transactionInfo: args.item1,
+              txData: args.item1,
               walletId: args.item2,
             ),
             settings: RouteSettings(
@@ -1552,12 +1551,12 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case DeleteWalletRecoveryPhraseView.routeName:
-        if (args is Tuple2<Manager, List<String>>) {
+        if (args is ({String walletId, List<String> mnemonicWords})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => DeleteWalletRecoveryPhraseView(
-              manager: args.item1,
-              mnemonic: args.item2,
+              mnemonic: args.mnemonicWords,
+              walletId: args.walletId,
             ),
             settings: RouteSettings(
               name: settings.name,

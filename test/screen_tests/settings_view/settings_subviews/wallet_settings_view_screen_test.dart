@@ -29,7 +29,7 @@ import 'package:stackwallet/utilities/biometrics.dart';
 ])
 void main() {
 //   testWidgets("WalletSettingsView builds correctly", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //
 //     await tester.pumpWidget(
@@ -69,7 +69,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap back", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -110,7 +110,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap change pin", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -157,7 +157,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap rename wallet", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -210,7 +210,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap delete wallet and cancel", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -266,7 +266,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap delete wallet and continue", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -330,7 +330,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap clear cache and cancel", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -386,7 +386,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap clear cache and confirm succeeds", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final navigator = mockingjay.MockNavigator();
 //     final client = MockCachedElectrumX();
@@ -453,7 +453,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap clear cache and confirm fails", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final navigator = mockingjay.MockNavigator();
 //     final client = MockCachedElectrumX();
@@ -520,7 +520,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap rescan wallet and cancel", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -573,7 +573,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap rescan wallet and continue", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -634,7 +634,7 @@ void main() {
 //   });
 //
 //   testWidgets("biometrics not available on device", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final navigator = mockingjay.MockNavigator();
 //     final localAuth = MockLocalAuthentication();
@@ -705,7 +705,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap to disable biometrics", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final navigator = mockingjay.MockNavigator();
 //     final localAuth = MockLocalAuthentication();
@@ -764,7 +764,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap to enable biometrics succeeds", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final navigator = mockingjay.MockNavigator();
 //     final localAuth = MockLocalAuthentication();
@@ -847,7 +847,7 @@ void main() {
 //
 //   testWidgets("tap to enable biometrics and cancel system settings dialog",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final navigator = mockingjay.MockNavigator();
 //     final localAuth = MockLocalAuthentication();
@@ -945,7 +945,7 @@ void main() {
 //
 //   testWidgets("tap to enable biometrics and open and enable system settings",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final navigator = mockingjay.MockNavigator();
 //     final localAuth = MockLocalAuthentication();
@@ -1058,7 +1058,7 @@ void main() {
 //   testWidgets(
 //       "tap to enable biometrics and open but do not enable system settings",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final navigator = mockingjay.MockNavigator();
 //     final localAuth = MockLocalAuthentication();

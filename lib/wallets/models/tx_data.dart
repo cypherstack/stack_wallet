@@ -1,6 +1,8 @@
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
+import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
+import 'package:web3dart/web3dart.dart' as web3dart;
 
 class TxData {
   final FeeRateType? feeRateType;
@@ -18,12 +20,23 @@ class TxData {
   final String? note;
   final String? noteOnChain;
 
+  final String? memo;
+
   final List<({String address, Amount amount})>? recipients;
   final Set<UTXO>? utxos;
 
   final String? changeAddress;
 
   final String? frostMSConfig;
+
+  // paynym specific
+  final PaynymAccountLite? paynymAccountLite;
+
+  // eth token specific
+  final web3dart.Transaction? web3dartTransaction;
+  final int? nonce;
+  final BigInt? chainId;
+  final BigInt? feeInWei;
 
   TxData({
     this.feeRateType,
@@ -36,10 +49,16 @@ class TxData {
     this.txHash,
     this.note,
     this.noteOnChain,
+    this.memo,
     this.recipients,
     this.utxos,
     this.changeAddress,
     this.frostMSConfig,
+    this.paynymAccountLite,
+    this.web3dartTransaction,
+    this.nonce,
+    this.chainId,
+    this.feeInWei,
   });
 
   Amount? get amount => recipients != null && recipients!.isNotEmpty
@@ -63,10 +82,16 @@ class TxData {
     String? txHash,
     String? note,
     String? noteOnChain,
+    String? memo,
     Set<UTXO>? utxos,
     List<({String address, Amount amount})>? recipients,
     String? frostMSConfig,
     String? changeAddress,
+    PaynymAccountLite? paynymAccountLite,
+    web3dart.Transaction? web3dartTransaction,
+    int? nonce,
+    BigInt? chainId,
+    BigInt? feeInWei,
   }) {
     return TxData(
       feeRateType: feeRateType ?? this.feeRateType,
@@ -79,10 +104,16 @@ class TxData {
       txHash: txHash ?? this.txHash,
       note: note ?? this.note,
       noteOnChain: noteOnChain ?? this.noteOnChain,
+      memo: memo ?? this.memo,
       utxos: utxos ?? this.utxos,
       recipients: recipients ?? this.recipients,
       frostMSConfig: frostMSConfig ?? this.frostMSConfig,
       changeAddress: changeAddress ?? this.changeAddress,
+      paynymAccountLite: paynymAccountLite ?? this.paynymAccountLite,
+      web3dartTransaction: web3dartTransaction ?? this.web3dartTransaction,
+      nonce: nonce ?? this.nonce,
+      chainId: chainId ?? this.chainId,
+      feeInWei: feeInWei ?? this.feeInWei,
     );
   }
 
@@ -98,9 +129,15 @@ class TxData {
       'txHash: $txHash, '
       'note: $note, '
       'noteOnChain: $noteOnChain, '
+      'memo: $memo, '
       'recipients: $recipients, '
       'utxos: $utxos, '
       'frostMSConfig: $frostMSConfig, '
-      'changeAddress: $changeAddress'
+      'changeAddress: $changeAddress, '
+      'paynymAccountLite: $paynymAccountLite, '
+      'web3dartTransaction: $web3dartTransaction, '
+      'nonce: $nonce, '
+      'chainId: $chainId, '
+      'feeInWei: $feeInWei, '
       '}';
 }

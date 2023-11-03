@@ -20,6 +20,7 @@ import 'package:stackwallet/pages_desktop_specific/settings/desktop_settings_vie
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/desktop_about_view.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/desktop_support_view.dart';
 import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
+import 'package:stackwallet/providers/global/active_wallet_provider.dart';
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/global/notifications_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
@@ -31,8 +32,6 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/onetime_popups/tor_has_been_add_dialog.dart';
-
-final currentWalletIdProvider = StateProvider<String?>((_) => null);
 
 class DesktopHomeView extends ConsumerStatefulWidget {
   const DesktopHomeView({Key? key}) : super(key: key);
@@ -113,11 +112,11 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
       Navigator.of(myStackViewNavKey.currentContext!)
           .popUntil(ModalRoute.withName(MyStackView.routeName));
       if (ref.read(currentWalletIdProvider.state).state != null) {
-        final managerProvider = ref
-            .read(pWallets)
-            .getManagerProvider(ref.read(currentWalletIdProvider.state).state!);
-        if (ref.read(managerProvider).shouldAutoSync) {
-          ref.read(managerProvider).shouldAutoSync = false;
+        final wallet =
+            ref.read(pWallets).getWallet(ref.read(currentWalletIdProvider)!);
+
+        if (wallet.shouldAutoSync) {
+          wallet.shouldAutoSync = false;
         }
         ref.read(transactionFilterProvider.state).state = null;
         if (ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled &&
@@ -125,7 +124,10 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
                 BackupFrequencyType.afterClosingAWallet) {
           ref.read(autoSWBServiceProvider).doBackup();
         }
-        ref.read(managerProvider.notifier).isActiveWallet = false;
+
+        // ref.read(managerProvider.notifier).isActiveWallet = false;
+        // TODO: call exit here?
+        // wallet.exit(); ??
       }
     }
     ref.read(prevDesktopMenuItemProvider.state).state = newKey;

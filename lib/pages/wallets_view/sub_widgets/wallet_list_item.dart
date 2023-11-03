@@ -24,7 +24,6 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:tuple/tuple.dart';
 
 class WalletListItem extends ConsumerWidget {
   const WalletListItem({
@@ -57,25 +56,18 @@ class WalletListItem extends ConsumerWidget {
         ),
         onPressed: () async {
           if (walletCount == 1 && coin != Coin.ethereum) {
-            final providersByCoin = ref
-                .watch(pWallets
-                    .select((value) => value.getManagerProvidersByCoin()))
-                .where((e) => e.item1 == coin)
-                .map((e) => e.item2)
-                .expand((e) => e)
-                .toList();
-            final manager = ref.read(providersByCoin.first);
+            final wallet = ref
+                .read(pWallets)
+                .wallets
+                .firstWhere((e) => e.info.coin == coin);
             if (coin == Coin.monero || coin == Coin.wownero) {
-              await manager.initializeExisting();
+              await wallet.init();
             }
             if (context.mounted) {
               unawaited(
                 Navigator.of(context).pushNamed(
                   WalletView.routeName,
-                  arguments: Tuple2(
-                    manager.walletId,
-                    providersByCoin.first,
-                  ),
+                  arguments: wallet.walletId,
                 ),
               );
             }

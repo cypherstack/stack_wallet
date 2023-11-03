@@ -105,10 +105,10 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
             ),
             onRightTapped: restoringStatus == StackRestoringStatus.failed
                 ? () async {
-                    final manager = ref.read(provider).manager!;
+                    final wallet = ref.read(provider).manager!;
 
                     ref.read(stackRestoringUIStateProvider).update(
-                        walletId: manager.walletId,
+                        walletId: wallet.walletId,
                         restoringStatus: StackRestoringStatus.restoring);
 
                     try {
@@ -250,7 +250,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
               ),
               onRightTapped: restoringStatus == StackRestoringStatus.failed
                   ? () async {
-                      final manager = ref.read(provider).manager!;
+                      final wallet = ref.read(provider).manager!;
 
                       ref.read(stackRestoringUIStateProvider).update(
                           walletId: manager.walletId,

@@ -8,7 +8,6 @@
  *
  */
 
-import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -20,11 +19,7 @@ import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_refresh_button.
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
-import 'package:stackwallet/services/coins/banano/banano_wallet.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
-import 'package:stackwallet/services/event_bus/events/global/balance_refreshed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -33,9 +28,10 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 
-class WalletSummaryInfo extends ConsumerStatefulWidget {
+class WalletSummaryInfo extends ConsumerWidget {
   const WalletSummaryInfo({
     Key? key,
     required this.walletId,
@@ -45,16 +41,7 @@ class WalletSummaryInfo extends ConsumerStatefulWidget {
   final String walletId;
   final WalletSyncStatus initialSyncStatus;
 
-  @override
-  ConsumerState<WalletSummaryInfo> createState() => _WalletSummaryInfoState();
-}
-
-class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
-  late StreamSubscription<BalanceRefreshedEvent> _balanceUpdated;
-
-  String receivingAddress = "";
-
-  void showSheet() {
+  void showSheet(BuildContext context) {
     showModalBottomSheet<dynamic>(
       backgroundColor: Colors.transparent,
       context: context,
@@ -63,54 +50,22 @@ class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
           top: Radius.circular(20),
         ),
       ),
-      builder: (_) => WalletBalanceToggleSheet(walletId: widget.walletId),
+      builder: (_) => WalletBalanceToggleSheet(walletId: walletId),
     );
   }
 
   @override
-  void initState() {
-    _balanceUpdated =
-        GlobalEventBus.instance.on<BalanceRefreshedEvent>().listen(
-      (event) async {
-        if (event.walletId == widget.walletId) {
-          setState(() {});
-        }
-      },
-    );
-
-    // managerProvider = widget.managerProvider;
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      final address = await ref
-          .read(pWallets)
-          .getManager(widget.walletId)
-          .currentReceivingAddress;
-      setState(() {
-        receivingAddress = address;
-      });
-    });
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _balanceUpdated.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: $runtimeType");
 
     bool isMonkey = true;
 
-    final manager = ref
-        .watch(pWallets.select((value) => value.getManager(widget.walletId)));
+    final receivingAddress = ref.watch(pWalletReceivingAddress(walletId));
 
     final externalCalls = ref.watch(
         prefsChangeNotifierProvider.select((value) => value.externalCalls));
-    final coin = manager.coin;
-    final balance = ref.watch(
-        pWallets.select((value) => value.getManager(widget.walletId).balance));
+    final coin = ref.watch(pWalletCoin(walletId));
+    final balance = ref.watch(pWalletBalance(walletId));
 
     final locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
@@ -132,10 +87,9 @@ class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
       final _showPrivate =
           ref.watch(publicPrivateBalanceStateProvider.state).state == "Private";
 
-      final firoWallet = ref.watch(pWallets.select(
-          (value) => value.getManager(widget.walletId).wallet)) as FiroWallet;
+      final secondaryBal = ref.watch(pWalletBalanceSecondary(walletId));
 
-      final bal = _showPrivate ? firoWallet.balancePrivate : firoWallet.balance;
+      final bal = _showPrivate ? balance : secondaryBal;
 
       balanceToShow = _showAvailable ? bal.spendable : bal.total;
       title = _showAvailable ? "Available" : "Full";
@@ -148,7 +102,8 @@ class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
     List<int>? imageBytes;
 
     if (coin == Coin.banano) {
-      imageBytes = (manager.wallet as BananoWallet).getMonkeyImageBytes();
+      // TODO: [prio=high] fix this and uncomment:
+      // imageBytes = (manager.wallet as BananoWallet).getMonkeyImageBytes();
     }
 
     return ConditionalParent(
@@ -171,7 +126,9 @@ class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 GestureDetector(
-                  onTap: showSheet,
+                  onTap: () {
+                    showSheet(context);
+                  },
                   child: Row(
                     children: [
                       Text(
@@ -236,8 +193,8 @@ class _WalletSummaryInfoState extends ConsumerState<WalletSummaryInfo> {
               ),
               const Spacer(),
               WalletRefreshButton(
-                walletId: widget.walletId,
-                initialSyncStatus: widget.initialSyncStatus,
+                walletId: walletId,
+                initialSyncStatus: initialSyncStatus,
               ),
             ],
           )

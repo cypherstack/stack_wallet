@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/isar_models/wallet_info.dart';
+import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 
 extension EpiccashWalletInfoExtension on WalletInfo {
   ExtraEpiccashWalletInfo? get epicData {

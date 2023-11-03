@@ -21,14 +21,15 @@ import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/price_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -58,12 +59,12 @@ class _DesktopPaynymSendDialogState
     extends ConsumerState<DesktopPaynymSendDialog> {
   @override
   Widget build(BuildContext context) {
-    final manager = ref
-        .watch(pWallets.select((value) => value.getManager(widget.walletId)));
+    final wallet =
+        ref.watch(pWallets.select((value) => value.getWallet(widget.walletId)));
     final String locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
 
-    final coin = manager.coin;
+    final coin = ref.watch(pWalletCoin(widget.walletId));
 
     final isFiro = coin == Coin.firo || coin == Coin.firoTestNet;
 
@@ -78,7 +79,7 @@ class _DesktopPaynymSendDialogState
               Padding(
                 padding: const EdgeInsets.only(left: 32),
                 child: Text(
-                  "Send ${manager.coin.ticker.toUpperCase()}",
+                  "Send ${coin.ticker.toUpperCase()}",
                   style: STextStyles.desktopH3(context),
                 ),
               ),
@@ -107,7 +108,7 @@ class _DesktopPaynymSendDialogState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        manager.walletName,
+                        ref.watch(pWalletName(widget.walletId)),
                         style: STextStyles.titleBold12(context),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
@@ -135,9 +136,9 @@ class _DesktopPaynymSendDialogState
                       children: [
                         Text(
                           !isFiro
-                              ? ref
-                                  .watch(pAmountFormatter(coin))
-                                  .format(manager.balance.spendable)
+                              ? ref.watch(pAmountFormatter(coin)).format(ref
+                                  .watch(pWalletBalance(widget.walletId))
+                                  .spendable)
                               : ref
                                           .watch(
                                             publicPrivateBalanceStateProvider
@@ -146,12 +147,24 @@ class _DesktopPaynymSendDialogState
                                           .state ==
                                       "Private"
                                   ? ref.watch(pAmountFormatter(coin)).format(
-                                      (manager.wallet as FiroWallet)
-                                          .availablePrivateBalance())
+                                        ref
+                                            .watch(
+                                                pWalletBalance(widget.walletId))
+                                            .spendable,
+                                      )
                                   : ref.watch(pAmountFormatter(coin)).format(
-                                        (manager.wallet as FiroWallet)
-                                            .availablePublicBalance(),
+                                        ref
+                                            .watch(pWalletBalanceSecondary(
+                                                widget.walletId))
+                                            .spendable,
                                       ),
+                          // ? ref.watch(pAmountFormatter(coin)).format(
+                          //     (manager.wallet as FiroWallet)
+                          //         .availablePrivateBalance())
+                          // : ref.watch(pAmountFormatter(coin)).format(
+                          //       (manager.wallet as FiroWallet)
+                          //           .availablePublicBalance(),
+                          //     ),
                           style: STextStyles.titleBold12(context),
                           textAlign: TextAlign.right,
                         ),
@@ -159,7 +172,7 @@ class _DesktopPaynymSendDialogState
                           height: 2,
                         ),
                         Text(
-                          "${((!isFiro ? manager.balance.spendable.decimal : ref.watch(publicPrivateBalanceStateProvider.state).state == "Private" ? (manager.wallet as FiroWallet).availablePrivateBalance().decimal : (manager.wallet as FiroWallet).availablePublicBalance().decimal) * ref.watch(
+                          "${((!isFiro ? ref.watch(pWalletBalance(widget.walletId)).spendable.decimal : ref.watch(publicPrivateBalanceStateProvider.state).state == "Private" ? ref.watch(pWalletBalance(widget.walletId)).spendable.decimal : ref.watch(pWalletBalanceSecondary(widget.walletId)).spendable.decimal) * ref.watch(
                                     priceAnd24hChangeNotifierProvider.select(
                                       (value) => value.getPrice(coin).item1,
                                     ),
@@ -192,7 +205,7 @@ class _DesktopPaynymSendDialogState
               bottom: 32,
             ),
             child: DesktopSend(
-              walletId: manager.walletId,
+              walletId: widget.walletId,
               accountLite: widget.accountLite,
             ),
           ),

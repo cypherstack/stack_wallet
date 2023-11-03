@@ -67,7 +67,7 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
     );
 
     if (shouldCancel == true && mounted) {
-      final fusionWallet = ref.read(pWallets).getManager(widget.walletId).wallet
+      final fusionWallet = ref.read(pWallets).getWallet(widget.walletId)
           as FusionWalletInterface;
 
       await showLoading(
@@ -223,8 +223,8 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
 
   /// Fuse again.
   void _fuseAgain() async {
-    final fusionWallet = ref.read(pWallets).getManager(widget.walletId).wallet
-        as FusionWalletInterface;
+    final fusionWallet =
+        ref.read(pWallets).getWallet(widget.walletId) as FusionWalletInterface;
 
     final fusionInfo = ref.read(prefsChangeNotifierProvider).fusionServerInfo;
 

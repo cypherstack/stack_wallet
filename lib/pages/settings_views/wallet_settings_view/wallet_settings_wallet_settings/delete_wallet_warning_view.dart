@@ -14,10 +14,10 @@ import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_set
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/wallet/bip39_wallet.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:tuple/tuple.dart';
 
 class DeleteWalletWarningView extends ConsumerWidget {
   const DeleteWalletWarningView({
@@ -99,15 +99,18 @@ class DeleteWalletWarningView extends ConsumerWidget {
                     .extension<StackColors>()!
                     .getPrimaryEnabledButtonStyle(context),
                 onPressed: () async {
-                  final manager = ref.read(pWallets).getManager(walletId);
-                  final mnemonic = await manager.mnemonic;
-                  Navigator.of(context).pushNamed(
-                    DeleteWalletRecoveryPhraseView.routeName,
-                    arguments: Tuple2(
-                      manager,
-                      mnemonic,
-                    ),
-                  );
+                  final wallet = ref.read(pWallets).getWallet(walletId);
+                  final mnemonic =
+                      await (wallet as Bip39Wallet).getMnemonicAsWords();
+                  if (context.mounted) {
+                    await Navigator.of(context).pushNamed(
+                      DeleteWalletRecoveryPhraseView.routeName,
+                      arguments: (
+                        walletId: walletId,
+                        mnemonicWords: mnemonic,
+                      ),
+                    );
+                  }
                 },
                 child: Text(
                   "View Backup Key",

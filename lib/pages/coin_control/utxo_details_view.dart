@@ -16,12 +16,13 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -90,17 +91,8 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
 
   @override
   Widget build(BuildContext context) {
-    final coin = ref.watch(
-      pWallets.select(
-        (value) => value.getManager(widget.walletId).coin,
-      ),
-    );
-
-    final currentHeight = ref.watch(
-      pWallets.select(
-        (value) => value.getManager(widget.walletId).currentHeight,
-      ),
-    );
+    final coin = ref.watch(pWalletCoin(widget.walletId));
+    final currentHeight = ref.watch(pWalletChainHeight(widget.walletId));
 
     final confirmed = utxo!.isConfirmed(
       currentHeight,

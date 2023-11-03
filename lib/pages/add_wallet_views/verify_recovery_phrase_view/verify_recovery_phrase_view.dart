@@ -24,14 +24,16 @@ import 'package:stackwallet/pages/add_wallet_views/verify_recovery_phrase_view/v
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
@@ -42,13 +44,13 @@ final createSpecialEthWalletRoutingFlag = StateProvider((ref) => false);
 class VerifyRecoveryPhraseView extends ConsumerStatefulWidget {
   const VerifyRecoveryPhraseView({
     Key? key,
-    required this.manager,
+    required this.wallet,
     required this.mnemonic,
   }) : super(key: key);
 
   static const routeName = "/verifyRecoveryPhrase";
 
-  final Manager manager;
+  final Wallet wallet;
   final List<String> mnemonic;
 
   @override
@@ -60,13 +62,13 @@ class _VerifyRecoveryPhraseViewState
     extends ConsumerState<VerifyRecoveryPhraseView>
 // with WidgetsBindingObserver
 {
-  late Manager _manager;
+  late Wallet _wallet;
   late List<String> _mnemonic;
   late final bool isDesktop;
 
   @override
   void initState() {
-    _manager = widget.manager;
+    _wallet = widget.wallet;
     _mnemonic = widget.mnemonic;
     isDesktop = Util.isDesktop;
     // WidgetsBinding.instance?.addObserver(this);
@@ -119,13 +121,11 @@ class _VerifyRecoveryPhraseViewState
         }
       }
 
-      await ref.read(walletsServiceChangeNotifierProvider).setMnemonicVerified(
-            walletId: _manager.walletId,
+      await ref.read(pWalletInfo(_wallet.walletId)).setMnemonicVerified(
+            isar: ref.read(mainDBProvider).isar,
           );
 
-      ref
-          .read(pWallets.notifier)
-          .addWallet(walletId: _manager.walletId, manager: _manager);
+      ref.read(pWallets).addWallet(_wallet);
 
       final isCreateSpecialEthWallet =
           ref.read(createSpecialEthWalletRoutingFlag);
@@ -153,11 +153,11 @@ class _VerifyRecoveryPhraseViewState
                 DesktopHomeView.routeName,
               ),
             );
-            if (widget.manager.coin == Coin.ethereum) {
+            if (widget.wallet.info.coin == Coin.ethereum) {
               unawaited(
                 Navigator.of(context).pushNamed(
                   EditWalletTokensView.routeName,
-                  arguments: widget.manager.walletId,
+                  arguments: widget.wallet.walletId,
                 ),
               );
             }
@@ -176,11 +176,11 @@ class _VerifyRecoveryPhraseViewState
                 (route) => false,
               ),
             );
-            if (widget.manager.coin == Coin.ethereum) {
+            if (widget.wallet.info.coin == Coin.ethereum) {
               unawaited(
                 Navigator.of(context).pushNamed(
                   EditWalletTokensView.routeName,
-                  arguments: widget.manager.walletId,
+                  arguments: widget.wallet.walletId,
                 ),
               );
             }
@@ -260,10 +260,8 @@ class _VerifyRecoveryPhraseViewState
   }
 
   Future<void> delete() async {
-    await ref
-        .read(walletsServiceChangeNotifierProvider)
-        .deleteWallet(_manager.walletName, false);
-    await _manager.exitCurrentWallet();
+    await _wallet.exit();
+    await ref.read(pWallets).deleteWallet(_wallet.walletId);
   }
 
   @override

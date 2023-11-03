@@ -7,7 +7,7 @@ abstract class CryptonoteWallet extends Wallet {
 
   Future<String> getMnemonic() async {
     final mnemonic = await secureStorageInterface.read(
-      key: Wallet.mnemonicKey(walletId: walletInfo.walletId),
+      key: Wallet.mnemonicKey(walletId: info.walletId),
     );
 
     if (mnemonic == null) {

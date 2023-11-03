@@ -363,7 +363,7 @@ void main() {
 //
 //   testWidgets("tap test connection fails", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.testNetworkConnection(any)).thenAnswer((_) async => false);
 //
@@ -430,7 +430,7 @@ void main() {
 //
 //   testWidgets("tap test connection succeeds", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.testNetworkConnection(any)).thenAnswer((_) async => true);
 //

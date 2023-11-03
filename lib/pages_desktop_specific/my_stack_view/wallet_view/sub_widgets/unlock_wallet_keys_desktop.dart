@@ -21,6 +21,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/wallet/bip39_wallet.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -56,10 +57,10 @@ class _UnlockWalletKeysDesktopState
     unawaited(
       showDialog(
         context: context,
-        builder: (context) => Column(
+        builder: (context) => const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: const [
+          children: [
             LoadingIndicator(
               width: 200,
               height: 200,
@@ -78,8 +79,14 @@ class _UnlockWalletKeysDesktopState
     if (verified) {
       Navigator.of(context, rootNavigator: true).pop();
 
-      final words =
-          await ref.read(pWallets).getManager(widget.walletId).mnemonic;
+      final wallet = ref.read(pWallets).getWallet(widget.walletId);
+
+      // TODO: [prio=high] handle wallets that don't have a mnemonic
+      if (wallet is! Bip39Wallet) {
+        throw Exception("FIXME ~= see todo in code");
+      }
+
+      final words = await wallet.getMnemonicAsWords();
 
       if (mounted) {
         await Navigator.of(context).pushReplacementNamed(
@@ -293,11 +300,15 @@ class _UnlockWalletKeysDesktopState
                             if (verified) {
                               Navigator.of(context, rootNavigator: true).pop();
 
-                              final words = await ref
-                                  .read(pWallets)
-                                  .getManager(widget.walletId)
-                                  .mnemonic;
+                              final wallet =
+                                  ref.read(pWallets).getWallet(widget.walletId);
 
+                              // TODO: [prio=high] handle wallets that don't have a mnemonic
+                              if (wallet is! Bip39Wallet) {
+                                throw Exception("FIXME ~= see todo in code");
+                              }
+
+                              final words = await wallet.getMnemonicAsWords();
                               if (mounted) {
                                 await Navigator.of(context)
                                     .pushReplacementNamed(

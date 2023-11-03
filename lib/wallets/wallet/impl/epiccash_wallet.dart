@@ -1,5 +1,7 @@
+import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:stackwallet/services/node_service.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
@@ -86,4 +88,14 @@ class EpiccashWallet extends Bip39Wallet {
     //   isar: mainDB.isar,
     // );
   }
+
+  @override
+  Future<Amount> estimateFeeFor(Amount amount, int feeRate) {
+    // TODO: implement estimateFeeFor
+    throw UnimplementedError();
+  }
+
+  @override
+  // TODO: implement fees
+  Future<FeeObject> get fees => throw UnimplementedError();
 }

@@ -19,6 +19,7 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/contact_details_view.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_2_view.dart';
 import 'package:stackwallet/pages/send_view/send_view.dart';
+import 'package:stackwallet/providers/global/active_wallet_provider.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
@@ -28,6 +29,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
@@ -51,21 +53,15 @@ class ContactPopUp extends ConsumerWidget {
     final contact = ref.watch(addressBookServiceProvider
         .select((value) => value.getContactById(contactId)));
 
-    final active = ref
-        .read(pWallets)
-        .managers
-        .where((e) => e.isActiveWallet)
-        .toList(growable: false);
+    final active = ref.read(currentWalletIdProvider);
 
-    assert(active.isEmpty || active.length == 1);
-
-    bool hasActiveWallet = active.length == 1;
+    bool hasActiveWallet = active != null;
     bool isExchangeFlow =
         ref.watch(exchangeFlowIsActiveStateProvider.state).state;
 
     final addresses = contact.addressesSorted.where((e) {
       if (hasActiveWallet && !isExchangeFlow) {
-        return e.coin == active[0].coin;
+        return e.coin == ref.watch(pWalletCoin(active));
       } else {
         return true;
       }
@@ -201,7 +197,7 @@ class ContactPopUp extends ConsumerWidget {
                                   child: RoundedWhiteContainer(
                                     child: Center(
                                       child: Text(
-                                        "No ${active[0].coin.prettyName} addresses found",
+                                        "No ${ref.watch(pWalletCoin(active!)).prettyName} addresses found",
                                         style:
                                             STextStyles.itemSubtitle(context),
                                       ),
@@ -372,8 +368,9 @@ class ContactPopUp extends ConsumerWidget {
                                                       .pushNamed(
                                                     SendView.routeName,
                                                     arguments: Tuple3(
-                                                      active[0].walletId,
-                                                      active[0].coin,
+                                                      active,
+                                                      ref.read(
+                                                          pWalletCoin(active)),
                                                       SendViewAutoFillData(
                                                         address: address,
                                                         contactLabel:

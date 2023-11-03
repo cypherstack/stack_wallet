@@ -146,7 +146,7 @@
 //     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
 //       final address = await ref
 //           .read(walletsChangeNotifierProvider)
-//           .getManager(walletId)
+//           .getWallet(walletId)
 //           .currentReceivingAddress;
 //       setState(() {
 //         receivingAddress = address;
@@ -164,8 +164,8 @@
 //   @override
 //   Widget build(BuildContext context) {
 //     final Coin coin = ref.watch(managerProvider.select((value) => value.coin));
-//     final manager = ref.watch(walletsChangeNotifierProvider
-//         .select((value) => value.getManager(widget.walletId)));
+//     final wallet =  ref.watch(walletsChangeNotifierProvider
+//         .select((value) => value.getWallet(widget.walletId)));
 //
 //     List<int>? imageBytes;
 //     imageBytes = (manager.wallet as BananoWallet).getMonkeyImageBytes();

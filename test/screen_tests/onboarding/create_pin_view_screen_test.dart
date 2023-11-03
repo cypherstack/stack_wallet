@@ -126,7 +126,7 @@ void main() {
 //   testWidgets("Entering matched PINs on a new wallet", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
 //     final walletsService = MockWalletsService();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final nodeService = MockNodeService();
 //
 //     final store = FakeSecureStorage();
@@ -218,7 +218,7 @@ void main() {
 //   testWidgets("Wallet init fails on entering matched PINs", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
 //     final walletsService = MockWalletsService();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final nodeService = MockNodeService();
 //
 //     final store = FakeSecureStorage();

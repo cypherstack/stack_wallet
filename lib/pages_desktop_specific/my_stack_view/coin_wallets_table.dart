@@ -10,8 +10,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
+import 'package:stackwallet/providers/global/active_wallet_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -30,7 +30,11 @@ class CoinWalletsTable extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final walletIds = ref
-        .watch(pWallets.select((value) => value.getWalletIdsFor(coin: coin)));
+        .watch(pWallets)
+        .wallets
+        .where((e) => e.info.coin == coin)
+        .map((e) => e.walletId)
+        .toList();
 
     return Container(
       decoration: BoxDecoration(
@@ -71,11 +75,12 @@ class CoinWalletsTable extends ConsumerWidget {
                             ref.read(currentWalletIdProvider.state).state =
                                 walletIds[i];
 
-                            final manager =
-                                ref.read(pWallets).getManager(walletIds[i]);
-                            if (manager.coin == Coin.monero ||
-                                manager.coin == Coin.wownero) {
-                              await manager.initializeExisting();
+                            final wallet =
+                                ref.read(pWallets).getWallet(walletIds[i]);
+                            if (wallet.info.coin == Coin.monero ||
+                                wallet.info.coin == Coin.wownero) {
+                              // TODO: this can cause ui lag
+                              await wallet.init();
                             }
 
                             await Navigator.of(context).pushNamed(

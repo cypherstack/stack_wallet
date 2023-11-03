@@ -30,7 +30,7 @@ import 'package:stackwallet/services/notes_service.dart';
 void main() {
 //   testWidgets("WalletView builds correctly with no transactions",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.coinTicker).thenAnswer((_) => "FIRO");
 //     when(manager.fiatCurrency).thenAnswer((_) => "USD");
@@ -91,7 +91,7 @@ void main() {
 //   testWidgets("WalletView builds correctly with transaction history",
 //       (tester) async {
 //     final navigator = mockingjay.MockNavigator();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
 //
@@ -181,7 +181,7 @@ void main() {
 //
 //   testWidgets("tap tx search", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
 //
@@ -253,7 +253,7 @@ void main() {
 //
 //   testWidgets("scroll transactions and test pull down refresh", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
 //
@@ -326,7 +326,7 @@ void main() {
 //
 //   testWidgets("node events", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
 //
@@ -407,7 +407,7 @@ void main() {
 //
 //   testWidgets("select full/available balances", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
 //

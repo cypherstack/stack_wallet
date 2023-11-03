@@ -22,7 +22,7 @@ import 'package:stackwallet/services/coins/manager.dart';
 ])
 void main() {
 //   testWidgets("WalletBackupView builds correctly", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.mnemonic).thenAnswer((_) async => [
 //           "some",
@@ -97,7 +97,7 @@ void main() {
 //   });
 //
 //   testWidgets("WalletBackupView loads correctly", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.mnemonic).thenAnswer((_) async => [
 //           "some",
@@ -185,7 +185,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap back", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final navigator = mockingjay.MockNavigator();
 //
 //     when(manager.mnemonic).thenAnswer((_) async => [
@@ -286,7 +286,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap copy", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final clipboard = FakeClipboard();
 //
 //     when(manager.mnemonic).thenAnswer((_) async => [
@@ -389,7 +389,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap qr code", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.mnemonic).thenAnswer((_) async => [
 //           "some",

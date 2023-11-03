@@ -24,7 +24,6 @@ import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_refresh_button.
 import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/price_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
@@ -34,6 +33,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:tuple/tuple.dart';
@@ -78,9 +78,7 @@ class TokenSummary extends ConsumerWidget {
                   ),
                   Text(
                     ref.watch(
-                      pWallets.select(
-                        (value) => value.getManager(walletId).walletName,
-                      ),
+                      pWalletName(walletId),
                     ),
                     style: STextStyles.w500_12(context).copyWith(
                       color: Theme.of(context)
@@ -366,9 +364,11 @@ class CoinTickerTag extends ConsumerWidget {
       radiusMultiplier: 0.25,
       color: Theme.of(context).extension<StackColors>()!.ethTagBG,
       child: Text(
-        ref.watch(
-          pWallets.select((value) => value.getManager(walletId).coin.ticker),
-        ),
+        ref
+            .watch(
+              pWalletCoin(walletId),
+            )
+            .ticker,
         style: STextStyles.w600_12(context).copyWith(
           color: Theme.of(context).extension<StackColors>()!.ethTagText,
         ),

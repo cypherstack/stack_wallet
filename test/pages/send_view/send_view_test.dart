@@ -52,10 +52,10 @@ void main() {
     when(wallet.walletName).thenAnswer((_) => "some wallet");
     when(wallet.walletId).thenAnswer((_) => "wallet id");
 
-    final manager = Manager(wallet);
+    final wallet =  Manager(wallet);
     when(mockWallets.getManagerProvider("wallet id")).thenAnswer(
         (realInvocation) => ChangeNotifierProvider((ref) => manager));
-    when(mockWallets.getManager("wallet id"))
+    when(mockWallets.getWallet"wallet id"))
         .thenAnswer((realInvocation) => manager);
 
     when(mockLocaleService.locale).thenAnswer((_) => "en_US");
@@ -131,10 +131,10 @@ void main() {
     when(wallet.walletName).thenAnswer((_) => "some wallet");
     when(wallet.walletId).thenAnswer((_) => "wallet id");
 
-    final manager = Manager(wallet);
+    final wallet =  Manager(wallet);
     when(mockWallets.getManagerProvider("wallet id")).thenAnswer(
         (realInvocation) => ChangeNotifierProvider((ref) => manager));
-    when(mockWallets.getManager("wallet id"))
+    when(mockWallets.getWallet"wallet id"))
         .thenAnswer((realInvocation) => manager);
 
     when(mockLocaleService.locale).thenAnswer((_) => "en_US");

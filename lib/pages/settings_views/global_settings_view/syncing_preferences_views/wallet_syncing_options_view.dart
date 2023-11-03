@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/providers/global/active_wallet_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -21,6 +22,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -34,7 +36,7 @@ class WalletSyncingOptionsView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final managers = ref.watch(pWallets.select((value) => value.managers));
+    final walletInfos = ref.watch(pWallets).wallets.map((e) => e.info);
 
     final isDesktop = Util.isDesktop;
     return ConditionalParent(
@@ -73,7 +75,7 @@ class WalletSyncingOptionsView extends ConsumerWidget {
         condition: isDesktop,
         builder: (child) {
           return Padding(
-            padding: EdgeInsets.symmetric(horizontal: 32),
+            padding: const EdgeInsets.symmetric(horizontal: 32),
             child: child,
           );
         },
@@ -108,18 +110,18 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                 .background,
                         child: Column(
                           children: [
-                            ...managers.map(
-                              (manager) => Padding(
+                            ...walletInfos.map(
+                              (info) => Padding(
                                 padding: const EdgeInsets.all(12),
                                 child: Row(
                                   key: Key(
-                                      "syncingPrefsSelectedWalletIdGroupKey_${manager.walletId}"),
+                                      "syncingPrefsSelectedWalletIdGroupKey_${info.walletId}"),
                                   children: [
                                     Container(
                                       decoration: BoxDecoration(
                                         color: Theme.of(context)
                                             .extension<StackColors>()!
-                                            .colorForCoin(manager.coin)
+                                            .colorForCoin(info.coin)
                                             .withOpacity(0.5),
                                         borderRadius: BorderRadius.circular(
                                           Constants.size.circularBorderRadius,
@@ -130,7 +132,7 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                         child: SvgPicture.file(
                                           File(
                                             ref.watch(
-                                              coinIconProvider(manager.coin),
+                                              coinIconProvider(info.coin),
                                             ),
                                           ),
                                           width: 20,
@@ -148,7 +150,7 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          manager.walletName,
+                                          info.name,
                                           style:
                                               STextStyles.titleBold12(context),
                                         ),
@@ -157,9 +159,12 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                         ),
                                         Text(
                                           ref
-                                              .watch(pAmountFormatter(
-                                                  manager.coin))
-                                              .format(manager.balance.total),
+                                              .watch(
+                                                  pAmountFormatter(info.coin))
+                                              .format(ref
+                                                  .watch(pWalletBalance(
+                                                      info.walletId))
+                                                  .total),
                                           style:
                                               STextStyles.itemSubtitle(context),
                                         )
@@ -174,7 +179,7 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                             .watch(prefsChangeNotifierProvider
                                                 .select((value) => value
                                                     .walletIdsSyncOnStartup))
-                                            .contains(manager.walletId),
+                                            .contains(info.walletId),
                                         onValueChanged: (value) {
                                           final syncType = ref
                                               .read(prefsChangeNotifierProvider)
@@ -184,22 +189,28 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                               .walletIdsSyncOnStartup
                                               .toList();
                                           if (value) {
-                                            ids.add(manager.walletId);
+                                            ids.add(info.walletId);
                                           } else {
-                                            ids.remove(manager.walletId);
+                                            ids.remove(info.walletId);
                                           }
+
+                                          final wallet = ref
+                                              .read(pWallets)
+                                              .getWallet(info.walletId);
 
                                           switch (syncType) {
                                             case SyncingType.currentWalletOnly:
-                                              if (manager.isActiveWallet) {
-                                                manager.shouldAutoSync = value;
+                                              if (info.walletId ==
+                                                  ref.read(
+                                                      currentWalletIdProvider)) {
+                                                wallet.shouldAutoSync = value;
                                               }
                                               break;
                                             case SyncingType
                                                   .selectedWalletsAtStartup:
                                             case SyncingType
                                                   .allWalletsOnStartup:
-                                              manager.shouldAutoSync = value;
+                                              wallet.shouldAutoSync = value;
                                               break;
                                           }
 

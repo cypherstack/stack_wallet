@@ -27,7 +27,7 @@ import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 ])
 void main() {
 //   testWidgets("AddAddressBookEntryView builds correctly", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //
 //     await tester.pumpWidget(
@@ -71,7 +71,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap back", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -108,7 +108,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap cancel", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -145,7 +145,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap disabled save button", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -184,7 +184,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap scan qr with valid firo uri A", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //     final scanner = MockBarcodeScannerWrapper();
@@ -245,7 +245,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap scan qr throws", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //     final scanner = MockBarcodeScannerWrapper();
@@ -301,7 +301,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap scan qr with valid firo uri B", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //     final scanner = MockBarcodeScannerWrapper();
@@ -361,7 +361,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap scan qr with valid firo address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //     final scanner = MockBarcodeScannerWrapper();
@@ -422,7 +422,7 @@ void main() {
 //
 //   testWidgets("tap scan qr with valid firo uri with invalid address",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //     final scanner = MockBarcodeScannerWrapper();
@@ -481,7 +481,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap scan qr with invalid firo address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //     final scanner = MockBarcodeScannerWrapper();
@@ -539,7 +539,7 @@ void main() {
 //   });
 //
 //   testWidgets("enter invalid firo address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //     final scanner = MockBarcodeScannerWrapper();
@@ -595,7 +595,7 @@ void main() {
 //   });
 //
 //   testWidgets("enter valid firo address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //     final scanner = MockBarcodeScannerWrapper();
@@ -653,7 +653,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap paste with a valid firo address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //     final clipboard = FakeClipboard();
@@ -710,7 +710,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap paste with a invalid firo address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //     final clipboard = FakeClipboard();
@@ -764,7 +764,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap paste then tap clear address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //     final clipboard = FakeClipboard();
@@ -834,7 +834,7 @@ void main() {
 //   });
 //
 //   testWidgets("enter name", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //     final scanner = MockBarcodeScannerWrapper();
@@ -890,7 +890,7 @@ void main() {
 //   });
 //
 //   testWidgets("enter a name with invalid firo address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //     final scanner = MockBarcodeScannerWrapper();
@@ -949,7 +949,7 @@ void main() {
 //   });
 //
 //   testWidgets("enter a name with a valid firo address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //     final scanner = MockBarcodeScannerWrapper();
@@ -1010,7 +1010,7 @@ void main() {
 //   });
 //
 //   testWidgets("save a validated contact where address is new", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //     final scanner = MockBarcodeScannerWrapper();
@@ -1095,7 +1095,7 @@ void main() {
 //
 //   testWidgets("save a validated contact where address is already in contacts",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //     final scanner = MockBarcodeScannerWrapper();
@@ -1178,7 +1178,7 @@ void main() {
 //   });
 //
 //   testWidgets("save a validated contact throws", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //     final scanner = MockBarcodeScannerWrapper();

@@ -12,12 +12,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/icon_widgets/utxo_status_icon.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
@@ -63,11 +64,8 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final coin = ref.watch(
-        pWallets.select((value) => value.getManager(widget.walletId).coin));
-
-    final currentChainHeight = ref.watch(pWallets
-        .select((value) => value.getManager(widget.walletId).currentHeight));
+    final coin = ref.watch(pWalletCoin(widget.walletId));
+    final currentHeight = ref.watch(pWalletChainHeight(widget.walletId));
 
     return ConditionalParent(
       condition: widget.onPressed != null,
@@ -112,7 +110,7 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
                     child: UTXOStatusIcon(
                       blocked: utxo.isBlocked,
                       status: utxo.isConfirmed(
-                        currentChainHeight,
+                        currentHeight,
                         coin.requiredConfirmations,
                       )
                           ? UTXOStatusIconStatus.confirmed

@@ -31,6 +31,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_eth_tokens.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -99,7 +100,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
         .toList();
 
     final ethWallet =
-        ref.read(pWallets).getManager(widget.walletId).wallet as EthereumWallet;
+        ref.read(pWallets).getWallet(widget.walletId) as EthereumWallet;
 
     await ethWallet.updateTokenContracts(selectedTokens);
     if (mounted) {
@@ -179,11 +180,9 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
 
     tokenEntities.addAll(contracts.map((e) => AddTokenListElementData(e)));
 
-    final walletContracts = (ref
-            .read(pWallets)
-            .getManager(widget.walletId)
-            .wallet as EthereumWallet)
-        .getWalletTokenContractAddresses();
+    final walletContracts =
+        (ref.read(pWallets).getWallet(widget.walletId) as EthereumWallet)
+            .getWalletTokenContractAddresses();
 
     final shouldMarkAsSelectedContracts = [
       ...walletContracts,
@@ -207,8 +206,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final walletName = ref.watch(pWallets
-        .select((value) => value.getManager(widget.walletId).walletName));
+    final walletName = ref.watch(pWalletName(widget.walletId));
 
     if (isDesktop) {
       return ConditionalParent(

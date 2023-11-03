@@ -17,12 +17,12 @@ import 'package:flutter_svg/svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -53,14 +53,14 @@ class _XPubViewState extends ConsumerState<XPubView> {
   final bool isDesktop = Util.isDesktop;
 
   late ClipboardInterface _clipboardInterface;
-  late final Manager manager;
+  late final Wallet wallet;
 
   String? xpub;
 
   @override
   void initState() {
     _clipboardInterface = widget.clipboardInterface;
-    manager = ref.read(pWallets).getManager(widget.walletId);
+    wallet = ref.read(pWallets).getWallet(widget.walletId);
 
     super.initState();
   }
@@ -152,7 +152,7 @@ class _XPubViewState extends ConsumerState<XPubView> {
                       left: 32,
                     ),
                     child: Text(
-                      "${manager.walletName} xPub",
+                      "${wallet.info.name} xPub",
                       style: STextStyles.desktopH2(context),
                     ),
                   ),
@@ -185,7 +185,8 @@ class _XPubViewState extends ConsumerState<XPubView> {
                 child: child,
               ),
               child: FutureBuilder(
-                future: manager.xpub,
+                future: Future(() => "fixme"),
+                // future: wallet.xpub,
                 builder: (context, AsyncSnapshot<String> snapshot) {
                   if (snapshot.connectionState == ConnectionState.done &&
                       snapshot.hasData) {

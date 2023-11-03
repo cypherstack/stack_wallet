@@ -28,6 +28,8 @@ import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/bip39_hd_wallet.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -58,53 +60,48 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
   late final ClipboardInterface clipboard;
 
   Future<void> generateNewAddress() async {
-    bool shouldPop = false;
-    unawaited(
-      showDialog(
-        context: context,
-        builder: (_) {
-          return WillPopScope(
-            onWillPop: () async => shouldPop,
-            child: Container(
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .overlay
-                  .withOpacity(0.5),
-              child: const CustomLoadingOverlay(
-                message: "Generating address",
-                eventBus: null,
+    // TODO: [prio=med] handle other wallet cases
+    final wallet = ref.read(pWallets).getWallet(walletId);
+
+    if (wallet is Bip39HDWallet) {
+      bool shouldPop = false;
+      unawaited(
+        showDialog(
+          context: context,
+          builder: (_) {
+            return WillPopScope(
+              onWillPop: () async => shouldPop,
+              child: Container(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .overlay
+                    .withOpacity(0.5),
+                child: const CustomLoadingOverlay(
+                  message: "Generating address",
+                  eventBus: null,
+                ),
               ),
-            ),
-          );
-        },
-      ),
-    );
+            );
+          },
+        ),
+      );
 
-    await ref.read(pWallets).getManager(walletId).generateNewAddress();
+      await wallet.generateNewReceivingAddress();
 
-    shouldPop = true;
+      shouldPop = true;
 
-    if (mounted) {
-      Navigator.of(context)
-          .popUntil(ModalRoute.withName(ReceiveView.routeName));
+      if (mounted) {
+        Navigator.of(context)
+            .popUntil(ModalRoute.withName(ReceiveView.routeName));
+      }
     }
   }
-
-  String receivingAddress = "";
 
   @override
   void initState() {
     walletId = widget.walletId;
-    coin = ref.read(pWallets).getManager(walletId).coin;
+    coin = ref.read(pWalletCoin(walletId));
     clipboard = widget.clipboard;
-
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      final address =
-          await ref.read(pWallets).getManager(walletId).currentReceivingAddress;
-      setState(() {
-        receivingAddress = address;
-      });
-    });
 
     super.initState();
   }
@@ -113,16 +110,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    ref.listen(
-        ref
-            .read(pWallets)
-            .getManagerProvider(walletId)
-            .select((value) => value.currentReceivingAddress),
-        (previous, next) {
-      if (next is Future<String>) {
-        next.then((value) => setState(() => receivingAddress = value));
-      }
-    });
+    final receivingAddress = ref.watch(pWalletReceivingAddress(walletId));
 
     final ticker = widget.tokenContract?.symbol ?? coin.ticker;
 

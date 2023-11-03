@@ -72,7 +72,7 @@ void main() {
 //
 //   testWidgets("confirm button empty field", (tester) async {
 //     final screen = VerifyBackupKeyView();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.mnemonic).thenAnswer(
 //       (_) async => [
@@ -125,7 +125,7 @@ void main() {
 //
 //   testWidgets("confirm button invalid word", (tester) async {
 //     final screen = VerifyBackupKeyView();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.mnemonic).thenAnswer(
 //       (_) async => [
@@ -181,7 +181,7 @@ void main() {
 //
 //   testWidgets("confirm button matching word", (tester) async {
 //     final screen = VerifyBackupKeyView();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final navigator = mockingjay.MockNavigator();
 //
 //     when(manager.mnemonic).thenAnswer(

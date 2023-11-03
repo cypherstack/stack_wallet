@@ -38,6 +38,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -136,12 +137,10 @@ class _WalletNetworkSettingsViewState
     );
 
     try {
-      if (ref.read(pWallets).getManager(widget.walletId).coin == Coin.firo) {
-        maxUnusedAddressGap = 50;
-      }
-      await ref.read(pWallets).getManager(widget.walletId).fullRescan(
-            maxUnusedAddressGap,
-            maxNumberOfIndexesToCheck,
+      final wallet  = ref.read(pWallets).getWallet(widget.walletId);
+
+      await wallet.recover(isRescan: true
+            ,
           );
 
       if (mounted) {
@@ -250,7 +249,7 @@ class _WalletNetworkSettingsViewState
       },
     );
 
-    final coin = ref.read(pWallets).getManager(widget.walletId).coin;
+    final coin = ref.read(pWalletCoin(widget.walletId));
 
     if (coin == Coin.monero || coin == Coin.wownero || coin == Coin.epicCash) {
       _blocksRemainingSubscription = eventBus.on<BlocksRemainingEvent>().listen(
@@ -309,36 +308,36 @@ class _WalletNetworkSettingsViewState
         ? 430.0
         : screenWidth - (_padding * 2) - (_boxPadding * 3) - _iconSize;
 
-    final coin = ref.read(pWallets).getManager(widget.walletId).coin;
+    final coin = ref.watch(pWalletCoin(widget.walletId));
 
-    if (coin == Coin.monero) {
-      double highestPercent = (ref
-              .read(pWallets)
-              .getManager(widget.walletId)
-              .wallet as MoneroWallet)
-          .highestPercentCached;
-      if (_percent < highestPercent) {
-        _percent = highestPercent.clamp(0.0, 1.0);
-      }
-    } else if (coin == Coin.wownero) {
-      double highestPercent = (ref
-              .read(pWallets)
-              .getManager(widget.walletId)
-              .wallet as WowneroWallet)
-          .highestPercentCached;
-      if (_percent < highestPercent) {
-        _percent = highestPercent.clamp(0.0, 1.0);
-      }
-    } else if (coin == Coin.epicCash) {
-      double highestPercent = (ref
-              .read(pWallets)
-              .getManager(widget.walletId)
-              .wallet as EpicCashWallet)
-          .highestPercent;
-      if (_percent < highestPercent) {
-        _percent = highestPercent.clamp(0.0, 1.0);
-      }
-    }
+
+    // TODO: [prio=high] sync percent for certain wallets
+    // if (coin == Coin.monero) {
+    //   double highestPercent =
+    //       (ref.read(pWallets).getWallet(widget.walletId).wallet as MoneroWallet)
+    //           .highestPercentCached;
+    //   if (_percent < highestPercent) {
+    //     _percent = highestPercent.clamp(0.0, 1.0);
+    //   }
+    // } else if (coin == Coin.wownero) {
+    //   double highestPercent = (ref
+    //           .watch(pWallets)
+    //           .getWallet(widget.walletId)
+    //           .wallet as WowneroWallet)
+    //       .highestPercentCached;
+    //   if (_percent < highestPercent) {
+    //     _percent = highestPercent.clamp(0.0, 1.0);
+    //   }
+    // } else if (coin == Coin.epicCash) {
+    //   double highestPercent = (ref
+    //           .watch(pWallets)
+    //           .getWallet(widget.walletId)
+    //           .wallet as EpicCashWallet)
+    //       .highestPercent;
+    //   if (_percent < highestPercent) {
+    //     _percent = highestPercent.clamp(0.0, 1.0);
+    //   }
+    // }
 
     return ConditionalParent(
       condition: !isDesktop,
@@ -358,7 +357,7 @@ class _WalletNetworkSettingsViewState
                 style: STextStyles.navBarTitle(context),
               ),
               actions: [
-                if (ref.read(pWallets).getManager(widget.walletId).coin !=
+                if (ref.watch(pWalletCoin(widget.walletId)) !=
                     Coin.epicCash)
                   Padding(
                     padding: const EdgeInsets.only(
@@ -483,7 +482,7 @@ class _WalletNetworkSettingsViewState
               CustomTextButton(
                 text: "Resync",
                 onTap: () {
-                  ref.read(pWallets).getManager(widget.walletId).refresh();
+                  ref.read(pWallets).getWallet(widget.walletId).refresh();
                 },
               ),
             ],
@@ -886,7 +885,7 @@ class _WalletNetworkSettingsViewState
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "${ref.watch(pWallets.select((value) => value.getManager(widget.walletId).coin)).prettyName} nodes",
+                "${ref.watch(pWalletCoin(widget.walletId)).prettyName} nodes",
                 textAlign: TextAlign.left,
                 style: isDesktop
                     ? STextStyles.desktopTextExtraExtraSmall(context)
@@ -899,7 +898,7 @@ class _WalletNetworkSettingsViewState
                     AddEditNodeView.routeName,
                     arguments: Tuple4(
                       AddEditNodeViewType.add,
-                      ref.read(pWallets).getManager(widget.walletId).coin,
+                      ref.read(pWalletCoin(widget.walletId)),
                       null,
                       WalletNetworkSettingsView.routeName,
                     ),
@@ -912,18 +911,17 @@ class _WalletNetworkSettingsViewState
             height: isDesktop ? 12 : 8,
           ),
           NodesList(
-            coin: ref.watch(pWallets
-                .select((value) => value.getManager(widget.walletId).coin)),
+            coin: ref.watch(pWalletCoin(widget.walletId)),
             popBackToRoute: WalletNetworkSettingsView.routeName,
           ),
           if (isDesktop &&
-              ref.read(pWallets).getManager(widget.walletId).coin !=
+              ref.watch(pWalletCoin(widget.walletId)) !=
                   Coin.epicCash)
             const SizedBox(
               height: 32,
             ),
           if (isDesktop &&
-              ref.read(pWallets).getManager(widget.walletId).coin !=
+              ref.watch(pWalletCoin(widget.walletId)) !=
                   Coin.epicCash)
             Padding(
               padding: const EdgeInsets.only(
@@ -941,7 +939,7 @@ class _WalletNetworkSettingsViewState
               ),
             ),
           if (isDesktop &&
-              ref.read(pWallets).getManager(widget.walletId).coin !=
+              ref.watch(pWalletCoin(widget.walletId)) !=
                   Coin.epicCash)
             RoundedWhiteContainer(
               borderColor: isDesktop

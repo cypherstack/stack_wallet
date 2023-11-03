@@ -17,10 +17,9 @@ import 'package:stackwallet/pages/add_wallet_views/new_wallet_options/new_wallet
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/new_wallet_recovery_phrase_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_warning_view/recovery_phrase_explanation_dialog.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/coins/coin_service.dart';
-import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -30,6 +29,9 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
+import 'package:stackwallet/wallets/wallet/bip39_wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -453,14 +455,9 @@ class _NewWalletRecoveryPhraseWarningViewState
                                       },
                                     ));
 
-                                    final walletsService = ref.read(
-                                        walletsServiceChangeNotifierProvider);
-
-                                    final walletId =
-                                        await walletsService.addNewWallet(
-                                      name: walletName,
-                                      coin: coin,
-                                      shouldNotifyListeners: false,
+                                    final info = WalletInfo.createNew(
+                                      coin: widget.coin,
+                                      name: widget.walletName,
                                     );
 
                                     var node = ref
@@ -480,43 +477,45 @@ class _NewWalletRecoveryPhraseWarningViewState
 
                                     final txTracker =
                                         TransactionNotificationTracker(
-                                            walletId: walletId!);
+                                      walletId: info.walletId,
+                                    );
 
                                     final failovers = ref
                                         .read(nodeServiceChangeNotifierProvider)
                                         .failoverNodesFor(coin: widget.coin);
 
-                                    final wallet = CoinServiceAPI.from(
-                                      coin,
-                                      walletId,
-                                      walletName,
-                                      ref.read(secureStoreProvider),
-                                      node,
-                                      txTracker,
-                                      ref.read(prefsChangeNotifierProvider),
-                                      failovers,
+                                    final wallet = await Wallet.create(
+                                      walletInfo: info,
+                                      mainDB: ref.read(mainDBProvider),
+                                      secureStorageInterface:
+                                          ref.read(secureStoreProvider),
+                                      nodeService: ref.read(
+                                          nodeServiceChangeNotifierProvider),
+                                      prefs:
+                                          ref.read(prefsChangeNotifierProvider),
                                     );
 
-                                    final manager = Manager(wallet);
+                                    await wallet.init();
 
-                                    if (coin.hasMnemonicPassphraseSupport &&
-                                        ref
-                                                .read(pNewWalletOptions.state)
-                                                .state !=
-                                            null) {
-                                      await manager.initializeNew((
-                                        mnemonicPassphrase: ref
-                                            .read(pNewWalletOptions.state)
-                                            .state!
-                                            .mnemonicPassphrase,
-                                        wordCount: ref
-                                            .read(pNewWalletOptions.state)
-                                            .state!
-                                            .mnemonicWordsCount,
-                                      ));
-                                    } else {
-                                      await manager.initializeNew(null);
-                                    }
+                                    // TODO: [prio=high] finish fleshing this out
+                                    // if (coin.hasMnemonicPassphraseSupport &&
+                                    //     ref
+                                    //             .read(pNewWalletOptions.state)
+                                    //             .state !=
+                                    //         null) {
+                                    //   await manager.initializeNew((
+                                    //     mnemonicPassphrase: ref
+                                    //         .read(pNewWalletOptions.state)
+                                    //         .state!
+                                    //         .mnemonicPassphrase,
+                                    //     wordCount: ref
+                                    //         .read(pNewWalletOptions.state)
+                                    //         .state!
+                                    //         .mnemonicWordsCount,
+                                    //   ));
+                                    // } else {
+                                    //   await manager.initializeNew(null);
+                                    // }
 
                                     // pop progress dialog
                                     if (mounted) {
@@ -531,8 +530,9 @@ class _NewWalletRecoveryPhraseWarningViewState
                                       unawaited(Navigator.of(context).pushNamed(
                                         NewWalletRecoveryPhraseView.routeName,
                                         arguments: Tuple2(
-                                          manager,
-                                          await manager.mnemonic,
+                                          wallet.walletId,
+                                          await (wallet as Bip39Wallet)
+                                              .getMnemonicAsWords(),
                                         ),
                                       ));
                                     }

@@ -23,7 +23,7 @@ import 'package:stackwallet/services/wallets_service.dart';
 void main() {
 //   testWidgets("tap receive", (tester) async {
 //     final walletsService = MockWalletsService();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
 //

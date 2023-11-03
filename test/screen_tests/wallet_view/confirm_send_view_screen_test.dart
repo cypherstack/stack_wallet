@@ -22,7 +22,7 @@ import 'package:stackwallet/services/notes_service.dart';
 ])
 void main() {
 //   testWidgets("ConfirmSendView builds correctly", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //
 //     when(manager.useBiometrics).thenAnswer((_) async => true);
@@ -63,7 +63,7 @@ void main() {
 //   });
 //
 //   testWidgets("confirm wrong pin", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final secureStore = FakeSecureStorage();
 //
@@ -124,7 +124,7 @@ void main() {
 //   });
 //
 //   testWidgets("confirm correct pin but send fails", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final secureStore = FakeSecureStorage();
 //     final navigator = mockingjay.MockNavigator();
@@ -212,7 +212,7 @@ void main() {
 //   });
 //
 //   testWidgets("confirm correct pin and send succeeds", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final secureStore = FakeSecureStorage();
 //     final navigator = mockingjay.MockNavigator();

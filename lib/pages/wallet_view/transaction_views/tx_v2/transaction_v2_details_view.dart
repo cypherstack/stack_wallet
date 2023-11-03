@@ -33,6 +33,7 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -397,8 +398,7 @@ class _TransactionV2DetailsViewState
 
   @override
   Widget build(BuildContext context) {
-    final currentHeight = ref.watch(
-        pWallets.select((value) => value.getManager(walletId).currentHeight));
+    final currentHeight = ref.watch(pWalletChainHeight(walletId));
 
     final String outputLabel;
 

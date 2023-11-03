@@ -24,7 +24,7 @@ Amount _a(int i) => Amount.fromDecimal(
 @GenerateMocks([FiroWallet, ElectrumX])
 void main() {
   test("Manager should have a backgroundRefreshListener on initialization", () {
-    final manager = Manager(MockFiroWallet());
+    final wallet = Manager(MockFiroWallet());
 
     expect(manager.hasBackgroundRefreshListener, true);
   });
@@ -32,7 +32,7 @@ void main() {
   test("get coin", () {
     final CoinServiceAPI wallet = MockFiroWallet();
     when(wallet.coin).thenAnswer((_) => Coin.firo);
-    final manager = Manager(wallet);
+    final wallet = Manager(wallet);
 
     expect(manager.coin, Coin.firo);
   });
@@ -47,7 +47,7 @@ void main() {
         numberOfBlocksSlow: 2,
         numberOfBlocksAverage: 3));
 
-    final manager = Manager(wallet);
+    final wallet = Manager(wallet);
 
     final feeObject = await manager.fees;
 
@@ -63,7 +63,7 @@ void main() {
     final CoinServiceAPI wallet = MockFiroWallet();
     when(wallet.maxFee).thenAnswer((_) async => 10);
 
-    final manager = Manager(wallet);
+    final wallet = Manager(wallet);
 
     final fee = await manager.maxFee;
 
@@ -75,7 +75,7 @@ void main() {
     when(wallet.currentReceivingAddress)
         .thenAnswer((_) async => "Some address string");
 
-    final manager = Manager(wallet);
+    final wallet = Manager(wallet);
 
     expect(await manager.currentReceivingAddress, "Some address string");
   });
@@ -95,7 +95,7 @@ void main() {
         (_) => balance,
       );
 
-      final manager = Manager(wallet);
+      final wallet = Manager(wallet);
 
       expect(manager.balance, balance);
     });
@@ -132,7 +132,7 @@ void main() {
           tx,
         ]);
 
-    final manager = Manager(wallet);
+    final wallet = Manager(wallet);
 
     final result = await manager.transactions;
 
@@ -145,7 +145,7 @@ void main() {
     final CoinServiceAPI wallet = MockFiroWallet();
     when(wallet.refresh()).thenAnswer((_) => Future(() => {}));
 
-    final manager = Manager(wallet);
+    final wallet = Manager(wallet);
 
     await manager.refresh();
 
@@ -155,7 +155,7 @@ void main() {
   test("get walletName", () {
     final CoinServiceAPI wallet = MockFiroWallet();
     when(wallet.walletName).thenAnswer((_) => "Some wallet name");
-    final manager = Manager(wallet);
+    final wallet = Manager(wallet);
 
     expect(manager.walletName, "Some wallet name");
   });
@@ -164,7 +164,7 @@ void main() {
     final CoinServiceAPI wallet = MockFiroWallet();
     when(wallet.walletId).thenAnswer((_) => "Some wallet ID");
 
-    final manager = Manager(wallet);
+    final wallet = Manager(wallet);
 
     expect(manager.walletId, "Some wallet ID");
   });
@@ -174,7 +174,7 @@ void main() {
       final CoinServiceAPI wallet = MockFiroWallet();
       when(wallet.validateAddress("a valid address")).thenAnswer((_) => true);
 
-      final manager = Manager(wallet);
+      final wallet = Manager(wallet);
 
       expect(manager.validateAddress("a valid address"), true);
     });
@@ -184,7 +184,7 @@ void main() {
       when(wallet.validateAddress("an invalid address"))
           .thenAnswer((_) => false);
 
-      final manager = Manager(wallet);
+      final wallet = Manager(wallet);
 
       expect(manager.validateAddress("an invalid address"), false);
     });
@@ -195,7 +195,7 @@ void main() {
     when(wallet.mnemonic)
         .thenAnswer((_) async => ["Some", "seed", "word", "list"]);
 
-    final manager = Manager(wallet);
+    final wallet = Manager(wallet);
 
     expect(await manager.mnemonic, ["Some", "seed", "word", "list"]);
   });
@@ -204,7 +204,7 @@ void main() {
     final CoinServiceAPI wallet = MockFiroWallet();
     when(wallet.testNetworkConnection()).thenAnswer((_) async => true);
 
-    final manager = Manager(wallet);
+    final wallet = Manager(wallet);
 
     expect(await manager.testNetworkConnection(), true);
   });
@@ -219,7 +219,7 @@ void main() {
               height: 0))
           .thenAnswer((realInvocation) => Future(() => {}));
 
-      final manager = Manager(wallet);
+      final wallet = Manager(wallet);
 
       await manager.recoverFromMnemonic(
           mnemonic: "Some valid mnemonic",
@@ -244,7 +244,7 @@ void main() {
               height: 0))
           .thenThrow(Exception("Invalid mnemonic"));
 
-      final manager = Manager(wallet);
+      final wallet = Manager(wallet);
 
       expect(
           () => manager.recoverFromMnemonic(
@@ -271,7 +271,7 @@ void main() {
               height: 0))
           .thenThrow(Error());
 
-      final manager = Manager(wallet);
+      final wallet = Manager(wallet);
 
       expect(
           () => manager.recoverFromMnemonic(
@@ -296,7 +296,7 @@ void main() {
     when(wallet.walletId).thenAnswer((realInvocation) => "some id");
     when(wallet.walletName).thenAnswer((realInvocation) => "some name");
 
-    final manager = Manager(wallet);
+    final wallet = Manager(wallet);
 
     await manager.exitCurrentWallet();
 
@@ -313,7 +313,7 @@ void main() {
     when(wallet.walletId).thenAnswer((realInvocation) => "some id");
     when(wallet.walletName).thenAnswer((realInvocation) => "some name");
 
-    final manager = Manager(wallet);
+    final wallet = Manager(wallet);
 
     expect(() => manager.dispose(), returnsNormally);
   });
@@ -322,7 +322,7 @@ void main() {
     final CoinServiceAPI wallet = MockFiroWallet();
     when(wallet.fullRescan(20, 1000)).thenAnswer((_) async {});
 
-    final manager = Manager(wallet);
+    final wallet = Manager(wallet);
 
     expect(() => manager.fullRescan(20, 1000), returnsNormally);
   });
@@ -331,7 +331,7 @@ void main() {
     final CoinServiceAPI wallet = MockFiroWallet();
     when(wallet.fullRescan(20, 1000)).thenThrow(Exception());
 
-    final manager = Manager(wallet);
+    final wallet = Manager(wallet);
 
     expect(() => manager.fullRescan(20, 1000), throwsA(isA<Exception>()));
   });
@@ -340,7 +340,7 @@ void main() {
   //   final CoinServiceAPI wallet = MockFiroWallet();
   //   when(wallet.exit()).thenAnswer((realInvocation) => Future(() => {}));
   //
-  //   final manager = Manager(wallet);
+  //   final wallet =  Manager(wallet);
   //
   //   expect(
   //       () => GlobalEventBus.instance.fire(UpdatedInBackgroundEvent(

@@ -5,7 +5,7 @@ import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/wallets/isar_models/wallet_info.dart';
+import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
 
 void migrateWallets({

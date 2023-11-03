@@ -17,13 +17,13 @@ import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_set
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/xpub_view.dart';
 import 'package:stackwallet/pages_desktop_specific/addresses/desktop_wallet_addresses_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_delete_wallet_dialog.dart';
-import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 
 enum _WalletOptions {
   addressList,
@@ -217,12 +217,13 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final manager =
-        ref.watch(pWallets.select((value) => value.getManager(walletId)));
-    final bool xpubEnabled = manager.hasXPub;
+    final coin = ref.watch(pWalletCoin(walletId));
 
-    final bool canChangeRep =
-        manager.coin == Coin.nano || manager.coin == Coin.banano;
+    // TODO: [prio=low]
+    // final bool xpubEnabled = manager.hasXPub;
+    final bool xpubEnabled = false;
+
+    final bool canChangeRep = coin == Coin.nano || coin == Coin.banano;
 
     return Stack(
       children: [

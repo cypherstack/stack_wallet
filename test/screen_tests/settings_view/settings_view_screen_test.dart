@@ -88,7 +88,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap log out and confirm log out", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -154,7 +154,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap log out and cancel log out", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -338,7 +338,7 @@ void main() {
 //
 //   testWidgets("tap wallet settings", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     mockingjay
 //         .when(() => navigator.push(mockingjay.any()))

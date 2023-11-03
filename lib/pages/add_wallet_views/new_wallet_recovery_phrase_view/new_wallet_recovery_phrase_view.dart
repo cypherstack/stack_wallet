@@ -22,13 +22,14 @@ import 'package:stackwallet/pages/add_wallet_views/verify_recovery_phrase_view/v
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
@@ -37,14 +38,14 @@ import 'package:tuple/tuple.dart';
 class NewWalletRecoveryPhraseView extends ConsumerStatefulWidget {
   const NewWalletRecoveryPhraseView({
     Key? key,
-    required this.manager,
+    required this.wallet,
     required this.mnemonic,
     this.clipboardInterface = const ClipboardWrapper(),
   }) : super(key: key);
 
   static const routeName = "/newWalletRecoveryPhrase";
 
-  final Manager manager;
+  final Wallet wallet;
   final List<String> mnemonic;
 
   final ClipboardInterface clipboardInterface;
@@ -58,14 +59,14 @@ class _NewWalletRecoveryPhraseViewState
     extends ConsumerState<NewWalletRecoveryPhraseView>
 // with WidgetsBindingObserver
 {
-  late Manager _manager;
+  late Wallet _wallet;
   late List<String> _mnemonic;
   late ClipboardInterface _clipboardInterface;
   late final bool isDesktop;
 
   @override
   void initState() {
-    _manager = widget.manager;
+    _wallet = widget.wallet;
     _mnemonic = widget.mnemonic;
     _clipboardInterface = widget.clipboardInterface;
     isDesktop = Util.isDesktop;
@@ -78,14 +79,12 @@ class _NewWalletRecoveryPhraseViewState
   }
 
   Future<void> delete() async {
-    await ref
-        .read(walletsServiceChangeNotifierProvider)
-        .deleteWallet(_manager.walletName, false);
-    await _manager.exitCurrentWallet();
+    await _wallet.exit();
+    await ref.read(pWallets).deleteWallet(_wallet.walletId);
   }
 
   Future<void> _copy() async {
-    final words = await _manager.mnemonic;
+    final words = _mnemonic;
     await _clipboardInterface.setData(ClipboardData(text: words.join(" ")));
     unawaited(showFloatingFlushBar(
       type: FlushBarType.info,
@@ -191,7 +190,7 @@ class _NewWalletRecoveryPhraseViewState
                   ),
                 if (!isDesktop)
                   Text(
-                    _manager.walletName,
+                    ref.watch(pWalletName(_wallet.walletId)),
                     textAlign: TextAlign.center,
                     style: STextStyles.label(context).copyWith(
                       fontSize: 12,
@@ -305,7 +304,7 @@ class _NewWalletRecoveryPhraseViewState
 
                       unawaited(Navigator.of(context).pushNamed(
                         VerifyRecoveryPhraseView.routeName,
-                        arguments: Tuple2(_manager, _mnemonic),
+                        arguments: Tuple2(_wallet, _mnemonic),
                       ));
                     },
                     style: Theme.of(context)

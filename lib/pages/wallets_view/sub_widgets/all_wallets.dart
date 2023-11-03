@@ -48,14 +48,13 @@ class AllWallets extends StatelessWidget {
         Expanded(
           child: Consumer(
             builder: (_, ref, __) {
-              final providersByCoin = ref.watch(pWallets
-                  .select((value) => value.getManagerProvidersByCoin()));
+              final walletsByCoin = ref.watch(pWallets).walletsByCoin;
 
               return ListView.builder(
-                itemCount: providersByCoin.length,
+                itemCount: walletsByCoin.length,
                 itemBuilder: (builderContext, index) {
-                  final coin = providersByCoin[index].item1;
-                  final int walletCount = providersByCoin[index].item2.length;
+                  final coin = walletsByCoin[index].coin;
+                  final int walletCount = walletsByCoin[index].wallets.length;
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: WalletListItem(

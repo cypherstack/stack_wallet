@@ -5,6 +5,7 @@ import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/wallets/isar/isar_id_interface.dart';
+import 'package:uuid/uuid.dart';
 
 part 'wallet_info.g.dart';
 
@@ -23,6 +24,9 @@ class WalletInfo implements IsarId {
 
   @enumerated
   final AddressType mainAddressType;
+
+  /// The highest index [mainAddressType] receiving address of the wallet
+  final String cachedReceivingAddress;
 
   /// Only exposed for Isar. Use the [cachedBalance] getter.
   // Only exposed for isar as Amount cannot be stored in isar easily
@@ -191,6 +195,44 @@ class WalletInfo implements IsarId {
     }
   }
 
+  /// copies this with a new name and updates the db
+  Future<void> updateReceivingAddress({
+    required String newAddress,
+    required Isar isar,
+  }) async {
+    // only update if there were changes to the name
+    if (cachedReceivingAddress != newAddress) {
+      final updated = copyWith(
+        cachedReceivingAddress: newAddress,
+      );
+      await isar.writeTxn(() async {
+        await isar.walletInfo.delete(id);
+        await isar.walletInfo.put(updated);
+      });
+    }
+  }
+
+  /// copies this with a new name and updates the db
+  Future<void> setMnemonicVerified({
+    required Isar isar,
+  }) async {
+    // only update if there were changes to the name
+    if (!isMnemonicVerified) {
+      final updated = copyWith(
+        isMnemonicVerified: true,
+      );
+      await isar.writeTxn(() async {
+        await isar.walletInfo.delete(id);
+        await isar.walletInfo.put(updated);
+      });
+    } else {
+      throw Exception(
+        "setMnemonicVerified() called on already"
+        " verified wallet: $name, $walletId",
+      );
+    }
+  }
+
   //============================================================================
 
   WalletInfo({
@@ -199,6 +241,10 @@ class WalletInfo implements IsarId {
     required this.name,
     required this.walletType,
     required this.mainAddressType,
+
+    // cachedReceivingAddress should never actually be empty in practice as
+    // on wallet init it will be set
+    this.cachedReceivingAddress = "",
     this.favouriteOrderIndex = 0,
     this.cachedChainHeight = 0,
     this.isMnemonicVerified = false,
@@ -208,6 +254,52 @@ class WalletInfo implements IsarId {
           Coin.values.map((e) => e.name).contains(coinName),
         );
 
+  static WalletInfo createNew({
+    required Coin coin,
+    required String name,
+  }) {
+    // TODO: make Coin aware of these
+    // ex.
+    // walletType = coin.walletType;
+    // mainAddressType = coin.mainAddressType;
+
+    final AddressType mainAddressType;
+    switch (coin) {
+      case Coin.bitcoin:
+      case Coin.bitcoinTestNet:
+        mainAddressType = AddressType.p2wpkh;
+        break;
+
+      case Coin.bitcoincash:
+      case Coin.bitcoincashTestnet:
+        mainAddressType = AddressType.p2pkh;
+        break;
+
+      default:
+        throw UnimplementedError();
+    }
+
+    final WalletType walletType;
+    switch (coin) {
+      case Coin.bitcoin:
+      case Coin.bitcoinTestNet:
+      case Coin.bitcoincash:
+      case Coin.bitcoincashTestnet:
+        walletType = WalletType.bip39HD;
+
+      default:
+        throw UnimplementedError();
+    }
+
+    return WalletInfo(
+      coinName: coin.name,
+      walletId: const Uuid().v1(),
+      name: name,
+      walletType: walletType,
+      mainAddressType: mainAddressType,
+    );
+  }
+
   WalletInfo copyWith({
     String? coinName,
     String? name,
@@ -215,6 +307,7 @@ class WalletInfo implements IsarId {
     int? cachedChainHeight,
     bool? isMnemonicVerified,
     String? cachedBalanceString,
+    String? cachedReceivingAddress,
     Map<String, dynamic>? otherData,
   }) {
     return WalletInfo(
@@ -227,6 +320,8 @@ class WalletInfo implements IsarId {
       cachedChainHeight: cachedChainHeight ?? this.cachedChainHeight,
       isMnemonicVerified: isMnemonicVerified ?? this.isMnemonicVerified,
       cachedBalanceString: cachedBalanceString ?? this.cachedBalanceString,
+      cachedReceivingAddress:
+          cachedReceivingAddress ?? this.cachedReceivingAddress,
       otherDataJsonString:
           otherData == null ? otherDataJsonString : jsonEncode(otherData),
     )..id = id;

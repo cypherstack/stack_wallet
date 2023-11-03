@@ -16,7 +16,6 @@ import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_refresh_button.
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_balance_toggle_button.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -24,6 +23,7 @@ import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 
 class DesktopWalletSummary extends ConsumerStatefulWidget {
   const DesktopWalletSummary({
@@ -60,11 +60,7 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
         (value) => value.externalCalls,
       ),
     );
-    final coin = ref.watch(
-      pWallets.select(
-        (value) => value.getManager(widget.walletId).coin,
-      ),
-    );
+    final coin = ref.watch(pWalletCoin(widget.walletId));
     final locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
 
@@ -88,28 +84,20 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
 
     Balance balance = widget.isToken
         ? ref.watch(tokenServiceProvider.select((value) => value!.balance))
-        : ref.watch(
-            pWallets.select((value) => value.getManager(walletId).balance));
+        : ref.watch(pWalletBalance(walletId));
 
     Amount balanceToShow;
     if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      Balance? balanceSecondary = ref
-          .watch(
-            pWallets.select(
-              (value) =>
-                  value.getManager(widget.walletId).wallet as FiroWallet?,
-            ),
-          )
-          ?.balancePrivate;
+      final balanceSecondary = ref.watch(pWalletBalanceSecondary(walletId));
       final showPrivate =
           ref.watch(walletPrivateBalanceToggleStateProvider.state).state ==
               WalletBalanceToggleState.available;
 
       if (_showAvailable) {
         balanceToShow =
-            showPrivate ? balanceSecondary!.spendable : balance.spendable;
+            showPrivate ? balanceSecondary.spendable : balance.spendable;
       } else {
-        balanceToShow = showPrivate ? balanceSecondary!.total : balance.total;
+        balanceToShow = showPrivate ? balanceSecondary.total : balance.total;
       }
     } else {
       if (_showAvailable) {

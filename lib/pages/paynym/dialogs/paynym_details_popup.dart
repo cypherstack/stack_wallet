@@ -28,9 +28,11 @@ import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/widgets/custom_buttons/paynym_follow_toggle_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -58,12 +60,12 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
   bool _showInsufficientFundsInfo = false;
 
   Future<void> _onSend() async {
-    final manager = ref.read(pWallets).getManager(widget.walletId);
+    final wallet = ref.read(pWallets).getWallet(widget.walletId);
     await Navigator.of(context).pushNamed(
       SendView.routeName,
       arguments: Tuple3(
-        manager.walletId,
-        manager.coin,
+        wallet.walletId,
+        wallet.info.coin,
         widget.accountLite,
       ),
     );
@@ -83,9 +85,9 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
       ),
     );
 
-    final manager = ref.read(pWallets).getManager(widget.walletId);
-
-    final wallet = manager.wallet as PaynymWalletInterface;
+    final wallet =
+        ref.read(pWallets).getWallet(widget.walletId) as PaynymWalletInterface;
+    final coin = ref.read(pWalletCoin(widget.walletId));
 
     if (await wallet.hasConnected(widget.accountLite.code)) {
       canPop = true;
@@ -94,9 +96,9 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
       return;
     }
 
-    final rates = await manager.fees;
+    final rates = await ref.read(pWallets).getWallet(widget.walletId).fees;
 
-    Map<String, dynamic> preparedTx;
+    TxData preparedTx;
 
     try {
       preparedTx = await wallet.prepareNotificationTx(
@@ -145,32 +147,19 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
           nymName: widget.accountLite.nymName,
           locale: ref.read(localeServiceChangeNotifierProvider).locale,
           onConfirmPressed: () {
-            //
-            print("CONFIRM NOTIF TX: $preparedTx");
-
             Navigator.of(context).push(
               RouteGenerator.getRoute(
                 builder: (_) => ConfirmTransactionView(
-                  walletId: manager.walletId,
+                  walletId: widget.walletId,
                   routeOnSuccessName: PaynymHomeView.routeName,
                   isPaynymNotificationTransaction: true,
-                  transactionInfo: {
-                    "hex": preparedTx["hex"],
-                    "address": preparedTx["recipientPaynym"],
-                    "recipientAmt": preparedTx["amount"],
-                    "fee": preparedTx["fee"],
-                    "vSize": preparedTx["vSize"],
-                    "note": "PayNym connect"
-                  },
+                  txData: preparedTx,
                 ),
               ),
             );
           },
-          amount: (preparedTx["amount"] as Amount) +
-              (preparedTx["fee"] as int).toAmountAsRaw(
-                fractionDigits: manager.coin.decimals,
-              ),
-          coin: manager.coin,
+          amount: preparedTx.amount! + preparedTx.fee!,
+          coin: coin,
         ),
       );
     }
@@ -178,10 +167,8 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
 
   @override
   Widget build(BuildContext context) {
-    final manager = ref
-        .watch(pWallets.select((value) => value.getManager(widget.walletId)));
-
-    final wallet = manager.wallet as PaynymWalletInterface;
+    final wallet =
+        ref.watch(pWallets).getWallet(widget.walletId) as PaynymWalletInterface;
 
     return DesktopDialog(
       maxWidth: MediaQuery.of(context).size.width - 32,
@@ -313,7 +300,7 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                           "Adding a PayNym to your contacts requires a one-time "
                           "transaction fee for creating the record on the "
                           "blockchain. Please deposit more "
-                          "${ref.read(pWallets).getManager(widget.walletId).wallet.coin.ticker} "
+                          "${ref.watch(pWalletCoin(widget.walletId)).ticker} "
                           "into your wallet and try again.",
                           style: STextStyles.infoSmall(context).copyWith(
                             color: Theme.of(context)

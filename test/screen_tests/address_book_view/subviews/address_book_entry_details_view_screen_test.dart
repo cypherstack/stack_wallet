@@ -32,7 +32,7 @@ import 'package:stackwallet/services/notes_service.dart';
 ])
 void main() {
 //   testWidgets("AddressBookDetailsView builds correctly", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -92,7 +92,7 @@ void main() {
 //   testWidgets(
 //       "AddressBookDetailsView loads correctly with three matching wallet transactions history",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
@@ -173,7 +173,7 @@ void main() {
 //   testWidgets(
 //       "AddressBookDetailsView loads correctly with no wallet transaction history",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -230,7 +230,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap back", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
@@ -317,7 +317,7 @@ void main() {
 //
 //   testWidgets("tap options then tap anywhere but the context menu",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
@@ -407,7 +407,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap options then tap delete", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
@@ -501,7 +501,7 @@ void main() {
 //   });
 //
 //   testWidgets("cancel delete", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
@@ -598,7 +598,7 @@ void main() {
 //   });
 //
 //   testWidgets("confirm delete", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
@@ -702,7 +702,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap copy address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
@@ -791,7 +791,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap edit/pencil icon", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
@@ -879,7 +879,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap send", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final notesService = MockNotesService();
 //     final navigator = mockingjay.MockNavigator();

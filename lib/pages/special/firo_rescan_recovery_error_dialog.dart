@@ -12,6 +12,8 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/bip39_wallet.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -131,12 +133,13 @@ class _FiroRescanRecoveryErrorViewState
                                 .topNavIconPrimary,
                           ),
                           onPressed: () async {
+                            final walletName =
+                                ref.read(pWalletName(widget.walletId));
                             await showDialog<void>(
                               barrierDismissible: true,
                               context: context,
                               builder: (_) => StackDialog(
-                                title:
-                                    "Do you want to delete ${ref.read(pWallets).getManager(widget.walletId).walletName}?",
+                                title: "Do you want to delete $walletName?",
                                 leftButton: TextButton(
                                   style: Theme.of(context)
                                       .extension<StackColors>()!
@@ -253,32 +256,34 @@ class _FiroRescanRecoveryErrorViewState
                           ),
                         );
                       } else {
-                        final mnemonic = await ref
-                            .read(pWallets)
-                            .getManager(widget.walletId)
-                            .mnemonic;
+                        final wallet =
+                            ref.read(pWallets).getWallet(widget.walletId);
+                        // TODO: [prio=high] take wallets that don't have amnemonic into account
+                        if (wallet is Bip39Wallet) {
+                          final mnemonic = await wallet.getMnemonicAsWords();
 
-                        if (mounted) {
-                          await Navigator.push(
-                            context,
-                            RouteGenerator.getRoute(
-                              shouldUseMaterialRoute:
-                                  RouteGenerator.useMaterialPageRoute,
-                              builder: (_) => LockscreenView(
-                                routeOnSuccessArguments:
-                                    Tuple2(widget.walletId, mnemonic),
-                                showBackButton: true,
-                                routeOnSuccess: WalletBackupView.routeName,
-                                biometricsCancelButtonString: "CANCEL",
-                                biometricsLocalizedReason:
-                                    "Authenticate to view recovery phrase",
-                                biometricsAuthenticationTitle:
-                                    "View recovery phrase",
+                          if (mounted) {
+                            await Navigator.push(
+                              context,
+                              RouteGenerator.getRoute(
+                                shouldUseMaterialRoute:
+                                    RouteGenerator.useMaterialPageRoute,
+                                builder: (_) => LockscreenView(
+                                  routeOnSuccessArguments:
+                                      Tuple2(widget.walletId, mnemonic),
+                                  showBackButton: true,
+                                  routeOnSuccess: WalletBackupView.routeName,
+                                  biometricsCancelButtonString: "CANCEL",
+                                  biometricsLocalizedReason:
+                                      "Authenticate to view recovery phrase",
+                                  biometricsAuthenticationTitle:
+                                      "View recovery phrase",
+                                ),
+                                settings: const RouteSettings(
+                                    name: "/viewRecoverPhraseLockscreen"),
                               ),
-                              settings: const RouteSettings(
-                                  name: "/viewRecoverPhraseLockscreen"),
-                            ),
-                          );
+                            );
+                          }
                         }
                       }
                     },

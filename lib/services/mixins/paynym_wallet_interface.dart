@@ -33,6 +33,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:tuple/tuple.dart';
 
 const String kPCodeKeyPrefix = "pCode_key_";
@@ -108,22 +109,18 @@ mixin PaynymWalletInterface {
     required int Function({
       required int vSize,
       required int feeRatePerKB,
-    })
-        estimateTxFee,
+    }) estimateTxFee,
     required Future<Map<String, dynamic>> Function({
       required String address,
       required Amount amount,
       Map<String, dynamic>? args,
-    })
-        prepareSend,
+    }) prepareSend,
     required Future<int> Function({
       required String address,
-    })
-        getTxCount,
+    }) getTxCount,
     required Future<List<SigningData>> Function(
       List<UTXO> utxosToUse,
-    )
-        fetchBuildTxData,
+    ) fetchBuildTxData,
     required Future<void> Function() refresh,
     required Future<void> Function() checkChangeAddressForTransactions,
   }) {
@@ -503,7 +500,7 @@ mixin PaynymWalletInterface {
     throw PaynymSendException("Exhausted unused send addresses!");
   }
 
-  Future<Map<String, dynamic>> prepareNotificationTx({
+  Future<TxData> prepareNotificationTx({
     required int selectedTxFeeRate,
     required String targetPaymentCodeString,
     int additionalOutputs = 0,
@@ -629,17 +626,24 @@ mixin PaynymWalletInterface {
             );
           }
 
-          Map<String, dynamic> transactionObject = {
-            "hex": txn.item1,
-            "recipientPaynym": targetPaymentCodeString,
-            "amount": amountToSend.toAmountAsRaw(
-              fractionDigits: _coin.decimals,
-            ),
-            "fee": feeBeingPaid,
-            "vSize": txn.item2,
-            "usedUTXOs": utxoSigningData.map((e) => e.utxo).toList(),
-          };
-          return transactionObject;
+          final txData = TxData(
+              raw: txn.item1,
+              recipients: [
+                (
+                  address: targetPaymentCodeString,
+                  amount: amountToSend.toAmountAsRaw(
+                    fractionDigits: _coin.decimals,
+                  ),
+                )
+              ],
+              fee: feeBeingPaid.toAmountAsRaw(
+                fractionDigits: _coin.decimals,
+              ),
+              vSize: txn.item2,
+              utxos: utxoSigningData.map((e) => e.utxo).toSet(),
+              note: "PayNym connect");
+
+          return txData;
         } else {
           // something broke during fee estimation or the change amount is smaller
           // than the dust limit. Try without change
@@ -651,16 +655,24 @@ mixin PaynymWalletInterface {
 
           int feeBeingPaid = satoshisBeingUsed - amountToSend;
 
-          Map<String, dynamic> transactionObject = {
-            "hex": txn.item1,
-            "recipientPaynym": targetPaymentCodeString,
-            "amount":
-                amountToSend.toAmountAsRaw(fractionDigits: _coin.decimals),
-            "fee": feeBeingPaid,
-            "vSize": txn.item2,
-            "usedUTXOs": utxoSigningData.map((e) => e.utxo).toList(),
-          };
-          return transactionObject;
+          final txData = TxData(
+              raw: txn.item1,
+              recipients: [
+                (
+                  address: targetPaymentCodeString,
+                  amount: amountToSend.toAmountAsRaw(
+                    fractionDigits: _coin.decimals,
+                  ),
+                )
+              ],
+              fee: feeBeingPaid.toAmountAsRaw(
+                fractionDigits: _coin.decimals,
+              ),
+              vSize: txn.item2,
+              utxos: utxoSigningData.map((e) => e.utxo).toSet(),
+              note: "PayNym connect");
+
+          return txData;
         }
       } else if (satoshisBeingUsed - amountToSend >= feeForNoChange) {
         // since we already checked if we need to add a change output we can just
@@ -673,15 +685,24 @@ mixin PaynymWalletInterface {
 
         int feeBeingPaid = satoshisBeingUsed - amountToSend;
 
-        Map<String, dynamic> transactionObject = {
-          "hex": txn.item1,
-          "recipientPaynym": targetPaymentCodeString,
-          "amount": amountToSend.toAmountAsRaw(fractionDigits: _coin.decimals),
-          "fee": feeBeingPaid,
-          "vSize": txn.item2,
-          "usedUTXOs": utxoSigningData.map((e) => e.utxo).toList(),
-        };
-        return transactionObject;
+        final txData = TxData(
+            raw: txn.item1,
+            recipients: [
+              (
+                address: targetPaymentCodeString,
+                amount: amountToSend.toAmountAsRaw(
+                  fractionDigits: _coin.decimals,
+                ),
+              )
+            ],
+            fee: feeBeingPaid.toAmountAsRaw(
+              fractionDigits: _coin.decimals,
+            ),
+            vSize: txn.item2,
+            utxos: utxoSigningData.map((e) => e.utxo).toSet(),
+            note: "PayNym connect");
+
+        return txData;
       } else {
         // if we get here we do not have enough funds to cover the tx total so we
         // check if we have any more available outputs and try again

@@ -97,10 +97,10 @@ class _Step2ViewState extends ConsumerState<Step2View> {
           tuple.item2.ticker.toLowerCase()) {
         ref
             .read(pWallets)
-            .getManager(tuple.item1)
-            .currentReceivingAddress
+            .getWallet(tuple.item1)
+            .getCurrentReceivingAddress()
             .then((value) {
-          _toController.text = value;
+          _toController.text = value!.value;
           model.recipientAddress = _toController.text;
         });
       } else {
@@ -108,10 +108,10 @@ class _Step2ViewState extends ConsumerState<Step2View> {
             tuple.item2.ticker.toUpperCase()) {
           ref
               .read(pWallets)
-              .getManager(tuple.item1)
-              .currentReceivingAddress
+              .getWallet(tuple.item1)
+              .getCurrentReceivingAddress()
               .then((value) {
-            _refundController.text = value;
+            _refundController.text = value!.value;
             model.refundAddress = _refundController.text;
           });
         }
@@ -218,14 +218,14 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                       )
                                           .then((value) async {
                                         if (value is String) {
-                                          final manager = ref
+                                          final wallet = ref
                                               .read(pWallets)
-                                              .getManager(value);
+                                              .getWallet(value);
 
-                                          _toController.text =
-                                              manager.walletName;
-                                          model.recipientAddress = await manager
-                                              .currentReceivingAddress;
+                                          _toController.text = wallet.info.name;
+                                          model.recipientAddress = (await wallet
+                                                  .getCurrentReceivingAddress())!
+                                              .value;
 
                                           setState(() {
                                             enableNext =
@@ -489,14 +489,15 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                         )
                                             .then((value) async {
                                           if (value is String) {
-                                            final manager = ref
+                                            final wallet = ref
                                                 .read(pWallets)
-                                                .getManager(value);
+                                                .getWallet(value);
 
                                             _refundController.text =
-                                                manager.walletName;
-                                            model.refundAddress = await manager
-                                                .currentReceivingAddress;
+                                                wallet.info.name;
+                                            model.refundAddress = (await wallet
+                                                    .getCurrentReceivingAddress())!
+                                                .value;
                                           }
                                           setState(() {
                                             enableNext =

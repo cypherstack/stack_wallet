@@ -18,6 +18,7 @@ import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
+import 'package:stackwallet/providers/global/active_wallet_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -61,33 +62,33 @@ class _NodeCardState extends ConsumerState<NodeCard> {
   bool _advancedIsExpanded = false;
 
   Future<void> _notifyWalletsOfUpdatedNode(WidgetRef ref) async {
-    final managers =
-        ref.read(pWallets).managers.where((e) => e.coin == widget.coin);
+    final wallets =
+        ref.read(pWallets).wallets.where((e) => e.info.coin == widget.coin);
     final prefs = ref.read(prefsChangeNotifierProvider);
 
     switch (prefs.syncType) {
       case SyncingType.currentWalletOnly:
-        for (final manager in managers) {
-          if (manager.isActiveWallet) {
-            manager.updateNode(true);
+        for (final wallet in wallets) {
+          if (ref.read(currentWalletIdProvider) == wallet.walletId) {
+            unawaited(wallet.updateNode().then((value) => wallet.refresh()));
           } else {
-            manager.updateNode(false);
+            unawaited(wallet.updateNode());
           }
         }
         break;
       case SyncingType.selectedWalletsAtStartup:
         final List<String> walletIdsToSync = prefs.walletIdsSyncOnStartup;
-        for (final manager in managers) {
-          if (walletIdsToSync.contains(manager.walletId)) {
-            manager.updateNode(true);
+        for (final wallet in wallets) {
+          if (walletIdsToSync.contains(wallet.walletId)) {
+            unawaited(wallet.updateNode().then((value) => wallet.refresh()));
           } else {
-            manager.updateNode(false);
+            unawaited(wallet.updateNode());
           }
         }
         break;
       case SyncingType.allWalletsOnStartup:
-        for (final manager in managers) {
-          manager.updateNode(true);
+        for (final wallet in wallets) {
+          unawaited(wallet.updateNode().then((value) => wallet.refresh()));
         }
         break;
     }

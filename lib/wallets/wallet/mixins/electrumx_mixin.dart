@@ -2,9 +2,11 @@ import 'dart:convert';
 
 import 'package:bip47/src/util.dart';
 import 'package:decimal/decimal.dart';
+import 'package:isar/isar.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -472,4 +474,139 @@ mixin ElectrumXMixin on Bip39HDWallet {
     final node = await getCurrentNode();
     await updateElectrumX(newNode: node);
   }
+
+  FeeObject? _cachedFees;
+
+  @override
+  Future<FeeObject> get fees async {
+    try {
+      const int f = 1, m = 5, s = 20;
+
+      final fast = await electrumX.estimateFee(blocks: f);
+      final medium = await electrumX.estimateFee(blocks: m);
+      final slow = await electrumX.estimateFee(blocks: s);
+
+      final feeObject = FeeObject(
+        numberOfBlocksFast: f,
+        numberOfBlocksAverage: m,
+        numberOfBlocksSlow: s,
+        fast: Amount.fromDecimal(
+          fast,
+          fractionDigits: info.coin.decimals,
+        ).raw.toInt(),
+        medium: Amount.fromDecimal(
+          medium,
+          fractionDigits: info.coin.decimals,
+        ).raw.toInt(),
+        slow: Amount.fromDecimal(
+          slow,
+          fractionDigits: info.coin.decimals,
+        ).raw.toInt(),
+      );
+
+      Logging.instance.log("fetched fees: $feeObject", level: LogLevel.Info);
+      _cachedFees = feeObject;
+      return _cachedFees!;
+    } catch (e) {
+      Logging.instance.log(
+        "Exception rethrown from _getFees(): $e",
+        level: LogLevel.Error,
+      );
+      if (_cachedFees == null) {
+        rethrow;
+      } else {
+        return _cachedFees!;
+      }
+    }
+  }
+
+  @override
+  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
+    final available = info.cachedBalance.spendable;
+    final utxos = _spendableUTXOs(await mainDB.getUTXOs(walletId).findAll());
+
+    if (available == amount) {
+      return amount - (await _sweepAllEstimate(feeRate, utxos));
+    } else if (amount <= Amount.zero || amount > available) {
+      return roughFeeEstimate(1, 2, feeRate);
+    }
+
+    Amount runningBalance = Amount(
+      rawValue: BigInt.zero,
+      fractionDigits: info.coin.decimals,
+    );
+    int inputCount = 0;
+    for (final output in utxos) {
+      if (!output.isBlocked) {
+        runningBalance += Amount(
+          rawValue: BigInt.from(output.value),
+          fractionDigits: info.coin.decimals,
+        );
+        inputCount++;
+        if (runningBalance > amount) {
+          break;
+        }
+      }
+    }
+
+    final oneOutPutFee = roughFeeEstimate(inputCount, 1, feeRate);
+    final twoOutPutFee = roughFeeEstimate(inputCount, 2, feeRate);
+
+    if (runningBalance - amount > oneOutPutFee) {
+      if (runningBalance - amount > oneOutPutFee + cryptoCurrency.dustLimit) {
+        final change = runningBalance - amount - twoOutPutFee;
+        if (change > cryptoCurrency.dustLimit &&
+            runningBalance - amount - change == twoOutPutFee) {
+          return runningBalance - amount - change;
+        } else {
+          return runningBalance - amount;
+        }
+      } else {
+        return runningBalance - amount;
+      }
+    } else if (runningBalance - amount == oneOutPutFee) {
+      return oneOutPutFee;
+    } else {
+      return twoOutPutFee;
+    }
+  }
+
+  // ===========================================================================
+  // ========== Interface functions ============================================
+
+  Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB);
+
+  // ===========================================================================
+  // ========== private helpers ================================================
+
+  List<UTXO> _spendableUTXOs(List<UTXO> utxos) {
+    return utxos
+        .where(
+          (e) =>
+              !e.isBlocked &&
+              e.isConfirmed(
+                info.cachedChainHeight,
+                cryptoCurrency.minConfirms,
+              ),
+        )
+        .toList();
+  }
+
+  Future<Amount> _sweepAllEstimate(int feeRate, List<UTXO> usableUTXOs) async {
+    final available = usableUTXOs
+        .map((e) => BigInt.from(e.value))
+        .fold(BigInt.zero, (p, e) => p + e);
+    final inputCount = usableUTXOs.length;
+
+    // transaction will only have 1 output minus the fee
+    final estimatedFee = roughFeeEstimate(inputCount, 1, feeRate);
+
+    return Amount(
+          rawValue: available,
+          fractionDigits: info.coin.decimals,
+        ) -
+        estimatedFee;
+  }
+
+  // ===========================================================================
 }

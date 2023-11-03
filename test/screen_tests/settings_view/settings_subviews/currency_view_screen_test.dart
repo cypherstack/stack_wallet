@@ -14,7 +14,7 @@ import 'package:stackwallet/services/coins/manager.dart';
 ])
 void main() {
 //   testWidgets("CurrencyView builds correctly", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.fiatCurrency).thenAnswer((_) => "USD");
 //
@@ -70,7 +70,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap back", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final navigator = mockingjay.MockNavigator();
 //
 //     when(manager.fiatCurrency).thenAnswer((_) => "USD");
@@ -149,7 +149,7 @@ void main() {
 //
 //   testWidgets("tap a currency that is not the current currency",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.fiatCurrency).thenAnswer((_) => "USD");
 //     when(manager.changeFiatCurrency("CAD")).thenAnswer((_) {
@@ -212,7 +212,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap the currenct currency", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.fiatCurrency).thenAnswer((_) => "USD");
 //

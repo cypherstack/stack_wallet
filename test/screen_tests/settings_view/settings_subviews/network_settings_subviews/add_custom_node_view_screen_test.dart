@@ -415,7 +415,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap enabled test where connection fails", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.testNetworkConnection(any)).thenAnswer((_) async => false);
 //
@@ -482,7 +482,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap enabled test where connection succeeds", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.testNetworkConnection(any)).thenAnswer((_) async => true);
 //
@@ -550,7 +550,7 @@ void main() {
 //
 //   testWidgets("tap enabled save where save and node creation succeeds",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final nodeService = MockNodeService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -643,7 +643,7 @@ void main() {
 //
 //   testWidgets("tap enabled save where save and node creation fails",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final nodeService = MockNodeService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -738,7 +738,7 @@ void main() {
 //
 //   testWidgets("tap enabled save where save and connection test fails",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final nodeService = MockNodeService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -896,7 +896,7 @@ void main() {
 //   testWidgets(
 //       "tap enabled save where save fails due to attempting to save duplicate default node",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final nodeService = MockNodeService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -971,7 +971,7 @@ void main() {
 //
 //   testWidgets("tap enabled save where save fails due to an invalid tcp port",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final nodeService = MockNodeService();
 //     final navigator = mockingjay.MockNavigator();
 //

@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/models/transaction_filter.dart';
@@ -21,6 +22,7 @@ import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_search_filter_view.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
@@ -33,6 +35,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -307,7 +310,7 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                         Navigator.of(context).pushNamed(
                           TransactionSearchFilterView.routeName,
                           arguments:
-                              ref.read(pWallets).getManager(walletId).coin,
+                              ref.read(pWallets).getWallet(walletId).info.coin,
                         );
                       },
                     ),
@@ -422,7 +425,7 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                       ),
                       onPressed: () {
                         final coin =
-                            ref.read(pWallets).getManager(walletId).coin;
+                            ref.read(pWallets).getWallet(walletId).info.coin;
                         if (isDesktop) {
                           showDialog<void>(
                             context: context,
@@ -465,21 +468,44 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
             Expanded(
               child: Consumer(
                 builder: (_, ref, __) {
-                  final managerProvider = ref.watch(pWallets
-                      .select((value) => value.getManagerProvider(walletId)));
-
                   final criteria =
                       ref.watch(transactionFilterProvider.state).state;
 
                   //todo: check if print needed
                   // debugPrint("Consumer build called");
 
+                  final WhereClause ww;
+
                   return FutureBuilder(
                     future: widget.isTokens
-                        ? ref.watch(tokenServiceProvider
-                            .select((value) => value!.transactions))
-                        : ref.watch(managerProvider
-                            .select((value) => value.transactions)),
+                        ? ref
+                            .watch(mainDBProvider)
+                            .getTransactions(walletId)
+                            .filter()
+                            .otherDataEqualTo(ref
+                                .watch(tokenServiceProvider)!
+                                .tokenContract
+                                .address)
+                            .sortByTimestampDesc()
+                            .findAll()
+                        : ref.watch(mainDBProvider).isar.transactions.buildQuery<
+                                Transaction>(
+                            whereClauses: [
+                                IndexWhereClause.equalTo(
+                                  indexName: 'walletId',
+                                  value: [widget.walletId],
+                                )
+                              ],
+                            // TODO: [prio=high] add filters to wallet or cryptocurrency class
+                            //   filter: [
+                            //     // todo
+                            //   ],
+                            sortBy: [
+                                const SortProperty(
+                                  property: "timestamp",
+                                  sort: Sort.desc,
+                                ),
+                              ]).findAll(),
                     builder: (_, AsyncSnapshot<List<Transaction>> snapshot) {
                       if (snapshot.connectionState == ConnectionState.done &&
                           snapshot.hasData) {
@@ -851,13 +877,11 @@ class _DesktopTransactionCardRowState
   Widget build(BuildContext context) {
     final locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
-    final manager =
-        ref.watch(pWallets.select((value) => value.getManager(walletId)));
 
     final baseCurrency = ref
         .watch(prefsChangeNotifierProvider.select((value) => value.currency));
 
-    final coin = manager.coin;
+    final coin = ref.watch(pWalletCoin(walletId));
 
     final price = ref
         .watch(priceAnd24hChangeNotifierProvider
@@ -877,8 +901,7 @@ class _DesktopTransactionCardRowState
       prefix = "";
     }
 
-    final currentHeight = ref.watch(
-        pWallets.select((value) => value.getManager(walletId).currentHeight));
+    final currentHeight = ref.watch(pWalletChainHeight(walletId));
 
     return Material(
       color: Theme.of(context).extension<StackColors>()!.popupBG,

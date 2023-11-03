@@ -12,7 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
@@ -20,6 +19,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
@@ -56,9 +56,9 @@ class _DesktopChooseFromStackState
 
     final List<String> result = [];
     for (final walletId in walletIds) {
-      final manager = ref.read(pWallets).getManager(walletId);
+      final name = ref.read(pWalletName(walletId));
 
-      if (manager.walletName.toLowerCase().contains(searchTerm.toLowerCase())) {
+      if (name.toLowerCase().contains(searchTerm.toLowerCase())) {
         result.add(walletId);
       }
     }
@@ -158,13 +158,13 @@ class _DesktopChooseFromStackState
         Flexible(
           child: Builder(
             builder: (context) {
-              List<String> walletIds = ref.watch(
-                pWallets.select(
-                  (value) => value.getWalletIdsFor(coin: widget.coin),
-                ),
-              );
+              final wallets = ref
+                  .watch(pWallets)
+                  .walletsByCoin
+                  .where((e) => e.coin == widget.coin)
+                  .map((e) => e.wallets);
 
-              if (walletIds.isEmpty) {
+              if (wallets.isEmpty) {
                 return Column(
                   children: [
                     RoundedWhiteContainer(
@@ -183,6 +183,9 @@ class _DesktopChooseFromStackState
                 );
               }
 
+              List<String> walletIds =
+                  wallets.first.map((e) => e.walletId).toList();
+
               walletIds = filter(walletIds, _searchTerm);
 
               return ListView.separated(
@@ -192,8 +195,8 @@ class _DesktopChooseFromStackState
                   height: 5,
                 ),
                 itemBuilder: (context, index) {
-                  final manager = ref.watch(pWallets
-                      .select((value) => value.getManager(walletIds[index])));
+                  final wallet = ref.watch(pWallets
+                      .select((value) => value.getWallet(walletIds[index])));
 
                   return RoundedWhiteContainer(
                     borderColor:
@@ -212,7 +215,7 @@ class _DesktopChooseFromStackState
                               width: 12,
                             ),
                             Text(
-                              manager.walletName,
+                              wallet.info.name,
                               style: STextStyles.desktopTextExtraExtraSmall(
                                       context)
                                   .copyWith(
@@ -233,13 +236,12 @@ class _DesktopChooseFromStackState
                         CustomTextButton(
                           text: "Select wallet",
                           onTap: () async {
-                            final address =
-                                await manager.currentReceivingAddress;
+                            final address = wallet.info.cachedReceivingAddress;
 
                             if (mounted) {
                               Navigator.of(context).pop(
                                 Tuple2(
-                                  manager.walletName,
+                                  wallet.info.name,
                                   address,
                                 ),
                               );
@@ -287,17 +289,14 @@ class _BalanceDisplay extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final manager =
-        ref.watch(pWallets.select((value) => value.getManager(walletId)));
-
-    Amount total = manager.balance.total;
-    if (manager.coin == Coin.firo || manager.coin == Coin.firoTestNet) {
-      final firoWallet = manager.wallet as FiroWallet;
-      total += firoWallet.balancePrivate.total;
+    final coin = ref.watch(pWalletCoin(walletId));
+    Amount total = ref.watch(pWalletBalance(walletId)).total;
+    if (coin == Coin.firo || coin == Coin.firoTestNet) {
+      total += ref.watch(pWalletBalanceSecondary(walletId)).total;
     }
 
     return Text(
-      ref.watch(pAmountFormatter(manager.coin)).format(total),
+      ref.watch(pAmountFormatter(coin)).format(total),
       style: STextStyles.desktopTextExtraSmall(context).copyWith(
         color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
       ),

@@ -25,7 +25,7 @@ void main() {
 //   testWidgets(
 //       "TransactionSearchResultsView builds correctly without any transactions",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.transactionData)
 //         .thenAnswer((_) async => transactionDataFromJsonChunks);
@@ -66,7 +66,7 @@ void main() {
 //
 //   testWidgets("TransactionSearchResultsView builds correctly with two results",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
 //
@@ -132,7 +132,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap back", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final navigator = mockingjay.MockNavigator();
 //     final localeService = MockLocaleService();
@@ -201,7 +201,7 @@ void main() {
 //
 //   testWidgets("TransactionSearchResultsView builds correctly with one result",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
 //
@@ -273,7 +273,7 @@ void main() {
 //
 //   testWidgets("TransactionSearchResultsView builds correctly with zero results",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.transactionData)
 //         .thenAnswer((_) async => transactionDataFromJsonChunks);

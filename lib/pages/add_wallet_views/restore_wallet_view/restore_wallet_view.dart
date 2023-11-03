@@ -32,10 +32,9 @@ import 'package:stackwallet/pages/add_wallet_views/verify_recovery_phrase_view/v
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/coins/coin_service.dart';
-import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
@@ -50,6 +49,8 @@ import 'package:stackwallet/utilities/enums/form_input_status_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
+import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
@@ -239,13 +240,13 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         ));
       } else {
         if (!Platform.isLinux) await Wakelock.enable();
-        final walletsService = ref.read(walletsServiceChangeNotifierProvider);
 
-        final walletId = await walletsService.addNewWallet(
-          name: widget.walletName,
-          coin: widget.coin,
-          shouldNotifyListeners: false,
-        );
+          final info = WalletInfo.createNew(
+            coin: widget.coin,
+            name: widget.walletName,
+          );
+
+
         bool isRestoring = true;
         // show restoring in progress
         unawaited(showDialog<dynamic>(
@@ -256,12 +257,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             return RestoringDialog(
               onCancel: () async {
                 isRestoring = false;
-                ref.read(pWallets.notifier).removeWallet(walletId: walletId!);
 
-                await walletsService.deleteWallet(
-                  widget.walletName,
-                  false,
-                );
+                await ref.read(pWallets).deleteWallet(
+                      info.walletId,
+                    );
               },
             );
           },
@@ -279,49 +278,29 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
               );
         }
 
-        final txTracker = TransactionNotificationTracker(walletId: walletId!);
-
-        final failovers = ref
-            .read(nodeServiceChangeNotifierProvider)
-            .failoverNodesFor(coin: widget.coin);
-
-        final wallet = CoinServiceAPI.from(
-          widget.coin,
-          walletId,
-          widget.walletName,
-          ref.read(secureStoreProvider),
-          node,
-          txTracker,
-          ref.read(prefsChangeNotifierProvider),
-          failovers,
-        );
-
-        final manager = Manager(wallet);
+        final txTracker =
+            TransactionNotificationTracker(walletId: info.walletId);
 
         try {
-          // TODO GUI option to set maxUnusedAddressGap?
-          // default is 20 but it may miss some transactions if
-          // the previous wallet software generated many addresses
-          // without using them
-          await manager.recoverFromMnemonic(
-            mnemonic: mnemonic,
+          final wallet = await Wallet.create(
+            walletInfo: info,
+            mainDB: ref.read(mainDBProvider),
+            secureStorageInterface: ref.read(secureStoreProvider),
+            nodeService: ref.read(nodeServiceChangeNotifierProvider),
+            prefs: ref.read(prefsChangeNotifierProvider),
             mnemonicPassphrase: widget.mnemonicPassphrase,
-            maxUnusedAddressGap: widget.coin == Coin.firo ? 50 : 20,
-            maxNumberOfIndexesToCheck: 1000,
-            height: height,
+            mnemonic: mnemonic,
           );
+
+          await wallet.recover(isRescan: false);
 
           // check if state is still active before continuing
           if (mounted) {
-            await ref
-                .read(walletsServiceChangeNotifierProvider)
-                .setMnemonicVerified(
-                  walletId: manager.walletId,
-                );
+            await wallet.info.setMnemonicVerified(
+              isar: ref.read(mainDBProvider).isar,
+            );
 
-            ref
-                .read(pWallets.notifier)
-                .addWallet(walletId: manager.walletId, manager: manager);
+            ref.read(pWallets).addWallet(wallet);
 
             final isCreateSpecialEthWallet =
                 ref.read(createSpecialEthWalletRoutingFlag);
@@ -358,11 +337,11 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                       (route) => false,
                     ),
                   );
-                  if (manager.coin == Coin.ethereum) {
+                  if (info.coin == Coin.ethereum) {
                     unawaited(
                       Navigator.of(context).pushNamed(
                         EditWalletTokensView.routeName,
-                        arguments: manager.walletId,
+                        arguments: wallet.walletId,
                       ),
                     );
                   }
@@ -408,8 +387,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
               builder: (context) {
                 return RestoreFailedDialog(
                   errorMessage: e.toString(),
-                  walletId: wallet.walletId,
-                  walletName: wallet.walletName,
+                  walletId: info.walletId,
+                  walletName: info.name,
                 );
               },
             );

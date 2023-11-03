@@ -12,16 +12,16 @@ import 'package:stackwallet/wallets/wallet/bip39_wallet.dart';
 abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T> {
   Bip39HDWallet(super.cryptoCurrency);
 
-  /// Generates a receiving address of [walletInfo.mainAddressType]. If none
+  /// Generates a receiving address of [info.mainAddressType]. If none
   /// are in the current wallet db it will generate at index 0, otherwise the
   /// highest index found in the current wallet db.
   Future<Address> generateNewReceivingAddress() async {
-    final current = await _currentReceivingAddress;
+    final current = await getCurrentReceivingAddress();
     final index = current?.derivationIndex ?? 0;
     const chain = 0; // receiving address
 
     final DerivePathType derivePathType;
-    switch (walletInfo.mainAddressType) {
+    switch (info.mainAddressType) {
       case AddressType.p2pkh:
         derivePathType = DerivePathType.bip44;
         break;
@@ -47,21 +47,15 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T> {
     );
 
     await mainDB.putAddress(address);
+    await info.updateReceivingAddress(
+      newAddress: address.value,
+      isar: mainDB.isar,
+    );
 
     return address;
   }
 
   // ========== Private ========================================================
-
-  Future<Address?> get _currentReceivingAddress async =>
-      await mainDB.isar.addresses
-          .where()
-          .walletIdEqualTo(walletId)
-          .filter()
-          .typeEqualTo(walletInfo.mainAddressType)
-          .subTypeEqualTo(AddressSubType.receiving)
-          .sortByDerivationIndexDesc()
-          .findFirst();
 
   Future<coinlib.HDPrivateKey> _generateRootHDNode() async {
     final seed = bip39.mnemonicToSeed(
@@ -167,7 +161,7 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T> {
       pendingSpendable: satoshiBalancePending,
     );
 
-    await walletInfo.updateBalance(newBalance: balance, isar: mainDB.isar);
+    await info.updateBalance(newBalance: balance, isar: mainDB.isar);
   }
 
   @override

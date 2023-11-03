@@ -21,7 +21,7 @@ import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
-import 'package:stackwallet/wallets/isar_models/wallet_info.dart';
+import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:tuple/tuple.dart';
 
 part '../queries/queries.dart';

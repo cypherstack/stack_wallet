@@ -59,7 +59,7 @@ void main() {
       ),
     );
 
-    final manager = Manager(wallet);
+    final wallet = Manager(wallet);
 
     when(mockWallet.getWalletIdsFor(coin: Coin.bitcoin))
         .thenAnswer((realInvocation) => ["Wallet id 1", "wallet id 2"]);

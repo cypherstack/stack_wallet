@@ -40,6 +40,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/wallet/bip39_wallet.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
@@ -88,7 +89,9 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
   void initState() {
     walletId = widget.walletId;
     coin = widget.coin;
-    xPubEnabled = ref.read(pWallets).getManager(walletId).hasXPub;
+    // TODO: [prio=low] xpubs
+    // xPubEnabled = ref.read(pWallets).getWallet(walletId).hasXPub;
+    xPubEnabled = false;
     xpub = "";
 
     _currentSyncStatus = widget.initialSyncStatus;
@@ -229,36 +232,42 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                       iconSize: 16,
                                       title: "Wallet backup",
                                       onPressed: () async {
-                                        final mnemonic = await ref
+                                        final wallet = ref
                                             .read(pWallets)
-                                            .getManager(walletId)
-                                            .mnemonic;
+                                            .getWallet(widget.walletId);
+                                        // TODO: [prio=high] take wallets that don't have amnemonic into account
+                                        if (wallet is Bip39Wallet) {
+                                          final mnemonic =
+                                              await wallet.getMnemonicAsWords();
 
-                                        if (mounted) {
-                                          await Navigator.push(
-                                            context,
-                                            RouteGenerator.getRoute(
-                                              shouldUseMaterialRoute:
-                                                  RouteGenerator
-                                                      .useMaterialPageRoute,
-                                              builder: (_) => LockscreenView(
-                                                routeOnSuccessArguments:
-                                                    Tuple2(walletId, mnemonic),
-                                                showBackButton: true,
-                                                routeOnSuccess:
-                                                    WalletBackupView.routeName,
-                                                biometricsCancelButtonString:
-                                                    "CANCEL",
-                                                biometricsLocalizedReason:
-                                                    "Authenticate to view recovery phrase",
-                                                biometricsAuthenticationTitle:
-                                                    "View recovery phrase",
+                                          if (mounted) {
+                                            await Navigator.push(
+                                              context,
+                                              RouteGenerator.getRoute(
+                                                shouldUseMaterialRoute:
+                                                    RouteGenerator
+                                                        .useMaterialPageRoute,
+                                                builder: (_) => LockscreenView(
+                                                  routeOnSuccessArguments:
+                                                      Tuple2(
+                                                          walletId, mnemonic),
+                                                  showBackButton: true,
+                                                  routeOnSuccess:
+                                                      WalletBackupView
+                                                          .routeName,
+                                                  biometricsCancelButtonString:
+                                                      "CANCEL",
+                                                  biometricsLocalizedReason:
+                                                      "Authenticate to view recovery phrase",
+                                                  biometricsAuthenticationTitle:
+                                                      "View recovery phrase",
+                                                ),
+                                                settings: const RouteSettings(
+                                                    name:
+                                                        "/viewRecoverPhraseLockscreen"),
                                               ),
-                                              settings: const RouteSettings(
-                                                  name:
-                                                      "/viewRecoverPhraseLockscreen"),
-                                            ),
-                                          );
+                                            );
+                                          }
                                         }
                                       },
                                     );
@@ -405,10 +414,11 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                             builder: (_, ref, __) {
                               return TextButton(
                                 onPressed: () {
-                                  ref
-                                      .read(pWallets)
-                                      .getManager(walletId)
-                                      .isActiveWallet = false;
+                                  // TODO: [prio=med] needs more thought if this is still required
+                                  // ref
+                                  //     .read(pWallets)
+                                  //     .getWallet(walletId)
+                                  //     .isActiveWallet = false;
                                   ref
                                       .read(transactionFilterProvider.state)
                                       .state = null;
@@ -464,8 +474,7 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
 
   @override
   void initState() {
-    wallet =
-        ref.read(pWallets).getManager(widget.walletId).wallet as EpicCashWallet;
+    wallet = ref.read(pWallets).getWallet(widget.walletId) as EpicCashWallet;
 
     wallet.getEpicBoxConfig().then((EpicBoxConfigModel epicBoxConfig) {
       hostController.text = epicBoxConfig.host;

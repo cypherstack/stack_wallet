@@ -32,8 +32,7 @@ import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
 import 'package:stackwallet/providers/ui/preview_tx_button_state_provider.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/services/mixins/coin_control_interface.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -52,6 +51,8 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -120,15 +121,10 @@ class _SendViewState extends ConsumerState<SendView> {
   Amount? _cachedAmountToSend;
   String? _address;
 
-  String? _privateBalanceString;
-  String? _publicBalanceString;
-
   bool _addressToggleFlag = false;
 
   bool _cryptoAmountChangeLock = false;
   late VoidCallback onCryptoAmountChanged;
-
-  Amount? _cachedBalance;
 
   Set<UTXO> selectedUTXOs = {};
 
@@ -225,11 +221,16 @@ class _SendViewState extends ConsumerState<SendView> {
     }
   }
 
-  String? _updateInvalidAddressText(String address, Manager manager) {
+  String? _updateInvalidAddressText(String address) {
     if (_data != null && _data!.contactLabel == address) {
       return null;
     }
-    if (address.isNotEmpty && !manager.validateAddress(address)) {
+    if (address.isNotEmpty &&
+        !ref
+            .read(pWallets)
+            .getWallet(walletId)
+            .cryptoCurrency
+            .validateAddress(address)) {
       return "Invalid address";
     }
     return null;
@@ -242,7 +243,8 @@ class _SendViewState extends ConsumerState<SendView> {
     } else {
       final isValidAddress = ref
           .read(pWallets)
-          .getManager(walletId)
+          .getWallet(walletId)
+          .cryptoCurrency
           .validateAddress(address ?? "");
       ref.read(previewTxButtonStateProvider.state).state =
           (isValidAddress && amount != null && amount > Amount.zero);
@@ -275,9 +277,8 @@ class _SendViewState extends ConsumerState<SendView> {
       return cachedFees[amount]!;
     }
 
-    final manager =
-        ref.read(pWallets).getManager(walletId);
-    final feeObject = await manager.fees;
+    final wallet = ref.read(pWallets).getWallet(walletId);
+    final feeObject = await wallet.fees;
 
     late final int feeRate;
 
@@ -312,7 +313,7 @@ class _SendViewState extends ConsumerState<SendView> {
           throw ArgumentError("custom fee not available for monero");
       }
 
-      fee = await manager.estimateFeeFor(amount, specialMoneroId.raw!);
+      fee = await wallet.estimateFeeFor(amount, specialMoneroId.raw!);
       cachedFees[amount] = ref.read(pAmountFormatter(coin)).format(
             fee,
             withUnitName: true,
@@ -323,7 +324,7 @@ class _SendViewState extends ConsumerState<SendView> {
     } else if (coin == Coin.firo || coin == Coin.firoTestNet) {
       if (ref.read(publicPrivateBalanceStateProvider.state).state ==
           "Private") {
-        fee = await manager.estimateFeeFor(amount, feeRate);
+        fee = await wallet.estimateFeeFor(amount, feeRate);
 
         cachedFiroPrivateFees[amount] = ref.read(pAmountFormatter(coin)).format(
               fee,
@@ -333,19 +334,21 @@ class _SendViewState extends ConsumerState<SendView> {
 
         return cachedFiroPrivateFees[amount]!;
       } else {
-        fee = await (manager.wallet as FiroWallet)
-            .estimateFeeForPublic(amount, feeRate);
-
-        cachedFiroPublicFees[amount] = ref.read(pAmountFormatter(coin)).format(
-              fee,
-              withUnitName: true,
-              indicatePrecisionLoss: false,
-            );
-
-        return cachedFiroPublicFees[amount]!;
+        // TODO: [prio=high] firo public send fees refactor or something...
+        throw UnimplementedError("Firo pub fees todo");
+        // fee = await (manager.wallet as FiroWallet)
+        //     .estimateFeeForPublic(amount, feeRate);
+        //
+        // cachedFiroPublicFees[amount] = ref.read(pAmountFormatter(coin)).format(
+        //       fee,
+        //       withUnitName: true,
+        //       indicatePrecisionLoss: false,
+        //     );
+        //
+        // return cachedFiroPublicFees[amount]!;
       }
     } else {
-      fee = await manager.estimateFeeFor(amount, feeRate);
+      fee = await wallet.estimateFeeFor(amount, feeRate);
       cachedFees[amount] = ref.read(pAmountFormatter(coin)).format(
             fee,
             withUnitName: true,
@@ -356,57 +359,34 @@ class _SendViewState extends ConsumerState<SendView> {
     }
   }
 
-  Future<String?> _firoBalanceFuture(
-      ChangeNotifierProvider<Manager> provider, String locale) async {
-    final wallet = ref.read(provider).wallet as FiroWallet?;
-
-    if (wallet != null) {
-      Amount? balance;
-      if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-          "Private") {
-        balance = wallet.availablePrivateBalance();
-      } else {
-        balance = wallet.availablePublicBalance();
-      }
-
-      return ref.read(pAmountFormatter(coin)).format(
-            balance,
-          );
-    }
-
-    return null;
-  }
-
   Future<void> _previewTransaction() async {
     // wait for keyboard to disappear
     FocusScope.of(context).unfocus();
     await Future<void>.delayed(
       const Duration(milliseconds: 100),
     );
-    final manager =
-        ref.read(pWallets).getManager(walletId);
+    final wallet = ref.read(pWallets).getWallet(walletId);
 
     final Amount amount = _amountToSend!;
     final Amount availableBalance;
     if ((coin == Coin.firo || coin == Coin.firoTestNet)) {
       if (ref.read(publicPrivateBalanceStateProvider.state).state ==
           "Private") {
-        availableBalance =
-            (manager.wallet as FiroWallet).availablePrivateBalance();
+        availableBalance = ref.read(pWalletBalance(walletId)).spendable;
       } else {
         availableBalance =
-            (manager.wallet as FiroWallet).availablePublicBalance();
+            ref.read(pWalletBalanceSecondary(walletId)).spendable;
       }
     } else {
-      availableBalance = manager.balance.spendable;
+      availableBalance = ref.read(pWalletBalance(walletId)).spendable;
     }
 
     final coinControlEnabled =
         ref.read(prefsChangeNotifierProvider).enableCoinControl;
 
     if (coin != Coin.ethereum &&
-            !(manager.hasCoinControlSupport && coinControlEnabled) ||
-        (manager.hasCoinControlSupport &&
+            !(wallet is CoinControlInterface && coinControlEnabled) ||
+        (wallet is CoinControlInterface &&
             coinControlEnabled &&
             selectedUTXOs.isEmpty)) {
       // confirm send all
@@ -472,7 +452,7 @@ class _SendViewState extends ConsumerState<SendView> {
             barrierDismissible: false,
             builder: (context) {
               return BuildingTransactionDialog(
-                coin: manager.coin,
+                coin: wallet.info.coin,
                 onCancel: () {
                   wasCancelled = true;
 
@@ -490,59 +470,59 @@ class _SendViewState extends ConsumerState<SendView> {
         ),
       );
 
-      Map<String, dynamic> txData;
-      Future<Map<String, dynamic>> txDataFuture;
+      Future<TxData> txDataFuture;
 
       if (isPaynymSend) {
-        final wallet = manager.wallet as PaynymWalletInterface;
         final paymentCode = PaymentCode.fromPaymentCode(
           widget.accountLite!.code,
-          networkType: wallet.networkType,
+          networkType: (wallet as PaynymWalletInterface).networkType,
         );
-        final feeRate = ref.read(feeRateTypeStateProvider);
-        txDataFuture = wallet.preparePaymentCodeSend(
-          paymentCode: paymentCode,
-          isSegwit: widget.accountLite!.segwit,
-          amount: amount,
-          args: {
-            "satsPerVByte": isCustomFee ? customFeeRate : null,
-            "feeRate": feeRate,
-            "UTXOs": (manager.hasCoinControlSupport &&
-                    coinControlEnabled &&
-                    selectedUTXOs.isNotEmpty)
-                ? selectedUTXOs
-                : null,
-          },
-        );
+        throw UnimplementedError("FIXME");
+        // TODO: [prio=high] paynym prepare send using TxData
+        // final feeRate = ref.read(feeRateTypeStateProvider);
+        // txDataFuture = (wallet as PaynymWalletInterface).preparePaymentCodeSend(
+        //   paymentCode: paymentCode,
+        //   isSegwit: widget.accountLite!.segwit,
+        //   amount: amount,
+        //   args: {
+        //     "satsPerVByte": isCustomFee ? customFeeRate : null,
+        //     "feeRate": feeRate,
+        //     "UTXOs": (wallet is CoinControlInterface &&
+        //             coinControlEnabled &&
+        //             selectedUTXOs.isNotEmpty)
+        //         ? selectedUTXOs
+        //         : null,
+        //   },
+        // );
       } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
           ref.read(publicPrivateBalanceStateProvider.state).state !=
               "Private") {
-        txDataFuture = (manager.wallet as FiroWallet).prepareSendPublic(
-          address: _address!,
-          amount: amount,
-          args: {
-            "feeRate": ref.read(feeRateTypeStateProvider),
-            "satsPerVByte": isCustomFee ? customFeeRate : null,
-          },
-        );
+        throw UnimplementedError("FIXME");
+        // TODO: [prio=high] firo prepare send using TxData
+        // txDataFuture = (manager.wallet as FiroWallet).prepareSendPublic(
+        //   address: _address!,
+        //   amount: amount,
+        //   args: {
+        //     "feeRate": ref.read(feeRateTypeStateProvider),
+        //     "satsPerVByte": isCustomFee ? customFeeRate : null,
+        //   },
+        // );
       } else {
-        final memo =
-            manager.coin == Coin.stellar || manager.coin == Coin.stellarTestnet
-                ? memoController.text
-                : null;
-        txDataFuture = manager.prepareSend(
-          address: _address!,
-          amount: amount,
-          args: {
-            "memo": memo,
-            "feeRate": ref.read(feeRateTypeStateProvider),
-            "satsPerVByte": isCustomFee ? customFeeRate : null,
-            "UTXOs": (manager.hasCoinControlSupport &&
+        final memo = coin == Coin.stellar || coin == Coin.stellarTestnet
+            ? memoController.text
+            : null;
+        txDataFuture = wallet.prepareSend(
+          txData: TxData(
+            recipients: [(address: _address!, amount: amount)],
+            memo: memo,
+            feeRateType: ref.read(feeRateTypeStateProvider),
+            satsPerVByte: isCustomFee ? customFeeRate : null,
+            utxos: (wallet is CoinControlInterface &&
                     coinControlEnabled &&
                     selectedUTXOs.isNotEmpty)
                 ? selectedUTXOs
                 : null,
-          },
+          ),
         );
       }
 
@@ -551,24 +531,22 @@ class _SendViewState extends ConsumerState<SendView> {
         time,
       ]);
 
-      txData = results.first as Map<String, dynamic>;
+      TxData txData = results.first as TxData;
 
       if (!wasCancelled && mounted) {
         // pop building dialog
         Navigator.of(context).pop();
-        txData["note"] = noteController.text;
-        txData["onChainNote"] = onChainNoteController.text;
+        txData = txData.copyWith(note: noteController.text);
+        txData = txData.copyWith(noteOnChain: onChainNoteController.text);
         if (isPaynymSend) {
-          txData["paynymAccountLite"] = widget.accountLite!;
-        } else {
-          txData["address"] = _address;
+          txData = txData.copyWith(paynymAccountLite: widget.accountLite!);
         }
 
         unawaited(Navigator.of(context).push(
           RouteGenerator.getRoute(
             shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
             builder: (_) => ConfirmTransactionView(
-              transactionInfo: txData,
+              txData: txData,
               walletId: walletId,
               isPaynymTransaction: isPaynymSend,
             ),
@@ -729,16 +707,11 @@ class _SendViewState extends ConsumerState<SendView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final provider = ref.watch(pWallets
-        .select((value) => value.getManagerProvider(walletId)));
+    final wallet = ref.watch(pWallets).getWallet(walletId);
     final String locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
 
-    final showCoinControl = ref.watch(
-          pWallets.select(
-            (value) => value.getManager(walletId).hasCoinControlSupport,
-          ),
-        ) &&
+    final showCoinControl = wallet is CoinControlInterface &&
         ref.watch(
           prefsChangeNotifierProvider.select(
             (value) => value.enableCoinControl,
@@ -848,8 +821,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        ref.watch(provider.select(
-                                            (value) => value.walletName)),
+                                        ref.watch(pWalletName(walletId)),
                                         style: STextStyles.titleBold12(context)
                                             .copyWith(fontSize: 14),
                                         overflow: TextOverflow.ellipsis,
@@ -875,116 +847,75 @@ class _SendViewState extends ConsumerState<SendView> {
                                     ],
                                   ),
                                   const Spacer(),
-                                  FutureBuilder(
-                                    // TODO redo this widget now that its not actually a future
-                                    future: (coin != Coin.firo &&
-                                            coin != Coin.firoTestNet)
-                                        ? Future(() => ref.watch(
-                                            provider.select((value) =>
-                                                value.balance.spendable)))
-                                        : ref.watch(publicPrivateBalanceStateProvider.state).state ==
-                                                "Private"
-                                            ? Future(() => (ref
-                                                    .watch(provider)
-                                                    .wallet as FiroWallet)
-                                                .availablePrivateBalance())
-                                            : Future(() => (ref
-                                                    .watch(provider)
-                                                    .wallet as FiroWallet)
-                                                .availablePublicBalance()),
-                                    builder:
-                                        (_, AsyncSnapshot<Amount> snapshot) {
-                                      if (snapshot.connectionState ==
-                                              ConnectionState.done &&
-                                          snapshot.hasData) {
-                                        _cachedBalance = snapshot.data!;
-                                      }
-
-                                      if (_cachedBalance != null) {
-                                        return GestureDetector(
-                                          onTap: () {
-                                            cryptoAmountController.text = ref
-                                                .read(pAmountFormatter(coin))
-                                                .format(
-                                                  _cachedBalance!,
-                                                  withUnitName: false,
-                                                );
-                                          },
-                                          child: Container(
-                                            color: Colors.transparent,
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.end,
-                                              children: [
-                                                Text(
-                                                  ref
-                                                      .watch(pAmountFormatter(
-                                                          coin))
-                                                      .format(_cachedBalance!),
-                                                  style:
-                                                      STextStyles.titleBold12(
-                                                              context)
-                                                          .copyWith(
-                                                    fontSize: 10,
-                                                  ),
-                                                  textAlign: TextAlign.right,
-                                                ),
-                                                Text(
-                                                  "${(_cachedBalance!.decimal * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin).item1))).toAmount(
-                                                        fractionDigits: 2,
-                                                      ).fiatString(
-                                                        locale: locale,
-                                                      )} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
-                                                  style: STextStyles.subtitle(
-                                                          context)
-                                                      .copyWith(
-                                                    fontSize: 8,
-                                                  ),
-                                                  textAlign: TextAlign.right,
-                                                )
-                                              ],
-                                            ),
-                                          ),
-                                        );
+                                  Builder(builder: (context) {
+                                    final Amount amount;
+                                    if (coin != Coin.firo &&
+                                        coin != Coin.firoTestNet) {
+                                      if (ref
+                                              .watch(
+                                                  publicPrivateBalanceStateProvider
+                                                      .state)
+                                              .state ==
+                                          "Private") {
+                                        amount = ref
+                                            .read(pWalletBalance(walletId))
+                                            .spendable;
                                       } else {
-                                        return Column(
+                                        amount = ref
+                                            .read(pWalletBalanceSecondary(
+                                                walletId))
+                                            .spendable;
+                                      }
+                                    } else {
+                                      amount = ref
+                                          .read(pWalletBalance(walletId))
+                                          .spendable;
+                                    }
+
+                                    return GestureDetector(
+                                      onTap: () {
+                                        cryptoAmountController.text = ref
+                                            .read(pAmountFormatter(coin))
+                                            .format(
+                                              amount,
+                                              withUnitName: false,
+                                            );
+                                      },
+                                      child: Container(
+                                        color: Colors.transparent,
+                                        child: Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.end,
                                           children: [
-                                            AnimatedText(
-                                              stringsToLoopThrough: const [
-                                                "Loading balance   ",
-                                                "Loading balance.  ",
-                                                "Loading balance.. ",
-                                                "Loading balance...",
-                                              ],
-                                              style: STextStyles.itemSubtitle(
+                                            Text(
+                                              ref
+                                                  .watch(pAmountFormatter(coin))
+                                                  .format(amount),
+                                              style: STextStyles.titleBold12(
                                                       context)
                                                   .copyWith(
                                                 fontSize: 10,
                                               ),
+                                              textAlign: TextAlign.right,
                                             ),
-                                            const SizedBox(
-                                              height: 2,
-                                            ),
-                                            AnimatedText(
-                                              stringsToLoopThrough: const [
-                                                "Loading balance   ",
-                                                "Loading balance.  ",
-                                                "Loading balance.. ",
-                                                "Loading balance...",
-                                              ],
-                                              style: STextStyles.itemSubtitle(
-                                                      context)
-                                                  .copyWith(
+                                            Text(
+                                              "${(amount.decimal * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin).item1))).toAmount(
+                                                    fractionDigits: 2,
+                                                  ).fiatString(
+                                                    locale: locale,
+                                                  )} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
+                                              style:
+                                                  STextStyles.subtitle(context)
+                                                      .copyWith(
                                                 fontSize: 8,
                                               ),
+                                              textAlign: TextAlign.right,
                                             )
                                           ],
-                                        );
-                                      }
-                                    },
-                                  ),
+                                        ),
+                                      ),
+                                    );
+                                  }),
                                 ],
                               ),
                             ),
@@ -1269,9 +1200,9 @@ class _SendViewState extends ConsumerState<SendView> {
 
                                                     // now check for non standard encoded basic address
                                                   } else if (ref
-                                                      .read(
-                                                          pWallets)
-                                                      .getManager(walletId)
+                                                      .read(pWallets)
+                                                      .getWallet(walletId)
+                                                      .cryptoCurrency
                                                       .validateAddress(qrResult
                                                           .rawContent)) {
                                                     _address = qrResult
@@ -1397,9 +1328,6 @@ class _SendViewState extends ConsumerState<SendView> {
                             builder: (_) {
                               final error = _updateInvalidAddressText(
                                 _address ?? "",
-                                ref
-                                    .read(pWallets)
-                                    .getManager(walletId),
                               );
 
                               if (error == null || error.isEmpty) {
@@ -1493,68 +1421,40 @@ class _SendViewState extends ConsumerState<SendView> {
                                             const SizedBox(
                                               width: 10,
                                             ),
-                                            FutureBuilder(
-                                              future: _firoBalanceFuture(
-                                                  provider, locale),
-                                              builder: (context,
-                                                  AsyncSnapshot<String?>
-                                                      snapshot) {
-                                                if (snapshot.connectionState ==
-                                                        ConnectionState.done &&
-                                                    snapshot.hasData) {
-                                                  if (ref
-                                                          .read(
-                                                              publicPrivateBalanceStateProvider
-                                                                  .state)
-                                                          .state ==
-                                                      "Private") {
-                                                    _privateBalanceString =
-                                                        snapshot.data!;
-                                                  } else {
-                                                    _publicBalanceString =
-                                                        snapshot.data!;
-                                                  }
-                                                }
-                                                if (ref
-                                                            .read(
-                                                                publicPrivateBalanceStateProvider
-                                                                    .state)
-                                                            .state ==
-                                                        "Private" &&
-                                                    _privateBalanceString !=
-                                                        null) {
-                                                  return Text(
-                                                    "$_privateBalanceString",
-                                                    style: STextStyles
-                                                        .itemSubtitle(context),
-                                                  );
-                                                } else if (ref
-                                                            .read(
-                                                                publicPrivateBalanceStateProvider
-                                                                    .state)
-                                                            .state ==
-                                                        "Public" &&
-                                                    _publicBalanceString !=
-                                                        null) {
-                                                  return Text(
-                                                    "$_publicBalanceString",
-                                                    style: STextStyles
-                                                        .itemSubtitle(context),
-                                                  );
-                                                } else {
-                                                  return AnimatedText(
-                                                    stringsToLoopThrough: const [
-                                                      "Loading balance",
-                                                      "Loading balance.",
-                                                      "Loading balance..",
-                                                      "Loading balance...",
-                                                    ],
-                                                    style: STextStyles
-                                                        .itemSubtitle(context),
-                                                  );
-                                                }
-                                              },
-                                            ),
+                                            if (ref
+                                                    .read(
+                                                        publicPrivateBalanceStateProvider
+                                                            .state)
+                                                    .state ==
+                                                "Private")
+                                              Text(
+                                                ref
+                                                    .watch(
+                                                        pAmountFormatter(coin))
+                                                    .format(
+                                                      ref
+                                                          .watch(pWalletBalance(
+                                                              walletId))
+                                                          .spendable,
+                                                    ),
+                                                style: STextStyles.itemSubtitle(
+                                                    context),
+                                              )
+                                            else
+                                              Text(
+                                                ref
+                                                    .watch(
+                                                        pAmountFormatter(coin))
+                                                    .format(
+                                                      ref
+                                                          .watch(
+                                                              pWalletBalanceSecondary(
+                                                                  walletId))
+                                                          .spendable,
+                                                    ),
+                                                style: STextStyles.itemSubtitle(
+                                                    context),
+                                              ),
                                           ],
                                         ),
                                         SvgPicture.asset(
@@ -1586,40 +1486,29 @@ class _SendViewState extends ConsumerState<SendView> {
                                 CustomTextButton(
                                   text: "Send all ${coin.ticker}",
                                   onTap: () async {
-                                    if (coin == Coin.firo ||
-                                        coin == Coin.firoTestNet) {
-                                      final firoWallet = ref
-                                          .read(provider)
-                                          .wallet as FiroWallet;
-                                      if (ref
-                                              .read(
-                                                  publicPrivateBalanceStateProvider
-                                                      .state)
-                                              .state ==
-                                          "Private") {
-                                        cryptoAmountController.text = ref
-                                            .read(pAmountFormatter(coin))
-                                            .format(
-                                              firoWallet
-                                                  .availablePrivateBalance(),
-                                              withUnitName: false,
-                                            );
-                                      } else {
-                                        cryptoAmountController.text = ref
-                                            .read(pAmountFormatter(coin))
-                                            .format(
-                                              firoWallet
-                                                  .availablePublicBalance(),
-                                              withUnitName: false,
-                                            );
-                                      }
+                                    if ((coin == Coin.firo ||
+                                            coin == Coin.firoTestNet) &&
+                                        ref
+                                                .read(
+                                                    publicPrivateBalanceStateProvider
+                                                        .state)
+                                                .state ==
+                                            "Public") {
+                                      cryptoAmountController.text = ref
+                                          .read(pAmountFormatter(coin))
+                                          .format(
+                                            ref
+                                                .read(pWalletBalanceSecondary(
+                                                    walletId))
+                                                .spendable,
+                                            withUnitName: false,
+                                          );
                                     } else {
                                       cryptoAmountController.text = ref
                                           .read(pAmountFormatter(coin))
                                           .format(
                                             ref
-                                                .read(provider)
-                                                .balance
+                                                .read(pWalletBalance(walletId))
                                                 .spendable,
                                             withUnitName: false,
                                           );
@@ -1853,9 +1742,7 @@ class _SendViewState extends ConsumerState<SendView> {
 
                                       if (mounted) {
                                         final spendable = ref
-                                            .read(pWallets)
-                                            .getManager(widget.walletId)
-                                            .balance
+                                            .read(pWalletBalance(walletId))
                                             .spendable;
 
                                         Amount? amount;

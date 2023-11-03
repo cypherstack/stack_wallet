@@ -35,6 +35,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
@@ -72,8 +73,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
       final coin = coinFromTickerCaseInsensitive(ticker);
       return ref
           .read(pWallets)
-          .managers
-          .where((element) => element.coin == coin)
+          .wallets
+          .where((e) => e.info.coin == coin)
           .isNotEmpty;
     } catch (_) {
       return false;
@@ -134,8 +135,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
   }
 
   Future<bool?> _showSendFromFiroBalanceSelectSheet(String walletId) async {
-    final firoWallet =
-        ref.read(pWallets).getManager(walletId).wallet as FiroWallet;
+    final firoWallet = ref.read(pWallets).getWallet(walletId) as FiroWallet;
     final locale = ref.read(localeServiceChangeNotifierProvider).locale;
 
     return await showModalBottomSheet<bool?>(
@@ -204,10 +204,10 @@ class _Step4ViewState extends ConsumerState<Step4View> {
       firoPublicSend = false;
     }
 
-    final manager = ref.read(pWallets).getManager(tuple.item1);
+    final wallet = ref.read(pWallets).getWallet(tuple.item1);
 
     final Amount amount = model.sendAmount.toAmount(
-      fractionDigits: manager.coin.decimals,
+      fractionDigits: wallet.info.coin.decimals,
     );
     final address = model.trade!.payInAddress;
 
@@ -222,7 +222,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
           barrierDismissible: false,
           builder: (context) {
             return BuildingTransactionDialog(
-              coin: manager.coin,
+              coin: wallet.info.coin,
               onCancel: () {
                 wasCancelled = true;
               },
@@ -237,32 +237,36 @@ class _Step4ViewState extends ConsumerState<Step4View> {
         ),
       );
 
-      Future<Map<String, dynamic>> txDataFuture;
+      Future<TxData> txDataFuture;
 
       if (firoPublicSend) {
-        txDataFuture = (manager.wallet as FiroWallet).prepareSendPublic(
-          address: address,
-          amount: amount,
-          args: {
-            "feeRate": FeeRateType.average,
-            // ref.read(feeRateTypeStateProvider)
-          },
-        );
+        // TODO: [prio=high]
+        throw UnimplementedError();
+        // txDataFuture = (wallet as FiroWallet).prepareSendPublic(
+        //   address: address,
+        //   amount: amount,
+        //   args: {
+        //     "feeRate": FeeRateType.average,
+        //     // ref.read(feeRateTypeStateProvider)
+        //   },
+        // );
       } else {
-        final memo =
-            manager.coin == Coin.stellar || manager.coin == Coin.stellarTestnet
-                ? model.trade!.payInExtraId.isNotEmpty
-                    ? model.trade!.payInExtraId
-                    : null
-                : null;
-        txDataFuture = manager.prepareSend(
-          address: address,
-          amount: amount,
-          args: {
-            "memo": memo,
-            "feeRate": FeeRateType.average,
-            // ref.read(feeRateTypeStateProvider)
-          },
+        final memo = wallet.info.coin == Coin.stellar ||
+                wallet.info.coin == Coin.stellarTestnet
+            ? model.trade!.payInExtraId.isNotEmpty
+                ? model.trade!.payInExtraId
+                : null
+            : null;
+        txDataFuture = wallet.prepareSend(
+          txData: TxData(
+            recipients: [
+              (address: address, amount: amount),
+            ],
+            memo: memo,
+            feeRateType: FeeRateType.average,
+            note: "${model.trade!.payInCurrency.toUpperCase()}/"
+                "${model.trade!.payOutCurrency.toUpperCase()} exchange",
+          ),
         );
       }
 
@@ -271,7 +275,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
         time,
       ]);
 
-      final txData = results.first as Map<String, dynamic>;
+      final txData = results.first as TxData;
 
       if (!wasCancelled) {
         // pop building dialog
@@ -280,17 +284,13 @@ class _Step4ViewState extends ConsumerState<Step4View> {
           Navigator.of(context).pop();
         }
 
-        txData["note"] =
-            "${model.trade!.payInCurrency.toUpperCase()}/${model.trade!.payOutCurrency.toUpperCase()} exchange";
-        txData["address"] = address;
-
         if (mounted) {
           unawaited(
             Navigator.of(context).push(
               RouteGenerator.getRoute(
                 shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
                 builder: (_) => ConfirmChangeNowSendView(
-                  transactionInfo: txData,
+                  txData: txData,
                   walletId: tuple.item1,
                   routeOnSuccessName: HomeView.routeName,
                   trade: model.trade!,
@@ -813,8 +813,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                           tuple.item2.ticker.toLowerCase()) {
                                     final walletName = ref
                                         .read(pWallets)
-                                        .getManager(tuple.item1)
-                                        .walletName;
+                                        .getWallet(tuple.item1)
+                                        .info
+                                        .name;
                                     buttonTitle = "Send from $walletName";
                                   }
 

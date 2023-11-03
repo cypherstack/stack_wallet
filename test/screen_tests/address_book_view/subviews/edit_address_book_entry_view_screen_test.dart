@@ -25,7 +25,7 @@ import 'package:stackwallet/services/coins/manager.dart';
 ])
 void main() {
 //   testWidgets("EditAddressBookEntryView builds correctly", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -84,7 +84,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap back", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -149,7 +149,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap cancel", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -215,7 +215,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap save with no changes", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -281,7 +281,7 @@ void main() {
 //   });
 //
 //   testWidgets("clear and paste new address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //     final clipboard = FakeClipboard();
@@ -374,7 +374,7 @@ void main() {
 //   });
 //
 //   testWidgets("clear and paste invalid address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //     final clipboard = FakeClipboard();
@@ -464,7 +464,7 @@ void main() {
 //   });
 //
 //   testWidgets("clear and enter invalid address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -550,7 +550,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap save with new address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //     final clipboard = FakeClipboard();
@@ -669,7 +669,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap save with new name", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -763,7 +763,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap save with an address already in contacts", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //     final clipboard = FakeClipboard();
@@ -873,7 +873,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap save throws", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //     final clipboard = FakeClipboard();
@@ -987,7 +987,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap disabled save button", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //     final clipboard = FakeClipboard();

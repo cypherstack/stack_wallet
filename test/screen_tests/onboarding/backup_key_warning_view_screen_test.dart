@@ -64,7 +64,7 @@ void main() {
 //   testWidgets("back button test A", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
 //     final walletsService = MockWalletsService();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     mockingjay
 //         .when(() =>
@@ -108,7 +108,7 @@ void main() {
 //   testWidgets("back button test B", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
 //     final walletsService = MockWalletsService();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     mockingjay.when(() => navigator.pop()).thenAnswer((_) async => {});
 //

@@ -359,7 +359,7 @@ abstract class SWB {
     StackRestoringUIState? uiState,
     WalletsService walletsService,
   ) async {
-    final manager = tuple.item2;
+    final wallet = tuple.item2;
     final walletbackup = tuple.item1;
 
     List<String> mnemonicList = (walletbackup['mnemonic'] as List<dynamic>)
@@ -705,7 +705,7 @@ abstract class SWB {
         failovers,
       );
 
-      final manager = Manager(wallet);
+      final wallet = Manager(wallet);
 
       managers.add(Tuple2(walletbackup, manager));
       // check if cancel was requested and restore previous state

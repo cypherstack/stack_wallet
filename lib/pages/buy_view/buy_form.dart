@@ -1160,14 +1160,14 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                         )
                             .then((value) async {
                           if (value is String) {
-                            final manager =
-                                ref.read(pWallets).getManager(value);
+                            final wallet = ref.read(pWallets).getWallet(value);
 
                             // _toController.text = manager.walletName;
                             // model.recipientAddress =
                             //     await manager.currentReceivingAddress;
                             _receiveAddressController.text =
-                                await manager.currentReceivingAddress;
+                                (await wallet.getCurrentReceivingAddress())!
+                                    .value;
 
                             setState(() {
                               _addressToggleFlag =

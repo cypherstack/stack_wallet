@@ -22,7 +22,6 @@ import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_exch
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
-import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -33,6 +32,8 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -86,7 +87,11 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
     debugPrint("BUILD: $runtimeType");
 
     final walletIds = ref
-        .watch(pWallets.select((value) => value.getWalletIdsFor(coin: coin)));
+        .watch(pWallets)
+        .wallets
+        .where((e) => e.info.coin == coin)
+        .map((e) => e.walletId)
+        .toList();
 
     final isDesktop = Util.isDesktop;
 
@@ -224,7 +229,9 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
   late final String address;
   late final Trade trade;
 
-  Future<void> _send(Manager manager, {bool? shouldSendPublicFiroFunds}) async {
+  Future<void> _send({bool? shouldSendPublicFiroFunds}) async {
+    final coin = ref.read(pWalletCoin(walletId));
+
     try {
       bool wasCancelled = false;
 
@@ -245,7 +252,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                 ),
               ),
               child: BuildingTransactionDialog(
-                coin: manager.coin,
+                coin: coin,
                 onCancel: () {
                   wasCancelled = true;
 
@@ -263,46 +270,54 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
         ),
       );
 
-      Map<String, dynamic> txData;
-      Future<Map<String, dynamic>> txDataFuture;
+      TxData txData;
+      Future<TxData> txDataFuture;
+
+      final wallet = ref.read(pWallets).getWallet(walletId);
 
       // if not firo then do normal send
       if (shouldSendPublicFiroFunds == null) {
-        final memo =
-            manager.coin == Coin.stellar || manager.coin == Coin.stellarTestnet
-                ? trade.payInExtraId.isNotEmpty
-                    ? trade.payInExtraId
-                    : null
-                : null;
-        txDataFuture = manager.prepareSend(
-          address: address,
-          amount: amount,
-          args: {
-            "memo": memo,
-            "feeRate": FeeRateType.average,
-            // ref.read(feeRateTypeStateProvider)
-          },
+        final memo = coin == Coin.stellar || coin == Coin.stellarTestnet
+            ? trade.payInExtraId.isNotEmpty
+                ? trade.payInExtraId
+                : null
+            : null;
+        txDataFuture = wallet.prepareSend(
+          txData: TxData(
+            recipients: [
+              (
+                address: address,
+                amount: amount,
+              ),
+            ],
+            memo: memo,
+            feeRateType: FeeRateType.average,
+          ),
         );
       } else {
-        final firoWallet = manager.wallet as FiroWallet;
+        final firoWallet = wallet as FiroWallet;
         // otherwise do firo send based on balance selected
         if (shouldSendPublicFiroFunds) {
-          txDataFuture = firoWallet.prepareSendPublic(
-            address: address,
-            amount: amount,
-            args: {
-              "feeRate": FeeRateType.average,
-              // ref.read(feeRateTypeStateProvider)
-            },
-          );
+          throw UnimplementedError();
+          // txDataFuture = firoWallet.prepareSendPublic(
+          //   address: address,
+          //   amount: amount,
+          //   args: {
+          //     "feeRate": FeeRateType.average,
+          //     // ref.read(feeRateTypeStateProvider)
+          //   },
+          // );
         } else {
-          txDataFuture = firoWallet.prepareSend(
-            address: address,
-            amount: amount,
-            args: {
-              "feeRate": FeeRateType.average,
-              // ref.read(feeRateTypeStateProvider)
-            },
+          txDataFuture = wallet.prepareSend(
+            txData: TxData(
+              recipients: [
+                (
+                  address: address,
+                  amount: amount,
+                ),
+              ],
+              feeRateType: FeeRateType.average,
+            ),
           );
         }
       }
@@ -312,7 +327,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
         time,
       ]);
 
-      txData = results.first as Map<String, dynamic>;
+      txData = results.first as TxData;
 
       if (!wasCancelled) {
         // pop building dialog
@@ -324,16 +339,17 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
           ).pop();
         }
 
-        txData["note"] =
-            "${trade.payInCurrency.toUpperCase()}/${trade.payOutCurrency.toUpperCase()} exchange";
-        txData["address"] = address;
+        txData = txData.copyWith(
+          note: "${trade.payInCurrency.toUpperCase()}/"
+              "${trade.payOutCurrency.toUpperCase()} exchange",
+        );
 
         if (mounted) {
           await Navigator.of(context).push(
             RouteGenerator.getRoute(
               shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
               builder: (_) => ConfirmChangeNowSendView(
-                transactionInfo: txData,
+                txData: txData,
                 walletId: walletId,
                 routeOnSuccessName: Util.isDesktop
                     ? DesktopExchangeView.routeName
@@ -396,13 +412,12 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
 
   @override
   Widget build(BuildContext context) {
-    final manager =
-        ref.watch(ref.watch(pWallets.notifier).getManagerProvider(walletId));
+    final wallet = ref.watch(pWallets).getWallet(walletId);
 
     final locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
 
-    final coin = manager.coin;
+    final coin = ref.watch(pWalletCoin(walletId));
 
     final isFiro = coin == Coin.firoTestNet || coin == Coin.firo;
 
@@ -437,7 +452,6 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                   if (mounted) {
                     unawaited(
                       _send(
-                        manager,
                         shouldSendPublicFiroFunds: false,
                       ),
                     );
@@ -464,10 +478,9 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                               style: STextStyles.itemSubtitle(context),
                             ),
                             Text(
-                              ref.watch(pAmountFormatter(coin)).format(
-                                    (manager.wallet as FiroWallet)
-                                        .availablePrivateBalance(),
-                                  ),
+                              ref.watch(pAmountFormatter(coin)).format(ref
+                                  .watch(pWalletBalance(walletId))
+                                  .spendable),
                               style: STextStyles.itemSubtitle(context),
                             ),
                           ],
@@ -500,7 +513,6 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                   if (mounted) {
                     unawaited(
                       _send(
-                        manager,
                         shouldSendPublicFiroFunds: true,
                       ),
                     );
@@ -528,8 +540,11 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                             ),
                             Text(
                               ref.watch(pAmountFormatter(coin)).format(
-                                  (manager.wallet as FiroWallet)
-                                      .availablePublicBalance()),
+                                    ref
+                                        .watch(
+                                            pWalletBalanceSecondary(walletId))
+                                        .spendable,
+                                  ),
                               style: STextStyles.itemSubtitle(context),
                             ),
                           ],
@@ -568,7 +583,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
             onPressed: () async {
               if (mounted) {
                 unawaited(
-                  _send(manager),
+                  _send(),
                 );
               }
             },
@@ -580,7 +595,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                 decoration: BoxDecoration(
                   color: Theme.of(context)
                       .extension<StackColors>()!
-                      .colorForCoin(manager.coin)
+                      .colorForCoin(coin)
                       .withOpacity(0.5),
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
@@ -608,7 +623,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      manager.walletName,
+                      ref.watch(pWalletName(walletId)),
                       style: STextStyles.titleBold12(context),
                     ),
                     if (!isFiro)
@@ -617,9 +632,8 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                       ),
                     if (!isFiro)
                       Text(
-                        ref
-                            .watch(pAmountFormatter(coin))
-                            .format(manager.balance.spendable),
+                        ref.watch(pAmountFormatter(coin)).format(
+                            ref.watch(pWalletBalance(walletId)).spendable),
                         style: STextStyles.itemSubtitle(context),
                       ),
                   ],

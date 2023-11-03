@@ -45,7 +45,7 @@ void main() {
 //   });
 //
 //   testWidgets("WalletDeleteMnemonicView loads correctly", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //
 //     when(manager.mnemonic).thenAnswer(
@@ -146,7 +146,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap back", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -218,7 +218,7 @@ void main() {
 //   });
 //
 //   testWidgets("show qr code", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //
 //     when(manager.mnemonic).thenAnswer(
@@ -301,7 +301,7 @@ void main() {
 //   });
 //
 //   testWidgets("copy backup key", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final clipboard = FakeClipboard();
 //
@@ -377,7 +377,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap continue then cancel", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //
 //     when(manager.mnemonic).thenAnswer(
@@ -458,7 +458,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap continue then delete last wallet", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -564,7 +564,7 @@ void main() {
 //
 //   testWidgets("tap continue then delete with more than one remaining wallet",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final navigator = mockingjay.MockNavigator();
 //

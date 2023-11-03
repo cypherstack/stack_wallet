@@ -26,6 +26,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/dialogs/basic_dialog.dart';
 import 'package:stackwallet/widgets/icon_widgets/eth_token_icon.dart';
@@ -84,10 +85,8 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
     ref.read(tokenServiceStateProvider.state).state = EthTokenWallet(
       token: widget.token,
       secureStore: ref.read(secureStoreProvider),
-      ethWallet: ref
-          .read(pWallets)
-          .getManager(widget.walletId)
-          .wallet as EthereumWallet,
+      ethWallet:
+          ref.read(pWallets).getWallet(widget.walletId) as EthereumWallet,
       tracker: TransactionNotificationTracker(
         walletId: widget.walletId,
       ),
@@ -117,10 +116,7 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
     cachedBalance = CachedEthTokenBalance(widget.walletId, widget.token);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final address = await ref
-          .read(pWallets)
-          .getManager(widget.walletId)
-          .currentReceivingAddress;
+      final address = ref.read(pWalletReceivingAddress(widget.walletId));
       await cachedBalance.fetchAndUpdateCachedBalance(address);
       if (mounted) {
         setState(() {});

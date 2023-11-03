@@ -34,27 +34,27 @@ class WalletInfoRowBalance extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final manager =
-        ref.watch(ref.watch(pWallets.notifier).getManagerProvider(walletId));
+    final wallet = ref.watch(pWallets).getWallet(walletId);
 
     Amount totalBalance;
     EthContract? contract;
     if (contractAddress == null) {
-      totalBalance = manager.balance.total;
-      if (manager.coin == Coin.firo || manager.coin == Coin.firoTestNet) {
+      totalBalance = wallet.info.cachedBalance.total;
+      if (wallet.info.coin == Coin.firo ||
+          wallet.info.coin == Coin.firoTestNet) {
         totalBalance =
-            totalBalance + (manager.wallet as FiroWallet).balancePrivate.total;
+            totalBalance + (wallet as FiroWallet).balancePrivate.total;
       }
       contract = null;
     } else {
-      final ethWallet = manager.wallet as EthereumWallet;
+      final ethWallet = wallet as EthereumWallet;
       contract = MainDB.instance.getEthContractSync(contractAddress!)!;
       totalBalance = ethWallet.getCachedTokenBalance(contract).total;
     }
 
     return Text(
       ref
-          .watch(pAmountFormatter(manager.coin))
+          .watch(pAmountFormatter(wallet.info.coin))
           .format(totalBalance, ethContract: contract),
       style: Util.isDesktop
           ? STextStyles.desktopTextExtraSmall(context).copyWith(

@@ -18,7 +18,7 @@ import 'package:stackwallet/services/coins/manager.dart';
 ])
 void main() {
 //   testWidgets("BackupKeyView builds correctly", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.mnemonic).thenAnswer(
 //       (_) async => [
@@ -106,7 +106,7 @@ void main() {
 //
 //   testWidgets("back button test", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     mockingjay.when(() => navigator.pop()).thenAnswer((_) async => {});
 //
@@ -165,7 +165,7 @@ void main() {
 //
 //   testWidgets("skip button test", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     mockingjay
 //         .when(() => navigator.pushReplacementNamed("/mainview"))
@@ -227,7 +227,7 @@ void main() {
 //   });
 //
 //   testWidgets("qrcode button test", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.mnemonic).thenAnswer(
 //       (_) async => [
@@ -287,7 +287,7 @@ void main() {
 //   });
 //
 //   testWidgets("copy button test", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.mnemonic).thenAnswer(
 //       (_) async => [
@@ -343,7 +343,7 @@ void main() {
 //
 //   testWidgets("verify button test", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     mockingjay
 //         .when(() => navigator.push(mockingjay.any()))

@@ -8,8 +8,6 @@
  *
  */
 
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
@@ -66,8 +64,7 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
 
   @override
   Widget build(BuildContext context) {
-    final manager = ref
-        .watch(pWallets.select((value) => value.getManager(widget.walletId)));
+    final coin = ref.watch(pWallets).getWallet(widget.walletId).info.coin;
 
     return FutureBuilder(
       future: ref
@@ -145,11 +142,7 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
 
           return RefreshIndicator(
             onRefresh: () async {
-              final managerProvider =
-                  ref.read(pWallets).getManagerProvider(widget.walletId);
-              if (!ref.read(managerProvider).isRefreshing) {
-                unawaited(ref.read(managerProvider).refresh());
-              }
+              await ref.read(pWallets).getWallet(widget.walletId).refresh();
             },
             child: Util.isDesktop
                 ? ListView.separated(
@@ -168,7 +161,7 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
                       final tx = _txns[index];
                       return TxListItem(
                         tx: tx,
-                        coin: manager.coin,
+                        coin: coin,
                         radius: radius,
                       );
                     },
@@ -204,7 +197,7 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
                           children: [
                             TxListItem(
                               tx: tx,
-                              coin: manager.coin,
+                              coin: coin,
                               radius: radius,
                             ),
                             const SizedBox(
@@ -215,7 +208,7 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
                       } else {
                         return TxListItem(
                           tx: tx,
-                          coin: manager.coin,
+                          coin: coin,
                           radius: radius,
                         );
                       }

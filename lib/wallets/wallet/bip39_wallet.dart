@@ -7,7 +7,7 @@ abstract class Bip39Wallet<T extends Bip39Currency> extends Wallet<T> {
 
   Future<String> getMnemonic() async {
     final mnemonic = await secureStorageInterface.read(
-      key: Wallet.mnemonicKey(walletId: walletInfo.walletId),
+      key: Wallet.mnemonicKey(walletId: info.walletId),
     );
 
     if (mnemonic == null) {
@@ -17,9 +17,14 @@ abstract class Bip39Wallet<T extends Bip39Currency> extends Wallet<T> {
     return mnemonic;
   }
 
+  Future<List<String>> getMnemonicAsWords() async {
+    final mnemonic = await getMnemonic();
+    return mnemonic.split(" ");
+  }
+
   Future<String> getMnemonicPassphrase() async {
     final mnemonicPassphrase = await secureStorageInterface.read(
-      key: Wallet.mnemonicPassphraseKey(walletId: walletInfo.walletId),
+      key: Wallet.mnemonicPassphraseKey(walletId: info.walletId),
     );
 
     if (mnemonicPassphrase == null) {

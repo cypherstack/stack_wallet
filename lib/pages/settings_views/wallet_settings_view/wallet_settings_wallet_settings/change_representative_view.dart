@@ -64,22 +64,24 @@ class _XPubViewState extends ConsumerState<ChangeRepresentativeView> {
   String? representative;
 
   Future<String> loadRepresentative() async {
-    final manager = ref.read(pWallets).getManager(widget.walletId);
+    final wallet = ref.read(pWallets).getWallet(widget.walletId);
+    final coin = wallet.info.coin;
 
-    if (manager.coin == Coin.nano) {
-      return (manager.wallet as NanoWallet).getCurrentRepresentative();
-    } else if (manager.coin == Coin.banano) {
-      return (manager.wallet as BananoWallet).getCurrentRepresentative();
+    if (coin == Coin.nano) {
+      return (wallet as NanoWallet).getCurrentRepresentative();
+    } else if (coin == Coin.banano) {
+      return (wallet as BananoWallet).getCurrentRepresentative();
     }
     throw Exception("Unsupported wallet attempted to show representative!");
   }
 
   Future<void> _save() async {
-    final manager = ref.read(pWallets).getManager(widget.walletId);
+    final wallet = ref.read(pWallets).getWallet(widget.walletId);
+    final coin = wallet.info.coin;
 
-    final changeFuture = manager.coin == Coin.nano
-        ? (manager.wallet as NanoWallet).changeRepresentative
-        : (manager.wallet as BananoWallet).changeRepresentative;
+    final changeFuture = coin == Coin.nano
+        ? (wallet as NanoWallet).changeRepresentative
+        : (wallet as BananoWallet).changeRepresentative;
 
     final result = await showLoading(
         whileFuture: changeFuture(_textController.text),

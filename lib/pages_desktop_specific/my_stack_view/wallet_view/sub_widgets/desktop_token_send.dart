@@ -26,7 +26,6 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
 import 'package:stackwallet/providers/ui/preview_tx_button_state_provider.dart';
-import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -40,6 +39,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
@@ -234,16 +234,20 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         ),
       );
 
-      Map<String, dynamic> txData;
-      Future<Map<String, dynamic>> txDataFuture;
+      TxData txData;
+      Future<TxData> txDataFuture;
 
       txDataFuture = tokenWallet.prepareSend(
-        address: _address!,
-        amount: amount,
-        args: {
-          "feeRate": ref.read(feeRateTypeStateProvider),
-          "nonce": int.tryParse(nonceController.text),
-        },
+        txData: TxData(
+          recipients: [
+            (
+              address: _address!,
+              amount: amount,
+            )
+          ],
+          feeRateType: ref.read(feeRateTypeStateProvider),
+          nonce: int.tryParse(nonceController.text),
+        ),
       );
 
       final results = await Future.wait([
@@ -251,11 +255,12 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         time,
       ]);
 
-      txData = results.first as Map<String, dynamic>;
+      txData = results.first as TxData;
 
       if (!wasCancelled && mounted) {
-        txData["address"] = _address;
-        txData["note"] = _note ?? "";
+        txData = txData.copyWith(
+          note: _note ?? "",
+        );
 
         // pop building dialog
         Navigator.of(
@@ -270,7 +275,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
               maxHeight: double.infinity,
               maxWidth: 580,
               child: ConfirmTransactionView(
-                transactionInfo: txData,
+                txData: txData,
                 walletId: walletId,
                 isTokenTx: true,
                 routeOnSuccessName: DesktopHomeView.routeName,
@@ -411,19 +416,25 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
     }
   }
 
-  String? _updateInvalidAddressText(String address, Manager manager) {
+  String? _updateInvalidAddressText(String address) {
     if (_data != null && _data!.contactLabel == address) {
       return null;
     }
-    if (address.isNotEmpty && !manager.validateAddress(address)) {
+    if (address.isNotEmpty &&
+        !ref
+            .read(pWallets)
+            .getWallet(walletId)
+            .cryptoCurrency
+            .validateAddress(address)) {
       return "Invalid address";
     }
     return null;
   }
 
   void _updatePreviewButtonState(String? address, Amount? amount) {
-    final isValidAddress =
-        ref.read(pWallets).getManager(walletId).validateAddress(address ?? "");
+    final wallet = ref.read(pWallets).getWallet(walletId);
+
+    final isValidAddress = wallet.cryptoCurrency.validateAddress(address ?? "");
     ref.read(previewTokenTxButtonStateProvider.state).state =
         (isValidAddress && amount != null && amount > Amount.zero);
   }
@@ -478,7 +489,8 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         // now check for non standard encoded basic address
       } else if (ref
           .read(pWallets)
-          .getManager(walletId)
+          .getWallet(walletId)
+          .cryptoCurrency
           .validateAddress(qrResult.rawContent)) {
         _address = qrResult.rawContent;
         sendToController.text = _address ?? "";
@@ -590,7 +602,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
     // _calculateFeesFuture = calculateFees(0);
     _data = widget.autoFillData;
     walletId = widget.walletId;
-    coin = ref.read(pWallets).getManager(walletId).coin;
+    coin = ref.read(pWallets).getWallet(walletId).info.coin;
     clipboard = widget.clipboard;
     scanner = widget.barcodeScanner;
 
@@ -991,7 +1003,6 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
           builder: (_) {
             final error = _updateInvalidAddressText(
               _address ?? "",
-              ref.read(pWallets).getManager(walletId),
             );
 
             if (error == null || error.isEmpty) {

@@ -38,6 +38,7 @@ import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/extensions/impl/contract_abi.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:tuple/tuple.dart';
 import 'package:web3dart/web3dart.dart' as web3dart;
 
@@ -73,12 +74,10 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
 
   Coin get coin => Coin.ethereum;
 
-  Future<Map<String, dynamic>> prepareSend({
-    required String address,
-    required Amount amount,
-    Map<String, dynamic>? args,
+  Future<TxData> prepareSend({
+    required TxData txData,
   }) async {
-    final feeRateType = args?["feeRate"];
+    final feeRateType = txData.feeRateType!;
     int fee = 0;
     final feeObject = await fees;
     switch (feeRateType) {
@@ -91,6 +90,8 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
       case FeeRateType.slow:
         fee = feeObject.slow;
         break;
+      case FeeRateType.custom:
+        throw UnimplementedError("custom eth token fees");
     }
 
     final feeEstimate = estimateFeeFor(fee);
@@ -100,9 +101,12 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
     final myAddress = await currentReceivingAddress;
     final myWeb3Address = web3dart.EthereumAddress.fromHex(myAddress);
 
-    final nonce = args?["nonce"] as int? ??
+    final nonce = txData.nonce ??
         await client.getTransactionCount(myWeb3Address,
             atBlock: const web3dart.BlockNum.pending());
+
+    final amount = txData.recipients!.first.amount;
+    final address = txData.recipients!.first.address;
 
     final tx = web3dart.Transaction.callContract(
       contract: _deployedContract,
@@ -116,17 +120,13 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
       nonce: nonce,
     );
 
-    Map<String, dynamic> txData = {
-      "fee": feeEstimate,
-      "feeInWei": fee,
-      "address": address,
-      "recipientAmt": amount,
-      "ethTx": tx,
-      "chainId": (await client.getChainId()).toInt(),
-      "nonce": tx.nonce,
-    };
-
-    return txData;
+    return txData.copyWith(
+      fee: feeEstimate,
+      feeInWei: BigInt.from(fee),
+      web3dartTransaction: tx,
+      chainId: await client.getChainId(),
+      nonce: tx.nonce,
+    );
   }
 
   Future<String> confirmSend({required Map<String, dynamic> txData}) async {

@@ -1,13 +1,17 @@
 import 'dart:async';
 
 import 'package:isar/isar.dart';
+import 'package:meta/meta.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
+import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/node_service.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
@@ -17,7 +21,7 @@ import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/bitcoincash.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/epiccash.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/isar_models/wallet_info.dart';
+import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoincash_wallet.dart';
@@ -41,7 +45,8 @@ abstract class Wallet<T extends CryptoCurrency> {
 
   final refreshMutex = Mutex();
 
-  WalletInfo get walletInfo => _walletInfo;
+  WalletInfo get info => _walletInfo;
+  bool get isConnected => _isConnected;
 
   bool get shouldAutoSync => _shouldAutoSync;
   set shouldAutoSync(bool shouldAutoSync) {
@@ -73,8 +78,8 @@ abstract class Wallet<T extends CryptoCurrency> {
   //============================================================================
   // ========== Wallet Info Convenience Getters ================================
 
-  String get walletId => walletInfo.walletId;
-  WalletType get walletType => walletInfo.walletType;
+  String get walletId => info.walletId;
+  WalletType get walletType => info.walletType;
 
   /// Attempt to fetch the most recent chain height.
   /// On failure return the last cached height.
@@ -89,7 +94,7 @@ abstract class Wallet<T extends CryptoCurrency> {
 
     // return regardless of whether it was updated or not as we want a
     // number even if it isn't the most recent
-    return walletInfo.cachedChainHeight;
+    return info.cachedChainHeight;
   }
 
   //============================================================================
@@ -135,7 +140,7 @@ abstract class Wallet<T extends CryptoCurrency> {
     }
 
     // Store in db after wallet creation
-    await wallet.mainDB.isar.walletInfo.put(wallet.walletInfo);
+    await wallet.mainDB.isar.walletInfo.put(wallet.info);
 
     return wallet;
   }
@@ -326,8 +331,6 @@ abstract class Wallet<T extends CryptoCurrency> {
   /// delete all locally stored blockchain data and refetch it.
   Future<void> recover({required bool isRescan});
 
-  Future<bool> pingCheck();
-
   Future<void> updateNode();
 
   Future<void> updateTransactions();
@@ -336,6 +339,12 @@ abstract class Wallet<T extends CryptoCurrency> {
 
   /// updates the wallet info's cachedChainHeight
   Future<void> updateChainHeight();
+
+  Future<Amount> estimateFeeFor(Amount amount, int feeRate);
+
+  Future<FeeObject> get fees;
+
+  Future<bool> pingCheck();
 
   //===========================================
 
@@ -442,8 +451,26 @@ abstract class Wallet<T extends CryptoCurrency> {
     // TODO:
   }
 
+  @mustCallSuper
   Future<void> init() async {
+    final address = await getCurrentReceivingAddress();
+    await info.updateReceivingAddress(
+      newAddress: address!.value,
+      isar: mainDB.isar,
+    );
     // TODO: make sure subclasses override this if they require some set up
     // especially xmr/wow/epiccash
   }
+
+  // ===========================================================================
+
+  Future<Address?> getCurrentReceivingAddress() async =>
+      await mainDB.isar.addresses
+          .where()
+          .walletIdEqualTo(walletId)
+          .filter()
+          .typeEqualTo(info.mainAddressType)
+          .subTypeEqualTo(AddressSubType.receiving)
+          .sortByDerivationIndexDesc()
+          .findFirst();
 }

@@ -22,6 +22,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -89,8 +90,7 @@ class _MyTokensViewState extends ConsumerState<MyTokensView> {
             ),
             title: Text(
               "${ref.watch(
-                pWallets.select(
-                    (value) => value.getManager(widget.walletId).walletName),
+                pWalletName(widget.walletId),
               )} Tokens",
               style: STextStyles.navBarTitle(context),
             ),
@@ -234,9 +234,8 @@ class _MyTokensViewState extends ConsumerState<MyTokensView> {
               walletId: widget.walletId,
               searchTerm: _searchString,
               tokenContracts: ref
-                  .watch(pWallets.select((value) => value
-                      .getManager(widget.walletId)
-                      .wallet as EthereumWallet))
+                  .watch(pWallets.select((value) =>
+                      value.getWallet(widget.walletId) as EthereumWallet))
                   .getWalletTokenContractAddresses(),
             ),
           ),

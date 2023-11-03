@@ -43,7 +43,7 @@ void main() {
 //   });
 //
 //   testWidgets("WalletDeleteMnemonicView loads correctly", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.mnemonic).thenAnswer(
 //       (_) async => [
@@ -139,7 +139,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap back", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final navigator = mockingjay.MockNavigator();
 //
 //     when(manager.mnemonic).thenAnswer(
@@ -206,7 +206,7 @@ void main() {
 //   });
 //
 //   testWidgets("show qr code", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.mnemonic).thenAnswer(
 //       (_) async => [
@@ -285,7 +285,7 @@ void main() {
 //   });
 //
 //   testWidgets("copy backup key", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final clipboard = FakeClipboard();
 //
 //     when(manager.mnemonic).thenAnswer(
@@ -356,7 +356,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap continue then cancel", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.mnemonic).thenAnswer(
 //       (_) async => [
@@ -433,7 +433,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap continue then rescan", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final navigator = mockingjay.MockNavigator();
 //
 //     mockingjay
@@ -531,7 +531,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap continue and rescan throws", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final navigator = mockingjay.MockNavigator();
 //
 //     mockingjay.when(() => navigator.pop()).thenAnswer((_) async => {});

@@ -45,7 +45,7 @@ class _MasterWalletCardState extends ConsumerState<MasterWalletCard> {
   @override
   void initState() {
     final ethWallet =
-        ref.read(pWallets).getManager(widget.walletId).wallet as EthereumWallet;
+        ref.read(pWallets).getWallet(widget.walletId) as EthereumWallet;
 
     tokenContractAddresses = ethWallet.getWalletTokenContractAddresses();
 

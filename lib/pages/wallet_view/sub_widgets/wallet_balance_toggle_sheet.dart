@@ -11,10 +11,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
@@ -22,6 +20,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 
 enum _BalanceType {
   available,
@@ -42,11 +41,9 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final maxHeight = MediaQuery.of(context).size.height * 0.60;
 
-    final coin =
-        ref.watch(pWallets.select((value) => value.getManager(walletId).coin));
+    final coin = ref.watch(pWalletCoin(walletId));
 
-    final balance = ref
-        .watch(pWallets.select((value) => value.getManager(walletId).balance));
+    Balance balance = ref.watch(pWalletBalance(walletId));
 
     _BalanceType _bal =
         ref.watch(walletBalanceToggleStateProvider.state).state ==
@@ -56,13 +53,11 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
 
     Balance? balanceSecondary;
     if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      balanceSecondary = ref
-          .watch(
-            pWallets.select(
-              (value) => value.getManager(walletId).wallet as FiroWallet?,
-            ),
-          )
-          ?.balancePrivate;
+      balanceSecondary = ref.watch(pWalletBalanceSecondary(walletId));
+
+      final temp = balance;
+      balance = balanceSecondary!;
+      balanceSecondary = temp;
 
       if (ref.watch(publicPrivateBalanceStateProvider.state).state ==
           "Private") {

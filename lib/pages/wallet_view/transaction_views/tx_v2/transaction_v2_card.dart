@@ -9,7 +9,6 @@ import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transactio
 import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/price_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
@@ -18,6 +17,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 
 class TransactionCardV2 extends ConsumerStatefulWidget {
@@ -96,7 +96,7 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
     } else {
       prefix = "";
     }
-    coin = ref.read(pWallets).getManager(walletId).coin;
+    coin = ref.read(pWalletCoin(walletId));
 
     unit = coin.ticker;
     super.initState();
@@ -115,8 +115,7 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
             .select((value) => value.getPrice(coin)))
         .item1;
 
-    final currentHeight = ref.watch(
-        pWallets.select((value) => value.getManager(walletId).currentHeight));
+    final currentHeight = ref.watch(pWalletChainHeight(walletId));
 
     final Amount amount;
 

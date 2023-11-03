@@ -58,7 +58,7 @@ void main() {
       ),
     );
 
-    final manager = Manager(wallet);
+    final wallet = Manager(wallet);
     when(wallets.getManagerProvider("some-wallet-id")).thenAnswer(
         (realInvocation) => ChangeNotifierProvider((ref) => manager));
 

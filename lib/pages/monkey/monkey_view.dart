@@ -13,10 +13,10 @@ import 'package:stackwallet/services/monkey_service.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -48,8 +48,7 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
   List<int>? imageBytes;
 
   Future<void> _updateWalletMonKey(Uint8List monKeyBytes) async {
-    final manager = ref.read(pWallets).getManager(walletId);
-    await (manager.wallet as BananoWallet)
+    await (ref.read(pWallets).getWallet(walletId) as BananoWallet)
         .updateMonkeyImageBytes(monKeyBytes.toList());
   }
 
@@ -81,8 +80,10 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
       throw Exception("Failed to get documents directory to save monKey image");
     }
 
-    final address =
-        await ref.read(pWallets).getManager(walletId).currentReceivingAddress;
+    final address = await ref
+        .read(pWallets)
+        .getWallet(walletId)
+        .getCurrentReceivingAddress();
     final docPath = dir.path;
     String filePath = "$docPath/monkey_$address";
 
@@ -107,13 +108,12 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
 
   @override
   Widget build(BuildContext context) {
-    final manager = ref
-        .watch(pWallets.select((value) => value.getManager(widget.walletId)));
-    final Coin coin = manager.coin;
+    final wallet = ref.watch(pWallets).getWallet(widget.walletId);
+    final coin = ref.watch(pWalletCoin(widget.walletId));
 
     final bool isDesktop = Util.isDesktop;
 
-    imageBytes ??= (manager.wallet as BananoWallet).getMonkeyImageBytes();
+    imageBytes ??= (wallet as BananoWallet).getMonkeyImageBytes();
 
     return Background(
       child: ConditionalParent(
@@ -341,7 +341,7 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                               whileFuture: Future.wait([
                                 _saveMonKeyToFile(
                                   bytes: Uint8List.fromList(
-                                      (manager.wallet as BananoWallet)
+                                      (wallet as BananoWallet)
                                           .getMonkeyImageBytes()!),
                                 ),
                                 Future<void>.delayed(
@@ -383,21 +383,21 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                             bool didError = false;
                             await showLoading(
                               whileFuture: Future.wait([
-                                manager.currentReceivingAddress.then(
-                                  (address) async => await ref
-                                      .read(pMonKeyService)
-                                      .fetchMonKey(
-                                        address: address,
-                                        png: true,
-                                      )
-                                      .then(
-                                        (monKeyBytes) async =>
-                                            await _saveMonKeyToFile(
-                                          bytes: monKeyBytes,
-                                          isPNG: true,
-                                        ),
-                                      ),
-                                ),
+                                wallet.getCurrentReceivingAddress().then(
+                                      (address) async => await ref
+                                          .read(pMonKeyService)
+                                          .fetchMonKey(
+                                            address: address!.value,
+                                            png: true,
+                                          )
+                                          .then(
+                                            (monKeyBytes) async =>
+                                                await _saveMonKeyToFile(
+                                              bytes: monKeyBytes,
+                                              isPNG: true,
+                                            ),
+                                          ),
+                                    ),
                                 Future<void>.delayed(
                                     const Duration(seconds: 2)),
                               ]),
@@ -486,17 +486,17 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                       onPressed: () async {
                         await showLoading(
                           whileFuture: Future.wait([
-                            manager.currentReceivingAddress.then(
-                              (address) async => await ref
-                                  .read(pMonKeyService)
-                                  .fetchMonKey(address: address)
-                                  .then(
-                                    (monKeyBytes) async =>
-                                        await _updateWalletMonKey(
-                                      monKeyBytes,
-                                    ),
-                                  ),
-                            ),
+                            wallet.getCurrentReceivingAddress().then(
+                                  (address) async => await ref
+                                      .read(pMonKeyService)
+                                      .fetchMonKey(address: address!.value)
+                                      .then(
+                                        (monKeyBytes) async =>
+                                            await _updateWalletMonKey(
+                                          monKeyBytes,
+                                        ),
+                                      ),
+                                ),
                             Future<void>.delayed(const Duration(seconds: 2)),
                           ]),
                           context: context,
@@ -517,8 +517,8 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                           },
                         );
 
-                        imageBytes = (manager.wallet as BananoWallet)
-                            .getMonkeyImageBytes();
+                        imageBytes =
+                            (wallet as BananoWallet).getMonkeyImageBytes();
 
                         if (imageBytes != null) {
                           setState(() {});

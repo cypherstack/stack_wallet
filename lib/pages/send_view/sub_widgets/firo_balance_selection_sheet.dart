@@ -52,9 +52,11 @@ class _FiroBalanceSelectionSheetState
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final manager =
-        ref.watch(pWallets.select((value) => value.getManager(walletId)));
-    final firoWallet = manager.wallet as FiroWallet;
+    final wallet =
+        ref.watch(pWallets.select((value) => value.getWallet(walletId)));
+    final firoWallet = wallet as FiroWallet;
+
+    final coin = wallet.info.coin;
 
     return Container(
       decoration: BoxDecoration(
@@ -162,9 +164,7 @@ class _FiroBalanceSelectionSheetState
                                 width: 2,
                               ),
                               Text(
-                                ref
-                                    .watch(pAmountFormatter(manager.coin))
-                                    .format(
+                                ref.watch(pAmountFormatter(coin)).format(
                                       firoWallet.availablePrivateBalance(),
                                     ),
                                 style: STextStyles.itemSubtitle(context),
@@ -240,9 +240,7 @@ class _FiroBalanceSelectionSheetState
                                 width: 2,
                               ),
                               Text(
-                                ref
-                                    .watch(pAmountFormatter(manager.coin))
-                                    .format(
+                                ref.watch(pAmountFormatter(coin)).format(
                                       firoWallet.availablePublicBalance(),
                                     ),
                                 style: STextStyles.itemSubtitle(context),

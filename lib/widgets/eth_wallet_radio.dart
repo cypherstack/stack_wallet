@@ -33,8 +33,8 @@ class EthWalletRadio extends ConsumerStatefulWidget {
 class _EthWalletRadioState extends ConsumerState<EthWalletRadio> {
   @override
   Widget build(BuildContext context) {
-    final manager = ref
-        .watch(pWallets.select((value) => value.getManager(widget.walletId)));
+    final wallet =
+        ref.watch(pWallets.select((value) => value.getWallet(widget.walletId)));
 
     return Padding(
       padding: EdgeInsets.zero,
@@ -56,7 +56,7 @@ class _EthWalletRadioState extends ConsumerState<EthWalletRadio> {
               width: 12,
             ),
             WalletInfoCoinIcon(
-              coin: manager.coin,
+              coin: wallet.info.coin,
               size: 40,
             ),
             const SizedBox(
@@ -67,7 +67,7 @@ class _EthWalletRadioState extends ConsumerState<EthWalletRadio> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    manager.walletName,
+                    wallet.info.name,
                     style: STextStyles.desktopTextExtraSmall(context).copyWith(
                       color:
                           Theme.of(context).extension<StackColors>()!.textDark,

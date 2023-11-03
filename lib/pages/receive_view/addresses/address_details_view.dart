@@ -22,12 +22,12 @@ import 'package:stackwallet/pages/wallet_view/sub_widgets/no_transactions_found.
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_card.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -95,8 +95,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                       key: _qrKey,
                       child: QrImageView(
                         data: AddressUtils.buildUriString(
-                          ref.watch(pWallets.select((value) =>
-                              value.getManager(widget.walletId).coin)),
+                          ref.watch(pWalletCoin(widget.walletId)),
                           address.value,
                           {},
                         ),
@@ -150,8 +149,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
 
   @override
   Widget build(BuildContext context) {
-    final coin = ref.watch(
-        pWallets.select((value) => value.getManager(widget.walletId).coin));
+    final coin = ref.watch(pWalletCoin(widget.walletId));
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
@@ -291,8 +289,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                       key: _qrKey,
                       child: QrImageView(
                         data: AddressUtils.buildUriString(
-                          ref.watch(pWallets.select((value) =>
-                              value.getManager(widget.walletId).coin)),
+                          coin,
                           address.value,
                           {},
                         ),

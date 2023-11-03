@@ -75,10 +75,8 @@ class _PaynymFollowersListState extends ConsumerState<PaynymFollowersList> {
         child: child,
         onRefresh: () async {
           try {
-            final manager = ref.read(pWallets).getManager(widget.walletId);
-
-            // get wallet to access paynym calls
-            final wallet = manager.wallet as PaynymWalletInterface;
+            final wallet = ref.read(pWallets).getWallet(widget.walletId)
+                as PaynymWalletInterface;
 
             // get payment code
             final pCode = await wallet.getPaymentCode(

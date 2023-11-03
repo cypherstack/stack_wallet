@@ -19,7 +19,7 @@ import 'package:stackwallet/services/coins/manager.dart';
 ])
 void main() {
 //   testWidgets("ReceiveView builds without loading address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final clipboard = FakeClipboard();
 //
 //     when(manager.currentReceivingAddress).thenAnswer(((_) async => null) as Future<String>? Function(Invocation));
@@ -56,7 +56,7 @@ void main() {
 //   });
 //
 //   testWidgets("ReceiveView builds correctly and loads address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final clipboard = FakeClipboard();
 //
 //     when(manager.currentReceivingAddress)
@@ -96,7 +96,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap copy address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final clipboard = FakeClipboard();
 //
 //     when(manager.currentReceivingAddress)
@@ -158,7 +158,7 @@ void main() {
 //     tester.binding.defaultBinaryMessenger
 //         .setMockMethodCallHandler(channel, handler);
 //
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final clipboard = FakeClipboard();
 //
 //     when(manager.currentReceivingAddress)
@@ -266,7 +266,7 @@ void main() {
 //     tester.binding.defaultBinaryMessenger
 //         .setMockMethodCallHandler(channel, handler);
 //
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final clipboard = FakeClipboard();
 //
 //     when(manager.currentReceivingAddress)
@@ -348,7 +348,7 @@ void main() {
 //     tester.binding.defaultBinaryMessenger
 //         .setMockMethodCallHandler(channel, handler);
 //
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final clipboard = FakeClipboard();
 //
 //     when(manager.currentReceivingAddress)

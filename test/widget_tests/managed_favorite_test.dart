@@ -71,8 +71,8 @@ void main() {
       (_) => 8,
     );
 
-    final manager = Manager(wallet);
-    when(wallets.getManager("some wallet id"))
+    final wallet =  Manager(wallet);
+    when(wallets.getWallet"some wallet id"))
         .thenAnswer((realInvocation) => manager);
     when(manager.balance).thenAnswer(
       (realInvocation) => Balance(
@@ -140,9 +140,9 @@ void main() {
       (_) => AmountUnit.normal,
     );
 
-    final manager = Manager(wallet);
+    final wallet =  Manager(wallet);
 
-    when(wallets.getManager("some wallet id"))
+    when(wallets.getWallet"some wallet id"))
         .thenAnswer((realInvocation) => manager);
     when(manager.balance).thenAnswer(
       (realInvocation) => Balance(
@@ -231,9 +231,9 @@ void main() {
       (_) => 8,
     );
 
-    final manager = Manager(wallet);
+    final wallet =  Manager(wallet);
 
-    when(wallets.getManager("some wallet id"))
+    when(wallets.getWallet"some wallet id"))
         .thenAnswer((realInvocation) => manager);
 
     when(manager.isFavorite).thenAnswer((realInvocation) => true);

@@ -67,10 +67,10 @@ class _PaynymFollowToggleButtonState
       ),
     );
 
-    final manager = ref.read(pWallets).getManager(widget.walletId);
-
+    // TODO: [prio=high] FIX THIS BAD as CAST
     // get wallet to access paynym calls
-    final wallet = manager.wallet as PaynymWalletInterface;
+    final wallet =
+        ref.read(pWallets).getWallet(widget.walletId) as PaynymWalletInterface;
 
     final followedAccount = await ref
         .read(paynymAPIProvider)
@@ -167,9 +167,9 @@ class _PaynymFollowToggleButtonState
       ),
     );
 
-    final manager = ref.read(pWallets).getManager(widget.walletId);
-
-    final wallet = manager.wallet as PaynymWalletInterface;
+    // TODO: [prio=high] FIX THIS BAD as CAST
+    final wallet =
+        ref.read(pWallets).getWallet(widget.walletId) as PaynymWalletInterface;
 
     final followedAccount = await ref
         .read(paynymAPIProvider)

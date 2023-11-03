@@ -39,6 +39,7 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -355,8 +356,7 @@ class _TransactionDetailsViewState
 
   @override
   Widget build(BuildContext context) {
-    final currentHeight = ref.watch(
-        pWallets.select((value) => value.getManager(walletId).currentHeight));
+    final currentHeight = ref.watch(pWalletChainHeight(walletId));
 
     return ConditionalParent(
       condition: !isDesktop,
@@ -1597,10 +1597,10 @@ class _TransactionDetailsViewState
                       ),
                     ),
                     onPressed: () async {
-                      final Manager manager =
-                          ref.read(pWallets).getManager(walletId);
+                      final   wallet =
+                          ref.read(pWallets).getWallet(walletId);
 
-                      if (manager.wallet is EpicCashWallet) {
+                      if (wallet is EpicCashWallet) {
                         final String? id = _transaction.slateId;
                         if (id == null) {
                           unawaited(showFloatingFlushBar(
@@ -1618,7 +1618,7 @@ class _TransactionDetailsViewState
                               const CancellingTransactionProgressDialog(),
                         ));
 
-                        final result = await (manager.wallet as EpicCashWallet)
+                        final result = await (wallet as EpicCashWallet)
                             .cancelPendingTransactionAndPost(id);
                         if (mounted) {
                           // pop progress dialog
@@ -1630,7 +1630,7 @@ class _TransactionDetailsViewState
                               builder: (_) => StackOkDialog(
                                 title: "Transaction cancelled",
                                 onOkPressed: (_) {
-                                  manager.refresh();
+                                  wallet.refresh();
                                   Navigator.of(context).popUntil(
                                       ModalRoute.withName(
                                           WalletView.routeName));

@@ -24,6 +24,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
@@ -95,8 +96,7 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
             TransactionCard(
               // this may mess with combined firo transactions
               key: tx.isConfirmed(
-                      ref.watch(pWallets.select((value) =>
-                          value.getManager(widget.walletId).currentHeight)),
+                      ref.watch(pWalletChainHeight(widget.walletId)),
                       coin.requiredConfirmations)
                   ? Key(tx.txid + tx.type.name + tx.address.value.toString())
                   : UniqueKey(), //
@@ -111,8 +111,7 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
                   trade.uuid), //
               trade: trade,
               onTap: () async {
-                final walletName =
-                    ref.read(pWallets).getManager(widget.walletId).walletName;
+                final walletName = ref.read(pWalletName(widget.walletId));
                 if (Util.isDesktop) {
                   await showDialog<void>(
                     context: context,
@@ -195,9 +194,7 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
         ),
         child: TransactionCard(
           // this may mess with combined firo transactions
-          key: tx.isConfirmed(
-                  ref.watch(pWallets.select((value) =>
-                      value.getManager(widget.walletId).currentHeight)),
+          key: tx.isConfirmed(ref.watch(pWalletChainHeight(widget.walletId)),
                   coin.requiredConfirmations)
               ? Key(tx.txid + tx.type.name + tx.address.value.toString())
               : UniqueKey(),
@@ -210,8 +207,8 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
 
   @override
   Widget build(BuildContext context) {
-    final manager = ref
-        .watch(pWallets.select((value) => value.getManager(widget.walletId)));
+    final wallet =
+        ref.watch(pWallets.select((value) => value.getWallet(widget.walletId)));
 
     return FutureBuilder(
       future: ref
@@ -262,7 +259,12 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
                         radius = _borderRadiusFirst;
                       }
                       final tx = _transactions2[index];
-                      return itemBuilder(context, tx, radius, manager.coin);
+                      return itemBuilder(
+                        context,
+                        tx,
+                        radius,
+                        wallet.info.coin,
+                      );
                     },
                     separatorBuilder: (context, index) {
                       return Container(
@@ -289,7 +291,12 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
                         radius = _borderRadiusFirst;
                       }
                       final tx = _transactions2[index];
-                      return itemBuilder(context, tx, radius, manager.coin);
+                      return itemBuilder(
+                        context,
+                        tx,
+                        radius,
+                        wallet.info.coin,
+                      );
                     },
                   ),
           );

@@ -36,7 +36,7 @@ class CoinCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final coin = ref.watch(
-      pWallets.select((value) => value.getManager(walletId).coin),
+      pWallets.select((value) => value.getWallet(walletId).info.coin),
     );
 
     final bool hasCardImageBg = (isFavorite)

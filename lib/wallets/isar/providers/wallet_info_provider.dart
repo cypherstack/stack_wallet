@@ -68,3 +68,10 @@ final pWalletName = Provider.autoDispose.family<String, String>(
         .select((value) => (value.value as WalletInfo).name));
   },
 );
+
+final pWalletReceivingAddress = Provider.autoDispose.family<String, String>(
+  (ref, walletId) {
+    return ref.watch(_wiProvider(walletId)
+        .select((value) => (value.value as WalletInfo).cachedReceivingAddress));
+  },
+);

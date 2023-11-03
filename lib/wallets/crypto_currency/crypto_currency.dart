@@ -15,6 +15,10 @@ abstract class CryptoCurrency {
 
   CryptoCurrency(this.network);
 
+  // override in subclass if the currency has tokens on it's network
+  // (used for eth currently)
+  bool get hasTokenSupport => false;
+
   // TODO: [prio=low] require these be overridden in concrete implementations to remove reliance on [coin]
   int get fractionDigits => coin.decimals;
   BigInt get satsPerCoin => Constants.satsPerCoin(coin);

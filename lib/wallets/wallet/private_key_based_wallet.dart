@@ -7,7 +7,7 @@ abstract class PrivateKeyBasedWallet extends Wallet {
 
   Future<String> getPrivateKey() async {
     final privateKey = await secureStorageInterface.read(
-      key: Wallet.privateKeyKey(walletId: walletInfo.walletId),
+      key: Wallet.privateKeyKey(walletId: info.walletId),
     );
 
     if (privateKey == null) {

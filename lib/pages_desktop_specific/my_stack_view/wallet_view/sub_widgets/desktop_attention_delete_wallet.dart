@@ -14,6 +14,7 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/wallet/bip39_wallet.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -110,19 +111,21 @@ class _DesktopAttentionDeleteWallet
                       buttonHeight: ButtonHeight.xl,
                       label: "View Backup Key",
                       onPressed: () async {
-                        final words = await ref
-                            .read(pWallets)
-                            .getManager(widget.walletId)
-                            .mnemonic;
+                        final wallet =
+                            ref.read(pWallets).getWallet(widget.walletId);
+                        // TODO: [prio=high] handle other types wallet deletion
+                        if (wallet is Bip39Wallet) {
+                          final words = await wallet.getMnemonicAsWords();
 
-                        if (mounted) {
-                          await Navigator.of(context).pushNamed(
-                            DeleteWalletKeysPopup.routeName,
-                            arguments: Tuple2(
-                              widget.walletId,
-                              words,
-                            ),
-                          );
+                          if (mounted) {
+                            await Navigator.of(context).pushNamed(
+                              DeleteWalletKeysPopup.routeName,
+                              arguments: Tuple2(
+                                widget.walletId,
+                                words,
+                              ),
+                            );
+                          }
                         }
                       },
                     ),
