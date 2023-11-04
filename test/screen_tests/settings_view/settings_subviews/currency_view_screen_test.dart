@@ -4,7 +4,7 @@
 import 'package:mockito/annotations.dart';
 // import 'package:mockito/mockito.dart';
 // import 'package:stackwallet/pages/settings_view/settings_subviews/currency_view.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+
 // import 'package:provider/provider.dart';
 //
 // import 'currency_view_screen_test.mocks.dart';

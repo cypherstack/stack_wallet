@@ -15,8 +15,8 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
-import 'package:stackwallet/wallets/wallet/bip39_hd_wallet.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/bitcoincash.dart';
+import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/mixins/electrumx_mixin.dart';
 
 class BitcoincashWallet extends Bip39HDWallet with ElectrumXMixin {
@@ -28,7 +28,7 @@ class BitcoincashWallet extends Bip39HDWallet with ElectrumXMixin {
     required NodeService nodeService,
   }) {
     // TODO: [prio=low] ensure this hack isn't needed
-    assert(cryptoCurrency is Bitcoin);
+    assert(cryptoCurrency is Bitcoincash);
 
     this.nodeService = nodeService;
   }

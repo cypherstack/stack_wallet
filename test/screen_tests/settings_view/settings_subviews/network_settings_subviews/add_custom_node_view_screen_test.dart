@@ -5,7 +5,7 @@ import 'package:mockito/annotations.dart';
 // import 'package:mockito/mockito.dart';
 // import 'package:stackwallet/notifications/campfire_alert.dart';
 // import 'package:stackwallet/pages/settings_view/settings_subviews/network_settings_subviews/add_custom_node_view.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+
 import 'package:stackwallet/services/node_service.dart';
 
 // import 'package:stackwallet/widgets/custom_buttons/gradient_button.dart';

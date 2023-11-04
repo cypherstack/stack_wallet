@@ -13,7 +13,7 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/wallet/bip39_hd_wallet.dart';
+import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:uuid/uuid.dart';
 
 mixin ElectrumXMixin on Bip39HDWallet {

@@ -10,7 +10,7 @@
 // import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 // import 'package:stackwallet/providers/global/wallets_provider.dart';
 // import 'package:stackwallet/services/coins/banano/banano_wallet.dart';
-// import 'package:stackwallet/services/coins/manager.dart';
+//
 // import 'package:stackwallet/themes/stack_colors.dart';
 // import 'package:stackwallet/utilities/assets.dart';
 // import 'package:stackwallet/utilities/enums/coin_enum.dart';

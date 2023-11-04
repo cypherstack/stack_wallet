@@ -13,8 +13,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:isar/isar.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
 import 'package:stackwallet/db/hive/db.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/isar/models/contact_entry.dart';
@@ -23,16 +25,12 @@ import 'package:stackwallet/models/stack_restoring_ui_state.dart';
 import 'package:stackwallet/models/trade_wallet_lookup.dart';
 import 'package:stackwallet/models/wallet_restore_state.dart';
 import 'package:stackwallet/services/address_book_service.dart';
-import 'package:stackwallet/services/coins/coin_service.dart';
-import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notes_service.dart';
 import 'package:stackwallet/services/trade_notes_service.dart';
 import 'package:stackwallet/services/trade_sent_from_stack_service.dart';
 import 'package:stackwallet/services/trade_service.dart';
-import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/services/wallets.dart';
-import 'package:stackwallet/services/wallets_service.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -43,6 +41,10 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
+import 'package:stackwallet/wallets/wallet/mixins/mnemonic_based_wallet.dart';
+import 'package:stackwallet/wallets/wallet/private_key_based_wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 import 'package:wakelock/wakelock.dart';
@@ -285,26 +287,30 @@ abstract class SWB {
       );
 
       List<dynamic> backupWallets = [];
-      for (var manager in _wallets.managers) {
+      for (var wallet in _wallets.wallets) {
         Map<String, dynamic> backupWallet = {};
-        backupWallet['name'] = manager.walletName;
-        backupWallet['id'] = manager.walletId;
-        backupWallet['isFavorite'] = manager.isFavorite;
-        backupWallet['mnemonic'] = await manager.mnemonic;
-        backupWallet['mnemonicPassphrase'] = await manager.mnemonicPassphrase;
-        backupWallet['coinName'] = manager.coin.name;
-        backupWallet['storedChainHeight'] = DB.instance
-            .get<dynamic>(boxName: manager.walletId, key: 'storedChainHeight');
+        backupWallet['name'] = wallet.info.name;
+        backupWallet['id'] = wallet.walletId;
+        backupWallet['isFavorite'] = wallet.info.isFavourite;
 
-        backupWallet['txidList'] = DB.instance.get<dynamic>(
-            boxName: manager.walletId, key: "cachedTxids") as List?;
+        if (wallet is MnemonicBasedWallet) {
+          backupWallet['mnemonic'] = await wallet.getMnemonic();
+          backupWallet['mnemonicPassphrase'] =
+              await wallet.getMnemonicPassphrase();
+        } else if (wallet is PrivateKeyBasedWallet) {
+          backupWallet['privateKey'] = await wallet.getPrivateKey();
+        }
+        backupWallet['coinName'] = wallet.info.coin.name;
+        backupWallet['storedChainHeight'] = wallet.info.cachedChainHeight;
+
+        // backupWallet['txidList'] = DB.instance.get<dynamic>(
+        //     boxName: wallet.walletId, key: "cachedTxids") as List?;
         // the following can cause a deadlock
         // (await manager.transactionData).getAllTransactions().keys.toList();
 
-        backupWallet['restoreHeight'] = DB.instance
-            .get<dynamic>(boxName: manager.walletId, key: 'restoreHeight');
+        backupWallet['restoreHeight'] = wallet.info.restoreHeight;
 
-        NotesService notesService = NotesService(walletId: manager.walletId);
+        NotesService notesService = NotesService(walletId: wallet.walletId);
         var notes = await notesService.notes;
         backupWallet['notes'] = notes;
 
@@ -355,47 +361,69 @@ abstract class SWB {
   }
 
   static Future<bool> asyncRestore(
-    Tuple2<dynamic, Manager> tuple,
+    Tuple2<dynamic, WalletInfo> tuple,
+    Prefs prefs,
+    NodeService nodeService,
+    SecureStorageInterface secureStorageInterface,
     StackRestoringUIState? uiState,
-    WalletsService walletsService,
   ) async {
-    final wallet = tuple.item2;
+    final info = tuple.item2;
     final walletbackup = tuple.item1;
 
-    List<String> mnemonicList = (walletbackup['mnemonic'] as List<dynamic>)
-        .map<String>((e) => e as String)
-        .toList();
-    final String mnemonic = mnemonicList.join(" ").trim();
-    final String mnemonicPassphrase =
-        walletbackup['mnemonicPassphrase'] as String? ?? "";
+    String? mnemonic, mnemonicPassphrase, privateKey;
+
+    if (walletbackup['mnemonic'] == null) {
+      // probably private key based
+      privateKey = walletbackup['privateKey'] as String;
+    } else {
+      if (walletbackup['mnemonic'] is List) {
+        List<String> mnemonicList = (walletbackup['mnemonic'] as List<dynamic>)
+            .map<String>((e) => e as String)
+            .toList();
+        mnemonic = mnemonicList.join(" ").trim();
+      } else {
+        mnemonic = walletbackup['mnemonic'] as String;
+      }
+
+      mnemonicPassphrase = walletbackup['mnemonicPassphrase'] as String? ?? "";
+    }
 
     uiState?.update(
-      walletId: manager.walletId,
+      walletId: info.walletId,
       restoringStatus: StackRestoringStatus.restoring,
       mnemonic: mnemonic,
       mnemonicPassphrase: mnemonicPassphrase,
     );
 
-    if (_shouldCancelRestore) {
-      return false;
-    }
-
     try {
-      int restoreHeight = 0;
+      final wallet = await Wallet.create(
+        walletInfo: info,
+        mainDB: MainDB.instance,
+        secureStorageInterface: secureStorageInterface,
+        nodeService: nodeService,
+        prefs: prefs,
+        mnemonic: mnemonic,
+        mnemonicPassphrase: mnemonicPassphrase,
+        privateKey: privateKey,
+      );
 
-      restoreHeight = walletbackup['restoreHeight'] as int? ?? 0;
+      int restoreHeight = walletbackup['restoreHeight'] as int? ?? 0;
       if (restoreHeight <= 0) {
         restoreHeight = walletbackup['storedChainHeight'] as int? ?? 0;
       }
 
-      manager.isFavorite = walletbackup['isFavorite'] == "false" ? false : true;
+      uiState?.update(
+        walletId: info.walletId,
+        restoringStatus: StackRestoringStatus.restoring,
+        wallet: wallet,
+      );
 
       if (_shouldCancelRestore) {
         return false;
       }
 
       // restore notes
-      NotesService notesService = NotesService(walletId: manager.walletId);
+      NotesService notesService = NotesService(walletId: info.walletId);
       final notes = walletbackup["notes"] as Map?;
       if (notes != null) {
         for (final note in notes.entries) {
@@ -408,39 +436,23 @@ abstract class SWB {
         return false;
       }
 
-      // TODO GUI option to set maxUnusedAddressGap?
-      // default is 20 but it may miss some transactions if
-      // the previous wallet software generated many addresses
-      // without using them
-      await manager.recoverFromMnemonic(
-        mnemonic: mnemonic,
-        mnemonicPassphrase: mnemonicPassphrase,
-        maxUnusedAddressGap: manager.coin == Coin.firo ? 50 : 20,
-        maxNumberOfIndexesToCheck: 1000,
-        height: restoreHeight,
-      );
-
-      if (_shouldCancelRestore) {
-        return false;
-      }
-
       // if mnemonic verified does not get set the wallet will be deleted on app restart
-      await walletsService.setMnemonicVerified(walletId: manager.walletId);
+      await wallet.info.setMnemonicVerified(isar: MainDB.instance.isar);
 
       if (_shouldCancelRestore) {
         return false;
       }
 
       Logging.instance.log(
-          "SWB restored: ${manager.walletId} ${manager.walletName} ${manager.coin.prettyName}",
+          "SWB restored: ${info.walletId} ${info.name} ${info.coin.prettyName}",
           level: LogLevel.Info);
 
-      final currentAddress = await manager.currentReceivingAddress;
+      final currentAddress = await wallet.getCurrentReceivingAddress();
       uiState?.update(
-        walletId: manager.walletId,
+        walletId: info.walletId,
         restoringStatus: StackRestoringStatus.success,
-        manager: manager,
-        address: currentAddress,
+        wallet: wallet,
+        address: currentAddress!.value,
         height: restoreHeight,
         mnemonic: mnemonic,
         mnemonicPassphrase: mnemonicPassphrase,
@@ -448,9 +460,8 @@ abstract class SWB {
     } catch (e, s) {
       Logging.instance.log("$e $s", level: LogLevel.Warning);
       uiState?.update(
-        walletId: manager.walletId,
+        walletId: info.walletId,
         restoringStatus: StackRestoringStatus.failed,
-        manager: manager,
         mnemonic: mnemonic,
         mnemonicPassphrase: mnemonicPassphrase,
       );
@@ -578,13 +589,10 @@ abstract class SWB {
       level: LogLevel.Warning,
     );
 
-    List<String> _currentWalletIds = Map<String, dynamic>.from(DB.instance
-                .get<dynamic>(
-                    boxName: DB.boxNameAllWalletsData, key: "names") as Map? ??
-            {})
-        .values
-        .map((e) => e["id"] as String)
-        .toList();
+    List<String> _currentWalletIds = await MainDB.instance.isar.walletInfo
+        .where()
+        .walletIdProperty()
+        .findAll();
 
     final preRestoreState =
         PreRestoreState(_currentWalletIds.toSet(), preRestoreJSON);
@@ -634,13 +642,11 @@ abstract class SWB {
     final nodeService = NodeService(
       secureStorageInterface: secureStorageInterface,
     );
-    final walletsService = WalletsService(
-      secureStorageInterface: secureStorageInterface,
-    );
+
     final _prefs = Prefs.instance;
     await _prefs.init();
 
-    final List<Tuple2<dynamic, Manager>> managers = [];
+    final List<Tuple2<dynamic, WalletInfo>> managers = [];
 
     Map<String, WalletRestoreState> walletStates = {};
 
@@ -653,26 +659,21 @@ abstract class SWB {
         return false;
       }
 
-      Coin coin = Coin.values
+      final coin = Coin.values
           .firstWhere((element) => element.name == walletbackup['coinName']);
-      String walletName = walletbackup['name'] as String;
+      final walletName = walletbackup['name'] as String;
       final walletId = oldToNewWalletIdMap[walletbackup["id"] as String]!;
 
       // TODO: use these for monero and possibly other coins later on?
       // final List<String> txidList = List<String>.from(walletbackup['txidList'] as List? ?? []);
 
-      const int sanityCheckMax = 100;
-      int count = 0;
-      while (await walletsService.checkForDuplicate(walletName) &&
-          count < sanityCheckMax) {
-        walletName += " (restored)";
-      }
+      final restoreHeight = walletbackup['restoreHeight'] as int? ?? 0;
 
-      await walletsService.addExistingStackWallet(
-        name: walletName,
-        walletId: walletId,
+      final info = WalletInfo.createNew(
         coin: coin,
-        shouldNotifyListeners: false,
+        name: walletName,
+        walletIdOverride: walletId,
+        restoreHeight: restoreHeight,
       );
 
       var node = nodeService.getPrimaryNodeFor(coin: coin);
@@ -682,9 +683,9 @@ abstract class SWB {
         await nodeService.setPrimaryNodeFor(coin: coin, node: node);
       }
 
-      final txTracker = TransactionNotificationTracker(walletId: walletId);
-
-      final failovers = nodeService.failoverNodesFor(coin: coin);
+      // final txTracker = TransactionNotificationTracker(walletId: walletId);
+      //
+      // final failovers = nodeService.failoverNodesFor(coin: coin);
 
       // check if cancel was requested and restore previous state
       if (_checkShouldCancel(
@@ -694,20 +695,7 @@ abstract class SWB {
         return false;
       }
 
-      final wallet = CoinServiceAPI.from(
-        coin,
-        walletId,
-        walletName,
-        secureStorageInterface,
-        node,
-        txTracker,
-        _prefs,
-        failovers,
-      );
-
-      final wallet = Manager(wallet);
-
-      managers.add(Tuple2(walletbackup, manager));
+      managers.add(Tuple2(walletbackup, info));
       // check if cancel was requested and restore previous state
       if (_checkShouldCancel(
         preRestoreState,
@@ -721,7 +709,6 @@ abstract class SWB {
         restoringStatus: StackRestoringStatus.waiting,
         walletId: walletId,
         walletName: walletName,
-        manager: manager,
       );
     }
 
@@ -746,7 +733,13 @@ abstract class SWB {
       )) {
         return false;
       }
-      final bools = await asyncRestore(tuple, uiState, walletsService);
+      final bools = await asyncRestore(
+        tuple,
+        _prefs,
+        nodeService,
+        secureStorageInterface,
+        uiState,
+      );
       restoreStatuses.add(Future(() => bools));
     }
 
@@ -781,7 +774,7 @@ abstract class SWB {
     Logging.instance.log("done with SWB restore", level: LogLevel.Warning);
     if (Util.isDesktop) {
       await Wallets.sharedInstance
-          .loadAfterStackRestore(_prefs, managers.map((e) => e.item2).toList());
+          .loadAfterStackRestore(_prefs, uiState?.wallets ?? []);
     }
     return true;
   }
@@ -984,14 +977,16 @@ abstract class SWB {
     }
 
     // finally remove any added wallets
-    final walletsService =
-        WalletsService(secureStorageInterface: secureStorageInterface);
-    final namesData = await walletsService.walletNames;
-    for (final entry in namesData.entries) {
-      if (!revertToState.walletIds.contains(entry.value.walletId)) {
-        await walletsService.deleteWallet(entry.key, true);
-      }
-    }
+    final allWalletIds = (await MainDB.instance.isar.walletInfo
+            .where()
+            .walletIdProperty()
+            .findAll())
+        .toSet();
+    final walletIdsToDelete = allWalletIds.difference(revertToState.walletIds);
+    await MainDB.instance.isar.writeTxn(() async {
+      await MainDB.instance.isar.walletInfo
+          .deleteAllByWalletId(walletIdsToDelete.toList());
+    });
 
     _cancelCompleter!.complete();
     _shouldCancelRestore = false;

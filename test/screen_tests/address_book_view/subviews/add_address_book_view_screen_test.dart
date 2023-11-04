@@ -9,7 +9,7 @@ import 'package:mockito/annotations.dart';
 // import 'package:stackwallet/notifications/campfire_alert.dart';
 // import 'package:stackwallet/pages/address_book_view/subviews/add_address_book_entry_view.dart';
 import 'package:stackwallet/services/address_book_service.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 // import 'package:stackwallet/utilities/clipboard_interface.dart';
 // import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';

@@ -7,7 +7,7 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/bip39_hd_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/bip39_wallet.dart';
+import 'package:stackwallet/wallets/wallet/intermediate/bip39_wallet.dart';
 
 abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T> {
   Bip39HDWallet(super.cryptoCurrency);

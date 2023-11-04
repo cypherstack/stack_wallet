@@ -19,7 +19,7 @@ import 'package:stackwallet/providers/global/price_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+
 import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/notes_service.dart';
 import 'package:stackwallet/services/price_service.dart';

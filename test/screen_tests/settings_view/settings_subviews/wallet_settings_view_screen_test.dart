@@ -9,7 +9,7 @@ import 'package:mockito/annotations.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 // import 'package:stackwallet/notifications/campfire_alert.dart';
 // import 'package:stackwallet/pages/settings_view/settings_subviews/wallet_settings_view.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+
 import 'package:stackwallet/services/wallets_service.dart';
 import 'package:stackwallet/utilities/biometrics.dart';
 // import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';

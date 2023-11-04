@@ -10,7 +10,7 @@ import 'package:mockito/annotations.dart';
 // import 'package:stackwallet/models/lelantus_fee_data.dart';
 // import 'package:stackwallet/notifications/campfire_alert.dart';
 // import 'package:stackwallet/pages/wallet_view/send_view.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+
 import 'package:stackwallet/services/notes_service.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 // import 'package:stackwallet/utilities/clipboard_interface.dart';

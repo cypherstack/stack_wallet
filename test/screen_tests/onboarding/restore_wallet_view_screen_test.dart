@@ -10,7 +10,7 @@ import 'package:mockito/annotations.dart';
 // import 'package:stackwallet/notifications/campfire_alert.dart';
 // import 'package:stackwallet/pages/onboarding_view/restore_wallet_form_view.dart';
 // import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets_service.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';

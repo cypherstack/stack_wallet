@@ -21,7 +21,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/wallet/bip39_wallet.dart';
+import 'package:stackwallet/wallets/wallet/mixins/mnemonic_based_wallet.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -82,7 +82,7 @@ class _UnlockWalletKeysDesktopState
       final wallet = ref.read(pWallets).getWallet(widget.walletId);
 
       // TODO: [prio=high] handle wallets that don't have a mnemonic
-      if (wallet is! Bip39Wallet) {
+      if (wallet is! MnemonicBasedWallet) {
         throw Exception("FIXME ~= see todo in code");
       }
 
@@ -277,10 +277,10 @@ class _UnlockWalletKeysDesktopState
                             unawaited(
                               showDialog(
                                 context: context,
-                                builder: (context) => Column(
+                                builder: (context) => const Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: const [
+                                  children: [
                                     LoadingIndicator(
                                       width: 200,
                                       height: 200,
@@ -304,7 +304,7 @@ class _UnlockWalletKeysDesktopState
                                   ref.read(pWallets).getWallet(widget.walletId);
 
                               // TODO: [prio=high] handle wallets that don't have a mnemonic
-                              if (wallet is! Bip39Wallet) {
+                              if (wallet is! MnemonicBasedWallet) {
                                 throw Exception("FIXME ~= see todo in code");
                               }
 

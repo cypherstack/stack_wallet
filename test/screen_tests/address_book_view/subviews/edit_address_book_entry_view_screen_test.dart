@@ -10,7 +10,7 @@
 // import 'package:stackwallet/services/address_book_service.dart';
 import 'package:mockito/annotations.dart';
 import 'package:stackwallet/services/address_book_service.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+
 // import 'package:stackwallet/utilities/clipboard_interface.dart';
 // import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 // import 'package:stackwallet/widgets/custom_buttons/gradient_button.dart';

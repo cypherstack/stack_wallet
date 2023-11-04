@@ -50,6 +50,9 @@ class WalletInfo implements IsarId {
   /// The highest block height the wallet has scanned.
   final int cachedChainHeight;
 
+  /// The block at which this wallet was or should be restored from
+  final int restoreHeight;
+
   // TODO: store these in other data s
   // Should contain specific things based on certain coins only
 
@@ -247,6 +250,7 @@ class WalletInfo implements IsarId {
     this.cachedReceivingAddress = "",
     this.favouriteOrderIndex = 0,
     this.cachedChainHeight = 0,
+    this.restoreHeight = 0,
     this.isMnemonicVerified = false,
     this.cachedBalanceString,
     this.otherDataJsonString,
@@ -257,6 +261,8 @@ class WalletInfo implements IsarId {
   static WalletInfo createNew({
     required Coin coin,
     required String name,
+    int restoreHeight = 0,
+    String? walletIdOverride,
   }) {
     // TODO: make Coin aware of these
     // ex.
@@ -293,10 +299,11 @@ class WalletInfo implements IsarId {
 
     return WalletInfo(
       coinName: coin.name,
-      walletId: const Uuid().v1(),
+      walletId: walletIdOverride ?? const Uuid().v1(),
       name: name,
       walletType: walletType,
       mainAddressType: mainAddressType,
+      restoreHeight: restoreHeight,
     );
   }
 
@@ -308,6 +315,7 @@ class WalletInfo implements IsarId {
     bool? isMnemonicVerified,
     String? cachedBalanceString,
     String? cachedReceivingAddress,
+    int? restoreHeight,
     Map<String, dynamic>? otherData,
   }) {
     return WalletInfo(
@@ -320,6 +328,7 @@ class WalletInfo implements IsarId {
       cachedChainHeight: cachedChainHeight ?? this.cachedChainHeight,
       isMnemonicVerified: isMnemonicVerified ?? this.isMnemonicVerified,
       cachedBalanceString: cachedBalanceString ?? this.cachedBalanceString,
+      restoreHeight: restoreHeight ?? this.restoreHeight,
       cachedReceivingAddress:
           cachedReceivingAddress ?? this.cachedReceivingAddress,
       otherDataJsonString:

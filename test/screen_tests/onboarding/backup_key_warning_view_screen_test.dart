@@ -4,7 +4,7 @@
 import 'package:mockito/annotations.dart';
 // import 'package:mockito/mockito.dart';
 // import 'package:stackwallet/pages/onboarding_view/backup_key_warning_view.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+
 import 'package:stackwallet/services/wallets_service.dart';
 // import 'package:stackwallet/widgets/custom_buttons/gradient_button.dart';
 // import 'package:provider/provider.dart';

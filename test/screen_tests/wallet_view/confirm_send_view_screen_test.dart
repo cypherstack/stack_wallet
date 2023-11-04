@@ -6,7 +6,7 @@ import 'package:mockito/annotations.dart';
 // import 'package:mockito/mockito.dart';
 // import 'package:stackwallet/notifications/campfire_alert.dart';
 // import 'package:stackwallet/pages/wallet_view/confirm_send_view.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+
 import 'package:stackwallet/services/notes_service.dart';
 // import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 // import 'package:stackwallet/widgets/custom_buttons/gradient_button.dart';

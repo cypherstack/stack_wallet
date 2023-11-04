@@ -11,7 +11,7 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/coin_wallets_ta
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/services/wallets_service.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';

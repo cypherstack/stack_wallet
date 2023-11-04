@@ -5,7 +5,7 @@ import 'package:mockito/annotations.dart';
 // import 'package:mockito/mockito.dart';
 // import 'package:stackwallet/pages/onboarding_view/create_pin_view.dart';
 // import 'package:stackwallet/pages/onboarding_view/helpers/create_wallet_type.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets_service.dart';
 // import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';

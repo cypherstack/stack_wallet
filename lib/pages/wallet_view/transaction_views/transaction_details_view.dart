@@ -27,7 +27,6 @@ import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
-import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
@@ -1597,8 +1596,7 @@ class _TransactionDetailsViewState
                       ),
                     ),
                     onPressed: () async {
-                      final   wallet =
-                          ref.read(pWallets).getWallet(walletId);
+                      final wallet = ref.read(pWallets).getWallet(walletId);
 
                       if (wallet is EpicCashWallet) {
                         final String? id = _transaction.slateId;

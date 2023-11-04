@@ -30,7 +30,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
-import 'package:stackwallet/wallets/wallet/bip39_wallet.dart';
+import 'package:stackwallet/wallets/wallet/mixins/mnemonic_based_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -531,7 +531,7 @@ class _NewWalletRecoveryPhraseWarningViewState
                                         NewWalletRecoveryPhraseView.routeName,
                                         arguments: Tuple2(
                                           wallet.walletId,
-                                          await (wallet as Bip39Wallet)
+                                          await (wallet as MnemonicBasedWallet)
                                               .getMnemonicAsWords(),
                                         ),
                                       ));
