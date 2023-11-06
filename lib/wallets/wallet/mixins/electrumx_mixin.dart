@@ -27,6 +27,12 @@ mixin ElectrumXMixin on Bip39HDWallet {
     }
   }
 
+  Future<int> fetchTxCount({required String addressScriptHash}) async {
+    final transactions =
+        await electrumX.getHistory(scripthash: addressScriptHash);
+    return transactions.length;
+  }
+
   Future<List<({Transaction transaction, Address address})>>
       fetchTransactionsV1({
     required List<Address> addresses,
@@ -159,16 +165,10 @@ mixin ElectrumXMixin on Bip39HDWallet {
     }
   }
 
+  /// The optional (nullable) param [checkBlock] is a callback that can be used
+  /// to check if a utxo should be marked as blocked
   Future<UTXO> parseUTXO({
     required Map<String, dynamic> jsonUTXO,
-    ({
-      String? blockedReason,
-      bool blocked,
-    })
-        Function(
-      Map<String, dynamic>,
-      String? scriptPubKeyHex,
-    )? checkBlock,
   }) async {
     final txn = await electrumXCached.getTransaction(
       txHash: jsonUTXO["tx_hash"] as String,
@@ -192,7 +192,7 @@ mixin ElectrumXMixin on Bip39HDWallet {
       }
     }
 
-    final checkBlockResult = checkBlock?.call(jsonUTXO, scriptPubKey);
+    final checkBlockResult = checkBlockUTXO(jsonUTXO, scriptPubKey, txn);
 
     final utxo = UTXO(
       walletId: walletId,
@@ -200,8 +200,8 @@ mixin ElectrumXMixin on Bip39HDWallet {
       vout: vout,
       value: jsonUTXO["value"] as int,
       name: "",
-      isBlocked: checkBlockResult?.blocked ?? false,
-      blockedReason: checkBlockResult?.blockedReason,
+      isBlocked: checkBlockResult.blocked,
+      blockedReason: checkBlockResult.blockedReason,
       isCoinbase: txn["is_coinbase"] as bool? ?? false,
       blockHash: txn["blockhash"] as String?,
       blockHeight: jsonUTXO["height"] as int?,
@@ -466,6 +466,25 @@ mixin ElectrumXMixin on Bip39HDWallet {
   //============================================================================
 
   @override
+  Future<void> updateChainHeight() async {
+    final height = await fetchChainHeight();
+    await info.updateCachedChainHeight(
+      newHeight: height,
+      isar: mainDB.isar,
+    );
+  }
+
+  @override
+  Future<bool> pingCheck() async {
+    try {
+      final result = await electrumX.ping();
+      return result;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
   Future<void> updateNode() async {
     final node = await getCurrentElectrumXNode();
     await updateElectrumX(newNode: node);
@@ -567,10 +586,111 @@ mixin ElectrumXMixin on Bip39HDWallet {
     }
   }
 
+  @override
+  Future<void> checkReceivingAddressForTransactions() async {
+    try {
+      final currentReceiving = await getCurrentReceivingAddress();
+
+      final bool needsGenerate;
+      if (currentReceiving == null) {
+        // no addresses in db yet for some reason.
+        // Should not happen at this point...
+
+        needsGenerate = true;
+      } else {
+        final txCount = await fetchTxCount(
+          addressScriptHash: currentReceiving.value,
+        );
+        needsGenerate = txCount > 0 || currentReceiving.derivationIndex < 0;
+      }
+
+      if (needsGenerate) {
+        await generateNewReceivingAddress();
+
+        // TODO: get rid of this? Could cause problems (long loading/infinite loop or something)
+        // keep checking until address with no tx history is set as current
+        await checkReceivingAddressForTransactions();
+      }
+    } catch (e, s) {
+      Logging.instance.log(
+        "Exception rethrown from _checkReceivingAddressForTransactions"
+        "($cryptoCurrency): $e\n$s",
+        level: LogLevel.Error,
+      );
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> updateUTXOs() async {
+    final allAddresses = await fetchAllOwnAddresses();
+
+    try {
+      final fetchedUtxoList = <List<Map<String, dynamic>>>[];
+
+      final Map<int, Map<String, List<dynamic>>> batches = {};
+      const batchSizeMax = 10;
+      int batchNumber = 0;
+      for (int i = 0; i < allAddresses.length; i++) {
+        if (batches[batchNumber] == null) {
+          batches[batchNumber] = {};
+        }
+        final scriptHash = cryptoCurrency.addressToScriptHash(
+          address: allAddresses[i].value,
+        );
+
+        batches[batchNumber]!.addAll({
+          scriptHash: [scriptHash]
+        });
+        if (i % batchSizeMax == batchSizeMax - 1) {
+          batchNumber++;
+        }
+      }
+
+      for (int i = 0; i < batches.length; i++) {
+        final response = await electrumX.getBatchUTXOs(args: batches[i]!);
+        for (final entry in response.entries) {
+          if (entry.value.isNotEmpty) {
+            fetchedUtxoList.add(entry.value);
+          }
+        }
+      }
+
+      final List<UTXO> outputArray = [];
+
+      for (int i = 0; i < fetchedUtxoList.length; i++) {
+        for (int j = 0; j < fetchedUtxoList[i].length; j++) {
+          final utxo = await parseUTXO(
+            jsonUTXO: fetchedUtxoList[i][j],
+          );
+
+          outputArray.add(utxo);
+        }
+      }
+
+      await mainDB.updateUTXOs(walletId, outputArray);
+    } catch (e, s) {
+      Logging.instance.log(
+        "Output fetch unsuccessful: $e\n$s",
+        level: LogLevel.Error,
+      );
+    }
+  }
+
   // ===========================================================================
   // ========== Interface functions ============================================
 
   Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB);
+
+  Future<List<Address>> fetchAllOwnAddresses();
+
+  /// callback to pass to [parseUTXO] to check if the utxo should be marked
+  /// as blocked as well as give a reason.
+  ({String? blockedReason, bool blocked}) checkBlockUTXO(
+    Map<String, dynamic> jsonUTXO,
+    String? scriptPubKeyHex,
+    Map<String, dynamic> jsonTX,
+  );
 
   // ===========================================================================
   // ========== private helpers ================================================

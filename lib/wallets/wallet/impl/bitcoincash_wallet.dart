@@ -2,7 +2,6 @@ import 'package:bitbox/bitbox.dart' as bitbox;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
@@ -26,7 +25,8 @@ class BitcoincashWallet extends Bip39HDWallet with ElectrumXMixin {
 
   // ===========================================================================
 
-  Future<List<Address>> _fetchAllOwnAddresses() async {
+  @override
+  Future<List<Address>> fetchAllOwnAddresses() async {
     final allAddresses = await mainDB
         .getAddresses(walletId)
         .filter()
@@ -45,7 +45,7 @@ class BitcoincashWallet extends Bip39HDWallet with ElectrumXMixin {
 
   @override
   Future<void> updateTransactions() async {
-    List<Address> allAddressesOld = await _fetchAllOwnAddresses();
+    List<Address> allAddressesOld = await fetchAllOwnAddresses();
 
     Set<String> receivingAddresses = allAddressesOld
         .where((e) => e.subType == AddressSubType.receiving)
@@ -270,8 +270,12 @@ class BitcoincashWallet extends Bip39HDWallet with ElectrumXMixin {
     await mainDB.updateOrPutTransactionV2s(txns);
   }
 
-  ({String? blockedReason, bool blocked}) checkBlock(
-      Map<String, dynamic> jsonUTXO, String? scriptPubKeyHex) {
+  @override
+  ({String? blockedReason, bool blocked}) checkBlockUTXO(
+    Map<String, dynamic> jsonUTXO,
+    String? scriptPubKeyHex,
+    Map<String, dynamic> jsonTX,
+  ) {
     bool blocked = false;
     String? blockedReason;
 
@@ -304,79 +308,6 @@ class BitcoincashWallet extends Bip39HDWallet with ElectrumXMixin {
     return (blockedReason: blockedReason, blocked: blocked);
   }
 
-  @override
-  Future<void> updateUTXOs() async {
-    final allAddresses = await _fetchAllOwnAddresses();
-
-    try {
-      final fetchedUtxoList = <List<Map<String, dynamic>>>[];
-
-      final Map<int, Map<String, List<dynamic>>> batches = {};
-      const batchSizeMax = 10;
-      int batchNumber = 0;
-      for (int i = 0; i < allAddresses.length; i++) {
-        if (batches[batchNumber] == null) {
-          batches[batchNumber] = {};
-        }
-        final scriptHash = cryptoCurrency.addressToScriptHash(
-          address: allAddresses[i].value,
-        );
-
-        batches[batchNumber]!.addAll({
-          scriptHash: [scriptHash]
-        });
-        if (i % batchSizeMax == batchSizeMax - 1) {
-          batchNumber++;
-        }
-      }
-
-      for (int i = 0; i < batches.length; i++) {
-        final response = await electrumX.getBatchUTXOs(args: batches[i]!);
-        for (final entry in response.entries) {
-          if (entry.value.isNotEmpty) {
-            fetchedUtxoList.add(entry.value);
-          }
-        }
-      }
-
-      final List<UTXO> outputArray = [];
-
-      for (int i = 0; i < fetchedUtxoList.length; i++) {
-        for (int j = 0; j < fetchedUtxoList[i].length; j++) {
-          final utxo = await parseUTXO(jsonUTXO: fetchedUtxoList[i][j]);
-
-          outputArray.add(utxo);
-        }
-      }
-
-      await mainDB.updateUTXOs(walletId, outputArray);
-    } catch (e, s) {
-      Logging.instance.log(
-        "Output fetch unsuccessful: $e\n$s",
-        level: LogLevel.Error,
-      );
-    }
-  }
-
-  @override
-  Future<bool> pingCheck() async {
-    try {
-      final result = await electrumX.ping();
-      return result;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  @override
-  Future<void> updateChainHeight() async {
-    final height = await fetchChainHeight();
-    await info.updateCachedChainHeight(
-      newHeight: height,
-      isar: mainDB.isar,
-    );
-  }
-
   // TODO: correct formula for bch?
   @override
   Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
@@ -385,11 +316,5 @@ class BitcoincashWallet extends Bip39HDWallet with ElectrumXMixin {
           (feeRatePerKB / 1000).ceil()),
       fractionDigits: info.coin.decimals,
     );
-  }
-
-  @override
-  Future<void> checkReceivingAddressForTransactions() {
-    // TODO: implement checkReceivingAddressForTransactions
-    throw UnimplementedError();
   }
 }
