@@ -71,7 +71,7 @@ Future<void> migrateWalletsToIsar({
       final epicWalletInfo = ExtraEpiccashWalletInfo.fromMap({
         "receivingIndex": walletBox.get("receivingIndex") as int? ?? 0,
         "changeIndex": walletBox.get("changeIndex") as int? ?? 0,
-        "slate_to_address": walletBox.get("slate_to_address") as Map? ?? {},
+        "slatesToAddresses": walletBox.get("slate_to_address") as Map? ?? {},
         "slatesToCommits": walletBox.get("slatesToCommits") as Map? ?? {},
         "lastScannedBlock": walletBox.get("lastScannedBlock") as int? ?? 0,
         "restoreHeight": walletBox.get("restoreHeight") as int? ?? 0,
