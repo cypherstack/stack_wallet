@@ -69,8 +69,15 @@ class WalletInfo implements IsarId {
 
   bool get isFavourite => favouriteOrderIndex > -1;
 
-  List<String> get tokenContractAddresses =>
-      otherData[WalletInfoKeys.tokenContractAddresses] as List<String>? ?? [];
+  List<String> get tokenContractAddresses {
+    if (otherData[WalletInfoKeys.tokenContractAddresses] is List) {
+      return List<String>.from(
+        otherData[WalletInfoKeys.tokenContractAddresses] as List,
+      );
+    } else {
+      return [];
+    }
+  }
 
   /// Special case for coins such as firo
   @ignore
