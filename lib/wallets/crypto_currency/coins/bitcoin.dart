@@ -119,7 +119,7 @@ class Bitcoin extends Bip39HDCurrency {
           version: networkParams.p2pkhPrefix,
         );
 
-        return (address: addr, addressType: AddressType.p2sh);
+        return (address: addr, addressType: AddressType.p2pkh);
 
       case DerivePathType.bip49:
         // addressString = P2SH(
