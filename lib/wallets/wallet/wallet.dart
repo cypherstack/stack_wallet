@@ -261,7 +261,7 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       default:
         // should never hit in reality
-        throw Exception("Unknown crypto currency");
+        throw Exception("Unknown crypto currency: ${walletInfo.coin}");
     }
   }
 

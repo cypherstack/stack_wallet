@@ -94,6 +94,9 @@ Future<void> migrateWalletsToIsar({
       walletType: _walletTypeForCoin(old.coin),
       mainAddressType: _addressTypeForCoin(old.coin),
       favouriteOrderIndex: favourites.indexOf(old.walletId),
+      isMnemonicVerified: allWalletsBox
+              .get("${old.walletId}_mnemonicHasBeenVerified") as bool? ??
+          false,
       cachedChainHeight: walletBox.get(
             DBKeys.storedChainHeight,
           ) as int? ??
@@ -110,9 +113,11 @@ Future<void> migrateWalletsToIsar({
   await MainDB.instance.isar.writeTxn(() async {
     await MainDB.instance.isar.walletInfo.putAll(newInfo);
   });
+
+  await _cleanupOnSuccess(walletIds: newInfo.map((e) => e.walletId).toList());
 }
 
-void _cleanupOnSuccess({required List<String> walletIds}) async {
+Future<void> _cleanupOnSuccess({required List<String> walletIds}) async {
   await Hive.deleteBoxFromDisk(DB.boxNameFavoriteWallets);
   await Hive.deleteBoxFromDisk(DB.boxNameAllWalletsData);
   for (final walletId in walletIds) {

@@ -103,7 +103,7 @@ class MainDB {
 
   // TODO refactor this elsewhere as it not only interacts with MainDB's isar
   Future<void> deleteWallet({required String walletId}) async {
-    //
+    throw UnimplementedError();
   }
 
   // contact entries
