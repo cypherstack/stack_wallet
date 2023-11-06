@@ -26,4 +26,9 @@ abstract class CryptonoteWallet<T extends CryptonoteCurrency> extends Wallet<T>
     // TODO: implement recover
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> updateUTXOs() async {
+    // do nothing for now
+  }
 }

@@ -1,3 +1,4 @@
+import 'package:cw_wownero/pending_wownero_transaction.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -38,6 +39,9 @@ class TxData {
   final BigInt? chainId;
   final BigInt? feeInWei;
 
+  // wownero specific
+  final PendingWowneroTransaction? pendingWowneroTransaction;
+
   TxData({
     this.feeRateType,
     this.feeRateAmount,
@@ -59,6 +63,7 @@ class TxData {
     this.nonce,
     this.chainId,
     this.feeInWei,
+    this.pendingWowneroTransaction,
   });
 
   Amount? get amount => recipients != null && recipients!.isNotEmpty
@@ -92,6 +97,7 @@ class TxData {
     int? nonce,
     BigInt? chainId,
     BigInt? feeInWei,
+    PendingWowneroTransaction? pendingWowneroTransaction,
   }) {
     return TxData(
       feeRateType: feeRateType ?? this.feeRateType,
@@ -114,6 +120,8 @@ class TxData {
       nonce: nonce ?? this.nonce,
       chainId: chainId ?? this.chainId,
       feeInWei: feeInWei ?? this.feeInWei,
+      pendingWowneroTransaction:
+          pendingWowneroTransaction ?? this.pendingWowneroTransaction,
     );
   }
 
@@ -139,5 +147,6 @@ class TxData {
       'nonce: $nonce, '
       'chainId: $chainId, '
       'feeInWei: $feeInWei, '
+      'pendingWowneroTransaction: $pendingWowneroTransaction, '
       '}';
 }

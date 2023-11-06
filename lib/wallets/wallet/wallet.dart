@@ -5,6 +5,7 @@ import 'package:meta/meta.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
+import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
@@ -13,6 +14,7 @@ import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -20,13 +22,16 @@ import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/bitcoincash.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/epiccash.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoincash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
 import 'package:stackwallet/wallets/wallet/mixins/electrumx_mixin.dart';
+import 'package:stackwallet/wallets/wallet/mixins/multi_address.dart';
 
 abstract class Wallet<T extends CryptoCurrency> {
   // default to Transaction class. For TransactionV2 set to 2
@@ -41,6 +46,7 @@ abstract class Wallet<T extends CryptoCurrency> {
 
   late final MainDB mainDB;
   late final SecureStorageInterface secureStorageInterface;
+  late final NodeService nodeService;
   late final Prefs prefs;
 
   final refreshMutex = Mutex();
@@ -74,6 +80,11 @@ abstract class Wallet<T extends CryptoCurrency> {
   bool _shouldAutoSync = false;
 
   bool _isConnected = false;
+
+  void xmrAndWowSyncSpecificFunctionThatShouldBeGottenRidOfInTheFuture(
+      bool flag) {
+    _isConnected = flag;
+  }
 
   //============================================================================
   // ========== Wallet Info Convenience Getters ================================
@@ -207,10 +218,10 @@ abstract class Wallet<T extends CryptoCurrency> {
   }) async {
     final Wallet wallet = _loadWallet(
       walletInfo: walletInfo,
-      nodeService: nodeService,
     );
 
     wallet.prefs = prefs;
+    wallet.nodeService = nodeService;
 
     if (wallet is ElectrumXMixin) {
       // initialize electrumx instance
@@ -226,37 +237,36 @@ abstract class Wallet<T extends CryptoCurrency> {
 
   static Wallet _loadWallet({
     required WalletInfo walletInfo,
-    required NodeService nodeService,
   }) {
     switch (walletInfo.coin) {
       case Coin.bitcoin:
         return BitcoinWallet(
           Bitcoin(CryptoCurrencyNetwork.main),
-          nodeService: nodeService,
         );
 
       case Coin.bitcoinTestNet:
         return BitcoinWallet(
           Bitcoin(CryptoCurrencyNetwork.test),
-          nodeService: nodeService,
         );
 
       case Coin.bitcoincash:
         return BitcoincashWallet(
           Bitcoincash(CryptoCurrencyNetwork.main),
-          nodeService: nodeService,
         );
 
       case Coin.bitcoincashTestnet:
         return BitcoincashWallet(
           Bitcoincash(CryptoCurrencyNetwork.test),
-          nodeService: nodeService,
         );
 
       case Coin.epicCash:
         return EpiccashWallet(
           Epiccash(CryptoCurrencyNetwork.main),
-          nodeService: nodeService,
+        );
+
+      case Coin.wownero:
+        return WowneroWallet(
+          Wownero(CryptoCurrencyNetwork.main),
         );
 
       default:
@@ -348,6 +358,13 @@ abstract class Wallet<T extends CryptoCurrency> {
 
   //===========================================
 
+  NodeModel getCurrentNode() {
+    final node = nodeService.getPrimaryNodeFor(coin: cryptoCurrency.coin) ??
+        DefaultNodes.getNodeFor(cryptoCurrency.coin);
+
+    return node;
+  }
+
   // Should fire events
   Future<void> refresh() async {
     // Awaiting this lock could be dangerous.
@@ -388,13 +405,16 @@ abstract class Wallet<T extends CryptoCurrency> {
       // final feeObj = _getFees();
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.60, walletId));
 
+      await utxosRefreshFuture;
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.70, walletId));
       // _feeObject = Future(() => feeObj);
 
-      await utxosRefreshFuture;
+      await fetchFuture;
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.80, walletId));
 
-      await fetchFuture;
+      if (this is MultiAddress) {
+        await (this as MultiAddress).checkReceivingAddressForTransactions();
+      }
       // await getAllTxsToWatch();
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.90, walletId));
 
@@ -458,6 +478,7 @@ abstract class Wallet<T extends CryptoCurrency> {
       newAddress: address!.value,
       isar: mainDB.isar,
     );
+
     // TODO: make sure subclasses override this if they require some set up
     // especially xmr/wow/epiccash
   }

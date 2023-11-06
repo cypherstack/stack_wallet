@@ -8,7 +8,6 @@
  *
  */
 
-import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart' as btc;
 import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart'
     as bch;
 import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart'
@@ -29,7 +28,6 @@ import 'package:stackwallet/services/coins/particl/particl_wallet.dart'
     as particl;
 import 'package:stackwallet/services/coins/stellar/stellar_wallet.dart' as xlm;
 import 'package:stackwallet/services/coins/tezos/tezos_wallet.dart' as tezos;
-import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart' as wow;
 import 'package:stackwallet/utilities/constants.dart';
 
 enum Coin {
@@ -379,7 +377,7 @@ extension CoinExt on Coin {
     switch (this) {
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
-        return btc.MINIMUM_CONFIRMATIONS;
+        throw UnimplementedError("moved");
 
       case Coin.litecoin:
       case Coin.litecoinTestNet:
@@ -420,7 +418,7 @@ extension CoinExt on Coin {
         return tezos.MINIMUM_CONFIRMATIONS;
 
       case Coin.wownero:
-        return wow.MINIMUM_CONFIRMATIONS;
+        throw UnimplementedError("moved");
 
       case Coin.namecoin:
         return nmc.MINIMUM_CONFIRMATIONS;

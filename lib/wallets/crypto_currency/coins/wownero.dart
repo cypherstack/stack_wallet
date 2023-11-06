@@ -1,19 +1,14 @@
+import 'package:cw_wownero/api/wallet.dart' as wownero_wallet;
 import 'package:stackwallet/wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 
 class Wownero extends CryptonoteCurrency {
   Wownero(super.network);
 
   @override
-  // TODO: implement genesisHash
-  String get genesisHash => throw UnimplementedError();
-
-  @override
-  // TODO: implement minConfirms
-  int get minConfirms => throw UnimplementedError();
+  int get minConfirms => 15;
 
   @override
   bool validateAddress(String address) {
-    // TODO: implement validateAddress
-    throw UnimplementedError();
+    return wownero_wallet.validateAddress(address);
   }
 }
