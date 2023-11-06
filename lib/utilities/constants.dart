@@ -62,7 +62,7 @@ abstract class Constants {
   // Enable Logger.print statements
   static const bool disableLogger = false;
 
-  static const int currentDataVersion = 11;
+  static const int currentDataVersion = 12;
 
   static const int rescanV1 = 1;
 
