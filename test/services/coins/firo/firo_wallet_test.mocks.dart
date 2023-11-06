@@ -19,7 +19,7 @@ import 'package:stackwallet/models/isar/models/isar_models.dart' as _i13;
 import 'package:stackwallet/services/transaction_notification_tracker.dart'
     as _i8;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i7;
-import 'package:stackwallet/wallets/isar_models/wallet_info.dart' as _i10;
+import 'package:stackwallet/wallets/isar/models/wallet_info.dart' as _i10;
 import 'package:tuple/tuple.dart' as _i14;
 
 // ignore_for_file: type=lint

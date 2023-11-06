@@ -18,9 +18,7 @@ import 'package:mockito/annotations.dart';
 //
 // import 'rescan_warning_view_screen_test.mocks.dart';
 
-@GenerateMocks([], customMocks: [
-  MockSpec<Manager>(returnNullOnMissingStub: true),
-])
+@GenerateMocks([], customMocks: [])
 void main() {
 //   testWidgets("RescanWarningView builds correctly", (tester) async {
 //     await tester.pumpWidget(

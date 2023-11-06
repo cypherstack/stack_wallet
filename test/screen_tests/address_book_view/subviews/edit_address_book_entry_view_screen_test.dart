@@ -21,7 +21,6 @@ import 'package:stackwallet/services/address_book_service.dart';
 
 @GenerateMocks([], customMocks: [
   MockSpec<AddressBookService>(returnNullOnMissingStub: true),
-  MockSpec<Manager>(returnNullOnMissingStub: true),
 ])
 void main() {
 //   testWidgets("EditAddressBookEntryView builds correctly", (tester) async {

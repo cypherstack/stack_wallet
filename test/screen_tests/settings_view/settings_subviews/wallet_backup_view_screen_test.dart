@@ -17,9 +17,7 @@ import 'package:mockito/annotations.dart';
 //
 // import 'wallet_backup_view_screen_test.mocks.dart';
 
-@GenerateMocks([], customMocks: [
-  MockSpec<Manager>(returnNullOnMissingStub: true),
-])
+@GenerateMocks([], customMocks: [])
 void main() {
 //   testWidgets("WalletBackupView builds correctly", (tester) async {
 //     final wallet =  MockManager();

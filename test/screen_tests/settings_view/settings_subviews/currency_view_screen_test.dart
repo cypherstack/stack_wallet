@@ -9,9 +9,7 @@ import 'package:mockito/annotations.dart';
 //
 // import 'currency_view_screen_test.mocks.dart';
 
-@GenerateMocks([], customMocks: [
-  MockSpec<Manager>(returnNullOnMissingStub: true),
-])
+@GenerateMocks([], customMocks: [])
 void main() {
 //   testWidgets("CurrencyView builds correctly", (tester) async {
 //     final wallet =  MockManager();

@@ -8,7 +8,6 @@ import 'package:stackwallet/services/wallets_service.dart';
 @GenerateMocks([], customMocks: [
   MockSpec<WalletsService>(returnNullOnMissingStub: true),
   MockSpec<NodeService>(returnNullOnMissingStub: true),
-  MockSpec<Manager>(returnNullOnMissingStub: true),
 ])
 void main() {
   testWidgets("LockscreenView builds correctly", (tester) async {

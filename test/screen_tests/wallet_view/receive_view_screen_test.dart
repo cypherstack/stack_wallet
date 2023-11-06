@@ -14,9 +14,7 @@ import 'package:mockito/annotations.dart';
 //
 // import 'receive_view_screen_test.mocks.dart';
 
-@GenerateMocks([], customMocks: [
-  MockSpec<Manager>(returnNullOnMissingStub: true),
-])
+@GenerateMocks([], customMocks: [])
 void main() {
 //   testWidgets("ReceiveView builds without loading address", (tester) async {
 //     final wallet =  MockManager();

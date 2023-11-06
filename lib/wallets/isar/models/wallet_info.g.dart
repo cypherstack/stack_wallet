@@ -27,54 +27,64 @@ const WalletInfoSchema = CollectionSchema(
       name: r'cachedChainHeight',
       type: IsarType.long,
     ),
-    r'coinName': PropertySchema(
+    r'cachedReceivingAddress': PropertySchema(
       id: 2,
+      name: r'cachedReceivingAddress',
+      type: IsarType.string,
+    ),
+    r'coinName': PropertySchema(
+      id: 3,
       name: r'coinName',
       type: IsarType.string,
     ),
     r'favouriteOrderIndex': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'favouriteOrderIndex',
       type: IsarType.long,
     ),
     r'isFavourite': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'isFavourite',
       type: IsarType.bool,
     ),
     r'isMnemonicVerified': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'isMnemonicVerified',
       type: IsarType.bool,
     ),
     r'mainAddressType': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'mainAddressType',
       type: IsarType.byte,
       enumMap: _WalletInfomainAddressTypeEnumValueMap,
     ),
     r'name': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'name',
       type: IsarType.string,
     ),
     r'otherDataJsonString': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'otherDataJsonString',
       type: IsarType.string,
     ),
+    r'restoreHeight': PropertySchema(
+      id: 10,
+      name: r'restoreHeight',
+      type: IsarType.long,
+    ),
     r'tokenContractAddresses': PropertySchema(
-      id: 9,
+      id: 11,
       name: r'tokenContractAddresses',
       type: IsarType.stringList,
     ),
     r'walletId': PropertySchema(
-      id: 10,
+      id: 12,
       name: r'walletId',
       type: IsarType.string,
     ),
     r'walletType': PropertySchema(
-      id: 11,
+      id: 13,
       name: r'walletType',
       type: IsarType.byte,
       enumMap: _WalletInfowalletTypeEnumValueMap,
@@ -120,6 +130,7 @@ int _walletInfoEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
+  bytesCount += 3 + object.cachedReceivingAddress.length * 3;
   bytesCount += 3 + object.coinName.length * 3;
   bytesCount += 3 + object.name.length * 3;
   {
@@ -147,16 +158,18 @@ void _walletInfoSerialize(
 ) {
   writer.writeString(offsets[0], object.cachedBalanceString);
   writer.writeLong(offsets[1], object.cachedChainHeight);
-  writer.writeString(offsets[2], object.coinName);
-  writer.writeLong(offsets[3], object.favouriteOrderIndex);
-  writer.writeBool(offsets[4], object.isFavourite);
-  writer.writeBool(offsets[5], object.isMnemonicVerified);
-  writer.writeByte(offsets[6], object.mainAddressType.index);
-  writer.writeString(offsets[7], object.name);
-  writer.writeString(offsets[8], object.otherDataJsonString);
-  writer.writeStringList(offsets[9], object.tokenContractAddresses);
-  writer.writeString(offsets[10], object.walletId);
-  writer.writeByte(offsets[11], object.walletType.index);
+  writer.writeString(offsets[2], object.cachedReceivingAddress);
+  writer.writeString(offsets[3], object.coinName);
+  writer.writeLong(offsets[4], object.favouriteOrderIndex);
+  writer.writeBool(offsets[5], object.isFavourite);
+  writer.writeBool(offsets[6], object.isMnemonicVerified);
+  writer.writeByte(offsets[7], object.mainAddressType.index);
+  writer.writeString(offsets[8], object.name);
+  writer.writeString(offsets[9], object.otherDataJsonString);
+  writer.writeLong(offsets[10], object.restoreHeight);
+  writer.writeStringList(offsets[11], object.tokenContractAddresses);
+  writer.writeString(offsets[12], object.walletId);
+  writer.writeByte(offsets[13], object.walletType.index);
 }
 
 WalletInfo _walletInfoDeserialize(
@@ -168,17 +181,19 @@ WalletInfo _walletInfoDeserialize(
   final object = WalletInfo(
     cachedBalanceString: reader.readStringOrNull(offsets[0]),
     cachedChainHeight: reader.readLongOrNull(offsets[1]) ?? 0,
-    coinName: reader.readString(offsets[2]),
-    favouriteOrderIndex: reader.readLongOrNull(offsets[3]) ?? 0,
-    isMnemonicVerified: reader.readBoolOrNull(offsets[5]) ?? false,
+    cachedReceivingAddress: reader.readStringOrNull(offsets[2]) ?? "",
+    coinName: reader.readString(offsets[3]),
+    favouriteOrderIndex: reader.readLongOrNull(offsets[4]) ?? 0,
+    isMnemonicVerified: reader.readBoolOrNull(offsets[6]) ?? false,
     mainAddressType: _WalletInfomainAddressTypeValueEnumMap[
-            reader.readByteOrNull(offsets[6])] ??
+            reader.readByteOrNull(offsets[7])] ??
         AddressType.p2pkh,
-    name: reader.readString(offsets[7]),
-    otherDataJsonString: reader.readStringOrNull(offsets[8]),
-    walletId: reader.readString(offsets[10]),
+    name: reader.readString(offsets[8]),
+    otherDataJsonString: reader.readStringOrNull(offsets[9]),
+    restoreHeight: reader.readLongOrNull(offsets[10]) ?? 0,
+    walletId: reader.readString(offsets[12]),
     walletType:
-        _WalletInfowalletTypeValueEnumMap[reader.readByteOrNull(offsets[11])] ??
+        _WalletInfowalletTypeValueEnumMap[reader.readByteOrNull(offsets[13])] ??
             WalletType.bip39,
   );
   object.id = id;
@@ -197,26 +212,30 @@ P _walletInfoDeserializeProp<P>(
     case 1:
       return (reader.readLongOrNull(offset) ?? 0) as P;
     case 2:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset) ?? "") as P;
     case 3:
-      return (reader.readLongOrNull(offset) ?? 0) as P;
+      return (reader.readString(offset)) as P;
     case 4:
-      return (reader.readBool(offset)) as P;
+      return (reader.readLongOrNull(offset) ?? 0) as P;
     case 5:
-      return (reader.readBoolOrNull(offset) ?? false) as P;
+      return (reader.readBool(offset)) as P;
     case 6:
+      return (reader.readBoolOrNull(offset) ?? false) as P;
+    case 7:
       return (_WalletInfomainAddressTypeValueEnumMap[
               reader.readByteOrNull(offset)] ??
           AddressType.p2pkh) as P;
-    case 7:
-      return (reader.readString(offset)) as P;
     case 8:
-      return (reader.readStringOrNull(offset)) as P;
-    case 9:
-      return (reader.readStringList(offset) ?? []) as P;
-    case 10:
       return (reader.readString(offset)) as P;
+    case 9:
+      return (reader.readStringOrNull(offset)) as P;
+    case 10:
+      return (reader.readLongOrNull(offset) ?? 0) as P;
     case 11:
+      return (reader.readStringList(offset) ?? []) as P;
+    case 12:
+      return (reader.readString(offset)) as P;
+    case 13:
       return (_WalletInfowalletTypeValueEnumMap[
               reader.readByteOrNull(offset)] ??
           WalletType.bip39) as P;
@@ -659,6 +678,144 @@ extension WalletInfoQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<WalletInfo, WalletInfo, QAfterFilterCondition>
+      cachedReceivingAddressEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'cachedReceivingAddress',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<WalletInfo, WalletInfo, QAfterFilterCondition>
+      cachedReceivingAddressGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'cachedReceivingAddress',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<WalletInfo, WalletInfo, QAfterFilterCondition>
+      cachedReceivingAddressLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'cachedReceivingAddress',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<WalletInfo, WalletInfo, QAfterFilterCondition>
+      cachedReceivingAddressBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'cachedReceivingAddress',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<WalletInfo, WalletInfo, QAfterFilterCondition>
+      cachedReceivingAddressStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'cachedReceivingAddress',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<WalletInfo, WalletInfo, QAfterFilterCondition>
+      cachedReceivingAddressEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'cachedReceivingAddress',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<WalletInfo, WalletInfo, QAfterFilterCondition>
+      cachedReceivingAddressContains(String value,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'cachedReceivingAddress',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<WalletInfo, WalletInfo, QAfterFilterCondition>
+      cachedReceivingAddressMatches(String pattern,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'cachedReceivingAddress',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<WalletInfo, WalletInfo, QAfterFilterCondition>
+      cachedReceivingAddressIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'cachedReceivingAddress',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<WalletInfo, WalletInfo, QAfterFilterCondition>
+      cachedReceivingAddressIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'cachedReceivingAddress',
+        value: '',
       ));
     });
   }
@@ -1267,6 +1424,62 @@ extension WalletInfoQueryFilter
   }
 
   QueryBuilder<WalletInfo, WalletInfo, QAfterFilterCondition>
+      restoreHeightEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'restoreHeight',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<WalletInfo, WalletInfo, QAfterFilterCondition>
+      restoreHeightGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'restoreHeight',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<WalletInfo, WalletInfo, QAfterFilterCondition>
+      restoreHeightLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'restoreHeight',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<WalletInfo, WalletInfo, QAfterFilterCondition>
+      restoreHeightBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'restoreHeight',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<WalletInfo, WalletInfo, QAfterFilterCondition>
       tokenContractAddressesElementEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1718,6 +1931,20 @@ extension WalletInfoQuerySortBy
     });
   }
 
+  QueryBuilder<WalletInfo, WalletInfo, QAfterSortBy>
+      sortByCachedReceivingAddress() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cachedReceivingAddress', Sort.asc);
+    });
+  }
+
+  QueryBuilder<WalletInfo, WalletInfo, QAfterSortBy>
+      sortByCachedReceivingAddressDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cachedReceivingAddress', Sort.desc);
+    });
+  }
+
   QueryBuilder<WalletInfo, WalletInfo, QAfterSortBy> sortByCoinName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'coinName', Sort.asc);
@@ -1809,6 +2036,18 @@ extension WalletInfoQuerySortBy
     });
   }
 
+  QueryBuilder<WalletInfo, WalletInfo, QAfterSortBy> sortByRestoreHeight() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'restoreHeight', Sort.asc);
+    });
+  }
+
+  QueryBuilder<WalletInfo, WalletInfo, QAfterSortBy> sortByRestoreHeightDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'restoreHeight', Sort.desc);
+    });
+  }
+
   QueryBuilder<WalletInfo, WalletInfo, QAfterSortBy> sortByWalletId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'walletId', Sort.asc);
@@ -1860,6 +2099,20 @@ extension WalletInfoQuerySortThenBy
       thenByCachedChainHeightDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'cachedChainHeight', Sort.desc);
+    });
+  }
+
+  QueryBuilder<WalletInfo, WalletInfo, QAfterSortBy>
+      thenByCachedReceivingAddress() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cachedReceivingAddress', Sort.asc);
+    });
+  }
+
+  QueryBuilder<WalletInfo, WalletInfo, QAfterSortBy>
+      thenByCachedReceivingAddressDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cachedReceivingAddress', Sort.desc);
     });
   }
 
@@ -1966,6 +2219,18 @@ extension WalletInfoQuerySortThenBy
     });
   }
 
+  QueryBuilder<WalletInfo, WalletInfo, QAfterSortBy> thenByRestoreHeight() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'restoreHeight', Sort.asc);
+    });
+  }
+
+  QueryBuilder<WalletInfo, WalletInfo, QAfterSortBy> thenByRestoreHeightDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'restoreHeight', Sort.desc);
+    });
+  }
+
   QueryBuilder<WalletInfo, WalletInfo, QAfterSortBy> thenByWalletId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'walletId', Sort.asc);
@@ -2005,6 +2270,14 @@ extension WalletInfoQueryWhereDistinct
       distinctByCachedChainHeight() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'cachedChainHeight');
+    });
+  }
+
+  QueryBuilder<WalletInfo, WalletInfo, QDistinct>
+      distinctByCachedReceivingAddress({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'cachedReceivingAddress',
+          caseSensitive: caseSensitive);
     });
   }
 
@@ -2056,6 +2329,12 @@ extension WalletInfoQueryWhereDistinct
     });
   }
 
+  QueryBuilder<WalletInfo, WalletInfo, QDistinct> distinctByRestoreHeight() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'restoreHeight');
+    });
+  }
+
   QueryBuilder<WalletInfo, WalletInfo, QDistinct>
       distinctByTokenContractAddresses() {
     return QueryBuilder.apply(this, (query) {
@@ -2095,6 +2374,13 @@ extension WalletInfoQueryProperty
   QueryBuilder<WalletInfo, int, QQueryOperations> cachedChainHeightProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'cachedChainHeight');
+    });
+  }
+
+  QueryBuilder<WalletInfo, String, QQueryOperations>
+      cachedReceivingAddressProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'cachedReceivingAddress');
     });
   }
 
@@ -2141,6 +2427,12 @@ extension WalletInfoQueryProperty
       otherDataJsonStringProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'otherDataJsonString');
+    });
+  }
+
+  QueryBuilder<WalletInfo, int, QQueryOperations> restoreHeightProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'restoreHeight');
     });
   }
 

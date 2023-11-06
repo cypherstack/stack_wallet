@@ -23,7 +23,6 @@ import 'package:stackwallet/services/notes_service.dart';
 // import 'wallet_view_screen_test.mocks.dart';
 
 @GenerateMocks([], customMocks: [
-  MockSpec<Manager>(returnNullOnMissingStub: true),
   MockSpec<NotesService>(returnNullOnMissingStub: true),
   MockSpec<LocaleService>(returnNullOnMissingStub: true),
 ])

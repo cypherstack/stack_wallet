@@ -11,9 +11,7 @@ import 'package:mockito/annotations.dart';
 //
 // import 'verify_backup_key_view_screen_test.mocks.dart';
 
-@GenerateMocks([], customMocks: [
-  MockSpec<Manager>(returnNullOnMissingStub: true),
-])
+@GenerateMocks([], customMocks: [])
 void main() {
 //   testWidgets("onboarding view screen test", (tester) async {
 //     final screen = VerifyBackupKeyView();

@@ -13,7 +13,6 @@ import 'package:mockito/annotations.dart';
 // import 'package:stackwallet/models/models.dart';
 // import 'package:stackwallet/pages/address_book_view/subviews/address_book_entry_details_view.dart';
 import 'package:stackwallet/services/address_book_service.dart';
-
 import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/notes_service.dart';
 // import 'package:stackwallet/utilities/clipboard_interface.dart';
@@ -26,7 +25,6 @@ import 'package:stackwallet/services/notes_service.dart';
 
 @GenerateMocks([], customMocks: [
   MockSpec<AddressBookService>(returnNullOnMissingStub: true),
-  MockSpec<Manager>(returnNullOnMissingStub: true),
   MockSpec<NotesService>(returnNullOnMissingStub: true),
   MockSpec<LocaleService>(returnNullOnMissingStub: true),
 ])

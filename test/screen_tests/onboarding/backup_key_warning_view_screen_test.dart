@@ -13,7 +13,6 @@ import 'package:stackwallet/services/wallets_service.dart';
 
 @GenerateMocks([], customMocks: [
   MockSpec<WalletsService>(returnNullOnMissingStub: true),
-  MockSpec<Manager>(returnNullOnMissingStub: true),
 ])
 void main() {
 //   testWidgets("BackupKeyWarningView builds correctly", (tester) async {

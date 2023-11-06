@@ -21,7 +21,6 @@ import 'package:stackwallet/services/wallets_service.dart';
 
 @GenerateMocks([], customMocks: [
   MockSpec<WalletsService>(returnNullOnMissingStub: true),
-  MockSpec<Manager>(returnNullOnMissingStub: true),
 ])
 void main() {
 //   testWidgets("WalletDeleteMnemonicView builds correctly", (tester) async {

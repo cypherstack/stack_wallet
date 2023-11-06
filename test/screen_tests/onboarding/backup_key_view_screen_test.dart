@@ -13,9 +13,7 @@ import 'package:mockito/annotations.dart';
 //
 // import 'backup_key_view_screen_test.mocks.dart';
 
-@GenerateMocks([], customMocks: [
-  MockSpec<Manager>(returnNullOnMissingStub: true),
-])
+@GenerateMocks([], customMocks: [])
 void main() {
 //   testWidgets("BackupKeyView builds correctly", (tester) async {
 //     final wallet =  MockManager();
