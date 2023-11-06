@@ -12,6 +12,7 @@ import 'package:hive/hive.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
+import 'package:stackwallet/db/migrate_wallets_to_isar.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/contact.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
@@ -353,71 +354,20 @@ class DbVersionMigrator with WalletDB {
         // try to continue migrating
         return await migrate(11, secureStore: secureStore);
 
+      case 11:
+        // migrate
+        await _v11(secureStore);
+
+        // update version
+        await DB.instance.put<dynamic>(
+            boxName: DB.boxNameDBInfo, key: "hive_data_version", value: 12);
+
+        // try to continue migrating
+        return await migrate(12, secureStore: secureStore);
+
       default:
         // finally return
         return;
-    }
-  }
-
-  Future<void> _v10(SecureStorageInterface secureStore) async {
-    await Hive.openBox<dynamic>(DB.boxNameAllWalletsData);
-    await Hive.openBox<dynamic>(DB.boxNamePrefs);
-    final walletsService = WalletsService(secureStorageInterface: secureStore);
-    final prefs = Prefs.instance;
-    final walletInfoList = await walletsService.walletNames;
-    await prefs.init();
-    await MainDB.instance.initMainDB();
-
-    for (final walletId in walletInfoList.keys) {
-      final info = walletInfoList[walletId]!;
-      assert(info.walletId == walletId);
-
-      if (info.coin == Coin.firo &&
-          MainDB.instance.isar.lelantusCoins
-                  .where()
-                  .walletIdEqualTo(walletId)
-                  .countSync() ==
-              0) {
-        final walletBox = await Hive.openBox<dynamic>(walletId);
-
-        final hiveLCoins = DB.instance.get<dynamic>(
-              boxName: walletId,
-              key: "_lelantus_coins",
-            ) as List? ??
-            [];
-
-        final jindexes = (DB.instance
-                    .get<dynamic>(boxName: walletId, key: "jindex") as List? ??
-                [])
-            .cast<int>();
-
-        final List<isar_models.LelantusCoin> coins = [];
-        for (final e in hiveLCoins) {
-          final map = e as Map;
-          final lcoin = map.values.first as LelantusCoin;
-
-          final isJMint = jindexes.contains(lcoin.index);
-
-          final coin = isar_models.LelantusCoin(
-            walletId: walletId,
-            txid: lcoin.txId,
-            value: lcoin.value.toString(),
-            mintIndex: lcoin.index,
-            anonymitySetId: lcoin.anonymitySetId,
-            isUsed: lcoin.isUsed,
-            isJMint: isJMint,
-            otherData: null,
-          );
-
-          coins.add(coin);
-        }
-
-        if (coins.isNotEmpty) {
-          await MainDB.instance.isar.writeTxn(() async {
-            await MainDB.instance.isar.lelantusCoins.putAll(coins);
-          });
-        }
-      }
     }
   }
 
@@ -618,5 +568,71 @@ class DbVersionMigrator with WalletDB {
     });
 
     await addressBookBox.deleteFromDisk();
+  }
+
+  Future<void> _v10(SecureStorageInterface secureStore) async {
+    await Hive.openBox<dynamic>(DB.boxNameAllWalletsData);
+    await Hive.openBox<dynamic>(DB.boxNamePrefs);
+    final walletsService = WalletsService(secureStorageInterface: secureStore);
+    final prefs = Prefs.instance;
+    final walletInfoList = await walletsService.walletNames;
+    await prefs.init();
+    await MainDB.instance.initMainDB();
+
+    for (final walletId in walletInfoList.keys) {
+      final info = walletInfoList[walletId]!;
+      assert(info.walletId == walletId);
+
+      if (info.coin == Coin.firo &&
+          MainDB.instance.isar.lelantusCoins
+                  .where()
+                  .walletIdEqualTo(walletId)
+                  .countSync() ==
+              0) {
+        final walletBox = await Hive.openBox<dynamic>(walletId);
+
+        final hiveLCoins = DB.instance.get<dynamic>(
+              boxName: walletId,
+              key: "_lelantus_coins",
+            ) as List? ??
+            [];
+
+        final jindexes = (DB.instance
+                    .get<dynamic>(boxName: walletId, key: "jindex") as List? ??
+                [])
+            .cast<int>();
+
+        final List<isar_models.LelantusCoin> coins = [];
+        for (final e in hiveLCoins) {
+          final map = e as Map;
+          final lcoin = map.values.first as LelantusCoin;
+
+          final isJMint = jindexes.contains(lcoin.index);
+
+          final coin = isar_models.LelantusCoin(
+            walletId: walletId,
+            txid: lcoin.txId,
+            value: lcoin.value.toString(),
+            mintIndex: lcoin.index,
+            anonymitySetId: lcoin.anonymitySetId,
+            isUsed: lcoin.isUsed,
+            isJMint: isJMint,
+            otherData: null,
+          );
+
+          coins.add(coin);
+        }
+
+        if (coins.isNotEmpty) {
+          await MainDB.instance.isar.writeTxn(() async {
+            await MainDB.instance.isar.lelantusCoins.putAll(coins);
+          });
+        }
+      }
+    }
+  }
+
+  Future<void> _v11(SecureStorageInterface secureStore) async {
+    await migrateWalletsToIsar(secureStore: secureStore);
   }
 }

@@ -2,13 +2,14 @@ import 'dart:convert';
 
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:stackwallet/db/hive/db.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
 
-void migrateWallets({
+Future<void> migrateWalletsToIsar({
   required SecureStorageInterface secureStore,
 }) async {
   final allWalletsBox = await Hive.openBox<dynamic>(DB.boxNameAllWalletsData);
@@ -105,6 +106,10 @@ void migrateWallets({
 
     newInfo.add(info);
   }
+
+  await MainDB.instance.isar.writeTxn(() async {
+    await MainDB.instance.isar.walletInfo.putAll(newInfo);
+  });
 }
 
 void _cleanupOnSuccess({required List<String> walletIds}) async {
