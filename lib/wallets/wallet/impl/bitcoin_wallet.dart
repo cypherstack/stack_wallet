@@ -15,12 +15,9 @@ class BitcoinWallet extends Bip39HDWallet with ElectrumXMixin {
   int get isarTransactionVersion => 2;
 
   BitcoinWallet(
-    super.cryptoCurrency, {
+    Bitcoin cryptoCurrency, {
     required NodeService nodeService,
-  }) {
-    // TODO: [prio=low] ensure this hack isn't needed
-    assert(cryptoCurrency is Bitcoin);
-
+  }) : super(cryptoCurrency) {
     this.nodeService = nodeService;
   }
 

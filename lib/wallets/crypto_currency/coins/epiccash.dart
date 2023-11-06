@@ -1,7 +1,7 @@
 import 'package:flutter_libepiccash/lib.dart' as epic;
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/wallets/crypto_currency/bip39_currency.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_currency.dart';
 
 class Epiccash extends Bip39Currency {
   Epiccash(super.network) {

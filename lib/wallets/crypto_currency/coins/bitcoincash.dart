@@ -8,8 +8,8 @@ import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
-import 'package:stackwallet/wallets/crypto_currency/bip39_hd_currency.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 
 class Bitcoincash extends Bip39HDCurrency {
   Bitcoincash(super.network) {

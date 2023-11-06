@@ -4,13 +4,17 @@ import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/epiccash.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_wallet.dart';
 
 class EpiccashWallet extends Bip39Wallet {
-  final NodeService nodeService;
+  late final NodeService nodeService;
 
-  EpiccashWallet(super.cryptoCurrency, {required this.nodeService});
+  EpiccashWallet(
+    Epiccash cryptoCurrency, {
+    required this.nodeService,
+  }) : super(cryptoCurrency);
 
   @override
   Future<TxData> confirmSend({required TxData txData}) {
