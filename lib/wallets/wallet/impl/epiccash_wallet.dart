@@ -1,6 +1,5 @@
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
-import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
@@ -9,12 +8,7 @@ import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_wallet.dart';
 
 class EpiccashWallet extends Bip39Wallet {
-  late final NodeService nodeService;
-
-  EpiccashWallet(
-    Epiccash cryptoCurrency, {
-    required this.nodeService,
-  }) : super(cryptoCurrency);
+  EpiccashWallet(Epiccash cryptoCurrency) : super(cryptoCurrency);
 
   @override
   Future<TxData> confirmSend({required TxData txData}) {

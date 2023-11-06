@@ -8,14 +8,17 @@ import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_wallet.dart';
+import 'package:stackwallet/wallets/wallet/mixins/multi_address.dart';
 
-abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T> {
+abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
+    with MultiAddress<T> {
   Bip39HDWallet(T cryptoCurrency) : super(cryptoCurrency);
 
   /// Generates a receiving address of [info.mainAddressType]. If none
   /// are in the current wallet db it will generate at index 0, otherwise the
   /// highest index found in the current wallet db.
-  Future<Address> generateNewReceivingAddress() async {
+  @override
+  Future<void> generateNewReceivingAddress() async {
     final current = await getCurrentReceivingAddress();
     final index = current?.derivationIndex ?? 0;
     const chain = 0; // receiving address
@@ -51,8 +54,6 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T> {
       newAddress: address.value,
       isar: mainDB.isar,
     );
-
-    return address;
   }
 
   // ========== Private ========================================================

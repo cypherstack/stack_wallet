@@ -9,7 +9,6 @@ import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2
 import 'package:stackwallet/services/coins/bitcoincash/bch_utils.dart';
 import 'package:stackwallet/services/coins/bitcoincash/cashtokens.dart'
     as cash_tokens;
-import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
@@ -23,12 +22,7 @@ class BitcoincashWallet extends Bip39HDWallet with ElectrumXMixin {
   @override
   int get isarTransactionVersion => 2;
 
-  BitcoincashWallet(
-    Bitcoincash cryptoCurrency, {
-    required NodeService nodeService,
-  }) : super(cryptoCurrency) {
-    this.nodeService = nodeService;
-  }
+  BitcoincashWallet(Bitcoincash cryptoCurrency) : super(cryptoCurrency);
 
   // ===========================================================================
 
@@ -391,5 +385,11 @@ class BitcoincashWallet extends Bip39HDWallet with ElectrumXMixin {
           (feeRatePerKB / 1000).ceil()),
       fractionDigits: info.coin.decimals,
     );
+  }
+
+  @override
+  Future<void> checkReceivingAddressForTransactions() {
+    // TODO: implement checkReceivingAddressForTransactions
+    throw UnimplementedError();
   }
 }

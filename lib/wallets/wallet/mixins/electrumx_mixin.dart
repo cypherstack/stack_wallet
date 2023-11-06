@@ -8,9 +8,7 @@ import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
-import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
@@ -19,7 +17,6 @@ import 'package:uuid/uuid.dart';
 mixin ElectrumXMixin on Bip39HDWallet {
   late ElectrumX electrumX;
   late CachedElectrumX electrumXCached;
-  late NodeService nodeService;
 
   Future<int> fetchChainHeight() async {
     try {
@@ -79,9 +76,8 @@ mixin ElectrumXMixin on Bip39HDWallet {
     return txnsData;
   }
 
-  Future<ElectrumXNode> getCurrentNode() async {
-    final node = nodeService.getPrimaryNodeFor(coin: cryptoCurrency.coin) ??
-        DefaultNodes.getNodeFor(cryptoCurrency.coin);
+  Future<ElectrumXNode> getCurrentElectrumXNode() async {
+    final node = getCurrentNode();
 
     return ElectrumXNode(
       address: node.host,
@@ -104,7 +100,7 @@ mixin ElectrumXMixin on Bip39HDWallet {
             ))
         .toList();
 
-    final newNode = await getCurrentNode();
+    final newNode = await getCurrentElectrumXNode();
     electrumX = ElectrumX.from(
       node: newNode,
       prefs: prefs,
@@ -471,7 +467,7 @@ mixin ElectrumXMixin on Bip39HDWallet {
 
   @override
   Future<void> updateNode() async {
-    final node = await getCurrentNode();
+    final node = await getCurrentElectrumXNode();
     await updateElectrumX(newNode: node);
   }
 

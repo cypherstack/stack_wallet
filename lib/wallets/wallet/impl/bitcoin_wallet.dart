@@ -2,7 +2,6 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
@@ -14,12 +13,7 @@ class BitcoinWallet extends Bip39HDWallet with ElectrumXMixin {
   @override
   int get isarTransactionVersion => 2;
 
-  BitcoinWallet(
-    Bitcoin cryptoCurrency, {
-    required NodeService nodeService,
-  }) : super(cryptoCurrency) {
-    this.nodeService = nodeService;
-  }
+  BitcoinWallet(Bitcoin cryptoCurrency) : super(cryptoCurrency);
 
   // ===========================================================================
 
@@ -113,5 +107,11 @@ class BitcoinWallet extends Bip39HDWallet with ElectrumXMixin {
               (feeRatePerKB / 1000).ceil()),
       fractionDigits: info.coin.decimals,
     );
+  }
+
+  @override
+  Future<void> checkReceivingAddressForTransactions() {
+    // TODO: implement checkReceivingAddressForTransactions
+    throw UnimplementedError();
   }
 }

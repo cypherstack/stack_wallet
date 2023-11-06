@@ -60,58 +60,6 @@ import 'package:stackwallet/widgets/crypto_notifications.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 
-const int MINIMUM_CONFIRMATIONS = 1;
-final Amount DUST_LIMIT = Amount(
-  rawValue: BigInt.from(294),
-  fractionDigits: Coin.bitcoin.decimals,
-);
-final Amount DUST_LIMIT_P2PKH = Amount(
-  rawValue: BigInt.from(546),
-  fractionDigits: Coin.bitcoin.decimals,
-);
-
-const String GENESIS_HASH_MAINNET =
-    "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f";
-const String GENESIS_HASH_TESTNET =
-    "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943";
-
-String constructDerivePath({
-  required DerivePathType derivePathType,
-  required int networkWIF,
-  int account = 0,
-  required int chain,
-  required int index,
-}) {
-  String coinType;
-  switch (networkWIF) {
-    case 0x80: // btc mainnet wif
-      coinType = "0"; // btc mainnet
-      break;
-    case 0xef: // btc testnet wif
-      coinType = "1"; // btc testnet
-      break;
-    default:
-      throw Exception("Invalid Bitcoin network wif used!");
-  }
-
-  int purpose;
-  switch (derivePathType) {
-    case DerivePathType.bip44:
-      purpose = 44;
-      break;
-    case DerivePathType.bip49:
-      purpose = 49;
-      break;
-    case DerivePathType.bip84:
-      purpose = 84;
-      break;
-    default:
-      throw Exception("DerivePathType $derivePathType not supported");
-  }
-
-  return "m/$purpose'/$coinType'/$account'/$chain/$index";
-}
-
 class BitcoinWallet extends CoinServiceAPI
     with
         WalletCache,
