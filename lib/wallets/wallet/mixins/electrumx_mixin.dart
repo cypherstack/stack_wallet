@@ -621,6 +621,42 @@ mixin ElectrumXMixin on Bip39HDWallet {
     }
   }
 
+
+  @override
+  Future<void> checkChangeAddressForTransactions() async {
+    try {
+      final currentChange = await getCurrentChangeAddress();
+
+      final bool needsGenerate;
+      if (currentChange == null) {
+        // no addresses in db yet for some reason.
+        // Should not happen at this point...
+
+        needsGenerate = true;
+      } else {
+        final txCount = await fetchTxCount(
+          addressScriptHash: currentChange.value,
+        );
+        needsGenerate = txCount > 0 || currentChange.derivationIndex < 0;
+      }
+
+      if (needsGenerate) {
+        await generateNewChangeAddress();
+
+        // TODO: get rid of this? Could cause problems (long loading/infinite loop or something)
+        // keep checking until address with no tx history is set as current
+        await checkChangeAddressForTransactions();
+      }
+    } catch (e, s) {
+      Logging.instance.log(
+        "Exception rethrown from _checkReceivingAddressForTransactions"
+            "($cryptoCurrency): $e\n$s",
+        level: LogLevel.Error,
+      );
+      rethrow;
+    }
+  }
+
   @override
   Future<void> updateUTXOs() async {
     final allAddresses = await fetchAllOwnAddresses();
@@ -684,7 +720,7 @@ mixin ElectrumXMixin on Bip39HDWallet {
 
   Future<List<Address>> fetchAllOwnAddresses();
 
-  /// callback to pass to [parseUTXO] to check if the utxo should be marked
+  /// Certain coins need to check if the utxo should be marked
   /// as blocked as well as give a reason.
   ({String? blockedReason, bool blocked}) checkBlockUTXO(
     Map<String, dynamic> jsonUTXO,

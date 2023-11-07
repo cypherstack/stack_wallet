@@ -1,3 +1,4 @@
+import 'package:isar/isar.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -9,6 +10,14 @@ import 'package:stackwallet/wallets/wallet/intermediate/bip39_wallet.dart';
 
 class EpiccashWallet extends Bip39Wallet {
   EpiccashWallet(Epiccash cryptoCurrency) : super(cryptoCurrency);
+
+  @override
+  FilterOperation? get changeAddressFilterOperation =>
+      FilterGroup.and(standardChangeAddressFilters);
+
+  @override
+  FilterOperation? get receivingAddressFilterOperation =>
+      FilterGroup.and(standardReceivingAddressFilters);
 
   @override
   Future<TxData> confirmSend({required TxData txData}) {

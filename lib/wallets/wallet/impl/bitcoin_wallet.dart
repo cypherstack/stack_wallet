@@ -10,9 +10,17 @@ import 'package:tuple/tuple.dart';
 
 class BitcoinWallet extends Bip39HDWallet with ElectrumXMixin {
   @override
-  int get isarTransactionVersion => 2;
+  int get isarTransactionVersion => 2; // TODO actually do this
 
   BitcoinWallet(Bitcoin cryptoCurrency) : super(cryptoCurrency);
+
+  @override
+  FilterOperation? get changeAddressFilterOperation =>
+      FilterGroup.and(standardChangeAddressFilters);
+
+  @override
+  FilterOperation? get receivingAddressFilterOperation =>
+      FilterGroup.and(standardReceivingAddressFilters);
 
   // ===========================================================================
 

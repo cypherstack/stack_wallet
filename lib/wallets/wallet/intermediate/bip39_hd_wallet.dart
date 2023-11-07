@@ -14,7 +14,7 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     with MultiAddress<T> {
   Bip39HDWallet(T cryptoCurrency) : super(cryptoCurrency);
 
-  /// Generates a receiving address of [info.mainAddressType]. If none
+  /// Generates a receiving address. If none
   /// are in the current wallet db it will generate at index 0, otherwise the
   /// highest index found in the current wallet db.
   @override
@@ -23,30 +23,10 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     final index = current?.derivationIndex ?? 0;
     const chain = 0; // receiving address
 
-    final DerivePathType derivePathType;
-    switch (info.mainAddressType) {
-      case AddressType.p2pkh:
-        derivePathType = DerivePathType.bip44;
-        break;
-
-      case AddressType.p2sh:
-        derivePathType = DerivePathType.bip49;
-        break;
-
-      case AddressType.p2wpkh:
-        derivePathType = DerivePathType.bip84;
-        break;
-
-      default:
-        throw Exception(
-          "Invalid AddressType accessed in $runtimeType generateNewReceivingAddress()",
-        );
-    }
-
     final address = await _generateAddress(
       chain: chain,
       index: index,
-      derivePathType: derivePathType,
+      derivePathType: DerivePathTypeExt.primaryFor(info.coin),
     );
 
     await mainDB.putAddress(address);
@@ -54,6 +34,26 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
       newAddress: address.value,
       isar: mainDB.isar,
     );
+  }
+
+  /// Generates a change address. If none
+  /// are in the current wallet db it will generate at index 0, otherwise the
+  /// highest index found in the current wallet db.
+  @override
+  Future<void> generateNewChangeAddress() async {
+    await mainDB.isar.writeTxn(() async {
+      final current = await getCurrentChangeAddress();
+      final index = current?.derivationIndex ?? 0;
+      const chain = 1; // change address
+
+      final address = await _generateAddress(
+        chain: chain,
+        index: index,
+        derivePathType: DerivePathTypeExt.primaryFor(info.coin),
+      );
+
+      await mainDB.isar.addresses.put(address);
+    });
   }
 
   // ========== Private ========================================================

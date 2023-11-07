@@ -47,6 +47,12 @@ import 'package:tuple/tuple.dart';
 class WowneroWallet extends CryptonoteWallet with MultiAddress {
   WowneroWallet(Wownero wownero) : super(wownero);
 
+  @override
+  FilterOperation? get changeAddressFilterOperation => null;
+
+  @override
+  FilterOperation? get receivingAddressFilterOperation => null;
+
   final prepareSendMutex = Mutex();
   final estimateFeeMutex = Mutex();
 
@@ -945,6 +951,16 @@ class WowneroWallet extends CryptonoteWallet with MultiAddress {
   }) async =>
       await _pathForWalletDir(name: name, type: type)
           .then((path) => '$path/$name');
+
+  @override
+  Future<void> checkChangeAddressForTransactions() async {
+    // do nothing
+  }
+
+  @override
+  Future<void> generateNewChangeAddress() async {
+    // do nothing
+  }
 
   // TODO: [prio=med/low] is this required?
   // bool _isActive = false;

@@ -11,6 +11,14 @@ import 'package:tuple/tuple.dart';
 class DogecoinWallet extends Bip39HDWallet with ElectrumXMixin {
   DogecoinWallet(CryptoCurrencyNetwork network) : super(Dogecoin(network));
 
+  @override
+  FilterOperation? get changeAddressFilterOperation =>
+      FilterGroup.and(standardChangeAddressFilters);
+
+  @override
+  FilterOperation? get receivingAddressFilterOperation =>
+      FilterGroup.and(standardReceivingAddressFilters);
+
   // ===========================================================================
 
   @override

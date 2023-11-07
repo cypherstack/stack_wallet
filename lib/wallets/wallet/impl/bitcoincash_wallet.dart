@@ -23,6 +23,32 @@ class BitcoincashWallet extends Bip39HDWallet with ElectrumXMixin {
 
   BitcoincashWallet(Bitcoincash cryptoCurrency) : super(cryptoCurrency);
 
+  @override
+  FilterOperation? get changeAddressFilterOperation => FilterGroup.and(
+        [
+          ...standardChangeAddressFilters,
+          FilterGroup.not(
+            const FilterCondition.startsWith(
+              property: "derivationPath",
+              value: "m/44'/0'",
+            ),
+          ),
+        ],
+      );
+
+  @override
+  FilterOperation? get receivingAddressFilterOperation => FilterGroup.and(
+        [
+          ...standardReceivingAddressFilters,
+          FilterGroup.not(
+            const FilterCondition.startsWith(
+              property: "derivationPath",
+              value: "m/44'/0'",
+            ),
+          ),
+        ],
+      );
+
   // ===========================================================================
 
   @override
