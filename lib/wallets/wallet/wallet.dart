@@ -467,6 +467,8 @@ abstract class Wallet<T extends CryptoCurrency> {
   }
 
   Future<void> exit() async {
+    _periodicRefreshTimer?.cancel();
+    _networkAliveTimer?.cancel();
     // TODO:
   }
 

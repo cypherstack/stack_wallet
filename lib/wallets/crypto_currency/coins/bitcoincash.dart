@@ -15,13 +15,24 @@ class Bitcoincash extends Bip39HDCurrency {
   Bitcoincash(super.network) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        coin = Coin.bitcoin;
+        coin = Coin.bitcoincash;
       case CryptoCurrencyNetwork.test:
-        coin = Coin.bitcoinTestNet;
+        coin = Coin.bitcoincashTestnet;
       default:
         throw Exception("Unsupported network: $network");
     }
   }
+
+  @override
+  int get maxUnusedAddressGap => 50;
+  @override
+  int get maxNumberOfIndexesToCheck => 10000000;
+
+  @override
+  List<DerivePathType> get supportedDerivationPathTypes => [
+        DerivePathType.bip44,
+        if (coin != Coin.bitcoincashTestnet) DerivePathType.bch44,
+      ];
 
   @override
   String get genesisHash {
@@ -125,7 +136,7 @@ class Bitcoincash extends Bip39HDCurrency {
           version: networkParams.p2pkhPrefix,
         );
 
-        return (address: addr, addressType: AddressType.p2sh);
+        return (address: addr, addressType: AddressType.p2pkh);
 
       default:
         throw Exception("DerivePathType $derivePathType not supported");

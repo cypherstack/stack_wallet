@@ -14,6 +14,14 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     with MultiAddress<T> {
   Bip39HDWallet(T cryptoCurrency) : super(cryptoCurrency);
 
+  Future<coinlib.HDPrivateKey> getRootHDNode() async {
+    final seed = bip39.mnemonicToSeed(
+      await getMnemonic(),
+      passphrase: await getMnemonicPassphrase(),
+    );
+    return coinlib.HDPrivateKey.fromSeed(seed);
+  }
+
   /// Generates a receiving address. If none
   /// are in the current wallet db it will generate at index 0, otherwise the
   /// highest index found in the current wallet db.
@@ -58,20 +66,12 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
 
   // ========== Private ========================================================
 
-  Future<coinlib.HDPrivateKey> _generateRootHDNode() async {
-    final seed = bip39.mnemonicToSeed(
-      await getMnemonic(),
-      passphrase: await getMnemonicPassphrase(),
-    );
-    return coinlib.HDPrivateKey.fromSeed(seed);
-  }
-
   Future<Address> _generateAddress({
     required int chain,
     required int index,
     required DerivePathType derivePathType,
   }) async {
-    final root = await _generateRootHDNode();
+    final root = await getRootHDNode();
 
     final derivationPath = cryptoCurrency.constructDerivePath(
       derivePathType: derivePathType,
@@ -174,12 +174,6 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
   @override
   Future<TxData> prepareSend({required TxData txData}) {
     // TODO: implement prepareSend
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> recover({required bool isRescan}) {
-    // TODO: implement recover
     throw UnimplementedError();
   }
 }

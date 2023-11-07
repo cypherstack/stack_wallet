@@ -7,7 +7,21 @@ import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 
 class Dogecoin extends Bip39HDCurrency {
-  Dogecoin(super.network);
+  Dogecoin(super.network) {
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        coin = Coin.dogecoin;
+      case CryptoCurrencyNetwork.test:
+        coin = Coin.dogecoinTestNet;
+      default:
+        throw Exception("Unsupported network: $network");
+    }
+  }
+
+  @override
+  List<DerivePathType> get supportedDerivationPathTypes => [
+        DerivePathType.bip44,
+      ];
 
   @override
   String constructDerivePath({

@@ -19,6 +19,13 @@ class Bitcoin extends Bip39HDCurrency {
   }
 
   @override
+  List<DerivePathType> get supportedDerivationPathTypes => [
+        DerivePathType.bip44,
+        DerivePathType.bip49,
+        DerivePathType.bip84,
+      ];
+
+  @override
   String get genesisHash {
     switch (network) {
       case CryptoCurrencyNetwork.main:

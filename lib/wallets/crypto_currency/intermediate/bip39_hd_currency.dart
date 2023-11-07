@@ -15,6 +15,11 @@ abstract class Bip39HDCurrency extends Bip39Currency {
 
   Amount get dustLimit;
 
+  List<DerivePathType> get supportedDerivationPathTypes;
+
+  int get maxUnusedAddressGap => 50;
+  int get maxNumberOfIndexesToCheck => 10000;
+
   String constructDerivePath({
     required DerivePathType derivePathType,
     int account = 0,

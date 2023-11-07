@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:bip47/src/util.dart';
+import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:decimal/decimal.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
@@ -10,6 +12,7 @@ import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:uuid/uuid.dart';
@@ -31,6 +34,31 @@ mixin ElectrumXMixin on Bip39HDWallet {
     final transactions =
         await electrumX.getHistory(scripthash: addressScriptHash);
     return transactions.length;
+  }
+
+  Future<Map<String, int>> fetchTxCountBatched({
+    required Map<String, String> addresses,
+  }) async {
+    try {
+      final Map<String, List<dynamic>> args = {};
+      for (final entry in addresses.entries) {
+        args[entry.key] = [
+          cryptoCurrency.addressToScriptHash(address: entry.value),
+        ];
+      }
+      final response = await electrumX.getBatchHistory(args: args);
+
+      final Map<String, int> result = {};
+      for (final entry in response.entries) {
+        result[entry.key] = entry.value.length;
+      }
+      return result;
+    } catch (e, s) {
+      Logging.instance.log(
+          "Exception rethrown in _getBatchTxCount(address: $addresses: $e\n$s",
+          level: LogLevel.Error);
+      rethrow;
+    }
   }
 
   Future<List<({Transaction transaction, Address address})>>
@@ -118,6 +146,87 @@ mixin ElectrumXMixin on Bip39HDWallet {
   }
 
   //============================================================================
+
+  Future<({List<Address> addresses, int index})> checkGaps(
+    int txCountBatchSize,
+    coinlib.HDPrivateKey root,
+    DerivePathType type,
+    int chain,
+  ) async {
+    List<Address> addressArray = [];
+    int gapCounter = 0;
+    int highestIndexWithHistory = 0;
+
+    for (int index = 0;
+        index < cryptoCurrency.maxNumberOfIndexesToCheck &&
+            gapCounter < cryptoCurrency.maxUnusedAddressGap;
+        index += txCountBatchSize) {
+      List<String> iterationsAddressArray = [];
+      Logging.instance.log(
+          "index: $index, \t GapCounter $chain ${type.name}: $gapCounter",
+          level: LogLevel.Info);
+
+      final _id = "k_$index";
+      Map<String, String> txCountCallArgs = {};
+
+      for (int j = 0; j < txCountBatchSize; j++) {
+        final derivePath = cryptoCurrency.constructDerivePath(
+          derivePathType: type,
+          chain: chain,
+          index: index + j,
+        );
+
+        final keys = root.derivePath(derivePath);
+
+        final addressData = cryptoCurrency.getAddressForPublicKey(
+          publicKey: keys.publicKey,
+          derivePathType: type,
+        );
+
+        final address = Address(
+          walletId: walletId,
+          value: addressData.address.toString(),
+          publicKey: keys.publicKey.data,
+          type: addressData.addressType,
+          derivationIndex: index + j,
+          derivationPath: DerivationPath()..value = derivePath,
+          subType:
+              chain == 0 ? AddressSubType.receiving : AddressSubType.change,
+        );
+
+        addressArray.add(address);
+
+        txCountCallArgs.addAll({
+          "${_id}_$j": addressData.address.toString(),
+        });
+      }
+
+      // get address tx counts
+      final counts = await fetchTxCountBatched(addresses: txCountCallArgs);
+
+      // check and add appropriate addresses
+      for (int k = 0; k < txCountBatchSize; k++) {
+        int count = counts["${_id}_$k"]!;
+        if (count > 0) {
+          iterationsAddressArray.add(txCountCallArgs["${_id}_$k"]!);
+
+          // update highest
+          highestIndexWithHistory = index + k;
+
+          // reset counter
+          gapCounter = 0;
+        }
+
+        // increase counter when no tx history found
+        if (count == 0) {
+          gapCounter++;
+        }
+      }
+      // // cache all the transactions while waiting for the current function to finish.
+      // unawaited(getTransactionCacheEarly(addressArray));
+    }
+    return (index: highestIndexWithHistory, addresses: addressArray);
+  }
 
   Future<List<Map<String, dynamic>>> fetchHistory(
     Iterable<String> allAddresses,
@@ -621,7 +730,6 @@ mixin ElectrumXMixin on Bip39HDWallet {
     }
   }
 
-
   @override
   Future<void> checkChangeAddressForTransactions() async {
     try {
@@ -650,9 +758,127 @@ mixin ElectrumXMixin on Bip39HDWallet {
     } catch (e, s) {
       Logging.instance.log(
         "Exception rethrown from _checkReceivingAddressForTransactions"
-            "($cryptoCurrency): $e\n$s",
+        "($cryptoCurrency): $e\n$s",
         level: LogLevel.Error,
       );
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> recover({required bool isRescan}) async {
+    final root = await getRootHDNode();
+
+    final List<Future<({int index, List<Address> addresses})>> receiveFutures =
+        [];
+    final List<Future<({int index, List<Address> addresses})>> changeFutures =
+        [];
+
+    const receiveChain = 0;
+    const changeChain = 1;
+
+    // actual size is 24 due to p2pkh and p2sh so 12x2
+    const txCountBatchSize = 12;
+
+    try {
+      await refreshMutex.protect(() async {
+        if (isRescan) {
+          // clear cache
+          await electrumXCached.clearSharedTransactionCache(coin: info.coin);
+          // clear blockchain info
+          await mainDB.deleteWalletBlockchainData(walletId);
+        }
+
+        // receiving addresses
+        Logging.instance.log(
+          "checking receiving addresses...",
+          level: LogLevel.Info,
+        );
+
+        for (final type in cryptoCurrency.supportedDerivationPathTypes) {
+          receiveFutures.add(
+            checkGaps(
+              txCountBatchSize,
+              root,
+              type,
+              receiveChain,
+            ),
+          );
+        }
+
+        // change addresses
+        Logging.instance.log(
+          "checking change addresses...",
+          level: LogLevel.Info,
+        );
+        for (final type in cryptoCurrency.supportedDerivationPathTypes) {
+          changeFutures.add(
+            checkGaps(
+              txCountBatchSize,
+              root,
+              type,
+              changeChain,
+            ),
+          );
+        }
+
+        // io limitations may require running these linearly instead
+        final futuresResult = await Future.wait([
+          Future.wait(receiveFutures),
+          Future.wait(changeFutures),
+        ]);
+
+        final receiveResults = futuresResult[0];
+        final changeResults = futuresResult[1];
+
+        final List<Address> addressesToStore = [];
+
+        int highestReceivingIndexWithHistory = 0;
+
+        for (final tuple in receiveResults) {
+          if (tuple.addresses.isEmpty) {
+            await checkReceivingAddressForTransactions();
+          } else {
+            highestReceivingIndexWithHistory = max(
+              tuple.index,
+              highestReceivingIndexWithHistory,
+            );
+            addressesToStore.addAll(tuple.addresses);
+          }
+        }
+
+        int highestChangeIndexWithHistory = 0;
+        // If restoring a wallet that never sent any funds with change, then set changeArray
+        // manually. If we didn't do this, it'd store an empty array.
+        for (final tuple in changeResults) {
+          if (tuple.addresses.isEmpty) {
+            await checkChangeAddressForTransactions();
+          } else {
+            highestChangeIndexWithHistory = max(
+              tuple.index,
+              highestChangeIndexWithHistory,
+            );
+            addressesToStore.addAll(tuple.addresses);
+          }
+        }
+
+        // remove extra addresses to help minimize risk of creating a large gap
+        addressesToStore.removeWhere((e) =>
+            e.subType == AddressSubType.change &&
+            e.derivationIndex > highestChangeIndexWithHistory);
+        addressesToStore.removeWhere((e) =>
+            e.subType == AddressSubType.receiving &&
+            e.derivationIndex > highestReceivingIndexWithHistory);
+
+        await mainDB.updateOrPutAddresses(addressesToStore);
+      });
+
+      await refresh();
+    } catch (e, s) {
+      Logging.instance.log(
+          "Exception rethrown from electrumx_mixin recover(): $e\n$s",
+          level: LogLevel.Info);
+
       rethrow;
     }
   }
