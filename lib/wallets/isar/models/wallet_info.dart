@@ -162,11 +162,10 @@ class WalletInfo implements IsarId {
     } else if (flag) {
       final highest = await isar.walletInfo
           .where()
-          .walletIdEqualTo(walletId)
           .sortByFavouriteOrderIndexDesc()
           .favouriteOrderIndexProperty()
           .findFirst();
-      index = highest ?? 0;
+      index = (highest ?? 0) + 1;
     } else {
       index = -1;
     }

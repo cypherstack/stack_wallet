@@ -17,8 +17,8 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/favourite_wallets_provider.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/db_watchers/favourite_wallets_watcher.dart';
 
 class DesktopFavoriteWallets extends ConsumerWidget {
   const DesktopFavoriteWallets({Key? key}) : super(key: key);
@@ -30,117 +30,112 @@ class DesktopFavoriteWallets extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: $runtimeType");
+    final favourites = ref.watch(pFavouriteWalletInfos(true));
 
-    return FavouriteWalletsWatcher(
-      builder: (context, favourites) {
-        bool hasFavorites = favourites.isNotEmpty;
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+    final bool hasFavorites = favourites.isNotEmpty;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Favorite wallets",
-                  style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldActiveSearchIconRight,
-                  ),
-                ),
-                CustomTextButton(
-                  text: "Edit",
-                  onTap: () {
-                    Navigator.of(context)
-                        .pushNamed(ManageFavoritesView.routeName);
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxHeight: (cardHeight * 2) + standardPadding,
-                minHeight: cardHeight,
+            Text(
+              "Favorite wallets",
+              style: STextStyles.desktopTextExtraSmall(context).copyWith(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldActiveSearchIconRight,
               ),
-              child: hasFavorites
-                  ? SingleChildScrollView(
-                      primary: false,
-                      child: Wrap(
-                        spacing: 16,
-                        runSpacing: 16,
-                        children: [
-                          ...favourites.map((e) {
-                            return FavoriteCard(
-                              walletId: e.walletId,
-                              key: Key(e.name),
-                              width: cardWidth,
-                              height: cardHeight,
-                            );
-                          })
-                        ],
-                      ),
-                    )
-                  : Container(
-                      height: cardHeight,
-                      width: cardWidth,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textFieldDefaultBG,
-                        borderRadius: BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
-                        ),
-                      ),
-                      child: MaterialButton(
-                        splashColor: Theme.of(context)
-                            .extension<StackColors>()!
-                            .highlight,
-                        key: const Key("favoriteWalletsAddFavoriteButtonKey"),
-                        padding: const EdgeInsets.all(12),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                              Constants.size.circularBorderRadius),
-                        ),
-                        onPressed: () {
-                          Navigator.of(context)
-                              .pushNamed(ManageFavoritesView.routeName);
-                        },
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SvgPicture.asset(
-                              Assets.svg.plus,
-                              width: 14,
-                              height: 14,
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textSubtitle1,
-                            ),
-                            const SizedBox(
-                              width: 4,
-                            ),
-                            Text(
-                              "Add a favorite",
-                              style: STextStyles.itemSubtitle(context).copyWith(
-                                fontSize: 18,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
             ),
-            const SizedBox(
-              height: 40,
+            CustomTextButton(
+              text: "Edit",
+              onTap: () {
+                Navigator.of(context).pushNamed(ManageFavoritesView.routeName);
+              },
             ),
           ],
-        );
-      },
+        ),
+        const SizedBox(
+          height: 20,
+        ),
+        ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxHeight: (cardHeight * 2) + standardPadding,
+            minHeight: cardHeight,
+          ),
+          child: hasFavorites
+              ? SingleChildScrollView(
+                  primary: false,
+                  child: Wrap(
+                    spacing: 16,
+                    runSpacing: 16,
+                    children: [
+                      ...favourites.map((e) {
+                        return FavoriteCard(
+                          walletId: e.walletId,
+                          key: Key(e.name),
+                          width: cardWidth,
+                          height: cardHeight,
+                        );
+                      })
+                    ],
+                  ),
+                )
+              : Container(
+                  height: cardHeight,
+                  width: cardWidth,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
+                  ),
+                  child: MaterialButton(
+                    splashColor:
+                        Theme.of(context).extension<StackColors>()!.highlight,
+                    key: const Key("favoriteWalletsAddFavoriteButtonKey"),
+                    padding: const EdgeInsets.all(12),
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context)
+                          .pushNamed(ManageFavoritesView.routeName);
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SvgPicture.asset(
+                          Assets.svg.plus,
+                          width: 14,
+                          height: 14,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textSubtitle1,
+                        ),
+                        const SizedBox(
+                          width: 4,
+                        ),
+                        Text(
+                          "Add a favorite",
+                          style: STextStyles.itemSubtitle(context).copyWith(
+                            fontSize: 18,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+        ),
+        const SizedBox(
+          height: 40,
+        ),
+      ],
     );
   }
 }

@@ -7,17 +7,19 @@ import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 
 class _Watcher extends ChangeNotifier {
+  final bool isFavourite;
   late final StreamSubscription<List<WalletInfo>> _streamSubscription;
 
   List<WalletInfo> _value;
 
   List<WalletInfo> get value => _value;
 
-  _Watcher(this._value, Isar isar) {
+  _Watcher(this._value, this.isFavourite, Isar isar) {
     _streamSubscription = isar.walletInfo
         .filter()
-        .isFavouriteEqualTo(true)
-        .watch()
+        .isFavouriteEqualTo(isFavourite)
+        .sortByFavouriteOrderIndex()
+        .watch(fireImmediately: true)
         .listen((event) {
       _value = event;
       notifyListeners();
@@ -31,16 +33,17 @@ class _Watcher extends ChangeNotifier {
   }
 }
 
-final _wiProvider = ChangeNotifierProvider.autoDispose(
-  (ref) {
+final _wiProvider = ChangeNotifierProvider.family<_Watcher, bool>(
+  (ref, isFavourite) {
     final isar = ref.watch(mainDBProvider).isar;
 
     final watcher = _Watcher(
       isar.walletInfo
           .filter()
-          .isFavouriteEqualTo(true)
+          .isFavouriteEqualTo(isFavourite)
           .sortByFavouriteOrderIndex()
           .findAllSync(),
+      isFavourite,
       isar,
     );
 
@@ -50,8 +53,8 @@ final _wiProvider = ChangeNotifierProvider.autoDispose(
   },
 );
 
-final pFavouriteWalletInfos = Provider.autoDispose(
-  (ref) {
-    return ref.watch(_wiProvider).value;
+final pFavouriteWalletInfos = Provider.family<List<WalletInfo>, bool>(
+  (ref, isFavourite) {
+    return ref.watch(_wiProvider(isFavourite)).value;
   },
 );
