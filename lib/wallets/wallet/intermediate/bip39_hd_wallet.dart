@@ -27,7 +27,7 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
   @override
   Future<void> generateNewReceivingAddress() async {
     final current = await getCurrentReceivingAddress();
-    final index = current?.derivationIndex ?? 0;
+    final index = current == null ? 0 : current.derivationIndex + 1;
     const chain = 0; // receiving address
 
     final address = await _generateAddress(
@@ -49,7 +49,7 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
   @override
   Future<void> generateNewChangeAddress() async {
     final current = await getCurrentChangeAddress();
-    final index = current?.derivationIndex ?? 0;
+    final index = current == null ? 0 : current.derivationIndex + 1;
     const chain = 1; // change address
 
     final address = await _generateAddress(
