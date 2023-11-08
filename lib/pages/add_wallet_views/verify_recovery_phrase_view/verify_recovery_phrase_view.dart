@@ -25,6 +25,7 @@ import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
+import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -261,7 +262,10 @@ class _VerifyRecoveryPhraseViewState
 
   Future<void> delete() async {
     await _wallet.exit();
-    await ref.read(pWallets).deleteWallet(_wallet.walletId);
+    await ref.read(pWallets).deleteWallet(
+          _wallet.walletId,
+          ref.read(secureStoreProvider),
+        );
   }
 
   @override

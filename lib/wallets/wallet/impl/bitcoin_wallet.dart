@@ -106,4 +106,70 @@ class BitcoinWallet extends Bip39HDWallet with ElectrumXMixin {
       fractionDigits: info.coin.decimals,
     );
   }
+
+  @override
+  int estimateTxFee({required int vSize, required int feeRatePerKB}) {
+    return vSize * (feeRatePerKB / 1000).ceil();
+  }
+  //
+  // @override
+  // Future<TxData> coinSelection({required TxData txData}) async {
+  //   final isCoinControl = txData.utxos != null;
+  //   final isSendAll = txData.amount == info.cachedBalance.spendable;
+  //
+  //   final utxos =
+  //       txData.utxos?.toList() ?? await mainDB.getUTXOs(walletId).findAll();
+  //
+  //   final currentChainHeight = await chainHeight;
+  //   final List<UTXO> spendableOutputs = [];
+  //   int spendableSatoshiValue = 0;
+  //
+  //   // Build list of spendable outputs and totaling their satoshi amount
+  //   for (final utxo in utxos) {
+  //     if (utxo.isBlocked == false &&
+  //         utxo.isConfirmed(currentChainHeight, cryptoCurrency.minConfirms) &&
+  //         utxo.used != true) {
+  //       spendableOutputs.add(utxo);
+  //       spendableSatoshiValue += utxo.value;
+  //     }
+  //   }
+  //
+  //   if (isCoinControl && spendableOutputs.length < utxos.length) {
+  //     throw ArgumentError("Attempted to use an unavailable utxo");
+  //   }
+  //
+  //   if (spendableSatoshiValue < txData.amount!.raw.toInt()) {
+  //     throw Exception("Insufficient balance");
+  //   } else if (spendableSatoshiValue == txData.amount!.raw.toInt() &&
+  //       !isSendAll) {
+  //     throw Exception("Insufficient balance to pay transaction fee");
+  //   }
+  //
+  //   if (isCoinControl) {
+  //   } else {
+  //     final selection = cs.coinSelection(
+  //       spendableOutputs
+  //           .map((e) => cs.InputModel(
+  //                 i: e.vout,
+  //                 txid: e.txid,
+  //                 value: e.value,
+  //                 address: e.address,
+  //               ))
+  //           .toList(),
+  //       txData.recipients!
+  //           .map((e) => cs.OutputModel(
+  //                 address: e.address,
+  //                 value: e.amount.raw.toInt(),
+  //               ))
+  //           .toList(),
+  //       txData.feeRateAmount!,
+  //       10, // TODO: ???????????????????????????????
+  //     );
+  //
+  //     // .inputs and .outputs will be null if no solution was found
+  //     if (selection.inputs!.isEmpty || selection.outputs!.isEmpty) {
+  //       throw Exception("coin selection failed");
+  //     }
+  //   }
+  // }
 }

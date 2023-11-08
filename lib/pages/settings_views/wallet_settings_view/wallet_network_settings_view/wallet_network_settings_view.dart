@@ -22,9 +22,6 @@ import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_net
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/sub_widgets/rescanning_dialog.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
-import 'package:stackwallet/services/coins/monero/monero_wallet.dart';
-import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/blocks_remaining_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
@@ -137,11 +134,11 @@ class _WalletNetworkSettingsViewState
     );
 
     try {
-      final wallet  = ref.read(pWallets).getWallet(widget.walletId);
+      final wallet = ref.read(pWallets).getWallet(widget.walletId);
 
-      await wallet.recover(isRescan: true
-            ,
-          );
+      await wallet.recover(
+        isRescan: true,
+      );
 
       if (mounted) {
         // pop rescanning dialog
@@ -310,7 +307,6 @@ class _WalletNetworkSettingsViewState
 
     final coin = ref.watch(pWalletCoin(widget.walletId));
 
-
     // TODO: [prio=high] sync percent for certain wallets
     // if (coin == Coin.monero) {
     //   double highestPercent =
@@ -357,8 +353,7 @@ class _WalletNetworkSettingsViewState
                 style: STextStyles.navBarTitle(context),
               ),
               actions: [
-                if (ref.watch(pWalletCoin(widget.walletId)) !=
-                    Coin.epicCash)
+                if (ref.watch(pWalletCoin(widget.walletId)) != Coin.epicCash)
                   Padding(
                     padding: const EdgeInsets.only(
                       top: 10,
@@ -915,14 +910,12 @@ class _WalletNetworkSettingsViewState
             popBackToRoute: WalletNetworkSettingsView.routeName,
           ),
           if (isDesktop &&
-              ref.watch(pWalletCoin(widget.walletId)) !=
-                  Coin.epicCash)
+              ref.watch(pWalletCoin(widget.walletId)) != Coin.epicCash)
             const SizedBox(
               height: 32,
             ),
           if (isDesktop &&
-              ref.watch(pWalletCoin(widget.walletId)) !=
-                  Coin.epicCash)
+              ref.watch(pWalletCoin(widget.walletId)) != Coin.epicCash)
             Padding(
               padding: const EdgeInsets.only(
                 bottom: 12,
@@ -939,8 +932,7 @@ class _WalletNetworkSettingsViewState
               ),
             ),
           if (isDesktop &&
-              ref.watch(pWalletCoin(widget.walletId)) !=
-                  Coin.epicCash)
+              ref.watch(pWalletCoin(widget.walletId)) != Coin.epicCash)
             RoundedWhiteContainer(
               borderColor: isDesktop
                   ? Theme.of(context).extension<StackColors>()!.background

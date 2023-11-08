@@ -135,11 +135,11 @@ abstract class Wallet<T extends CryptoCurrency> {
       case WalletType.bip39HD:
         await secureStorageInterface.write(
           key: mnemonicKey(walletId: walletInfo.walletId),
-          value: mnemonic,
+          value: mnemonic!,
         );
         await secureStorageInterface.write(
           key: mnemonicPassphraseKey(walletId: walletInfo.walletId),
-          value: mnemonicPassphrase,
+          value: mnemonicPassphrase!,
         );
         break;
 
@@ -147,11 +147,17 @@ abstract class Wallet<T extends CryptoCurrency> {
         break;
 
       case WalletType.privateKeyBased:
+        await secureStorageInterface.write(
+          key: privateKeyKey(walletId: walletInfo.walletId),
+          value: privateKey!,
+        );
         break;
     }
 
     // Store in db after wallet creation
-    await wallet.mainDB.isar.walletInfo.put(wallet.info);
+    await wallet.mainDB.isar.writeTxn(() async {
+      await wallet.mainDB.isar.walletInfo.put(wallet.info);
+    });
 
     return wallet;
   }
@@ -475,10 +481,12 @@ abstract class Wallet<T extends CryptoCurrency> {
   @mustCallSuper
   Future<void> init() async {
     final address = await getCurrentReceivingAddress();
-    await info.updateReceivingAddress(
-      newAddress: address!.value,
-      isar: mainDB.isar,
-    );
+    if (address != null) {
+      await info.updateReceivingAddress(
+        newAddress: address.value,
+        isar: mainDB.isar,
+      );
+    }
 
     // TODO: make sure subclasses override this if they require some set up
     // especially xmr/wow/epiccash
@@ -502,14 +510,14 @@ abstract class Wallet<T extends CryptoCurrency> {
         .buildQuery<Address>(
           whereClauses: [
             IndexWhereClause.equalTo(
-              indexName: "walletId",
+              indexName: r"walletId",
               value: [walletId],
             ),
           ],
           filter: filterOperation,
           sortBy: [
             const SortProperty(
-              property: "derivationIndex",
+              property: r"derivationIndex",
               sort: Sort.desc,
             ),
           ],

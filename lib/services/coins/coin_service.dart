@@ -15,9 +15,7 @@ import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/banano/banano_wallet.dart';
-import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart';
 import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart';
-import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart';
 import 'package:stackwallet/services/coins/ecash/ecash_wallet.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
@@ -106,15 +104,7 @@ abstract class CoinServiceAPI {
         );
 
       case Coin.bitcoin:
-        return BitcoinWallet(
-          walletId: walletId,
-          walletName: walletName,
-          coin: coin,
-          secureStore: secureStorageInterface,
-          client: client,
-          cachedClient: cachedClient,
-          tracker: tracker,
-        );
+        throw UnimplementedError("moved");
 
       case Coin.litecoin:
         return LitecoinWallet(
@@ -139,15 +129,7 @@ abstract class CoinServiceAPI {
         );
 
       case Coin.bitcoinTestNet:
-        return BitcoinWallet(
-          walletId: walletId,
-          walletName: walletName,
-          coin: coin,
-          secureStore: secureStorageInterface,
-          client: client,
-          cachedClient: cachedClient,
-          tracker: tracker,
-        );
+        throw UnimplementedError("moved");
 
       case Coin.bitcoincash:
         return BitcoinCashWallet(
@@ -172,15 +154,7 @@ abstract class CoinServiceAPI {
         );
 
       case Coin.dogecoin:
-        return DogecoinWallet(
-          walletId: walletId,
-          walletName: walletName,
-          coin: coin,
-          secureStore: secureStorageInterface,
-          client: client,
-          cachedClient: cachedClient,
-          tracker: tracker,
-        );
+        throw UnimplementedError("moved");
 
       case Coin.epicCash:
         return EpicCashWallet(
@@ -277,15 +251,7 @@ abstract class CoinServiceAPI {
             secureStore: secureStorageInterface);
 
       case Coin.dogecoinTestNet:
-        return DogecoinWallet(
-          walletId: walletId,
-          walletName: walletName,
-          coin: coin,
-          secureStore: secureStorageInterface,
-          client: client,
-          cachedClient: cachedClient,
-          tracker: tracker,
-        );
+        throw UnimplementedError("moved");
 
       case Coin.eCash:
         return ECashWallet(

@@ -25,6 +25,7 @@ class TxData {
 
   final List<({String address, Amount amount})>? recipients;
   final Set<UTXO>? utxos;
+  final List<UTXO>? usedUTXOs;
 
   final String? changeAddress;
 
@@ -56,6 +57,7 @@ class TxData {
     this.memo,
     this.recipients,
     this.utxos,
+    this.usedUTXOs,
     this.changeAddress,
     this.frostMSConfig,
     this.paynymAccountLite,
@@ -89,6 +91,7 @@ class TxData {
     String? noteOnChain,
     String? memo,
     Set<UTXO>? utxos,
+    List<UTXO>? usedUTXOs,
     List<({String address, Amount amount})>? recipients,
     String? frostMSConfig,
     String? changeAddress,
@@ -112,6 +115,7 @@ class TxData {
       noteOnChain: noteOnChain ?? this.noteOnChain,
       memo: memo ?? this.memo,
       utxos: utxos ?? this.utxos,
+      usedUTXOs: usedUTXOs ?? this.usedUTXOs,
       recipients: recipients ?? this.recipients,
       frostMSConfig: frostMSConfig ?? this.frostMSConfig,
       changeAddress: changeAddress ?? this.changeAddress,
@@ -140,6 +144,7 @@ class TxData {
       'memo: $memo, '
       'recipients: $recipients, '
       'utxos: $utxos, '
+      'usedUTXOs: $usedUTXOs, '
       'frostMSConfig: $frostMSConfig, '
       'changeAddress: $changeAddress, '
       'paynymAccountLite: $paynymAccountLite, '

@@ -2,11 +2,10 @@ import 'package:bip39/bip39.dart' as bip39;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_wallet.dart';
 import 'package:stackwallet/wallets/wallet/mixins/multi_address.dart';
 
@@ -49,17 +48,17 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
   /// highest index found in the current wallet db.
   @override
   Future<void> generateNewChangeAddress() async {
+    final current = await getCurrentChangeAddress();
+    final index = current?.derivationIndex ?? 0;
+    const chain = 1; // change address
+
+    final address = await _generateAddress(
+      chain: chain,
+      index: index,
+      derivePathType: DerivePathTypeExt.primaryFor(info.coin),
+    );
+
     await mainDB.isar.writeTxn(() async {
-      final current = await getCurrentChangeAddress();
-      final index = current?.derivationIndex ?? 0;
-      const chain = 1; // change address
-
-      final address = await _generateAddress(
-        chain: chain,
-        index: index,
-        derivePathType: DerivePathTypeExt.primaryFor(info.coin),
-      );
-
       await mainDB.isar.addresses.put(address);
     });
   }
@@ -163,17 +162,5 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     );
 
     await info.updateBalance(newBalance: balance, isar: mainDB.isar);
-  }
-
-  @override
-  Future<TxData> confirmSend({required TxData txData}) {
-    // TODO: implement confirmSend
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<TxData> prepareSend({required TxData txData}) {
-    // TODO: implement prepareSend
-    throw UnimplementedError();
   }
 }

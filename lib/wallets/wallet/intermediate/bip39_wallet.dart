@@ -10,23 +10,23 @@ abstract class Bip39Wallet<T extends Bip39Currency> extends Wallet<T>
 
   List<FilterOperation> get standardReceivingAddressFilters => [
         FilterCondition.equalTo(
-          property: "type",
-          value: [info.mainAddressType],
+          property: r"type",
+          value: info.mainAddressType,
         ),
         const FilterCondition.equalTo(
-          property: "subType",
-          value: [AddressSubType.receiving],
+          property: r"subType",
+          value: AddressSubType.receiving,
         ),
       ];
 
   List<FilterOperation> get standardChangeAddressFilters => [
         FilterCondition.equalTo(
-          property: "type",
-          value: [info.mainAddressType],
+          property: r"type",
+          value: info.mainAddressType,
         ),
         const FilterCondition.equalTo(
-          property: "subType",
-          value: [AddressSubType.change],
+          property: r"subType",
+          value: AddressSubType.change,
         ),
       ];
 

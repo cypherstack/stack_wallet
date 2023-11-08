@@ -10,8 +10,6 @@
 
 import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart'
     as bch;
-import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart'
-    as doge;
 import 'package:stackwallet/services/coins/ecash/ecash_wallet.dart' as ecash;
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart'
     as epic;
@@ -393,7 +391,7 @@ extension CoinExt on Coin {
 
       case Coin.dogecoin:
       case Coin.dogecoinTestNet:
-        return doge.MINIMUM_CONFIRMATIONS;
+        throw UnimplementedError("moved");
 
       case Coin.epicCash:
         return epic.MINIMUM_CONFIRMATIONS;

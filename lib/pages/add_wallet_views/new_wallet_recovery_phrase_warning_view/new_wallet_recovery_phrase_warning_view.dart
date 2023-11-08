@@ -10,6 +10,7 @@
 
 import 'dart:async';
 
+import 'package:bip39/bip39.dart' as bip39;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -480,9 +481,40 @@ class _NewWalletRecoveryPhraseWarningViewState
                                       walletId: info.walletId,
                                     );
 
-                                    final failovers = ref
-                                        .read(nodeServiceChangeNotifierProvider)
-                                        .failoverNodesFor(coin: widget.coin);
+                                    int? wordCount;
+                                    String? mnemonicPassphrase;
+                                    String? mnemonic;
+                                    String? privateKey;
+
+                                    // TODO: [prio=high] finish fleshing this out
+                                    if (coin.hasMnemonicPassphraseSupport) {
+                                      if (ref
+                                              .read(pNewWalletOptions.state)
+                                              .state !=
+                                          null) {
+                                        mnemonicPassphrase = ref
+                                            .read(pNewWalletOptions.state)
+                                            .state!
+                                            .mnemonicPassphrase;
+                                        wordCount = ref
+                                            .read(pNewWalletOptions.state)
+                                            .state!
+                                            .mnemonicWordsCount;
+                                      } else {
+                                        wordCount = 12;
+                                        mnemonicPassphrase = "";
+                                      }
+                                      final int strength;
+                                      if (wordCount == 12) {
+                                        strength = 128;
+                                      } else if (wordCount == 24) {
+                                        strength = 256;
+                                      } else {
+                                        throw Exception("Invalid word count");
+                                      }
+                                      mnemonic = bip39.generateMnemonic(
+                                          strength: strength);
+                                    }
 
                                     final wallet = await Wallet.create(
                                       walletInfo: info,
@@ -493,29 +525,12 @@ class _NewWalletRecoveryPhraseWarningViewState
                                           nodeServiceChangeNotifierProvider),
                                       prefs:
                                           ref.read(prefsChangeNotifierProvider),
+                                      mnemonicPassphrase: mnemonicPassphrase,
+                                      mnemonic: mnemonic,
+                                      privateKey: privateKey,
                                     );
 
                                     await wallet.init();
-
-                                    // TODO: [prio=high] finish fleshing this out
-                                    // if (coin.hasMnemonicPassphraseSupport &&
-                                    //     ref
-                                    //             .read(pNewWalletOptions.state)
-                                    //             .state !=
-                                    //         null) {
-                                    //   await manager.initializeNew((
-                                    //     mnemonicPassphrase: ref
-                                    //         .read(pNewWalletOptions.state)
-                                    //         .state!
-                                    //         .mnemonicPassphrase,
-                                    //     wordCount: ref
-                                    //         .read(pNewWalletOptions.state)
-                                    //         .state!
-                                    //         .mnemonicWordsCount,
-                                    //   ));
-                                    // } else {
-                                    //   await manager.initializeNew(null);
-                                    // }
 
                                     // pop progress dialog
                                     if (mounted) {
@@ -530,7 +545,7 @@ class _NewWalletRecoveryPhraseWarningViewState
                                       unawaited(Navigator.of(context).pushNamed(
                                         NewWalletRecoveryPhraseView.routeName,
                                         arguments: Tuple2(
-                                          wallet.walletId,
+                                          wallet,
                                           await (wallet as MnemonicBasedWallet)
                                               .getMnemonicAsWords(),
                                         ),

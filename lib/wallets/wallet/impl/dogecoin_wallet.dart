@@ -100,4 +100,9 @@ class DogecoinWallet extends Bip39HDWallet with ElectrumXMixin {
       fractionDigits: cryptoCurrency.fractionDigits,
     );
   }
+
+  @override
+  int estimateTxFee({required int vSize, required int feeRatePerKB}) {
+    return vSize * (feeRatePerKB / 1000).ceil();
+  }
 }

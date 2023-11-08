@@ -12,6 +12,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:coinlib_flutter/coinlib_flutter.dart';
 import 'package:cw_core/node.dart';
 import 'package:cw_core/unspent_coins_info.dart';
 import 'package:cw_core/wallet_info.dart';
@@ -82,6 +83,9 @@ final openedFromSWBFileStringStateProvider =
 // miscellaneous box for later use
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  final loadCoinlibFuture = loadCoinlib();
+
   GoogleFonts.config.allowRuntimeFetching = false;
   if (Platform.isIOS) {
     Util.libraryPath = await getLibraryDirectory();
@@ -213,6 +217,8 @@ void main() async {
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
   //     overlays: [SystemUiOverlay.bottom]);
   await NotificationApi.init();
+
+  await loadCoinlibFuture;
 
   await MainDB.instance.initMainDB();
   ThemeService.instance.init(MainDB.instance);

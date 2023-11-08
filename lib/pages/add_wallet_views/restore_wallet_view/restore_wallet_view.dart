@@ -241,11 +241,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       } else {
         if (!Platform.isLinux) await Wakelock.enable();
 
-          final info = WalletInfo.createNew(
-            coin: widget.coin,
-            name: widget.walletName,
-          );
-
+        final info = WalletInfo.createNew(
+          coin: widget.coin,
+          name: widget.walletName,
+        );
 
         bool isRestoring = true;
         // show restoring in progress
@@ -260,6 +259,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
                 await ref.read(pWallets).deleteWallet(
                       info.walletId,
+                      ref.read(secureStoreProvider),
                     );
               },
             );

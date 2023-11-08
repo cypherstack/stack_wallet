@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:bip47/src/util.dart';
+import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:decimal/decimal.dart';
 import 'package:isar/isar.dart';
@@ -9,17 +10,651 @@ import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
+import 'package:stackwallet/models/signing_data.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
+import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:uuid/uuid.dart';
 
 mixin ElectrumXMixin on Bip39HDWallet {
   late ElectrumX electrumX;
   late CachedElectrumX electrumXCached;
+
+  List<({String address, Amount amount})> _helperRecipientsConvert(
+      List<String> addrs, List<int> satValues) {
+    final List<({String address, Amount amount})> results = [];
+
+    for (int i = 0; i < addrs.length; i++) {
+      results.add((
+        address: addrs[i],
+        amount: Amount(
+          rawValue: BigInt.from(satValues[i]),
+          fractionDigits: cryptoCurrency.fractionDigits,
+        ),
+      ));
+    }
+
+    return results;
+  }
+
+  Future<TxData> coinSelection({
+    required TxData txData,
+    required bool coinControl,
+    required bool isSendAll,
+    int additionalOutputs = 0,
+    List<UTXO>? utxos,
+  }) async {
+    Logging.instance
+        .log("Starting coinSelection ----------", level: LogLevel.Info);
+
+    // TODO: multiple recipients one day
+    assert(txData.recipients!.length == 1);
+
+    final recipientAddress = txData.recipients!.first.address;
+    final satoshiAmountToSend = txData.amount!.raw.toInt();
+    final int? satsPerVByte = txData.satsPerVByte;
+    final selectedTxFeeRate = txData.feeRateAmount!;
+
+    final List<UTXO> availableOutputs =
+        utxos ?? await mainDB.getUTXOs(walletId).findAll();
+    final currentChainHeight = await chainHeight;
+    final List<UTXO> spendableOutputs = [];
+    int spendableSatoshiValue = 0;
+
+    // Build list of spendable outputs and totaling their satoshi amount
+    for (final utxo in availableOutputs) {
+      if (utxo.isBlocked == false &&
+          utxo.isConfirmed(currentChainHeight, cryptoCurrency.minConfirms) &&
+          utxo.used != true) {
+        spendableOutputs.add(utxo);
+        spendableSatoshiValue += utxo.value;
+      }
+    }
+
+    if (coinControl) {
+      if (spendableOutputs.length < availableOutputs.length) {
+        throw ArgumentError("Attempted to use an unavailable utxo");
+      }
+    }
+
+    // don't care about sorting if using all utxos
+    if (!coinControl) {
+      // sort spendable by age (oldest first)
+      spendableOutputs.sort((a, b) => b.blockTime!.compareTo(a.blockTime!));
+    }
+
+    Logging.instance.log("spendableOutputs.length: ${spendableOutputs.length}",
+        level: LogLevel.Info);
+    Logging.instance.log("availableOutputs.length: ${availableOutputs.length}",
+        level: LogLevel.Info);
+    Logging.instance
+        .log("spendableOutputs: $spendableOutputs", level: LogLevel.Info);
+    Logging.instance.log("spendableSatoshiValue: $spendableSatoshiValue",
+        level: LogLevel.Info);
+    Logging.instance
+        .log("satoshiAmountToSend: $satoshiAmountToSend", level: LogLevel.Info);
+    // If the amount the user is trying to send is smaller than the amount that they have spendable,
+    // then return 1, which indicates that they have an insufficient balance.
+    if (spendableSatoshiValue < satoshiAmountToSend) {
+      // return 1;
+      throw Exception("Insufficient balance");
+      // If the amount the user wants to send is exactly equal to the amount they can spend, then return
+      // 2, which indicates that they are not leaving enough over to pay the transaction fee
+    } else if (spendableSatoshiValue == satoshiAmountToSend && !isSendAll) {
+      throw Exception("Insufficient balance to pay transaction fee");
+      // return 2;
+    }
+    // If neither of these statements pass, we assume that the user has a spendable balance greater
+    // than the amount they're attempting to send. Note that this value still does not account for
+    // the added transaction fee, which may require an extra input and will need to be checked for
+    // later on.
+
+    // Possible situation right here
+    int satoshisBeingUsed = 0;
+    int inputsBeingConsumed = 0;
+    List<UTXO> utxoObjectsToUse = [];
+
+    if (!coinControl) {
+      for (var i = 0;
+          satoshisBeingUsed < satoshiAmountToSend &&
+              i < spendableOutputs.length;
+          i++) {
+        utxoObjectsToUse.add(spendableOutputs[i]);
+        satoshisBeingUsed += spendableOutputs[i].value;
+        inputsBeingConsumed += 1;
+      }
+      for (int i = 0;
+          i < additionalOutputs &&
+              inputsBeingConsumed < spendableOutputs.length;
+          i++) {
+        utxoObjectsToUse.add(spendableOutputs[inputsBeingConsumed]);
+        satoshisBeingUsed += spendableOutputs[inputsBeingConsumed].value;
+        inputsBeingConsumed += 1;
+      }
+    } else {
+      satoshisBeingUsed = spendableSatoshiValue;
+      utxoObjectsToUse = spendableOutputs;
+      inputsBeingConsumed = spendableOutputs.length;
+    }
+
+    Logging.instance
+        .log("satoshisBeingUsed: $satoshisBeingUsed", level: LogLevel.Info);
+    Logging.instance
+        .log("inputsBeingConsumed: $inputsBeingConsumed", level: LogLevel.Info);
+    Logging.instance
+        .log('utxoObjectsToUse: $utxoObjectsToUse', level: LogLevel.Info);
+
+    // numberOfOutputs' length must always be equal to that of recipientsArray and recipientsAmtArray
+    List<String> recipientsArray = [recipientAddress];
+    List<int> recipientsAmtArray = [satoshiAmountToSend];
+
+    // gather required signing data
+    final utxoSigningData = await fetchBuildTxData(utxoObjectsToUse);
+
+    if (isSendAll) {
+      Logging.instance
+          .log("Attempting to send all $cryptoCurrency", level: LogLevel.Info);
+
+      final int vSizeForOneOutput = buildTransaction(
+        utxoSigningData: utxoSigningData,
+        txData: txData.copyWith(
+          recipients: _helperRecipientsConvert(
+            [recipientAddress],
+            [satoshisBeingUsed - 1],
+          ),
+        ),
+      ).vSize!;
+      int feeForOneOutput = satsPerVByte != null
+          ? (satsPerVByte * vSizeForOneOutput)
+          : estimateTxFee(
+              vSize: vSizeForOneOutput,
+              feeRatePerKB: selectedTxFeeRate,
+            );
+
+      if (satsPerVByte == null) {
+        final int roughEstimate = roughFeeEstimate(
+          spendableOutputs.length,
+          1,
+          selectedTxFeeRate,
+        ).raw.toInt();
+        if (feeForOneOutput < roughEstimate) {
+          feeForOneOutput = roughEstimate;
+        }
+      }
+
+      final int amount = satoshiAmountToSend - feeForOneOutput;
+      final data = await buildTransaction(
+        txData: txData,
+        utxoSigningData: utxoSigningData,
+      );
+
+      return data.copyWith(
+        fee: Amount(
+          rawValue: BigInt.from(feeForOneOutput),
+          fractionDigits: cryptoCurrency.fractionDigits,
+        ),
+        usedUTXOs: utxoSigningData.map((e) => e.utxo).toList(),
+      );
+    }
+
+    final int vSizeForOneOutput;
+    try {
+      vSizeForOneOutput = buildTransaction(
+        utxoSigningData: utxoSigningData,
+        txData: txData.copyWith(
+          recipients: _helperRecipientsConvert(
+            [recipientAddress],
+            [satoshisBeingUsed - 1],
+          ),
+        ),
+      ).vSize!;
+    } catch (e) {
+      Logging.instance.log("vSizeForOneOutput: $e", level: LogLevel.Error);
+      rethrow;
+    }
+
+    final int vSizeForTwoOutPuts;
+    try {
+      vSizeForTwoOutPuts = buildTransaction(
+        utxoSigningData: utxoSigningData,
+        txData: txData.copyWith(
+          recipients: _helperRecipientsConvert(
+            [recipientAddress, (await getCurrentChangeAddress())!.value],
+            [
+              satoshiAmountToSend,
+              max(0, satoshisBeingUsed - satoshiAmountToSend - 1)
+            ],
+          ),
+        ),
+      ).vSize!;
+    } catch (e) {
+      Logging.instance.log("vSizeForTwoOutPuts: $e", level: LogLevel.Error);
+      rethrow;
+    }
+
+    // Assume 1 output, only for recipient and no change
+    final feeForOneOutput = satsPerVByte != null
+        ? (satsPerVByte * vSizeForOneOutput)
+        : estimateTxFee(
+            vSize: vSizeForOneOutput,
+            feeRatePerKB: selectedTxFeeRate,
+          );
+    // Assume 2 outputs, one for recipient and one for change
+    final feeForTwoOutputs = satsPerVByte != null
+        ? (satsPerVByte * vSizeForTwoOutPuts)
+        : estimateTxFee(
+            vSize: vSizeForTwoOutPuts,
+            feeRatePerKB: selectedTxFeeRate,
+          );
+
+    Logging.instance
+        .log("feeForTwoOutputs: $feeForTwoOutputs", level: LogLevel.Info);
+    Logging.instance
+        .log("feeForOneOutput: $feeForOneOutput", level: LogLevel.Info);
+
+    if (satoshisBeingUsed - satoshiAmountToSend > feeForOneOutput) {
+      if (satoshisBeingUsed - satoshiAmountToSend >
+          feeForOneOutput + cryptoCurrency.dustLimit.raw.toInt()) {
+        // Here, we know that theoretically, we may be able to include another output(change) but we first need to
+        // factor in the value of this output in satoshis.
+        int changeOutputSize =
+            satoshisBeingUsed - satoshiAmountToSend - feeForTwoOutputs;
+        // We check to see if the user can pay for the new transaction with 2 outputs instead of one. If they can and
+        // the second output's size > cryptoCurrency.dustLimit satoshis, we perform the mechanics required to properly generate and use a new
+        // change address.
+        if (changeOutputSize > cryptoCurrency.dustLimit.raw.toInt() &&
+            satoshisBeingUsed - satoshiAmountToSend - changeOutputSize ==
+                feeForTwoOutputs) {
+          // generate new change address if current change address has been used
+          await checkChangeAddressForTransactions();
+          final String newChangeAddress =
+              (await getCurrentChangeAddress())!.value;
+
+          int feeBeingPaid =
+              satoshisBeingUsed - satoshiAmountToSend - changeOutputSize;
+
+          recipientsArray.add(newChangeAddress);
+          recipientsAmtArray.add(changeOutputSize);
+          // At this point, we have the outputs we're going to use, the amounts to send along with which addresses
+          // we intend to send these amounts to. We have enough to send instructions to build the transaction.
+          Logging.instance.log('2 outputs in tx', level: LogLevel.Info);
+          Logging.instance
+              .log('Input size: $satoshisBeingUsed', level: LogLevel.Info);
+          Logging.instance.log('Recipient output size: $satoshiAmountToSend',
+              level: LogLevel.Info);
+          Logging.instance.log('Change Output Size: $changeOutputSize',
+              level: LogLevel.Info);
+          Logging.instance.log(
+              'Difference (fee being paid): $feeBeingPaid sats',
+              level: LogLevel.Info);
+          Logging.instance
+              .log('Estimated fee: $feeForTwoOutputs', level: LogLevel.Info);
+
+          var txn = buildTransaction(
+            utxoSigningData: utxoSigningData,
+            txData: txData.copyWith(
+              recipients: _helperRecipientsConvert(
+                recipientsArray,
+                recipientsAmtArray,
+              ),
+            ),
+          );
+
+          // make sure minimum fee is accurate if that is being used
+          if (txn.vSize! - feeBeingPaid == 1) {
+            int changeOutputSize =
+                satoshisBeingUsed - satoshiAmountToSend - txn.vSize!;
+            feeBeingPaid =
+                satoshisBeingUsed - satoshiAmountToSend - changeOutputSize;
+            recipientsAmtArray.removeLast();
+            recipientsAmtArray.add(changeOutputSize);
+            Logging.instance.log('Adjusted Input size: $satoshisBeingUsed',
+                level: LogLevel.Info);
+            Logging.instance.log(
+                'Adjusted Recipient output size: $satoshiAmountToSend',
+                level: LogLevel.Info);
+            Logging.instance.log(
+                'Adjusted Change Output Size: $changeOutputSize',
+                level: LogLevel.Info);
+            Logging.instance.log(
+                'Adjusted Difference (fee being paid): $feeBeingPaid sats',
+                level: LogLevel.Info);
+            Logging.instance.log('Adjusted Estimated fee: $feeForTwoOutputs',
+                level: LogLevel.Info);
+            txn = buildTransaction(
+              utxoSigningData: utxoSigningData,
+              txData: txData.copyWith(
+                recipients: _helperRecipientsConvert(
+                  recipientsArray,
+                  recipientsAmtArray,
+                ),
+              ),
+            );
+          }
+
+          return txn.copyWith(
+            fee: Amount(
+              rawValue: BigInt.from(feeBeingPaid),
+              fractionDigits: cryptoCurrency.fractionDigits,
+            ),
+            usedUTXOs: utxoSigningData.map((e) => e.utxo).toList(),
+          );
+        } else {
+          // Something went wrong here. It either overshot or undershot the estimated fee amount or the changeOutputSize
+          // is smaller than or equal to cryptoCurrency.dustLimit. Revert to single output transaction.
+          Logging.instance.log('1 output in tx', level: LogLevel.Info);
+          Logging.instance
+              .log('Input size: $satoshisBeingUsed', level: LogLevel.Info);
+          Logging.instance.log('Recipient output size: $satoshiAmountToSend',
+              level: LogLevel.Info);
+          Logging.instance.log(
+              'Difference (fee being paid): ${satoshisBeingUsed - satoshiAmountToSend} sats',
+              level: LogLevel.Info);
+          Logging.instance
+              .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
+          final txn = buildTransaction(
+            utxoSigningData: utxoSigningData,
+            txData: txData.copyWith(
+              recipients: _helperRecipientsConvert(
+                recipientsArray,
+                recipientsAmtArray,
+              ),
+            ),
+          );
+
+          return txn.copyWith(
+            fee: Amount(
+              rawValue: BigInt.from(satoshisBeingUsed - satoshiAmountToSend),
+              fractionDigits: cryptoCurrency.fractionDigits,
+            ),
+            usedUTXOs: utxoSigningData.map((e) => e.utxo).toList(),
+          );
+        }
+      } else {
+        // No additional outputs needed since adding one would mean that it'd be smaller than cryptoCurrency.dustLimit sats
+        // which makes it uneconomical to add to the transaction. Here, we pass data directly to instruct
+        // the wallet to begin crafting the transaction that the user requested.
+        Logging.instance.log('1 output in tx', level: LogLevel.Info);
+        Logging.instance
+            .log('Input size: $satoshisBeingUsed', level: LogLevel.Info);
+        Logging.instance.log('Recipient output size: $satoshiAmountToSend',
+            level: LogLevel.Info);
+        Logging.instance.log(
+            'Difference (fee being paid): ${satoshisBeingUsed - satoshiAmountToSend} sats',
+            level: LogLevel.Info);
+        Logging.instance
+            .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
+        final txn = buildTransaction(
+          utxoSigningData: utxoSigningData,
+          txData: txData.copyWith(
+            recipients: _helperRecipientsConvert(
+              recipientsArray,
+              recipientsAmtArray,
+            ),
+          ),
+        );
+
+        return txn.copyWith(
+          fee: Amount(
+            rawValue: BigInt.from(satoshisBeingUsed - satoshiAmountToSend),
+            fractionDigits: cryptoCurrency.fractionDigits,
+          ),
+          usedUTXOs: utxoSigningData.map((e) => e.utxo).toList(),
+        );
+      }
+    } else if (satoshisBeingUsed - satoshiAmountToSend == feeForOneOutput) {
+      // In this scenario, no additional change output is needed since inputs - outputs equal exactly
+      // what we need to pay for fees. Here, we pass data directly to instruct the wallet to begin
+      // crafting the transaction that the user requested.
+      Logging.instance.log('1 output in tx', level: LogLevel.Info);
+      Logging.instance
+          .log('Input size: $satoshisBeingUsed', level: LogLevel.Info);
+      Logging.instance.log('Recipient output size: $satoshiAmountToSend',
+          level: LogLevel.Info);
+      Logging.instance.log(
+          'Fee being paid: ${satoshisBeingUsed - satoshiAmountToSend} sats',
+          level: LogLevel.Info);
+      Logging.instance
+          .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
+      final txn = buildTransaction(
+        utxoSigningData: utxoSigningData,
+        txData: txData.copyWith(
+          recipients: _helperRecipientsConvert(
+            recipientsArray,
+            recipientsAmtArray,
+          ),
+        ),
+      );
+      return txn.copyWith(
+        fee: Amount(
+          rawValue: BigInt.from(feeForOneOutput),
+          fractionDigits: cryptoCurrency.fractionDigits,
+        ),
+        usedUTXOs: utxoSigningData.map((e) => e.utxo).toList(),
+      );
+    } else {
+      // Remember that returning 2 indicates that the user does not have a sufficient balance to
+      // pay for the transaction fee. Ideally, at this stage, we should check if the user has any
+      // additional outputs they're able to spend and then recalculate fees.
+      Logging.instance.log(
+          'Cannot pay tx fee - checking for more outputs and trying again',
+          level: LogLevel.Warning);
+      // try adding more outputs
+      if (spendableOutputs.length > inputsBeingConsumed) {
+        return coinSelection(
+          txData: txData,
+          isSendAll: isSendAll,
+          additionalOutputs: additionalOutputs + 1,
+          utxos: utxos,
+          coinControl: coinControl,
+        );
+      }
+      throw Exception("Insufficient balance to pay transaction fee");
+      // return 2;
+    }
+  }
+
+  Future<List<SigningData>> fetchBuildTxData(
+    List<UTXO> utxosToUse,
+  ) async {
+    // return data
+    List<SigningData> signingData = [];
+
+    try {
+      // Populating the addresses to check
+      for (var i = 0; i < utxosToUse.length; i++) {
+        final derivePathType =
+            cryptoCurrency.addressType(address: utxosToUse[i].address!);
+
+        signingData.add(
+          SigningData(
+            derivePathType: derivePathType,
+            utxo: utxosToUse[i],
+          ),
+        );
+      }
+
+      final root = await getRootHDNode();
+
+      for (final sd in signingData) {
+        coinlib.HDPrivateKey? keys;
+        final address = await mainDB.getAddress(walletId, sd.utxo.address!);
+        if (address?.derivationPath != null) {
+          if (address!.subType == AddressSubType.paynymReceive) {
+            // TODO paynym
+            // final code = await paymentCodeStringByKey(address.otherData!);
+            //
+            // final bip47base = await getBip47BaseNode();
+            //
+            // final privateKey = await getPrivateKeyForPaynymReceivingAddress(
+            //   paymentCodeString: code!,
+            //   index: address.derivationIndex,
+            // );
+            //
+            // keys = coinlib.HDPrivateKey.fromKeyAndChainCode(
+            //   privateKey,
+            //   bip47base.chainCode,
+            // );
+          } else {
+            keys = root.derivePath(address.derivationPath!.value);
+          }
+        }
+
+        if (keys == null) {
+          throw Exception(
+              "Failed to fetch signing data. Local db corrupt. Rescan wallet.");
+        }
+
+        final coinlib.Input input;
+
+        switch (sd.derivePathType) {
+          case DerivePathType.bip44:
+            input = coinlib.P2PKHInput(
+              prevOut: coinlib.OutPoint.fromHex(sd.utxo.txid, sd.utxo.vout),
+              publicKey: keys.publicKey,
+            );
+
+            // data = P2PKH(
+            //   data: PaymentData(
+            //     pubkey: Format.stringToUint8List(pubKey),
+            //   ),
+            //   network: _network,
+            // ).data;
+            break;
+          //
+          // case DerivePathType.bip49:
+          //
+          //   input = P2s
+          //
+          //   final p2wpkh = P2WPKH(
+          //     data: PaymentData(
+          //       pubkey: Format.stringToUint8List(pubKey),
+          //     ),
+          //     network: _network,
+          //   ).data;
+          //   redeemScript = p2wpkh.output;
+          //   data = P2SH(
+          //     data: PaymentData(redeem: p2wpkh),
+          //     network: _network,
+          //   ).data;
+          //   break;
+
+          case DerivePathType.bip84:
+            input = coinlib.P2WPKHInput(
+              prevOut: coinlib.OutPoint.fromHex(sd.utxo.txid, sd.utxo.vout),
+              publicKey: keys.publicKey,
+            );
+            // data = P2WPKH(
+            //   data: PaymentData(
+            //     pubkey: Format.stringToUint8List(pubKey),
+            //   ),
+            //   network: _network,
+            // ).data;
+            break;
+
+          default:
+            throw Exception("DerivePathType unsupported");
+        }
+
+        sd.output = input.toBytes();
+        sd.keyPair = bitcoindart.ECPair.fromPrivateKey(
+          keys.privateKey.data,
+          compressed: keys.privateKey.compressed,
+          network: bitcoindart.NetworkType(
+            messagePrefix: cryptoCurrency.networkParams.messagePrefix,
+            bech32: cryptoCurrency.networkParams.bech32Hrp,
+            bip32: bitcoindart.Bip32Type(
+              public: cryptoCurrency.networkParams.pubHDPrefix,
+              private: cryptoCurrency.networkParams.privHDPrefix,
+            ),
+            pubKeyHash: cryptoCurrency.networkParams.p2pkhPrefix,
+            scriptHash: cryptoCurrency.networkParams.p2shPrefix,
+            wif: cryptoCurrency.networkParams.wifPrefix,
+          ),
+        );
+      }
+
+      return signingData;
+    } catch (e, s) {
+      Logging.instance
+          .log("fetchBuildTxData() threw: $e,\n$s", level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
+  /// Builds and signs a transaction
+  TxData buildTransaction({
+    required TxData txData,
+    required List<SigningData> utxoSigningData,
+  }) {
+    Logging.instance
+        .log("Starting buildTransaction ----------", level: LogLevel.Info);
+
+    // TODO: use coinlib
+
+    final txb = bitcoindart.TransactionBuilder(
+      network: bitcoindart.NetworkType(
+        messagePrefix: cryptoCurrency.networkParams.messagePrefix,
+        bech32: cryptoCurrency.networkParams.bech32Hrp,
+        bip32: bitcoindart.Bip32Type(
+          public: cryptoCurrency.networkParams.pubHDPrefix,
+          private: cryptoCurrency.networkParams.privHDPrefix,
+        ),
+        pubKeyHash: cryptoCurrency.networkParams.p2pkhPrefix,
+        scriptHash: cryptoCurrency.networkParams.p2shPrefix,
+        wif: cryptoCurrency.networkParams.wifPrefix,
+      ),
+    );
+    txb.setVersion(1);
+
+    // Add transaction inputs
+    for (var i = 0; i < utxoSigningData.length; i++) {
+      final txid = utxoSigningData[i].utxo.txid;
+      txb.addInput(
+        txid,
+        utxoSigningData[i].utxo.vout,
+        null,
+        utxoSigningData[i].output!,
+      );
+    }
+
+    // Add transaction output
+    for (var i = 0; i < txData.recipients!.length; i++) {
+      txb.addOutput(
+        txData.recipients![i].address,
+        txData.recipients![i].amount.raw.toInt(),
+      );
+    }
+
+    try {
+      // Sign the transaction accordingly
+      for (var i = 0; i < utxoSigningData.length; i++) {
+        txb.sign(
+          vin: i,
+          keyPair: utxoSigningData[i].keyPair!,
+          witnessValue: utxoSigningData[i].utxo.value,
+          redeemScript: utxoSigningData[i].redeemScript,
+        );
+      }
+    } catch (e, s) {
+      Logging.instance.log("Caught exception while signing transaction: $e\n$s",
+          level: LogLevel.Error);
+      rethrow;
+    }
+
+    final builtTx = txb.build();
+    final vSize = builtTx.virtualSize();
+
+    return txData.copyWith(
+      raw: builtTx.toHex(),
+      vSize: vSize,
+    );
+  }
 
   Future<int> fetchChainHeight() async {
     try {
@@ -708,7 +1343,9 @@ mixin ElectrumXMixin on Bip39HDWallet {
         needsGenerate = true;
       } else {
         final txCount = await fetchTxCount(
-          addressScriptHash: currentReceiving.value,
+          addressScriptHash: cryptoCurrency.addressToScriptHash(
+            address: currentReceiving.value,
+          ),
         );
         needsGenerate = txCount > 0 || currentReceiving.derivationIndex < 0;
       }
@@ -743,7 +1380,9 @@ mixin ElectrumXMixin on Bip39HDWallet {
         needsGenerate = true;
       } else {
         final txCount = await fetchTxCount(
-          addressScriptHash: currentChange.value,
+          addressScriptHash: cryptoCurrency.addressToScriptHash(
+            address: currentChange.value,
+          ),
         );
         needsGenerate = txCount > 0 || currentChange.derivationIndex < 0;
       }
@@ -757,7 +1396,7 @@ mixin ElectrumXMixin on Bip39HDWallet {
       }
     } catch (e, s) {
       Logging.instance.log(
-        "Exception rethrown from _checkReceivingAddressForTransactions"
+        "Exception rethrown from _checkChangeAddressForTransactions"
         "($cryptoCurrency): $e\n$s",
         level: LogLevel.Error,
       );
@@ -939,9 +1578,129 @@ mixin ElectrumXMixin on Bip39HDWallet {
     }
   }
 
+  @override
+  Future<TxData> confirmSend({required TxData txData}) async {
+    try {
+      Logging.instance.log("confirmSend txData: $txData", level: LogLevel.Info);
+
+      final txHash = await electrumX.broadcastTransaction(
+        rawTx: txData.raw!,
+      );
+      Logging.instance.log("Sent txHash: $txHash", level: LogLevel.Info);
+
+      txData = txData.copyWith(
+        usedUTXOs:
+            txData.usedUTXOs!.map((e) => e.copyWith(used: true)).toList(),
+
+        // TODO revisit setting these both
+        txHash: txHash,
+        txid: txHash,
+      );
+      // mark utxos as used
+      await mainDB.putUTXOs(txData.usedUTXOs!);
+
+      return txData;
+    } catch (e, s) {
+      Logging.instance.log("Exception rethrown from confirmSend(): $e\n$s",
+          level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<TxData> prepareSend({required TxData txData}) async {
+    try {
+      final feeRateType = txData.feeRateType;
+      final customSatsPerVByte = txData.satsPerVByte;
+      final feeRateAmount = txData.feeRateAmount;
+      final utxos = txData.utxos;
+
+      if (customSatsPerVByte != null) {
+        // check for send all
+        bool isSendAll = false;
+        if (txData.amount == info.cachedBalance.spendable) {
+          isSendAll = true;
+        }
+
+        final bool coinControl = utxos != null;
+
+        final result = await coinSelection(
+          txData: txData.copyWith(feeRateAmount: -1),
+          isSendAll: isSendAll,
+          utxos: utxos?.toList(),
+          coinControl: coinControl,
+        );
+
+        Logging.instance
+            .log("PREPARE SEND RESULT: $result", level: LogLevel.Info);
+
+        if (txData.fee!.raw.toInt() < txData.vSize!) {
+          throw Exception(
+              "Error in fee calculation: Transaction fee cannot be less than vSize");
+        }
+
+        return result;
+      } else if (feeRateType is FeeRateType || feeRateAmount is int) {
+        late final int rate;
+        if (feeRateType is FeeRateType) {
+          int fee = 0;
+          final feeObject = await fees;
+          switch (feeRateType) {
+            case FeeRateType.fast:
+              fee = feeObject.fast;
+              break;
+            case FeeRateType.average:
+              fee = feeObject.medium;
+              break;
+            case FeeRateType.slow:
+              fee = feeObject.slow;
+              break;
+            default:
+              throw ArgumentError("Invalid use of custom fee");
+          }
+          rate = fee;
+        } else {
+          rate = feeRateAmount as int;
+        }
+
+        // check for send all
+        bool isSendAll = false;
+        if (txData.amount == info.cachedBalance.spendable) {
+          isSendAll = true;
+        }
+
+        final bool coinControl = utxos != null;
+
+        final result = await coinSelection(
+          txData: txData.copyWith(
+            feeRateAmount: rate,
+          ),
+          isSendAll: isSendAll,
+          utxos: utxos?.toList(),
+          coinControl: coinControl,
+        );
+
+        Logging.instance.log("prepare send: $result", level: LogLevel.Info);
+        if (txData.fee!.raw.toInt() < txData.vSize!) {
+          throw Exception(
+              "Error in fee calculation: Transaction fee cannot be less than vSize");
+        }
+
+        return result;
+      } else {
+        throw ArgumentError("Invalid fee rate argument provided!");
+      }
+    } catch (e, s) {
+      Logging.instance.log("Exception rethrown from prepareSend(): $e\n$s",
+          level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
   // ===========================================================================
   // ========== Interface functions ============================================
 
+  int estimateTxFee({required int vSize, required int feeRatePerKB});
   Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB);
 
   Future<List<Address>> fetchAllOwnAddresses();

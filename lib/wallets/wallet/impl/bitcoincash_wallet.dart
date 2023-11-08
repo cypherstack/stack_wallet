@@ -347,6 +347,11 @@ class BitcoincashWallet extends Bip39HDWallet with ElectrumXMixin {
     );
   }
 
+  @override
+  int estimateTxFee({required int vSize, required int feeRatePerKB}) {
+    return vSize * (feeRatePerKB / 1000).ceil();
+  }
+
   // not all coins need to override this. BCH does due to cash addr string formatting
   @override
   Future<({List<Address> addresses, int index})> checkGaps(

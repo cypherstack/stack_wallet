@@ -8,13 +8,19 @@
  *
  */
 
+import 'package:flutter_libmonero/monero/monero.dart';
+import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
+import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/node_service.dart';
+import 'package:stackwallet/services/notifications_service.dart';
+import 'package:stackwallet/services/trade_sent_from_stack_service.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
+import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
@@ -69,8 +75,75 @@ class Wallets {
     _wallets[wallet.walletId] = wallet;
   }
 
-  Future<void> deleteWallet(String walletId) async {
-    throw UnimplementedError("Delete wallet unimplemented");
+  Future<void> deleteWallet(
+    String walletId,
+    SecureStorageInterface secureStorage,
+  ) async {
+    Logging.instance.log(
+      "deleteWallet called with walletId=$walletId",
+      level: LogLevel.Warning,
+    );
+
+    final wallet = getWallet(walletId)!;
+
+    await secureStorage.delete(key: Wallet.mnemonicKey(walletId: walletId));
+    await secureStorage.delete(
+        key: Wallet.mnemonicPassphraseKey(walletId: walletId));
+    await secureStorage.delete(key: Wallet.privateKeyKey(walletId: walletId));
+
+    if (wallet.info.coin == Coin.wownero) {
+      final wowService =
+          wownero.createWowneroWalletService(DB.instance.moneroWalletInfoBox);
+      await wowService.remove(walletId);
+      Logging.instance
+          .log("monero wallet: $walletId deleted", level: LogLevel.Info);
+    } else if (wallet.info.coin == Coin.monero) {
+      final xmrService =
+          monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
+      await xmrService.remove(walletId);
+      Logging.instance
+          .log("monero wallet: $walletId deleted", level: LogLevel.Info);
+    } else if (wallet.info.coin == Coin.epicCash) {
+      final deleteResult = await deleteEpicWallet(
+          walletId: walletId, secureStore: secureStorage);
+      Logging.instance.log(
+          "epic wallet: $walletId deleted with result: $deleteResult",
+          level: LogLevel.Info);
+    }
+
+    // delete wallet data in main db
+    await MainDB.instance.deleteWalletBlockchainData(walletId);
+    await MainDB.instance.deleteAddressLabels(walletId);
+    await MainDB.instance.deleteTransactionNotes(walletId);
+
+    // box data may currently still be read/written to if wallet was refreshing
+    // when delete was requested so instead of deleting now we mark the wallet
+    // as needs delete by adding it's id to a list which gets checked on app start
+    await DB.instance.add<String>(
+        boxName: DB.boxNameWalletsToDeleteOnStart, value: walletId);
+
+    final lookupService = TradeSentFromStackService();
+    for (final lookup in lookupService.all) {
+      if (lookup.walletIds.contains(walletId)) {
+        // update lookup data to reflect deleted wallet
+        await lookupService.save(
+          tradeWalletLookup: lookup.copyWith(
+            walletIds: lookup.walletIds.where((id) => id != walletId).toList(),
+          ),
+        );
+      }
+    }
+
+    // delete notifications tied to deleted wallet
+    for (final notification in NotificationsService.instance.notifications) {
+      if (notification.walletId == walletId) {
+        await NotificationsService.instance.delete(notification, false);
+      }
+    }
+
+    await mainDB.isar.writeTxn(() async {
+      await mainDB.isar.walletInfo.deleteAllByWalletId([walletId]);
+    });
   }
 
   Future<void> load(Prefs prefs, MainDB mainDB) async {
