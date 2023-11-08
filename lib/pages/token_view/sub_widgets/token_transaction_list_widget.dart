@@ -46,7 +46,8 @@ class TokenTransactionsList extends ConsumerStatefulWidget {
 }
 
 class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
-  //
+  late final int minConfirms;
+
   bool _hasLoaded = false;
   List<Transaction> _transactions2 = [];
 
@@ -97,7 +98,7 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
               // this may mess with combined firo transactions
               key: tx.isConfirmed(
                       ref.watch(pWalletChainHeight(widget.walletId)),
-                      coin.requiredConfirmations)
+                      minConfirms)
                   ? Key(tx.txid + tx.type.name + tx.address.value.toString())
                   : UniqueKey(), //
               transaction: tx,
@@ -194,8 +195,8 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
         ),
         child: TransactionCard(
           // this may mess with combined firo transactions
-          key: tx.isConfirmed(ref.watch(pWalletChainHeight(widget.walletId)),
-                  coin.requiredConfirmations)
+          key: tx.isConfirmed(
+                  ref.watch(pWalletChainHeight(widget.walletId)), minConfirms)
               ? Key(tx.txid + tx.type.name + tx.address.value.toString())
               : UniqueKey(),
           transaction: tx,
@@ -203,6 +204,16 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
         ),
       );
     }
+  }
+
+  @override
+  void initState() {
+    minConfirms = ref
+        .read(pWallets)
+        .getWallet(widget.walletId)
+        .cryptoCurrency
+        .minConfirms;
+    super.initState();
   }
 
   @override

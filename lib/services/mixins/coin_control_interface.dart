@@ -74,9 +74,12 @@ mixin CoinControlInterface {
       if (utxo.isBlocked) {
         satoshiBalanceBlocked += utxoAmount;
       } else {
+        // TODO: [prio=high] Fix this
+        throw UnimplementedError(
+            "Fix the following 42 (should be min confirms)");
         if (utxo.isConfirmed(
           currentChainHeight,
-          _coin.requiredConfirmations,
+          42,
         )) {
           satoshiBalanceSpendable += utxoAmount;
         } else {

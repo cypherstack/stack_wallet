@@ -112,6 +112,12 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
+    final minConfirms = ref
+        .watch(pWallets)
+        .getWallet(widget.walletId)
+        .cryptoCurrency
+        .minConfirms;
+
     final coin = ref.watch(pWalletCoin(widget.walletId));
     final currentHeight = ref.watch(pWalletChainHeight(widget.walletId));
 
@@ -340,7 +346,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                           !utxo.isBlocked &&
                                           utxo.isConfirmed(
                                             currentHeight,
-                                            coin.requiredConfirmations,
+                                            minConfirms,
                                           )),
                                   initialSelectedState: isSelected,
                                   onSelectedChanged: (value) {
@@ -403,7 +409,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                                 !_showBlocked &&
                                                 utxo.isConfirmed(
                                                   currentHeight,
-                                                  coin.requiredConfirmations,
+                                                  minConfirms,
                                                 )),
                                         initialSelectedState: isSelected,
                                         onSelectedChanged: (value) {
@@ -545,7 +551,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                                       !utxo.isBlocked &&
                                                       utxo.isConfirmed(
                                                         currentHeight,
-                                                        coin.requiredConfirmations,
+                                                        minConfirms,
                                                       )),
                                               initialSelectedState: isSelected,
                                               onSelectedChanged: (value) {

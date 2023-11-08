@@ -14,6 +14,7 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/coin_control/utxo_details_view.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
@@ -136,7 +137,11 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
                 blocked: utxo.isBlocked,
                 status: utxo.isConfirmed(
                   ref.watch(pWalletChainHeight(widget.walletId)),
-                  coin.requiredConfirmations,
+                  ref
+                      .watch(pWallets)
+                      .getWallet(widget.walletId)
+                      .cryptoCurrency
+                      .minConfirms,
                 )
                     ? UTXOStatusIconStatus.confirmed
                     : UTXOStatusIconStatus.unconfirmed,

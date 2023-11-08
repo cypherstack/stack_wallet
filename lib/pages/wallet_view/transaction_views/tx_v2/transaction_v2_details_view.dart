@@ -79,6 +79,7 @@ class _TransactionV2DetailsViewState
   late final Amount fee;
   late final String amountPrefix;
   late final String unit;
+  late final int minConfirms;
 
   late final List<({List<String> addresses, Amount amount})> data;
 
@@ -91,6 +92,8 @@ class _TransactionV2DetailsViewState
     walletId = widget.walletId;
 
     coin = widget.coin;
+    minConfirms =
+        ref.read(pWallets).getWallet(walletId).cryptoCurrency.minConfirms;
 
     fee = _transaction.getFee(coin: coin);
 
@@ -165,7 +168,7 @@ class _TransactionV2DetailsViewState
     final type = tx.type;
     if (coin == Coin.firo || coin == Coin.firoTestNet) {
       if (tx.subType == TransactionSubType.mint) {
-        if (tx.isConfirmed(height, coin.requiredConfirmations)) {
+        if (tx.isConfirmed(height, minConfirms)) {
           return "Minted";
         } else {
           return "Minting";
@@ -177,7 +180,7 @@ class _TransactionV2DetailsViewState
     //   if (_transaction.isCancelled) {
     //     return "Cancelled";
     //   } else if (type == TransactionType.incoming) {
-    //     if (tx.isConfirmed(height, coin.requiredConfirmations)) {
+    //     if (tx.isConfirmed(height, minConfirms)) {
     //       return "Received";
     //     } else {
     //       if (_transaction.numberOfMessages == 1) {
@@ -189,7 +192,7 @@ class _TransactionV2DetailsViewState
     //       }
     //     }
     //   } else if (type == TransactionType.outgoing) {
-    //     if (tx.isConfirmed(height, coin.requiredConfirmations)) {
+    //     if (tx.isConfirmed(height, minConfirms)) {
     //       return "Sent (confirmed)";
     //     } else {
     //       if (_transaction.numberOfMessages == 1) {
@@ -204,7 +207,7 @@ class _TransactionV2DetailsViewState
     // }
 
     if (tx.subType == TransactionSubType.cashFusion) {
-      if (tx.isConfirmed(height, coin.requiredConfirmations)) {
+      if (tx.isConfirmed(height, minConfirms)) {
         return "Anonymized";
       } else {
         return "Anonymizing";
@@ -215,13 +218,13 @@ class _TransactionV2DetailsViewState
       // if (_transaction.isMinting) {
       //   return "Minting";
       // } else
-      if (tx.isConfirmed(height, coin.requiredConfirmations)) {
+      if (tx.isConfirmed(height, minConfirms)) {
         return "Received";
       } else {
         return "Receiving";
       }
     } else if (type == TransactionType.outgoing) {
-      if (tx.isConfirmed(height, coin.requiredConfirmations)) {
+      if (tx.isConfirmed(height, minConfirms)) {
         return "Sent";
       } else {
         return "Sending";
@@ -1090,7 +1093,7 @@ class _TransactionV2DetailsViewState
                                   String feeString = showFeePending
                                       ? _transaction.isConfirmed(
                                           currentHeight,
-                                          coin.requiredConfirmations,
+                                          minConfirms,
                                         )
                                           ? ref
                                               .watch(pAmountFormatter(coin))
@@ -1187,7 +1190,7 @@ class _TransactionV2DetailsViewState
                                   height = widget.coin != Coin.epicCash &&
                                           _transaction.isConfirmed(
                                             currentHeight,
-                                            coin.requiredConfirmations,
+                                            minConfirms,
                                           )
                                       ? "${_transaction.height == 0 ? "Unknown" : _transaction.height}"
                                       : _transaction.getConfirmations(

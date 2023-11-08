@@ -819,11 +819,12 @@ class _DesktopTransactionCardRowState
     extends ConsumerState<DesktopTransactionCardRow> {
   late final TransactionV2 _transaction;
   late final String walletId;
+  late final int minConfirms;
 
   String whatIsIt(TransactionType type, Coin coin, int height) {
     if (_transaction.subType == TransactionSubType.mint ||
         _transaction.subType == TransactionSubType.cashFusion) {
-      if (_transaction.isConfirmed(height, coin.requiredConfirmations)) {
+      if (_transaction.isConfirmed(height, minConfirms)) {
         return "Anonymized";
       } else {
         return "Anonymizing";
@@ -831,13 +832,13 @@ class _DesktopTransactionCardRowState
     }
 
     if (type == TransactionType.incoming) {
-      if (_transaction.isConfirmed(height, coin.requiredConfirmations)) {
+      if (_transaction.isConfirmed(height, minConfirms)) {
         return "Received";
       } else {
         return "Receiving";
       }
     } else if (type == TransactionType.outgoing) {
-      if (_transaction.isConfirmed(height, coin.requiredConfirmations)) {
+      if (_transaction.isConfirmed(height, minConfirms)) {
         return "Sent";
       } else {
         return "Sending";
@@ -852,6 +853,11 @@ class _DesktopTransactionCardRowState
   @override
   void initState() {
     walletId = widget.walletId;
+    minConfirms = ref
+        .read(pWallets)
+        .getWallet(widget.walletId)
+        .cryptoCurrency
+        .minConfirms;
     _transaction = widget.transaction;
     super.initState();
   }

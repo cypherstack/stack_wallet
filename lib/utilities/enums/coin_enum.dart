@@ -8,24 +8,6 @@
  *
  */
 
-import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart'
-    as bch;
-import 'package:stackwallet/services/coins/ecash/ecash_wallet.dart' as ecash;
-import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart'
-    as epic;
-import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart'
-    as eth;
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart' as firo;
-import 'package:stackwallet/services/coins/litecoin/litecoin_wallet.dart'
-    as ltc;
-import 'package:stackwallet/services/coins/monero/monero_wallet.dart' as xmr;
-import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart'
-    as nmc;
-import 'package:stackwallet/services/coins/nano/nano_wallet.dart' as nano;
-import 'package:stackwallet/services/coins/particl/particl_wallet.dart'
-    as particl;
-import 'package:stackwallet/services/coins/stellar/stellar_wallet.dart' as xlm;
-import 'package:stackwallet/services/coins/tezos/tezos_wallet.dart' as tezos;
 import 'package:stackwallet/utilities/constants.dart';
 
 enum Coin {
@@ -368,62 +350,6 @@ extension CoinExt on Coin {
 
       case Coin.stellarTestnet:
         return Coin.stellar;
-    }
-  }
-
-  int get requiredConfirmations {
-    switch (this) {
-      case Coin.bitcoin:
-      case Coin.bitcoinTestNet:
-        throw UnimplementedError("moved");
-
-      case Coin.litecoin:
-      case Coin.litecoinTestNet:
-        return ltc.MINIMUM_CONFIRMATIONS;
-
-      case Coin.bitcoincash:
-      case Coin.bitcoincashTestnet:
-        return bch.MINIMUM_CONFIRMATIONS;
-
-      case Coin.firo:
-      case Coin.firoTestNet:
-        return firo.MINIMUM_CONFIRMATIONS;
-
-      case Coin.dogecoin:
-      case Coin.dogecoinTestNet:
-        throw UnimplementedError("moved");
-
-      case Coin.epicCash:
-        return epic.MINIMUM_CONFIRMATIONS;
-
-      case Coin.eCash:
-        return ecash.MINIMUM_CONFIRMATIONS;
-
-      case Coin.ethereum:
-        return eth.MINIMUM_CONFIRMATIONS;
-
-      case Coin.monero:
-        return xmr.MINIMUM_CONFIRMATIONS;
-
-      case Coin.particl:
-        return particl.MINIMUM_CONFIRMATIONS;
-
-      case Coin.stellar:
-      case Coin.stellarTestnet:
-        return xlm.MINIMUM_CONFIRMATIONS;
-
-      case Coin.tezos:
-        return tezos.MINIMUM_CONFIRMATIONS;
-
-      case Coin.wownero:
-        throw UnimplementedError("moved");
-
-      case Coin.namecoin:
-        return nmc.MINIMUM_CONFIRMATIONS;
-
-      case Coin.nano:
-      case Coin.banano:
-        return nano.MINIMUM_CONFIRMATIONS;
     }
   }
 

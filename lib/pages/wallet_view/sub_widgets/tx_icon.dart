@@ -16,6 +16,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -87,7 +88,7 @@ class TxIcon extends ConsumerWidget {
         txIsReceived,
         !tx.isConfirmed(
           currentHeight,
-          coin.requiredConfirmations,
+          ref.watch(pWallets).getWallet(tx.walletId).cryptoCurrency.minConfirms,
         ),
         tx.subType,
         ref.watch(themeAssetsProvider),
@@ -100,7 +101,7 @@ class TxIcon extends ConsumerWidget {
         txIsReceived,
         !tx.isConfirmed(
           currentHeight,
-          coin.requiredConfirmations,
+          ref.watch(pWallets).getWallet(tx.walletId).cryptoCurrency.minConfirms,
         ),
         tx.subType,
         ref.watch(themeAssetsProvider),

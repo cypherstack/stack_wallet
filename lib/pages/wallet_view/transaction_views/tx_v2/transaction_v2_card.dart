@@ -9,6 +9,7 @@ import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transactio
 import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/price_provider.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
@@ -46,7 +47,7 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
   ) {
     final confirmedStatus = _transaction.isConfirmed(
       currentHeight,
-      coin.requiredConfirmations,
+      ref.read(pWallets).getWallet(walletId).cryptoCurrency.minConfirms,
     );
 
     if (_transaction.subType == TransactionSubType.cashFusion) {
