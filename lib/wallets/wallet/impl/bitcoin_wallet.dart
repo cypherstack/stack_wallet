@@ -10,7 +10,7 @@ import 'package:tuple/tuple.dart';
 
 class BitcoinWallet extends Bip39HDWallet with ElectrumXMixin {
   @override
-  int get isarTransactionVersion => 2; // TODO actually do this
+  int get isarTransactionVersion => 1; // TODO actually set this to 2
 
   BitcoinWallet(Bitcoin cryptoCurrency) : super(cryptoCurrency);
 
