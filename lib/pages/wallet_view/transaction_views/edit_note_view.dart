@@ -10,6 +10,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/models/isar/models/transaction_note.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -29,14 +31,12 @@ class EditNoteView extends ConsumerStatefulWidget {
     Key? key,
     required this.txid,
     required this.walletId,
-    required this.note,
   }) : super(key: key);
 
   static const String routeName = "/editNote";
 
   final String txid;
   final String walletId;
-  final String note;
 
   @override
   ConsumerState<EditNoteView> createState() => _EditNoteViewState();
@@ -48,11 +48,19 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
 
   late final bool isDesktop;
 
+  TransactionNote? _note;
+
   @override
   void initState() {
     isDesktop = Util.isDesktop;
     _noteController = TextEditingController();
-    _noteController.text = widget.note;
+
+    _note = ref.read(
+      pTransactionNote(
+        (txid: widget.txid, walletId: widget.walletId),
+      ),
+    );
+    _noteController.text = _note?.value ?? "";
     super.initState();
   }
 
@@ -185,13 +193,15 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
                   child: PrimaryButton(
                     label: "Save",
                     onPressed: () async {
-                      await ref
-                          .read(notesServiceChangeNotifierProvider(
-                              widget.walletId))
-                          .editOrAddNote(
-                            txid: widget.txid,
-                            note: _noteController.text,
+                      await ref.read(mainDBProvider).putTransactionNote(
+                            _note?.copyWith(value: _noteController.text) ??
+                                TransactionNote(
+                                  walletId: widget.walletId,
+                                  txid: widget.walletId,
+                                  value: _noteController.text,
+                                ),
                           );
+
                       if (mounted) {
                         Navigator.of(context).pop();
                       }
@@ -201,12 +211,13 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
               if (!isDesktop)
                 TextButton(
                   onPressed: () async {
-                    await ref
-                        .read(
-                            notesServiceChangeNotifierProvider(widget.walletId))
-                        .editOrAddNote(
-                          txid: widget.txid,
-                          note: _noteController.text,
+                    await ref.read(mainDBProvider).putTransactionNote(
+                          _note?.copyWith(value: _noteController.text) ??
+                              TransactionNote(
+                                walletId: widget.walletId,
+                                txid: widget.walletId,
+                                value: _noteController.text,
+                              ),
                         );
                     if (mounted) {
                       Navigator.of(context).pop();

@@ -256,8 +256,6 @@ class _TransactionV2DetailsViewState
     }
   }
 
-  String _note = "";
-
   Future<bool> showExplorerWarning(String explorer) async {
     final bool? shouldContinue = await showDialog<bool>(
         context: context,
@@ -927,7 +925,6 @@ class _TransactionV2DetailsViewState
                                                       child: EditNoteView(
                                                         txid: _transaction.txid,
                                                         walletId: walletId,
-                                                        note: _note,
                                                       ),
                                                     );
                                                   },
@@ -938,10 +935,9 @@ class _TransactionV2DetailsViewState
                                               onTap: () {
                                                 Navigator.of(context).pushNamed(
                                                   EditNoteView.routeName,
-                                                  arguments: Tuple3(
+                                                  arguments: Tuple2(
                                                     _transaction.txid,
                                                     walletId,
-                                                    _note,
                                                   ),
                                                 );
                                               },
@@ -972,34 +968,28 @@ class _TransactionV2DetailsViewState
                                   const SizedBox(
                                     height: 8,
                                   ),
-                                  FutureBuilder(
-                                    future: ref.watch(
-                                        notesServiceChangeNotifierProvider(
-                                                walletId)
-                                            .select((value) => value.getNoteFor(
-                                                txid: _transaction.txid))),
-                                    builder: (builderContext,
-                                        AsyncSnapshot<String> snapshot) {
-                                      if (snapshot.connectionState ==
-                                              ConnectionState.done &&
-                                          snapshot.hasData) {
-                                        _note = snapshot.data ?? "";
-                                      }
-                                      return SelectableText(
-                                        _note,
-                                        style: isDesktop
-                                            ? STextStyles
-                                                    .desktopTextExtraExtraSmall(
-                                                        context)
-                                                .copyWith(
-                                                color: Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .textDark,
-                                              )
-                                            : STextStyles.itemSubtitle12(
-                                                context),
-                                      );
-                                    },
+                                  SelectableText(
+                                    ref
+                                            .watch(
+                                              pTransactionNote(
+                                                (
+                                                  txid: _transaction.txid,
+                                                  walletId: walletId
+                                                ),
+                                              ),
+                                            )
+                                            ?.value ??
+                                        "",
+                                    style: isDesktop
+                                        ? STextStyles
+                                                .desktopTextExtraExtraSmall(
+                                                    context)
+                                            .copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textDark,
+                                          )
+                                        : STextStyles.itemSubtitle12(context),
                                   ),
                                 ],
                               ),

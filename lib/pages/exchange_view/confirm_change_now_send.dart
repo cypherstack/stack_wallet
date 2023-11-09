@@ -13,11 +13,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/trade_wallet_lookup.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/sending_transaction_dialog.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -129,9 +131,13 @@ class _ConfirmChangeNowSendViewState
       txid = (results.first as TxData).txid!;
 
       // save note
-      await ref
-          .read(notesServiceChangeNotifierProvider(walletId))
-          .editOrAddNote(txid: txid, note: note);
+      await ref.read(mainDBProvider).putTransactionNote(
+            TransactionNote(
+              walletId: walletId,
+              txid: txid,
+              value: note,
+            ),
+          );
 
       await ref.read(tradeSentFromStackLookupProvider).save(
             tradeWalletLookup: TradeWalletLookup(

@@ -84,8 +84,6 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
   late final Transaction? transactionIfSentFromStack;
   late final String? walletId;
 
-  String _note = "";
-
   bool isStackCoin(String ticker) {
     try {
       coinFromTickerCaseInsensitive(ticker);
@@ -950,7 +948,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                       maxHeight: 360,
                                       child: EditTradeNoteView(
                                         tradeId: tradeId,
-                                        note: _note,
+                                        note: ref
+                                            .read(tradeNoteServiceProvider)
+                                            .getNote(tradeId: tradeId),
                                       ),
                                     );
                                   },
@@ -1036,7 +1036,6 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                           txid:
                                               transactionIfSentFromStack!.txid,
                                           walletId: walletId!,
-                                          note: _note,
                                         ),
                                       );
                                     },
@@ -1047,10 +1046,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                 onTap: () {
                                   Navigator.of(context).pushNamed(
                                     EditNoteView.routeName,
-                                    arguments: Tuple3(
+                                    arguments: Tuple2(
                                       transactionIfSentFromStack!.txid,
-                                      walletId!,
-                                      _note,
+                                      walletId,
                                     ),
                                   );
                                 },
@@ -1079,22 +1077,19 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     const SizedBox(
                       height: 4,
                     ),
-                    FutureBuilder(
-                      future: ref.watch(
-                          notesServiceChangeNotifierProvider(walletId!).select(
-                              (value) => value.getNoteFor(
-                                  txid: transactionIfSentFromStack!.txid))),
-                      builder:
-                          (builderContext, AsyncSnapshot<String> snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done &&
-                            snapshot.hasData) {
-                          _note = snapshot.data ?? "";
-                        }
-                        return SelectableText(
-                          _note,
-                          style: STextStyles.itemSubtitle12(context),
-                        );
-                      },
+                    SelectableText(
+                      ref
+                              .watch(
+                                pTransactionNote(
+                                  (
+                                    txid: transactionIfSentFromStack!.txid,
+                                    walletId: walletId!,
+                                  ),
+                                ),
+                              )
+                              ?.value ??
+                          "",
+                      style: STextStyles.itemSubtitle12(context),
                     ),
                   ],
                 ),

@@ -16,6 +16,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/models/isar/models/contact_entry.dart';
+import 'package:stackwallet/models/isar/models/transaction_note.dart';
 import 'package:stackwallet/models/transaction_filter.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/token_view/token_view.dart';
@@ -105,8 +106,13 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
     // debugPrint("FILTER: $filter");
 
     final contacts = ref.read(addressBookServiceProvider).contacts;
-    final notes =
-        ref.read(notesServiceChangeNotifierProvider(walletId)).notesSync;
+    final notes = ref
+        .read(mainDBProvider)
+        .isar
+        .transactionNotes
+        .where()
+        .walletIdEqualTo(walletId)
+        .findAllSync();
 
     return transactions.where((tx) {
       if (!filter.sent && !filter.received) {
@@ -144,7 +150,7 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
   }
 
   bool _isKeywordMatch(Transaction tx, String keyword,
-      List<ContactEntry> contacts, Map<String, String> notes) {
+      List<ContactEntry> contacts, List<TransactionNote> notes) {
     if (keyword.isEmpty) {
       return true;
     }
@@ -164,9 +170,15 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
     contains |=
         tx.address.value?.value.toLowerCase().contains(keyword) ?? false;
 
+    TransactionNote? note;
+    final matchingNotes = notes.where((e) => e.txid == tx.txid);
+    if (matchingNotes.isNotEmpty) {
+      note = matchingNotes.first;
+    }
+
     // check if note contains
-    contains |= notes[tx.txid] != null &&
-        notes[tx.txid]!.toLowerCase().contains(keyword);
+    contains |= note != null &&
+        note.value.toLowerCase().contains(keyword);
 
     // check if txid contains
     contains |= tx.txid.toLowerCase().contains(keyword);
@@ -193,8 +205,13 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
     }
     text = text.toLowerCase();
     final contacts = ref.read(addressBookServiceProvider).contacts;
-    final notes =
-        ref.read(notesServiceChangeNotifierProvider(walletId)).notesSync;
+    final notes = ref
+        .read(mainDBProvider)
+        .isar
+        .transactionNotes
+        .where()
+        .walletIdEqualTo(walletId)
+        .findAllSync();
 
     return transactions
         .where((tx) => _isKeywordMatch(tx, text, contacts, notes))

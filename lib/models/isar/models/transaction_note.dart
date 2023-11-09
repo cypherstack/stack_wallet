@@ -33,4 +33,14 @@ class TransactionNote {
   late String txid;
 
   late String value;
+
+  TransactionNote copyWith({
+    String? value,
+  }) {
+    return TransactionNote(
+      walletId: walletId,
+      txid: txid,
+      value: value ?? this.value,
+    );
+  }
 }

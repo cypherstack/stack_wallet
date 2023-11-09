@@ -906,13 +906,12 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case EditNoteView.routeName:
-        if (args is Tuple3<String, String, String>) {
+        if (args is Tuple2<String, String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => EditNoteView(
               txid: args.item1,
               walletId: args.item2,
-              note: args.item3,
             ),
             settings: RouteSettings(
               name: settings.name,

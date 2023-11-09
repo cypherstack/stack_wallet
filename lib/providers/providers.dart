@@ -31,4 +31,4 @@ export './ui/home_view_index_provider.dart';
 export './ui/verify_recovery_phrase/correct_word_provider.dart';
 export './ui/verify_recovery_phrase/random_index_provider.dart';
 export './ui/verify_recovery_phrase/selected_word_provider.dart';
-export './wallet/notes_service_provider.dart';
+export './wallet/transaction_note_provider.dart';
