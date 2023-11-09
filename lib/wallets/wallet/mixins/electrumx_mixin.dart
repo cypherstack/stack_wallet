@@ -159,6 +159,11 @@ mixin ElectrumXMixin on Bip39HDWallet {
     if (isSendAll) {
       Logging.instance
           .log("Attempting to send all $cryptoCurrency", level: LogLevel.Info);
+      if (txData.recipients!.length != 1) {
+        throw Exception(
+          "Send all to more than one recipient not yet supported",
+        );
+      }
 
       final int vSizeForOneOutput = buildTransaction(
         utxoSigningData: utxoSigningData,
@@ -188,8 +193,13 @@ mixin ElectrumXMixin on Bip39HDWallet {
       }
 
       final int amount = satoshiAmountToSend - feeForOneOutput;
-      final data = await buildTransaction(
-        txData: txData,
+      final data = buildTransaction(
+        txData: txData.copyWith(
+          recipients: _helperRecipientsConvert(
+            [recipientAddress],
+            [amount],
+          ),
+        ),
         utxoSigningData: utxoSigningData,
       );
 
@@ -479,6 +489,18 @@ mixin ElectrumXMixin on Bip39HDWallet {
         );
       }
 
+      final convertedNetwork = bitcoindart.NetworkType(
+        messagePrefix: cryptoCurrency.networkParams.messagePrefix,
+        bech32: cryptoCurrency.networkParams.bech32Hrp,
+        bip32: bitcoindart.Bip32Type(
+          public: cryptoCurrency.networkParams.pubHDPrefix,
+          private: cryptoCurrency.networkParams.privHDPrefix,
+        ),
+        pubKeyHash: cryptoCurrency.networkParams.p2pkhPrefix,
+        scriptHash: cryptoCurrency.networkParams.p2shPrefix,
+        wif: cryptoCurrency.networkParams.wifPrefix,
+      );
+
       final root = await getRootHDNode();
 
       for (final sd in signingData) {
@@ -510,21 +532,26 @@ mixin ElectrumXMixin on Bip39HDWallet {
               "Failed to fetch signing data. Local db corrupt. Rescan wallet.");
         }
 
-        final coinlib.Input input;
+        // final coinlib.Input input;
+
+        final pubKey = keys.publicKey.data;
+        final bitcoindart.PaymentData data;
 
         switch (sd.derivePathType) {
           case DerivePathType.bip44:
-            input = coinlib.P2PKHInput(
-              prevOut: coinlib.OutPoint.fromHex(sd.utxo.txid, sd.utxo.vout),
-              publicKey: keys.publicKey,
-            );
+            // input = coinlib.P2PKHInput(
+            //   prevOut: coinlib.OutPoint.fromHex(sd.utxo.txid, sd.utxo.vout),
+            //   publicKey: keys.publicKey,
+            // );
 
-            // data = P2PKH(
-            //   data: PaymentData(
-            //     pubkey: Format.stringToUint8List(pubKey),
-            //   ),
-            //   network: _network,
-            // ).data;
+            data = bitcoindart
+                .P2PKH(
+                  data: bitcoindart.PaymentData(
+                    pubkey: pubKey,
+                  ),
+                  network: convertedNetwork,
+                )
+                .data;
             break;
           //
           // case DerivePathType.bip49:
@@ -545,37 +572,30 @@ mixin ElectrumXMixin on Bip39HDWallet {
           //   break;
 
           case DerivePathType.bip84:
-            input = coinlib.P2WPKHInput(
-              prevOut: coinlib.OutPoint.fromHex(sd.utxo.txid, sd.utxo.vout),
-              publicKey: keys.publicKey,
-            );
-            // data = P2WPKH(
-            //   data: PaymentData(
-            //     pubkey: Format.stringToUint8List(pubKey),
-            //   ),
-            //   network: _network,
-            // ).data;
+            // input = coinlib.P2WPKHInput(
+            //   prevOut: coinlib.OutPoint.fromHex(sd.utxo.txid, sd.utxo.vout),
+            //   publicKey: keys.publicKey,
+            // );
+            data = bitcoindart
+                .P2WPKH(
+                  data: bitcoindart.PaymentData(
+                    pubkey: pubKey,
+                  ),
+                  network: convertedNetwork,
+                )
+                .data;
             break;
 
           default:
             throw Exception("DerivePathType unsupported");
         }
 
-        sd.output = input.toBytes();
+        // sd.output = input.script!.compiled;
+        sd.output = data.output!;
         sd.keyPair = bitcoindart.ECPair.fromPrivateKey(
           keys.privateKey.data,
           compressed: keys.privateKey.compressed,
-          network: bitcoindart.NetworkType(
-            messagePrefix: cryptoCurrency.networkParams.messagePrefix,
-            bech32: cryptoCurrency.networkParams.bech32Hrp,
-            bip32: bitcoindart.Bip32Type(
-              public: cryptoCurrency.networkParams.pubHDPrefix,
-              private: cryptoCurrency.networkParams.privHDPrefix,
-            ),
-            pubKeyHash: cryptoCurrency.networkParams.p2pkhPrefix,
-            scriptHash: cryptoCurrency.networkParams.p2shPrefix,
-            wif: cryptoCurrency.networkParams.wifPrefix,
-          ),
+          network: convertedNetwork,
         );
       }
 
@@ -598,17 +618,7 @@ mixin ElectrumXMixin on Bip39HDWallet {
     // TODO: use coinlib
 
     final txb = bitcoindart.TransactionBuilder(
-      network: bitcoindart.NetworkType(
-        messagePrefix: cryptoCurrency.networkParams.messagePrefix,
-        bech32: cryptoCurrency.networkParams.bech32Hrp,
-        bip32: bitcoindart.Bip32Type(
-          public: cryptoCurrency.networkParams.pubHDPrefix,
-          private: cryptoCurrency.networkParams.privHDPrefix,
-        ),
-        pubKeyHash: cryptoCurrency.networkParams.p2pkhPrefix,
-        scriptHash: cryptoCurrency.networkParams.p2shPrefix,
-        wif: cryptoCurrency.networkParams.wifPrefix,
-      ),
+      network: bitcoindart.testnet,
     );
     txb.setVersion(1);
 
@@ -1681,7 +1691,7 @@ mixin ElectrumXMixin on Bip39HDWallet {
         );
 
         Logging.instance.log("prepare send: $result", level: LogLevel.Info);
-        if (txData.fee!.raw.toInt() < txData.vSize!) {
+        if (result.fee!.raw.toInt() < result.vSize!) {
           throw Exception(
               "Error in fee calculation: Transaction fee cannot be less than vSize");
         }

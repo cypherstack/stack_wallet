@@ -120,7 +120,7 @@ class _ConfirmTransactionViewState
     );
 
     late String txid;
-    Future<TxData> txidFuture;
+    Future<TxData> txDataFuture;
 
     final note = noteController.text;
 
@@ -137,7 +137,7 @@ class _ConfirmTransactionViewState
         // txidFuture = (wallet as PaynymWalletInterface)
         //     .broadcastNotificationTx(preparedTx: transactionInfo);
       } else if (widget.isPaynymTransaction) {
-        txidFuture = wallet.confirmSend(txData: widget.txData);
+        txDataFuture = wallet.confirmSend(txData: widget.txData);
       } else {
         if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
             ref.read(publicPrivateBalanceStateProvider.state).state !=
@@ -148,26 +148,26 @@ class _ConfirmTransactionViewState
           //     .confirmSendPublic(txData: transactionInfo);
         } else {
           if (coin == Coin.epicCash) {
-            txidFuture = wallet.confirmSend(
+            txDataFuture = wallet.confirmSend(
               txData: widget.txData.copyWith(
                 noteOnChain: onChainNoteController.text,
               ),
             );
           } else {
-            txidFuture = wallet.confirmSend(txData: widget.txData);
+            txDataFuture = wallet.confirmSend(txData: widget.txData);
           }
         }
       }
 
       final results = await Future.wait([
-        txidFuture,
+        txDataFuture,
         time,
       ]);
 
       sendProgressController.triggerSuccess?.call();
       await Future<void>.delayed(const Duration(seconds: 5));
 
-      txid = results.first as String;
+      txid = (results.first as TxData).txid!;
       ref.refresh(desktopUseUTXOs);
 
       // save note
