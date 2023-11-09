@@ -4,7 +4,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/transaction_note.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
@@ -121,8 +120,7 @@ Future<void> migrateWalletsToIsar({
       coinName: old.coin.name,
       walletId: old.walletId,
       name: old.name,
-      walletType: _walletTypeForCoin(old.coin),
-      mainAddressType: _addressTypeForCoin(old.coin),
+      mainAddressType: old.coin.primaryAddressType,
       favouriteOrderIndex: favourites.indexOf(old.walletId),
       isMnemonicVerified: allWalletsBox
               .get("${old.walletId}_mnemonicHasBeenVerified") as bool? ??
@@ -159,102 +157,4 @@ Future<void> _cleanupOnSuccess({required List<String> walletIds}) async {
   for (final walletId in walletIds) {
     await Hive.deleteBoxFromDisk(walletId);
   }
-}
-
-WalletType _walletTypeForCoin(Coin coin) {
-  WalletType walletType;
-  switch (coin) {
-    case Coin.bitcoin:
-    case Coin.bitcoinTestNet:
-    case Coin.bitcoincash:
-    case Coin.bitcoincashTestnet:
-    case Coin.litecoin:
-    case Coin.dogecoin:
-    case Coin.firo:
-    case Coin.namecoin:
-    case Coin.particl:
-    case Coin.litecoinTestNet:
-    case Coin.firoTestNet:
-    case Coin.dogecoinTestNet:
-    case Coin.eCash:
-      walletType = WalletType.bip39HD;
-      break;
-
-    case Coin.monero:
-    case Coin.wownero:
-      walletType = WalletType.cryptonote;
-      break;
-
-    case Coin.epicCash:
-    case Coin.ethereum:
-    case Coin.tezos:
-    case Coin.nano:
-    case Coin.banano:
-    case Coin.stellar:
-    case Coin.stellarTestnet:
-      walletType = WalletType.bip39;
-      break;
-  }
-
-  return walletType;
-}
-
-AddressType _addressTypeForCoin(Coin coin) {
-  AddressType addressType;
-  switch (coin) {
-    case Coin.bitcoin:
-    case Coin.bitcoinTestNet:
-    case Coin.litecoin:
-    case Coin.litecoinTestNet:
-      addressType = AddressType.p2wpkh;
-      break;
-
-    case Coin.eCash:
-    case Coin.bitcoincash:
-    case Coin.bitcoincashTestnet:
-    case Coin.dogecoin:
-    case Coin.firo:
-    case Coin.firoTestNet:
-    case Coin.namecoin:
-    case Coin.particl:
-    case Coin.dogecoinTestNet:
-      addressType = AddressType.p2pkh;
-      break;
-
-    case Coin.monero:
-    case Coin.wownero:
-      addressType = AddressType.cryptonote;
-      break;
-
-    case Coin.epicCash:
-      addressType = AddressType.mimbleWimble;
-      break;
-
-    case Coin.ethereum:
-      addressType = AddressType.ethereum;
-      break;
-
-    case Coin.tezos:
-      // should not be unknown but since already used in prod changing
-      // this requires a migrate
-      addressType = AddressType.unknown;
-      break;
-
-    case Coin.nano:
-      addressType = AddressType.nano;
-      break;
-
-    case Coin.banano:
-      addressType = AddressType.banano;
-      break;
-
-    case Coin.stellar:
-    case Coin.stellarTestnet:
-      // should not be unknown but since already used in prod changing
-      // this requires a migrate
-      addressType = AddressType.unknown;
-      break;
-  }
-
-  return addressType;
 }

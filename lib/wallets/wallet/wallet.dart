@@ -30,8 +30,12 @@ import 'package:stackwallet/wallets/wallet/impl/bitcoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoincash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
+import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
+import 'package:stackwallet/wallets/wallet/intermediate/bip39_wallet.dart';
+import 'package:stackwallet/wallets/wallet/intermediate/cryptonote_wallet.dart';
 import 'package:stackwallet/wallets/wallet/mixins/electrumx_mixin.dart';
 import 'package:stackwallet/wallets/wallet/mixins/multi_address.dart';
+import 'package:stackwallet/wallets/wallet/private_key_based_wallet.dart';
 
 abstract class Wallet<T extends CryptoCurrency> {
   // default to Transaction class. For TransactionV2 set to 2
@@ -90,7 +94,6 @@ abstract class Wallet<T extends CryptoCurrency> {
   // ========== Wallet Info Convenience Getters ================================
 
   String get walletId => info.walletId;
-  WalletType get walletType => info.walletType;
 
   /// Attempt to fetch the most recent chain height.
   /// On failure return the last cached height.
@@ -130,9 +133,9 @@ abstract class Wallet<T extends CryptoCurrency> {
       prefs: prefs,
     );
 
-    switch (walletInfo.walletType) {
-      case WalletType.bip39:
-      case WalletType.bip39HD:
+    switch (wallet.runtimeType) {
+      case Bip39Wallet:
+      case Bip39HDWallet:
         await secureStorageInterface.write(
           key: mnemonicKey(walletId: walletInfo.walletId),
           value: mnemonic!,
@@ -143,10 +146,10 @@ abstract class Wallet<T extends CryptoCurrency> {
         );
         break;
 
-      case WalletType.cryptonote:
+      case CryptonoteWallet:
         break;
 
-      case WalletType.privateKeyBased:
+      case PrivateKeyBasedWallet:
         await secureStorageInterface.write(
           key: privateKeyKey(walletId: walletInfo.walletId),
           value: privateKey!,

@@ -20,9 +20,6 @@ class WalletInfo implements IsarId {
   final String name;
 
   @enumerated
-  final WalletType walletType;
-
-  @enumerated
   final AddressType mainAddressType;
 
   /// The highest index [mainAddressType] receiving address of the wallet
@@ -248,7 +245,6 @@ class WalletInfo implements IsarId {
     required this.coinName,
     required this.walletId,
     required this.name,
-    required this.walletType,
     required this.mainAddressType,
 
     // cachedReceivingAddress should never actually be empty in practice as
@@ -291,23 +287,10 @@ class WalletInfo implements IsarId {
         throw UnimplementedError();
     }
 
-    final WalletType walletType;
-    switch (coin) {
-      case Coin.bitcoin:
-      case Coin.bitcoinTestNet:
-      case Coin.bitcoincash:
-      case Coin.bitcoincashTestnet:
-        walletType = WalletType.bip39HD;
-
-      default:
-        throw UnimplementedError();
-    }
-
     return WalletInfo(
       coinName: coin.name,
       walletId: walletIdOverride ?? const Uuid().v1(),
       name: name,
-      walletType: walletType,
       mainAddressType: mainAddressType,
       restoreHeight: restoreHeight,
     );
@@ -328,7 +311,6 @@ class WalletInfo implements IsarId {
       coinName: coinName ?? this.coinName,
       walletId: walletId,
       name: name ?? this.name,
-      walletType: walletType,
       mainAddressType: mainAddressType,
       favouriteOrderIndex: favouriteOrderIndex ?? this.favouriteOrderIndex,
       cachedChainHeight: cachedChainHeight ?? this.cachedChainHeight,
@@ -343,14 +325,15 @@ class WalletInfo implements IsarId {
   }
 
   @Deprecated("Legacy support")
-  factory WalletInfo.fromJson(Map<String, dynamic> jsonObject,
-      WalletType walletType, AddressType mainAddressType) {
+  factory WalletInfo.fromJson(
+    Map<String, dynamic> jsonObject,
+    AddressType mainAddressType,
+  ) {
     final coin = Coin.values.byName(jsonObject["coin"] as String);
     return WalletInfo(
       coinName: coin.name,
       walletId: jsonObject["id"] as String,
       name: jsonObject["name"] as String,
-      walletType: walletType,
       mainAddressType: mainAddressType,
     );
   }
@@ -379,13 +362,4 @@ abstract class WalletInfoKeys {
   static const String tokenContractAddresses = "tokenContractAddressesKey";
   static const String cachedSecondaryBalance = "cachedSecondaryBalanceKey";
   static const String epiccashData = "epiccashDataKey";
-}
-
-// Used in Isar db and stored there as int indexes so adding/removing values
-// in this definition should be done extremely carefully in production
-enum WalletType {
-  bip39,
-  bip39HD,
-  cryptonote,
-  privateKeyBased;
 }

@@ -8,6 +8,7 @@
  *
  */
 
+import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/utilities/constants.dart';
 
 enum Coin {
@@ -354,6 +355,55 @@ extension CoinExt on Coin {
   }
 
   int get decimals => Constants.decimalPlacesForCoin(this);
+
+  AddressType get primaryAddressType {
+    switch (this) {
+      case Coin.bitcoin:
+      case Coin.bitcoinTestNet:
+      case Coin.litecoin:
+      case Coin.litecoinTestNet:
+        return AddressType.p2wpkh;
+        break;
+
+      case Coin.eCash:
+      case Coin.bitcoincash:
+      case Coin.bitcoincashTestnet:
+      case Coin.dogecoin:
+      case Coin.firo:
+      case Coin.firoTestNet:
+      case Coin.namecoin:
+      case Coin.particl:
+      case Coin.dogecoinTestNet:
+        return AddressType.p2pkh;
+
+      case Coin.monero:
+      case Coin.wownero:
+        return AddressType.cryptonote;
+
+      case Coin.epicCash:
+        return AddressType.mimbleWimble;
+
+      case Coin.ethereum:
+        return AddressType.ethereum;
+
+      case Coin.tezos:
+        // should not be unknown but since already used in prod changing
+        // this requires a migrate
+        return AddressType.unknown;
+
+      case Coin.nano:
+        return AddressType.nano;
+
+      case Coin.banano:
+        return AddressType.banano;
+
+      case Coin.stellar:
+      case Coin.stellarTestnet:
+        // should not be unknown but since already used in prod changing
+        // this requires a migrate
+        return AddressType.unknown;
+    }
+  }
 }
 
 Coin coinFromPrettyName(String name) {
