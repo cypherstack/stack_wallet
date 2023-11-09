@@ -197,7 +197,7 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
                             _note?.copyWith(value: _noteController.text) ??
                                 TransactionNote(
                                   walletId: widget.walletId,
-                                  txid: widget.walletId,
+                                  txid: widget.txid,
                                   value: _noteController.text,
                                 ),
                           );
@@ -215,7 +215,7 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
                           _note?.copyWith(value: _noteController.text) ??
                               TransactionNote(
                                 walletId: widget.walletId,
-                                txid: widget.walletId,
+                                txid: widget.txid,
                                 value: _noteController.text,
                               ),
                         );

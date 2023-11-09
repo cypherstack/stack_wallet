@@ -30,7 +30,6 @@ class _TransactionNoteWatcher extends ChangeNotifier {
         .txidWalletIdEqualTo(key.txid, key.walletId)
         .watch(fireImmediately: true)
         .listen((event) {
-      print("AAAAAA $event");
       if (event.isEmpty) {
         _value = null;
       } else {
@@ -70,6 +69,6 @@ final _wiProvider = ChangeNotifierProvider.family<_TransactionNoteWatcher,
 final pTransactionNote =
     Provider.family<TransactionNote?, ({String walletId, String txid})>(
   (ref, key) {
-    return ref.watch(_wiProvider(key)).value;
+    return ref.watch(_wiProvider(key).select((value) => value.value));
   },
 );
