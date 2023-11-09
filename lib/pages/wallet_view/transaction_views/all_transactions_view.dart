@@ -177,8 +177,7 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
     }
 
     // check if note contains
-    contains |= note != null &&
-        note.value.toLowerCase().contains(keyword);
+    contains |= note != null && note.value.toLowerCase().contains(keyword);
 
     // check if txid contains
     contains |= tx.txid.toLowerCase().contains(keyword);
@@ -530,6 +529,13 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                             transactions: snapshot.data!, filter: criteria);
 
                         final searched = search(_searchString, filtered);
+                        searched.sort((a, b) {
+                          final compare = b.timestamp.compareTo(a.timestamp);
+                          if (compare == 0) {
+                            return b.id.compareTo(a.id);
+                          }
+                          return compare;
+                        });
 
                         final monthlyList = groupTransactionsByMonth(searched);
                         return ListView.builder(

@@ -100,7 +100,13 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
         if (_transactions.isEmpty) {
           return const NoTransActionsFound();
         } else {
-          _transactions.sort((a, b) => b.timestamp - a.timestamp);
+          _transactions.sort((a, b) {
+            final compare = b.timestamp.compareTo(a.timestamp);
+            if (compare == 0) {
+              return b.id.compareTo(a.id);
+            }
+            return compare;
+          });
 
           final List<Object> _txns = [];
 

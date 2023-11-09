@@ -14,7 +14,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
@@ -177,8 +176,7 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
     }
 
     // check if note contains
-    contains |= note != null &&
-        note.value.toLowerCase().contains(keyword);
+    contains |= note != null && note.value.toLowerCase().contains(keyword);
 
     // check if txid contains
     contains |= tx.txid.toLowerCase().contains(keyword);
@@ -517,6 +515,13 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                             transactions: snapshot.data!, filter: criteria);
 
                         final searched = search(_searchString, filtered);
+                        searched.sort((a, b) {
+                          final compare = b.timestamp.compareTo(a.timestamp);
+                          if (compare == 0) {
+                            return b.id.compareTo(a.id);
+                          }
+                          return compare;
+                        });
 
                         final monthlyList = groupTransactionsByMonth(searched);
                         return ListView.builder(

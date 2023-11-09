@@ -264,7 +264,13 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
         if (_transactions2.isEmpty) {
           return const NoTransActionsFound();
         } else {
-          _transactions2.sort((a, b) => b.timestamp - a.timestamp);
+          _transactions2.sort((a, b) {
+            final compare = b.timestamp.compareTo(a.timestamp);
+            if (compare == 0) {
+              return b.id.compareTo(a.id);
+            }
+            return compare;
+          });
           return RefreshIndicator(
             onRefresh: () async {
               await ref.read(pWallets).getWallet(widget.walletId).refresh();
