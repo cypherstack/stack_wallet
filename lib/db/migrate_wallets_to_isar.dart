@@ -1,9 +1,11 @@
 import 'dart:convert';
 
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:isar/isar.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
+import 'package:stackwallet/models/isar/models/transaction_note.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
@@ -46,12 +48,40 @@ Future<void> migrateWalletsToIsar({
       (await Hive.openBox<String>(DB.boxNameFavoriteWallets)).values.toList();
 
   final List<WalletInfo> newInfo = [];
+  final List<TransactionNote> migratedNotes = [];
 
   //
   // Convert each old info into the new Isar WalletInfo
   //
   for (final old in oldInfo) {
     final walletBox = await Hive.openBox<dynamic>(old.walletId);
+
+    //
+    // First handle transaction notes
+    //
+    final newNoteCount = await MainDB.instance.isar.transactionNotes
+        .where()
+        .walletIdEqualTo(old.walletId)
+        .count();
+    if (newNoteCount == 0) {
+      final map = walletBox.get('notes') as Map?;
+
+      if (map != null) {
+        final notes = Map<String, String>.from(map);
+
+        for (final txid in notes.keys) {
+          final note = notes[txid];
+          if (note != null && note.isNotEmpty) {
+            final newNote = TransactionNote(
+              walletId: old.walletId,
+              txid: txid,
+              value: note,
+            );
+            migratedNotes.add(newNote);
+          }
+        }
+      }
+    }
 
     //
     // Set other data values
@@ -108,6 +138,12 @@ Future<void> migrateWalletsToIsar({
     );
 
     newInfo.add(info);
+  }
+
+  if (migratedNotes.isNotEmpty) {
+    await MainDB.instance.isar.writeTxn(() async {
+      await MainDB.instance.isar.transactionNotes.putAll(migratedNotes);
+    });
   }
 
   await MainDB.instance.isar.writeTxn(() async {

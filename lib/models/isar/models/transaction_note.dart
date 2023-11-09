@@ -25,7 +25,11 @@ class TransactionNote {
   @Index()
   late String walletId;
 
-  @Index(unique: true, composite: [CompositeIndex("walletId")])
+  @Index(
+    unique: true,
+    replace: true,
+    composite: [CompositeIndex("walletId")],
+  )
   late String txid;
 
   late String value;

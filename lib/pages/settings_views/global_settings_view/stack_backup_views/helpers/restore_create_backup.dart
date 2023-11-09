@@ -20,13 +20,13 @@ import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/isar/models/contact_entry.dart';
+import 'package:stackwallet/models/isar/models/transaction_note.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/stack_restoring_ui_state.dart';
 import 'package:stackwallet/models/trade_wallet_lookup.dart';
 import 'package:stackwallet/models/wallet_restore_state.dart';
 import 'package:stackwallet/services/address_book_service.dart';
 import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/notes_service.dart';
 import 'package:stackwallet/services/trade_notes_service.dart';
 import 'package:stackwallet/services/trade_sent_from_stack_service.dart';
 import 'package:stackwallet/services/trade_service.dart';
@@ -310,8 +310,15 @@ abstract class SWB {
 
         backupWallet['restoreHeight'] = wallet.info.restoreHeight;
 
-        NotesService notesService = NotesService(walletId: wallet.walletId);
-        var notes = await notesService.notes;
+        final isarNotes = await MainDB.instance.isar.transactionNotes
+            .where()
+            .walletIdEqualTo(wallet.walletId)
+            .findAll();
+
+        final notes = isarNotes
+            .asMap()
+            .map((key, value) => MapEntry(value.txid, value.value));
+
         backupWallet['notes'] = notes;
 
         backupWallets.add(backupWallet);
@@ -423,13 +430,26 @@ abstract class SWB {
       }
 
       // restore notes
-      NotesService notesService = NotesService(walletId: info.walletId);
-      final notes = walletbackup["notes"] as Map?;
-      if (notes != null) {
-        for (final note in notes.entries) {
-          await notesService.editOrAddNote(
-              txid: note.key as String, note: note.value as String);
+      final notesMap =
+          Map<String, String>.from(walletbackup["notes"] as Map? ?? {});
+      final List<TransactionNote> notes = [];
+
+      for (final key in notesMap.keys) {
+        if (notesMap[key] != null && notesMap[key]!.isNotEmpty) {
+          notes.add(
+            TransactionNote(
+              walletId: info.walletId,
+              txid: key,
+              value: notesMap[key]!,
+            ),
+          );
         }
+      }
+
+      if (notes.isNotEmpty) {
+        await MainDB.instance.isar.writeTxn(() async {
+          await MainDB.instance.isar.transactionNotes.putAll(notes);
+        });
       }
 
       if (_shouldCancelRestore) {
