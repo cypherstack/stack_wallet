@@ -1,6 +1,5 @@
 import 'package:decimal/decimal.dart';
 import 'package:mockito/annotations.dart';
-import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/node_service.dart';
@@ -20,7 +19,6 @@ Amount _a(int i) => Amount.fromDecimal(
 @GenerateMocks([
   Wallets,
   WalletsService,
-  BitcoinWallet,
   ThemeService,
   Prefs,
   LocaleService

@@ -190,10 +190,17 @@ class MockWallets extends _i1.Mock implements _i9.Wallets {
         returnValueForMissingStub: null,
       );
   @override
-  _i11.Future<void> deleteWallet(String? walletId) => (super.noSuchMethod(
+  _i11.Future<void> deleteWallet(
+    String? walletId,
+    _i7.SecureStorageInterface? secureStorage,
+  ) =>
+      (super.noSuchMethod(
         Invocation.method(
           #deleteWallet,
-          [walletId],
+          [
+            walletId,
+            secureStorage,
+          ],
         ),
         returnValue: _i11.Future<void>.value(),
         returnValueForMissingStub: _i11.Future<void>.value(),

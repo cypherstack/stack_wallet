@@ -1,5 +1,4 @@
 import 'package:mockito/annotations.dart';
-import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets.dart';
@@ -8,7 +7,6 @@ import 'package:stackwallet/services/wallets_service.dart';
 @GenerateMocks([
   Wallets,
   WalletsService,
-  BitcoinWallet
 ], customMocks: [
   MockSpec<NodeService>(returnNullOnMissingStub: true),
   MockSpec<CoinServiceAPI>(returnNullOnMissingStub: true),

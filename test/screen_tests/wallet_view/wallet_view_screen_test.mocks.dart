@@ -7,8 +7,7 @@ import 'dart:async' as _i3;
 import 'dart:ui' as _i4;
 
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:stackwallet/services/locale_service.dart' as _i5;
-import 'package:stackwallet/services/notes_service.dart' as _i2;
+import 'package:stackwallet/services/locale_service.dart' as _i2;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -21,112 +20,10 @@ import 'package:stackwallet/services/notes_service.dart' as _i2;
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
-/// A class which mocks [NotesService].
-///
-/// See the documentation for Mockito's code generation for more information.
-class MockNotesService extends _i1.Mock implements _i2.NotesService {
-  @override
-  String get walletId => (super.noSuchMethod(
-        Invocation.getter(#walletId),
-        returnValue: '',
-      ) as String);
-  @override
-  Map<String, String> get notesSync => (super.noSuchMethod(
-        Invocation.getter(#notesSync),
-        returnValue: <String, String>{},
-      ) as Map<String, String>);
-  @override
-  _i3.Future<Map<String, String>> get notes => (super.noSuchMethod(
-        Invocation.getter(#notes),
-        returnValue: _i3.Future<Map<String, String>>.value(<String, String>{}),
-      ) as _i3.Future<Map<String, String>>);
-  @override
-  bool get hasListeners => (super.noSuchMethod(
-        Invocation.getter(#hasListeners),
-        returnValue: false,
-      ) as bool);
-  @override
-  _i3.Future<Map<String, String>> search(String? text) => (super.noSuchMethod(
-        Invocation.method(
-          #search,
-          [text],
-        ),
-        returnValue: _i3.Future<Map<String, String>>.value(<String, String>{}),
-      ) as _i3.Future<Map<String, String>>);
-  @override
-  _i3.Future<String> getNoteFor({required String? txid}) => (super.noSuchMethod(
-        Invocation.method(
-          #getNoteFor,
-          [],
-          {#txid: txid},
-        ),
-        returnValue: _i3.Future<String>.value(''),
-      ) as _i3.Future<String>);
-  @override
-  _i3.Future<void> editOrAddNote({
-    required String? txid,
-    required String? note,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #editOrAddNote,
-          [],
-          {
-            #txid: txid,
-            #note: note,
-          },
-        ),
-        returnValue: _i3.Future<void>.value(),
-        returnValueForMissingStub: _i3.Future<void>.value(),
-      ) as _i3.Future<void>);
-  @override
-  _i3.Future<void> deleteNote({required String? txid}) => (super.noSuchMethod(
-        Invocation.method(
-          #deleteNote,
-          [],
-          {#txid: txid},
-        ),
-        returnValue: _i3.Future<void>.value(),
-        returnValueForMissingStub: _i3.Future<void>.value(),
-      ) as _i3.Future<void>);
-  @override
-  void addListener(_i4.VoidCallback? listener) => super.noSuchMethod(
-        Invocation.method(
-          #addListener,
-          [listener],
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  void removeListener(_i4.VoidCallback? listener) => super.noSuchMethod(
-        Invocation.method(
-          #removeListener,
-          [listener],
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  void dispose() => super.noSuchMethod(
-        Invocation.method(
-          #dispose,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  void notifyListeners() => super.noSuchMethod(
-        Invocation.method(
-          #notifyListeners,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
-}
-
 /// A class which mocks [LocaleService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockLocaleService extends _i1.Mock implements _i5.LocaleService {
+class MockLocaleService extends _i1.Mock implements _i2.LocaleService {
   @override
   String get locale => (super.noSuchMethod(
         Invocation.getter(#locale),

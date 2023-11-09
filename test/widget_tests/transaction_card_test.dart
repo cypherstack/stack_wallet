@@ -4,7 +4,6 @@ import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/locale_service.dart';
-import 'package:stackwallet/services/notes_service.dart';
 import 'package:stackwallet/services/price_service.dart';
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/themes/theme_service.dart';
@@ -17,7 +16,6 @@ import 'package:stackwallet/utilities/prefs.dart';
   LocaleService,
   Prefs,
   PriceService,
-  NotesService,
   ThemeService,
   MainDB,
   IThemeAssets,

@@ -4,11 +4,9 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i4;
-import 'dart:ui' as _i6;
 
 import 'package:barcode_scan2/barcode_scan2.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:stackwallet/services/notes_service.dart' as _i5;
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart' as _i3;
 
 // ignore_for_file: type=lint
@@ -59,106 +57,4 @@ class MockBarcodeScannerWrapper extends _i1.Mock
           ),
         )),
       ) as _i4.Future<_i2.ScanResult>);
-}
-
-/// A class which mocks [NotesService].
-///
-/// See the documentation for Mockito's code generation for more information.
-class MockNotesService extends _i1.Mock implements _i5.NotesService {
-  @override
-  String get walletId => (super.noSuchMethod(
-        Invocation.getter(#walletId),
-        returnValue: '',
-      ) as String);
-  @override
-  Map<String, String> get notesSync => (super.noSuchMethod(
-        Invocation.getter(#notesSync),
-        returnValue: <String, String>{},
-      ) as Map<String, String>);
-  @override
-  _i4.Future<Map<String, String>> get notes => (super.noSuchMethod(
-        Invocation.getter(#notes),
-        returnValue: _i4.Future<Map<String, String>>.value(<String, String>{}),
-      ) as _i4.Future<Map<String, String>>);
-  @override
-  bool get hasListeners => (super.noSuchMethod(
-        Invocation.getter(#hasListeners),
-        returnValue: false,
-      ) as bool);
-  @override
-  _i4.Future<Map<String, String>> search(String? text) => (super.noSuchMethod(
-        Invocation.method(
-          #search,
-          [text],
-        ),
-        returnValue: _i4.Future<Map<String, String>>.value(<String, String>{}),
-      ) as _i4.Future<Map<String, String>>);
-  @override
-  _i4.Future<String> getNoteFor({required String? txid}) => (super.noSuchMethod(
-        Invocation.method(
-          #getNoteFor,
-          [],
-          {#txid: txid},
-        ),
-        returnValue: _i4.Future<String>.value(''),
-      ) as _i4.Future<String>);
-  @override
-  _i4.Future<void> editOrAddNote({
-    required String? txid,
-    required String? note,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #editOrAddNote,
-          [],
-          {
-            #txid: txid,
-            #note: note,
-          },
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-  @override
-  _i4.Future<void> deleteNote({required String? txid}) => (super.noSuchMethod(
-        Invocation.method(
-          #deleteNote,
-          [],
-          {#txid: txid},
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-  @override
-  void addListener(_i6.VoidCallback? listener) => super.noSuchMethod(
-        Invocation.method(
-          #addListener,
-          [listener],
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  void removeListener(_i6.VoidCallback? listener) => super.noSuchMethod(
-        Invocation.method(
-          #removeListener,
-          [listener],
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  void dispose() => super.noSuchMethod(
-        Invocation.method(
-          #dispose,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  void notifyListeners() => super.noSuchMethod(
-        Invocation.method(
-          #notifyListeners,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
 }
