@@ -7,7 +7,6 @@ import 'package:mockito/annotations.dart';
 // import 'package:stackwallet/pages/main_view.dart';
 
 import 'package:stackwallet/services/locale_service.dart';
-import 'package:stackwallet/services/notes_service.dart';
 import 'package:stackwallet/services/wallets_service.dart';
 // import 'package:provider/provider.dart';
 //
@@ -16,7 +15,6 @@ import 'package:stackwallet/services/wallets_service.dart';
 
 @GenerateMocks([], customMocks: [
   MockSpec<WalletsService>(returnNullOnMissingStub: true),
-  MockSpec<NotesService>(returnNullOnMissingStub: true),
   MockSpec<LocaleService>(returnNullOnMissingStub: true),
 ])
 void main() {

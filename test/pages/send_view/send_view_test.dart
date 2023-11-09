@@ -1,5 +1,4 @@
 import 'package:mockito/annotations.dart';
-import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/node_service.dart';
@@ -12,7 +11,6 @@ import 'package:stackwallet/utilities/prefs.dart';
   Wallets,
   WalletsService,
   NodeService,
-  BitcoinWallet,
   LocaleService,
   ThemeService,
   Prefs,

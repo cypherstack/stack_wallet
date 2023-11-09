@@ -11,7 +11,6 @@ import 'package:mockito/annotations.dart';
 // import 'package:stackwallet/notifications/campfire_alert.dart';
 // import 'package:stackwallet/pages/wallet_view/send_view.dart';
 
-import 'package:stackwallet/services/notes_service.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 // import 'package:stackwallet/utilities/clipboard_interface.dart';
 // import 'package:stackwallet/widgets/amount_input_field.dart';
@@ -21,11 +20,7 @@ import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 //
 // import 'send_view_screen_test.mocks.dart';
 
-@GenerateMocks([
-  BarcodeScannerWrapper
-], customMocks: [
-  MockSpec<NotesService>(returnNullOnMissingStub: true),
-])
+@GenerateMocks([BarcodeScannerWrapper], customMocks: [])
 void main() {
 //   testWidgets("SendView builds correctly", (tester) async {
 //     final wallet =  MockManager();
