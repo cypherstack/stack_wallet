@@ -82,12 +82,6 @@ const WalletInfoSchema = CollectionSchema(
       id: 12,
       name: r'walletId',
       type: IsarType.string,
-    ),
-    r'walletType': PropertySchema(
-      id: 13,
-      name: r'walletType',
-      type: IsarType.byte,
-      enumMap: _WalletInfowalletTypeEnumValueMap,
     )
   },
   estimateSize: _walletInfoEstimateSize,
@@ -169,7 +163,6 @@ void _walletInfoSerialize(
   writer.writeLong(offsets[10], object.restoreHeight);
   writer.writeStringList(offsets[11], object.tokenContractAddresses);
   writer.writeString(offsets[12], object.walletId);
-  writer.writeByte(offsets[13], object.walletType.index);
 }
 
 WalletInfo _walletInfoDeserialize(
@@ -192,9 +185,6 @@ WalletInfo _walletInfoDeserialize(
     otherDataJsonString: reader.readStringOrNull(offsets[9]),
     restoreHeight: reader.readLongOrNull(offsets[10]) ?? 0,
     walletId: reader.readString(offsets[12]),
-    walletType:
-        _WalletInfowalletTypeValueEnumMap[reader.readByteOrNull(offsets[13])] ??
-            WalletType.bip39,
   );
   object.id = id;
   return object;
@@ -235,10 +225,6 @@ P _walletInfoDeserializeProp<P>(
       return (reader.readStringList(offset) ?? []) as P;
     case 12:
       return (reader.readString(offset)) as P;
-    case 13:
-      return (_WalletInfowalletTypeValueEnumMap[
-              reader.readByteOrNull(offset)] ??
-          WalletType.bip39) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -267,18 +253,6 @@ const _WalletInfomainAddressTypeValueEnumMap = {
   7: AddressType.ethereum,
   8: AddressType.nano,
   9: AddressType.banano,
-};
-const _WalletInfowalletTypeEnumValueMap = {
-  'bip39': 0,
-  'bip39HD': 1,
-  'cryptonote': 2,
-  'privateKeyBased': 3,
-};
-const _WalletInfowalletTypeValueEnumMap = {
-  0: WalletType.bip39,
-  1: WalletType.bip39HD,
-  2: WalletType.cryptonote,
-  3: WalletType.privateKeyBased,
 };
 
 Id _walletInfoGetId(WalletInfo object) {
@@ -1839,61 +1813,6 @@ extension WalletInfoQueryFilter
       ));
     });
   }
-
-  QueryBuilder<WalletInfo, WalletInfo, QAfterFilterCondition> walletTypeEqualTo(
-      WalletType value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'walletType',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<WalletInfo, WalletInfo, QAfterFilterCondition>
-      walletTypeGreaterThan(
-    WalletType value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'walletType',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<WalletInfo, WalletInfo, QAfterFilterCondition>
-      walletTypeLessThan(
-    WalletType value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'walletType',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<WalletInfo, WalletInfo, QAfterFilterCondition> walletTypeBetween(
-    WalletType lower,
-    WalletType upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'walletType',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
 }
 
 extension WalletInfoQueryObject
@@ -2057,18 +1976,6 @@ extension WalletInfoQuerySortBy
   QueryBuilder<WalletInfo, WalletInfo, QAfterSortBy> sortByWalletIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'walletId', Sort.desc);
-    });
-  }
-
-  QueryBuilder<WalletInfo, WalletInfo, QAfterSortBy> sortByWalletType() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'walletType', Sort.asc);
-    });
-  }
-
-  QueryBuilder<WalletInfo, WalletInfo, QAfterSortBy> sortByWalletTypeDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'walletType', Sort.desc);
     });
   }
 }
@@ -2242,18 +2149,6 @@ extension WalletInfoQuerySortThenBy
       return query.addSortBy(r'walletId', Sort.desc);
     });
   }
-
-  QueryBuilder<WalletInfo, WalletInfo, QAfterSortBy> thenByWalletType() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'walletType', Sort.asc);
-    });
-  }
-
-  QueryBuilder<WalletInfo, WalletInfo, QAfterSortBy> thenByWalletTypeDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'walletType', Sort.desc);
-    });
-  }
 }
 
 extension WalletInfoQueryWhereDistinct
@@ -2348,12 +2243,6 @@ extension WalletInfoQueryWhereDistinct
       return query.addDistinctBy(r'walletId', caseSensitive: caseSensitive);
     });
   }
-
-  QueryBuilder<WalletInfo, WalletInfo, QDistinct> distinctByWalletType() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'walletType');
-    });
-  }
 }
 
 extension WalletInfoQueryProperty
@@ -2446,12 +2335,6 @@ extension WalletInfoQueryProperty
   QueryBuilder<WalletInfo, String, QQueryOperations> walletIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'walletId');
-    });
-  }
-
-  QueryBuilder<WalletInfo, WalletType, QQueryOperations> walletTypeProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'walletType');
     });
   }
 }
