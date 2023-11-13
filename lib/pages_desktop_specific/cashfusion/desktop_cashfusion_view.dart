@@ -197,7 +197,7 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                       width: 12,
                     ),
                     Text(
-                      "CashFusion",
+                      "Fusion",
                       style: STextStyles.desktopH3(context),
                     ),
                   ],
@@ -219,7 +219,7 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                         ),
                         RichText(
                           text: TextSpan(
-                            text: "What is CashFusion?",
+                            text: "What is Fusion?",
                             style: STextStyles.richLink(context).copyWith(
                               fontSize: 16,
                             ),
@@ -248,7 +248,7 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                                                       .spaceBetween,
                                               children: [
                                                 Text(
-                                                  "What is CashFusion?",
+                                                  "What is Fusion?",
                                                   style: STextStyles.desktopH2(
                                                       context),
                                                 ),
@@ -308,7 +308,7 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                     child: Row(
                       children: [
                         Text(
-                          "CashFusion allows you to anonymize your BCH coins.",
+                          "Fusion helps anonymize your coins by mixing them.",
                           style:
                               STextStyles.desktopTextExtraExtraSmall(context),
                         ),
