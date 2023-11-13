@@ -24,6 +24,7 @@ import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -54,6 +55,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
   late final FocusNode portFocusNode;
   late final TextEditingController fusionRoundController;
   late final FocusNode fusionRoundFocusNode;
+  Coin? coin;
 
   bool _enableSSLCheckbox = false;
   bool _enableStartButton = false;
@@ -89,7 +91,11 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
     );
 
     // update user prefs (persistent)
-    ref.read(prefsChangeNotifierProvider).fusionServerInfo = newInfo;
+    if (coin == Coin.bitcoincash) {
+      ref.read(prefsChangeNotifierProvider).fusionServerInfoBch = newInfo;
+    } else {
+      ref.read(prefsChangeNotifierProvider).fusionServerInfoXec = newInfo;
+    }
 
     unawaited(
       fusionWallet.fuse(
@@ -113,7 +119,16 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
     portFocusNode = FocusNode();
     fusionRoundFocusNode = FocusNode();
 
-    final info = ref.read(prefsChangeNotifierProvider).fusionServerInfo;
+    coin = ref
+        .read(walletsChangeNotifierProvider)
+        .getManager(widget.walletId)
+        .wallet
+        .coin;
+
+    final info = (coin == Coin.bitcoincash)
+        ? ref.read(prefsChangeNotifierProvider).fusionServerInfoBch
+        : ref.read(prefsChangeNotifierProvider).fusionServerInfoXec;
+
     serverController.text = info.host;
     portController.text = info.port.toString();
     _enableSSLCheckbox = info.ssl;
@@ -214,7 +229,9 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                               CustomTextButton(
                                 text: "Default",
                                 onTap: () {
-                                  const def = FusionInfo.DEFAULTS;
+                                  final def = (coin == Coin.bitcoincash)
+                                      ? FusionInfo.BCH_DEFAULTS
+                                      : FusionInfo.XEC_DEFAULTS;
                                   serverController.text = def.host;
                                   portController.text = def.port.toString();
                                   fusionRoundController.text =

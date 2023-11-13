@@ -18,6 +18,7 @@ import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -37,12 +38,13 @@ class FusionProgressView extends ConsumerStatefulWidget {
   static const routeName = "/cashFusionProgressView";
 
   final String walletId;
-
   @override
   ConsumerState<FusionProgressView> createState() => _FusionProgressViewState();
 }
 
 class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
+  Coin? coin;
+
   Future<bool> _requestAndProcessCancel() async {
     final shouldCancel = await showDialog<bool?>(
       context: context,
@@ -99,6 +101,12 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
     final int _fusionRoundsCompleted = ref
         .watch(fusionProgressUIStateProvider(widget.walletId))
         .fusionRoundsCompleted;
+
+    coin = ref
+        .read(walletsChangeNotifierProvider)
+        .getManager(widget.walletId)
+        .wallet
+        .coin;
 
     return WillPopScope(
       onWillPop: () async {
@@ -230,7 +238,9 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
         .getManager(widget.walletId)
         .wallet as FusionWalletInterface;
 
-    final fusionInfo = ref.read(prefsChangeNotifierProvider).fusionServerInfo;
+    final fusionInfo = (coin == Coin.bitcoincash)
+        ? ref.read(prefsChangeNotifierProvider).fusionServerInfoBch
+        : ref.read(prefsChangeNotifierProvider).fusionServerInfoXec;
 
     try {
       fusionWallet.uiState = ref.read(

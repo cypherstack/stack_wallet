@@ -2788,7 +2788,7 @@ class MockPrefs extends _i1.Mock implements _i27.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i22.FusionInfo get fusionServerInfo => (super.noSuchMethod(
+  _i22.FusionInfo get fusionServerInfoBch => (super.noSuchMethod(
         Invocation.getter(#fusionServerInfo),
         returnValue: _FakeFusionInfo_20(
           this,
@@ -2796,7 +2796,8 @@ class MockPrefs extends _i1.Mock implements _i27.Prefs {
         ),
       ) as _i22.FusionInfo);
   @override
-  set fusionServerInfo(_i22.FusionInfo? fusionServerInfo) => super.noSuchMethod(
+  set fusionServerInfoBch(_i22.FusionInfo? fusionServerInfo) =>
+      super.noSuchMethod(
         Invocation.setter(
           #fusionServerInfo,
           fusionServerInfo,

@@ -8,6 +8,7 @@ import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -39,6 +40,8 @@ class FusionDialogView extends ConsumerStatefulWidget {
 }
 
 class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
+  Coin? coin;
+
   Future<bool> _requestAndProcessCancel() async {
     if (!ref.read(fusionProgressUIStateProvider(widget.walletId)).running) {
       return true;
@@ -152,6 +155,12 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
     final int _fusionRoundsCompleted = ref
         .watch(fusionProgressUIStateProvider(widget.walletId))
         .fusionRoundsCompleted;
+
+    coin = ref
+        .read(walletsChangeNotifierProvider)
+        .getManager(widget.walletId)
+        .wallet
+        .coin;
 
     return DesktopDialog(
       maxHeight: 600,
@@ -288,7 +297,9 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
         .getManager(widget.walletId)
         .wallet as FusionWalletInterface;
 
-    final fusionInfo = ref.read(prefsChangeNotifierProvider).fusionServerInfo;
+    final fusionInfo = (coin == Coin.bitcoincash)
+        ? ref.read(prefsChangeNotifierProvider).fusionServerInfoBch
+        : ref.read(prefsChangeNotifierProvider).fusionServerInfoXec;
 
     try {
       fusionWallet.uiState = ref.read(

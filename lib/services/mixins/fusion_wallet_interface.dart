@@ -37,13 +37,20 @@ class FusionInfo {
     required this.rounds,
   }) : assert(rounds >= 0);
 
-  static const DEFAULTS = FusionInfo(
+  static const BCH_DEFAULTS = FusionInfo(
     host: "fusion.servo.cash",
     port: 8789,
     ssl: true,
     // host: "cashfusion.stackwallet.com",
     // port: 8787,
     // ssl: false,
+    rounds: 0, // 0 is continuous
+  );
+
+  static const XEC_DEFAULTS = FusionInfo(
+    host: "fusion.tokamak.cash",
+    port: 8788,
+    ssl: true,
     rounds: 0, // 0 is continuous
   );
 
@@ -95,7 +102,7 @@ class FusionInfo {
   }
 }
 
-/// A mixin for the BitcoinCashWallet class that adds CashFusion functionality.
+/// A mixin for the BitcoinCashWallet and ECashWallet classes that adds Fusion functionality.
 mixin FusionWalletInterface {
   // Passed in wallet data.
   late final String _walletId;

@@ -37,6 +37,7 @@ import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/coin_control_interface.dart';
 import 'package:stackwallet/services/mixins/electrum_x_parsing.dart';
+import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/mixins/xpubable.dart';
@@ -56,8 +57,6 @@ import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/widgets/crypto_notifications.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
-
-import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 
 const int MINIMUM_CONFIRMATIONS = 0;
 
@@ -158,6 +157,19 @@ class ECashWallet extends CoinServiceAPI
     _secureStore = secureStore;
     initCache(walletId, coin);
     initWalletDB(mockableOverride: mockableOverride);
+    initFusionInterface(
+      walletId: walletId,
+      coin: coin,
+      db: db,
+      getWalletCachedElectrumX: () => cachedElectrumXClient,
+      getNextUnusedChangeAddress: _getUnusedChangeAddresses,
+      getChainHeight: () async => chainHeight,
+      updateWalletUTXOS: _updateUTXOs,
+      mnemonic: mnemonicString,
+      mnemonicPassphrase: mnemonicPassphrase,
+      network: _network,
+      convertToScriptHash: _convertToScriptHash,
+    );
     initCoinControlInterface(
       walletId: walletId,
       walletName: walletName,
@@ -249,6 +261,80 @@ class ECashWallet extends CoinServiceAPI
           .sortByDerivationIndexDesc()
           .findFirst()) ??
       await _generateAddressForChain(1, 0, DerivePathTypeExt.primaryFor(coin));
+  Future<List<isar_models.Address>> _getUnusedChangeAddresses({
+    int numberOfAddresses = 1,
+  }) async {
+    if (numberOfAddresses < 1) {
+      throw ArgumentError.value(
+        numberOfAddresses,
+        "numberOfAddresses",
+        "Must not be less than 1",
+      );
+    }
+
+    final changeAddresses = await db
+        .getAddresses(walletId)
+        .filter()
+        .typeEqualTo(isar_models.AddressType.p2pkh)
+        .subTypeEqualTo(isar_models.AddressSubType.change)
+        .derivationPath((q) => q.not().valueStartsWith("m/44'/0'"))
+        .sortByDerivationIndex()
+        .findAll();
+
+    final List<isar_models.Address> unused = [];
+
+    for (final addr in changeAddresses) {
+      if (await _isUnused(addr.value)) {
+        unused.add(addr);
+        if (unused.length == numberOfAddresses) {
+          return unused;
+        }
+      }
+    }
+
+    // if not returned by now, we need to create more addresses
+    int countMissing = numberOfAddresses - unused.length;
+
+    int nextIndex =
+        changeAddresses.isEmpty ? 0 : changeAddresses.last.derivationIndex + 1;
+
+    while (countMissing > 0) {
+      //   create a new address
+      final address = await _generateAddressForChain(
+        1,
+        nextIndex,
+        DerivePathTypeExt.primaryFor(coin),
+      );
+      nextIndex++;
+      await db.updateOrPutAddresses([address]);
+
+      // check if it has been used before adding
+      if (await _isUnused(address.value)) {
+        unused.add(address);
+        countMissing--;
+      }
+    }
+
+    return unused;
+  }
+
+  Future<bool> _isUnused(String address) async {
+    final txCountInDB = await db
+        .getTransactions(_walletId)
+        .filter()
+        .address((q) => q.valueEqualTo(address))
+        .count();
+    if (txCountInDB == 0) {
+      // double check via electrumx
+      // _getTxCountForAddress can throw!
+      // final count = await getTxCount(address: address);
+      // if (count == 0) {
+      return true;
+      // }
+    }
+
+    return false;
+  }
 
   @override
   Future<void> exit() async {
