@@ -148,7 +148,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
             automaticallyImplyLeading: false,
             leading: const AppBarBackButton(),
             title: Text(
-              "CashFusion",
+              "Fusion",
               style: STextStyles.navBarTitle(context),
             ),
             titleSpacing: 0,
@@ -187,7 +187,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                         children: [
                           RoundedWhiteContainer(
                             child: Text(
-                              "CashFusion allows you to anonymize your BCH coins.",
+                              "Fusion helps anonymize your coins by mixing them.",
                               style: STextStyles.w500_12(context).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!

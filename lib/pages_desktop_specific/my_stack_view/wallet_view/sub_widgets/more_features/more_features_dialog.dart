@@ -131,8 +131,8 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
             ),
           if (wallet is CashFusion)
             _MoreFeaturesItem(
-              label: "CashFusion",
-              detail: "Decentralized Bitcoin Cash mixing protocol",
+              label: "Fusion",
+              detail: "Decentralized mixing protocol",
               iconAsset: Assets.svg.cashFusion,
               onPressed: () => widget.onFusionPressed?.call(),
             ),
