@@ -57,6 +57,8 @@ import 'package:stackwallet/widgets/crypto_notifications.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
+
 const int MINIMUM_CONFIRMATIONS = 0;
 
 const String GENESIS_HASH_MAINNET =
@@ -130,7 +132,12 @@ String constructDerivePath({
 }
 
 class ECashWallet extends CoinServiceAPI
-    with WalletCache, WalletDB, ElectrumXParsing, CoinControlInterface
+    with
+        WalletCache,
+        WalletDB,
+        ElectrumXParsing,
+        CoinControlInterface,
+        FusionWalletInterface
     implements XPubAble {
   ECashWallet({
     required String walletId,
