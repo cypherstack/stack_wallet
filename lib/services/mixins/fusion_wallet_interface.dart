@@ -721,7 +721,17 @@ mixin FusionWalletInterface {
           // Do the same for the UI state.
           _uiState?.incrementFusionRoundsFailed();
 
-          // If we fail too many times in a row, stop trying.
+          // If we have no coins, stop trying.
+          if (coinList.isEmpty ||
+              e.toString().contains("Started with no coins")) {
+            _updateStatus(
+                status: fusion.FusionStatus.failed,
+                info: "Started with no coins, stopping.");
+            _stopRequested = true;
+            _uiState?.setFailed(true, shouldNotify: true);
+          }
+
+          // If we fail too many times in a row or have no coins, stop trying.
           if (_failedFuseCount >= maxFailedFuseCount) {
             _updateStatus(
                 status: fusion.FusionStatus.failed,
