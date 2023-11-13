@@ -688,6 +688,10 @@ mixin FusionWalletInterface {
 
         // Fuse UTXOs.
         try {
+          if (coinList.isEmpty) {
+            throw Exception("Started with no coins");
+          }
+
           await _mainFusionObject!.fuse(
             inputsFromWallet: coinList,
             network: _coin.isTestNet
