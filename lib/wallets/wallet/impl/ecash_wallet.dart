@@ -352,9 +352,75 @@ class EcashWallet extends Bip39HDWallet with ElectrumXMixin {
     return vSize * (feeRatePerKB / 1000).ceil();
   }
 
+  @override
+  Future<({List<Address> addresses, int index})> checkGapsLinearly(
+    coinlib.HDPrivateKey root,
+    DerivePathType type,
+    int chain,
+  ) async {
+    List<Address> addressArray = [];
+    int gapCounter = 0;
+    int index = 0;
+    for (;
+        index < cryptoCurrency.maxNumberOfIndexesToCheck &&
+            gapCounter < cryptoCurrency.maxUnusedAddressGap;
+        index++) {
+      Logging.instance.log(
+          "index: $index, \t GapCounter chain=$chain ${type.name}: $gapCounter",
+          level: LogLevel.Info);
+
+      final derivePath = cryptoCurrency.constructDerivePath(
+        derivePathType: type,
+        chain: chain,
+        index: index,
+      );
+      final keys = root.derivePath(derivePath);
+      final addressData = cryptoCurrency.getAddressForPublicKey(
+        publicKey: keys.publicKey,
+        derivePathType: type,
+      );
+
+      // ecash specific
+      final addressString = bitbox.Address.toECashAddress(
+        addressData.address.toString(),
+      );
+
+      final address = Address(
+        walletId: walletId,
+        value: addressString,
+        publicKey: keys.publicKey.data,
+        type: addressData.addressType,
+        derivationIndex: index,
+        derivationPath: DerivationPath()..value = derivePath,
+        subType: chain == 0 ? AddressSubType.receiving : AddressSubType.change,
+      );
+
+      // get address tx count
+      final count = await fetchTxCount(
+        addressScriptHash: cryptoCurrency.addressToScriptHash(
+          address: address.value,
+        ),
+      );
+
+      // check and add appropriate addresses
+      if (count > 0) {
+        // add address to array
+        addressArray.add(address);
+        // reset counter
+        gapCounter = 0;
+        // add info to derivations
+      } else {
+        // increase counter when no tx history found
+        gapCounter++;
+      }
+    }
+
+    return (addresses: addressArray, index: index);
+  }
+
   // not all coins need to override this. ecash does due to cash addr string formatting
   @override
-  Future<({List<Address> addresses, int index})> checkGaps(
+  Future<({List<Address> addresses, int index})> checkGapsBatched(
     int txCountBatchSize,
     coinlib.HDPrivateKey root,
     DerivePathType type,

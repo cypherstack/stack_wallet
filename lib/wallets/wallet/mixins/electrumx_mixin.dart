@@ -25,6 +25,9 @@ mixin ElectrumXMixin on Bip39HDWallet {
   late ElectrumX electrumX;
   late CachedElectrumX electrumXCached;
 
+  double? _serverVersion;
+  bool get serverCanBatch => _serverVersion != null && _serverVersion! >= 1.6;
+
   List<({String address, Amount amount})> _helperRecipientsConvert(
       List<String> addrs, List<int> satValues) {
     final List<({String address, Amount amount})> results = [];
@@ -792,7 +795,7 @@ mixin ElectrumXMixin on Bip39HDWallet {
 
   //============================================================================
 
-  Future<({List<Address> addresses, int index})> checkGaps(
+  Future<({List<Address> addresses, int index})> checkGapsBatched(
     int txCountBatchSize,
     coinlib.HDPrivateKey root,
     DerivePathType type,
@@ -873,40 +876,121 @@ mixin ElectrumXMixin on Bip39HDWallet {
     return (index: highestIndexWithHistory, addresses: addressArray);
   }
 
+  Future<({List<Address> addresses, int index})> checkGapsLinearly(
+    coinlib.HDPrivateKey root,
+    DerivePathType type,
+    int chain,
+  ) async {
+    List<Address> addressArray = [];
+    int gapCounter = 0;
+    int index = 0;
+    for (;
+        index < cryptoCurrency.maxNumberOfIndexesToCheck &&
+            gapCounter < cryptoCurrency.maxUnusedAddressGap;
+        index++) {
+      Logging.instance.log(
+          "index: $index, \t GapCounter chain=$chain ${type.name}: $gapCounter",
+          level: LogLevel.Info);
+
+      final derivePath = cryptoCurrency.constructDerivePath(
+        derivePathType: type,
+        chain: chain,
+        index: index,
+      );
+      final keys = root.derivePath(derivePath);
+      final addressData = cryptoCurrency.getAddressForPublicKey(
+        publicKey: keys.publicKey,
+        derivePathType: type,
+      );
+
+      final addressString = addressData.address.toString();
+
+      final address = Address(
+        walletId: walletId,
+        value: addressString,
+        publicKey: keys.publicKey.data,
+        type: addressData.addressType,
+        derivationIndex: index,
+        derivationPath: DerivationPath()..value = derivePath,
+        subType: chain == 0 ? AddressSubType.receiving : AddressSubType.change,
+      );
+
+      // get address tx count
+      final count = await fetchTxCount(
+        addressScriptHash: cryptoCurrency.addressToScriptHash(
+          address: address.value,
+        ),
+      );
+
+      // check and add appropriate addresses
+      if (count > 0) {
+        // add address to array
+        addressArray.add(address);
+        // reset counter
+        gapCounter = 0;
+        // add info to derivations
+      } else {
+        // increase counter when no tx history found
+        gapCounter++;
+      }
+    }
+
+    return (addresses: addressArray, index: index);
+  }
+
   Future<List<Map<String, dynamic>>> fetchHistory(
     Iterable<String> allAddresses,
   ) async {
     try {
       List<Map<String, dynamic>> allTxHashes = [];
 
-      final Map<int, Map<String, List<dynamic>>> batches = {};
-      final Map<String, String> requestIdToAddressMap = {};
-      const batchSizeMax = 100;
-      int batchNumber = 0;
-      for (int i = 0; i < allAddresses.length; i++) {
-        if (batches[batchNumber] == null) {
-          batches[batchNumber] = {};
+      if (serverCanBatch) {
+        final Map<int, Map<String, List<dynamic>>> batches = {};
+        final Map<String, String> requestIdToAddressMap = {};
+        const batchSizeMax = 100;
+        int batchNumber = 0;
+        for (int i = 0; i < allAddresses.length; i++) {
+          if (batches[batchNumber] == null) {
+            batches[batchNumber] = {};
+          }
+          final scriptHash = cryptoCurrency.addressToScriptHash(
+            address: allAddresses.elementAt(i),
+          );
+          final id = Logger.isTestEnv ? "$i" : const Uuid().v1();
+          requestIdToAddressMap[id] = allAddresses.elementAt(i);
+          batches[batchNumber]!.addAll({
+            id: [scriptHash]
+          });
+          if (i % batchSizeMax == batchSizeMax - 1) {
+            batchNumber++;
+          }
         }
-        final scriptHash = cryptoCurrency.addressToScriptHash(
-          address: allAddresses.elementAt(i),
-        );
-        final id = Logger.isTestEnv ? "$i" : const Uuid().v1();
-        requestIdToAddressMap[id] = allAddresses.elementAt(i);
-        batches[batchNumber]!.addAll({
-          id: [scriptHash]
-        });
-        if (i % batchSizeMax == batchSizeMax - 1) {
-          batchNumber++;
-        }
-      }
 
-      for (int i = 0; i < batches.length; i++) {
-        final response = await electrumX.getBatchHistory(args: batches[i]!);
-        for (final entry in response.entries) {
-          for (int j = 0; j < entry.value.length; j++) {
-            entry.value[j]["address"] = requestIdToAddressMap[entry.key];
-            if (!allTxHashes.contains(entry.value[j])) {
-              allTxHashes.add(entry.value[j]);
+        for (int i = 0; i < batches.length; i++) {
+          final response = await electrumX.getBatchHistory(args: batches[i]!);
+          for (final entry in response.entries) {
+            for (int j = 0; j < entry.value.length; j++) {
+              entry.value[j]["address"] = requestIdToAddressMap[entry.key];
+              if (!allTxHashes.contains(entry.value[j])) {
+                allTxHashes.add(entry.value[j]);
+              }
+            }
+          }
+        }
+      } else {
+        for (int i = 0; i < allAddresses.length; i++) {
+          final scriptHash = cryptoCurrency.addressToScriptHash(
+            address: allAddresses.elementAt(1),
+          );
+
+          final response = await electrumX.getHistory(
+            scripthash: scriptHash,
+          );
+
+          for (int j = 0; j < response.length; j++) {
+            response[j]["address"] = allAddresses.elementAt(1);
+            if (!allTxHashes.contains(response[j])) {
+              allTxHashes.add(response[j]);
             }
           }
         }
@@ -1446,12 +1530,18 @@ mixin ElectrumXMixin on Bip39HDWallet {
 
         for (final type in cryptoCurrency.supportedDerivationPathTypes) {
           receiveFutures.add(
-            checkGaps(
-              txCountBatchSize,
-              root,
-              type,
-              receiveChain,
-            ),
+            serverCanBatch
+                ? checkGapsBatched(
+                    txCountBatchSize,
+                    root,
+                    type,
+                    receiveChain,
+                  )
+                : checkGapsLinearly(
+                    root,
+                    type,
+                    receiveChain,
+                  ),
           );
         }
 
@@ -1462,12 +1552,18 @@ mixin ElectrumXMixin on Bip39HDWallet {
         );
         for (final type in cryptoCurrency.supportedDerivationPathTypes) {
           changeFutures.add(
-            checkGaps(
-              txCountBatchSize,
-              root,
-              type,
-              changeChain,
-            ),
+            serverCanBatch
+                ? checkGapsBatched(
+                    txCountBatchSize,
+                    root,
+                    type,
+                    changeChain,
+                  )
+                : checkGapsLinearly(
+                    root,
+                    type,
+                    changeChain,
+                  ),
           );
         }
 
@@ -1539,30 +1635,43 @@ mixin ElectrumXMixin on Bip39HDWallet {
     try {
       final fetchedUtxoList = <List<Map<String, dynamic>>>[];
 
-      final Map<int, Map<String, List<dynamic>>> batches = {};
-      const batchSizeMax = 10;
-      int batchNumber = 0;
-      for (int i = 0; i < allAddresses.length; i++) {
-        if (batches[batchNumber] == null) {
-          batches[batchNumber] = {};
-        }
-        final scriptHash = cryptoCurrency.addressToScriptHash(
-          address: allAddresses[i].value,
-        );
+      if (serverCanBatch) {
+        final Map<int, Map<String, List<dynamic>>> batches = {};
+        const batchSizeMax = 10;
+        int batchNumber = 0;
+        for (int i = 0; i < allAddresses.length; i++) {
+          if (batches[batchNumber] == null) {
+            batches[batchNumber] = {};
+          }
+          final scriptHash = cryptoCurrency.addressToScriptHash(
+            address: allAddresses[i].value,
+          );
 
-        batches[batchNumber]!.addAll({
-          scriptHash: [scriptHash]
-        });
-        if (i % batchSizeMax == batchSizeMax - 1) {
-          batchNumber++;
+          batches[batchNumber]!.addAll({
+            scriptHash: [scriptHash]
+          });
+          if (i % batchSizeMax == batchSizeMax - 1) {
+            batchNumber++;
+          }
         }
-      }
 
-      for (int i = 0; i < batches.length; i++) {
-        final response = await electrumX.getBatchUTXOs(args: batches[i]!);
-        for (final entry in response.entries) {
-          if (entry.value.isNotEmpty) {
-            fetchedUtxoList.add(entry.value);
+        for (int i = 0; i < batches.length; i++) {
+          final response = await electrumX.getBatchUTXOs(args: batches[i]!);
+          for (final entry in response.entries) {
+            if (entry.value.isNotEmpty) {
+              fetchedUtxoList.add(entry.value);
+            }
+          }
+        }
+      } else {
+        for (int i = 0; i < allAddresses.length; i++) {
+          final scriptHash = cryptoCurrency.addressToScriptHash(
+            address: allAddresses[i].value,
+          );
+
+          final utxos = await electrumX.getUTXOs(scripthash: scriptHash);
+          if (utxos.isNotEmpty) {
+            fetchedUtxoList.add(utxos);
           }
         }
       }
@@ -1707,6 +1816,28 @@ mixin ElectrumXMixin on Bip39HDWallet {
     }
   }
 
+  @override
+  Future<void> init() async {
+    try {
+      final features = await electrumX
+          .getServerFeatures()
+          .timeout(const Duration(seconds: 3));
+
+      Logging.instance.log("features: $features", level: LogLevel.Info);
+
+      _serverVersion =
+          _parseServerVersion(features["server_version"] as String);
+
+      if (cryptoCurrency.genesisHash != features['genesis_hash']) {
+        throw Exception("genesis hash does not match!");
+      }
+    } catch (e, s) {
+      Logging.instance.log("$e/n$s", level: LogLevel.Info);
+    }
+
+    await super.init();
+  }
+
   // ===========================================================================
   // ========== Interface functions ============================================
 
@@ -1753,6 +1884,26 @@ mixin ElectrumXMixin on Bip39HDWallet {
           fractionDigits: info.coin.decimals,
         ) -
         estimatedFee;
+  }
+
+  // stupid + fragile
+  double? _parseServerVersion(String version) {
+    double? result;
+    try {
+      final list = version.split(" ");
+      if (list.isNotEmpty) {
+        final numberStrings = list.last.split(".");
+        final major = numberStrings.removeAt(0);
+
+        result = double.tryParse("$major.${numberStrings.join("")}");
+      }
+    } catch (_) {}
+
+    Logging.instance.log(
+      "${info.name} _parseServerVersion($version) => $result",
+      level: LogLevel.Info,
+    );
+    return result;
   }
 
   // ===========================================================================

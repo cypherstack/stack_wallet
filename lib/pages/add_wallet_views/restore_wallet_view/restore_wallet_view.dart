@@ -292,6 +292,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             mnemonic: mnemonic,
           );
 
+          await wallet.init();
           await wallet.recover(isRescan: false);
 
           // check if state is still active before continuing

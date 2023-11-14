@@ -414,6 +414,8 @@ abstract class SWB {
         privateKey: privateKey,
       );
 
+      await wallet.init();
+
       int restoreHeight = walletbackup['restoreHeight'] as int? ?? 0;
       if (restoreHeight <= 0) {
         restoreHeight = walletbackup['storedChainHeight'] as int? ?? 0;

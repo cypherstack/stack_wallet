@@ -354,7 +354,7 @@ class BitcoincashWallet extends Bip39HDWallet with ElectrumXMixin {
 
   // not all coins need to override this. BCH does due to cash addr string formatting
   @override
-  Future<({List<Address> addresses, int index})> checkGaps(
+  Future<({List<Address> addresses, int index})> checkGapsBatched(
     int txCountBatchSize,
     coinlib.HDPrivateKey root,
     DerivePathType type,
