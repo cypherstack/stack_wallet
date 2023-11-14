@@ -84,7 +84,7 @@ class EcashWallet extends Bip39HDWallet with ElectrumXMixin {
                   DerivePathType.bip44 ||
               cryptoCurrency.addressType(address: e.value) ==
                   DerivePathType.eCash44)) {
-        return bitbox.Address.toCashAddress(e.value);
+        return bitbox.Address.toECashAddress(e.value);
       } else {
         return e.value;
       }
@@ -98,7 +98,7 @@ class EcashWallet extends Bip39HDWallet with ElectrumXMixin {
                   DerivePathType.bip44 ||
               cryptoCurrency.addressType(address: e.value) ==
                   DerivePathType.eCash44)) {
-        return bitbox.Address.toCashAddress(e.value);
+        return bitbox.Address.toECashAddress(e.value);
       } else {
         return e.value;
       }
@@ -337,7 +337,7 @@ class EcashWallet extends Bip39HDWallet with ElectrumXMixin {
     return (blockedReason: blockedReason, blocked: blocked);
   }
 
-  // TODO: correct formula for bch?
+  // TODO: correct formula for ecash?
   @override
   Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
     return Amount(
@@ -352,7 +352,7 @@ class EcashWallet extends Bip39HDWallet with ElectrumXMixin {
     return vSize * (feeRatePerKB / 1000).ceil();
   }
 
-  // not all coins need to override this. BCH does due to cash addr string formatting
+  // not all coins need to override this. ecash does due to cash addr string formatting
   @override
   Future<({List<Address> addresses, int index})> checkGaps(
     int txCountBatchSize,
@@ -396,8 +396,8 @@ class EcashWallet extends Bip39HDWallet with ElectrumXMixin {
           derivePathType: type,
         );
 
-        // bch specific
-        final addressString = bitbox.Address.toCashAddress(
+        // ecash specific
+        final addressString = bitbox.Address.toECashAddress(
           addressData.address.toString(),
         );
 

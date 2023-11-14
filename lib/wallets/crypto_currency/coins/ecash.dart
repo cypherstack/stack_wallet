@@ -32,8 +32,8 @@ class Ecash extends Bip39HDCurrency {
 
   @override
   List<DerivePathType> get supportedDerivationPathTypes => [
+        DerivePathType.eCash44,
         DerivePathType.bip44,
-        if (coin != Coin.bitcoincashTestnet) DerivePathType.bch44,
       ];
 
   @override

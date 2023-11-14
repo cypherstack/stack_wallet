@@ -55,9 +55,6 @@ class WalletInfo implements IsarId {
 
   // /// Wallet creation chain height. Applies to select coin only.
   // final int creationHeight;
-  //
-  // /// Wallet restore chain height. Applies to select coin only.
-  // final int restoreHeight;
 
   final String? otherDataJsonString;
 
