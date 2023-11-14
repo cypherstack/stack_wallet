@@ -25,6 +25,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/mixins/cash_fusion.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -113,11 +114,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
     portFocusNode = FocusNode();
     fusionRoundFocusNode = FocusNode();
 
-    coin = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .wallet
-        .coin;
+    coin = ref.read(pWalletCoin(widget.walletId));
 
     final info =
         ref.read(prefsChangeNotifierProvider).getFusionServerInfo(coin);
@@ -222,9 +219,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                               CustomTextButton(
                                 text: "Default",
                                 onTap: () {
-                                  final def = (coin == Coin.bitcoincash)
-                                      ? FusionInfo.BCH_DEFAULTS
-                                      : FusionInfo.XEC_DEFAULTS;
+                                  final def = kFusionServerInfoDefaults[coin]!;
                                   serverController.text = def.host;
                                   portController.text = def.port.toString();
                                   fusionRoundController.text =
