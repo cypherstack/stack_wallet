@@ -266,32 +266,11 @@ class WalletInfo implements IsarId {
     int restoreHeight = 0,
     String? walletIdOverride,
   }) {
-    // TODO: make Coin aware of these
-    // ex.
-    // walletType = coin.walletType;
-    // mainAddressType = coin.mainAddressType;
-
-    final AddressType mainAddressType;
-    switch (coin) {
-      case Coin.bitcoin:
-      case Coin.bitcoinTestNet:
-        mainAddressType = AddressType.p2wpkh;
-        break;
-
-      case Coin.bitcoincash:
-      case Coin.bitcoincashTestnet:
-        mainAddressType = AddressType.p2pkh;
-        break;
-
-      default:
-        throw UnimplementedError();
-    }
-
     return WalletInfo(
       coinName: coin.name,
       walletId: walletIdOverride ?? const Uuid().v1(),
       name: name,
-      mainAddressType: mainAddressType,
+      mainAddressType: coin.primaryAddressType,
       restoreHeight: restoreHeight,
     );
   }

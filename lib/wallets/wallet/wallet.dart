@@ -32,10 +32,8 @@ import 'package:stackwallet/wallets/wallet/impl/bitcoincash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/ecash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
-import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
-import 'package:stackwallet/wallets/wallet/intermediate/bip39_wallet.dart';
-import 'package:stackwallet/wallets/wallet/intermediate/cryptonote_wallet.dart';
 import 'package:stackwallet/wallets/wallet/mixins/electrumx_mixin.dart';
+import 'package:stackwallet/wallets/wallet/mixins/mnemonic_based_wallet.dart';
 import 'package:stackwallet/wallets/wallet/mixins/multi_address.dart';
 import 'package:stackwallet/wallets/wallet/private_key_based_wallet.dart';
 
@@ -135,28 +133,22 @@ abstract class Wallet<T extends CryptoCurrency> {
       prefs: prefs,
     );
 
-    switch (wallet.runtimeType) {
-      case Bip39Wallet:
-      case Bip39HDWallet:
-        await secureStorageInterface.write(
-          key: mnemonicKey(walletId: walletInfo.walletId),
-          value: mnemonic!,
-        );
-        await secureStorageInterface.write(
-          key: mnemonicPassphraseKey(walletId: walletInfo.walletId),
-          value: mnemonicPassphrase!,
-        );
-        break;
+    if (wallet is MnemonicBasedWallet) {
+      await secureStorageInterface.write(
+        key: mnemonicKey(walletId: walletInfo.walletId),
+        value: mnemonic!,
+      );
+      await secureStorageInterface.write(
+        key: mnemonicPassphraseKey(walletId: walletInfo.walletId),
+        value: mnemonicPassphrase!,
+      );
+    }
 
-      case CryptonoteWallet:
-        break;
-
-      case PrivateKeyBasedWallet:
-        await secureStorageInterface.write(
-          key: privateKeyKey(walletId: walletInfo.walletId),
-          value: privateKey!,
-        );
-        break;
+    if (wallet is PrivateKeyBasedWallet) {
+      await secureStorageInterface.write(
+        key: privateKeyKey(walletId: walletInfo.walletId),
+        value: privateKey!,
+      );
     }
 
     // Store in db after wallet creation
