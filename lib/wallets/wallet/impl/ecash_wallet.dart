@@ -168,6 +168,7 @@ class EcashWallet extends Bip39HDWallet
           final prevOut = OutputV2.fromElectrumXJson(
             prevOutJson,
             decimalPlaces: cryptoCurrency.fractionDigits,
+            isECashFullAmountNotSats: true,
             walletOwns: false, // doesn't matter here as this is not saved
           );
 
@@ -206,6 +207,7 @@ class EcashWallet extends Bip39HDWallet
         OutputV2 output = OutputV2.fromElectrumXJson(
           Map<String, dynamic>.from(outputJson as Map),
           decimalPlaces: cryptoCurrency.fractionDigits,
+          isECashFullAmountNotSats: true,
           // don't know yet if wallet owns. Need addresses first
           walletOwns: false,
         );

@@ -46,6 +46,7 @@ class OutputV2 {
     Map<String, dynamic> json, {
     required bool walletOwns,
     required int decimalPlaces,
+    bool isECashFullAmountNotSats = false,
   }) {
     try {
       List<String> addresses = [];
@@ -60,10 +61,9 @@ class OutputV2 {
 
       return OutputV2.isarCantDoRequiredInDefaultConstructor(
         scriptPubKeyHex: json["scriptPubKey"]["hex"] as String,
-        valueStringSats: parseOutputAmountString(
-          json["value"].toString(),
-          decimalPlaces: decimalPlaces,
-        ),
+        valueStringSats: parseOutputAmountString(json["value"].toString(),
+            decimalPlaces: decimalPlaces,
+            isECashFullAmountNotSats: isECashFullAmountNotSats),
         addresses: addresses,
         walletOwns: walletOwns,
       );
@@ -75,6 +75,7 @@ class OutputV2 {
   static String parseOutputAmountString(
     String amount, {
     required int decimalPlaces,
+    bool isECashFullAmountNotSats = false,
   }) {
     final temp = Decimal.parse(amount);
     if (temp < Decimal.zero) {
@@ -82,7 +83,9 @@ class OutputV2 {
     }
 
     final String valueStringSats;
-    if (temp.isInteger) {
+    if (isECashFullAmountNotSats) {
+      valueStringSats = temp.shift(decimalPlaces).toBigInt().toString();
+    } else if (temp.isInteger) {
       valueStringSats = temp.toString();
     } else {
       valueStringSats = temp.shift(decimalPlaces).toBigInt().toString();
