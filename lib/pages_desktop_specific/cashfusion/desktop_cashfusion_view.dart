@@ -93,11 +93,8 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
     );
 
     // update user prefs (persistent)
-    if (coin == Coin.bitcoincash) {
-      ref.read(prefsChangeNotifierProvider).fusionServerInfoBch = newInfo;
-    } else {
-      ref.read(prefsChangeNotifierProvider).fusionServerInfoXec = newInfo;
-    }
+
+    ref.read(prefsChangeNotifierProvider).setFusionServerInfo(coin, newInfo);
 
     unawaited(
       fusionWallet.fuse(
@@ -132,9 +129,8 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
         .wallet
         .coin;
 
-    final info = (coin == Coin.bitcoincash)
-        ? ref.read(prefsChangeNotifierProvider).fusionServerInfoBch
-        : ref.read(prefsChangeNotifierProvider).fusionServerInfoXec;
+    final info =
+        ref.read(prefsChangeNotifierProvider).getFusionServerInfo(coin);
 
     serverController.text = info.host;
     portController.text = info.port.toString();

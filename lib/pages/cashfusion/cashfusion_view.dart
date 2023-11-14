@@ -55,7 +55,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
   late final FocusNode portFocusNode;
   late final TextEditingController fusionRoundController;
   late final FocusNode fusionRoundFocusNode;
-  Coin? coin;
+  late final Coin coin;
 
   bool _enableSSLCheckbox = false;
   bool _enableStartButton = false;
@@ -89,11 +89,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
     );
 
     // update user prefs (persistent)
-    if (coin == Coin.bitcoincash) {
-      ref.read(prefsChangeNotifierProvider).fusionServerInfoBch = newInfo;
-    } else {
-      ref.read(prefsChangeNotifierProvider).fusionServerInfoXec = newInfo;
-    }
+    ref.read(prefsChangeNotifierProvider).setFusionServerInfo(coin, newInfo);
 
     unawaited(
       fusionWallet.fuse(
@@ -123,9 +119,8 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
         .wallet
         .coin;
 
-    final info = (coin == Coin.bitcoincash)
-        ? ref.read(prefsChangeNotifierProvider).fusionServerInfoBch
-        : ref.read(prefsChangeNotifierProvider).fusionServerInfoXec;
+    final info =
+        ref.read(prefsChangeNotifierProvider).getFusionServerInfo(coin);
 
     serverController.text = info.host;
     portController.text = info.port.toString();
