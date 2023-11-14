@@ -850,8 +850,11 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                 text: "See all",
                                 onTap: () {
                                   Navigator.of(context).pushNamed(
-                                    coin == Coin.bitcoincash ||
-                                            coin == Coin.bitcoincashTestnet
+                                    ref
+                                                .read(pWallets)
+                                                .getWallet(widget.walletId)
+                                                .isarTransactionVersion ==
+                                            2
                                         ? AllTransactionsV2View.routeName
                                         : AllTransactionsView.routeName,
                                     arguments: walletId,

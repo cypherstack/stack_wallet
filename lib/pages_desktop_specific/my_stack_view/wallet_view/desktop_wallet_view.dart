@@ -466,9 +466,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                               }
                             } else {
                               await Navigator.of(context).pushNamed(
-                                walletInfo.coin == Coin.bitcoincash ||
-                                        walletInfo.coin ==
-                                            Coin.bitcoincashTestnet
+                                wallet.isarTransactionVersion == 2
                                     ? AllTransactionsV2View.routeName
                                     : AllTransactionsView.routeName,
                                 arguments: widget.walletId,
