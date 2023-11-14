@@ -83,6 +83,23 @@ class Ecash extends Bip39HDCurrency {
   }
 
   @override
+  String addressToScriptHash({required String address}) {
+    try {
+      if (bitbox.Address.detectFormat(address) ==
+              bitbox.Address.formatCashAddr &&
+          _validateCashAddr(address)) {
+        address = bitbox.Address.toLegacyAddress(address);
+      }
+
+      final addr = coinlib.Address.fromString(address, networkParams);
+      return Bip39HDCurrency.convertBytesToScriptHash(
+          addr.program.script.compiled);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
   String constructDerivePath({
     required DerivePathType derivePathType,
     int account = 0,
