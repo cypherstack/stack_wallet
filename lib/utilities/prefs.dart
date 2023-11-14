@@ -12,13 +12,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/services/event_bus/events/global/tor_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/languages_enum.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
+import 'package:stackwallet/wallets/wallet/mixins/cash_fusion.dart';
 import 'package:uuid/uuid.dart';
 
 class Prefs extends ChangeNotifier {

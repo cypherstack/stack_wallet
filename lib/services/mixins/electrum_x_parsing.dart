@@ -23,10 +23,6 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/util.dart' as util;
 import 'package:tuple/tuple.dart';
 
-class TT with ElectrumXParsing {
-  //
-}
-
 mixin ElectrumXParsing {
   Future<TransactionV2> getTransaction(
     String txHash,

@@ -54,7 +54,6 @@ import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/services/mixins/coin_control_interface.dart';
-import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/services/mixins/ordinals_interface.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
@@ -71,6 +70,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/mixins/cash_fusion.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -83,6 +83,7 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/buy_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/coin_control_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/exchange_nav_icon.dart';
+import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/fusion_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/ordinals_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/paynym_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/receive_nav_icon.dart';
@@ -90,8 +91,6 @@ import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/send_
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/wallet_navigation_bar_item.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/wallet_navigation_bar.dart';
 import 'package:tuple/tuple.dart';
-
-import '../../widgets/wallet_navigation_bar/components/icons/fusion_nav_icon.dart';
 
 /// [eventBus] should only be set during testing
 class WalletView extends ConsumerStatefulWidget {
@@ -1119,8 +1118,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     ),
                   if (ref.watch(
                     pWallets.select(
-                      (value) => value.getWallet(widget.walletId)
-                          is FusionWalletInterface,
+                      (value) => value.getWallet(widget.walletId) is CashFusion,
                     ),
                   ))
                     WalletNavigationBarItemData(

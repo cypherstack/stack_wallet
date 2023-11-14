@@ -14,13 +14,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/mixins/coin_control_interface.dart';
-import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/services/mixins/ordinals_interface.dart';
 import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/wallet/mixins/cash_fusion.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
@@ -129,7 +129,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               iconAsset: Assets.svg.monkey,
               onPressed: () => widget.onMonkeyPressed?.call(),
             ),
-          if (wallet is FusionWalletInterface)
+          if (wallet is CashFusion)
             _MoreFeaturesItem(
               label: "CashFusion",
               detail: "Decentralized Bitcoin Cash mixing protocol",

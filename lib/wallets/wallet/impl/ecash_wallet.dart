@@ -15,9 +15,12 @@ import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/ecash.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
+import 'package:stackwallet/wallets/wallet/mixins/cash_fusion.dart';
+import 'package:stackwallet/wallets/wallet/mixins/coin_control.dart';
 import 'package:stackwallet/wallets/wallet/mixins/electrumx.dart';
 
-class EcashWallet extends Bip39HDWallet with ElectrumX {
+class EcashWallet extends Bip39HDWallet
+    with ElectrumX, CoinControl, CashFusion {
   @override
   int get isarTransactionVersion => 2;
 

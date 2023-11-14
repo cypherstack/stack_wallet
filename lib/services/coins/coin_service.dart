@@ -15,7 +15,6 @@ import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/banano/banano_wallet.dart';
-import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
@@ -131,26 +130,10 @@ abstract class CoinServiceAPI {
         throw UnimplementedError("moved");
 
       case Coin.bitcoincash:
-        return BitcoinCashWallet(
-          walletId: walletId,
-          walletName: walletName,
-          coin: coin,
-          secureStore: secureStorageInterface,
-          client: client,
-          cachedClient: cachedClient,
-          tracker: tracker,
-        );
+        throw UnimplementedError("moved");
 
       case Coin.bitcoincashTestnet:
-        return BitcoinCashWallet(
-          walletId: walletId,
-          walletName: walletName,
-          coin: coin,
-          secureStore: secureStorageInterface,
-          client: client,
-          cachedClient: cachedClient,
-          tracker: tracker,
-        );
+        throw UnimplementedError("moved");
 
       case Coin.dogecoin:
         throw UnimplementedError("moved");
