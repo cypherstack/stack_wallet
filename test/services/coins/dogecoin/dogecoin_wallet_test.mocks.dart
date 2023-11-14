@@ -7,8 +7,8 @@ import 'dart:async' as _i4;
 
 import 'package:decimal/decimal.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i5;
-import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i3;
+import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart' as _i5;
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart' as _i3;
 import 'package:stackwallet/services/transaction_notification_tracker.dart'
     as _i7;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i6;
@@ -44,8 +44,9 @@ class _FakeDecimal_1 extends _i1.SmartFake implements _i2.Decimal {
         );
 }
 
-class _FakeElectrumX_2 extends _i1.SmartFake implements _i3.ElectrumX {
-  _FakeElectrumX_2(
+class _FakeElectrumXClient_2 extends _i1.SmartFake
+    implements _i3.ElectrumXClient {
+  _FakeElectrumXClient_2(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -54,11 +55,11 @@ class _FakeElectrumX_2 extends _i1.SmartFake implements _i3.ElectrumX {
         );
 }
 
-/// A class which mocks [ElectrumX].
+/// A class which mocks [ElectrumXClient].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockElectrumX extends _i1.Mock implements _i3.ElectrumX {
-  MockElectrumX() {
+class MockElectrumXClient extends _i1.Mock implements _i3.ElectrumXClient {
+  MockElectrumXClient() {
     _i1.throwOnMissingStub(this);
   }
 
@@ -414,22 +415,23 @@ class MockElectrumX extends _i1.Mock implements _i3.ElectrumX {
       ) as _i4.Future<_i2.Decimal>);
 }
 
-/// A class which mocks [CachedElectrumX].
+/// A class which mocks [CachedElectrumXClient].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCachedElectrumX extends _i1.Mock implements _i5.CachedElectrumX {
-  MockCachedElectrumX() {
+class MockCachedElectrumXClient extends _i1.Mock
+    implements _i5.CachedElectrumXClient {
+  MockCachedElectrumXClient() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i3.ElectrumX get electrumXClient => (super.noSuchMethod(
+  _i3.ElectrumXClient get electrumXClient => (super.noSuchMethod(
         Invocation.getter(#electrumXClient),
-        returnValue: _FakeElectrumX_2(
+        returnValue: _FakeElectrumXClient_2(
           this,
           Invocation.getter(#electrumXClient),
         ),
-      ) as _i3.ElectrumX);
+      ) as _i3.ElectrumXClient);
   @override
   _i4.Future<Map<String, dynamic>> getAnonymitySet({
     required String? groupId,

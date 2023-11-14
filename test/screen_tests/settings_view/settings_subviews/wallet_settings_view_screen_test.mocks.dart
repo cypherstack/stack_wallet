@@ -9,8 +9,8 @@ import 'dart:ui' as _i10;
 import 'package:local_auth/auth_strings.dart' as _i7;
 import 'package:local_auth/local_auth.dart' as _i6;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i3;
-import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i2;
+import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart' as _i3;
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart' as _i2;
 import 'package:stackwallet/services/wallets_service.dart' as _i9;
 import 'package:stackwallet/utilities/biometrics.dart' as _i8;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i5;
@@ -26,8 +26,9 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i5;
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
-class _FakeElectrumX_0 extends _i1.SmartFake implements _i2.ElectrumX {
-  _FakeElectrumX_0(
+class _FakeElectrumXClient_0 extends _i1.SmartFake
+    implements _i2.ElectrumXClient {
+  _FakeElectrumXClient_0(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -36,22 +37,23 @@ class _FakeElectrumX_0 extends _i1.SmartFake implements _i2.ElectrumX {
         );
 }
 
-/// A class which mocks [CachedElectrumX].
+/// A class which mocks [CachedElectrumXClient].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCachedElectrumX extends _i1.Mock implements _i3.CachedElectrumX {
-  MockCachedElectrumX() {
+class MockCachedElectrumXClient extends _i1.Mock
+    implements _i3.CachedElectrumXClient {
+  MockCachedElectrumXClient() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i2.ElectrumX get electrumXClient => (super.noSuchMethod(
+  _i2.ElectrumXClient get electrumXClient => (super.noSuchMethod(
         Invocation.getter(#electrumXClient),
-        returnValue: _FakeElectrumX_0(
+        returnValue: _FakeElectrumXClient_0(
           this,
           Invocation.getter(#electrumXClient),
         ),
-      ) as _i2.ElectrumX);
+      ) as _i2.ElectrumXClient);
   @override
   _i4.Future<Map<String, dynamic>> getAnonymitySet({
     required String? groupId,

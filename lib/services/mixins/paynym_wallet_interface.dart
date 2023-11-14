@@ -21,7 +21,7 @@ import 'package:bitcoindart/src/utils/script.dart' as bscript;
 import 'package:isar/isar.dart';
 import 'package:pointycastle/digests/sha256.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/exceptions/wallet/insufficient_balance_exception.dart';
 import 'package:stackwallet/exceptions/wallet/paynym_send_exception.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
@@ -61,7 +61,7 @@ mixin PaynymWalletInterface {
   late final btc_dart.NetworkType _network;
   late final Coin _coin;
   late final MainDB _db;
-  late final ElectrumX _electrumXClient;
+  late final ElectrumXClient _electrumXClient;
   late final SecureStorageInterface _secureStorage;
   late final int _dustLimit;
   late final int _dustLimitP2PKH;
@@ -97,7 +97,7 @@ mixin PaynymWalletInterface {
     required btc_dart.NetworkType network,
     required Coin coin,
     required MainDB db,
-    required ElectrumX electrumXClient,
+    required ElectrumXClient electrumXClient,
     required SecureStorageInterface secureStorage,
     required int dustLimit,
     required int dustLimitP2PKH,

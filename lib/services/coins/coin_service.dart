@@ -8,8 +8,8 @@
  *
  */
 
-import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
+import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/node_model.dart';
@@ -64,7 +64,7 @@ abstract class CoinServiceAPI {
       id: node.id,
       useSSL: node.useSSL,
     );
-    final client = ElectrumX.from(
+    final client = ElectrumXClient.from(
       node: electrumxNode,
       failovers: failovers
           .map((e) => ElectrumXNode(
@@ -77,7 +77,7 @@ abstract class CoinServiceAPI {
           .toList(),
       prefs: prefs,
     );
-    final cachedClient = CachedElectrumX.from(
+    final cachedClient = CachedElectrumXClient.from(
       electrumXClient: client,
     );
     switch (coin) {

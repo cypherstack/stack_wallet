@@ -5,8 +5,8 @@ import 'package:hive_test/hive_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
+import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
@@ -19,8 +19,8 @@ import 'bitcoincash_wallet_test.mocks.dart';
 import 'bitcoincash_wallet_test_parameters.dart';
 
 @GenerateMocks([
-  ElectrumX,
-  CachedElectrumX,
+  ElectrumXClient,
+  CachedElectrumXClient,
   TransactionNotificationTracker,
 ])
 void main() async {

@@ -6,7 +6,7 @@ import 'package:local_auth/local_auth.dart';
 // import 'package:mockingjay/mockingjay.dart' as mockingjay;
 import 'package:mockito/annotations.dart';
 // import 'package:mockito/mockito.dart';
-import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
+import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
 // import 'package:stackwallet/notifications/campfire_alert.dart';
 // import 'package:stackwallet/pages/settings_view/settings_subviews/wallet_settings_view.dart';
 
@@ -20,7 +20,7 @@ import 'package:stackwallet/utilities/biometrics.dart';
 // import 'wallet_settings_view_screen_test.mocks.dart';
 
 @GenerateMocks([
-  CachedElectrumX,
+  CachedElectrumXClient,
   LocalAuthentication,
   Biometrics,
 ], customMocks: [

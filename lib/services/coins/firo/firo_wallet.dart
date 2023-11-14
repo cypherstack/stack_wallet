@@ -23,8 +23,8 @@ import 'package:isar/isar.dart';
 import 'package:lelantus/lelantus.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
+import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/lelantus_fee_data.dart';
@@ -688,7 +688,7 @@ Future<dynamic> isolateCreateJoinSplitTransaction(
   };
 }
 
-Future<int> getBlockHead(ElectrumX client) async {
+Future<int> getBlockHead(ElectrumXClient client) async {
   try {
     final tip = await client.getBlockHeadTip();
     return tip["height"] as int;
@@ -751,8 +751,8 @@ class FiroWallet extends CoinServiceAPI
     required String walletId,
     required String walletName,
     required Coin coin,
-    required ElectrumX client,
-    required CachedElectrumX cachedClient,
+    required ElectrumXClient client,
+    required CachedElectrumXClient cachedClient,
     required TransactionNotificationTracker tracker,
     required SecureStorageInterface secureStore,
     MainDB? mockableOverride,
@@ -1248,13 +1248,13 @@ class FiroWallet extends CoinServiceAPI
     return data;
   }
 
-  late ElectrumX _electrumXClient;
+  late ElectrumXClient _electrumXClient;
 
-  ElectrumX get electrumXClient => _electrumXClient;
+  ElectrumXClient get electrumXClient => _electrumXClient;
 
-  late CachedElectrumX _cachedElectrumXClient;
+  late CachedElectrumXClient _cachedElectrumXClient;
 
-  CachedElectrumX get cachedElectrumXClient => _cachedElectrumXClient;
+  CachedElectrumXClient get cachedElectrumXClient => _cachedElectrumXClient;
 
   late SecureStorageInterface _secureStore;
 
@@ -1860,12 +1860,12 @@ class FiroWallet extends CoinServiceAPI
         )
         .toList();
     final newNode = await _getCurrentNode();
-    _electrumXClient = ElectrumX.from(
+    _electrumXClient = ElectrumXClient.from(
       node: newNode,
       prefs: _prefs,
       failovers: failovers,
     );
-    _cachedElectrumXClient = CachedElectrumX.from(
+    _cachedElectrumXClient = CachedElectrumXClient.from(
       electrumXClient: _electrumXClient,
     );
 
@@ -4990,7 +4990,7 @@ class FiroWallet extends CoinServiceAPI
 
   Future<Map<isar_models.Address, isar_models.Transaction>>
       getJMintTransactions(
-    CachedElectrumX cachedClient,
+    CachedElectrumXClient cachedClient,
     List<String> transactions,
     // String currency,
     Coin coin,

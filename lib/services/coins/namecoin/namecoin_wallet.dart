@@ -22,8 +22,8 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
+import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
@@ -109,8 +109,8 @@ class NamecoinWallet extends CoinServiceAPI
     required String walletId,
     required String walletName,
     required Coin coin,
-    required ElectrumX client,
-    required CachedElectrumX cachedClient,
+    required ElectrumXClient client,
+    required CachedElectrumXClient cachedClient,
     required TransactionNotificationTracker tracker,
     required SecureStorageInterface secureStore,
     MainDB? mockableOverride,
@@ -1362,13 +1362,13 @@ class NamecoinWallet extends CoinServiceAPI
   @override
   set walletName(String newName) => _walletName = newName;
 
-  late ElectrumX _electrumXClient;
+  late ElectrumXClient _electrumXClient;
 
-  ElectrumX get electrumXClient => _electrumXClient;
+  ElectrumXClient get electrumXClient => _electrumXClient;
 
-  late CachedElectrumX _cachedElectrumXClient;
+  late CachedElectrumXClient _cachedElectrumXClient;
 
-  CachedElectrumX get cachedElectrumXClient => _cachedElectrumXClient;
+  CachedElectrumXClient get cachedElectrumXClient => _cachedElectrumXClient;
 
   late SecureStorageInterface _secureStore;
 
@@ -1385,12 +1385,12 @@ class NamecoinWallet extends CoinServiceAPI
             ))
         .toList();
     final newNode = await getCurrentNode();
-    _electrumXClient = ElectrumX.from(
+    _electrumXClient = ElectrumXClient.from(
       node: newNode,
       prefs: _prefs,
       failovers: failovers,
     );
-    _cachedElectrumXClient = CachedElectrumX.from(
+    _cachedElectrumXClient = CachedElectrumXClient.from(
       electrumXClient: _electrumXClient,
     );
 

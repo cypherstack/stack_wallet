@@ -15,9 +15,9 @@ import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/ecash.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
-import 'package:stackwallet/wallets/wallet/mixins/electrumx_mixin.dart';
+import 'package:stackwallet/wallets/wallet/mixins/electrumx.dart';
 
-class EcashWallet extends Bip39HDWallet with ElectrumXMixin {
+class EcashWallet extends Bip39HDWallet with ElectrumX {
   @override
   int get isarTransactionVersion => 2;
 
@@ -111,7 +111,7 @@ class EcashWallet extends Bip39HDWallet with ElectrumXMixin {
       if (storedTx == null ||
           storedTx.height == null ||
           (storedTx.height != null && storedTx.height! <= 0)) {
-        final tx = await electrumXCached.getTransaction(
+        final tx = await electrumXCachedClient.getTransaction(
           txHash: txHash["tx_hash"] as String,
           verbose: true,
           coin: cryptoCurrency.coin,
@@ -153,7 +153,7 @@ class EcashWallet extends Bip39HDWallet with ElectrumXMixin {
           final txid = map["txid"] as String;
           final vout = map["vout"] as int;
 
-          final inputTx = await electrumXCached.getTransaction(
+          final inputTx = await electrumXCachedClient.getTransaction(
             txHash: txid,
             coin: cryptoCurrency.coin,
           );

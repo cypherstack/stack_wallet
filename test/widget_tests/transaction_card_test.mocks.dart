@@ -11,8 +11,8 @@ import 'package:decimal/decimal.dart' as _i31;
 import 'package:isar/isar.dart' as _i15;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/db/isar/main_db.dart' as _i3;
-import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart' as _i11;
-import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i10;
+import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart' as _i11;
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart' as _i10;
 import 'package:stackwallet/models/balance.dart' as _i7;
 import 'package:stackwallet/models/isar/models/block_explorer.dart' as _i37;
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart'
@@ -131,8 +131,9 @@ class _FakeTransactionNotificationTracker_6 extends _i1.SmartFake
         );
 }
 
-class _FakeElectrumX_7 extends _i1.SmartFake implements _i10.ElectrumX {
-  _FakeElectrumX_7(
+class _FakeElectrumXClient_7 extends _i1.SmartFake
+    implements _i10.ElectrumXClient {
+  _FakeElectrumXClient_7(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -141,9 +142,9 @@ class _FakeElectrumX_7 extends _i1.SmartFake implements _i10.ElectrumX {
         );
 }
 
-class _FakeCachedElectrumX_8 extends _i1.SmartFake
-    implements _i11.CachedElectrumX {
-  _FakeCachedElectrumX_8(
+class _FakeCachedElectrumXClient_8 extends _i1.SmartFake
+    implements _i11.CachedElectrumXClient {
+  _FakeCachedElectrumXClient_8(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -828,21 +829,21 @@ class MockFiroWallet extends _i1.Mock implements _i23.FiroWallet {
         returnValue: false,
       ) as bool);
   @override
-  _i10.ElectrumX get electrumXClient => (super.noSuchMethod(
+  _i10.ElectrumXClient get electrumXClient => (super.noSuchMethod(
         Invocation.getter(#electrumXClient),
-        returnValue: _FakeElectrumX_7(
+        returnValue: _FakeElectrumXClient_7(
           this,
           Invocation.getter(#electrumXClient),
         ),
-      ) as _i10.ElectrumX);
+      ) as _i10.ElectrumXClient);
   @override
-  _i11.CachedElectrumX get cachedElectrumXClient => (super.noSuchMethod(
+  _i11.CachedElectrumXClient get cachedElectrumXClient => (super.noSuchMethod(
         Invocation.getter(#cachedElectrumXClient),
-        returnValue: _FakeCachedElectrumX_8(
+        returnValue: _FakeCachedElectrumXClient_8(
           this,
           Invocation.getter(#cachedElectrumXClient),
         ),
-      ) as _i11.CachedElectrumX);
+      ) as _i11.CachedElectrumXClient);
   @override
   bool get lelantusCoinIsarRescanRequired => (super.noSuchMethod(
         Invocation.getter(#lelantusCoinIsarRescanRequired),
@@ -1428,7 +1429,7 @@ class MockFiroWallet extends _i1.Mock implements _i23.FiroWallet {
       ) as _i18.Future<List<Map<String, dynamic>>>);
   @override
   _i18.Future<Map<_i22.Address, _i22.Transaction>> getJMintTransactions(
-    _i11.CachedElectrumX? cachedClient,
+    _i11.CachedElectrumXClient? cachedClient,
     List<String>? transactions,
     _i17.Coin? coin,
   ) =>

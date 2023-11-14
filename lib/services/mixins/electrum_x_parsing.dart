@@ -12,7 +12,7 @@ import 'dart:convert';
 
 import 'package:bip47/src/util.dart';
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
+import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
@@ -32,7 +32,7 @@ mixin ElectrumXParsing {
     String txHash,
     Coin coin,
     String walletId,
-    CachedElectrumX cachedElectrumX, [
+    CachedElectrumXClient cachedElectrumX, [
     String? debugTitle,
   ]) async {
     final jsonTx = await cachedElectrumX.getTransaction(

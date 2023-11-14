@@ -18,8 +18,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
+import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/debug_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
@@ -367,7 +367,7 @@ class HiddenSettings extends StatelessWidget {
                                       .getPrimaryNodeFor(
                                           coin: Coin.bitcoincash)!;
 
-                                  final e = ElectrumX.from(
+                                  final e = ElectrumXClient.from(
                                     node: ElectrumXNode(
                                       address: n.host,
                                       port: n.port,
@@ -381,7 +381,7 @@ class HiddenSettings extends StatelessWidget {
                                   );
 
                                   final ce =
-                                      CachedElectrumX(electrumXClient: e);
+                                      CachedElectrumXClient(electrumXClient: e);
 
                                   final txids = [
                                     "", //  cashTokenTxid
@@ -452,7 +452,7 @@ class HiddenSettings extends StatelessWidget {
                                       .getPrimaryNodeFor(
                                           coin: Coin.bitcoincash)!;
 
-                                  final e = ElectrumX.from(
+                                  final e = ElectrumXClient.from(
                                     node: ElectrumXNode(
                                       address: n.host,
                                       port: n.port,

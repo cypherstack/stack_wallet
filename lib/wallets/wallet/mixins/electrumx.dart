@@ -6,8 +6,8 @@ import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:decimal/decimal.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
+import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/signing_data.dart';
@@ -21,9 +21,9 @@ import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:uuid/uuid.dart';
 
-mixin ElectrumXMixin on Bip39HDWallet {
-  late ElectrumX electrumX;
-  late CachedElectrumX electrumXCached;
+mixin ElectrumX on Bip39HDWallet {
+  late ElectrumXClient electrumXClient;
+  late CachedElectrumXClient electrumXCachedClient;
 
   double? _serverVersion;
   bool get serverCanBatch => _serverVersion != null && _serverVersion! >= 1.6;
@@ -671,7 +671,7 @@ mixin ElectrumXMixin on Bip39HDWallet {
 
   Future<int> fetchChainHeight() async {
     try {
-      final result = await electrumX.getBlockHeadTip();
+      final result = await electrumXClient.getBlockHeadTip();
       return result["height"] as int;
     } catch (e) {
       rethrow;
@@ -680,7 +680,7 @@ mixin ElectrumXMixin on Bip39HDWallet {
 
   Future<int> fetchTxCount({required String addressScriptHash}) async {
     final transactions =
-        await electrumX.getHistory(scripthash: addressScriptHash);
+        await electrumXClient.getHistory(scripthash: addressScriptHash);
     return transactions.length;
   }
 
@@ -694,7 +694,7 @@ mixin ElectrumXMixin on Bip39HDWallet {
           cryptoCurrency.addressToScriptHash(address: entry.value),
         ];
       }
-      final response = await electrumX.getBatchHistory(args: args);
+      final response = await electrumXClient.getBatchHistory(args: args);
 
       final Map<String, int> result = {};
       for (final entry in response.entries) {
@@ -728,7 +728,7 @@ mixin ElectrumXMixin on Bip39HDWallet {
     List<Map<String, dynamic>> allTransactions = [];
 
     for (final data in allTxHashes) {
-      final tx = await electrumXCached.getTransaction(
+      final tx = await electrumXCachedClient.getTransaction(
         txHash: data.txHash,
         verbose: true,
         coin: cryptoCurrency.coin,
@@ -783,13 +783,13 @@ mixin ElectrumXMixin on Bip39HDWallet {
         .toList();
 
     final newNode = await getCurrentElectrumXNode();
-    electrumX = ElectrumX.from(
+    electrumXClient = ElectrumXClient.from(
       node: newNode,
       prefs: prefs,
       failovers: failovers,
     );
-    electrumXCached = CachedElectrumX.from(
-      electrumXClient: electrumX,
+    electrumXCachedClient = CachedElectrumXClient.from(
+      electrumXClient: electrumXClient,
     );
   }
 
@@ -973,7 +973,8 @@ mixin ElectrumXMixin on Bip39HDWallet {
         }
 
         for (int i = 0; i < batches.length; i++) {
-          final response = await electrumX.getBatchHistory(args: batches[i]!);
+          final response =
+              await electrumXClient.getBatchHistory(args: batches[i]!);
           for (final entry in response.entries) {
             for (int j = 0; j < entry.value.length; j++) {
               entry.value[j]["address"] = requestIdToAddressMap[entry.key];
@@ -989,7 +990,7 @@ mixin ElectrumXMixin on Bip39HDWallet {
             address: allAddresses.elementAt(1),
           );
 
-          final response = await electrumX.getHistory(
+          final response = await electrumXClient.getHistory(
             scripthash: scriptHash,
           );
 
@@ -1014,7 +1015,7 @@ mixin ElectrumXMixin on Bip39HDWallet {
   Future<UTXO> parseUTXO({
     required Map<String, dynamic> jsonUTXO,
   }) async {
-    final txn = await electrumXCached.getTransaction(
+    final txn = await electrumXCachedClient.getTransaction(
       txHash: jsonUTXO["tx_hash"] as String,
       verbose: true,
       coin: cryptoCurrency.coin,
@@ -1103,7 +1104,7 @@ mixin ElectrumXMixin on Bip39HDWallet {
       final prevOut = input["vout"] as int;
 
       // fetch input tx to get address
-      final inputTx = await electrumXCached.getTransaction(
+      final inputTx = await electrumXCachedClient.getTransaction(
         txHash: prevTxid,
         coin: cryptoCurrency.coin,
       );
@@ -1321,7 +1322,7 @@ mixin ElectrumXMixin on Bip39HDWallet {
   @override
   Future<bool> pingCheck() async {
     try {
-      final result = await electrumX.ping();
+      final result = await electrumXClient.ping();
       return result;
     } catch (_) {
       return false;
@@ -1341,9 +1342,9 @@ mixin ElectrumXMixin on Bip39HDWallet {
     try {
       const int f = 1, m = 5, s = 20;
 
-      final fast = await electrumX.estimateFee(blocks: f);
-      final medium = await electrumX.estimateFee(blocks: m);
-      final slow = await electrumX.estimateFee(blocks: s);
+      final fast = await electrumXClient.estimateFee(blocks: f);
+      final medium = await electrumXClient.estimateFee(blocks: m);
+      final slow = await electrumXClient.estimateFee(blocks: s);
 
       final feeObject = FeeObject(
         numberOfBlocksFast: f,
@@ -1523,7 +1524,8 @@ mixin ElectrumXMixin on Bip39HDWallet {
       await refreshMutex.protect(() async {
         if (isRescan) {
           // clear cache
-          await electrumXCached.clearSharedTransactionCache(coin: info.coin);
+          await electrumXCachedClient.clearSharedTransactionCache(
+              coin: info.coin);
           // clear blockchain info
           await mainDB.deleteWalletBlockchainData(walletId);
         }
@@ -1662,7 +1664,8 @@ mixin ElectrumXMixin on Bip39HDWallet {
         }
 
         for (int i = 0; i < batches.length; i++) {
-          final response = await electrumX.getBatchUTXOs(args: batches[i]!);
+          final response =
+              await electrumXClient.getBatchUTXOs(args: batches[i]!);
           for (final entry in response.entries) {
             if (entry.value.isNotEmpty) {
               fetchedUtxoList.add(entry.value);
@@ -1675,7 +1678,7 @@ mixin ElectrumXMixin on Bip39HDWallet {
             address: allAddresses[i].value,
           );
 
-          final utxos = await electrumX.getUTXOs(scripthash: scriptHash);
+          final utxos = await electrumXClient.getUTXOs(scripthash: scriptHash);
           if (utxos.isNotEmpty) {
             fetchedUtxoList.add(utxos);
           }
@@ -1708,7 +1711,7 @@ mixin ElectrumXMixin on Bip39HDWallet {
     try {
       Logging.instance.log("confirmSend txData: $txData", level: LogLevel.Info);
 
-      final txHash = await electrumX.broadcastTransaction(
+      final txHash = await electrumXClient.broadcastTransaction(
         rawTx: txData.raw!,
       );
       Logging.instance.log("Sent txHash: $txHash", level: LogLevel.Info);
@@ -1825,7 +1828,7 @@ mixin ElectrumXMixin on Bip39HDWallet {
   @override
   Future<void> init() async {
     try {
-      final features = await electrumX
+      final features = await electrumXClient
           .getServerFeatures()
           .timeout(const Duration(seconds: 3));
 

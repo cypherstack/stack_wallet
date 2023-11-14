@@ -12,7 +12,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/exceptions/electrumx/no_such_transaction.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/notification_model.dart';
@@ -142,7 +142,7 @@ class NotificationsService extends ChangeNotifier {
                     ))
                 .toList();
 
-            final client = ElectrumX.from(
+            final client = ElectrumXClient.from(
               node: eNode,
               failovers: failovers,
               prefs: prefs,

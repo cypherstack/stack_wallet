@@ -13,7 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
@@ -151,7 +151,7 @@ class NodeOptionsSheet extends ConsumerWidget {
       case Coin.namecoin:
       case Coin.bitcoincashTestnet:
       case Coin.eCash:
-        final client = ElectrumX(
+        final client = ElectrumXClient(
           host: node.host,
           port: node.port,
           useSSL: node.useSSL,

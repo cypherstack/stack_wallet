@@ -8,7 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:fusiondart/fusiondart.dart' as fusion;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
+import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
 import 'package:stackwallet/models/fusion_progress_ui_state.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages_desktop_specific/cashfusion/sub_widgets/fusion_dialog.dart';
@@ -127,7 +127,7 @@ mixin FusionWalletInterface {
   // Passed in wallet functions.
   late final Future<List<Address>> Function({int numberOfAddresses})
       _getNextUnusedChangeAddresses;
-  late final CachedElectrumX Function() _getWalletCachedElectrumX;
+  late final CachedElectrumXClient Function() _getWalletCachedElectrumX;
   late final Future<int> Function() _getChainHeight;
   late final Future<void> Function() _updateWalletUTXOS;
   late final String Function(String bchAddress, btcdart.NetworkType network)
@@ -155,7 +155,7 @@ mixin FusionWalletInterface {
     required MainDB db,
     required Future<List<Address>> Function({int numberOfAddresses})
         getNextUnusedChangeAddress,
-    required CachedElectrumX Function() getWalletCachedElectrumX,
+    required CachedElectrumXClient Function() getWalletCachedElectrumX,
     required Future<int> Function() getChainHeight,
     required Future<void> Function() updateWalletUTXOS,
     required Future<String?> mnemonic,

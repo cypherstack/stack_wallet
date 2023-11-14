@@ -8,7 +8,7 @@ import 'dart:ui' as _i11;
 
 import 'package:decimal/decimal.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i4;
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart' as _i4;
 import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart'
     as _i3;
 import 'package:stackwallet/utilities/amount/amount_unit.dart' as _i9;
@@ -58,11 +58,11 @@ class _FakeFusionInfo_2 extends _i1.SmartFake implements _i3.FusionInfo {
         );
 }
 
-/// A class which mocks [ElectrumX].
+/// A class which mocks [ElectrumXClient].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockElectrumX extends _i1.Mock implements _i4.ElectrumX {
-  MockElectrumX() {
+class MockElectrumXClient extends _i1.Mock implements _i4.ElectrumXClient {
+  MockElectrumXClient() {
     _i1.throwOnMissingStub(this);
   }
 

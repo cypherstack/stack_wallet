@@ -9,8 +9,8 @@ import 'package:hive_test/hive_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
+import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/lelantus_fee_data.dart';
 import 'package:stackwallet/models/paymint/transactions_model.dart' as old;
@@ -29,8 +29,8 @@ import 'sample_data/gethistory_samples.dart';
 import 'sample_data/transaction_data_samples.dart';
 
 @GenerateMocks([
-  ElectrumX,
-  CachedElectrumX,
+  ElectrumXClient,
+  CachedElectrumXClient,
   TransactionNotificationTracker,
   MainDB,
 ])

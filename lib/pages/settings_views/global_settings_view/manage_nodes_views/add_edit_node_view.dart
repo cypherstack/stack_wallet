@@ -14,7 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
@@ -170,7 +170,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
       case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
-        final client = ElectrumX(
+        final client = ElectrumXClient(
           host: formData.host!,
           port: formData.port!,
           useSSL: formData.useSSL!,

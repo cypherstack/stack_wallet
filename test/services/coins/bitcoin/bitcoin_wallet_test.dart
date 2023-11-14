@@ -1,11 +1,11 @@
 import 'package:mockito/annotations.dart';
-import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
+import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 
 @GenerateMocks([
-  ElectrumX,
-  CachedElectrumX,
+  ElectrumXClient,
+  CachedElectrumXClient,
   TransactionNotificationTracker,
 ])
 void main() async {

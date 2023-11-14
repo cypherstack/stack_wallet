@@ -11,24 +11,24 @@
 import 'dart:convert';
 
 import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:string_validator/string_validator.dart';
 
-class CachedElectrumX {
-  final ElectrumX electrumXClient;
+class CachedElectrumXClient {
+  final ElectrumXClient electrumXClient;
 
   static const minCacheConfirms = 30;
 
-  const CachedElectrumX({
+  const CachedElectrumXClient({
     required this.electrumXClient,
   });
 
-  factory CachedElectrumX.from({
-    required ElectrumX electrumXClient,
+  factory CachedElectrumXClient.from({
+    required ElectrumXClient electrumXClient,
   }) =>
-      CachedElectrumX(
+      CachedElectrumXClient(
         electrumXClient: electrumXClient,
       );
 

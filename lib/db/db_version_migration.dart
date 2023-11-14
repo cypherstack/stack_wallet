@@ -13,7 +13,7 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/db/migrate_wallets_to_isar.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/models/contact.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
@@ -55,7 +55,7 @@ class DbVersionMigrator with WalletDB {
         final walletInfoList = await walletsService.walletNames;
         await prefs.init();
 
-        ElectrumX? client;
+        ElectrumXClient? client;
         int? latestSetId;
 
         // only instantiate client if there are firo wallets
@@ -77,7 +77,7 @@ class DbVersionMigrator with WalletDB {
               )
               .toList();
 
-          client = ElectrumX.from(
+          client = ElectrumXClient.from(
             node: ElectrumXNode(
                 address: node.host,
                 port: node.port,

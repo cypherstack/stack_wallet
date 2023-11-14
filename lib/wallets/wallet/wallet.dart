@@ -32,7 +32,7 @@ import 'package:stackwallet/wallets/wallet/impl/bitcoincash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/ecash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
-import 'package:stackwallet/wallets/wallet/mixins/electrumx_mixin.dart';
+import 'package:stackwallet/wallets/wallet/mixins/electrumx.dart';
 import 'package:stackwallet/wallets/wallet/mixins/mnemonic_based_wallet.dart';
 import 'package:stackwallet/wallets/wallet/mixins/multi_address.dart';
 import 'package:stackwallet/wallets/wallet/private_key_based_wallet.dart';
@@ -226,7 +226,7 @@ abstract class Wallet<T extends CryptoCurrency> {
     wallet.prefs = prefs;
     wallet.nodeService = nodeService;
 
-    if (wallet is ElectrumXMixin) {
+    if (wallet is ElectrumX) {
       // initialize electrumx instance
       await wallet.updateNode();
     }

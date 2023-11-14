@@ -58,7 +58,7 @@ class ElectrumXNode {
   }
 }
 
-class ElectrumX {
+class ElectrumXClient {
   String get host => _host;
   late String _host;
 
@@ -81,7 +81,7 @@ class ElectrumX {
 
   // add finalizer to cancel stream subscription when all references to an
   // instance of ElectrumX becomes inaccessible
-  static final Finalizer<ElectrumX> _finalizer = Finalizer(
+  static final Finalizer<ElectrumXClient> _finalizer = Finalizer(
     (p0) {
       p0._torPreferenceListener?.cancel();
       p0._torStatusListener?.cancel();
@@ -93,7 +93,7 @@ class ElectrumX {
   final Mutex _torConnectingLock = Mutex();
   bool _requireMutex = false;
 
-  ElectrumX({
+  ElectrumXClient({
     required String host,
     required int port,
     required bool useSSL,
@@ -158,14 +158,14 @@ class ElectrumX {
     );
   }
 
-  factory ElectrumX.from({
+  factory ElectrumXClient.from({
     required ElectrumXNode node,
     required Prefs prefs,
     required List<ElectrumXNode> failovers,
     TorService? torService,
     EventBus? globalEventBusForTesting,
   }) {
-    return ElectrumX(
+    return ElectrumXClient(
       host: node.address,
       port: node.port,
       useSSL: node.useSSL,
