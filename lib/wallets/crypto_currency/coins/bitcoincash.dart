@@ -204,6 +204,10 @@ class Bitcoincash extends Bip39HDCurrency {
         // P2PKH
         return DerivePathType.bip44;
       }
+      if (decodeBase58[0] == networkParams.p2shPrefix) {
+        // P2SH
+        return DerivePathType.bip49;
+      }
 
       throw ArgumentError('Invalid version or Network mismatch');
     } else {
