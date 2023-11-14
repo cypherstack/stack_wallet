@@ -43,7 +43,7 @@ class FusionProgressView extends ConsumerStatefulWidget {
 }
 
 class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
-  Coin? coin;
+  late final Coin coin;
 
   Future<bool> _requestAndProcessCancel() async {
     final shouldCancel = await showDialog<bool?>(
@@ -91,6 +91,16 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
   }
 
   @override
+  void initState() {
+    coin = ref
+        .read(walletsChangeNotifierProvider)
+        .getManager(widget.walletId)
+        .wallet
+        .coin;
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final bool _succeeded =
         ref.watch(fusionProgressUIStateProvider(widget.walletId)).succeeded;
@@ -101,12 +111,6 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
     final int _fusionRoundsCompleted = ref
         .watch(fusionProgressUIStateProvider(widget.walletId))
         .fusionRoundsCompleted;
-
-    coin = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .wallet
-        .coin;
 
     return WillPopScope(
       onWillPop: () async {
@@ -238,9 +242,8 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
         .getManager(widget.walletId)
         .wallet as FusionWalletInterface;
 
-    final fusionInfo = (coin == Coin.bitcoincash)
-        ? ref.read(prefsChangeNotifierProvider).fusionServerInfoBch
-        : ref.read(prefsChangeNotifierProvider).fusionServerInfoXec;
+    final fusionInfo =
+        ref.read(prefsChangeNotifierProvider).getFusionServerInfo(coin);
 
     try {
       fusionWallet.uiState = ref.read(
