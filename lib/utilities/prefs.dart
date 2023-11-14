@@ -938,20 +938,10 @@ class Prefs extends ChangeNotifier {
 
   // fusion server info
 
-  final Map<Coin, FusionInfo> _fusionServerInfoDefaults = {
-    Coin.bitcoincash: FusionInfo.BCH_DEFAULTS,
-    Coin.bitcoincashTestnet: FusionInfo.BCH_DEFAULTS,
-    Coin.eCash: FusionInfo.XEC_DEFAULTS,
-  };
-
-  Map<Coin, FusionInfo> _fusionServerInfo = {
-    Coin.bitcoincash: FusionInfo.BCH_DEFAULTS,
-    Coin.bitcoincashTestnet: FusionInfo.BCH_DEFAULTS,
-    Coin.eCash: FusionInfo.XEC_DEFAULTS,
-  };
+  Map<Coin, FusionInfo> _fusionServerInfo = {};
 
   FusionInfo getFusionServerInfo(Coin coin) {
-    return _fusionServerInfo[coin] ?? _fusionServerInfoDefaults[coin]!;
+    return _fusionServerInfo[coin] ?? kFusionServerInfoDefaults[coin]!;
   }
 
   void setFusionServerInfo(Coin coin, FusionInfo fusionServerInfo) {

@@ -347,9 +347,7 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                             CustomTextButton(
                               text: "Default",
                               onTap: () {
-                                final def = (coin == Coin.bitcoincash)
-                                    ? FusionInfo.BCH_DEFAULTS
-                                    : FusionInfo.XEC_DEFAULTS;
+                                final def = kFusionServerInfoDefaults[coin]!;
                                 serverController.text = def.host;
                                 portController.text = def.port.toString();
                                 fusionRoundController.text =

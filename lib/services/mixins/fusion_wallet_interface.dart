@@ -22,6 +22,33 @@ import 'package:stackwallet/utilities/stack_file_system.dart';
 
 const String kReservedFusionAddress = "reserved_fusion_address";
 
+final kFusionServerInfoDefaults = Map<Coin, FusionInfo>.unmodifiable(const {
+  Coin.bitcoincash: FusionInfo(
+    host: "fusion.servo.cash",
+    port: 8789,
+    ssl: true,
+    // host: "cashfusion.stackwallet.com",
+    // port: 8787,
+    // ssl: false,
+    rounds: 0, // 0 is continuous
+  ),
+  Coin.bitcoincashTestnet: FusionInfo(
+    host: "fusion.servo.cash",
+    port: 8789,
+    ssl: true,
+    // host: "cashfusion.stackwallet.com",
+    // port: 8787,
+    // ssl: false,
+    rounds: 0, // 0 is continuous
+  ),
+  Coin.eCash: FusionInfo(
+    host: "fusion.tokamak.cash",
+    port: 8788,
+    ssl: true,
+    rounds: 0, // 0 is continuous
+  ),
+});
+
 class FusionInfo {
   final String host;
   final int port;
@@ -36,23 +63,6 @@ class FusionInfo {
     required this.ssl,
     required this.rounds,
   }) : assert(rounds >= 0);
-
-  static const BCH_DEFAULTS = FusionInfo(
-    host: "fusion.servo.cash",
-    port: 8789,
-    ssl: true,
-    // host: "cashfusion.stackwallet.com",
-    // port: 8787,
-    // ssl: false,
-    rounds: 0, // 0 is continuous
-  );
-
-  static const XEC_DEFAULTS = FusionInfo(
-    host: "fusion.tokamak.cash",
-    port: 8788,
-    ssl: true,
-    rounds: 0, // 0 is continuous
-  );
 
   factory FusionInfo.fromJsonString(String jsonString) {
     final json = jsonDecode(jsonString);
