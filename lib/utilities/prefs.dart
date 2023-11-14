@@ -65,7 +65,8 @@ class Prefs extends ChangeNotifier {
       await _setAmountUnits();
       await _setMaxDecimals();
       _useTor = await _getUseTor();
-      _fusionServerInfo = await _getFusionServerInfo();
+      _fusionServerInfoBch = await _getFusionServerInfoBch();
+      _fusionServerInfoXec = await _getFusionServerInfoXec();
 
       _initialized = true;
     }
@@ -936,32 +937,59 @@ class Prefs extends ChangeNotifier {
 
   // fusion server info
 
-  FusionInfo _fusionServerInfo = FusionInfo.DEFAULTS;
+  FusionInfo _fusionServerInfoBch = FusionInfo.BCH_DEFAULTS;
+  FusionInfo _fusionServerInfoXec = FusionInfo.XEC_DEFAULTS;
 
-  FusionInfo get fusionServerInfo => _fusionServerInfo;
+  FusionInfo get fusionServerInfoBch => _fusionServerInfoBch;
+  FusionInfo get fusionServerInfoXec => _fusionServerInfoXec;
 
-  set fusionServerInfo(FusionInfo fusionServerInfo) {
-    if (this.fusionServerInfo != fusionServerInfo) {
+  set fusionServerInfoBch(FusionInfo fusionServerInfo) {
+    if (fusionServerInfoBch != fusionServerInfo) {
       DB.instance.put<dynamic>(
         boxName: DB.boxNamePrefs,
         key: "fusionServerInfo",
         value: fusionServerInfo.toJsonString(),
       );
-      _fusionServerInfo = fusionServerInfo;
+      _fusionServerInfoBch = fusionServerInfo;
       notifyListeners();
     }
   }
 
-  Future<FusionInfo> _getFusionServerInfo() async {
+  set fusionServerInfoXec(FusionInfo fusionServerInfo) {
+    if (fusionServerInfoXec != fusionServerInfo) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "fusionServerInfoXec",
+        value: fusionServerInfo.toJsonString(),
+      );
+      _fusionServerInfoXec = fusionServerInfo;
+      notifyListeners();
+    }
+  }
+
+  Future<FusionInfo> _getFusionServerInfoBch() async {
     final saved = await DB.instance.get<dynamic>(
       boxName: DB.boxNamePrefs,
-      key: "fusionServerInfo",
+      key: "fusionServerInfoBch",
     ) as String?;
 
     try {
       return FusionInfo.fromJsonString(saved!);
     } catch (_) {
-      return FusionInfo.DEFAULTS;
+      return FusionInfo.BCH_DEFAULTS;
+    }
+  }
+
+  Future<FusionInfo> _getFusionServerInfoXec() async {
+    final saved = await DB.instance.get<dynamic>(
+      boxName: DB.boxNamePrefs,
+      key: "fusionServerInfoXec",
+    ) as String?;
+
+    try {
+      return FusionInfo.fromJsonString(saved!);
+    } catch (_) {
+      return FusionInfo.XEC_DEFAULTS;
     }
   }
 }
