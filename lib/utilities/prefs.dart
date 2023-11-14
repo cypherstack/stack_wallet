@@ -947,7 +947,7 @@ class Prefs extends ChangeNotifier {
     if (fusionServerInfoBch != fusionServerInfo) {
       DB.instance.put<dynamic>(
         boxName: DB.boxNamePrefs,
-        key: "fusionServerInfoBch",
+        key: "fusionServerInfo",
         value: fusionServerInfo.toJsonString(),
       );
       _fusionServerInfoBch = fusionServerInfo;
