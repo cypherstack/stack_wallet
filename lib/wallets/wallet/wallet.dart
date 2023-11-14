@@ -21,6 +21,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/bitcoincash.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/ecash.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/epiccash.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
@@ -28,6 +29,7 @@ import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoincash_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/ecash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
@@ -266,6 +268,11 @@ abstract class Wallet<T extends CryptoCurrency> {
       case Coin.bitcoincashTestnet:
         return BitcoincashWallet(
           Bitcoincash(CryptoCurrencyNetwork.test),
+        );
+
+      case Coin.eCash:
+        return EcashWallet(
+          Ecash(CryptoCurrencyNetwork.main),
         );
 
       case Coin.epicCash:
