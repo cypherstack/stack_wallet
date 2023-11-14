@@ -29,6 +29,10 @@ class Bitcoincash extends Bip39HDCurrency {
   int get maxNumberOfIndexesToCheck => 10000000;
 
   @override
+  // change this to change the number of confirms a tx needs in order to show as confirmed
+  int get minConfirms => 0; // bch zeroconf
+
+  @override
   List<DerivePathType> get supportedDerivationPathTypes => [
         DerivePathType.bip44,
         if (coin != Coin.bitcoincashTestnet) DerivePathType.bch44,
@@ -77,6 +81,23 @@ class Bitcoincash extends Bip39HDCurrency {
         );
       default:
         throw Exception("Unsupported network: $network");
+    }
+  }
+
+  @override
+  String addressToScriptHash({required String address}) {
+    try {
+      if (bitbox.Address.detectFormat(address) ==
+              bitbox.Address.formatCashAddr &&
+          _validateCashAddr(address)) {
+        address = bitbox.Address.toLegacyAddress(address);
+      }
+
+      final addr = coinlib.Address.fromString(address, networkParams);
+      return Bip39HDCurrency.convertBytesToScriptHash(
+          addr.program.script.compiled);
+    } catch (e) {
+      rethrow;
     }
   }
 
@@ -142,10 +163,6 @@ class Bitcoincash extends Bip39HDCurrency {
         throw Exception("DerivePathType $derivePathType not supported");
     }
   }
-
-  @override
-  // change this to change the number of confirms a tx needs in order to show as confirmed
-  int get minConfirms => 0; // bch zeroconf
 
   // TODO: [prio=med] bch p2sh addresses (complaints regarding sending to)
   @override

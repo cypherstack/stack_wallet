@@ -28,9 +28,12 @@ class BitcoincashWallet extends Bip39HDWallet with ElectrumX {
         [
           ...standardChangeAddressFilters,
           FilterGroup.not(
-            const FilterCondition.startsWith(
+            const ObjectFilter(
               property: "derivationPath",
-              value: "m/44'/0'",
+              filter: FilterCondition.startsWith(
+                property: "value",
+                value: "m/44'/0'",
+              ),
             ),
           ),
         ],
@@ -41,9 +44,12 @@ class BitcoincashWallet extends Bip39HDWallet with ElectrumX {
         [
           ...standardReceivingAddressFilters,
           FilterGroup.not(
-            const FilterCondition.startsWith(
+            const ObjectFilter(
               property: "derivationPath",
-              value: "m/44'/0'",
+              filter: FilterCondition.startsWith(
+                property: "value",
+                value: "m/44'/0'",
+              ),
             ),
           ),
         ],
