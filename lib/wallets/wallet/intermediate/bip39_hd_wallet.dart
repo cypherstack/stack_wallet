@@ -63,6 +63,14 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     });
   }
 
+  // ========== Subclasses may override ========================================
+
+  /// To be overridden by crypto currencies that do extra address conversions
+  /// on top of the normal btc style address. (BCH and Ecash for example)
+  String convertAddressString(String address) {
+    return address;
+  }
+
   // ========== Private ========================================================
 
   Future<Address> _generateAddress({
@@ -98,7 +106,7 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
 
     return Address(
       walletId: walletId,
-      value: data.address.toString(),
+      value: convertAddressString(data.address.toString()),
       publicKey: keys.publicKey.data,
       derivationIndex: index,
       derivationPath: DerivationPath()..value = derivationPath,

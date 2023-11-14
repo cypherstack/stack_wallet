@@ -831,9 +831,13 @@ mixin ElectrumXMixin on Bip39HDWallet {
           derivePathType: type,
         );
 
+        final addressString = convertAddressString(
+          addressData.address.toString(),
+        );
+
         final address = Address(
           walletId: walletId,
-          value: addressData.address.toString(),
+          value: addressString,
           publicKey: keys.publicKey.data,
           type: addressData.addressType,
           derivationIndex: index + j,
@@ -845,7 +849,7 @@ mixin ElectrumXMixin on Bip39HDWallet {
         addressArray.add(address);
 
         txCountCallArgs.addAll({
-          "${_id}_$j": addressData.address.toString(),
+          "${_id}_$j": addressString,
         });
       }
 
@@ -903,7 +907,9 @@ mixin ElectrumXMixin on Bip39HDWallet {
         derivePathType: type,
       );
 
-      final addressString = addressData.address.toString();
+      final addressString = convertAddressString(
+        addressData.address.toString(),
+      );
 
       final address = Address(
         walletId: walletId,

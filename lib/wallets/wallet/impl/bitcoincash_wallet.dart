@@ -1,7 +1,4 @@
-import 'dart:math';
-
 import 'package:bitbox/bitbox.dart' as bitbox;
-import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
@@ -70,6 +67,18 @@ class BitcoincashWallet extends Bip39HDWallet with ElectrumXMixin {
     return allAddresses;
   }
 
+  @override
+  String convertAddressString(String address) {
+    if (bitbox.Address.detectFormat(address) == bitbox.Address.formatLegacy &&
+        (cryptoCurrency.addressType(address: address) == DerivePathType.bip44 ||
+            cryptoCurrency.addressType(address: address) ==
+                DerivePathType.bch44)) {
+      return bitbox.Address.toCashAddress(address);
+    } else {
+      return address;
+    }
+  }
+
   // ===========================================================================
 
   @override
@@ -78,31 +87,13 @@ class BitcoincashWallet extends Bip39HDWallet with ElectrumXMixin {
 
     Set<String> receivingAddresses = allAddressesOld
         .where((e) => e.subType == AddressSubType.receiving)
-        .map((e) {
-      if (bitbox.Address.detectFormat(e.value) == bitbox.Address.formatLegacy &&
-          (cryptoCurrency.addressType(address: e.value) ==
-                  DerivePathType.bip44 ||
-              cryptoCurrency.addressType(address: e.value) ==
-                  DerivePathType.bch44)) {
-        return bitbox.Address.toCashAddress(e.value);
-      } else {
-        return e.value;
-      }
-    }).toSet();
+        .map((e) => convertAddressString(e.value))
+        .toSet();
 
     Set<String> changeAddresses = allAddressesOld
         .where((e) => e.subType == AddressSubType.change)
-        .map((e) {
-      if (bitbox.Address.detectFormat(e.value) == bitbox.Address.formatLegacy &&
-          (cryptoCurrency.addressType(address: e.value) ==
-                  DerivePathType.bip44 ||
-              cryptoCurrency.addressType(address: e.value) ==
-                  DerivePathType.bch44)) {
-        return bitbox.Address.toCashAddress(e.value);
-      } else {
-        return e.value;
-      }
-    }).toSet();
+        .map((e) => convertAddressString(e.value))
+        .toSet();
 
     final allAddressesSet = {...receivingAddresses, ...changeAddresses};
 
@@ -350,97 +341,5 @@ class BitcoincashWallet extends Bip39HDWallet with ElectrumXMixin {
   @override
   int estimateTxFee({required int vSize, required int feeRatePerKB}) {
     return vSize * (feeRatePerKB / 1000).ceil();
-  }
-
-  // not all coins need to override this. BCH does due to cash addr string formatting
-  @override
-  Future<({List<Address> addresses, int index})> checkGapsBatched(
-    int txCountBatchSize,
-    coinlib.HDPrivateKey root,
-    DerivePathType type,
-    int chain,
-  ) async {
-    List<Address> addressArray = [];
-    int gapCounter = 0;
-    int highestIndexWithHistory = 0;
-
-    // Scan addresses until the minimum required addresses have been scanned or
-    // until the highest index with activity, plus the gap limit, whichever is
-    // higher, so that we if there is activity above the minimum index, we don't
-    // miss it.
-    for (int index = 0;
-        index <
-                max(
-                    cryptoCurrency.maxNumberOfIndexesToCheck,
-                    highestIndexWithHistory +
-                        cryptoCurrency.maxUnusedAddressGap) &&
-            gapCounter < cryptoCurrency.maxUnusedAddressGap;
-        index += txCountBatchSize) {
-      Logging.instance.log(
-          "index: $index, \t GapCounter $chain ${type.name}: $gapCounter",
-          level: LogLevel.Info);
-
-      final _id = "k_$index";
-      Map<String, String> txCountCallArgs = {};
-
-      for (int j = 0; j < txCountBatchSize; j++) {
-        final derivePath = cryptoCurrency.constructDerivePath(
-          derivePathType: type,
-          chain: chain,
-          index: index + j,
-        );
-
-        final keys = root.derivePath(derivePath);
-        final addressData = cryptoCurrency.getAddressForPublicKey(
-          publicKey: keys.publicKey,
-          derivePathType: type,
-        );
-
-        // bch specific
-        final addressString = bitbox.Address.toCashAddress(
-          addressData.address.toString(),
-        );
-
-        final address = Address(
-          walletId: walletId,
-          value: addressString,
-          publicKey: keys.publicKey.data,
-          type: addressData.addressType,
-          derivationIndex: index + j,
-          derivationPath: DerivationPath()..value = derivePath,
-          subType:
-              chain == 0 ? AddressSubType.receiving : AddressSubType.change,
-        );
-
-        addressArray.add(address);
-
-        txCountCallArgs.addAll({
-          "${_id}_$j": addressString,
-        });
-      }
-
-      // get address tx counts
-      final counts = await fetchTxCountBatched(addresses: txCountCallArgs);
-
-      // check and add appropriate addresses
-      for (int k = 0; k < txCountBatchSize; k++) {
-        int count = counts["${_id}_$k"]!;
-        if (count > 0) {
-          // update highest
-          highestIndexWithHistory = index + k;
-
-          // reset counter
-          gapCounter = 0;
-        }
-
-        // increase counter when no tx history found
-        if (count == 0) {
-          gapCounter++;
-        }
-      }
-      // // cache all the transactions while waiting for the current function to finish.
-      // unawaited(getTransactionCacheEarly(addressArray));
-    }
-    return (index: highestIndexWithHistory, addresses: addressArray);
   }
 }
