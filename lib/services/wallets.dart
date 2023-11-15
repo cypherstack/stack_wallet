@@ -84,7 +84,9 @@ class Wallets {
       level: LogLevel.Warning,
     );
 
-    final wallet = getWallet(walletId)!;
+    final wallet = getWallet(walletId);
+    _wallets.remove(walletId);
+    await wallet.exit();
 
     await secureStorage.delete(key: Wallet.mnemonicKey(walletId: walletId));
     await secureStorage.delete(
@@ -321,9 +323,7 @@ class Wallets {
 
   Future<void> _deleteWallet(String walletId) async {
     // TODO proper clean up of other wallet data in addition to the following
-    await mainDB.isar.writeTxn(() async => await mainDB.isar.walletInfo
-        .where()
-        .walletIdEqualTo(walletId)
-        .deleteAll());
+    await mainDB.isar.writeTxn(
+        () async => await mainDB.isar.walletInfo.deleteByWalletId(walletId));
   }
 }

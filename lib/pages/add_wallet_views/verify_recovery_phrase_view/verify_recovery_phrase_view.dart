@@ -261,7 +261,6 @@ class _VerifyRecoveryPhraseViewState
   }
 
   Future<void> delete() async {
-    await _wallet.exit();
     await ref.read(pWallets).deleteWallet(
           _wallet.walletId,
           ref.read(secureStoreProvider),

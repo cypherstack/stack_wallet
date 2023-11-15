@@ -15,6 +15,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
+import 'package:stackwallet/providers/global/secure_store_provider.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -235,25 +237,14 @@ class _ConfirmDeleteState extends ConsumerState<ConfirmDelete> {
                     buttonHeight: ButtonHeight.xl,
                     label: "Continue",
                     onPressed: () async {
-                      // TODO: [prio=high] wallet deletion
+                      await ref.read(pWallets).deleteWallet(
+                            widget.walletId,
+                            ref.read(secureStoreProvider),
+                          );
 
-                      // final walletsInstance = ref.read(pWallets);
-                      // final manager =
-                      //     ref.read(pWallets).getManager(widget.walletId);
-                      //
-                      // final _managerWalletId = manager.walletId;
-                      // //
-                      // await ref
-                      //     .read(walletsServiceChangeNotifierProvider)
-                      //     .deleteWallet(manager.walletName, true);
-                      //
-                      // if (mounted) {
-                      //   Navigator.of(context, rootNavigator: true).pop(true);
-                      // }
-                      //
-                      // // wait for widget tree to dispose of any widgets watching the manager
-                      // await Future<void>.delayed(const Duration(seconds: 1));
-                      // walletsInstance.removeWallet(walletId: _managerWalletId);
+                      if (mounted) {
+                        Navigator.of(context, rootNavigator: true).pop(true);
+                      }
                     },
                   ),
                 ],

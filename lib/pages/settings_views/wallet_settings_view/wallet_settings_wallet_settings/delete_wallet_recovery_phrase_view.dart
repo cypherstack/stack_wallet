@@ -16,6 +16,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
+import 'package:stackwallet/pages/home_view/home_view.dart';
+import 'package:stackwallet/providers/global/secure_store_provider.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
@@ -193,23 +196,15 @@ class _DeleteWalletRecoveryPhraseViewState
                             .extension<StackColors>()!
                             .getPrimaryEnabledButtonStyle(context),
                         onPressed: () async {
-                          // TODO: [prio=high] wallet deletion
+                          await ref.read(pWallets).deleteWallet(
+                                widget.walletId,
+                                ref.read(secureStoreProvider),
+                              );
 
-                          // final walletId = _manager.walletId;
-                          // final walletsInstance = ref.read(pWallets);
-                          // await ref
-                          //     .read(walletsServiceChangeNotifierProvider)
-                          //     .deleteWallet(_manager.walletName, true);
-                          //
-                          // if (mounted) {
-                          //   Navigator.of(context).popUntil(
-                          //       ModalRoute.withName(HomeView.routeName));
-                          // }
-                          //
-                          // // wait for widget tree to dispose of any widgets watching the manager
-                          // await Future<void>.delayed(
-                          //     const Duration(seconds: 1));
-                          // walletsInstance.removeWallet(walletId: walletId);
+                          if (mounted) {
+                            Navigator.of(context).popUntil(
+                                ModalRoute.withName(HomeView.routeName));
+                          }
                         },
                         child: Text(
                           "Ok",
