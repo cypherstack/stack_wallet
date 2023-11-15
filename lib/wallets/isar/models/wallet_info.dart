@@ -17,38 +17,46 @@ class WalletInfo implements IsarId {
   @Index(unique: true, replace: false)
   final String walletId;
 
-  final String name;
+  String _name;
+  String get name => _name;
 
   @enumerated
   final AddressType mainAddressType;
 
   /// The highest index [mainAddressType] receiving address of the wallet
-  final String cachedReceivingAddress;
+  String get cachedReceivingAddress => _cachedReceivingAddress;
+  String _cachedReceivingAddress;
 
   /// Only exposed for Isar. Use the [cachedBalance] getter.
   // Only exposed for isar as Amount cannot be stored in isar easily
-  final String? cachedBalanceString;
+  String? get cachedBalanceString => _cachedBalanceString;
+  String? _cachedBalanceString;
 
   /// Only exposed for Isar. Use the [coin] getter.
   // Only exposed for isar to avoid dealing with storing enums as Coin can change
-  final String coinName;
+  String get coinName => _coinName;
+  String _coinName;
 
   /// User set favourites ordering. No restrictions are placed on uniqueness.
   /// Reordering logic in the ui code should ensure this is unique.
   ///
   /// Also represents if the wallet is a favourite. Any number greater then -1
   /// denotes a favourite. Any number less than 0 means it is not a favourite.
-  final int favouriteOrderIndex;
+  int get favouriteOrderIndex => _favouriteOrderIndex;
+  int _favouriteOrderIndex;
 
   /// Wallets without this flag set to true should be deleted on next app run
   /// and should not be displayed in the ui.
-  final bool isMnemonicVerified;
+  bool get isMnemonicVerified => _isMnemonicVerified;
+  bool _isMnemonicVerified;
 
   /// The highest block height the wallet has scanned.
-  final int cachedChainHeight;
+  int get cachedChainHeight => _cachedChainHeight;
+  int _cachedChainHeight;
 
   /// The block at which this wallet was or should be restored from
-  final int restoreHeight;
+  int get restoreHeight => _restoreHeight;
+  int _restoreHeight;
 
   // TODO: store these in other data s
   // Should contain specific things based on certain coins only
@@ -56,7 +64,8 @@ class WalletInfo implements IsarId {
   // /// Wallet creation chain height. Applies to select coin only.
   // final int creationHeight;
 
-  final String? otherDataJsonString;
+  String? get otherDataJsonString => _otherDataJsonString;
+  String? _otherDataJsonString;
 
   //============================================================================
   //=============== Getters ====================================================
@@ -115,12 +124,11 @@ class WalletInfo implements IsarId {
 
     // only update if there were changes to the balance
     if (cachedBalanceString != newEncoded) {
-      final updated = copyWith(
-        cachedBalanceString: newEncoded,
-      );
+      _cachedBalanceString = newEncoded;
+
       await isar.writeTxn(() async {
         await isar.walletInfo.deleteByWalletId(walletId);
-        await isar.walletInfo.put(updated);
+        await isar.walletInfo.put(this);
       });
     }
   }
@@ -132,12 +140,10 @@ class WalletInfo implements IsarId {
   }) async {
     // only update if there were changes to the height
     if (cachedChainHeight != newHeight) {
-      final updated = copyWith(
-        cachedChainHeight: newHeight,
-      );
+      _cachedChainHeight = newHeight;
       await isar.writeTxn(() async {
         await isar.walletInfo.deleteByWalletId(walletId);
-        await isar.walletInfo.put(updated);
+        await isar.walletInfo.put(this);
       });
     }
   }
@@ -166,12 +172,10 @@ class WalletInfo implements IsarId {
 
     // only update if there were changes to the height
     if (favouriteOrderIndex != index) {
-      final updated = copyWith(
-        favouriteOrderIndex: index,
-      );
+      _favouriteOrderIndex = index;
       await isar.writeTxn(() async {
         await isar.walletInfo.deleteByWalletId(walletId);
-        await isar.walletInfo.put(updated);
+        await isar.walletInfo.put(this);
       });
     }
   }
@@ -188,12 +192,10 @@ class WalletInfo implements IsarId {
 
     // only update if there were changes to the name
     if (name != newName) {
-      final updated = copyWith(
-        name: newName,
-      );
+      _name = newName;
       await isar.writeTxn(() async {
         await isar.walletInfo.deleteByWalletId(walletId);
-        await isar.walletInfo.put(updated);
+        await isar.walletInfo.put(this);
       });
     }
   }
@@ -205,12 +207,10 @@ class WalletInfo implements IsarId {
   }) async {
     // only update if there were changes to the name
     if (cachedReceivingAddress != newAddress) {
-      final updated = copyWith(
-        cachedReceivingAddress: newAddress,
-      );
+      _cachedReceivingAddress = newAddress;
       await isar.writeTxn(() async {
         await isar.walletInfo.deleteByWalletId(walletId);
-        await isar.walletInfo.put(updated);
+        await isar.walletInfo.put(this);
       });
     }
   }
@@ -221,12 +221,10 @@ class WalletInfo implements IsarId {
   }) async {
     // only update if there were changes to the name
     if (!isMnemonicVerified) {
-      final updated = copyWith(
-        isMnemonicVerified: true,
-      );
+      _isMnemonicVerified = true;
       await isar.writeTxn(() async {
         await isar.walletInfo.deleteByWalletId(walletId);
-        await isar.walletInfo.put(updated);
+        await isar.walletInfo.put(this);
       });
     } else {
       throw Exception(
@@ -239,23 +237,32 @@ class WalletInfo implements IsarId {
   //============================================================================
 
   WalletInfo({
-    required this.coinName,
+    required String coinName,
     required this.walletId,
-    required this.name,
+    required String name,
     required this.mainAddressType,
 
     // cachedReceivingAddress should never actually be empty in practice as
     // on wallet init it will be set
-    this.cachedReceivingAddress = "",
-    this.favouriteOrderIndex = 0,
-    this.cachedChainHeight = 0,
-    this.restoreHeight = 0,
-    this.isMnemonicVerified = false,
-    this.cachedBalanceString,
-    this.otherDataJsonString,
-  }) : assert(
+    String cachedReceivingAddress = "",
+    int favouriteOrderIndex = 0,
+    int cachedChainHeight = 0,
+    int restoreHeight = 0,
+    bool isMnemonicVerified = false,
+    String? cachedBalanceString,
+    String? otherDataJsonString,
+  })  : assert(
           Coin.values.map((e) => e.name).contains(coinName),
-        );
+        ),
+        _coinName = coinName,
+        _name = name,
+        _cachedReceivingAddress = cachedReceivingAddress,
+        _favouriteOrderIndex = favouriteOrderIndex,
+        _cachedChainHeight = cachedChainHeight,
+        _restoreHeight = restoreHeight,
+        _isMnemonicVerified = isMnemonicVerified,
+        _cachedBalanceString = cachedBalanceString,
+        _otherDataJsonString = otherDataJsonString;
 
   static WalletInfo createNew({
     required Coin coin,
@@ -270,34 +277,6 @@ class WalletInfo implements IsarId {
       mainAddressType: coin.primaryAddressType,
       restoreHeight: restoreHeight,
     );
-  }
-
-  WalletInfo copyWith({
-    String? coinName,
-    String? name,
-    int? favouriteOrderIndex,
-    int? cachedChainHeight,
-    bool? isMnemonicVerified,
-    String? cachedBalanceString,
-    String? cachedReceivingAddress,
-    int? restoreHeight,
-    Map<String, dynamic>? otherData,
-  }) {
-    return WalletInfo(
-      coinName: coinName ?? this.coinName,
-      walletId: walletId,
-      name: name ?? this.name,
-      mainAddressType: mainAddressType,
-      favouriteOrderIndex: favouriteOrderIndex ?? this.favouriteOrderIndex,
-      cachedChainHeight: cachedChainHeight ?? this.cachedChainHeight,
-      isMnemonicVerified: isMnemonicVerified ?? this.isMnemonicVerified,
-      cachedBalanceString: cachedBalanceString ?? this.cachedBalanceString,
-      restoreHeight: restoreHeight ?? this.restoreHeight,
-      cachedReceivingAddress:
-          cachedReceivingAddress ?? this.cachedReceivingAddress,
-      otherDataJsonString:
-          otherData == null ? otherDataJsonString : jsonEncode(otherData),
-    )..id = id;
   }
 
   @Deprecated("Legacy support")
