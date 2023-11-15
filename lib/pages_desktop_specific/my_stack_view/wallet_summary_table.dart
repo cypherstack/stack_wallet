@@ -20,6 +20,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/all_wallets_info_provider.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
@@ -36,7 +37,7 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final walletsByCoin = ref.watch(pWallets).walletsByCoin;
+    final walletsByCoin = ref.watch(pAllWalletsInfoByCoin);
 
     return ListView.separated(
       itemBuilder: (_, index) {

@@ -39,27 +39,6 @@ class Wallets {
 
   List<Wallet> get wallets => _wallets.values.toList();
 
-  List<({Coin coin, List<Wallet> wallets})> get walletsByCoin {
-    final Map<Coin, ({Coin coin, List<Wallet> wallets})> map = {};
-
-    for (final wallet in wallets) {
-      if (map[wallet.info.coin] == null) {
-        map[wallet.info.coin] = (coin: wallet.info.coin, wallets: []);
-      }
-
-      map[wallet.info.coin]!.wallets.add(wallet);
-    }
-
-    final List<({Coin coin, List<Wallet> wallets})> results = [];
-    for (final coin in Coin.values) {
-      if (map[coin] != null) {
-        results.add(map[coin]!);
-      }
-    }
-
-    return results;
-  }
-
   static bool hasLoaded = false;
 
   final Map<String, Wallet> _wallets = {};

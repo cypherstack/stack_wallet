@@ -160,9 +160,8 @@ class _DesktopChooseFromStackState
             builder: (context) {
               final wallets = ref
                   .watch(pWallets)
-                  .walletsByCoin
-                  .where((e) => e.coin == widget.coin)
-                  .map((e) => e.wallets);
+                  .wallets
+                  .where((e) => e.info.coin == widget.coin);
 
               if (wallets.isEmpty) {
                 return Column(
@@ -183,8 +182,7 @@ class _DesktopChooseFromStackState
                 );
               }
 
-              List<String> walletIds =
-                  wallets.first.map((e) => e.walletId).toList();
+              List<String> walletIds = wallets.map((e) => e.walletId).toList();
 
               walletIds = filter(walletIds, _searchTerm);
 
