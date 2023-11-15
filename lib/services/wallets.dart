@@ -142,7 +142,7 @@ class Wallets {
     }
 
     await mainDB.isar.writeTxn(() async {
-      await mainDB.isar.walletInfo.deleteAllByWalletId([walletId]);
+      await mainDB.isar.walletInfo.deleteByWalletId(walletId);
     });
   }
 

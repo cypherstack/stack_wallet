@@ -119,7 +119,7 @@ class WalletInfo implements IsarId {
         cachedBalanceString: newEncoded,
       );
       await isar.writeTxn(() async {
-        await isar.walletInfo.delete(id);
+        await isar.walletInfo.deleteByWalletId(walletId);
         await isar.walletInfo.put(updated);
       });
     }
@@ -136,7 +136,7 @@ class WalletInfo implements IsarId {
         cachedChainHeight: newHeight,
       );
       await isar.writeTxn(() async {
-        await isar.walletInfo.delete(id);
+        await isar.walletInfo.deleteByWalletId(walletId);
         await isar.walletInfo.put(updated);
       });
     }
@@ -170,7 +170,7 @@ class WalletInfo implements IsarId {
         favouriteOrderIndex: index,
       );
       await isar.writeTxn(() async {
-        await isar.walletInfo.delete(id);
+        await isar.walletInfo.deleteByWalletId(walletId);
         await isar.walletInfo.put(updated);
       });
     }
@@ -192,7 +192,7 @@ class WalletInfo implements IsarId {
         name: newName,
       );
       await isar.writeTxn(() async {
-        await isar.walletInfo.delete(id);
+        await isar.walletInfo.deleteByWalletId(walletId);
         await isar.walletInfo.put(updated);
       });
     }
@@ -209,7 +209,7 @@ class WalletInfo implements IsarId {
         cachedReceivingAddress: newAddress,
       );
       await isar.writeTxn(() async {
-        await isar.walletInfo.delete(id);
+        await isar.walletInfo.deleteByWalletId(walletId);
         await isar.walletInfo.put(updated);
       });
     }
@@ -225,7 +225,7 @@ class WalletInfo implements IsarId {
         isMnemonicVerified: true,
       );
       await isar.writeTxn(() async {
-        await isar.walletInfo.delete(id);
+        await isar.walletInfo.deleteByWalletId(walletId);
         await isar.walletInfo.put(updated);
       });
     } else {
