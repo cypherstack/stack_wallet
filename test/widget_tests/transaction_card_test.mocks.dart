@@ -26,8 +26,6 @@ import 'package:stackwallet/networking/http.dart' as _i14;
 import 'package:stackwallet/services/coins/coin_service.dart' as _i21;
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart' as _i23;
 import 'package:stackwallet/services/locale_service.dart' as _i25;
-import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart'
-    as _i12;
 import 'package:stackwallet/services/node_service.dart' as _i2;
 import 'package:stackwallet/services/price_service.dart' as _i30;
 import 'package:stackwallet/services/transaction_notification_tracker.dart'
@@ -45,6 +43,7 @@ import 'package:stackwallet/utilities/prefs.dart' as _i20;
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart'
     as _i4;
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart' as _i35;
+import 'package:stackwallet/wallets/wallet/mixins/cash_fusion.dart' as _i12;
 import 'package:stackwallet/wallets/wallet/wallet.dart' as _i5;
 import 'package:tuple/tuple.dart' as _i13;
 
@@ -2054,22 +2053,6 @@ class MockPrefs extends _i1.Mock implements _i20.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i12.FusionInfo get fusionServerInfo => (super.noSuchMethod(
-        Invocation.getter(#fusionServerInfo),
-        returnValue: _FakeFusionInfo_9(
-          this,
-          Invocation.getter(#fusionServerInfo),
-        ),
-      ) as _i12.FusionInfo);
-  @override
-  set fusionServerInfo(_i12.FusionInfo? fusionServerInfo) => super.noSuchMethod(
-        Invocation.setter(
-          #fusionServerInfo,
-          fusionServerInfo,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
@@ -2163,6 +2146,35 @@ class MockPrefs extends _i1.Mock implements _i20.Prefs {
             #coin: coin,
             #maxDecimals: maxDecimals,
           },
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i12.FusionInfo getFusionServerInfo(_i17.Coin? coin) => (super.noSuchMethod(
+        Invocation.method(
+          #getFusionServerInfo,
+          [coin],
+        ),
+        returnValue: _FakeFusionInfo_9(
+          this,
+          Invocation.method(
+            #getFusionServerInfo,
+            [coin],
+          ),
+        ),
+      ) as _i12.FusionInfo);
+  @override
+  void setFusionServerInfo(
+    _i17.Coin? coin,
+    _i12.FusionInfo? fusionServerInfo,
+  ) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #setFusionServerInfo,
+          [
+            coin,
+            fusionServerInfo,
+          ],
         ),
         returnValueForMissingStub: null,
       );
@@ -2484,17 +2496,6 @@ class MockMainDB extends _i1.Mock implements _i3.MainDB {
         Invocation.method(
           #updateWalletInfo,
           [walletInfo],
-        ),
-        returnValue: _i18.Future<void>.value(),
-        returnValueForMissingStub: _i18.Future<void>.value(),
-      ) as _i18.Future<void>);
-  @override
-  _i18.Future<void> deleteWallet({required String? walletId}) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #deleteWallet,
-          [],
-          {#walletId: walletId},
         ),
         returnValue: _i18.Future<void>.value(),
         returnValueForMissingStub: _i18.Future<void>.value(),

@@ -9,13 +9,12 @@ import 'dart:ui' as _i11;
 import 'package:decimal/decimal.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart' as _i4;
-import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart'
-    as _i3;
 import 'package:stackwallet/utilities/amount/amount_unit.dart' as _i9;
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i8;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i10;
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i7;
 import 'package:stackwallet/utilities/prefs.dart' as _i6;
+import 'package:stackwallet/wallets/wallet/mixins/cash_fusion.dart' as _i3;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -792,22 +791,6 @@ class MockPrefs extends _i1.Mock implements _i6.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i3.FusionInfo get fusionServerInfo => (super.noSuchMethod(
-        Invocation.getter(#fusionServerInfo),
-        returnValue: _FakeFusionInfo_2(
-          this,
-          Invocation.getter(#fusionServerInfo),
-        ),
-      ) as _i3.FusionInfo);
-  @override
-  set fusionServerInfo(_i3.FusionInfo? fusionServerInfo) => super.noSuchMethod(
-        Invocation.setter(
-          #fusionServerInfo,
-          fusionServerInfo,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
@@ -901,6 +884,35 @@ class MockPrefs extends _i1.Mock implements _i6.Prefs {
             #coin: coin,
             #maxDecimals: maxDecimals,
           },
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i3.FusionInfo getFusionServerInfo(_i10.Coin? coin) => (super.noSuchMethod(
+        Invocation.method(
+          #getFusionServerInfo,
+          [coin],
+        ),
+        returnValue: _FakeFusionInfo_2(
+          this,
+          Invocation.method(
+            #getFusionServerInfo,
+            [coin],
+          ),
+        ),
+      ) as _i3.FusionInfo);
+  @override
+  void setFusionServerInfo(
+    _i10.Coin? coin,
+    _i3.FusionInfo? fusionServerInfo,
+  ) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #setFusionServerInfo,
+          [
+            coin,
+            fusionServerInfo,
+          ],
         ),
         returnValueForMissingStub: null,
       );

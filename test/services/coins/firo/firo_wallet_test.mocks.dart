@@ -660,17 +660,6 @@ class MockMainDB extends _i1.Mock implements _i9.MainDB {
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
   @override
-  _i5.Future<void> deleteWallet({required String? walletId}) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #deleteWallet,
-          [],
-          {#walletId: walletId},
-        ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
-  @override
   List<_i11.ContactEntry> getContactEntries() => (super.noSuchMethod(
         Invocation.method(
           #getContactEntries,
