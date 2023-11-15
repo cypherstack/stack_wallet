@@ -245,7 +245,7 @@ class WalletInfo implements IsarId {
     // cachedReceivingAddress should never actually be empty in practice as
     // on wallet init it will be set
     String cachedReceivingAddress = "",
-    int favouriteOrderIndex = 0,
+    int favouriteOrderIndex = -1,
     int cachedChainHeight = 0,
     int restoreHeight = 0,
     bool isMnemonicVerified = false,
