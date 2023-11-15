@@ -5,11 +5,12 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/epiccash.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_wallet.dart';
 
 class EpiccashWallet extends Bip39Wallet {
-  EpiccashWallet(Epiccash cryptoCurrency) : super(cryptoCurrency);
+  EpiccashWallet(CryptoCurrencyNetwork network) : super(Epiccash(network));
 
   @override
   FilterOperation? get changeAddressFilterOperation =>

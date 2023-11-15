@@ -19,16 +19,12 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/bitcoincash.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/ecash.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/epiccash.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoincash_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/dogecoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/ecash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
@@ -243,39 +239,28 @@ abstract class Wallet<T extends CryptoCurrency> {
   }) {
     switch (walletInfo.coin) {
       case Coin.bitcoin:
-        return BitcoinWallet(
-          Bitcoin(CryptoCurrencyNetwork.main),
-        );
-
+        return BitcoinWallet(CryptoCurrencyNetwork.main);
       case Coin.bitcoinTestNet:
-        return BitcoinWallet(
-          Bitcoin(CryptoCurrencyNetwork.test),
-        );
+        return BitcoinWallet(CryptoCurrencyNetwork.test);
 
       case Coin.bitcoincash:
-        return BitcoincashWallet(
-          Bitcoincash(CryptoCurrencyNetwork.main),
-        );
-
+        return BitcoincashWallet(CryptoCurrencyNetwork.main);
       case Coin.bitcoincashTestnet:
-        return BitcoincashWallet(
-          Bitcoincash(CryptoCurrencyNetwork.test),
-        );
+        return BitcoincashWallet(CryptoCurrencyNetwork.test);
+
+      case Coin.dogecoin:
+        return DogecoinWallet(CryptoCurrencyNetwork.main);
+      case Coin.dogecoinTestNet:
+        return DogecoinWallet(CryptoCurrencyNetwork.test);
 
       case Coin.eCash:
-        return EcashWallet(
-          Ecash(CryptoCurrencyNetwork.main),
-        );
+        return EcashWallet(CryptoCurrencyNetwork.main);
 
       case Coin.epicCash:
-        return EpiccashWallet(
-          Epiccash(CryptoCurrencyNetwork.main),
-        );
+        return EpiccashWallet(CryptoCurrencyNetwork.main);
 
       case Coin.wownero:
-        return WowneroWallet(
-          Wownero(CryptoCurrencyNetwork.main),
-        );
+        return WowneroWallet(CryptoCurrencyNetwork.main);
 
       default:
         // should never hit in reality

@@ -39,13 +39,14 @@ import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/cryptonote_wallet.dart';
 import 'package:stackwallet/wallets/wallet/mixins/multi_address.dart';
 import 'package:tuple/tuple.dart';
 
 class WowneroWallet extends CryptonoteWallet with MultiAddress {
-  WowneroWallet(Wownero wownero) : super(wownero);
+  WowneroWallet(CryptoCurrencyNetwork network) : super(Wownero(network));
 
   @override
   FilterOperation? get changeAddressFilterOperation => null;

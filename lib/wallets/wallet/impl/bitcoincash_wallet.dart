@@ -14,6 +14,7 @@ import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/bitcoincash.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/mixins/cash_fusion.dart';
 import 'package:stackwallet/wallets/wallet/mixins/coin_control.dart';
@@ -24,7 +25,8 @@ class BitcoincashWallet extends Bip39HDWallet
   @override
   int get isarTransactionVersion => 2;
 
-  BitcoincashWallet(Bitcoincash cryptoCurrency) : super(cryptoCurrency);
+  BitcoincashWallet(CryptoCurrencyNetwork network)
+      : super(Bitcoincash(network));
 
   @override
   FilterOperation? get changeAddressFilterOperation => FilterGroup.and(

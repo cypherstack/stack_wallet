@@ -4,6 +4,7 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/mixins/coin_control.dart';
 import 'package:stackwallet/wallets/wallet/mixins/electrumx.dart';
@@ -13,7 +14,7 @@ class BitcoinWallet extends Bip39HDWallet with ElectrumX, CoinControl {
   @override
   int get isarTransactionVersion => 1; // TODO actually set this to 2
 
-  BitcoinWallet(Bitcoin cryptoCurrency) : super(cryptoCurrency);
+  BitcoinWallet(CryptoCurrencyNetwork network) : super(Bitcoin(network));
 
   @override
   FilterOperation? get changeAddressFilterOperation =>
