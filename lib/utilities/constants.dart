@@ -277,6 +277,9 @@ abstract class Constants {
 
       case Coin.monero:
         return 25;
+      //
+      // default:
+      //   -1;
     }
   }
 

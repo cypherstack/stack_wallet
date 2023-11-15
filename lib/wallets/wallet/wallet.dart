@@ -22,11 +22,13 @@ import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
+import 'package:stackwallet/wallets/wallet/impl/banano_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoincash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/dogecoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/ecash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/nano_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
 import 'package:stackwallet/wallets/wallet/mixins/electrumx.dart';
 import 'package:stackwallet/wallets/wallet/mixins/mnemonic_based_wallet.dart';
@@ -238,6 +240,9 @@ abstract class Wallet<T extends CryptoCurrency> {
     required WalletInfo walletInfo,
   }) {
     switch (walletInfo.coin) {
+      case Coin.banano:
+        return BananoWallet(CryptoCurrencyNetwork.main);
+
       case Coin.bitcoin:
         return BitcoinWallet(CryptoCurrencyNetwork.main);
       case Coin.bitcoinTestNet:
@@ -258,6 +263,9 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       case Coin.epicCash:
         return EpiccashWallet(CryptoCurrencyNetwork.main);
+
+      case Coin.nano:
+        return NanoWallet(CryptoCurrencyNetwork.main);
 
       case Coin.wownero:
         return WowneroWallet(CryptoCurrencyNetwork.main);

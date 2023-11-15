@@ -215,6 +215,26 @@ class WalletInfo implements IsarId {
     }
   }
 
+  /// update [otherData] with the map entries in [newEntries]
+  Future<void> updateOtherData({
+    required Map<String, dynamic> newEntries,
+    required Isar isar,
+  }) async {
+    final Map<String, dynamic> newMap = {};
+    newMap.addAll(otherData);
+    newMap.addAll(newEntries);
+    final encodedNew = jsonEncode(newMap);
+
+    // only update if there were changes
+    if (_otherDataJsonString != encodedNew) {
+      _otherDataJsonString = encodedNew;
+      await isar.writeTxn(() async {
+        await isar.walletInfo.deleteByWalletId(walletId);
+        await isar.walletInfo.put(this);
+      });
+    }
+  }
+
   /// copies this with a new name and updates the db
   Future<void> setMnemonicVerified({
     required Isar isar,
@@ -317,4 +337,5 @@ abstract class WalletInfoKeys {
   static const String tokenContractAddresses = "tokenContractAddressesKey";
   static const String cachedSecondaryBalance = "cachedSecondaryBalanceKey";
   static const String epiccashData = "epiccashDataKey";
+  static const String bananoMonkeyImageBytes = "monkeyImageBytesKey";
 }

@@ -486,34 +486,41 @@ class _NewWalletRecoveryPhraseWarningViewState
                                     String? mnemonic;
                                     String? privateKey;
 
-                                    // TODO: [prio=high] finish fleshing this out
-                                    if (coin.hasMnemonicPassphraseSupport) {
+                                    wordCount =
+                                        Constants.defaultSeedPhraseLengthFor(
+                                      coin: info.coin,
+                                    );
+                                    if (wordCount > 0) {
                                       if (ref
                                               .read(pNewWalletOptions.state)
                                               .state !=
                                           null) {
-                                        mnemonicPassphrase = ref
-                                            .read(pNewWalletOptions.state)
-                                            .state!
-                                            .mnemonicPassphrase;
+                                        if (coin.hasMnemonicPassphraseSupport) {
+                                          mnemonicPassphrase = ref
+                                              .read(pNewWalletOptions.state)
+                                              .state!
+                                              .mnemonicPassphrase;
+                                        } else {}
+
                                         wordCount = ref
                                             .read(pNewWalletOptions.state)
                                             .state!
                                             .mnemonicWordsCount;
                                       } else {
-                                        wordCount = 12;
                                         mnemonicPassphrase = "";
                                       }
-                                      final int strength;
-                                      if (wordCount == 12) {
-                                        strength = 128;
-                                      } else if (wordCount == 24) {
-                                        strength = 256;
-                                      } else {
+
+                                      if (wordCount < 12 ||
+                                          24 < wordCount ||
+                                          wordCount % 3 != 0) {
                                         throw Exception("Invalid word count");
                                       }
+
+                                      final strength = (wordCount ~/ 3) * 32;
+
                                       mnemonic = bip39.generateMnemonic(
-                                          strength: strength);
+                                        strength: strength,
+                                      );
                                     }
 
                                     final wallet = await Wallet.create(

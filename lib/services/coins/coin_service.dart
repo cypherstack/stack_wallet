@@ -14,14 +14,12 @@ import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/services/coins/banano/banano_wallet.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/litecoin/litecoin_wallet.dart';
 import 'package:stackwallet/services/coins/monero/monero_wallet.dart';
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
-import 'package:stackwallet/services/coins/nano/nano_wallet.dart';
 import 'package:stackwallet/services/coins/particl/particl_wallet.dart';
 import 'package:stackwallet/services/coins/stellar/stellar_wallet.dart';
 import 'package:stackwallet/services/coins/tezos/tezos_wallet.dart';
@@ -217,20 +215,10 @@ abstract class CoinServiceAPI {
         );
 
       case Coin.nano:
-        return NanoWallet(
-            walletId: walletId,
-            walletName: walletName,
-            coin: coin,
-            tracker: tracker,
-            secureStore: secureStorageInterface);
+        throw UnimplementedError("moved");
 
       case Coin.banano:
-        return BananoWallet(
-            walletId: walletId,
-            walletName: walletName,
-            coin: coin,
-            tracker: tracker,
-            secureStore: secureStorageInterface);
+        throw UnimplementedError("moved");
 
       case Coin.dogecoinTestNet:
         throw UnimplementedError("moved");

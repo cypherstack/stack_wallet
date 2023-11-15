@@ -1,0 +1,25 @@
+import 'package:nanodart/nanodart.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:stackwallet/wallets/crypto_currency/intermediate/nano_currency.dart';
+
+class Banano extends NanoCurrency {
+  Banano(super.network) {
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        coin = Coin.banano;
+      default:
+        throw Exception("Unsupported network: $network");
+    }
+  }
+
+  @override
+  int get minConfirms => 1;
+
+  @override
+  String get defaultRepresentative =>
+      "ban_1ka1ium4pfue3uxtntqsrib8mumxgazsjf58gidh1xeo5te3whsq8z476goo";
+
+  @override
+  int get nanoAccountType => NanoAccountType.BANANO;
+}

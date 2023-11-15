@@ -16,16 +16,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/services/coins/banano/banano_wallet.dart';
-import 'package:stackwallet/services/coins/nano/nano_wallet.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/wallet/mixins/nano_based.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -51,10 +49,12 @@ class ChangeRepresentativeView extends ConsumerStatefulWidget {
   static const String routeName = "/changeRepresentative";
 
   @override
-  ConsumerState<ChangeRepresentativeView> createState() => _XPubViewState();
+  ConsumerState<ChangeRepresentativeView> createState() =>
+      _ChangeRepresentativeViewState();
 }
 
-class _XPubViewState extends ConsumerState<ChangeRepresentativeView> {
+class _ChangeRepresentativeViewState
+    extends ConsumerState<ChangeRepresentativeView> {
   final _textController = TextEditingController();
   final _textFocusNode = FocusNode();
   final bool isDesktop = Util.isDesktop;
@@ -65,23 +65,18 @@ class _XPubViewState extends ConsumerState<ChangeRepresentativeView> {
 
   Future<String> loadRepresentative() async {
     final wallet = ref.read(pWallets).getWallet(widget.walletId);
-    final coin = wallet.info.coin;
 
-    if (coin == Coin.nano) {
-      return (wallet as NanoWallet).getCurrentRepresentative();
-    } else if (coin == Coin.banano) {
-      return (wallet as BananoWallet).getCurrentRepresentative();
+    if (wallet is NanoBased) {
+      return wallet.getCurrentRepresentative();
+    } else {
+      throw Exception("Unsupported wallet attempted to show representative!");
     }
-    throw Exception("Unsupported wallet attempted to show representative!");
   }
 
   Future<void> _save() async {
-    final wallet = ref.read(pWallets).getWallet(widget.walletId);
-    final coin = wallet.info.coin;
+    final wallet = ref.read(pWallets).getWallet(widget.walletId) as NanoBased;
 
-    final changeFuture = coin == Coin.nano
-        ? (wallet as NanoWallet).changeRepresentative
-        : (wallet as BananoWallet).changeRepresentative;
+    final changeFuture = wallet.changeRepresentative;
 
     final result = await showLoading(
         whileFuture: changeFuture(_textController.text),

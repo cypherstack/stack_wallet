@@ -33,7 +33,6 @@ import 'package:stackwallet/providers/global/active_wallet_provider.dart';
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
-import 'package:stackwallet/services/coins/banano/banano_wallet.dart';
 import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
@@ -43,6 +42,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/wallet/impl/banano_wallet.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -193,9 +193,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
     final wallet = ref.watch(pWallets).getWallet(widget.walletId);
     final walletInfo = wallet.info;
 
-    final monke = wallet.info.coin == Coin.banano
-        ? (wallet as BananoWallet).getMonkeyImageBytes()
-        : null;
+    final monke = wallet is BananoWallet ? wallet.getMonkeyImageBytes() : null;
 
     return ConditionalParent(
       condition: _rescanningOnOpen,
