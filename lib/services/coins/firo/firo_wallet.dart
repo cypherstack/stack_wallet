@@ -4763,7 +4763,7 @@ class FiroWallet extends CoinServiceAPI
 
   Future<int> getLatestSetId() async {
     try {
-      final id = await electrumXClient.getLatestCoinId();
+      final id = await electrumXClient.getLelantusLatestCoinId();
       return id;
     } catch (e, s) {
       Logging.instance.log("Exception rethrown in firo_wallet.dart: $e\n$s",

@@ -89,7 +89,7 @@ class DbVersionMigrator with WalletDB {
           );
 
           try {
-            latestSetId = await client.getLatestCoinId();
+            latestSetId = await client.getLelantusLatestCoinId();
           } catch (e) {
             // default to 2 for now
             latestSetId = 2;

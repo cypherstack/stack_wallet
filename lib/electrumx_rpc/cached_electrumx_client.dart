@@ -55,7 +55,7 @@ class CachedElectrumXClient {
         set = Map<String, dynamic>.from(cachedSet);
       }
 
-      final newSet = await electrumXClient.getAnonymitySet(
+      final newSet = await electrumXClient.getLelantusAnonymitySet(
         groupId: groupId,
         blockhash: set["blockHash"] as String,
       );
@@ -170,7 +170,7 @@ class CachedElectrumXClient {
       final startNumber =
           cachedSerials.length - 10; // 10 being some arbitrary buffer
 
-      final serials = await electrumXClient.getUsedCoinSerials(
+      final serials = await electrumXClient.getLelantusUsedCoinSerials(
         startNumber: startNumber,
       );
       Set<String> newSerials = {};
