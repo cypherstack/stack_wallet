@@ -912,16 +912,32 @@ class ElectrumXClient {
 
   /// Takes [sparkCoinHashes] and returns the set id and block height
   /// for each coin
+  ///
+  /// {
+  ///   "mints": [
+  ///     {
+  ///       "denom":5000000,
+  ///       "pubcoin":"b476ed2b374bb081ea51d111f68f0136252521214e213d119b8dc67b92f5a390"
+  ///     }
+  ///   ]
+  /// }
   Future<Map<String, dynamic>> getSparkMintMetaData({
     String? requestID,
-    required List<String> sparkCoinHashes,
+    required List<({int denom, String pubCoin})> sparkCoinHashes,
   }) async {
     try {
       final response = await request(
         requestID: requestID,
         command: 'spark.getsparkmintmetadata',
         args: [
-          sparkCoinHashes,
+          {
+            "mints": sparkCoinHashes
+                .map((e) => {
+                      "denom": e.denom,
+                      "pubcoin": e.pubCoin,
+                    })
+                .toList(),
+          },
         ],
       );
       return Map<String, dynamic>.from(response["result"] as Map);
@@ -940,7 +956,7 @@ class ElectrumXClient {
     try {
       final response = await request(
         requestID: requestID,
-        command: 'getsparklatestcoinid',
+        command: 'spark.getsparklatestcoinid',
       );
       return response["result"] as int;
     } catch (e) {

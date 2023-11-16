@@ -239,9 +239,22 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
+  // static NodeModel get firoTestnet => NodeModel(
+  //       host: "firo-testnet.stackwallet.com",
+  //       port: 50002,
+  //       name: defaultName,
+  //       id: _nodeId(Coin.firoTestNet),
+  //       useSSL: true,
+  //       enabled: true,
+  //       coinName: Coin.firoTestNet.name,
+  //       isFailover: true,
+  //       isDown: false,
+  //     );
+
+  // TODO revert to above eventually
   static NodeModel get firoTestnet => NodeModel(
-        host: "firo-testnet.stackwallet.com",
-        port: 50002,
+        host: "95.179.164.13",
+        port: 51002,
         name: defaultName,
         id: _nodeId(Coin.firoTestNet),
         useSSL: true,

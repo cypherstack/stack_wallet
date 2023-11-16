@@ -421,7 +421,7 @@ class HiddenSettings extends StatelessWidget {
                             return GestureDetector(
                               onTap: () async {
                                 try {
-                                  final n = DefaultNodes.firo;
+                                  final n = DefaultNodes.firoTestnet;
 
                                   final e = ElectrumXClient.from(
                                     node: ElectrumXNode(
@@ -487,7 +487,11 @@ class HiddenSettings extends StatelessWidget {
                                   final mintMetaData =
                                       await e.getSparkMintMetaData(
                                     sparkCoinHashes: [
-                                      "lol",
+                                      (
+                                        denom: 5000000,
+                                        pubCoin:
+                                            "b476ed2b374bb081ea51d111f68f0136252521214e213d119b8dc67b92f5a390",
+                                      )
                                     ],
                                   );
 
