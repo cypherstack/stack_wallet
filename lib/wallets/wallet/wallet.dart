@@ -28,6 +28,7 @@ import 'package:stackwallet/wallets/wallet/impl/bitcoincash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/dogecoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/ecash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/nano_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
 import 'package:stackwallet/wallets/wallet/mixins/electrumx.dart';
@@ -263,6 +264,11 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       case Coin.epicCash:
         return EpiccashWallet(CryptoCurrencyNetwork.main);
+
+      case Coin.firo:
+        return FiroWallet(CryptoCurrencyNetwork.main);
+      case Coin.firoTestNet:
+        return FiroWallet(CryptoCurrencyNetwork.main);
 
       case Coin.nano:
         return NanoWallet(CryptoCurrencyNetwork.main);

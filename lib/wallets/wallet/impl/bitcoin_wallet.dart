@@ -1,7 +1,6 @@
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
@@ -107,7 +106,7 @@ class BitcoinWallet extends Bip39HDWallet
       rawValue: BigInt.from(
           ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
               (feeRatePerKB / 1000).ceil()),
-      fractionDigits: info.coin.decimals,
+      fractionDigits: cryptoCurrency.fractionDigits,
     );
   }
 
