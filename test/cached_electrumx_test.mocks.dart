@@ -302,14 +302,14 @@ class MockElectrumXClient extends _i1.Mock implements _i4.ElectrumXClient {
             _i5.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i5.Future<Map<String, dynamic>>);
   @override
-  _i5.Future<Map<String, dynamic>> getAnonymitySet({
+  _i5.Future<Map<String, dynamic>> getLelantusAnonymitySet({
     String? groupId = r'1',
     String? blockhash = r'',
     String? requestID,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
-          #getAnonymitySet,
+          #getLelantusAnonymitySet,
           [],
           {
             #groupId: groupId,
@@ -321,13 +321,13 @@ class MockElectrumXClient extends _i1.Mock implements _i4.ElectrumXClient {
             _i5.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i5.Future<Map<String, dynamic>>);
   @override
-  _i5.Future<dynamic> getMintData({
+  _i5.Future<dynamic> getLelantusMintData({
     dynamic mints,
     String? requestID,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
-          #getMintData,
+          #getLelantusMintData,
           [],
           {
             #mints: mints,
@@ -337,13 +337,13 @@ class MockElectrumXClient extends _i1.Mock implements _i4.ElectrumXClient {
         returnValue: _i5.Future<dynamic>.value(),
       ) as _i5.Future<dynamic>);
   @override
-  _i5.Future<Map<String, dynamic>> getUsedCoinSerials({
+  _i5.Future<Map<String, dynamic>> getLelantusUsedCoinSerials({
     String? requestID,
     required int? startNumber,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
-          #getUsedCoinSerials,
+          #getLelantusUsedCoinSerials,
           [],
           {
             #requestID: requestID,
@@ -354,9 +354,73 @@ class MockElectrumXClient extends _i1.Mock implements _i4.ElectrumXClient {
             _i5.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i5.Future<Map<String, dynamic>>);
   @override
-  _i5.Future<int> getLatestCoinId({String? requestID}) => (super.noSuchMethod(
+  _i5.Future<int> getLelantusLatestCoinId({String? requestID}) =>
+      (super.noSuchMethod(
         Invocation.method(
-          #getLatestCoinId,
+          #getLelantusLatestCoinId,
+          [],
+          {#requestID: requestID},
+        ),
+        returnValue: _i5.Future<int>.value(0),
+      ) as _i5.Future<int>);
+  @override
+  _i5.Future<Map<String, dynamic>> getSparkAnonymitySet({
+    String? coinGroupId = r'1',
+    String? startBlockHash = r'',
+    String? requestID,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getSparkAnonymitySet,
+          [],
+          {
+            #coinGroupId: coinGroupId,
+            #startBlockHash: startBlockHash,
+            #requestID: requestID,
+          },
+        ),
+        returnValue:
+            _i5.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+      ) as _i5.Future<Map<String, dynamic>>);
+  @override
+  _i5.Future<Map<String, dynamic>> getSparkUsedCoinsTags({
+    String? requestID,
+    required int? startNumber,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getSparkUsedCoinsTags,
+          [],
+          {
+            #requestID: requestID,
+            #startNumber: startNumber,
+          },
+        ),
+        returnValue:
+            _i5.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+      ) as _i5.Future<Map<String, dynamic>>);
+  @override
+  _i5.Future<Map<String, dynamic>> getSparkMintMetaData({
+    String? requestID,
+    required List<String>? sparkCoinHashes,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getSparkMintMetaData,
+          [],
+          {
+            #requestID: requestID,
+            #sparkCoinHashes: sparkCoinHashes,
+          },
+        ),
+        returnValue:
+            _i5.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+      ) as _i5.Future<Map<String, dynamic>>);
+  @override
+  _i5.Future<int> getSparkLatestCoinId({String? requestID}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getSparkLatestCoinId,
           [],
           {#requestID: requestID},
         ),

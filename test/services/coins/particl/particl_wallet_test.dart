@@ -48,8 +48,8 @@ void main() {
   });
 
   group("validate mainnet particl addresses", () {
-    MockElectrumX? client;
-    MockCachedElectrumX? cachedClient;
+    MockElectrumXClient? client;
+    MockCachedElectrumXClient? cachedClient;
 
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
@@ -58,8 +58,8 @@ void main() {
         mainnetWallet; // TODO reimplement testnet, see 9baa30c1a40b422bb5f4746efc1220b52691ace6 and sneurlax/stack_wallet#ec399ade0aef1d9ab2dd78876a2d20819dae4ba0
 
     setUp(() {
-      client = MockElectrumX();
-      cachedClient = MockCachedElectrumX();
+      client = MockElectrumXClient();
+      cachedClient = MockCachedElectrumXClient();
 
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
@@ -165,8 +165,8 @@ void main() {
   });
 
   group("testNetworkConnection", () {
-    MockElectrumX? client;
-    MockCachedElectrumX? cachedClient;
+    MockElectrumXClient? client;
+    MockCachedElectrumXClient? cachedClient;
 
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
@@ -174,8 +174,8 @@ void main() {
     ParticlWallet? part;
 
     setUp(() {
-      client = MockElectrumX();
-      cachedClient = MockCachedElectrumX();
+      client = MockElectrumXClient();
+      cachedClient = MockCachedElectrumXClient();
 
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
@@ -226,8 +226,8 @@ void main() {
     const testWalletId = "ParticltestWalletID";
     const testWalletName = "ParticlWallet";
 
-    MockElectrumX? client;
-    MockCachedElectrumX? cachedClient;
+    MockElectrumXClient? client;
+    MockCachedElectrumXClient? cachedClient;
 
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
@@ -235,8 +235,8 @@ void main() {
     ParticlWallet? part;
 
     setUp(() async {
-      client = MockElectrumX();
-      cachedClient = MockCachedElectrumX();
+      client = MockElectrumXClient();
+      cachedClient = MockCachedElectrumXClient();
 
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();
@@ -427,8 +427,8 @@ void main() {
 
     bool hiveAdaptersRegistered = false;
 
-    MockElectrumX? client;
-    MockCachedElectrumX? cachedClient;
+    MockElectrumXClient? client;
+    MockCachedElectrumXClient? cachedClient;
 
     late FakeSecureStorage secureStore;
     MockTransactionNotificationTracker? tracker;
@@ -444,8 +444,8 @@ void main() {
         await wallets.put('currentWalletName', testWalletName);
       }
 
-      client = MockElectrumX();
-      cachedClient = MockCachedElectrumX();
+      client = MockElectrumXClient();
+      cachedClient = MockCachedElectrumXClient();
 
       secureStore = FakeSecureStorage();
       tracker = MockTransactionNotificationTracker();

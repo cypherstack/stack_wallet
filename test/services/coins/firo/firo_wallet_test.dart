@@ -37,7 +37,7 @@ import 'sample_data/transaction_data_samples.dart';
 void main() {
   group("isolate functions", () {
     test("isolateRestore success", () async {
-      final cachedClient = MockCachedElectrumX();
+      final cachedClient = MockCachedElectrumXClient();
       final txDataOLD = old.TransactionData.fromJson(dateTimeChunksJson);
       final Map<dynamic, dynamic> setData = {};
       setData[1] = GetAnonymitySetSampleData.data;
@@ -195,7 +195,7 @@ void main() {
         "function": "estimateJoinSplit",
         "spendAmount": "spendAmount",
         "subtractFeeFromAmount": true,
-        "lelantusEntries": MockCachedElectrumX(),
+        "lelantusEntries": MockCachedElectrumXClient(),
       });
       expect(await receivePort.first, "Error");
     });
@@ -226,7 +226,7 @@ void main() {
     //   test(
     //       "getJMintTransactions throws Error due to some invalid transactions passed to this function",
     //       () {
-    //     final cachedClient = MockCachedElectrumX();
+    //     final cachedClient = MockCachedElectrumXClient();
     //
     //
     //     // mock price calls
@@ -287,7 +287,7 @@ void main() {
     //   });
     //
     //   test("getJMintTransactions success", () async {
-    //     final cachedClient = MockCachedElectrumX();
+    //     final cachedClient = MockCachedElectrumXClient();
     //
     //
     //     // mock price calls
@@ -342,7 +342,7 @@ void main() {
     // });
     //
     // test("getAnonymitySet", () async {
-    //   final cachedClient = MockCachedElectrumX();
+    //   final cachedClient = MockCachedElectrumXClient();
     //   when(cachedClient.getAnonymitySet(
     //           groupId: "1", coin: Coin.firo, ))
     //       .thenAnswer((_) async => {
@@ -373,7 +373,7 @@ void main() {
     // });
 
     test("getBlockHead", () async {
-      final client = MockElectrumX();
+      final client = MockElectrumXClient();
       when(client.getBlockHeadTip()).thenAnswer(
           (_) async => {"height": 4359032, "hex": "... some block hex ..."});
 
@@ -388,8 +388,8 @@ void main() {
         walletName: 'unit test',
         walletId: 'some id',
         coin: Coin.firo,
-        client: MockElectrumX(),
-        cachedClient: MockCachedElectrumX(),
+        client: MockElectrumXClient(),
+        cachedClient: MockCachedElectrumXClient(),
         secureStore: FakeSecureStorage(),
         tracker: MockTransactionNotificationTracker(),
       );
@@ -402,8 +402,8 @@ void main() {
         walletName: 'unit test',
         walletId: 'some id',
         coin: Coin.firo,
-        client: MockElectrumX(),
-        cachedClient: MockCachedElectrumX(),
+        client: MockElectrumXClient(),
+        cachedClient: MockCachedElectrumXClient(),
         secureStore: FakeSecureStorage(),
         tracker: MockTransactionNotificationTracker(),
       );
@@ -416,8 +416,8 @@ void main() {
         walletName: 'unit test',
         walletId: 'some id',
         coin: Coin.firo,
-        client: MockElectrumX(),
-        cachedClient: MockCachedElectrumX(),
+        client: MockElectrumXClient(),
+        cachedClient: MockCachedElectrumXClient(),
         secureStore: FakeSecureStorage(),
         tracker: MockTransactionNotificationTracker(),
       );
@@ -430,8 +430,8 @@ void main() {
         walletName: 'unit test',
         walletId: 'some id',
         coin: Coin.firoTestNet,
-        client: MockElectrumX(),
-        cachedClient: MockCachedElectrumX(),
+        client: MockElectrumXClient(),
+        cachedClient: MockCachedElectrumXClient(),
         secureStore: FakeSecureStorage(),
         tracker: MockTransactionNotificationTracker(),
       );
@@ -444,8 +444,8 @@ void main() {
         walletName: 'unit test',
         walletId: 'some id',
         coin: Coin.firoTestNet,
-        client: MockElectrumX(),
-        cachedClient: MockCachedElectrumX(),
+        client: MockElectrumXClient(),
+        cachedClient: MockCachedElectrumXClient(),
         secureStore: FakeSecureStorage(),
         tracker: MockTransactionNotificationTracker(),
       );
@@ -458,8 +458,8 @@ void main() {
         walletName: 'unit test',
         walletId: 'some id',
         coin: Coin.firoTestNet,
-        client: MockElectrumX(),
-        cachedClient: MockCachedElectrumX(),
+        client: MockElectrumXClient(),
+        cachedClient: MockCachedElectrumXClient(),
         secureStore: FakeSecureStorage(),
         tracker: MockTransactionNotificationTracker(),
       );
@@ -470,7 +470,7 @@ void main() {
 
   group("testNetworkConnection", () {
     test("attempted connection fails due to server error", () async {
-      final client = MockElectrumX();
+      final client = MockElectrumXClient();
       when(client.ping()).thenAnswer((_) async => false);
 
       final firo = FiroWallet(
@@ -478,7 +478,7 @@ void main() {
         walletId: 'some id',
         coin: Coin.firo,
         client: client,
-        cachedClient: MockCachedElectrumX(),
+        cachedClient: MockCachedElectrumXClient(),
         secureStore: FakeSecureStorage(),
         tracker: MockTransactionNotificationTracker(),
       );
@@ -488,7 +488,7 @@ void main() {
     });
 
     test("attempted connection fails due to exception", () async {
-      final client = MockElectrumX();
+      final client = MockElectrumXClient();
       when(client.ping()).thenThrow(Exception);
 
       final firo = FiroWallet(
@@ -496,7 +496,7 @@ void main() {
         walletId: 'some id',
         coin: Coin.firo,
         client: client,
-        cachedClient: MockCachedElectrumX(),
+        cachedClient: MockCachedElectrumXClient(),
         secureStore: FakeSecureStorage(),
         tracker: MockTransactionNotificationTracker(),
       );
@@ -506,7 +506,7 @@ void main() {
     });
 
     test("attempted connection test success", () async {
-      final client = MockElectrumX();
+      final client = MockElectrumXClient();
       when(client.ping()).thenAnswer((_) async => true);
 
       final firo = FiroWallet(
@@ -514,7 +514,7 @@ void main() {
         walletId: 'some id',
         coin: Coin.firoTestNet,
         client: client,
-        cachedClient: MockCachedElectrumX(),
+        cachedClient: MockCachedElectrumXClient(),
         secureStore: FakeSecureStorage(),
         tracker: MockTransactionNotificationTracker(),
       );
@@ -536,8 +536,8 @@ void main() {
     });
 
     // test("initializeWallet no network", () async {
-    //   final client = MockElectrumX();
-    //   final cachedClient = MockCachedElectrumX();
+    //   final client = MockElectrumXClient();
+    //   final cachedClient = MockCachedElectrumXClient();
     //   final secureStore = FakeSecureStorage();
     //
     //
@@ -558,8 +558,8 @@ void main() {
     // });
 
     // test("initializeWallet no network exception", () async {
-    //   final client = MockElectrumX();
-    //   final cachedClient = MockCachedElectrumX();
+    //   final client = MockElectrumXClient();
+    //   final cachedClient = MockCachedElectrumXClient();
     //   final secureStore = FakeSecureStorage();
     //
     //
@@ -581,8 +581,8 @@ void main() {
     // });
     //
     // test("initializeWallet throws bad network on testnet", () async {
-    //   final client = MockElectrumX();
-    //   final cachedClient = MockCachedElectrumX();
+    //   final client = MockElectrumXClient();
+    //   final cachedClient = MockCachedElectrumXClient();
     //   final secureStore = FakeSecureStorage();
     //
     //
@@ -615,8 +615,8 @@ void main() {
     // });
     //
     // test("initializeWallet throws bad network on mainnet", () async {
-    //   final client = MockElectrumX();
-    //   final cachedClient = MockCachedElectrumX();
+    //   final client = MockElectrumXClient();
+    //   final cachedClient = MockCachedElectrumXClient();
     //   final secureStore = FakeSecureStorage();
     //
     //
@@ -652,8 +652,8 @@ void main() {
     //   const MethodChannel('uk.spiralarm.flutter/devicelocale')
     //       .setMockMethodCallHandler((methodCall) async => 'en_US');
     //
-    //   final client = MockElectrumX();
-    //   final cachedClient = MockCachedElectrumX();
+    //   final client = MockElectrumXClient();
+    //   final cachedClient = MockCachedElectrumXClient();
     //   final secureStore = FakeSecureStorage();
     //
     //   when(priceAPI.getPrice(ticker: "tFIRO", baseCurrency: "USD"))
@@ -724,8 +724,8 @@ void main() {
     //   const MethodChannel('uk.spiralarm.flutter/devicelocale')
     //       .setMockMethodCallHandler((methodCall) async => 'en_US');
     //
-    //   final client = MockElectrumX();
-    //   final cachedClient = MockCachedElectrumX();
+    //   final client = MockElectrumXClient();
+    //   final cachedClient = MockCachedElectrumXClient();
     //   final secureStore = FakeSecureStorage();
     //
     //   // when(priceAPI.getPrice(ticker: "tFIRO", baseCurrency: "USD"))
@@ -830,8 +830,8 @@ void main() {
     //   const MethodChannel('uk.spiralarm.flutter/devicelocale')
     //       .setMockMethodCallHandler((methodCall) async => 'en_US');
     //
-    //   final client = MockElectrumX();
-    //   final cachedClient = MockCachedElectrumX();
+    //   final client = MockElectrumXClient();
+    //   final cachedClient = MockCachedElectrumXClient();
     //   final secureStore = FakeSecureStorage();
     //
     //   // mock price calls
@@ -908,8 +908,8 @@ void main() {
     // });
 
     // test("getAllTxsToWatch", () async {
-    //   final client = MockElectrumX();
-    //   final cachedClient = MockCachedElectrumX();
+    //   final client = MockElectrumXClient();
+    //   final cachedClient = MockCachedElectrumXClient();
     //   final secureStore = FakeSecureStorage();
     //
     //   final tracker = MockTransactionNotificationTracker();
@@ -975,8 +975,8 @@ void main() {
       //   const MethodChannel('uk.spiralarm.flutter/devicelocale')
       //       .setMockMethodCallHandler((methodCall) async => 'en_US');
       //
-      //   final client = MockElectrumX();
-      //   final cachedClient = MockCachedElectrumX();
+      //   final client = MockElectrumXClient();
+      //   final cachedClient = MockCachedElectrumXClient();
       //   final secureStore = FakeSecureStorage();
       //   final tracker = MockTransactionNotificationTracker();
       //
@@ -1069,8 +1069,8 @@ void main() {
       //   TODO: mock NotificationAPI
       //   test("refreshIfThereIsNewData with two unconfirmed transactions",
       //       () async {
-      //     final client = MockElectrumX();
-      //     final cachedClient = MockCachedElectrumX();
+      //     final client = MockElectrumXClient();
+      //     final cachedClient = MockCachedElectrumXClient();
       //     final secureStore = FakeSecureStorage();
       //
       //     final tracker = MockTransactionNotificationTracker();
@@ -1126,8 +1126,8 @@ void main() {
     });
 
     test("submitHexToNetwork", () async {
-      final client = MockElectrumX();
-      final cachedClient = MockCachedElectrumX();
+      final client = MockElectrumXClient();
+      final cachedClient = MockCachedElectrumXClient();
       final secureStore = FakeSecureStorage();
 
       when(client.broadcastTransaction(
@@ -1175,8 +1175,8 @@ void main() {
         )
       ];
       const sats = 9658;
-      final client = MockElectrumX();
-      final cachedClient = MockCachedElectrumX();
+      final client = MockElectrumXClient();
+      final cachedClient = MockCachedElectrumXClient();
       final secureStore = FakeSecureStorage();
       final mainDB = MockMainDB();
 
@@ -1206,7 +1206,7 @@ void main() {
 
       when(client.getBlockHeadTip()).thenAnswer(
           (_) async => {"height": 455873, "hex": "this value not used here"});
-      when(client.getLatestCoinId()).thenAnswer((_) async => 2);
+      when(client.getLelantusLatestCoinId()).thenAnswer((_) async => 2);
 
       when(mainDB.getAddress("${testWalletId}buildMintTransaction", any))
           .thenAnswer((realInvocation) async => null);
@@ -1255,8 +1255,8 @@ void main() {
     //   const MethodChannel('uk.spiralarm.flutter/devicelocale')
     //       .setMockMethodCallHandler((methodCall) async => 'en_US');
     //
-    //   final client = MockElectrumX();
-    //   final cachedClient = MockCachedElectrumX();
+    //   final client = MockElectrumXClient();
+    //   final cachedClient = MockCachedElectrumXClient();
     //   final secureStore = FakeSecureStorage();
     //
     //   // mock electrumx client calls
@@ -1489,8 +1489,8 @@ void main() {
     //   const MethodChannel('uk.spiralarm.flutter/devicelocale')
     //       .setMockMethodCallHandler((methodCall) async => 'en_US');
     //
-    //   final client = MockElectrumX();
-    //   final cachedClient = MockCachedElectrumX();
+    //   final client = MockElectrumXClient();
+    //   final cachedClient = MockCachedElectrumXClient();
     //   final secureStore = FakeSecureStorage();
     //
     //   await secureStore.write(
@@ -1698,8 +1698,8 @@ void main() {
     //   const MethodChannel('uk.spiralarm.flutter/devicelocale')
     //       .setMockMethodCallHandler((methodCall) async => 'en_US');
     //
-    //   final client = MockElectrumX();
-    //   final cachedClient = MockCachedElectrumX();
+    //   final client = MockElectrumXClient();
+    //   final cachedClient = MockCachedElectrumXClient();
     //   final secureStore = FakeSecureStorage();
     //
     //   await secureStore.write(
@@ -1836,8 +1836,8 @@ void main() {
     //   const MethodChannel('uk.spiralarm.flutter/devicelocale')
     //       .setMockMethodCallHandler((methodCall) async => 'en_US');
     //
-    //   final client = MockElectrumX();
-    //   final cachedClient = MockCachedElectrumX();
+    //   final client = MockElectrumXClient();
+    //   final cachedClient = MockCachedElectrumXClient();
     //   final secureStore = FakeSecureStorage();
     //
     //   // mock electrumx client calls
@@ -2110,8 +2110,8 @@ void main() {
     // }, timeout: const Timeout(Duration(minutes: 6)));
 
     test("recoverFromMnemonic fails testnet", () async {
-      final client = MockElectrumX();
-      final cachedClient = MockCachedElectrumX();
+      final client = MockElectrumXClient();
+      final cachedClient = MockCachedElectrumXClient();
       final secureStore = FakeSecureStorage();
 
       // mock electrumx client calls
@@ -2146,8 +2146,8 @@ void main() {
     }, timeout: const Timeout(Duration(minutes: 3)));
 
     test("recoverFromMnemonic fails mainnet", () async {
-      final client = MockElectrumX();
-      final cachedClient = MockCachedElectrumX();
+      final client = MockElectrumXClient();
+      final cachedClient = MockCachedElectrumXClient();
       final secureStore = FakeSecureStorage();
 
       // mock electrumx client calls
@@ -2186,8 +2186,8 @@ void main() {
         walletId: "${testWalletId}checkReceivingAddressForTransactions fails",
         walletName: testWalletName,
         coin: Coin.firo,
-        client: MockElectrumX(),
-        cachedClient: MockCachedElectrumX(),
+        client: MockElectrumXClient(),
+        cachedClient: MockCachedElectrumXClient(),
         secureStore: FakeSecureStorage(),
         tracker: MockTransactionNotificationTracker(),
       );
@@ -2202,7 +2202,7 @@ void main() {
     });
 
     // test("checkReceivingAddressForTransactions numtxs >= 1", () async {
-    //   final client = MockElectrumX();
+    //   final client = MockElectrumXClient();
     //   final secureStore = FakeSecureStorage();
     //
     //   when(client.getHistory(scripthash: SampleGetHistoryData.scripthash1))
@@ -2214,7 +2214,7 @@ void main() {
     //     walletName: testWalletName,
     //     coin: Coin.firo,
     //     client: client,
-    //     cachedClient: MockCachedElectrumX(),
+    //     cachedClient: MockCachedElectrumXClient(),
     //     secureStore: secureStore,
     //     tracker: MockTransactionNotificationTracker(),
     //   );
@@ -2237,16 +2237,16 @@ void main() {
     // });
 
     test("getLatestSetId", () async {
-      final client = MockElectrumX();
+      final client = MockElectrumXClient();
 
-      when(client.getLatestCoinId()).thenAnswer((_) async => 1);
+      when(client.getLelantusLatestCoinId()).thenAnswer((_) async => 1);
 
       final firo = FiroWallet(
         walletId: "${testWalletId}exit",
         walletName: testWalletName,
         coin: Coin.firo,
         client: client,
-        cachedClient: MockCachedElectrumX(),
+        cachedClient: MockCachedElectrumXClient(),
         secureStore: FakeSecureStorage(),
         tracker: MockTransactionNotificationTracker(),
       );
@@ -2256,7 +2256,7 @@ void main() {
     });
 
     // test("getSetData", () async {
-    //   final client = MockElectrumX();
+    //   final client = MockElectrumXClient();
     //
     //   when(client.getCoinsForRecovery(setId: 1))
     //       .thenAnswer((_) async => getCoinsForRecoveryResponse);
@@ -2266,7 +2266,7 @@ void main() {
     //     walletName: testWalletName,
     //     networkType: firoNetworkType,
     //     client: client,
-    //     cachedClient: MockCachedElectrumX(),
+    //     cachedClient: MockCachedElectrumXClient(),
     //     secureStore: FakeSecureStorage(),
     //
     //     tracker: MockTransactionNotificationTracker(),
@@ -2277,8 +2277,8 @@ void main() {
     // });
 
     test("getUsedCoinSerials", () async {
-      final client = MockElectrumX();
-      final cachedClient = MockCachedElectrumX();
+      final client = MockElectrumXClient();
+      final cachedClient = MockCachedElectrumXClient();
 
       // when(client.getUsedCoinSerials(startNumber: 0))
       //     .thenAnswer((_) async => GetUsedSerialsSampleData.serials);
@@ -2309,8 +2309,8 @@ void main() {
       const MethodChannel('uk.spiralarm.flutter/devicelocale')
           .setMockMethodCallHandler((methodCall) async => 'en_US');
 
-      final client = MockElectrumX();
-      final cachedClient = MockCachedElectrumX();
+      final client = MockElectrumXClient();
+      final cachedClient = MockCachedElectrumXClient();
       final secureStore = FakeSecureStorage();
 
       // set mnemonic
@@ -2345,10 +2345,10 @@ void main() {
             "services": <dynamic>[]
           });
 
-      when(client.getLatestCoinId()).thenAnswer((_) async => 1);
+      when(client.getLelantusLatestCoinId()).thenAnswer((_) async => 1);
       // when(client.getCoinsForRecovery(setId: 1))
       //     .thenAnswer((_) async => getCoinsForRecoveryResponse);
-      when(client.getUsedCoinSerials(startNumber: 0))
+      when(client.getLelantusUsedCoinSerials(startNumber: 0))
           .thenAnswer((_) async => GetUsedSerialsSampleData.serials);
 
       when(client.estimateFee(blocks: 1))
@@ -2430,8 +2430,8 @@ void main() {
     //   TestWidgetsFlutterBinding.ensureInitialized();
     //   const MethodChannel('uk.spiralarm.flutter/devicelocale')
     //       .setMockMethodCallHandler((methodCall) async => 'en_US');
-    //   final client = MockElectrumX();
-    //   final cachedClient = MockCachedElectrumX();
+    //   final client = MockElectrumXClient();
+    //   final cachedClient = MockCachedElectrumXClient();
     //   final secureStore = FakeSecureStorage();
     //
     //
@@ -2613,8 +2613,8 @@ void main() {
     //   const MethodChannel('uk.spiralarm.flutter/devicelocale')
     //       .setMockMethodCallHandler((methodCall) async => 'en_US');
     //
-    //   final client = MockElectrumX();
-    //   final cachedClient = MockCachedElectrumX();
+    //   final client = MockElectrumXClient();
+    //   final cachedClient = MockCachedElectrumXClient();
     //   final secureStore = FakeSecureStorage();
     //
     //   when(client.getLatestCoinId()).thenAnswer((_) async => 1);
@@ -2789,8 +2789,8 @@ void main() {
     //   const MethodChannel('uk.spiralarm.flutter/devicelocale')
     //       .setMockMethodCallHandler((methodCall) async => 'en_US');
     //
-    //   final client = MockElectrumX();
-    //   final cachedClient = MockCachedElectrumX();
+    //   final client = MockElectrumXClient();
+    //   final cachedClient = MockCachedElectrumXClient();
     //
     //   // mock history calls
     //   when(client.getHistory(scripthash: SampleGetHistoryData.scripthash0))
@@ -2869,8 +2869,8 @@ void main() {
     // });
 
     // test("get transactions", () async {
-    //   final client = MockElectrumX();
-    //   final cachedClient = MockCachedElectrumX();
+    //   final client = MockElectrumXClient();
+    //   final cachedClient = MockCachedElectrumXClient();
     //   final secureStore = FakeSecureStorage();
     //
     //   // set mnemonic
@@ -2976,8 +2976,8 @@ void main() {
     //   const MethodChannel('uk.spiralarm.flutter/devicelocale')
     //       .setMockMethodCallHandler((methodCall) async => 'en_US');
     //
-    //   final client = MockElectrumX();
-    //   final cachedClient = MockCachedElectrumX();
+    //   final client = MockElectrumXClient();
+    //   final cachedClient = MockCachedElectrumXClient();
     //   final secureStore = FakeSecureStorage();
     //
     //
@@ -3196,8 +3196,8 @@ void main() {
         walletId: "${testWalletId}exit",
         walletName: testWalletName,
         coin: Coin.firo,
-        client: MockElectrumX(),
-        cachedClient: MockCachedElectrumX(),
+        client: MockElectrumXClient(),
+        cachedClient: MockCachedElectrumXClient(),
         secureStore: FakeSecureStorage(),
         tracker: MockTransactionNotificationTracker(),
       );
@@ -3222,7 +3222,7 @@ void main() {
   group("simple getters", () {
     group("fees", () {
       test("get fees succeeds", () async {
-        final client = MockElectrumX();
+        final client = MockElectrumXClient();
 
         when(client.estimateFee(blocks: 1))
             .thenAnswer((_) async => Decimal.parse("0.00001000"));
@@ -3236,7 +3236,7 @@ void main() {
           walletName: "some name",
           coin: Coin.firo,
           client: client,
-          cachedClient: MockCachedElectrumX(),
+          cachedClient: MockCachedElectrumXClient(),
           secureStore: FakeSecureStorage(),
           tracker: MockTransactionNotificationTracker(),
         );
@@ -3247,7 +3247,7 @@ void main() {
       });
 
       test("get fees throws", () {
-        final client = MockElectrumX();
+        final client = MockElectrumXClient();
 
         when(client.estimateFee(blocks: 1))
             .thenThrow(Exception("Some exception"));
@@ -3257,7 +3257,7 @@ void main() {
           walletName: "some name",
           coin: Coin.firo,
           client: client,
-          cachedClient: MockCachedElectrumX(),
+          cachedClient: MockCachedElectrumXClient(),
           secureStore: FakeSecureStorage(),
           tracker: MockTransactionNotificationTracker(),
         );
@@ -3272,8 +3272,8 @@ void main() {
           walletId: "some id",
           walletName: "some name",
           coin: Coin.firo,
-          client: MockElectrumX(),
-          cachedClient: MockCachedElectrumX(),
+          client: MockElectrumXClient(),
+          cachedClient: MockCachedElectrumXClient(),
           secureStore: FakeSecureStorage(),
           tracker: MockTransactionNotificationTracker(),
         );
@@ -3286,8 +3286,8 @@ void main() {
           walletId: "some id",
           walletName: "some name",
           coin: Coin.firoTestNet,
-          client: MockElectrumX(),
-          cachedClient: MockCachedElectrumX(),
+          client: MockElectrumXClient(),
+          cachedClient: MockCachedElectrumXClient(),
           secureStore: FakeSecureStorage(),
           tracker: MockTransactionNotificationTracker(),
         );
@@ -3308,8 +3308,8 @@ void main() {
           walletName: 'unit test',
           walletId: 'some id',
           coin: Coin.firoTestNet,
-          client: MockElectrumX(),
-          cachedClient: MockCachedElectrumX(),
+          client: MockElectrumXClient(),
+          cachedClient: MockCachedElectrumXClient(),
           secureStore: store,
           tracker: MockTransactionNotificationTracker(),
         );
@@ -3336,8 +3336,8 @@ void main() {
           walletName: 'unit test',
           walletId: 'some other id',
           coin: Coin.firoTestNet,
-          client: MockElectrumX(),
-          cachedClient: MockCachedElectrumX(),
+          client: MockElectrumXClient(),
+          cachedClient: MockCachedElectrumXClient(),
           secureStore: store,
           tracker: MockTransactionNotificationTracker(),
         );
@@ -3351,8 +3351,8 @@ void main() {
         walletId: "some id",
         walletName: "some name",
         coin: Coin.firo,
-        client: MockElectrumX(),
-        cachedClient: MockCachedElectrumX(),
+        client: MockElectrumXClient(),
+        cachedClient: MockCachedElectrumXClient(),
         secureStore: FakeSecureStorage(),
         tracker: MockTransactionNotificationTracker(),
       );
@@ -3368,8 +3368,8 @@ void main() {
         walletId: "some id",
         walletName: "some name",
         coin: Coin.firo,
-        client: MockElectrumX(),
-        cachedClient: MockCachedElectrumX(),
+        client: MockElectrumXClient(),
+        cachedClient: MockCachedElectrumXClient(),
         secureStore: FakeSecureStorage(),
         tracker: MockTransactionNotificationTracker(),
       );
