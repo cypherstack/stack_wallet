@@ -430,7 +430,7 @@ class MockElectrumXClient extends _i1.Mock implements _i3.ElectrumXClient {
   @override
   _i5.Future<Map<String, dynamic>> getSparkMintMetaData({
     String? requestID,
-    required List<String>? sparkCoinHashes,
+    required List<({int denom, String pubCoin})>? sparkCoinHashes,
   }) =>
       (super.noSuchMethod(
         Invocation.method(

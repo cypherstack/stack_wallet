@@ -196,7 +196,9 @@ WalletInfo _walletInfoDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = WalletInfo(
+    cachedBalanceSecondaryString: reader.readStringOrNull(offsets[0]),
     cachedBalanceString: reader.readStringOrNull(offsets[1]),
+    cachedBalanceTertiaryString: reader.readStringOrNull(offsets[2]),
     cachedChainHeight: reader.readLongOrNull(offsets[3]) ?? 0,
     cachedReceivingAddress: reader.readStringOrNull(offsets[4]) ?? "",
     coinName: reader.readString(offsets[5]),
