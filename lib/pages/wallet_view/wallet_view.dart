@@ -55,7 +55,6 @@ import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/services/mixins/coin_control_interface.dart';
 import 'package:stackwallet/services/mixins/ordinals_interface.dart';
-import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
@@ -71,6 +70,7 @@ import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/mixins/cash_fusion.dart';
+import 'package:stackwallet/wallets/wallet/mixins/paynym_interface.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -1047,8 +1047,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         );
                       },
                     ),
-                  if (ref.watch(pWallets.select((value) => value
-                      .getWallet(widget.walletId) is PaynymWalletInterface)))
+                  if (ref.watch(pWallets.select((value) =>
+                      value.getWallet(widget.walletId) is PaynymInterface)))
                     WalletNavigationBarItemData(
                       label: "PayNym",
                       icon: const PaynymNavIcon(),
@@ -1065,7 +1065,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         final wallet =
                             ref.read(pWallets).getWallet(widget.walletId);
 
-                        final paynymInterface = wallet as PaynymWalletInterface;
+                        final paynymInterface = wallet as PaynymInterface;
 
                         final code = await paynymInterface.getPaymentCode(
                           isSegwit: false,

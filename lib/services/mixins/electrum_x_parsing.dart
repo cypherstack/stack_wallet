@@ -17,10 +17,10 @@ import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart'
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/util.dart' as util;
+import 'package:stackwallet/wallets/wallet/mixins/paynym_interface.dart';
 import 'package:tuple/tuple.dart';
 
 mixin ElectrumXParsing {
@@ -331,7 +331,7 @@ mixin ElectrumXParsing {
     }
 
     TransactionSubType txSubType = TransactionSubType.none;
-    if (this is PaynymWalletInterface && outs.length > 1 && ins.isNotEmpty) {
+    if (this is PaynymInterface && outs.length > 1 && ins.isNotEmpty) {
       for (int i = 0; i < outs.length; i++) {
         List<String>? scriptChunks = outs[i].scriptPubKeyAsm?.split(" ");
         if (scriptChunks?.length == 2 && scriptChunks?[0] == "OP_RETURN") {

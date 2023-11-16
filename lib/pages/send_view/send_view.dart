@@ -11,7 +11,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:bip47/bip47.dart';
 import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +32,6 @@ import 'package:stackwallet/providers/ui/preview_tx_button_state_provider.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/mixins/coin_control_interface.dart';
-import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
@@ -53,6 +51,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
+import 'package:stackwallet/wallets/wallet/mixins/paynym_interface.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -473,27 +472,25 @@ class _SendViewState extends ConsumerState<SendView> {
       Future<TxData> txDataFuture;
 
       if (isPaynymSend) {
-        final paymentCode = PaymentCode.fromPaymentCode(
-          widget.accountLite!.code,
-          networkType: (wallet as PaynymWalletInterface).networkType,
+        final feeRate = ref.read(feeRateTypeStateProvider);
+        txDataFuture = (wallet as PaynymInterface).preparePaymentCodeSend(
+          txData: TxData(
+            paynymAccountLite: widget.accountLite!,
+            recipients: [
+              (
+                address: widget.accountLite!.code,
+                amount: amount,
+              )
+            ],
+            satsPerVByte: isCustomFee ? customFeeRate : null,
+            feeRateType: feeRate,
+            utxos: (wallet is CoinControlInterface &&
+                    coinControlEnabled &&
+                    selectedUTXOs.isNotEmpty)
+                ? selectedUTXOs
+                : null,
+          ),
         );
-        throw UnimplementedError("FIXME");
-        // TODO: [prio=high] paynym prepare send using TxData
-        // final feeRate = ref.read(feeRateTypeStateProvider);
-        // txDataFuture = (wallet as PaynymWalletInterface).preparePaymentCodeSend(
-        //   paymentCode: paymentCode,
-        //   isSegwit: widget.accountLite!.segwit,
-        //   amount: amount,
-        //   args: {
-        //     "satsPerVByte": isCustomFee ? customFeeRate : null,
-        //     "feeRate": feeRate,
-        //     "UTXOs": (wallet is CoinControlInterface &&
-        //             coinControlEnabled &&
-        //             selectedUTXOs.isNotEmpty)
-        //         ? selectedUTXOs
-        //         : null,
-        //   },
-        // );
       } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
           ref.read(publicPrivateBalanceStateProvider.state).state !=
               "Private") {
@@ -534,13 +531,20 @@ class _SendViewState extends ConsumerState<SendView> {
       TxData txData = results.first as TxData;
 
       if (!wasCancelled && mounted) {
+        if (isPaynymSend) {
+          txData = txData.copyWith(
+            paynymAccountLite: widget.accountLite!,
+            note: noteController.text.isNotEmpty
+                ? noteController.text
+                : "PayNym send",
+          );
+        } else {
+          txData = txData.copyWith(note: noteController.text);
+          txData = txData.copyWith(noteOnChain: onChainNoteController.text);
+        }
+
         // pop building dialog
         Navigator.of(context).pop();
-        txData = txData.copyWith(note: noteController.text);
-        txData = txData.copyWith(noteOnChain: onChainNoteController.text);
-        if (isPaynymSend) {
-          txData = txData.copyWith(paynymAccountLite: widget.accountLite!);
-        }
 
         unawaited(Navigator.of(context).push(
           RouteGenerator.getRoute(

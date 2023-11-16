@@ -26,13 +26,13 @@ import 'package:stackwallet/pages/send_view/send_view.dart';
 import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
+import 'package:stackwallet/wallets/wallet/mixins/paynym_interface.dart';
 import 'package:stackwallet/widgets/custom_buttons/paynym_follow_toggle_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -86,7 +86,7 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
     );
 
     final wallet =
-        ref.read(pWallets).getWallet(widget.walletId) as PaynymWalletInterface;
+        ref.read(pWallets).getWallet(widget.walletId) as PaynymInterface;
     final coin = ref.read(pWalletCoin(widget.walletId));
 
     if (await wallet.hasConnected(widget.accountLite.code)) {
@@ -168,7 +168,7 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
   @override
   Widget build(BuildContext context) {
     final wallet =
-        ref.watch(pWallets).getWallet(widget.walletId) as PaynymWalletInterface;
+        ref.watch(pWallets).getWallet(widget.walletId) as PaynymInterface;
 
     return DesktopDialog(
       maxWidth: MediaQuery.of(context).size.width - 32,

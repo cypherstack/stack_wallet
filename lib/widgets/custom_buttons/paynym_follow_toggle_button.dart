@@ -19,10 +19,10 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/paynym_api_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
-import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/wallet/mixins/paynym_interface.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
@@ -67,10 +67,9 @@ class _PaynymFollowToggleButtonState
       ),
     );
 
-    // TODO: [prio=high] FIX THIS BAD as CAST
     // get wallet to access paynym calls
     final wallet =
-        ref.read(pWallets).getWallet(widget.walletId) as PaynymWalletInterface;
+        ref.read(pWallets).getWallet(widget.walletId) as PaynymInterface;
 
     final followedAccount = await ref
         .read(paynymAPIProvider)
@@ -167,9 +166,8 @@ class _PaynymFollowToggleButtonState
       ),
     );
 
-    // TODO: [prio=high] FIX THIS BAD as CAST
     final wallet =
-        ref.read(pWallets).getWallet(widget.walletId) as PaynymWalletInterface;
+        ref.read(pWallets).getWallet(widget.walletId) as PaynymInterface;
 
     final followedAccount = await ref
         .read(paynymAPIProvider)

@@ -10,7 +10,6 @@
 
 import 'dart:async';
 
-import 'package:bip47/bip47.dart';
 import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:decimal/decimal.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
@@ -33,7 +32,6 @@ import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
 import 'package:stackwallet/providers/ui/preview_tx_button_state_provider.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/services/mixins/coin_control_interface.dart';
-import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -52,6 +50,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
+import 'package:stackwallet/wallets/wallet/mixins/paynym_interface.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -296,28 +295,27 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       Future<TxData> txDataFuture;
 
       if (isPaynymSend) {
-        final paynymWallet = wallet as PaynymWalletInterface;
-        final paymentCode = PaymentCode.fromPaymentCode(
-          widget.accountLite!.code,
-          networkType: paynymWallet.networkType,
+        final paynymWallet = wallet as PaynymInterface;
+
+        final feeRate = ref.read(feeRateTypeStateProvider);
+        txDataFuture = paynymWallet.preparePaymentCodeSend(
+          txData: TxData(
+            paynymAccountLite: widget.accountLite!,
+            recipients: [
+              (
+                address: widget.accountLite!.code,
+                amount: amount,
+              )
+            ],
+            satsPerVByte: isCustomFee ? customFeeRate : null,
+            feeRateType: feeRate,
+            utxos: (wallet is CoinControlInterface &&
+                    coinControlEnabled &&
+                    ref.read(desktopUseUTXOs).isNotEmpty)
+                ? ref.read(desktopUseUTXOs)
+                : null,
+          ),
         );
-        throw UnimplementedError("FIXME");
-        // TODO: [prio=high] paynym prepare send using TxData
-        // final feeRate = ref.read(feeRateTypeStateProvider);
-        // txDataFuture = paynymWallet.preparePaymentCodeSend(
-        //   paymentCode: paymentCode,
-        //   isSegwit: widget.accountLite!.segwit,
-        //   amount: amount,
-        //   args: {
-        //     "satsPerVByte": isCustomFee ? customFeeRate : null,
-        //     "feeRate": feeRate,
-        //     "UTXOs": (wallet is CoinControlInterface &&
-        //             coinControlEnabled &&
-        //             ref.read(desktopUseUTXOs).isNotEmpty)
-        //         ? ref.read(desktopUseUTXOs)
-        //         : null,
-        //   },
-        // );
       } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
           ref.read(publicPrivateBalanceStateProvider.state).state !=
               "Private") {

@@ -11,7 +11,6 @@ import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/signing_data.dart';
-import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
@@ -19,6 +18,7 @@ import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
+import 'package:stackwallet/wallets/wallet/mixins/paynym_interface.dart';
 import 'package:uuid/uuid.dart';
 
 mixin ElectrumX on Bip39HDWallet {
@@ -1268,7 +1268,7 @@ mixin ElectrumX on Bip39HDWallet {
     }
 
     TransactionSubType txSubType = TransactionSubType.none;
-    if (this is PaynymWalletInterface && outs.length > 1 && ins.isNotEmpty) {
+    if (this is PaynymInterface && outs.length > 1 && ins.isNotEmpty) {
       for (int i = 0; i < outs.length; i++) {
         List<String>? scriptChunks = outs[i].scriptPubKeyAsm?.split(" ");
         if (scriptChunks?.length == 2 && scriptChunks?[0] == "OP_RETURN") {

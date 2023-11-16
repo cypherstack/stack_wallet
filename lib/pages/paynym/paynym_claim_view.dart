@@ -20,11 +20,11 @@ import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/providers/global/paynym_api_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
-import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/wallet/mixins/paynym_interface.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -48,7 +48,7 @@ class PaynymClaimView extends ConsumerStatefulWidget {
 class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
   Future<bool> _addSegwitCode(PaynymAccount myAccount) async {
     final wallet =
-        ref.read(pWallets).getWallet(widget.walletId) as PaynymWalletInterface;
+        ref.read(pWallets).getWallet(widget.walletId) as PaynymInterface;
 
     final token = await ref
         .read(paynymAPIProvider)
@@ -188,7 +188,7 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
                   );
 
                   final wallet = ref.read(pWallets).getWallet(widget.walletId)
-                      as PaynymWalletInterface;
+                      as PaynymInterface;
 
                   if (shouldCancel) return;
 
