@@ -32,6 +32,16 @@ class WalletInfo implements IsarId {
   String? get cachedBalanceString => _cachedBalanceString;
   String? _cachedBalanceString;
 
+  /// Only exposed for Isar. Use the [cachedBalanceSecondary] getter.
+  // Only exposed for isar as Amount cannot be stored in isar easily
+  String? get cachedBalanceSecondaryString => _cachedBalanceSecondaryString;
+  String? _cachedBalanceSecondaryString;
+
+  /// Only exposed for Isar. Use the [cachedBalanceTertiary] getter.
+  // Only exposed for isar as Amount cannot be stored in isar easily
+  String? get cachedBalanceTertiaryString => _cachedBalanceTertiaryString;
+  String? _cachedBalanceTertiaryString;
+
   /// Only exposed for Isar. Use the [coin] getter.
   // Only exposed for isar to avoid dealing with storing enums as Coin can change
   String get coinName => _coinName;
@@ -82,16 +92,23 @@ class WalletInfo implements IsarId {
     }
   }
 
-  /// Special case for coins such as firo
+  /// Special case for coins such as firo lelantus
   @ignore
-  Balance get cachedSecondaryBalance {
-    try {
-      return Balance.fromJson(
-        otherData[WalletInfoKeys.cachedSecondaryBalance] as String? ?? "",
-        coin.decimals,
-      );
-    } catch (_) {
+  Balance get cachedBalanceSecondary {
+    if (cachedBalanceSecondaryString == null) {
       return Balance.zeroForCoin(coin: coin);
+    } else {
+      return Balance.fromJson(cachedBalanceSecondaryString!, coin.decimals);
+    }
+  }
+
+  /// Special case for coins such as firo spark
+  @ignore
+  Balance get cachedBalanceTertiary {
+    if (cachedBalanceTertiaryString == null) {
+      return Balance.zeroForCoin(coin: coin);
+    } else {
+      return Balance.fromJson(cachedBalanceTertiaryString!, coin.decimals);
     }
   }
 
@@ -113,9 +130,8 @@ class WalletInfo implements IsarId {
       : Map<String, dynamic>.from(jsonDecode(otherDataJsonString!) as Map);
 
   //============================================================================
-  //============= Updaters      ================================================
+  //=============    Updaters   ================================================
 
-  /// copies this with a new balance and updates the db
   Future<void> updateBalance({
     required Balance newBalance,
     required Isar isar,
@@ -125,6 +141,40 @@ class WalletInfo implements IsarId {
     // only update if there were changes to the balance
     if (cachedBalanceString != newEncoded) {
       _cachedBalanceString = newEncoded;
+
+      await isar.writeTxn(() async {
+        await isar.walletInfo.deleteByWalletId(walletId);
+        await isar.walletInfo.put(this);
+      });
+    }
+  }
+
+  Future<void> updateBalanceSecondary({
+    required Balance newBalance,
+    required Isar isar,
+  }) async {
+    final newEncoded = newBalance.toJsonIgnoreCoin();
+
+    // only update if there were changes to the balance
+    if (cachedBalanceSecondaryString != newEncoded) {
+      _cachedBalanceSecondaryString = newEncoded;
+
+      await isar.writeTxn(() async {
+        await isar.walletInfo.deleteByWalletId(walletId);
+        await isar.walletInfo.put(this);
+      });
+    }
+  }
+
+  Future<void> updateBalanceTertiary({
+    required Balance newBalance,
+    required Isar isar,
+  }) async {
+    final newEncoded = newBalance.toJsonIgnoreCoin();
+
+    // only update if there were changes to the balance
+    if (cachedBalanceTertiaryString != newEncoded) {
+      _cachedBalanceTertiaryString = newEncoded;
 
       await isar.writeTxn(() async {
         await isar.walletInfo.deleteByWalletId(walletId);
