@@ -15,12 +15,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:stackwallet/db/hive/db.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/debug_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -371,11 +373,176 @@ class HiddenSettings extends StatelessWidget {
                           builder: (_, ref, __) {
                             return GestureDetector(
                               onTap: () async {
-                                //
+                                try {
+                                  final n = DefaultNodes.firoTestnet;
+
+                                  final e = ElectrumXClient.from(
+                                    node: ElectrumXNode(
+                                      address: n.host,
+                                      port: n.port,
+                                      name: n.name,
+                                      id: n.id,
+                                      useSSL: n.useSSL,
+                                    ),
+                                    prefs:
+                                        ref.read(prefsChangeNotifierProvider),
+                                    failovers: [],
+                                  );
+
+                                  // Call and print getSparkAnonymitySet.
+                                  final anonymitySet =
+                                      await e.getSparkAnonymitySet(
+                                    coinGroupId: "1",
+                                    startBlockHash: "",
+                                  );
+
+                                  Util.printJson(anonymitySet, "anonymitySet");
+                                } catch (e, s) {
+                                  print("$e\n$s");
+                                }
                               },
                               child: RoundedWhiteContainer(
                                 child: Text(
-                                  "Do nothing",
+                                  "Spark getSparkAnonymitySet",
+                                  style: STextStyles.button(context).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(
+                          height: 12,
+                        ),
+                        Consumer(
+                          builder: (_, ref, __) {
+                            return GestureDetector(
+                              onTap: () async {
+                                try {
+                                  final n = DefaultNodes.firo;
+
+                                  final e = ElectrumXClient.from(
+                                    node: ElectrumXNode(
+                                      address: n.host,
+                                      port: n.port,
+                                      name: n.name,
+                                      id: n.id,
+                                      useSSL: n.useSSL,
+                                    ),
+                                    prefs:
+                                        ref.read(prefsChangeNotifierProvider),
+                                    failovers: [],
+                                  );
+
+                                  // Call and print getUsedCoinsTags.
+                                  final usedCoinsTags = await e
+                                      .getSparkUsedCoinsTags(startNumber: 0);
+
+                                  print(
+                                      "usedCoinsTags['tags'].length: ${usedCoinsTags["tags"].length}");
+                                  Util.printJson(
+                                      usedCoinsTags, "usedCoinsTags");
+                                } catch (e, s) {
+                                  print("$e\n$s");
+                                }
+                              },
+                              child: RoundedWhiteContainer(
+                                child: Text(
+                                  "Spark getSparkUsedCoinsTags",
+                                  style: STextStyles.button(context).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(
+                          height: 12,
+                        ),
+                        Consumer(
+                          builder: (_, ref, __) {
+                            return GestureDetector(
+                              onTap: () async {
+                                try {
+                                  final n = DefaultNodes.firoTestnet;
+
+                                  final e = ElectrumXClient.from(
+                                    node: ElectrumXNode(
+                                      address: n.host,
+                                      port: n.port,
+                                      name: n.name,
+                                      id: n.id,
+                                      useSSL: n.useSSL,
+                                    ),
+                                    prefs:
+                                        ref.read(prefsChangeNotifierProvider),
+                                    failovers: [],
+                                  );
+
+                                  // Call and print getSparkMintMetaData.
+                                  final mintMetaData =
+                                      await e.getSparkMintMetaData(
+                                    sparkCoinHashes: [
+                                      "lol",
+                                    ],
+                                  );
+
+                                  Util.printJson(mintMetaData, "mintMetaData");
+                                } catch (e, s) {
+                                  print("$e\n$s");
+                                }
+                              },
+                              child: RoundedWhiteContainer(
+                                child: Text(
+                                  "Spark getSparkMintMetaData",
+                                  style: STextStyles.button(context).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(
+                          height: 12,
+                        ),
+                        Consumer(
+                          builder: (_, ref, __) {
+                            return GestureDetector(
+                              onTap: () async {
+                                try {
+                                  final n = DefaultNodes.firoTestnet;
+
+                                  final e = ElectrumXClient.from(
+                                    node: ElectrumXNode(
+                                      address: n.host,
+                                      port: n.port,
+                                      name: n.name,
+                                      id: n.id,
+                                      useSSL: n.useSSL,
+                                    ),
+                                    prefs:
+                                        ref.read(prefsChangeNotifierProvider),
+                                    failovers: [],
+                                  );
+
+                                  // Call and print getSparkLatestCoinId.
+                                  final latestCoinId =
+                                      await e.getSparkLatestCoinId();
+
+                                  Util.printJson(latestCoinId, "latestCoinId");
+                                } catch (e, s) {
+                                  print("$e\n$s");
+                                }
+                              },
+                              child: RoundedWhiteContainer(
+                                child: Text(
+                                  "Spark getSparkLatestCoinId",
                                   style: STextStyles.button(context).copyWith(
                                       color: Theme.of(context)
                                           .extension<StackColors>()!
@@ -426,38 +593,3 @@ class HiddenSettings extends StatelessWidget {
     );
   }
 }
-
-const _CHARSET_INVERSE_INDEX = {
-  'q': 0,
-  'p': 1,
-  'z': 2,
-  'r': 3,
-  'y': 4,
-  '9': 5,
-  'x': 6,
-  '8': 7,
-  'g': 8,
-  'f': 9,
-  '2': 10,
-  't': 11,
-  'v': 12,
-  'd': 13,
-  'w': 14,
-  '0': 15,
-  's': 16,
-  '3': 17,
-  'j': 18,
-  'n': 19,
-  '5': 20,
-  '4': 21,
-  'k': 22,
-  'h': 23,
-  'c': 24,
-  'e': 25,
-  '6': 26,
-  'm': 27,
-  'u': 28,
-  'a': 29,
-  '7': 30,
-  'l': 31,
-};
