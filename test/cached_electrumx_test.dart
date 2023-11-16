@@ -22,7 +22,7 @@ void main() {
     });
     group("getAnonymitySet", () {
       // test("empty set cache call", () async {
-      //   final client = MockElectrumX();
+      //   final client = MockElectrumXClient();
       //   when(
       //     client.getAnonymitySet(
       //       groupId: "1",
@@ -58,7 +58,7 @@ void main() {
       //   final box = await Hive.openBox('Some coinName_anonymitySetCache');
       //   await box.put("1", storedData);
       //
-      //   final client = MockElectrumX();
+      //   final client = MockElectrumXClient();
       //   when(
       //     client.getAnonymitySet(
       //       groupId: "1",
@@ -90,7 +90,7 @@ void main() {
       // });
 
       // test("getAnonymitySet throws", () async {
-      //   final client = MockElectrumX();
+      //   final client = MockElectrumXClient();
       //   when(
       //     client.getAnonymitySet(
       //       groupId: "1",
@@ -116,7 +116,7 @@ void main() {
     });
 
     test("getTransaction throws", () async {
-      final client = MockElectrumX();
+      final client = MockElectrumXClient();
       when(
         client.getTransaction(
           txHash: "some hash",
@@ -137,7 +137,7 @@ void main() {
 
     test("clearSharedTransactionCache", () async {
       final cachedClient = CachedElectrumXClient(
-        electrumXClient: MockElectrumX(),
+        electrumXClient: MockElectrumXClient(),
       );
 
       bool didThrow = false;
@@ -164,7 +164,8 @@ void main() {
       useSSL: true,
     );
 
-    final client = CachedElectrumXClient.from(electrumXClient: MockElectrumX());
+    final client =
+        CachedElectrumXClient.from(electrumXClient: MockElectrumXClient());
 
     expect(client, isA<CachedElectrumXClient>());
   });

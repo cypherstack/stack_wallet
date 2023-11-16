@@ -3,22 +3,21 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i9;
-import 'dart:typed_data' as _i16;
-import 'dart:ui' as _i13;
+import 'dart:async' as _i8;
+import 'dart:typed_data' as _i15;
+import 'dart:ui' as _i12;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/db/isar/main_db.dart' as _i3;
-import 'package:stackwallet/models/isar/stack_theme.dart' as _i15;
+import 'package:stackwallet/models/isar/stack_theme.dart' as _i14;
 import 'package:stackwallet/networking/http.dart' as _i6;
-import 'package:stackwallet/services/locale_service.dart' as _i12;
+import 'package:stackwallet/services/locale_service.dart' as _i11;
 import 'package:stackwallet/services/node_service.dart' as _i2;
 import 'package:stackwallet/services/wallets.dart' as _i7;
-import 'package:stackwallet/themes/theme_service.dart' as _i14;
-import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i8;
+import 'package:stackwallet/themes/theme_service.dart' as _i13;
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart'
-    as _i10;
-import 'package:stackwallet/utilities/prefs.dart' as _i11;
+    as _i9;
+import 'package:stackwallet/utilities/prefs.dart' as _i10;
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart'
     as _i4;
 import 'package:stackwallet/wallets/wallet/wallet.dart' as _i5;
@@ -126,16 +125,6 @@ class MockWallets extends _i1.Mock implements _i7.Wallets {
         returnValue: <_i5.Wallet<_i4.CryptoCurrency>>[],
       ) as List<_i5.Wallet<_i4.CryptoCurrency>>);
   @override
-  List<({_i8.Coin coin, List<_i5.Wallet<_i4.CryptoCurrency>> wallets})>
-      get walletsByCoin => (super.noSuchMethod(
-            Invocation.getter(#walletsByCoin),
-            returnValue: <({
-              _i8.Coin coin,
-              List<_i5.Wallet<_i4.CryptoCurrency>> wallets
-            })>[],
-          ) as List<
-              ({_i8.Coin coin, List<_i5.Wallet<_i4.CryptoCurrency>> wallets})>);
-  @override
   _i5.Wallet<_i4.CryptoCurrency> getWallet(String? walletId) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -159,9 +148,9 @@ class MockWallets extends _i1.Mock implements _i7.Wallets {
         returnValueForMissingStub: null,
       );
   @override
-  _i9.Future<void> deleteWallet(
+  _i8.Future<void> deleteWallet(
     String? walletId,
-    _i10.SecureStorageInterface? secureStorage,
+    _i9.SecureStorageInterface? secureStorage,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -171,12 +160,12 @@ class MockWallets extends _i1.Mock implements _i7.Wallets {
             secureStorage,
           ],
         ),
-        returnValue: _i9.Future<void>.value(),
-        returnValueForMissingStub: _i9.Future<void>.value(),
-      ) as _i9.Future<void>);
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
   @override
-  _i9.Future<void> load(
-    _i11.Prefs? prefs,
+  _i8.Future<void> load(
+    _i10.Prefs? prefs,
     _i3.MainDB? mainDB,
   ) =>
       (super.noSuchMethod(
@@ -187,12 +176,12 @@ class MockWallets extends _i1.Mock implements _i7.Wallets {
             mainDB,
           ],
         ),
-        returnValue: _i9.Future<void>.value(),
-        returnValueForMissingStub: _i9.Future<void>.value(),
-      ) as _i9.Future<void>);
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
   @override
-  _i9.Future<void> loadAfterStackRestore(
-    _i11.Prefs? prefs,
+  _i8.Future<void> loadAfterStackRestore(
+    _i10.Prefs? prefs,
     List<_i5.Wallet<_i4.CryptoCurrency>>? wallets,
   ) =>
       (super.noSuchMethod(
@@ -203,15 +192,15 @@ class MockWallets extends _i1.Mock implements _i7.Wallets {
             wallets,
           ],
         ),
-        returnValue: _i9.Future<void>.value(),
-        returnValueForMissingStub: _i9.Future<void>.value(),
-      ) as _i9.Future<void>);
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
 }
 
 /// A class which mocks [LocaleService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockLocaleService extends _i1.Mock implements _i12.LocaleService {
+class MockLocaleService extends _i1.Mock implements _i11.LocaleService {
   MockLocaleService() {
     _i1.throwOnMissingStub(this);
   }
@@ -227,17 +216,17 @@ class MockLocaleService extends _i1.Mock implements _i12.LocaleService {
         returnValue: false,
       ) as bool);
   @override
-  _i9.Future<void> loadLocale({bool? notify = true}) => (super.noSuchMethod(
+  _i8.Future<void> loadLocale({bool? notify = true}) => (super.noSuchMethod(
         Invocation.method(
           #loadLocale,
           [],
           {#notify: notify},
         ),
-        returnValue: _i9.Future<void>.value(),
-        returnValueForMissingStub: _i9.Future<void>.value(),
-      ) as _i9.Future<void>);
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
   @override
-  void addListener(_i13.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i12.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -245,7 +234,7 @@ class MockLocaleService extends _i1.Mock implements _i12.LocaleService {
         returnValueForMissingStub: null,
       );
   @override
-  void removeListener(_i13.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i12.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],
@@ -273,7 +262,7 @@ class MockLocaleService extends _i1.Mock implements _i12.LocaleService {
 /// A class which mocks [ThemeService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockThemeService extends _i1.Mock implements _i14.ThemeService {
+class MockThemeService extends _i1.Mock implements _i13.ThemeService {
   MockThemeService() {
     _i1.throwOnMissingStub(this);
   }
@@ -303,10 +292,10 @@ class MockThemeService extends _i1.Mock implements _i14.ThemeService {
         ),
       ) as _i3.MainDB);
   @override
-  List<_i15.StackTheme> get installedThemes => (super.noSuchMethod(
+  List<_i14.StackTheme> get installedThemes => (super.noSuchMethod(
         Invocation.getter(#installedThemes),
-        returnValue: <_i15.StackTheme>[],
-      ) as List<_i15.StackTheme>);
+        returnValue: <_i14.StackTheme>[],
+      ) as List<_i14.StackTheme>);
   @override
   void init(_i3.MainDB? db) => super.noSuchMethod(
         Invocation.method(
@@ -316,71 +305,71 @@ class MockThemeService extends _i1.Mock implements _i14.ThemeService {
         returnValueForMissingStub: null,
       );
   @override
-  _i9.Future<void> install({required _i16.Uint8List? themeArchiveData}) =>
+  _i8.Future<void> install({required _i15.Uint8List? themeArchiveData}) =>
       (super.noSuchMethod(
         Invocation.method(
           #install,
           [],
           {#themeArchiveData: themeArchiveData},
         ),
-        returnValue: _i9.Future<void>.value(),
-        returnValueForMissingStub: _i9.Future<void>.value(),
-      ) as _i9.Future<void>);
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
   @override
-  _i9.Future<void> remove({required String? themeId}) => (super.noSuchMethod(
+  _i8.Future<void> remove({required String? themeId}) => (super.noSuchMethod(
         Invocation.method(
           #remove,
           [],
           {#themeId: themeId},
         ),
-        returnValue: _i9.Future<void>.value(),
-        returnValueForMissingStub: _i9.Future<void>.value(),
-      ) as _i9.Future<void>);
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
   @override
-  _i9.Future<void> checkDefaultThemesOnStartup() => (super.noSuchMethod(
+  _i8.Future<void> checkDefaultThemesOnStartup() => (super.noSuchMethod(
         Invocation.method(
           #checkDefaultThemesOnStartup,
           [],
         ),
-        returnValue: _i9.Future<void>.value(),
-        returnValueForMissingStub: _i9.Future<void>.value(),
-      ) as _i9.Future<void>);
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
   @override
-  _i9.Future<bool> verifyInstalled({required String? themeId}) =>
+  _i8.Future<bool> verifyInstalled({required String? themeId}) =>
       (super.noSuchMethod(
         Invocation.method(
           #verifyInstalled,
           [],
           {#themeId: themeId},
         ),
-        returnValue: _i9.Future<bool>.value(false),
-      ) as _i9.Future<bool>);
+        returnValue: _i8.Future<bool>.value(false),
+      ) as _i8.Future<bool>);
   @override
-  _i9.Future<List<_i14.StackThemeMetaData>> fetchThemes() =>
+  _i8.Future<List<_i13.StackThemeMetaData>> fetchThemes() =>
       (super.noSuchMethod(
         Invocation.method(
           #fetchThemes,
           [],
         ),
-        returnValue: _i9.Future<List<_i14.StackThemeMetaData>>.value(
-            <_i14.StackThemeMetaData>[]),
-      ) as _i9.Future<List<_i14.StackThemeMetaData>>);
+        returnValue: _i8.Future<List<_i13.StackThemeMetaData>>.value(
+            <_i13.StackThemeMetaData>[]),
+      ) as _i8.Future<List<_i13.StackThemeMetaData>>);
   @override
-  _i9.Future<_i16.Uint8List> fetchTheme(
-          {required _i14.StackThemeMetaData? themeMetaData}) =>
+  _i8.Future<_i15.Uint8List> fetchTheme(
+          {required _i13.StackThemeMetaData? themeMetaData}) =>
       (super.noSuchMethod(
         Invocation.method(
           #fetchTheme,
           [],
           {#themeMetaData: themeMetaData},
         ),
-        returnValue: _i9.Future<_i16.Uint8List>.value(_i16.Uint8List(0)),
-      ) as _i9.Future<_i16.Uint8List>);
+        returnValue: _i8.Future<_i15.Uint8List>.value(_i15.Uint8List(0)),
+      ) as _i8.Future<_i15.Uint8List>);
   @override
-  _i15.StackTheme? getTheme({required String? themeId}) =>
+  _i14.StackTheme? getTheme({required String? themeId}) =>
       (super.noSuchMethod(Invocation.method(
         #getTheme,
         [],
         {#themeId: themeId},
-      )) as _i15.StackTheme?);
+      )) as _i14.StackTheme?);
 }

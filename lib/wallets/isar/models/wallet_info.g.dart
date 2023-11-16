@@ -176,7 +176,7 @@ WalletInfo _walletInfoDeserialize(
     cachedChainHeight: reader.readLongOrNull(offsets[1]) ?? 0,
     cachedReceivingAddress: reader.readStringOrNull(offsets[2]) ?? "",
     coinName: reader.readString(offsets[3]),
-    favouriteOrderIndex: reader.readLongOrNull(offsets[4]) ?? 0,
+    favouriteOrderIndex: reader.readLongOrNull(offsets[4]) ?? -1,
     isMnemonicVerified: reader.readBoolOrNull(offsets[6]) ?? false,
     mainAddressType: _WalletInfomainAddressTypeValueEnumMap[
             reader.readByteOrNull(offsets[7])] ??
@@ -206,7 +206,7 @@ P _walletInfoDeserializeProp<P>(
     case 3:
       return (reader.readString(offset)) as P;
     case 4:
-      return (reader.readLongOrNull(offset) ?? 0) as P;
+      return (reader.readLongOrNull(offset) ?? -1) as P;
     case 5:
       return (reader.readBool(offset)) as P;
     case 6:
