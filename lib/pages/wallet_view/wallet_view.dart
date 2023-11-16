@@ -69,8 +69,8 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/wallet/mixins/cash_fusion.dart';
-import 'package:stackwallet/wallets/wallet/mixins/paynym_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -1121,7 +1121,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     ),
                   if (ref.watch(
                     pWallets.select(
-                      (value) => value.getWallet(widget.walletId) is CashFusion,
+                      (value) => value.getWallet(widget.walletId)
+                          is CashFusionInterface,
                     ),
                   ))
                     WalletNavigationBarItemData(

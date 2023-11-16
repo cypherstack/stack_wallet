@@ -31,9 +31,9 @@ import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/nano_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
-import 'package:stackwallet/wallets/wallet/mixins/electrumx.dart';
-import 'package:stackwallet/wallets/wallet/mixins/mnemonic_based_wallet.dart';
-import 'package:stackwallet/wallets/wallet/mixins/multi_address.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
 import 'package:stackwallet/wallets/wallet/private_key_based_wallet.dart';
 
 abstract class Wallet<T extends CryptoCurrency> {
@@ -132,7 +132,7 @@ abstract class Wallet<T extends CryptoCurrency> {
       prefs: prefs,
     );
 
-    if (wallet is MnemonicBasedWallet) {
+    if (wallet is MnemonicInterface) {
       await secureStorageInterface.write(
         key: mnemonicKey(walletId: walletInfo.walletId),
         value: mnemonic!,
@@ -225,7 +225,7 @@ abstract class Wallet<T extends CryptoCurrency> {
     wallet.prefs = prefs;
     wallet.nodeService = nodeService;
 
-    if (wallet is ElectrumX) {
+    if (wallet is ElectrumXInterface) {
       // initialize electrumx instance
       await wallet.updateNode();
     }
@@ -413,13 +413,15 @@ abstract class Wallet<T extends CryptoCurrency> {
       await fetchFuture;
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.70, walletId));
 
-      if (this is MultiAddress) {
-        await (this as MultiAddress).checkReceivingAddressForTransactions();
+      if (this is MultiAddressInterface) {
+        await (this as MultiAddressInterface)
+            .checkReceivingAddressForTransactions();
       }
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.80, walletId));
 
-      if (this is MultiAddress) {
-        await (this as MultiAddress).checkChangeAddressForTransactions();
+      if (this is MultiAddressInterface) {
+        await (this as MultiAddressInterface)
+            .checkChangeAddressForTransactions();
       }
       // await getAllTxsToWatch();
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.90, walletId));

@@ -40,8 +40,8 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/wallet/mixins/cash_fusion.dart';
-import 'package:stackwallet/wallets/wallet/mixins/paynym_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -361,7 +361,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         // manager.hasWhirlpoolSupport ||
         coin == Coin.banano ||
         wallet is OrdinalsInterface ||
-        wallet is CashFusion;
+        wallet is CashFusionInterface;
 
     return Row(
       children: [

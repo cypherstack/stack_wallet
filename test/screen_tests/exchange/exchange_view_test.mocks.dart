@@ -35,7 +35,8 @@ import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i7;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i10;
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i6;
 import 'package:stackwallet/utilities/prefs.dart' as _i5;
-import 'package:stackwallet/wallets/wallet/mixins/cash_fusion.dart' as _i2;
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart'
+    as _i2;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -1105,8 +1106,8 @@ class MockChangeNowAPI extends _i1.Mock implements _i15.ChangeNowAPI {
               [],
               {#apiKey: apiKey},
             ),
-            returnValue: _i8
-                .Future<_i4.ExchangeResponse<List<_i21.FixedRateMarket>>>.value(
+            returnValue: _i8.Future<
+                    _i4.ExchangeResponse<List<_i21.FixedRateMarket>>>.value(
                 _FakeExchangeResponse_2<List<_i21.FixedRateMarket>>(
               this,
               Invocation.method(
@@ -1147,8 +1148,8 @@ class MockChangeNowAPI extends _i1.Mock implements _i15.ChangeNowAPI {
                 #apiKey: apiKey,
               },
             ),
-            returnValue: _i8
-                .Future<_i4.ExchangeResponse<_i22.ExchangeTransaction>>.value(
+            returnValue: _i8.Future<
+                    _i4.ExchangeResponse<_i22.ExchangeTransaction>>.value(
                 _FakeExchangeResponse_2<_i22.ExchangeTransaction>(
               this,
               Invocation.method(
@@ -1204,8 +1205,8 @@ class MockChangeNowAPI extends _i1.Mock implements _i15.ChangeNowAPI {
                 #apiKey: apiKey,
               },
             ),
-            returnValue: _i8
-                .Future<_i4.ExchangeResponse<_i22.ExchangeTransaction>>.value(
+            returnValue: _i8.Future<
+                    _i4.ExchangeResponse<_i22.ExchangeTransaction>>.value(
                 _FakeExchangeResponse_2<_i22.ExchangeTransaction>(
               this,
               Invocation.method(
@@ -1229,35 +1230,35 @@ class MockChangeNowAPI extends _i1.Mock implements _i15.ChangeNowAPI {
             )),
           ) as _i8.Future<_i4.ExchangeResponse<_i22.ExchangeTransaction>>);
   @override
-  _i8.Future<
-      _i4
-      .ExchangeResponse<_i23.ExchangeTransactionStatus>> getTransactionStatus({
+  _i8.Future<_i4.ExchangeResponse<_i23.ExchangeTransactionStatus>>
+      getTransactionStatus({
     required String? id,
     String? apiKey,
   }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getTransactionStatus,
-          [],
-          {
-            #id: id,
-            #apiKey: apiKey,
-          },
-        ),
-        returnValue: _i8
-            .Future<_i4.ExchangeResponse<_i23.ExchangeTransactionStatus>>.value(
-            _FakeExchangeResponse_2<_i23.ExchangeTransactionStatus>(
-          this,
-          Invocation.method(
-            #getTransactionStatus,
-            [],
-            {
-              #id: id,
-              #apiKey: apiKey,
-            },
-          ),
-        )),
-      ) as _i8.Future<_i4.ExchangeResponse<_i23.ExchangeTransactionStatus>>);
+          (super.noSuchMethod(
+            Invocation.method(
+              #getTransactionStatus,
+              [],
+              {
+                #id: id,
+                #apiKey: apiKey,
+              },
+            ),
+            returnValue: _i8.Future<
+                    _i4.ExchangeResponse<_i23.ExchangeTransactionStatus>>.value(
+                _FakeExchangeResponse_2<_i23.ExchangeTransactionStatus>(
+              this,
+              Invocation.method(
+                #getTransactionStatus,
+                [],
+                {
+                  #id: id,
+                  #apiKey: apiKey,
+                },
+              ),
+            )),
+          ) as _i8
+              .Future<_i4.ExchangeResponse<_i23.ExchangeTransactionStatus>>);
   @override
   _i8.Future<_i4.ExchangeResponse<List<_i24.Pair>>>
       getAvailableFloatingRatePairs({bool? includePartners = false}) =>

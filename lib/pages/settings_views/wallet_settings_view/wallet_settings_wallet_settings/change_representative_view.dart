@@ -23,7 +23,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/wallet/mixins/nano_based.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/nano_interface.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -66,7 +66,7 @@ class _ChangeRepresentativeViewState
   Future<String> loadRepresentative() async {
     final wallet = ref.read(pWallets).getWallet(widget.walletId);
 
-    if (wallet is NanoBased) {
+    if (wallet is NanoInterface) {
       return wallet.getCurrentRepresentative();
     } else {
       throw Exception("Unsupported wallet attempted to show representative!");
@@ -74,7 +74,8 @@ class _ChangeRepresentativeViewState
   }
 
   Future<void> _save() async {
-    final wallet = ref.read(pWallets).getWallet(widget.walletId) as NanoBased;
+    final wallet =
+        ref.read(pWallets).getWallet(widget.walletId) as NanoInterface;
 
     final changeFuture = wallet.changeRepresentative;
 

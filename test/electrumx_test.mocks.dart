@@ -17,7 +17,8 @@ import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i8;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i10;
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i7;
 import 'package:stackwallet/utilities/prefs.dart' as _i6;
-import 'package:stackwallet/wallets/wallet/mixins/cash_fusion.dart' as _i3;
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart'
+    as _i3;
 import 'package:tor_ffi_plugin/tor_ffi_plugin.dart' as _i14;
 
 // ignore_for_file: type=lint

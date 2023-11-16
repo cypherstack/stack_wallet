@@ -42,10 +42,10 @@ import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/cryptonote_wallet.dart';
-import 'package:stackwallet/wallets/wallet/mixins/multi_address.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
 import 'package:tuple/tuple.dart';
 
-class WowneroWallet extends CryptonoteWallet with MultiAddress {
+class WowneroWallet extends CryptonoteWallet with MultiAddressInterface {
   WowneroWallet(CryptoCurrencyNetwork network) : super(Wownero(network));
 
   @override

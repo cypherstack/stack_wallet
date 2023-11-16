@@ -3,9 +3,9 @@ import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/nano_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_wallet.dart';
-import 'package:stackwallet/wallets/wallet/mixins/nano_based.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/nano_interface.dart';
 
-class BananoWallet extends Bip39Wallet<NanoCurrency> with NanoBased {
+class BananoWallet extends Bip39Wallet<NanoCurrency> with NanoInterface {
   BananoWallet(CryptoCurrencyNetwork network) : super(Banano(network));
 
   Future<void> updateMonkeyImageBytes(List<int> bytes) async {

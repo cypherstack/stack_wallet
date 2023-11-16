@@ -29,7 +29,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/wallet/mixins/multi_address.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -62,7 +62,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
   Future<void> generateNewAddress() async {
     final wallet = ref.read(pWallets).getWallet(walletId);
 
-    if (wallet is MultiAddress) {
+    if (wallet is MultiAddressInterface) {
       bool shouldPop = false;
       unawaited(
         showDialog(

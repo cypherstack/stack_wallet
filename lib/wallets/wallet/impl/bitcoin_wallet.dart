@@ -5,13 +5,13 @@ import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
-import 'package:stackwallet/wallets/wallet/mixins/coin_control.dart';
-import 'package:stackwallet/wallets/wallet/mixins/electrumx.dart';
-import 'package:stackwallet/wallets/wallet/mixins/paynym_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import 'package:tuple/tuple.dart';
 
 class BitcoinWallet extends Bip39HDWallet
-    with ElectrumX, CoinControl, PaynymInterface {
+    with ElectrumXInterface, CoinControlInterface, PaynymInterface {
   @override
   int get isarTransactionVersion => 1; // TODO actually set this to 2
 

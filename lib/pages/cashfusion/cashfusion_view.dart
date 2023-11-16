@@ -26,7 +26,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/wallet/mixins/cash_fusion.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -65,7 +65,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
 
   Future<void> _startFusion() async {
     final fusionWallet =
-        ref.read(pWallets).getWallet(widget.walletId) as CashFusion;
+        ref.read(pWallets).getWallet(widget.walletId) as CashFusionInterface;
 
     try {
       fusionWallet.uiState = ref.read(

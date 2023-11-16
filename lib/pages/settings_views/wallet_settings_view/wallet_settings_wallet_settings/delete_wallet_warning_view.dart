@@ -14,7 +14,7 @@ import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_set
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/wallet/mixins/mnemonic_based_wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
@@ -100,8 +100,8 @@ class DeleteWalletWarningView extends ConsumerWidget {
                     .getPrimaryEnabledButtonStyle(context),
                 onPressed: () async {
                   final wallet = ref.read(pWallets).getWallet(walletId);
-                  final mnemonic = await (wallet as MnemonicBasedWallet)
-                      .getMnemonicAsWords();
+                  final mnemonic =
+                      await (wallet as MnemonicInterface).getMnemonicAsWords();
                   if (context.mounted) {
                     await Navigator.of(context).pushNamed(
                       DeleteWalletRecoveryPhraseView.routeName,

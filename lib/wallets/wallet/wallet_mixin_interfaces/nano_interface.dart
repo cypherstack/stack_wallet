@@ -24,7 +24,7 @@ import 'package:tuple/tuple.dart';
 
 const _kWorkServer = "https://rpc.nano.to";
 
-mixin NanoBased<T extends NanoCurrency> on Bip39Wallet<T> {
+mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
   // since nano based coins only have a single address/account we can cache
   // the address instead of fetching from db every time we need it in certain
   // cases

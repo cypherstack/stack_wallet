@@ -7,10 +7,10 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_wallet.dart';
-import 'package:stackwallet/wallets/wallet/mixins/multi_address.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
 
 abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
-    with MultiAddress<T> {
+    with MultiAddressInterface<T> {
   Bip39HDWallet(T cryptoCurrency) : super(cryptoCurrency);
 
   Future<coinlib.HDPrivateKey> getRootHDNode() async {

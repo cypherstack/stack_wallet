@@ -22,7 +22,7 @@ import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/wallet/mixins/cash_fusion.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -71,7 +71,7 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
 
     if (shouldCancel == true && mounted) {
       final fusionWallet =
-          ref.read(pWallets).getWallet(widget.walletId) as CashFusion;
+          ref.read(pWallets).getWallet(widget.walletId) as CashFusionInterface;
 
       await showLoading(
         whileFuture: Future.wait([
@@ -233,7 +233,7 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
   /// Fuse again.
   void _fuseAgain() async {
     final fusionWallet =
-        ref.read(pWallets).getWallet(widget.walletId) as CashFusion;
+        ref.read(pWallets).getWallet(widget.walletId) as CashFusionInterface;
 
     final fusionInfo =
         ref.read(prefsChangeNotifierProvider).getFusionServerInfo(coin);

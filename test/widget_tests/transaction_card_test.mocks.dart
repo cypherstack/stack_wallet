@@ -43,7 +43,8 @@ import 'package:stackwallet/utilities/prefs.dart' as _i19;
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart'
     as _i4;
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart' as _i35;
-import 'package:stackwallet/wallets/wallet/mixins/cash_fusion.dart' as _i12;
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart'
+    as _i12;
 import 'package:stackwallet/wallets/wallet/wallet.dart' as _i5;
 import 'package:tuple/tuple.dart' as _i13;
 

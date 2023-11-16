@@ -40,7 +40,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/wallet/mixins/mnemonic_based_wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
@@ -236,7 +236,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                             .read(pWallets)
                                             .getWallet(widget.walletId);
                                         // TODO: [prio=high] take wallets that don't have amnemonic into account
-                                        if (wallet is MnemonicBasedWallet) {
+                                        if (wallet is MnemonicInterface) {
                                           final mnemonic =
                                               await wallet.getMnemonicAsWords();
 

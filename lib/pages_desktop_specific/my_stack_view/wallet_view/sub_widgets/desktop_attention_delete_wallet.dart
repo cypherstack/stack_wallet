@@ -14,7 +14,7 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/wallet/mixins/mnemonic_based_wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -114,7 +114,7 @@ class _DesktopAttentionDeleteWallet
                         final wallet =
                             ref.read(pWallets).getWallet(widget.walletId);
                         // TODO: [prio=high] handle other types wallet deletion
-                        if (wallet is MnemonicBasedWallet) {
+                        if (wallet is MnemonicInterface) {
                           final words = await wallet.getMnemonicAsWords();
 
                           if (mounted) {

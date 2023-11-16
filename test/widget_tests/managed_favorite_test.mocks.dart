@@ -31,7 +31,8 @@ import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart'
 import 'package:stackwallet/utilities/prefs.dart' as _i14;
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart'
     as _i4;
-import 'package:stackwallet/wallets/wallet/mixins/cash_fusion.dart' as _i7;
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart'
+    as _i7;
 import 'package:stackwallet/wallets/wallet/wallet.dart' as _i5;
 
 // ignore_for_file: type=lint

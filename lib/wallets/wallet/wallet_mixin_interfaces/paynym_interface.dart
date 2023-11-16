@@ -22,7 +22,7 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
-import 'package:stackwallet/wallets/wallet/mixins/electrumx.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import 'package:tuple/tuple.dart';
 
 const String kPCodeKeyPrefix = "pCode_key_";
@@ -43,7 +43,7 @@ String _sendPaynymAddressDerivationPath(
 }) =>
     "${_basePaynymDerivePath(testnet: testnet)}/0/$index";
 
-mixin PaynymInterface on Bip39HDWallet, ElectrumX {
+mixin PaynymInterface on Bip39HDWallet, ElectrumXInterface {
   Amount get _dustLimitP2PKH => Amount(
         rawValue: BigInt.from(546),
         fractionDigits: cryptoCurrency.fractionDigits,

@@ -14,8 +14,8 @@ import 'package:stackwallet/services/fusion_tor_service.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
-import 'package:stackwallet/wallets/wallet/mixins/coin_control.dart';
-import 'package:stackwallet/wallets/wallet/mixins/electrumx.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 
 const String kReservedFusionAddress = "reserved_fusion_address";
 
@@ -109,7 +109,7 @@ class FusionInfo {
   }
 }
 
-mixin CashFusion on CoinControl, ElectrumX {
+mixin CashFusionInterface on CoinControlInterface, ElectrumXInterface {
   final _torService = FusionTorService.sharedInstance;
 
   // setting values on this should notify any listeners (the GUI)

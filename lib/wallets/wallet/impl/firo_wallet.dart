@@ -4,12 +4,12 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
-import 'package:stackwallet/wallets/wallet/mixins/electrumx.dart';
-import 'package:stackwallet/wallets/wallet/mixins/lelantus_interface.dart';
-import 'package:stackwallet/wallets/wallet/mixins/spark_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 
 class FiroWallet extends Bip39HDWallet
-    with ElectrumX, LelantusInterface, SparkInterface {
+    with ElectrumXInterface, LelantusInterface, SparkInterface {
   FiroWallet(CryptoCurrencyNetwork network) : super(Firo(network));
 
   @override
