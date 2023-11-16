@@ -16,7 +16,6 @@ import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/coins/litecoin/litecoin_wallet.dart';
 import 'package:stackwallet/services/coins/monero/monero_wallet.dart';
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
@@ -79,25 +78,9 @@ abstract class CoinServiceAPI {
     );
     switch (coin) {
       case Coin.firo:
-        return FiroWallet(
-          walletId: walletId,
-          walletName: walletName,
-          coin: coin,
-          secureStore: secureStorageInterface,
-          client: client,
-          cachedClient: cachedClient,
-          tracker: tracker,
-        );
+        throw UnimplementedError("moved");
       case Coin.firoTestNet:
-        return FiroWallet(
-          walletId: walletId,
-          walletName: walletName,
-          coin: coin,
-          secureStore: secureStorageInterface,
-          client: client,
-          cachedClient: cachedClient,
-          tracker: tracker,
-        );
+        throw UnimplementedError("moved");
 
       case Coin.bitcoin:
         throw UnimplementedError("moved");
