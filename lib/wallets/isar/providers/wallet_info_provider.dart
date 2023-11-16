@@ -44,7 +44,14 @@ final pWalletBalance = Provider.family<Balance, String>(
 final pWalletBalanceSecondary = Provider.family<Balance, String>(
   (ref, walletId) {
     return ref.watch(_wiProvider(walletId)
-        .select((value) => (value.value as WalletInfo).cachedSecondaryBalance));
+        .select((value) => (value.value as WalletInfo).cachedBalanceSecondary));
+  },
+);
+
+final pWalletBalanceTertiary = Provider.family<Balance, String>(
+  (ref, walletId) {
+    return ref.watch(_wiProvider(walletId)
+        .select((value) => (value.value as WalletInfo).cachedBalanceTertiary));
   },
 );
 

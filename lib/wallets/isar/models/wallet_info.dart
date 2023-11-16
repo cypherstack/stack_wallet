@@ -320,6 +320,8 @@ class WalletInfo implements IsarId {
     int restoreHeight = 0,
     bool isMnemonicVerified = false,
     String? cachedBalanceString,
+    String? cachedBalanceSecondaryString,
+    String? cachedBalanceTertiaryString,
     String? otherDataJsonString,
   })  : assert(
           Coin.values.map((e) => e.name).contains(coinName),
@@ -332,6 +334,8 @@ class WalletInfo implements IsarId {
         _restoreHeight = restoreHeight,
         _isMnemonicVerified = isMnemonicVerified,
         _cachedBalanceString = cachedBalanceString,
+        _cachedBalanceSecondaryString = cachedBalanceSecondaryString,
+        _cachedBalanceTertiaryString = cachedBalanceTertiaryString,
         _otherDataJsonString = otherDataJsonString;
 
   static WalletInfo createNew({
@@ -385,7 +389,6 @@ class WalletInfo implements IsarId {
 
 abstract class WalletInfoKeys {
   static const String tokenContractAddresses = "tokenContractAddressesKey";
-  static const String cachedSecondaryBalance = "cachedSecondaryBalanceKey";
   static const String epiccashData = "epiccashDataKey";
   static const String bananoMonkeyImageBytes = "monkeyImageBytesKey";
 }

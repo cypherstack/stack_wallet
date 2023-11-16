@@ -87,10 +87,6 @@ Future<void> migrateWalletsToIsar({
     //
     Map<String, dynamic> otherData = {};
 
-    otherData[WalletInfoKeys.cachedSecondaryBalance] = walletBox.get(
-      DBKeys.cachedBalanceSecondary,
-    ) as String?;
-
     otherData[WalletInfoKeys.tokenContractAddresses] = walletBox.get(
       DBKeys.ethTokenContracts,
     ) as List<String>?;
@@ -131,6 +127,9 @@ Future<void> migrateWalletsToIsar({
           0,
       cachedBalanceString: walletBox.get(
         DBKeys.cachedBalance,
+      ) as String?,
+      cachedBalanceSecondaryString: walletBox.get(
+        DBKeys.cachedBalanceSecondary,
       ) as String?,
       otherDataJsonString: jsonEncode(otherData),
     );

@@ -149,7 +149,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         availableBalance = wallet.info.cachedBalance.spendable;
         // (manager.wallet as FiroWallet).availablePrivateBalance();
       } else {
-        availableBalance = wallet.info.cachedSecondaryBalance.spendable;
+        availableBalance = wallet.info.cachedBalanceSecondary.spendable;
         // (manager.wallet as FiroWallet).availablePublicBalance();
       }
     } else {
@@ -556,7 +556,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         balance = info.cachedBalance.spendable;
         // balance = wallet.availablePrivateBalance();
       } else {
-        balance = info.cachedSecondaryBalance.spendable;
+        balance = info.cachedBalanceSecondary.spendable;
         // balance = wallet.availablePublicBalance();
       }
       return ref.read(pAmountFormatter(coin)).format(balance);
@@ -763,7 +763,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         //     .toStringAsFixed(coin.decimals);
       } else {
         cryptoAmountController.text = info
-            .cachedSecondaryBalance.spendable.decimal
+            .cachedBalanceSecondary.spendable.decimal
             .toStringAsFixed(coin.decimals);
         // cryptoAmountController.text = firoWallet
         //     .availablePublicBalance()
