@@ -487,11 +487,7 @@ class HiddenSettings extends StatelessWidget {
                                   final mintMetaData =
                                       await e.getSparkMintMetaData(
                                     sparkCoinHashes: [
-                                      (
-                                        denom: 5000000,
-                                        pubCoin:
-                                            "b476ed2b374bb081ea51d111f68f0136252521214e213d119b8dc67b92f5a390",
-                                      )
+                                      "b476ed2b374bb081ea51d111f68f0136252521214e213d119b8dc67b92f5a390",
                                     ],
                                   );
 
