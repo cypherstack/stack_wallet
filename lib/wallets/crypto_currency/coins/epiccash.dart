@@ -1,4 +1,6 @@
 import 'package:flutter_libepiccash/lib.dart' as epic;
+import 'package:stackwallet/models/node_model.dart';
+import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_currency.dart';
@@ -36,5 +38,27 @@ class Epiccash extends Bip39Currency {
     }
 
     return epic.LibEpiccash.validateSendAddress(address: address);
+  }
+
+  @override
+  NodeModel get defaultNode {
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        return NodeModel(
+          host: "https://wownero.stackwallet.com",
+          port: 34568,
+          name: DefaultNodes.defaultName,
+          id: DefaultNodes.buildId(Coin.wownero),
+          useSSL: true,
+          enabled: true,
+          coinName: Coin.wownero.name,
+          isFailover: true,
+          isDown: false,
+          trusted: true,
+        );
+
+      default:
+        throw UnimplementedError();
+    }
   }
 }

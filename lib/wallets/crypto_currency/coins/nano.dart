@@ -1,4 +1,6 @@
 import 'package:nanodart/nanodart.dart';
+import 'package:stackwallet/models/node_model.dart';
+import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/nano_currency.dart';
@@ -22,4 +24,25 @@ class Nano extends NanoCurrency {
 
   @override
   int get nanoAccountType => NanoAccountType.NANO;
+
+  @override
+  NodeModel get defaultNode {
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        return NodeModel(
+          host: "https://rainstorm.city/api",
+          port: 443,
+          name: DefaultNodes.defaultName,
+          id: DefaultNodes.buildId(Coin.nano),
+          useSSL: true,
+          enabled: true,
+          coinName: Coin.nano.name,
+          isFailover: true,
+          isDown: false,
+        );
+
+      default:
+        throw UnimplementedError();
+    }
+  }
 }

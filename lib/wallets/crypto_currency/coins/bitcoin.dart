@@ -1,6 +1,8 @@
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
+import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
@@ -173,6 +175,40 @@ class Bitcoin extends Bip39HDCurrency {
       return true;
     } catch (_) {
       return false;
+    }
+  }
+
+  @override
+  NodeModel get defaultNode {
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        return NodeModel(
+          host: "bitcoin.stackwallet.com",
+          port: 50002,
+          name: DefaultNodes.defaultName,
+          id: DefaultNodes.buildId(Coin.bitcoin),
+          useSSL: true,
+          enabled: true,
+          coinName: Coin.bitcoin.name,
+          isFailover: true,
+          isDown: false,
+        );
+
+      case CryptoCurrencyNetwork.test:
+        return NodeModel(
+          host: "bitcoin-testnet.stackwallet.com",
+          port: 51002,
+          name: DefaultNodes.defaultName,
+          id: DefaultNodes.buildId(Coin.bitcoinTestNet),
+          useSSL: true,
+          enabled: true,
+          coinName: Coin.bitcoinTestNet.name,
+          isFailover: true,
+          isDown: false,
+        );
+
+      default:
+        throw UnimplementedError();
     }
   }
 }

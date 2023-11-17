@@ -5,7 +5,9 @@ import 'package:bitbox/bitbox.dart' as bitbox;
 import 'package:bs58check/bs58check.dart' as bs58check;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
+import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
@@ -237,5 +239,26 @@ class Ecash extends Bip39HDCurrency {
       }
     }
     throw ArgumentError('$address has no matching Script');
+  }
+
+  @override
+  NodeModel get defaultNode {
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        return NodeModel(
+          host: "electrum.bitcoinabc.org",
+          port: 50002,
+          name: DefaultNodes.defaultName,
+          id: DefaultNodes.buildId(Coin.eCash),
+          useSSL: true,
+          enabled: true,
+          coinName: Coin.eCash.name,
+          isFailover: true,
+          isDown: false,
+        );
+
+      default:
+        throw UnimplementedError();
+    }
   }
 }

@@ -1,3 +1,4 @@
+import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
@@ -29,4 +30,6 @@ abstract class CryptoCurrency {
   String get genesisHash;
 
   bool validateAddress(String address);
+
+  NodeModel get defaultNode;
 }
