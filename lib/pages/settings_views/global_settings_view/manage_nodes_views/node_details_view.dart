@@ -174,6 +174,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
       case Coin.nano:
       case Coin.banano:
       case Coin.tezos:
+        // TODO: fix this lacking code
         throw UnimplementedError();
       //TODO: check network/node
       case Coin.stellar:
