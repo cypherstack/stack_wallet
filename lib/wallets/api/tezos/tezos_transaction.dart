@@ -18,7 +18,6 @@ class TezosTransaction {
   final int? burnedAmountInMicroTez;
   final String senderAddress;
   final String receiverAddress;
-  final int? confirmations;
 
   TezosTransaction({
     this.id,
@@ -40,6 +39,5 @@ class TezosTransaction {
     this.burnedAmountInMicroTez,
     required this.senderAddress,
     required this.receiverAddress,
-    this.confirmations,
   });
 }
