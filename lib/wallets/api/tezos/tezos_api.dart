@@ -10,7 +10,7 @@ import 'package:stackwallet/wallets/api/tezos/tezos_transaction.dart';
 
 abstract final class TezosAPI {
   static final HTTP _client = HTTP();
-  static const String _baseURL = 'https://api.tzstats.com';
+  static const String _baseURL = 'https://api.mainnet.tzkt.io';
 
   static Future<List<TezosTransaction>?> getTransactions(String address) async {
     try {

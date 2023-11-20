@@ -22,6 +22,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -238,7 +239,7 @@ class _ConfirmDeleteState extends ConsumerState<ConfirmDelete> {
                     label: "Continue",
                     onPressed: () async {
                       await ref.read(pWallets).deleteWallet(
-                            widget.walletId,
+                            ref.read(pWalletInfo(widget.walletId)),
                             ref.read(secureStoreProvider),
                           );
 

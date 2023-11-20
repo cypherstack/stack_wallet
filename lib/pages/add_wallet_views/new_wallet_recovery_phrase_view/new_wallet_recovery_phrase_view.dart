@@ -83,7 +83,7 @@ class _NewWalletRecoveryPhraseViewState
     await _wallet.exit();
     await ref
         .read(pWallets)
-        .deleteWallet(_wallet.walletId, ref.read(secureStoreProvider));
+        .deleteWallet(_wallet.info, ref.read(secureStoreProvider));
   }
 
   Future<void> _copy() async {

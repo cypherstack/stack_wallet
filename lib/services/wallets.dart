@@ -55,36 +55,37 @@ class Wallets {
   }
 
   Future<void> deleteWallet(
-    String walletId,
+    WalletInfo info,
     SecureStorageInterface secureStorage,
   ) async {
+    final walletId = info.walletId;
     Logging.instance.log(
       "deleteWallet called with walletId=$walletId",
       level: LogLevel.Warning,
     );
 
-    final wallet = getWallet(walletId);
+    final wallet = _wallets[walletId];
     _wallets.remove(walletId);
-    await wallet.exit();
+    await wallet?.exit();
 
     await secureStorage.delete(key: Wallet.mnemonicKey(walletId: walletId));
     await secureStorage.delete(
         key: Wallet.mnemonicPassphraseKey(walletId: walletId));
     await secureStorage.delete(key: Wallet.privateKeyKey(walletId: walletId));
 
-    if (wallet.info.coin == Coin.wownero) {
+    if (info.coin == Coin.wownero) {
       final wowService =
           wownero.createWowneroWalletService(DB.instance.moneroWalletInfoBox);
       await wowService.remove(walletId);
       Logging.instance
           .log("monero wallet: $walletId deleted", level: LogLevel.Info);
-    } else if (wallet.info.coin == Coin.monero) {
+    } else if (info.coin == Coin.monero) {
       final xmrService =
           monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
       await xmrService.remove(walletId);
       Logging.instance
           .log("monero wallet: $walletId deleted", level: LogLevel.Info);
-    } else if (wallet.info.coin == Coin.epicCash) {
+    } else if (info.coin == Coin.epicCash) {
       final deleteResult = await deleteEpicWallet(
           walletId: walletId, secureStore: secureStorage);
       Logging.instance.log(

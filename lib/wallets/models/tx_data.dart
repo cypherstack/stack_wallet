@@ -3,6 +3,7 @@ import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
+import 'package:tezart/tezart.dart' as tezart;
 import 'package:web3dart/web3dart.dart' as web3dart;
 
 class TxData {
@@ -51,6 +52,9 @@ class TxData {
   final TransactionSubType? txSubType;
   final List<Map<String, dynamic>>? mintsMapLelantus;
 
+  // tezos specific
+  final tezart.OperationsList? tezosOperationsList;
+
   TxData({
     this.feeRateType,
     this.feeRateAmount,
@@ -80,6 +84,7 @@ class TxData {
     this.txType,
     this.txSubType,
     this.mintsMapLelantus,
+    this.tezosOperationsList,
   });
 
   Amount? get amount => recipients != null && recipients!.isNotEmpty
@@ -121,6 +126,7 @@ class TxData {
     TransactionType? txType,
     TransactionSubType? txSubType,
     List<Map<String, dynamic>>? mintsMapLelantus,
+    tezart.OperationsList? tezosOperationsList,
   }) {
     return TxData(
       feeRateType: feeRateType ?? this.feeRateType,
@@ -152,6 +158,7 @@ class TxData {
       txType: txType ?? this.txType,
       txSubType: txSubType ?? this.txSubType,
       mintsMapLelantus: mintsMapLelantus ?? this.mintsMapLelantus,
+      tezosOperationsList: tezosOperationsList ?? this.tezosOperationsList,
     );
   }
 
@@ -185,5 +192,6 @@ class TxData {
       'txType: $txType, '
       'txSubType: $txSubType, '
       'mintsMapLelantus: $mintsMapLelantus, '
+      'tezosOperationsList: $tezosOperationsList, '
       '}';
 }

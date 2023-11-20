@@ -197,7 +197,7 @@ class _DeleteWalletRecoveryPhraseViewState
                             .getPrimaryEnabledButtonStyle(context),
                         onPressed: () async {
                           await ref.read(pWallets).deleteWallet(
-                                widget.walletId,
+                                ref.read(pWalletInfo(widget.walletId)),
                                 ref.read(secureStoreProvider),
                               );
 

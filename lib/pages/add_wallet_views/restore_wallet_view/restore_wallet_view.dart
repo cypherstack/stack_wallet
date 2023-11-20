@@ -258,7 +258,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                 isRestoring = false;
 
                 await ref.read(pWallets).deleteWallet(
-                      info.walletId,
+                      info,
                       ref.read(secureStoreProvider),
                     );
               },
