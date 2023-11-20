@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
 import 'package:isar/isar.dart';
@@ -10,8 +9,10 @@ import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart'
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
+import 'package:stackwallet/services/coins/tezos/api/tezos_api.dart';
+import 'package:stackwallet/services/coins/tezos/api/tezos_rpc_api.dart';
+import 'package:stackwallet/services/coins/tezos/api/tezos_transaction.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -19,7 +20,6 @@ import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -101,8 +101,6 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   bool get shouldAutoSync => _shouldAutoSync;
-
-  HTTP client = HTTP();
 
   @override
   set shouldAutoSync(bool shouldAutoSync) {
@@ -241,17 +239,8 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
-    var api = "https://api.tzstats.com/series/op?start_date=today&collapse=1d";
-    var response = jsonDecode((await client.get(
-      url: Uri.parse(api),
-      proxyInfo:
-          _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
-    ))
-        .body)[0];
-    double totalFees = response[4] as double;
-    int totalTxs = response[8] as int;
-    int feePerTx = (totalFees / totalTxs * 1000000).floor();
-
+    int? feePerTx = await TezosAPI.getFeeEstimationFromLastDays(1);
+    feePerTx ??= 0;
     return Amount(
       rawValue: BigInt.from(feePerTx),
       fractionDigits: coin.decimals,
@@ -266,18 +255,9 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<FeeObject> get fees async {
-    var api = "https://api.tzstats.com/series/op?start_date=today&collapse=10d";
-    var response = jsonDecode((await client.get(
-      url: Uri.parse(api),
-      proxyInfo:
-          _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
-    ))
-        .body);
-    double totalFees = response[0][4] as double;
-    int totalTxs = response[0][8] as int;
-    int feePerTx = (totalFees / totalTxs * 1000000).floor();
+    int? feePerTx = await TezosAPI.getFeeEstimationFromLastDays(1);
+    feePerTx ??= 0;
     Logging.instance.log("feePerTx:$feePerTx", level: LogLevel.Info);
-    // TODO: fix numberOfBlocks - Since there is only one fee no need to set blocks
     return FeeObject(
       numberOfBlocksFast: 10,
       numberOfBlocksAverage: 10,
@@ -504,18 +484,18 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   Future<void> updateBalance() async {
     try {
-      String balanceCall = "https://api.mainnet.tzkt.io/v1/accounts/"
-          "${await currentReceivingAddress}/balance";
-      var response = jsonDecode(await client
-          .get(
-            url: Uri.parse(balanceCall),
-            proxyInfo:
-                _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
-          )
-          .then((value) => value.body));
-      Amount balanceInAmount = Amount(
-          rawValue: BigInt.parse(response.toString()),
-          fractionDigits: coin.decimals);
+      NodeModel currentNode = getCurrentNode();
+      BigInt? balance = await TezosRpcAPI.getBalance(
+          nodeInfo: (host: currentNode.host, port: currentNode.port),
+          address: await currentReceivingAddress);
+      if (balance == null) {
+        return;
+      }
+      Logging.instance.log(
+          "Balance for ${await currentReceivingAddress}: $balance",
+          level: LogLevel.Info);
+      Amount balanceInAmount =
+          Amount(rawValue: balance, fractionDigits: coin.decimals);
       _balance = Balance(
         total: balanceInAmount,
         spendable: balanceInAmount,
@@ -526,107 +506,95 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
       );
       await updateCachedBalance(_balance!);
     } catch (e, s) {
-      Logging.instance
-          .log("ERROR GETTING BALANCE ${e.toString()}", level: LogLevel.Error);
+      Logging.instance.log(
+          "Error getting balance in tezos_wallet.dart: ${e.toString()}",
+          level: LogLevel.Error);
     }
   }
 
   Future<void> updateTransactions() async {
-    String transactionsCall = "https://api.mainnet.tzkt.io/v1/accounts/"
-        "${await currentReceivingAddress}/operations";
-    var response = jsonDecode(await client
-        .get(
-          url: Uri.parse(transactionsCall),
-          proxyInfo:
-              _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
-        )
-        .then((value) => value.body));
-    List<Tuple2<Transaction, Address>> txs = [];
-    for (var tx in response as List) {
-      if (tx["type"] == "transaction") {
-        TransactionType txType;
-        final String myAddress = await currentReceivingAddress;
-        final String senderAddress = tx["sender"]["address"] as String;
-        final String targetAddress = tx["target"]["address"] as String;
-        if (senderAddress == myAddress && targetAddress == myAddress) {
-          txType = TransactionType.sentToSelf;
-        } else if (senderAddress == myAddress) {
-          txType = TransactionType.outgoing;
-        } else if (targetAddress == myAddress) {
-          txType = TransactionType.incoming;
-        } else {
-          txType = TransactionType.unknown;
-        }
-
-        var theTx = Transaction(
-          walletId: walletId,
-          txid: tx["hash"].toString(),
-          timestamp: DateTime.parse(tx["timestamp"].toString())
-                  .toUtc()
-                  .millisecondsSinceEpoch ~/
-              1000,
-          type: txType,
-          subType: TransactionSubType.none,
-          amount: tx["amount"] as int,
-          amountString: Amount(
-                  rawValue:
-                      BigInt.parse((tx["amount"] as int).toInt().toString()),
-                  fractionDigits: coin.decimals)
-              .toJsonString(),
-          fee: tx["bakerFee"] as int,
-          height: int.parse(tx["level"].toString()),
-          isCancelled: false,
-          isLelantus: false,
-          slateId: "",
-          otherData: "",
-          inputs: [],
-          outputs: [],
-          nonce: 0,
-          numberOfMessages: null,
-        );
-        final AddressSubType subType;
-        switch (txType) {
-          case TransactionType.incoming:
-          case TransactionType.sentToSelf:
-            subType = AddressSubType.receiving;
-            break;
-          case TransactionType.outgoing:
-          case TransactionType.unknown:
-            subType = AddressSubType.unknown;
-            break;
-        }
-        final theAddress = Address(
-          walletId: walletId,
-          value: targetAddress,
-          publicKey: [],
-          derivationIndex: 0,
-          derivationPath: null,
-          type: AddressType.unknown,
-          subType: subType,
-        );
-        txs.add(Tuple2(theTx, theAddress));
-      }
-    }
+    List<TezosTransaction>? txs =
+        await TezosAPI.getTransactions(await currentReceivingAddress);
     Logging.instance.log("Transactions: $txs", level: LogLevel.Info);
-    await db.addNewTransactionData(txs, walletId);
+    if (txs == null) {
+      return;
+    } else if (txs.isEmpty) {
+      return;
+    }
+    List<Tuple2<Transaction, Address>> transactions = [];
+    for (var theTx in txs) {
+      var txType = TransactionType.unknown;
+      var selfAddress = await currentReceivingAddress;
+      if (selfAddress == theTx.senderAddress) {
+        txType = TransactionType.outgoing;
+      } else if (selfAddress == theTx.receiverAddress) {
+        txType = TransactionType.incoming;
+      } else if (selfAddress == theTx.receiverAddress &&
+          selfAddress == theTx.senderAddress) {
+        txType = TransactionType.sentToSelf;
+      }
+      var transaction = Transaction(
+        walletId: walletId,
+        txid: theTx.hash,
+        timestamp: theTx.timestamp,
+        type: txType,
+        subType: TransactionSubType.none,
+        amount: theTx.amountInMicroTez,
+        amountString: Amount(
+          rawValue: BigInt.parse(theTx.amountInMicroTez.toString()),
+          fractionDigits: coin.decimals,
+        ).toJsonString(),
+        fee: theTx.feeInMicroTez,
+        height: theTx.height,
+        isCancelled: false,
+        isLelantus: false,
+        slateId: "",
+        otherData: "",
+        inputs: [],
+        outputs: [],
+        nonce: 0,
+        numberOfMessages: null,
+      );
+      final AddressSubType subType;
+      switch (txType) {
+        case TransactionType.incoming:
+        case TransactionType.sentToSelf:
+          subType = AddressSubType.receiving;
+          break;
+        case TransactionType.outgoing:
+        case TransactionType.unknown:
+          subType = AddressSubType.unknown;
+          break;
+      }
+      final theAddress = Address(
+        walletId: walletId,
+        value: theTx.receiverAddress,
+        publicKey: [],
+        derivationIndex: 0,
+        derivationPath: null,
+        type: AddressType.unknown,
+        subType: subType,
+      );
+      transactions.add(Tuple2(transaction, theAddress));
+    }
+    await db.addNewTransactionData(transactions, walletId);
   }
 
   Future<void> updateChainHeight() async {
     try {
-      var api = "${getCurrentNode().host}/chains/main/blocks/head/header/shell";
-      var jsonParsedResponse = jsonDecode(await client
-          .get(
-            url: Uri.parse(api),
-            proxyInfo:
-                _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
-          )
-          .then((value) => value.body));
-      final int intHeight = int.parse(jsonParsedResponse["level"].toString());
-      Logging.instance.log("Chain height: $intHeight", level: LogLevel.Info);
+      NodeModel currentNode = getCurrentNode();
+      int? intHeight = await TezosRpcAPI.getChainHeight(
+          nodeInfo: (host: currentNode.host, port: currentNode.port));
+      if (intHeight == null) {
+        return;
+      }
+      Logging.instance
+          .log("Chain height for tezos: $intHeight", level: LogLevel.Info);
       await updateCachedChainHeight(intHeight);
     } catch (e, s) {
-      Logging.instance
-          .log("GET CHAIN HEIGHT ERROR ${e.toString()}", level: LogLevel.Error);
+      Logging.instance.log(
+          "Error occured in tezos_wallet.dart while getting chain height for tezos: ${e.toString()}",
+          level: LogLevel.Error);
     }
   }
 
@@ -679,7 +647,7 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
       }
     } catch (e, s) {
       Logging.instance.log(
-        "Failed to refresh stellar wallet $walletId: '$walletName': $e\n$s",
+        "Failed to refresh tezos wallet $walletId: '$walletName': $e\n$s",
         level: LogLevel.Warning,
       );
       GlobalEventBus.instance.fire(
@@ -699,17 +667,9 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<bool> testNetworkConnection() async {
-    try {
-      await client.get(
-        url: Uri.parse(
-            "${getCurrentNode().host}:${getCurrentNode().port}/chains/main/blocks/head/header/shell"),
-        proxyInfo:
-            _prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
-      );
-      return true;
-    } catch (e) {
-      return false;
-    }
+    NodeModel currentNode = getCurrentNode();
+    return await TezosRpcAPI.testNetworkConnection(
+        nodeInfo: (host: currentNode.host, port: currentNode.port));
   }
 
   @override
