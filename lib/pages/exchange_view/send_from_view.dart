@@ -21,7 +21,6 @@ import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dia
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -34,6 +33,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
+import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -298,16 +298,6 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
         final firoWallet = wallet as FiroWallet;
         // otherwise do firo send based on balance selected
         if (shouldSendPublicFiroFunds) {
-          throw UnimplementedError();
-          // txDataFuture = firoWallet.prepareSendPublic(
-          //   address: address,
-          //   amount: amount,
-          //   args: {
-          //     "feeRate": FeeRateType.average,
-          //     // ref.read(feeRateTypeStateProvider)
-          //   },
-          // );
-        } else {
           txDataFuture = wallet.prepareSend(
             txData: TxData(
               recipients: [
@@ -317,6 +307,18 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                 ),
               ],
               feeRateType: FeeRateType.average,
+            ),
+          );
+        } else {
+          txDataFuture = firoWallet.prepareSendLelantus(
+            txData: TxData(
+              recipients: [
+                (
+                  address: address,
+                  amount: amount,
+                ),
+              ],
+              // feeRateType: FeeRateType.average,
             ),
           );
         }

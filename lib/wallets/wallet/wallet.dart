@@ -31,10 +31,11 @@ import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/nano_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
+import 'package:stackwallet/wallets/wallet/private_key_based_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
-import 'package:stackwallet/wallets/wallet/private_key_based_wallet.dart';
 
 abstract class Wallet<T extends CryptoCurrency> {
   // default to Transaction class. For TransactionV2 set to 2
@@ -398,32 +399,39 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.1, walletId));
 
-      final fetchFuture = updateTransactions();
-      final utxosRefreshFuture = updateUTXOs();
-      // if (currentHeight != storedHeight) {
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.2, walletId));
-
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.3, walletId));
-
-      await utxosRefreshFuture;
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.50, walletId));
-
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.60, walletId));
-
-      await fetchFuture;
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.70, walletId));
-
+      // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       if (this is MultiAddressInterface) {
         await (this as MultiAddressInterface)
             .checkReceivingAddressForTransactions();
       }
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.80, walletId));
 
+      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.2, walletId));
+
+      // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       if (this is MultiAddressInterface) {
         await (this as MultiAddressInterface)
             .checkChangeAddressForTransactions();
       }
+      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.3, walletId));
+
+      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.50, walletId));
+      final fetchFuture = updateTransactions();
+      final utxosRefreshFuture = updateUTXOs();
+      // if (currentHeight != storedHeight) {
+      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.60, walletId));
+
+      await utxosRefreshFuture;
+      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.70, walletId));
+
+      await fetchFuture;
+      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.80, walletId));
+
       // await getAllTxsToWatch();
+
+      // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
+      if (this is LelantusInterface) {
+        await (this as LelantusInterface).refreshLelantusData();
+      }
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.90, walletId));
 
       await updateBalance();

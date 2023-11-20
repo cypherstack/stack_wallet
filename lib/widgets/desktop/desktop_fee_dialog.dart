@@ -7,7 +7,6 @@ import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_fee_dropdown.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
@@ -15,6 +14,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -62,11 +62,10 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
                   amount, MoneroTransactionPriority.fast.raw!);
               ref.read(feeSheetSessionCacheProvider).fast[amount] = fee;
             } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-                ref.read(publicPrivateBalanceStateProvider.state).state !=
+                ref.read(publicPrivateBalanceStateProvider.state).state ==
                     "Private") {
               ref.read(feeSheetSessionCacheProvider).fast[amount] =
-                  await (wallet as FiroWallet)
-                      .estimateFeeForPublic(amount, feeRate);
+                  await (wallet as FiroWallet).estimateFeeForLelantus(amount);
             } else {
               ref.read(feeSheetSessionCacheProvider).fast[amount] =
                   await wallet.estimateFeeFor(amount, feeRate);
@@ -98,11 +97,10 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
                   amount, MoneroTransactionPriority.regular.raw!);
               ref.read(feeSheetSessionCacheProvider).average[amount] = fee;
             } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-                ref.read(publicPrivateBalanceStateProvider.state).state !=
+                ref.read(publicPrivateBalanceStateProvider.state).state ==
                     "Private") {
               ref.read(feeSheetSessionCacheProvider).average[amount] =
-                  await (wallet as FiroWallet)
-                      .estimateFeeForPublic(amount, feeRate);
+                  await (wallet as FiroWallet).estimateFeeForLelantus(amount);
             } else {
               ref.read(feeSheetSessionCacheProvider).average[amount] =
                   await wallet.estimateFeeFor(amount, feeRate);
@@ -134,11 +132,10 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
                   amount, MoneroTransactionPriority.slow.raw!);
               ref.read(feeSheetSessionCacheProvider).slow[amount] = fee;
             } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-                ref.read(publicPrivateBalanceStateProvider.state).state !=
+                ref.read(publicPrivateBalanceStateProvider.state).state ==
                     "Private") {
               ref.read(feeSheetSessionCacheProvider).slow[amount] =
-                  await (wallet as FiroWallet)
-                      .estimateFeeForPublic(amount, feeRate);
+                  await (wallet as FiroWallet).estimateFeeForLelantus(amount);
             } else {
               ref.read(feeSheetSessionCacheProvider).slow[amount] =
                   await wallet.estimateFeeFor(amount, feeRate);

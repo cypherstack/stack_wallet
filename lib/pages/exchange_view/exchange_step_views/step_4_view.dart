@@ -25,7 +25,6 @@ import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dia
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
@@ -35,6 +34,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -135,8 +135,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
   }
 
   Future<bool?> _showSendFromFiroBalanceSelectSheet(String walletId) async {
-    final firoWallet = ref.read(pWallets).getWallet(walletId) as FiroWallet;
-    final locale = ref.read(localeServiceChangeNotifierProvider).locale;
+    final coin = ref.read(pWalletCoin(walletId));
+    final balancePublic = ref.read(pWalletBalance(walletId));
+    final balancePrivate = ref.read(pWalletBalanceSecondary(walletId));
 
     return await showModalBottomSheet<bool?>(
       context: context,
@@ -170,7 +171,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
               ),
               SecondaryButton(
                 label:
-                    "${ref.watch(pAmountFormatter(firoWallet.coin)).format(firoWallet.balancePrivate.spendable)} (private)",
+                    "${ref.watch(pAmountFormatter(coin)).format(balancePrivate.spendable)} (private)",
                 onPressed: () => Navigator.of(context).pop(false),
               ),
               const SizedBox(
@@ -178,7 +179,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
               ),
               SecondaryButton(
                 label:
-                    "${ref.watch(pAmountFormatter(firoWallet.coin)).format(firoWallet.balance.spendable)} (public)",
+                    "${ref.watch(pAmountFormatter(coin)).format(balancePublic.spendable)} (public)",
                 onPressed: () => Navigator.of(context).pop(true),
               ),
               const SizedBox(

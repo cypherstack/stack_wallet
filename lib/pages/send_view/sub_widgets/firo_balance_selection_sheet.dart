@@ -12,11 +12,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 
 class FiroBalanceSelectionSheet extends ConsumerStatefulWidget {
   const FiroBalanceSelectionSheet({
@@ -165,7 +165,8 @@ class _FiroBalanceSelectionSheetState
                               ),
                               Text(
                                 ref.watch(pAmountFormatter(coin)).format(
-                                      firoWallet.availablePrivateBalance(),
+                                      firoWallet.info.cachedBalanceSecondary
+                                          .spendable,
                                     ),
                                 style: STextStyles.itemSubtitle(context),
                                 textAlign: TextAlign.left,
@@ -241,7 +242,7 @@ class _FiroBalanceSelectionSheetState
                               ),
                               Text(
                                 ref.watch(pAmountFormatter(coin)).format(
-                                      firoWallet.availablePublicBalance(),
+                                      firoWallet.info.cachedBalance.spendable,
                                     ),
                                 style: STextStyles.itemSubtitle(context),
                                 textAlign: TextAlign.left,

@@ -1517,7 +1517,6 @@ mixin ElectrumXInterface on Bip39HDWallet {
     const receiveChain = 0;
     const changeChain = 1;
 
-    // actual size is 24 due to p2pkh and p2sh so 12x2
     const txCountBatchSize = 12;
 
     try {

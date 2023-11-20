@@ -48,7 +48,6 @@ import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
@@ -69,6 +68,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -414,7 +414,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
     );
     final firoWallet = ref.read(pWallets).getWallet(walletId) as FiroWallet;
 
-    final Amount publicBalance = firoWallet.availablePublicBalance();
+    final Amount publicBalance = firoWallet.info.cachedBalance.spendable;
     if (publicBalance <= Amount.zero) {
       shouldPop = true;
       if (mounted) {

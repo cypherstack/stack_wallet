@@ -29,7 +29,6 @@ import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
 import 'package:stackwallet/providers/global/paynym_api_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/mixins/coin_control_interface.dart';
 import 'package:stackwallet/services/mixins/ordinals_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -40,6 +39,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
@@ -178,7 +178,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     final firoWallet =
         ref.read(pWallets).getWallet(widget.walletId) as FiroWallet;
 
-    final publicBalance = firoWallet.availablePublicBalance();
+    final publicBalance = firoWallet.info.cachedBalance.spendable;
     if (publicBalance <= Amount.zero) {
       shouldPop = true;
       if (context.mounted) {

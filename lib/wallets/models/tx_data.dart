@@ -1,5 +1,5 @@
 import 'package:cw_wownero/pending_wownero_transaction.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
@@ -43,6 +43,14 @@ class TxData {
   // wownero specific
   final PendingWowneroTransaction? pendingWowneroTransaction;
 
+  // firo lelantus specific
+  final int? jMintValue;
+  final List<int>? spendCoinIndexes;
+  final int? height;
+  final TransactionType? txType;
+  final TransactionSubType? txSubType;
+  final List<Map<String, dynamic>>? mintsMapLelantus;
+
   TxData({
     this.feeRateType,
     this.feeRateAmount,
@@ -66,6 +74,12 @@ class TxData {
     this.chainId,
     this.feeInWei,
     this.pendingWowneroTransaction,
+    this.jMintValue,
+    this.spendCoinIndexes,
+    this.height,
+    this.txType,
+    this.txSubType,
+    this.mintsMapLelantus,
   });
 
   Amount? get amount => recipients != null && recipients!.isNotEmpty
@@ -101,6 +115,12 @@ class TxData {
     BigInt? chainId,
     BigInt? feeInWei,
     PendingWowneroTransaction? pendingWowneroTransaction,
+    int? jMintValue,
+    List<int>? spendCoinIndexes,
+    int? height,
+    TransactionType? txType,
+    TransactionSubType? txSubType,
+    List<Map<String, dynamic>>? mintsMapLelantus,
   }) {
     return TxData(
       feeRateType: feeRateType ?? this.feeRateType,
@@ -126,6 +146,12 @@ class TxData {
       feeInWei: feeInWei ?? this.feeInWei,
       pendingWowneroTransaction:
           pendingWowneroTransaction ?? this.pendingWowneroTransaction,
+      jMintValue: jMintValue ?? this.jMintValue,
+      spendCoinIndexes: spendCoinIndexes ?? this.spendCoinIndexes,
+      height: height ?? this.height,
+      txType: txType ?? this.txType,
+      txSubType: txSubType ?? this.txSubType,
+      mintsMapLelantus: mintsMapLelantus ?? this.mintsMapLelantus,
     );
   }
 
@@ -153,5 +179,11 @@ class TxData {
       'chainId: $chainId, '
       'feeInWei: $feeInWei, '
       'pendingWowneroTransaction: $pendingWowneroTransaction, '
+      'jMintValue: $jMintValue, '
+      'spendCoinIndexes: $spendCoinIndexes, '
+      'height: $height, '
+      'txType: $txType, '
+      'txSubType: $txSubType, '
+      'mintsMapLelantus: $mintsMapLelantus, '
       '}';
 }
