@@ -30,6 +30,7 @@ import 'package:stackwallet/wallets/wallet/impl/ecash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/nano_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/tezos_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
 import 'package:stackwallet/wallets/wallet/private_key_based_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
@@ -273,6 +274,9 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       case Coin.nano:
         return NanoWallet(CryptoCurrencyNetwork.main);
+
+      case Coin.tezos:
+        return TezosWallet(CryptoCurrencyNetwork.main);
 
       case Coin.wownero:
         return WowneroWallet(CryptoCurrencyNetwork.main);
