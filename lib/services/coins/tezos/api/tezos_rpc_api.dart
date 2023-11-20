@@ -1,52 +1,71 @@
 import 'dart:convert';
 
-import 'package:http/http.dart';
-
+import 'package:stackwallet/networking/http.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 
-class TezosRpcAPI {
-  Future<BigInt?> getBalance(
-      {required ({String host, int port}) nodeInfo,
-      required String address}) async {
+abstract final class TezosRpcAPI {
+  static final HTTP _client = HTTP();
+
+  static Future<BigInt?> getBalance({
+    required ({String host, int port}) nodeInfo,
+    required String address,
+  }) async {
     try {
       String balanceCall =
           "${nodeInfo.host}:${nodeInfo.port}/chains/main/blocks/head/context/contracts/$address/balance";
-      var response =
-          await get(Uri.parse(balanceCall)).then((value) => value.body);
-      var balance = BigInt.parse(response.substring(1, response.length - 2));
+
+      final response = await _client.get(
+        url: Uri.parse(balanceCall),
+        headers: {'Content-Type': 'application/json'},
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
+      );
+
+      final balance =
+          BigInt.parse(response.body.substring(1, response.body.length - 2));
       return balance;
     } catch (e) {
       Logging.instance.log(
-          "Error occured in tezos_rpc_api.dart while getting balance for $address: $e",
-          level: LogLevel.Error);
+        "Error occurred in tezos_rpc_api.dart while getting balance for $address: $e",
+        level: LogLevel.Error,
+      );
     }
     return null;
   }
 
-  Future<int?> getChainHeight(
-      {required ({String host, int port}) nodeInfo}) async {
+  static Future<int?> getChainHeight({
+    required ({String host, int port}) nodeInfo,
+  }) async {
     try {
-      var api =
+      final api =
           "${nodeInfo.host}:${nodeInfo.port}/chains/main/blocks/head/header/shell";
-      var jsonParsedResponse =
-          jsonDecode(await get(Uri.parse(api)).then((value) => value.body));
+
+      final response = await _client.get(
+        url: Uri.parse(api),
+        headers: {'Content-Type': 'application/json'},
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
+      );
+
+      final jsonParsedResponse = jsonDecode(response.body);
       return int.parse(jsonParsedResponse["level"].toString());
     } catch (e) {
       Logging.instance.log(
-          "Error occured in tezos_rpc_api.dart while getting chain height for tezos: $e",
-          level: LogLevel.Error);
+        "Error occurred in tezos_rpc_api.dart while getting chain height for tezos: $e",
+        level: LogLevel.Error,
+      );
     }
     return null;
   }
 
-  Future<bool> testNetworkConnection(
-      {required ({String host, int port}) nodeInfo}) async {
-    try {
-      await get(Uri.parse(
-          "${nodeInfo.host}:${nodeInfo.port}/chains/main/blocks/head/header/shell"));
-      return true;
-    } catch (e) {
-      return false;
-    }
+  static Future<bool> testNetworkConnection({
+    required ({String host, int port}) nodeInfo,
+  }) async {
+    final result = await getChainHeight(nodeInfo: nodeInfo);
+    return result != null;
   }
 }

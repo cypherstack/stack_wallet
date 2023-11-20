@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
 import 'package:isar/isar.dart';
@@ -10,9 +9,9 @@ import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart'
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/coins/tezos/api/tezos_api.dart';
+import 'package:stackwallet/services/coins/tezos/api/tezos_rpc_api.dart';
 import 'package:stackwallet/services/coins/tezos/api/tezos_transaction.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
@@ -21,7 +20,6 @@ import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -33,8 +31,6 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tezart/tezart.dart';
 import 'package:tuple/tuple.dart';
-
-import 'api/tezos_rpc_api.dart';
 
 const int MINIMUM_CONFIRMATIONS = 1;
 const int _gasLimit = 10200;
@@ -58,9 +54,6 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   NodeModel? _xtzNode;
-
-  TezosAPI tezosAPI = TezosAPI();
-  TezosRpcAPI tezosRpcAPI = TezosRpcAPI();
 
   NodeModel getCurrentNode() {
     return _xtzNode ??
@@ -108,8 +101,6 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   bool get shouldAutoSync => _shouldAutoSync;
-
-  HTTP client = HTTP();
 
   @override
   set shouldAutoSync(bool shouldAutoSync) {
@@ -248,7 +239,7 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
-    int? feePerTx = await tezosAPI.getFeeEstimationFromLastDays(1);
+    int? feePerTx = await TezosAPI.getFeeEstimationFromLastDays(1);
     feePerTx ??= 0;
     return Amount(
       rawValue: BigInt.from(feePerTx),
@@ -264,7 +255,7 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
 
   @override
   Future<FeeObject> get fees async {
-    int? feePerTx = await tezosAPI.getFeeEstimationFromLastDays(1);
+    int? feePerTx = await TezosAPI.getFeeEstimationFromLastDays(1);
     feePerTx ??= 0;
     Logging.instance.log("feePerTx:$feePerTx", level: LogLevel.Info);
     return FeeObject(
@@ -494,7 +485,7 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Future<void> updateBalance() async {
     try {
       NodeModel currentNode = getCurrentNode();
-      BigInt? balance = await tezosRpcAPI.getBalance(
+      BigInt? balance = await TezosRpcAPI.getBalance(
           nodeInfo: (host: currentNode.host, port: currentNode.port),
           address: await currentReceivingAddress);
       if (balance == null) {
@@ -522,8 +513,8 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   }
 
   Future<void> updateTransactions() async {
-    List<TezosOperation>? txs =
-        await tezosAPI.getTransactions(await currentReceivingAddress);
+    List<TezosTransaction>? txs =
+        await TezosAPI.getTransactions(await currentReceivingAddress);
     Logging.instance.log("Transactions: $txs", level: LogLevel.Info);
     if (txs == null) {
       return;
@@ -592,7 +583,7 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   Future<void> updateChainHeight() async {
     try {
       NodeModel currentNode = getCurrentNode();
-      int? intHeight = await tezosRpcAPI.getChainHeight(
+      int? intHeight = await TezosRpcAPI.getChainHeight(
           nodeInfo: (host: currentNode.host, port: currentNode.port));
       if (intHeight == null) {
         return;
@@ -677,7 +668,7 @@ class TezosWallet extends CoinServiceAPI with WalletCache, WalletDB {
   @override
   Future<bool> testNetworkConnection() async {
     NodeModel currentNode = getCurrentNode();
-    return await tezosRpcAPI.testNetworkConnection(
+    return await TezosRpcAPI.testNetworkConnection(
         nodeInfo: (host: currentNode.host, port: currentNode.port));
   }
 
