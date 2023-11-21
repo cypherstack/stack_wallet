@@ -33,6 +33,7 @@ import 'package:stackwallet/utilities/test_monero_node_connection.dart';
 import 'package:stackwallet/utilities/test_stellar_node_connection.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/api/tezos/tezos_rpc_api.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/expandable.dart';
@@ -194,9 +195,15 @@ class _NodeCardState extends ConsumerState<NodeCard> {
 
       case Coin.nano:
       case Coin.banano:
-      case Coin.tezos:
-        //TODO: check network/node
         throw UnimplementedError();
+      //TODO: check network/node
+      case Coin.tezos:
+        try {
+          testPassed = await TezosRpcAPI.testNetworkConnection(
+            nodeInfo: (host: node.host, port: node.port),
+          );
+        } catch (_) {}
+        break;
       case Coin.stellar:
       case Coin.stellarTestnet:
         try {
