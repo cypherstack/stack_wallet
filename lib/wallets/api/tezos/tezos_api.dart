@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/wallets/api/tezos/tezos_transaction.dart';
@@ -11,7 +10,29 @@ abstract final class TezosAPI {
   static final HTTP _client = HTTP();
   static const String _baseURL = 'https://api.tzkt.io';
 
-  static Future<List<TezosTransaction>?> getTransactions(String address) async {
+  static Future<int> getCounter(String address) async {
+    try {
+      final uriString = "$_baseURL/v1/accounts/$address/counter";
+      final response = await _client.get(
+        url: Uri.parse(uriString),
+        headers: {'Content-Type': 'application/json'},
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
+      );
+
+      final result = jsonDecode(response.body);
+      return result as int;
+    } catch (e, s) {
+      Logging.instance.log(
+        "Error occurred in TezosAPI while getting counter for $address: $e\n$s",
+        level: LogLevel.Error,
+      );
+      rethrow;
+    }
+  }
+
+  static Future<List<TezosTransaction>> getTransactions(String address) async {
     try {
       final transactionsCall =
           "$_baseURL/v1/accounts/$address/operations?type=transaction";
@@ -60,36 +81,10 @@ abstract final class TezosAPI {
       return txs;
     } catch (e, s) {
       Logging.instance.log(
-        "Error occurred in tezos_api.dart while getting transactions for $address: $e\n$s",
+        "Error occurred in TezosAPI while getting transactions for $address: $e\n$s",
         level: LogLevel.Error,
       );
+      rethrow;
     }
-    return null;
-  }
-
-  static Future<int?> getFeeEstimationFromLastDays(int days) async {
-    try {
-      var api = "$_baseURL/series/op?start_date=today&collapse=$days";
-
-      final response = await _client.get(
-        url: Uri.parse(api),
-        headers: {'Content-Type': 'application/json'},
-        proxyInfo: Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
-      );
-
-      final result = jsonDecode(response.body);
-
-      double totalFees = result[0][4] as double;
-      int totalTxs = result[0][8] as int;
-      return ((totalFees / totalTxs * Coin.tezos.decimals).floor());
-    } catch (e) {
-      Logging.instance.log(
-        "Error occurred in tezos_api.dart while getting fee estimation for tezos: $e",
-        level: LogLevel.Error,
-      );
-    }
-    return null;
   }
 }

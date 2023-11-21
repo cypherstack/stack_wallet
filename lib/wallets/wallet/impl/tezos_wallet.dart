@@ -12,7 +12,6 @@ import 'package:stackwallet/utilities/extensions/impl/string.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/api/tezos/tezos_api.dart';
 import 'package:stackwallet/wallets/api/tezos/tezos_rpc_api.dart';
-import 'package:stackwallet/wallets/api/tezos/tezos_transaction.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/tezos.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
@@ -20,7 +19,12 @@ import 'package:stackwallet/wallets/wallet/intermediate/bip39_wallet.dart';
 import 'package:tezart/tezart.dart' as tezart;
 import 'package:tuple/tuple.dart';
 
-const int GAS_LIMIT = 10200;
+// const kDefaultTransactionStorageLimit = 496;
+const kDefaultTransactionGasLimit = 10600;
+
+// const kDefaultKeyRevealFee = 1270;
+// const kDefaultKeyRevealStorageLimit = 0;
+// const kDefaultKeyRevealGasLimit = 1100;
 
 class TezosWallet extends Bip39Wallet {
   TezosWallet(CryptoCurrencyNetwork network) : super(Tezos(network));
@@ -44,6 +48,54 @@ class TezosWallet extends Bip39Wallet {
       type: info.coin.primaryAddressType,
       subType: AddressSubType.receiving,
     );
+  }
+
+  Future<tezart.OperationsList> _buildSendTransaction({
+    required Amount amount,
+    required String address,
+    int? customGasLimit,
+    Amount? customFee,
+  }) async {
+    try {
+      final sourceKeyStore = await _getKeyStore();
+      final tezartClient = tezart.TezartClient(
+        (_xtzNode ?? getCurrentNode()).host,
+      );
+
+      final opList = await tezartClient.transferOperation(
+        source: sourceKeyStore,
+        destination: address,
+        amount: amount.raw.toInt(),
+        customGasLimit: customGasLimit,
+        customFee: customFee?.raw.toInt(),
+      );
+
+      final counter = (await TezosAPI.getCounter(
+            (await getCurrentReceivingAddress())!.value,
+          )) +
+          1;
+
+      for (final op in opList.operations) {
+        if (op is tezart.RevealOperation) {
+          // op.storageLimit = kDefaultKeyRevealStorageLimit;
+          // op.gasLimit = kDefaultKeyRevealGasLimit;
+          // op.fee = kDefaultKeyRevealFee;
+          op.counter = counter;
+        } else if (op is tezart.TransactionOperation) {
+          op.counter = counter + 1;
+          // op.storageLimit = kDefaultTransactionStorageLimit;
+          // op.gasLimit = kDefaultTransactionGasLimit;
+        }
+      }
+
+      return opList;
+    } catch (e, s) {
+      Logging.instance.log(
+        "Error in estimateFeeFor() in tezos_wallet.dart: $e\n$s}",
+        level: LogLevel.Error,
+      );
+      rethrow;
+    }
   }
 
   // ===========================================================================
@@ -82,34 +134,27 @@ class TezosWallet extends Bip39Wallet {
 
     final bool isSendAll = sendAmount == info.cachedBalance.spendable;
 
-    final sourceKeyStore = await _getKeyStore();
-    final tezartClient = tezart.TezartClient(
-      (_xtzNode ?? getCurrentNode()).host,
-    );
+    Amount fee = await estimateFeeFor(sendAmount, -1);
 
-    final opList = await tezartClient.transferOperation(
-      source: sourceKeyStore,
-      destination: txData.recipients!.first.address,
-      amount: sendAmount.raw.toInt(),
-    );
-
-    await opList.computeFees();
-
-    final fee = Amount(
-      rawValue: opList.operations
-          .map(
-            (e) => BigInt.from(e.fee),
-          )
-          .fold(
-            BigInt.zero,
-            (p, e) => p + e,
-          ),
-      fractionDigits: cryptoCurrency.fractionDigits,
-    );
+    int? customGasLimit;
 
     if (isSendAll) {
+      //Fee guides for emptying a tz account
+      // https://github.com/TezTech/eztz/blob/master/PROTO_004_FEES.md
+      customGasLimit = kDefaultTransactionGasLimit + 320;
+      fee = Amount(
+        rawValue: BigInt.from(fee.raw.toInt() + 32),
+        fractionDigits: cryptoCurrency.fractionDigits,
+      );
       sendAmount = sendAmount - fee;
     }
+
+    final opList = await _buildSendTransaction(
+      amount: sendAmount,
+      address: txData.recipients!.first.address,
+      customFee: fee,
+      customGasLimit: customGasLimit,
+    );
 
     return txData.copyWith(
       recipients: [
@@ -125,63 +170,59 @@ class TezosWallet extends Bip39Wallet {
 
   @override
   Future<TxData> confirmSend({required TxData txData}) async {
-    // TODO: implement confirmSend
-    throw UnimplementedError();
+    await txData.tezosOperationsList!.executeAndMonitor();
+    return txData.copyWith(
+      txid: txData.tezosOperationsList!.result.id,
+    );
   }
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
-    throw UnimplementedError();
-    // final ADDRESS_REPLACEME = (await getCurrentReceivingAddress())!.value;
-    //
-    // try {
-    //   final sourceKeyStore = await _getKeyStore();
-    //   final tezartClient = tezart.TezartClient(
-    //     (_xtzNode ?? getCurrentNode()).host,
-    //   );
-    //
-    //   final opList = await tezartClient.transferOperation(
-    //     source: sourceKeyStore,
-    //     destination: ADDRESS_REPLACEME,
-    //     amount: amount.raw.toInt(),
-    //   );
-    //
-    //   await opList.run();
-    //   await opList.estimate();
-    //
-    //   final fee = Amount(
-    //     rawValue: opList.operations
-    //         .map(
-    //           (e) => BigInt.from(e.fee),
-    //         )
-    //         .fold(
-    //           BigInt.zero,
-    //           (p, e) => p + e,
-    //         ),
-    //     fractionDigits: cryptoCurrency.fractionDigits,
-    //   );
-    //
-    //   return fee;
-    // } catch (e, s) {
-    //   Logging.instance.log(
-    //     "Error in estimateFeeFor() in tezos_wallet.dart: $e\n$s}",
-    //     level: LogLevel.Error,
-    //   );
-    //   rethrow;
-    // }
+    if (amount.raw == BigInt.zero) {
+      amount = Amount(
+        rawValue: BigInt.one,
+        fractionDigits: cryptoCurrency.fractionDigits,
+      );
+    }
+
+    final myAddressForSimulation = (await getCurrentReceivingAddress())!.value;
+
+    try {
+      final opList = await _buildSendTransaction(
+        amount: amount,
+        address: myAddressForSimulation,
+      );
+
+      await opList.computeLimits();
+      await opList.computeFees();
+      await opList.simulate();
+
+      final fee = Amount(
+        rawValue: opList.operations
+            .map(
+              (e) => BigInt.from(e.fee),
+            )
+            .fold(
+              BigInt.zero,
+              (p, e) => p + e,
+            ),
+        fractionDigits: cryptoCurrency.fractionDigits,
+      );
+
+      return fee;
+    } catch (e, s) {
+      Logging.instance.log(
+        "Error in estimateFeeFor() in tezos_wallet.dart: $e\n$s}",
+        level: LogLevel.Error,
+      );
+      rethrow;
+    }
   }
 
+  /// Not really used (yet)
   @override
   Future<FeeObject> get fees async {
-    final feePerTx = (await estimateFeeFor(
-            Amount(
-              rawValue: BigInt.one,
-              fractionDigits: cryptoCurrency.fractionDigits,
-            ),
-            42))
-        .raw
-        .toInt();
-    Logging.instance.log("feePerTx:$feePerTx", level: LogLevel.Info);
+    const feePerTx = 1;
     return FeeObject(
       numberOfBlocksFast: 10,
       numberOfBlocksAverage: 10,
@@ -303,10 +344,9 @@ class TezosWallet extends Bip39Wallet {
     // TODO: optimize updateTransactions
 
     final myAddress = (await getCurrentReceivingAddress())!;
-    List<TezosTransaction>? txs =
-        await TezosAPI.getTransactions(myAddress.value);
-    Logging.instance.log("Transactions: $txs", level: LogLevel.Info);
-    if (txs == null || txs.isEmpty) {
+    final txs = await TezosAPI.getTransactions(myAddress.value);
+
+    if (txs.isEmpty) {
       return;
     }
 
@@ -334,7 +374,7 @@ class TezosWallet extends Bip39Wallet {
         subType: TransactionSubType.none,
         amount: theTx.amountInMicroTez,
         amountString: Amount(
-          rawValue: BigInt.parse(theTx.amountInMicroTez.toString()),
+          rawValue: BigInt.from(theTx.amountInMicroTez),
           fractionDigits: cryptoCurrency.fractionDigits,
         ).toJsonString(),
         fee: theTx.feeInMicroTez,
