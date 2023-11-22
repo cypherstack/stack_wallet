@@ -4,6 +4,7 @@ import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/wallets/api/tezos/tezos_account.dart';
 import 'package:stackwallet/wallets/api/tezos/tezos_transaction.dart';
 
 abstract final class TezosAPI {
@@ -26,6 +27,34 @@ abstract final class TezosAPI {
     } catch (e, s) {
       Logging.instance.log(
         "Error occurred in TezosAPI while getting counter for $address: $e\n$s",
+        level: LogLevel.Error,
+      );
+      rethrow;
+    }
+  }
+
+  static Future<TezosAccount> getAccount(String address,
+      {String type = "user"}) async {
+    try {
+      final uriString = "$_baseURL/v1/accounts/$address?legacy=false";
+      final response = await _client.get(
+        url: Uri.parse(uriString),
+        headers: {'Content-Type': 'application/json'},
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
+      );
+
+      final result = jsonDecode(response.body) as Map;
+
+      final account = TezosAccount.fromMap(Map<String, dynamic>.from(result));
+
+      print("Get account =================== $account");
+
+      return account;
+    } catch (e, s) {
+      Logging.instance.log(
+        "Error occurred in TezosAPI while getting account for $address: $e\n$s",
         level: LogLevel.Error,
       );
       rethrow;

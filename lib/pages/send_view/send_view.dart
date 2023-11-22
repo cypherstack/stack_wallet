@@ -1486,7 +1486,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                 style: STextStyles.smallMed12(context),
                                 textAlign: TextAlign.left,
                               ),
-                              if (coin != Coin.ethereum)
+                              if (coin != Coin.ethereum && coin != Coin.tezos)
                                 CustomTextButton(
                                   text: "Send all ${coin.ticker}",
                                   onTap: () async {
@@ -1898,7 +1898,8 @@ class _SendViewState extends ConsumerState<SendView> {
                           ),
                           if (coin != Coin.epicCash &&
                               coin != Coin.nano &&
-                              coin != Coin.banano)
+                              coin != Coin.banano &&
+                              coin != Coin.tezos)
                             Text(
                               "Transaction fee (estimated)",
                               style: STextStyles.smallMed12(context),
@@ -1906,13 +1907,15 @@ class _SendViewState extends ConsumerState<SendView> {
                             ),
                           if (coin != Coin.epicCash &&
                               coin != Coin.nano &&
-                              coin != Coin.banano)
+                              coin != Coin.banano &&
+                              coin != Coin.tezos)
                             const SizedBox(
                               height: 8,
                             ),
                           if (coin != Coin.epicCash &&
                               coin != Coin.nano &&
-                              coin != Coin.banano)
+                              coin != Coin.banano &&
+                              coin != Coin.tezos)
                             Stack(
                               children: [
                                 TextField(

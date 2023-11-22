@@ -10,6 +10,7 @@ import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/extensions/impl/string.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/wallets/api/tezos/tezos_account.dart';
 import 'package:stackwallet/wallets/api/tezos/tezos_api.dart';
 import 'package:stackwallet/wallets/api/tezos/tezos_rpc_api.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/tezos.dart';
@@ -20,8 +21,8 @@ import 'package:tezart/tezart.dart' as tezart;
 import 'package:tuple/tuple.dart';
 
 // const kDefaultTransactionStorageLimit = 496;
-const kDefaultTransactionGasLimit = 10600;
-
+// const kDefaultTransactionGasLimit = 10600;
+//
 // const kDefaultKeyRevealFee = 1270;
 // const kDefaultKeyRevealStorageLimit = 0;
 // const kDefaultKeyRevealGasLimit = 1100;
@@ -53,45 +54,51 @@ class TezosWallet extends Bip39Wallet {
   Future<tezart.OperationsList> _buildSendTransaction({
     required Amount amount,
     required String address,
-    int? customGasLimit,
-    Amount? customFee,
+    required int counter,
+    // required bool reveal,
+    // int? customGasLimit,
+    // Amount? customFee,
+    // Amount? customRevealFee,
   }) async {
     try {
       final sourceKeyStore = await _getKeyStore();
+      final server = (_xtzNode ?? getCurrentNode()).host;
+      // if (kDebugMode) {
+      //   print("SERVER: $server");
+      //   print("COUNTER: $counter");
+      //   print("customFee: $customFee");
+      // }
       final tezartClient = tezart.TezartClient(
-        (_xtzNode ?? getCurrentNode()).host,
+        server,
       );
 
       final opList = await tezartClient.transferOperation(
         source: sourceKeyStore,
         destination: address,
         amount: amount.raw.toInt(),
-        customGasLimit: customGasLimit,
-        customFee: customFee?.raw.toInt(),
+        // customFee: customFee?.raw.toInt(),
+        // customGasLimit: customGasLimit,
+        // reveal: false,
       );
 
-      final counter = (await TezosAPI.getCounter(
-            (await getCurrentReceivingAddress())!.value,
-          )) +
-          1;
+      // if (reveal) {
+      //   opList.prependOperation(
+      //     tezart.RevealOperation(
+      //       customGasLimit: customGasLimit,
+      //       customFee: customRevealFee?.raw.toInt(),
+      //     ),
+      //   );
+      // }
 
       for (final op in opList.operations) {
-        if (op is tezart.RevealOperation) {
-          // op.storageLimit = kDefaultKeyRevealStorageLimit;
-          // op.gasLimit = kDefaultKeyRevealGasLimit;
-          // op.fee = kDefaultKeyRevealFee;
-          op.counter = counter;
-        } else if (op is tezart.TransactionOperation) {
-          op.counter = counter + 1;
-          // op.storageLimit = kDefaultTransactionStorageLimit;
-          // op.gasLimit = kDefaultTransactionGasLimit;
-        }
+        op.counter = counter;
+        counter++;
       }
 
       return opList;
     } catch (e, s) {
       Logging.instance.log(
-        "Error in estimateFeeFor() in tezos_wallet.dart: $e\n$s}",
+        "Error in _buildSendTransaction() in tezos_wallet.dart: $e\n$s}",
         level: LogLevel.Error,
       );
       rethrow;
@@ -122,97 +129,203 @@ class TezosWallet extends Bip39Wallet {
 
   @override
   Future<TxData> prepareSend({required TxData txData}) async {
-    if (txData.recipients == null || txData.recipients!.length != 1) {
-      throw Exception("$runtimeType prepareSend requires 1 recipient");
-    }
-
-    Amount sendAmount = txData.amount!;
-
-    if (sendAmount > info.cachedBalance.spendable) {
-      throw Exception("Insufficient available balance");
-    }
-
-    final bool isSendAll = sendAmount == info.cachedBalance.spendable;
-
-    Amount fee = await estimateFeeFor(sendAmount, -1);
-
-    int? customGasLimit;
-
-    if (isSendAll) {
-      //Fee guides for emptying a tz account
-      // https://github.com/TezTech/eztz/blob/master/PROTO_004_FEES.md
-      customGasLimit = kDefaultTransactionGasLimit + 320;
-      fee = Amount(
-        rawValue: BigInt.from(fee.raw.toInt() + 32),
-        fractionDigits: cryptoCurrency.fractionDigits,
-      );
-      sendAmount = sendAmount - fee;
-    }
-
-    final opList = await _buildSendTransaction(
-      amount: sendAmount,
-      address: txData.recipients!.first.address,
-      customFee: fee,
-      customGasLimit: customGasLimit,
-    );
-
-    return txData.copyWith(
-      recipients: [
-        (
-          amount: sendAmount,
-          address: txData.recipients!.first.address,
-        )
-      ],
-      fee: fee,
-      tezosOperationsList: opList,
-    );
-  }
-
-  @override
-  Future<TxData> confirmSend({required TxData txData}) async {
-    await txData.tezosOperationsList!.executeAndMonitor();
-    return txData.copyWith(
-      txid: txData.tezosOperationsList!.result.id,
-    );
-  }
-
-  @override
-  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
-    if (amount.raw == BigInt.zero) {
-      amount = Amount(
-        rawValue: BigInt.one,
-        fractionDigits: cryptoCurrency.fractionDigits,
-      );
-    }
-
-    final myAddressForSimulation = (await getCurrentReceivingAddress())!.value;
-
     try {
+      if (txData.recipients == null || txData.recipients!.length != 1) {
+        throw Exception("$runtimeType prepareSend requires 1 recipient");
+      }
+
+      Amount sendAmount = txData.amount!;
+
+      if (sendAmount > info.cachedBalance.spendable) {
+        throw Exception("Insufficient available balance");
+      }
+      final account = await TezosAPI.getAccount(
+        (await getCurrentReceivingAddress())!.value,
+      );
+
+      // final bool isSendAll = sendAmount == info.cachedBalance.spendable;
+      //
+      // int? customGasLimit;
+      // Amount? fee;
+      // Amount? revealFee;
+      //
+      // if (isSendAll) {
+      //   final fees = await _estimate(
+      //     account,
+      //     txData.recipients!.first.address,
+      //   );
+      //   //Fee guides for emptying a tz account
+      //   // https://github.com/TezTech/eztz/blob/master/PROTO_004_FEES.md
+      //   // customGasLimit = kDefaultTransactionGasLimit + 320;
+      //   fee = Amount(
+      //     rawValue: BigInt.from(fees.transfer + 32),
+      //     fractionDigits: cryptoCurrency.fractionDigits,
+      //   );
+      //
+      //   BigInt rawAmount = sendAmount.raw - fee.raw;
+      //
+      //   if (!account.revealed) {
+      //     revealFee = Amount(
+      //       rawValue: BigInt.from(fees.reveal + 32),
+      //       fractionDigits: cryptoCurrency.fractionDigits,
+      //     );
+      //
+      //     rawAmount = rawAmount - revealFee.raw;
+      //   }
+      //
+      //   sendAmount = Amount(
+      //     rawValue: rawAmount,
+      //     fractionDigits: cryptoCurrency.fractionDigits,
+      //   );
+      // }
+
       final opList = await _buildSendTransaction(
-        amount: amount,
-        address: myAddressForSimulation,
+        amount: sendAmount,
+        address: txData.recipients!.first.address,
+        counter: account.counter + 1,
+        // reveal: !account.revealed,
+        // customFee: isSendAll ? fee : null,
+        // customRevealFee: isSendAll ? revealFee : null,
+        // customGasLimit: customGasLimit,
       );
 
       await opList.computeLimits();
       await opList.computeFees();
       await opList.simulate();
 
+      return txData.copyWith(
+        recipients: [
+          (
+            amount: sendAmount,
+            address: txData.recipients!.first.address,
+          )
+        ],
+        // fee: fee,
+        fee: Amount(
+          rawValue: opList.operations
+              .map(
+                (e) => BigInt.from(e.fee),
+              )
+              .fold(
+                BigInt.zero,
+                (p, e) => p + e,
+              ),
+          fractionDigits: cryptoCurrency.fractionDigits,
+        ),
+        tezosOperationsList: opList,
+      );
+    } catch (e, s) {
+      Logging.instance.log(
+        "Error in prepareSend() in tezos_wallet.dart: $e\n$s}",
+        level: LogLevel.Error,
+      );
+
+      if (e
+          .toString()
+          .contains("(_operationResult['errors']): Must not be null")) {
+        throw Exception("Probably insufficient balance");
+      } else if (e.toString().contains(
+            "The simulation of the operation: \"transaction\" failed with error(s) :"
+            " contract.balance_too_low, tez.subtraction_underflow.",
+          )) {
+        throw Exception("Insufficient balance to pay fees");
+      }
+
+      rethrow;
+    }
+  }
+
+  @override
+  Future<TxData> confirmSend({required TxData txData}) async {
+    await txData.tezosOperationsList!.inject();
+    await txData.tezosOperationsList!.monitor();
+    return txData.copyWith(
+      txid: txData.tezosOperationsList!.result.id,
+    );
+  }
+
+  int _estCount = 0;
+
+  Future<({int reveal, int transfer})> _estimate(
+      TezosAccount account, String recipientAddress) async {
+    try {
+      final opList = await _buildSendTransaction(
+        amount: Amount(
+          rawValue: BigInt.one,
+          fractionDigits: cryptoCurrency.fractionDigits,
+        ),
+        address: recipientAddress,
+        counter: account.counter + 1,
+        // reveal: !account.revealed,
+      );
+
+      await opList.computeLimits();
+      await opList.computeFees();
+      await opList.simulate();
+
+      int reveal = 0;
+      int transfer = 0;
+
+      for (final op in opList.operations) {
+        if (op is tezart.TransactionOperation) {
+          transfer += op.fee;
+        } else if (op is tezart.RevealOperation) {
+          reveal += op.fee;
+        }
+      }
+
+      return (reveal: reveal, transfer: transfer);
+    } catch (e, s) {
+      if (_estCount > 3) {
+        _estCount = 0;
+        Logging.instance.log(
+          " Error in _estimate in tezos_wallet.dart: $e\n$s}",
+          level: LogLevel.Error,
+        );
+        rethrow;
+      } else {
+        _estCount++;
+        Logging.instance.log(
+          "_estimate() retry _estCount=$_estCount",
+          level: LogLevel.Warning,
+        );
+        return await _estimate(
+          account,
+          recipientAddress,
+        );
+      }
+    }
+  }
+
+  @override
+  Future<Amount> estimateFeeFor(
+    Amount amount,
+    int feeRate, {
+    String recipientAddress = "tz1MXvDCyXSqBqXPNDcsdmVZKfoxL9FTHmp2",
+  }) async {
+    if (info.cachedBalance.spendable.raw == BigInt.zero) {
+      return Amount(
+        rawValue: BigInt.zero,
+        fractionDigits: cryptoCurrency.fractionDigits,
+      );
+    }
+
+    final account = await TezosAPI.getAccount(
+      (await getCurrentReceivingAddress())!.value,
+    );
+
+    try {
+      final fees = await _estimate(account, recipientAddress);
+
       final fee = Amount(
-        rawValue: opList.operations
-            .map(
-              (e) => BigInt.from(e.fee),
-            )
-            .fold(
-              BigInt.zero,
-              (p, e) => p + e,
-            ),
+        rawValue: BigInt.from(fees.reveal + fees.transfer),
         fractionDigits: cryptoCurrency.fractionDigits,
       );
 
       return fee;
     } catch (e, s) {
       Logging.instance.log(
-        "Error in estimateFeeFor() in tezos_wallet.dart: $e\n$s}",
+        "  Error in estimateFeeFor() in tezos_wallet.dart: $e\n$s}",
         level: LogLevel.Error,
       );
       rethrow;

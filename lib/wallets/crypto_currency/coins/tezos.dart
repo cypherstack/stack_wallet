@@ -15,8 +15,9 @@ class Tezos extends Bip39Currency {
   }
 
   @override
-  // TODO: implement genesisHash
-  String get genesisHash => throw UnimplementedError();
+  String get genesisHash => throw UnimplementedError(
+        "Not used in tezos at the moment",
+      );
 
   @override
   int get minConfirms => 1;

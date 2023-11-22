@@ -443,7 +443,7 @@ class _ConfirmTransactionViewState
                           "Amount",
                           style: STextStyles.smallMed12(context),
                         ),
-                        Text(
+                        SelectableText(
                           ref.watch(pAmountFormatter(coin)).format(
                                 widget.txData.amount!,
                                 ethContract: ref
@@ -469,7 +469,7 @@ class _ConfirmTransactionViewState
                             "Transaction fee",
                             style: STextStyles.smallMed12(context),
                           ),
-                          Text(
+                          SelectableText(
                             ref
                                 .watch(pAmountFormatter(coin))
                                 .format(widget.txData.fee!),
@@ -495,7 +495,7 @@ class _ConfirmTransactionViewState
                           const SizedBox(
                             height: 4,
                           ),
-                          Text(
+                          SelectableText(
                             "~${widget.txData.fee!.raw.toInt() ~/ widget.txData.vSize!}",
                             style: STextStyles.itemSubtitle12(context),
                           ),
@@ -520,7 +520,7 @@ class _ConfirmTransactionViewState
                           const SizedBox(
                             height: 4,
                           ),
-                          Text(
+                          SelectableText(
                             widget.txData.noteOnChain!,
                             style: STextStyles.itemSubtitle12(context),
                           ),
@@ -543,7 +543,7 @@ class _ConfirmTransactionViewState
                           const SizedBox(
                             height: 4,
                           ),
-                          Text(
+                          SelectableText(
                             widget.txData.note!,
                             style: STextStyles.itemSubtitle12(context),
                           ),
@@ -664,7 +664,7 @@ class _ConfirmTransactionViewState
 
                                 return Row(
                                   children: [
-                                    Text(
+                                    SelectableText(
                                       ref.watch(pAmountFormatter(coin)).format(
                                           amount,
                                           ethContract: ref
@@ -687,7 +687,7 @@ class _ConfirmTransactionViewState
                                                 context),
                                       ),
                                     if (externalCalls)
-                                      Text(
+                                      SelectableText(
                                         "~$fiatAmount ${ref.watch(prefsChangeNotifierProvider.select(
                                           (value) => value.currency,
                                         ))}",
@@ -724,7 +724,7 @@ class _ConfirmTransactionViewState
                             const SizedBox(
                               height: 2,
                             ),
-                            Text(
+                            SelectableText(
                               widget.isPaynymTransaction
                                   ? widget.txData.paynymAccountLite!.nymName
                                   : widget.txData.recipients!.first.address,
@@ -765,7 +765,7 @@ class _ConfirmTransactionViewState
                                 builder: (context) {
                                   final fee = widget.txData.fee!;
 
-                                  return Text(
+                                  return SelectableText(
                                     ref
                                         .watch(pAmountFormatter(coin))
                                         .format(fee),
@@ -884,7 +884,7 @@ class _ConfirmTransactionViewState
                       const SizedBox(
                         height: 12,
                       ),
-                    Text(
+                    SelectableText(
                       (coin == Coin.epicCash)
                           ? "Local Note (optional)"
                           : "Note (optional)",
@@ -987,7 +987,7 @@ class _ConfirmTransactionViewState
                     builder: (context) {
                       final fee = widget.txData.fee!;
 
-                      return Text(
+                      return SelectableText(
                         ref.watch(pAmountFormatter(coin)).format(fee),
                         style: STextStyles.itemSubtitle(context),
                       );
@@ -1026,7 +1026,7 @@ class _ConfirmTransactionViewState
                   color: Theme.of(context)
                       .extension<StackColors>()!
                       .textFieldDefaultBG,
-                  child: Text(
+                  child: SelectableText(
                     "~${widget.txData.fee!.raw.toInt() ~/ widget.txData.vSize!}",
                     style: STextStyles.itemSubtitle(context),
                   ),
@@ -1075,7 +1075,7 @@ class _ConfirmTransactionViewState
                         final fee = widget.txData.fee!;
 
                         final amount = widget.txData.amount!;
-                        return Text(
+                        return SelectableText(
                           ref
                               .watch(pAmountFormatter(coin))
                               .format(amount + fee),

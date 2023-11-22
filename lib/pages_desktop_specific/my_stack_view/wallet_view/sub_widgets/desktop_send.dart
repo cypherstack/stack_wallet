@@ -1062,7 +1062,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
               textAlign: TextAlign.left,
             ),
-            if (coin != Coin.ethereum)
+            if (coin != Coin.ethereum && coin != Coin.tezos)
               CustomTextButton(
                 text: "Send all ${coin.ticker}",
                 onTap: sendAllTapped,
@@ -1481,7 +1481,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           const SizedBox(
             height: 20,
           ),
-        if (!([Coin.nano, Coin.banano, Coin.epicCash].contains(coin)))
+        if (!([Coin.nano, Coin.banano, Coin.epicCash, Coin.tezos]
+            .contains(coin)))
           ConditionalParent(
             condition: coin.isElectrumXCoin &&
                 !(((coin == Coin.firo || coin == Coin.firoTestNet) &&
@@ -1532,11 +1533,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               textAlign: TextAlign.left,
             ),
           ),
-        if (!([Coin.nano, Coin.banano, Coin.epicCash].contains(coin)))
+        if (!([Coin.nano, Coin.banano, Coin.epicCash, Coin.tezos]
+            .contains(coin)))
           const SizedBox(
             height: 10,
           ),
-        if (!([Coin.nano, Coin.banano, Coin.epicCash].contains(coin)))
+        if (!([Coin.nano, Coin.banano, Coin.epicCash, Coin.tezos]
+            .contains(coin)))
           if (!isCustomFee)
             Padding(
               padding: const EdgeInsets.all(10),

@@ -117,7 +117,7 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
               children: [
                 FittedBox(
                   fit: BoxFit.scaleDown,
-                  child: Text(
+                  child: SelectableText(
                     ref
                         .watch(pAmountFormatter(coin))
                         .format(balanceToShow, ethContract: tokenContract),
@@ -125,7 +125,7 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
                   ),
                 ),
                 if (externalCalls)
-                  Text(
+                  SelectableText(
                     "${Amount.fromDecimal(
                       priceTuple.item1 * balanceToShow.decimal,
                       fractionDigits: 2,
