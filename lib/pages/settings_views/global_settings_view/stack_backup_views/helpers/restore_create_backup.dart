@@ -42,9 +42,9 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'package:stackwallet/wallets/wallet/private_key_based_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 import 'package:wakelock/wakelock.dart';
@@ -292,6 +292,7 @@ abstract class SWB {
         backupWallet['name'] = wallet.info.name;
         backupWallet['id'] = wallet.walletId;
         backupWallet['isFavorite'] = wallet.info.isFavourite;
+        backupWallet['otherDataJsonString'] = wallet.info.otherDataJsonString;
 
         if (wallet is MnemonicInterface) {
           backupWallet['mnemonic'] = await wallet.getMnemonic();
@@ -689,13 +690,14 @@ abstract class SWB {
       // TODO: use these for monero and possibly other coins later on?
       // final List<String> txidList = List<String>.from(walletbackup['txidList'] as List? ?? []);
 
-      final restoreHeight = walletbackup['restoreHeight'] as int? ?? 0;
-
-      final info = WalletInfo.createNew(
-        coin: coin,
+      final info = WalletInfo(
+        coinName: coin.name,
+        walletId: walletId,
         name: walletName,
-        walletIdOverride: walletId,
-        restoreHeight: restoreHeight,
+        mainAddressType: coin.primaryAddressType,
+        restoreHeight: walletbackup['restoreHeight'] as int? ?? 0,
+        otherDataJsonString: walletbackup["otherDataJsonString"] as String?,
+        cachedChainHeight: walletbackup['storedChainHeight'] as int? ?? 0,
       );
 
       var node = nodeService.getPrimaryNodeFor(coin: coin);

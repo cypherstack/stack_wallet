@@ -9,6 +9,7 @@
  */
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:flutter/material.dart';
@@ -30,9 +31,10 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/tezos.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -459,6 +461,14 @@ class _NewWalletRecoveryPhraseWarningViewState
                                     final info = WalletInfo.createNew(
                                       coin: widget.coin,
                                       name: widget.walletName,
+                                      otherDataJsonString: coin == Coin.tezos
+                                          ? jsonEncode({
+                                              WalletInfoKeys
+                                                      .tezosDerivationPath:
+                                                  Tezos.standardDerivationPath
+                                                      .value,
+                                            })
+                                          : null,
                                     );
 
                                     var node = ref

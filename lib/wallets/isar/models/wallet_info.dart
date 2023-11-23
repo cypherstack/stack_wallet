@@ -343,6 +343,7 @@ class WalletInfo implements IsarId {
     required String name,
     int restoreHeight = 0,
     String? walletIdOverride,
+    String? otherDataJsonString,
   }) {
     return WalletInfo(
       coinName: coin.name,
@@ -350,6 +351,7 @@ class WalletInfo implements IsarId {
       name: name,
       mainAddressType: coin.primaryAddressType,
       restoreHeight: restoreHeight,
+      otherDataJsonString: otherDataJsonString,
     );
   }
 
@@ -391,4 +393,5 @@ abstract class WalletInfoKeys {
   static const String tokenContractAddresses = "tokenContractAddressesKey";
   static const String epiccashData = "epiccashDataKey";
   static const String bananoMonkeyImageBytes = "monkeyImageBytesKey";
+  static const String tezosDerivationPath = "tezosDerivationPathKey";
 }

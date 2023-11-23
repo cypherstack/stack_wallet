@@ -15,6 +15,7 @@ import 'package:stackwallet/wallets/api/tezos/tezos_api.dart';
 import 'package:stackwallet/wallets/api/tezos/tezos_rpc_api.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/tezos.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_wallet.dart';
 import 'package:tezart/tezart.dart' as tezart;
@@ -27,15 +28,51 @@ import 'package:tuple/tuple.dart';
 // const kDefaultKeyRevealStorageLimit = 0;
 // const kDefaultKeyRevealGasLimit = 1100;
 
-class TezosWallet extends Bip39Wallet {
+class TezosWallet extends Bip39Wallet<Tezos> {
   TezosWallet(CryptoCurrencyNetwork network) : super(Tezos(network));
 
   NodeModel? _xtzNode;
 
-  Future<tezart.Keystore> _getKeyStore() async {
+  String get derivationPath =>
+      info.otherData[WalletInfoKeys.tezosDerivationPath] as String? ?? "";
+
+  Future<DerivationPath> _scanPossiblePaths({
+    required String mnemonic,
+    String passphrase = "",
+  }) async {
+    try {
+      for (final path in Tezos.possibleDerivationPaths) {
+        final ks = await _getKeyStore(path: path.value);
+
+        // TODO: some kind of better check to see if the address has been used
+
+        final hasHistory =
+            (await TezosAPI.getTransactions(ks.address)).isNotEmpty;
+
+        if (hasHistory) {
+          return path;
+        }
+      }
+
+      return Tezos.standardDerivationPath;
+    } catch (e, s) {
+      Logging.instance.log(
+        "Error in _scanPossiblePaths() in tezos_wallet.dart: $e\n$s",
+        level: LogLevel.Error,
+      );
+      rethrow;
+    }
+  }
+
+  Future<tezart.Keystore> _getKeyStore({String? path}) async {
     final mnemonic = await getMnemonic();
     final passphrase = await getMnemonicPassphrase();
-    return tezart.Keystore.fromMnemonic(mnemonic, password: passphrase);
+
+    return Tezos.mnemonicToKeyStore(
+      mnemonic: mnemonic,
+      mnemonicPassphrase: passphrase,
+      derivationPath: path ?? derivationPath,
+    );
   }
 
   Future<Address> _getAddressFromMnemonic() async {
@@ -45,7 +82,7 @@ class TezosWallet extends Bip39Wallet {
       value: keyStore.address,
       publicKey: keyStore.publicKey.toUint8ListFromBase58CheckEncoded,
       derivationIndex: 0,
-      derivationPath: null,
+      derivationPath: DerivationPath()..value = derivationPath,
       type: info.coin.primaryAddressType,
       subType: AddressSubType.receiving,
     );
@@ -98,7 +135,7 @@ class TezosWallet extends Bip39Wallet {
       return opList;
     } catch (e, s) {
       Logging.instance.log(
-        "Error in _buildSendTransaction() in tezos_wallet.dart: $e\n$s}",
+        "Error in _buildSendTransaction() in tezos_wallet.dart: $e\n$s",
         level: LogLevel.Error,
       );
       rethrow;
@@ -139,8 +176,10 @@ class TezosWallet extends Bip39Wallet {
       if (sendAmount > info.cachedBalance.spendable) {
         throw Exception("Insufficient available balance");
       }
+
+      final myAddress = (await getCurrentReceivingAddress())!;
       final account = await TezosAPI.getAccount(
-        (await getCurrentReceivingAddress())!.value,
+        myAddress.value,
       );
 
       // final bool isSendAll = sendAmount == info.cachedBalance.spendable;
@@ -216,7 +255,7 @@ class TezosWallet extends Bip39Wallet {
       );
     } catch (e, s) {
       Logging.instance.log(
-        "Error in prepareSend() in tezos_wallet.dart: $e\n$s}",
+        "Error in prepareSend() in tezos_wallet.dart: $e\n$s",
         level: LogLevel.Error,
       );
 
@@ -247,7 +286,9 @@ class TezosWallet extends Bip39Wallet {
   int _estCount = 0;
 
   Future<({int reveal, int transfer})> _estimate(
-      TezosAccount account, String recipientAddress) async {
+    TezosAccount account,
+    String recipientAddress,
+  ) async {
     try {
       final opList = await _buildSendTransaction(
         amount: Amount(
@@ -279,7 +320,7 @@ class TezosWallet extends Bip39Wallet {
       if (_estCount > 3) {
         _estCount = 0;
         Logging.instance.log(
-          " Error in _estimate in tezos_wallet.dart: $e\n$s}",
+          " Error in _estimate in tezos_wallet.dart: $e\n$s",
           level: LogLevel.Error,
         );
         rethrow;
@@ -310,8 +351,9 @@ class TezosWallet extends Bip39Wallet {
       );
     }
 
+    final myAddress = (await getCurrentReceivingAddress())!;
     final account = await TezosAPI.getAccount(
-      (await getCurrentReceivingAddress())!.value,
+      myAddress.value,
     );
 
     try {
@@ -325,7 +367,7 @@ class TezosWallet extends Bip39Wallet {
       return fee;
     } catch (e, s) {
       Logging.instance.log(
-        "  Error in estimateFeeFor() in tezos_wallet.dart: $e\n$s}",
+        "  Error in estimateFeeFor() in tezos_wallet.dart: $e\n$s",
         level: LogLevel.Error,
       );
       rethrow;
@@ -362,11 +404,41 @@ class TezosWallet extends Bip39Wallet {
     await refreshMutex.protect(() async {
       if (isRescan) {
         await mainDB.deleteWalletBlockchainData(walletId);
+      } else {
+        final derivationPath = await _scanPossiblePaths(
+          mnemonic: await getMnemonic(),
+          passphrase: await getMnemonicPassphrase(),
+        );
+
+        await info.updateOtherData(
+          newEntries: {
+            WalletInfoKeys.tezosDerivationPath: derivationPath.value,
+          },
+          isar: mainDB.isar,
+        );
       }
 
       final address = await _getAddressFromMnemonic();
 
       await mainDB.updateOrPutAddresses([address]);
+
+      // ensure we only have a single address
+      await mainDB.isar.writeTxn(() async {
+        await mainDB.isar.addresses
+            .where()
+            .walletIdEqualTo(walletId)
+            .filter()
+            .not()
+            .derivationPath((q) => q.valueEqualTo(derivationPath))
+            .deleteAll();
+      });
+
+      if (info.cachedReceivingAddress != address.value) {
+        await info.updateReceivingAddress(
+          newAddress: address.value,
+          isar: mainDB.isar,
+        );
+      }
 
       await Future.wait([
         updateBalance(),
@@ -405,7 +477,7 @@ class TezosWallet extends Bip39Wallet {
       await info.updateBalance(newBalance: newBalance, isar: mainDB.isar);
     } catch (e, s) {
       Logging.instance.log(
-        "Error getting balance in tezos_wallet.dart: $e\n$s}",
+        "Error getting balance in tezos_wallet.dart: $e\n$s",
         level: LogLevel.Error,
       );
     }
@@ -429,7 +501,7 @@ class TezosWallet extends Bip39Wallet {
     } catch (e, s) {
       Logging.instance.log(
         "Error occurred in tezos_wallet.dart while getting"
-        " chain height for tezos: $e\n$s}",
+        " chain height for tezos: $e\n$s",
         level: LogLevel.Error,
       );
     }
