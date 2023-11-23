@@ -1,3 +1,4 @@
+import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -13,6 +14,16 @@ class Tezos extends Bip39Currency {
         throw Exception("Unsupported network: $network");
     }
   }
+
+  DerivationPath get standardDerivationPath =>
+      DerivationPath()..value = "m/44'/1729'/0'/0'";
+
+  List<DerivationPath> get possibleDerivationPaths => [
+        standardDerivationPath,
+        DerivationPath()..value = "",
+        DerivationPath()..value = "m/44'/1729'/0'/0'/0'",
+        DerivationPath()..value = "m/44'/1729'/0'/0/0",
+      ];
 
   @override
   String get genesisHash => throw UnimplementedError(
