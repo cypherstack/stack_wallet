@@ -581,15 +581,24 @@ class ElectrumXClient {
     String? requestID,
   }) async {
     try {
-      final response = await request(
-        requestID: requestID,
-        command: 'blockchain.scripthash.get_history',
-        requestTimeout: const Duration(minutes: 5),
-        args: [
-          scripthash,
-        ],
-      );
-      return List<Map<String, dynamic>>.from(response["result"] as List);
+      int retryCount = 3;
+      dynamic result;
+
+      while (retryCount > 0 && result is! List) {
+        final response = await request(
+          requestID: requestID,
+          command: 'blockchain.scripthash.get_history',
+          requestTimeout: const Duration(minutes: 5),
+          args: [
+            scripthash,
+          ],
+        );
+
+        result = response["result"];
+        retryCount--;
+      }
+
+      return List<Map<String, dynamic>>.from(result as List);
     } catch (e) {
       rethrow;
     }
@@ -818,15 +827,24 @@ class ElectrumXClient {
     required int startNumber,
   }) async {
     try {
-      final response = await request(
-        requestID: requestID,
-        command: 'lelantus.getusedcoinserials',
-        args: [
-          "$startNumber",
-        ],
-        requestTimeout: const Duration(minutes: 2),
-      );
-      return Map<String, dynamic>.from(response["result"] as Map);
+      int retryCount = 3;
+      dynamic result;
+
+      while (retryCount > 0 && result is! List) {
+        final response = await request(
+          requestID: requestID,
+          command: 'lelantus.getusedcoinserials',
+          args: [
+            "$startNumber",
+          ],
+          requestTimeout: const Duration(minutes: 2),
+        );
+
+        result = response["result"];
+        retryCount--;
+      }
+
+      return Map<String, dynamic>.from(result as Map);
     } catch (e) {
       Logging.instance.log(e, level: LogLevel.Error);
       rethrow;
