@@ -688,34 +688,14 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   Future<void> sendAllTapped() async {
     final info = ref.read(pWalletInfo(walletId));
 
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-          "Private") {
-        cryptoAmountController.text =
-            info.cachedBalance.spendable.decimal.toStringAsFixed(coin.decimals);
-        // cryptoAmountController.text = firoWallet
-        //     .availablePrivateBalance()
-        //     .decimal
-        //     .toStringAsFixed(coin.decimals);
-      } else {
-        cryptoAmountController.text = info
-            .cachedBalanceSecondary.spendable.decimal
-            .toStringAsFixed(coin.decimals);
-        // cryptoAmountController.text = firoWallet
-        //     .availablePublicBalance()
-        //     .decimal
-        //     .toStringAsFixed(coin.decimals);
-      }
+    if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
+        ref.read(publicPrivateBalanceStateProvider.state).state == "Private") {
+      cryptoAmountController.text = info
+          .cachedBalanceSecondary.spendable.decimal
+          .toStringAsFixed(coin.decimals);
     } else {
       cryptoAmountController.text =
           info.cachedBalance.spendable.decimal.toStringAsFixed(coin.decimals);
-      // cryptoAmountController.text = ref
-      //     .read(pWallets)
-      //     .getWallet(walletId)
-      //     .balance
-      //     .spendable
-      //     .decimal
-      //     .toStringAsFixed(coin.decimals);
     }
   }
 
@@ -893,9 +873,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                         width: 10,
                       ),
                       Text(
-                        ref.watch(pAmountFormatter(coin)).format(ref
-                            .watch(pWalletBalanceSecondary(walletId))
-                            .spendable),
+                        ref.watch(pAmountFormatter(coin)).format(
+                            ref.watch(pWalletBalance(walletId)).spendable),
                         style: STextStyles.itemSubtitle(context),
                       ),
                     ],
