@@ -38,6 +38,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
+import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 // import 'package:stackwallet/wallets/example/libepiccash.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -139,13 +140,10 @@ class _ConfirmTransactionViewState
       } else if (widget.isPaynymTransaction) {
         txDataFuture = wallet.confirmSend(txData: widget.txData);
       } else {
-        if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-            ref.read(publicPrivateBalanceStateProvider.state).state !=
+        if (wallet is FiroWallet &&
+            ref.read(publicPrivateBalanceStateProvider.state).state ==
                 "Private") {
-          // TODO: [prio=high] fixme
-          throw UnimplementedError("fixme");
-          // txidFuture = (wallet as FiroWallet)
-          //     .confirmSendPublic(txData: transactionInfo);
+          txDataFuture = wallet.confirmSendLelantus(txData: widget.txData);
         } else {
           if (coin == Coin.epicCash) {
             txDataFuture = wallet.confirmSend(

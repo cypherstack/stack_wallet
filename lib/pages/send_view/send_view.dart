@@ -51,6 +51,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
+import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -491,19 +492,14 @@ class _SendViewState extends ConsumerState<SendView> {
                 : null,
           ),
         );
-      } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-          ref.read(publicPrivateBalanceStateProvider.state).state !=
+      } else if (wallet is FiroWallet &&
+          ref.read(publicPrivateBalanceStateProvider.state).state ==
               "Private") {
-        throw UnimplementedError("FIXME");
-        // TODO: [prio=high] firo prepare send using TxData
-        // txDataFuture = (manager.wallet as FiroWallet).prepareSendPublic(
-        //   address: _address!,
-        //   amount: amount,
-        //   args: {
-        //     "feeRate": ref.read(feeRateTypeStateProvider),
-        //     "satsPerVByte": isCustomFee ? customFeeRate : null,
-        //   },
-        // );
+        txDataFuture = wallet.prepareSendLelantus(
+          txData: TxData(
+            recipients: [(address: _address!, amount: amount)],
+          ),
+        );
       } else {
         final memo = coin == Coin.stellar || coin == Coin.stellarTestnet
             ? memoController.text
@@ -1437,8 +1433,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                                         pAmountFormatter(coin))
                                                     .format(
                                                       ref
-                                                          .watch(pWalletBalance(
-                                                              walletId))
+                                                          .watch(
+                                                              pWalletBalanceSecondary(
+                                                                  walletId))
                                                           .spendable,
                                                     ),
                                                 style: STextStyles.itemSubtitle(
@@ -1451,9 +1448,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                         pAmountFormatter(coin))
                                                     .format(
                                                       ref
-                                                          .watch(
-                                                              pWalletBalanceSecondary(
-                                                                  walletId))
+                                                          .watch(pWalletBalance(
+                                                              walletId))
                                                           .spendable,
                                                     ),
                                                 style: STextStyles.itemSubtitle(

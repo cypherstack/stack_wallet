@@ -809,7 +809,7 @@ class FiroWallet extends Bip39HDWallet
         await recoverLelantusWallet(
           latestSetId: latestSetId,
           setDataMap: futureResults[1] as Map<dynamic, dynamic>,
-          usedSerialNumbers: futureResults[1] as List<String>,
+          usedSerialNumbers: futureResults[0] as List<String>,
         );
 
         await updateBalance();

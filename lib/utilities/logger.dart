@@ -8,7 +8,6 @@
  *
  */
 
-import 'dart:async';
 import 'dart:core' as core;
 import 'dart:core';
 import 'dart:io';
@@ -34,19 +33,6 @@ class Logging {
 
   Future<void> init(Isar isar) async {
     this.isar = isar;
-  }
-
-  Future<void> initInIsolate() async {
-    if (isTestEnv || isArmLinux) {
-      // do this for now until we mock Isar properly for testing
-      isar = null;
-      return;
-    }
-    isar = await Isar.open(
-      [LogSchema],
-      inspector: false,
-      maxSizeMiB: 512,
-    );
   }
 
   void log(

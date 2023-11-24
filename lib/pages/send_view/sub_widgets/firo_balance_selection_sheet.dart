@@ -35,13 +35,6 @@ class _FiroBalanceSelectionSheetState
     extends ConsumerState<FiroBalanceSelectionSheet> {
   late final String walletId;
 
-  final stringsToLoopThrough = [
-    "Loading balance",
-    "Loading balance.",
-    "Loading balance..",
-    "Loading balance...",
-  ];
-
   @override
   void initState() {
     walletId = widget.walletId;

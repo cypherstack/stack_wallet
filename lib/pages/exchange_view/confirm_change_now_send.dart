@@ -32,6 +32,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
+import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -109,11 +110,8 @@ class _ConfirmChangeNowSendViewState
     final String note = widget.txData.note ?? "";
 
     try {
-      if (widget.shouldSendPublicFiroFunds == true) {
-        // TODO: [prio=high] fixme
-        throw UnimplementedError("fixme");
-        // txidFuture = (wallet as FiroWallet)
-        //     .confirmSendPublic(txData: widget.txData);
+      if (wallet is FiroWallet && widget.shouldSendPublicFiroFunds == false) {
+        txidFuture = wallet.confirmSendLelantus(txData: widget.txData);
       } else {
         txidFuture = wallet.confirmSend(txData: widget.txData);
       }

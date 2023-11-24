@@ -36,6 +36,7 @@ import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
+import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
@@ -240,17 +241,14 @@ class _Step4ViewState extends ConsumerState<Step4View> {
 
       Future<TxData> txDataFuture;
 
-      if (firoPublicSend) {
-        // TODO: [prio=high]
-        throw UnimplementedError();
-        // txDataFuture = (wallet as FiroWallet).prepareSendPublic(
-        //   address: address,
-        //   amount: amount,
-        //   args: {
-        //     "feeRate": FeeRateType.average,
-        //     // ref.read(feeRateTypeStateProvider)
-        //   },
-        // );
+      if (wallet is FiroWallet && !firoPublicSend) {
+        txDataFuture = wallet.prepareSendLelantus(
+          txData: TxData(
+            recipients: [(address: address, amount: amount)],
+            note: "${model.trade!.payInCurrency.toUpperCase()}/"
+                "${model.trade!.payOutCurrency.toUpperCase()} exchange",
+          ),
+        );
       } else {
         final memo = wallet.info.coin == Coin.stellar ||
                 wallet.info.coin == Coin.stellarTestnet

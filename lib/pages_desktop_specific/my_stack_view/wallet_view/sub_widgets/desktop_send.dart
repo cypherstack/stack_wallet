@@ -50,6 +50,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
+import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -66,8 +67,6 @@ import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
-
-import '../../../../wallets/isar/models/wallet_info.dart';
 
 class DesktopSend extends ConsumerStatefulWidget {
   const DesktopSend({
@@ -116,9 +115,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   Amount? _amountToSend;
   Amount? _cachedAmountToSend;
   String? _address;
-
-  String? _privateBalanceString;
-  String? _publicBalanceString;
 
   bool _addressToggleFlag = false;
 
@@ -316,24 +312,14 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 : null,
           ),
         );
-      } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-          ref.read(publicPrivateBalanceStateProvider.state).state !=
+      } else if (wallet is FiroWallet &&
+          ref.read(publicPrivateBalanceStateProvider.state).state ==
               "Private") {
-        throw UnimplementedError("FIXME");
-        // TODO: [prio=high] firo prepare send using TxData
-        // txDataFuture = (manager.wallet as FiroWallet).prepareSendPublic(
-        //   address: _address!,
-        //   amount: amount,
-        //   args: {
-        //     "feeRate": ref.read(feeRateTypeStateProvider),
-        //     "satsPerVByte": isCustomFee ? customFeeRate : null,
-        //     "UTXOs": (wallet is CoinControlInterface &&
-        //             coinControlEnabled &&
-        //             ref.read(desktopUseUTXOs).isNotEmpty)
-        //         ? ref.read(desktopUseUTXOs)
-        //         : null,
-        //   },
-        // );
+        txDataFuture = wallet.prepareSendLelantus(
+          txData: TxData(
+            recipients: [(address: _address!, amount: amount)],
+          ),
+        );
       } else {
         final memo = isStellar ? memoController.text : null;
         txDataFuture = wallet.prepareSend(
@@ -542,56 +528,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           .validateAddress(address ?? "");
       ref.read(previewTxButtonStateProvider.state).state =
           (isValidAddress && amount != null && amount > Amount.zero);
-    }
-  }
-
-  Future<String?> _firoBalanceFuture(
-    WalletInfo info,
-    String locale,
-    bool private,
-  ) async {
-    if (info.coin == Coin.firo || info.coin == Coin.firoTestNet) {
-      final Amount balance;
-      if (private) {
-        balance = info.cachedBalance.spendable;
-        // balance = wallet.availablePrivateBalance();
-      } else {
-        balance = info.cachedBalanceSecondary.spendable;
-        // balance = wallet.availablePublicBalance();
-      }
-      return ref.read(pAmountFormatter(coin)).format(balance);
-    }
-
-    return null;
-  }
-
-  Widget firoBalanceFutureBuilder(
-    BuildContext context,
-    AsyncSnapshot<String?> snapshot,
-    bool private,
-  ) {
-    if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
-      if (private) {
-        _privateBalanceString = snapshot.data!;
-      } else {
-        _publicBalanceString = snapshot.data!;
-      }
-    }
-    if (private && _privateBalanceString != null) {
-      return Text(
-        "$_privateBalanceString",
-        style: STextStyles.itemSubtitle(context),
-      );
-    } else if (!private && _publicBalanceString != null) {
-      return Text(
-        "$_publicBalanceString",
-        style: STextStyles.itemSubtitle(context),
-      );
-    } else {
-      return AnimatedText(
-        stringsToLoopThrough: stringsToLoopThrough,
-        style: STextStyles.itemSubtitle(context),
-      );
     }
   }
 
@@ -936,18 +872,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       const SizedBox(
                         width: 10,
                       ),
-                      FutureBuilder(
-                        future: _firoBalanceFuture(
-                          ref.watch(pWalletInfo(walletId)),
-                          locale,
-                          true,
-                        ),
-                        builder: (context, AsyncSnapshot<String?> snapshot) =>
-                            firoBalanceFutureBuilder(
-                          context,
-                          snapshot,
-                          true,
-                        ),
+                      Text(
+                        ref.watch(pAmountFormatter(coin)).format(ref
+                            .watch(pWalletBalanceSecondary(walletId))
+                            .spendable),
+                        style: STextStyles.itemSubtitle(context),
                       ),
                     ],
                   ),
@@ -963,18 +892,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       const SizedBox(
                         width: 10,
                       ),
-                      FutureBuilder(
-                        future: _firoBalanceFuture(
-                          ref.watch(pWalletInfo(walletId)),
-                          locale,
-                          false,
-                        ),
-                        builder: (context, AsyncSnapshot<String?> snapshot) =>
-                            firoBalanceFutureBuilder(
-                          context,
-                          snapshot,
-                          false,
-                        ),
+                      Text(
+                        ref.watch(pAmountFormatter(coin)).format(ref
+                            .watch(pWalletBalanceSecondary(walletId))
+                            .spendable),
+                        style: STextStyles.itemSubtitle(context),
                       ),
                     ],
                   ),
