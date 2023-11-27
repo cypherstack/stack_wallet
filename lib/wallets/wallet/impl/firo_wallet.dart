@@ -62,17 +62,7 @@ class FiroWallet extends Bip39HDWallet
 
   @override
   Future<void> updateTransactions() async {
-    final allAddresses = await mainDB
-        .getAddresses(walletId)
-        .filter()
-        .not()
-        .group(
-          (q) => q
-              .typeEqualTo(AddressType.nonWallet)
-              .or()
-              .subTypeEqualTo(AddressSubType.nonWallet),
-        )
-        .findAll();
+    final allAddresses = await fetchAllOwnAddresses();
 
     Set<String> receivingAddresses = allAddresses
         .where((e) => e.subType == AddressSubType.receiving)
