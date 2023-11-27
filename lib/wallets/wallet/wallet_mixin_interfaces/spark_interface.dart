@@ -54,12 +54,47 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     throw UnimplementedError();
   }
 
+  /// Spark to Spark/Transparent (spend) creation
   Future<TxData> prepareSendSpark({
     required TxData txData,
   }) async {
+    // https://docs.google.com/document/d/1RG52GoYTZDvKlZz_3G4sQu-PpT6JWSZGHLNswWcrE3o/edit
+    // To generate  a spark spend we need to call createSparkSpendTransaction,
+    // first unlock the wallet and generate all 3 spark keys,
+    final spendKey = await _getSpendKey();
+
+    //
+    // recipients is a list of pairs of amounts and bools, this is for transparent
+    // outputs, first how much to send and second, subtractFeeFromAmount argument
+    // for each receiver.
+    //
+    // privateRecipients is again the list of pairs, first the receiver data
+    // which has following members, Address which is any spark address,
+    // amount (v) how much we want to send, and memo which can be any string
+    // with 32 length (any string we want to send to receiver), and the second
+    // subtractFeeFromAmount,
+    //
+    // coins is the list of all our available spark coins
+    //
+    // cover_set_data_all is the list of all anonymity sets,
+    //
+    // idAndBlockHashes_all is the list of block hashes for each anonymity set
+    //
+    // txHashSig is the transaction hash only without spark data, tx version,
+    // type, transparent outputs and everything else should be set before generating it.
+    //
+    // fee is a output data
+    //
+    // serializedSpend is a output data, byte array with spark spend, we need
+    // to put it into vExtraPayload (this naming can be different in your codebase)
+    //
+    // outputScripts is a output data, it is a list of scripts, which we need
+    // to put in separate tx outputs, and keep the order,
+
     throw UnimplementedError();
   }
 
+  // this may not be needed for either mints or spends or both
   Future<TxData> confirmSendSpark({
     required TxData txData,
   }) async {
@@ -82,6 +117,11 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       List myCoins = [];
 
       // fetch metadata for myCoins
+
+      // check against spent list (this call could possibly also be cached later on)
+      final spentCoinTags = await electrumXClient.getSparkUsedCoinsTags(
+        startNumber: 0,
+      );
 
       // create list of Spark Coin isar objects
 
@@ -131,6 +171,27 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
 
       rethrow;
     }
+  }
+
+  /// Transparent to Spark (mint) transaction creation
+  Future<TxData> prepareSparkMintTransaction({required TxData txData}) async {
+    // https://docs.google.com/document/d/1RG52GoYTZDvKlZz_3G4sQu-PpT6JWSZGHLNswWcrE3o/edit
+
+    // this kind of transaction is generated like a regular transaction, but in
+    // place of regulart outputs we put spark outputs, so for that we call
+    // createSparkMintRecipients function, we get spark related data,
+    // everything else we do like for regular transaction, and we put CRecipient
+    // object as a tx outputs, we need to keep the order..
+    // First we pass spark::MintedCoinData>, has following members, Address
+    // which is any spark address, amount (v) how much we want to send, and
+    // memo which can be any string with 32 length (any string we want to send
+    // to receiver), serial_context is a byte array, which should be unique for
+    // each transaction, and for that we serialize and put all inputs into
+    // serial_context vector. So we construct the input part of the transaction
+    // first then we generate spark related data. And we sign like regular
+    // transactions at the end.
+
+    throw UnimplementedError();
   }
 
   @override
