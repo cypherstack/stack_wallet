@@ -183,7 +183,7 @@ class CachedElectrumXClient {
 
       // ensure we are getting some overlap so we know we are not missing any
       if (cachedSerials.isNotEmpty && newSerials.isNotEmpty) {
-        assert(cachedSerials.contains(newSerials.first));
+        assert(cachedSerials.intersection(newSerials).isNotEmpty);
       }
 
       cachedSerials.addAll(newSerials);
