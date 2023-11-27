@@ -9,6 +9,7 @@
  */
 
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
@@ -167,21 +168,24 @@ class CachedElectrumXClient {
       Set<String> cachedSerials =
           _list == null ? {} : List<String>.from(_list).toSet();
 
-      final startNumber =
-          cachedSerials.length - 10; // 10 being some arbitrary buffer
+      startNumber = max(
+        max(0, startNumber),
+        cachedSerials.length - 100, // 100 being some arbitrary buffer
+      );
 
       final serials = await electrumXClient.getLelantusUsedCoinSerials(
         startNumber: startNumber,
       );
-      Set<String> newSerials = {};
 
-      for (final element in (serials["serials"] as List)) {
-        if (!isHexadecimal(element as String)) {
-          newSerials.add(base64ToHex(element));
-        } else {
-          newSerials.add(element);
-        }
+      final newSerials = List<String>.from(serials["serials"] as List)
+          .map((e) => !isHexadecimal(e) ? base64ToHex(e) : e)
+          .toSet();
+
+      // ensure we are getting some overlap so we know we are not missing any
+      if (cachedSerials.isNotEmpty && newSerials.isNotEmpty) {
+        assert(cachedSerials.contains(newSerials.first));
       }
+
       cachedSerials.addAll(newSerials);
 
       final resultingList = cachedSerials.toList();
