@@ -16,6 +16,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
@@ -26,7 +27,10 @@ mixin ElectrumXInterface on Bip39HDWallet {
   late CachedElectrumXClient electrumXCachedClient;
 
   double? _serverVersion;
-  bool get serverCanBatch => _serverVersion != null && _serverVersion! >= 1.6;
+  // Firo server added batching without incrementing version number...
+  bool get serverCanBatch =>
+      (_serverVersion != null && _serverVersion! >= 1.6) ||
+      cryptoCurrency is Firo;
 
   List<({String address, Amount amount})> _helperRecipientsConvert(
       List<String> addrs, List<int> satValues) {
