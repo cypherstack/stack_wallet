@@ -139,7 +139,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     // what ever class this mixin is used on uses LelantusInterface as well)
     final normalBalanceFuture = super.updateBalance();
 
-    throw UnimplementedError();
+    // todo: spark balance aka update info.tertiaryBalance
 
     // wait for normalBalanceFuture to complete before returning
     await normalBalanceFuture;
