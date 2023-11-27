@@ -559,7 +559,7 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
   Future<void> recoverLelantusWallet({
     required int latestSetId,
     required Map<dynamic, dynamic> setDataMap,
-    required List<String> usedSerialNumbers,
+    required Set<String> usedSerialNumbers,
   }) async {
     final root = await getRootHDNode();
 
@@ -568,6 +568,8 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
       chain: 0,
       index: 0,
     );
+
+    // get "m/$purpose'/$coinType'/$account'/" from "m/$purpose'/$coinType'/$account'/0/0"
     final partialDerivationPath = derivePath.substring(
       0,
       derivePath.length - 3,
@@ -593,12 +595,11 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
         .or()
         .isLelantusEqualTo(false)
         .findAll();
-    final lelantusCoins = result.lelantusCoins;
 
     // Edit the receive transactions with the mint fees.
     List<Transaction> editedTransactions = [];
 
-    for (final coin in lelantusCoins) {
+    for (final coin in result.lelantusCoins) {
       String txid = coin.txid;
       Transaction? tx;
       try {
@@ -675,7 +676,7 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
     }
 
     transactionMap.removeWhere((key, value) =>
-        lelantusCoins.any((element) => element.txid == key) ||
+        result.lelantusCoins.any((element) => element.txid == key) ||
         ((value.height == -1 || value.height == null) &&
             !value.isConfirmed(currentHeight, cryptoCurrency.minConfirms)));
 

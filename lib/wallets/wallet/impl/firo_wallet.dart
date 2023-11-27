@@ -796,14 +796,17 @@ class FiroWallet extends Bip39HDWallet
           setDataMapFuture,
         ]);
 
+        final usedSerialsSet = (futureResults[0] as List<String>).toSet();
+        final setDataMap = futureResults[1] as Map<dynamic, dynamic>;
+
         await recoverLelantusWallet(
           latestSetId: latestSetId,
-          setDataMap: futureResults[1] as Map<dynamic, dynamic>,
-          usedSerialNumbers: futureResults[0] as List<String>,
+          usedSerialNumbers: usedSerialsSet,
+          setDataMap: setDataMap,
         );
-
-        await updateBalance();
       });
+
+      await refresh();
     } catch (e, s) {
       Logging.instance.log(
           "Exception rethrown from electrumx_mixin recover(): $e\n$s",

@@ -31,7 +31,7 @@ abstract final class LelantusFfiWrapper {
     required final Bip39HDCurrency cryptoCurrency,
     required final int latestSetId,
     required final Map<dynamic, dynamic> setDataMap,
-    required final List<String> usedSerialNumbers,
+    required final Set<String> usedSerialNumbers,
     required final String walletId,
     required final String partialDerivationPath,
   }) async {
@@ -59,16 +59,17 @@ abstract final class LelantusFfiWrapper {
   // partialDerivationPath should be something like "m/$purpose'/$coinType'/$account'/"
   static Future<({List<String> spendTxIds, List<LelantusCoin> lelantusCoins})>
       _restore(
-          ({
-            String hexRootPrivateKey,
-            Uint8List chaincode,
-            Bip39HDCurrency cryptoCurrency,
-            int latestSetId,
-            Map<dynamic, dynamic> setDataMap,
-            List<String> usedSerialNumbers,
-            String walletId,
-            String partialDerivationPath,
-          }) args) async {
+    ({
+      String hexRootPrivateKey,
+      Uint8List chaincode,
+      Bip39HDCurrency cryptoCurrency,
+      int latestSetId,
+      Map<dynamic, dynamic> setDataMap,
+      Set<String> usedSerialNumbers,
+      String walletId,
+      String partialDerivationPath,
+    }) args,
+  ) async {
     List<int> jindexes = [];
     List<isar_models.LelantusCoin> lelantusCoins = [];
 
@@ -76,23 +77,20 @@ abstract final class LelantusFfiWrapper {
     int lastFoundIndex = 0;
     int currentIndex = 0;
 
-    Set<String> usedSerialNumbersSet = args.usedSerialNumbers.toSet();
-
     final root = BIP32.fromPrivateKey(
       args.hexRootPrivateKey.toUint8ListFromHex,
       args.chaincode,
     );
 
     while (currentIndex < lastFoundIndex + 50) {
-      final _derivePath =
-          "${args.partialDerivationPath}$MINT_INDEX/$currentIndex";
-
-      final mintKeyPair = root.derivePath(_derivePath);
+      final mintKeyPair = root.derivePath(
+        "${args.partialDerivationPath}$MINT_INDEX/$currentIndex",
+      );
 
       final String mintTag = lelantus.CreateTag(
         mintKeyPair.privateKey!.toHex,
         currentIndex,
-        Format.uint8listToString(mintKeyPair.identifier),
+        mintKeyPair.identifier.toHex,
         isTestnet: args.cryptoCurrency.network == CryptoCurrencyNetwork.test,
       );
 
@@ -121,7 +119,7 @@ abstract final class LelantusFfiWrapper {
               isTestnet:
                   args.cryptoCurrency.network == CryptoCurrencyNetwork.test,
             );
-            final bool isUsed = usedSerialNumbersSet.contains(serialNumber);
+            final bool isUsed = args.usedSerialNumbers.contains(serialNumber);
 
             lelantusCoins.removeWhere((e) =>
                 e.txid == txId &&
@@ -141,14 +139,13 @@ abstract final class LelantusFfiWrapper {
                     publicCoin, // not really needed but saved just in case
               ),
             );
-            debugPrint("amount $amount used $isUsed");
+            debugPrint("serial=$serialNumber amount=$amount used=$isUsed");
           } else if (thirdValue is String) {
             final int keyPath = lelantus.GetAesKeyPath(publicCoin);
 
-            final derivePath =
-                "${args.partialDerivationPath}$JMINT_INDEX/$keyPath";
-
-            final aesKeyPair = root.derivePath(derivePath);
+            final aesKeyPair = root.derivePath(
+              "${args.partialDerivationPath}$JMINT_INDEX/$keyPath",
+            );
 
             try {
               final String aesPrivateKey = aesKeyPair.privateKey!.toHex;
@@ -165,7 +162,8 @@ abstract final class LelantusFfiWrapper {
                 isTestnet:
                     args.cryptoCurrency.network == CryptoCurrencyNetwork.test,
               );
-              bool isUsed = usedSerialNumbersSet.contains(serialNumber);
+              final bool isUsed = args.usedSerialNumbers.contains(serialNumber);
+
               lelantusCoins.removeWhere((e) =>
                   e.txid == txId &&
                   e.mintIndex == currentIndex &&
@@ -188,8 +186,7 @@ abstract final class LelantusFfiWrapper {
 
               spendTxIds.add(txId);
             } catch (_) {
-              debugPrint(
-                  "AES keypair derivation issue for derive path: $derivePath");
+              debugPrint("AES keypair derivation issue for key path: $keyPath");
             }
           } else {
             debugPrint("Unexpected coin found: $foundCoin");
@@ -312,9 +309,9 @@ abstract final class LelantusFfiWrapper {
         isTestNet: arg.cryptoCurrency.network == CryptoCurrencyNetwork.test,
       ),
     );
-    var changeToMint = estimateJoinSplitFee.changeToMint;
-    var fee = estimateJoinSplitFee.fee;
-    var spendCoinIndexes = estimateJoinSplitFee.spendCoinIndexes;
+    final changeToMint = estimateJoinSplitFee.changeToMint;
+    final fee = estimateJoinSplitFee.fee;
+    final spendCoinIndexes = estimateJoinSplitFee.spendCoinIndexes;
     debugPrint("$changeToMint $fee $spendCoinIndexes");
     if (spendCoinIndexes.isEmpty) {
       throw Exception("Error, Not enough funds.");
