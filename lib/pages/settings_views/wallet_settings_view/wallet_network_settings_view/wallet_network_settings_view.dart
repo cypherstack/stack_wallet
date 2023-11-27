@@ -41,6 +41,7 @@ import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/expandable.dart';
 import 'package:stackwallet/widgets/progress_bar.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
@@ -120,85 +121,93 @@ class _WalletNetworkSettingsViewState
   Future<void> _attemptRescan() async {
     if (!Platform.isLinux) await Wakelock.enable();
 
-    int maxUnusedAddressGap = 20;
-
-    const int maxNumberOfIndexesToCheck = 1000;
-
-    unawaited(
-      showDialog<dynamic>(
-        context: context,
-        useSafeArea: false,
-        barrierDismissible: false,
-        builder: (context) => const RescanningDialog(),
-      ),
-    );
-
     try {
-      final wallet = ref.read(pWallets).getWallet(widget.walletId);
-
-      await wallet.recover(
-        isRescan: true,
-      );
-
       if (mounted) {
-        // pop rescanning dialog
-        Navigator.of(context, rootNavigator: isDesktop).pop();
-
-        // show success
-        await showDialog<dynamic>(
-          context: context,
-          useSafeArea: false,
-          barrierDismissible: true,
-          builder: (context) => StackDialog(
-            title: "Rescan completed",
-            rightButton: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getSecondaryEnabledButtonStyle(context),
-              child: Text(
-                "Ok",
-                style: STextStyles.itemSubtitle12(context),
-              ),
-              onPressed: () {
-                Navigator.of(context, rootNavigator: isDesktop).pop();
-              },
-            ),
+        unawaited(
+          showDialog<dynamic>(
+            context: context,
+            useSafeArea: false,
+            barrierDismissible: false,
+            builder: (context) => const RescanningDialog(),
           ),
         );
+
+        try {
+          final wallet = ref.read(pWallets).getWallet(widget.walletId);
+
+          await wallet.recover(
+            isRescan: true,
+          );
+
+          if (mounted) {
+            // pop rescanning dialog
+            Navigator.of(context, rootNavigator: isDesktop).pop();
+
+            // show success
+            await showDialog<dynamic>(
+              context: context,
+              useSafeArea: false,
+              barrierDismissible: true,
+              builder: (context) => ConditionalParent(
+                condition: isDesktop,
+                builder: (child) => DesktopDialog(
+                  maxHeight: 150,
+                  maxWidth: 500,
+                  child: child,
+                ),
+                child: StackDialog(
+                  title: "Rescan completed",
+                  rightButton: TextButton(
+                    style: Theme.of(context)
+                        .extension<StackColors>()!
+                        .getSecondaryEnabledButtonStyle(context),
+                    child: Text(
+                      "Ok",
+                      style: STextStyles.itemSubtitle12(context),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context, rootNavigator: isDesktop).pop();
+                    },
+                  ),
+                ),
+              ),
+            );
+          }
+        } catch (e) {
+          if (!Platform.isLinux) await Wakelock.disable();
+
+          if (mounted) {
+            // pop rescanning dialog
+            Navigator.of(context, rootNavigator: isDesktop).pop();
+
+            // show error
+            await showDialog<dynamic>(
+              context: context,
+              useSafeArea: false,
+              barrierDismissible: true,
+              builder: (context) => StackDialog(
+                title: "Rescan failed",
+                message: e.toString(),
+                rightButton: TextButton(
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getSecondaryEnabledButtonStyle(context),
+                  child: Text(
+                    "Ok",
+                    style: STextStyles.itemSubtitle12(context),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context, rootNavigator: isDesktop).pop();
+                  },
+                ),
+              ),
+            );
+          }
+        }
       }
-    } catch (e) {
+    } finally {
       if (!Platform.isLinux) await Wakelock.disable();
-
-      if (mounted) {
-        // pop rescanning dialog
-        Navigator.of(context, rootNavigator: isDesktop).pop();
-
-        // show error
-        await showDialog<dynamic>(
-          context: context,
-          useSafeArea: false,
-          barrierDismissible: true,
-          builder: (context) => StackDialog(
-            title: "Rescan failed",
-            message: e.toString(),
-            rightButton: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getSecondaryEnabledButtonStyle(context),
-              child: Text(
-                "Ok",
-                style: STextStyles.itemSubtitle12(context),
-              ),
-              onPressed: () {
-                Navigator.of(context, rootNavigator: isDesktop).pop();
-              },
-            ),
-          ),
-        );
-      }
     }
-
-    if (!Platform.isLinux) await Wakelock.disable();
   }
 
   String _percentString(double value) {
