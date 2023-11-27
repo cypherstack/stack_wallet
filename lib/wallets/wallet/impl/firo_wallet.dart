@@ -18,8 +18,13 @@ import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/lelantus_inte
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'package:tuple/tuple.dart';
 
+const sparkStartBlock = 819300; // (approx 18 Jan 2024)
+
 class FiroWallet extends Bip39HDWallet
     with ElectrumXInterface, LelantusInterface, SparkInterface {
+  // IMPORTANT: The order of the above mixins matters.
+  // SparkInterface MUST come after LelantusInterface.
+
   FiroWallet(CryptoCurrencyNetwork network) : super(Firo(network));
 
   @override

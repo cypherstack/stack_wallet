@@ -148,7 +148,7 @@ class Address extends CryptoCurrencyAddress {
   }
 }
 
-// do not modify
+// do not modify unless you know what the consequences are
 enum AddressType {
   p2pkh,
   p2sh,
@@ -159,7 +159,9 @@ enum AddressType {
   nonWallet,
   ethereum,
   nano,
-  banano;
+  banano,
+  spark,
+  ;
 
   String get readableName {
     switch (this) {
@@ -183,6 +185,8 @@ enum AddressType {
         return "Nano";
       case AddressType.banano:
         return "Banano";
+      case AddressType.spark:
+        return "Spark";
     }
   }
 }
