@@ -4,28 +4,29 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i11;
-import 'dart:typed_data' as _i19;
-import 'dart:ui' as _i16;
+import 'dart:typed_data' as _i20;
+import 'dart:ui' as _i17;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/db/isar/main_db.dart' as _i3;
 import 'package:stackwallet/models/balance.dart' as _i8;
-import 'package:stackwallet/models/isar/models/isar_models.dart' as _i21;
-import 'package:stackwallet/models/isar/stack_theme.dart' as _i18;
+import 'package:stackwallet/models/isar/models/isar_models.dart' as _i22;
+import 'package:stackwallet/models/isar/stack_theme.dart' as _i19;
 import 'package:stackwallet/models/paymint/fee_object_model.dart' as _i7;
 import 'package:stackwallet/networking/http.dart' as _i6;
-import 'package:stackwallet/services/coins/coin_service.dart' as _i20;
+import 'package:stackwallet/services/coins/coin_service.dart' as _i21;
 import 'package:stackwallet/services/node_service.dart' as _i2;
 import 'package:stackwallet/services/wallets.dart' as _i10;
-import 'package:stackwallet/services/wallets_service.dart' as _i14;
-import 'package:stackwallet/themes/theme_service.dart' as _i17;
+import 'package:stackwallet/services/wallets_service.dart' as _i15;
+import 'package:stackwallet/themes/theme_service.dart' as _i18;
 import 'package:stackwallet/utilities/amount/amount.dart' as _i9;
-import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i15;
+import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i16;
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart'
-    as _i12;
-import 'package:stackwallet/utilities/prefs.dart' as _i13;
+    as _i13;
+import 'package:stackwallet/utilities/prefs.dart' as _i14;
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart'
     as _i4;
+import 'package:stackwallet/wallets/isar/models/wallet_info.dart' as _i12;
 import 'package:stackwallet/wallets/wallet/wallet.dart' as _i5;
 
 // ignore_for_file: type=lint
@@ -185,14 +186,14 @@ class MockWallets extends _i1.Mock implements _i10.Wallets {
       );
   @override
   _i11.Future<void> deleteWallet(
-    String? walletId,
-    _i12.SecureStorageInterface? secureStorage,
+    _i12.WalletInfo? info,
+    _i13.SecureStorageInterface? secureStorage,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
           #deleteWallet,
           [
-            walletId,
+            info,
             secureStorage,
           ],
         ),
@@ -201,7 +202,7 @@ class MockWallets extends _i1.Mock implements _i10.Wallets {
       ) as _i11.Future<void>);
   @override
   _i11.Future<void> load(
-    _i13.Prefs? prefs,
+    _i14.Prefs? prefs,
     _i3.MainDB? mainDB,
   ) =>
       (super.noSuchMethod(
@@ -217,7 +218,7 @@ class MockWallets extends _i1.Mock implements _i10.Wallets {
       ) as _i11.Future<void>);
   @override
   _i11.Future<void> loadAfterStackRestore(
-    _i13.Prefs? prefs,
+    _i14.Prefs? prefs,
     List<_i5.Wallet<_i4.CryptoCurrency>>? wallets,
   ) =>
       (super.noSuchMethod(
@@ -236,18 +237,18 @@ class MockWallets extends _i1.Mock implements _i10.Wallets {
 /// A class which mocks [WalletsService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockWalletsService extends _i1.Mock implements _i14.WalletsService {
+class MockWalletsService extends _i1.Mock implements _i15.WalletsService {
   MockWalletsService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i11.Future<Map<String, _i14.WalletInfo>> get walletNames =>
+  _i11.Future<Map<String, _i15.WalletInfo>> get walletNames =>
       (super.noSuchMethod(
         Invocation.getter(#walletNames),
-        returnValue: _i11.Future<Map<String, _i14.WalletInfo>>.value(
-            <String, _i14.WalletInfo>{}),
-      ) as _i11.Future<Map<String, _i14.WalletInfo>>);
+        returnValue: _i11.Future<Map<String, _i15.WalletInfo>>.value(
+            <String, _i15.WalletInfo>{}),
+      ) as _i11.Future<Map<String, _i15.WalletInfo>>);
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
@@ -272,18 +273,18 @@ class MockWalletsService extends _i1.Mock implements _i14.WalletsService {
         returnValue: _i11.Future<bool>.value(false),
       ) as _i11.Future<bool>);
   @override
-  Map<String, _i14.WalletInfo> fetchWalletsData() => (super.noSuchMethod(
+  Map<String, _i15.WalletInfo> fetchWalletsData() => (super.noSuchMethod(
         Invocation.method(
           #fetchWalletsData,
           [],
         ),
-        returnValue: <String, _i14.WalletInfo>{},
-      ) as Map<String, _i14.WalletInfo>);
+        returnValue: <String, _i15.WalletInfo>{},
+      ) as Map<String, _i15.WalletInfo>);
   @override
   _i11.Future<void> addExistingStackWallet({
     required String? name,
     required String? walletId,
-    required _i15.Coin? coin,
+    required _i16.Coin? coin,
     required bool? shouldNotifyListeners,
   }) =>
       (super.noSuchMethod(
@@ -303,7 +304,7 @@ class MockWalletsService extends _i1.Mock implements _i14.WalletsService {
   @override
   _i11.Future<String?> addNewWallet({
     required String? name,
-    required _i15.Coin? coin,
+    required _i16.Coin? coin,
     required bool? shouldNotifyListeners,
   }) =>
       (super.noSuchMethod(
@@ -434,7 +435,7 @@ class MockWalletsService extends _i1.Mock implements _i14.WalletsService {
         returnValueForMissingStub: _i11.Future<void>.value(),
       ) as _i11.Future<void>);
   @override
-  void addListener(_i16.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i17.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -442,7 +443,7 @@ class MockWalletsService extends _i1.Mock implements _i14.WalletsService {
         returnValueForMissingStub: null,
       );
   @override
-  void removeListener(_i16.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i17.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],
@@ -470,7 +471,7 @@ class MockWalletsService extends _i1.Mock implements _i14.WalletsService {
 /// A class which mocks [ThemeService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockThemeService extends _i1.Mock implements _i17.ThemeService {
+class MockThemeService extends _i1.Mock implements _i18.ThemeService {
   MockThemeService() {
     _i1.throwOnMissingStub(this);
   }
@@ -500,10 +501,10 @@ class MockThemeService extends _i1.Mock implements _i17.ThemeService {
         ),
       ) as _i3.MainDB);
   @override
-  List<_i18.StackTheme> get installedThemes => (super.noSuchMethod(
+  List<_i19.StackTheme> get installedThemes => (super.noSuchMethod(
         Invocation.getter(#installedThemes),
-        returnValue: <_i18.StackTheme>[],
-      ) as List<_i18.StackTheme>);
+        returnValue: <_i19.StackTheme>[],
+      ) as List<_i19.StackTheme>);
   @override
   void init(_i3.MainDB? db) => super.noSuchMethod(
         Invocation.method(
@@ -513,7 +514,7 @@ class MockThemeService extends _i1.Mock implements _i17.ThemeService {
         returnValueForMissingStub: null,
       );
   @override
-  _i11.Future<void> install({required _i19.Uint8List? themeArchiveData}) =>
+  _i11.Future<void> install({required _i20.Uint8List? themeArchiveData}) =>
       (super.noSuchMethod(
         Invocation.method(
           #install,
@@ -553,39 +554,39 @@ class MockThemeService extends _i1.Mock implements _i17.ThemeService {
         returnValue: _i11.Future<bool>.value(false),
       ) as _i11.Future<bool>);
   @override
-  _i11.Future<List<_i17.StackThemeMetaData>> fetchThemes() =>
+  _i11.Future<List<_i18.StackThemeMetaData>> fetchThemes() =>
       (super.noSuchMethod(
         Invocation.method(
           #fetchThemes,
           [],
         ),
-        returnValue: _i11.Future<List<_i17.StackThemeMetaData>>.value(
-            <_i17.StackThemeMetaData>[]),
-      ) as _i11.Future<List<_i17.StackThemeMetaData>>);
+        returnValue: _i11.Future<List<_i18.StackThemeMetaData>>.value(
+            <_i18.StackThemeMetaData>[]),
+      ) as _i11.Future<List<_i18.StackThemeMetaData>>);
   @override
-  _i11.Future<_i19.Uint8List> fetchTheme(
-          {required _i17.StackThemeMetaData? themeMetaData}) =>
+  _i11.Future<_i20.Uint8List> fetchTheme(
+          {required _i18.StackThemeMetaData? themeMetaData}) =>
       (super.noSuchMethod(
         Invocation.method(
           #fetchTheme,
           [],
           {#themeMetaData: themeMetaData},
         ),
-        returnValue: _i11.Future<_i19.Uint8List>.value(_i19.Uint8List(0)),
-      ) as _i11.Future<_i19.Uint8List>);
+        returnValue: _i11.Future<_i20.Uint8List>.value(_i20.Uint8List(0)),
+      ) as _i11.Future<_i20.Uint8List>);
   @override
-  _i18.StackTheme? getTheme({required String? themeId}) =>
+  _i19.StackTheme? getTheme({required String? themeId}) =>
       (super.noSuchMethod(Invocation.method(
         #getTheme,
         [],
         {#themeId: themeId},
-      )) as _i18.StackTheme?);
+      )) as _i19.StackTheme?);
 }
 
 /// A class which mocks [CoinServiceAPI].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCoinServiceAPI extends _i1.Mock implements _i20.CoinServiceAPI {
+class MockCoinServiceAPI extends _i1.Mock implements _i21.CoinServiceAPI {
   @override
   set onIsActiveWalletChanged(void Function(bool)? _onIsActiveWalletChanged) =>
       super.noSuchMethod(
@@ -596,10 +597,10 @@ class MockCoinServiceAPI extends _i1.Mock implements _i20.CoinServiceAPI {
         returnValueForMissingStub: null,
       );
   @override
-  _i15.Coin get coin => (super.noSuchMethod(
+  _i16.Coin get coin => (super.noSuchMethod(
         Invocation.getter(#coin),
-        returnValue: _i15.Coin.bitcoin,
-      ) as _i15.Coin);
+        returnValue: _i16.Coin.bitcoin,
+      ) as _i16.Coin);
   @override
   bool get isRefreshing => (super.noSuchMethod(
         Invocation.getter(#isRefreshing),
@@ -658,16 +659,16 @@ class MockCoinServiceAPI extends _i1.Mock implements _i20.CoinServiceAPI {
         ),
       ) as _i8.Balance);
   @override
-  _i11.Future<List<_i21.Transaction>> get transactions => (super.noSuchMethod(
+  _i11.Future<List<_i22.Transaction>> get transactions => (super.noSuchMethod(
         Invocation.getter(#transactions),
         returnValue:
-            _i11.Future<List<_i21.Transaction>>.value(<_i21.Transaction>[]),
-      ) as _i11.Future<List<_i21.Transaction>>);
+            _i11.Future<List<_i22.Transaction>>.value(<_i22.Transaction>[]),
+      ) as _i11.Future<List<_i22.Transaction>>);
   @override
-  _i11.Future<List<_i21.UTXO>> get utxos => (super.noSuchMethod(
+  _i11.Future<List<_i22.UTXO>> get utxos => (super.noSuchMethod(
         Invocation.getter(#utxos),
-        returnValue: _i11.Future<List<_i21.UTXO>>.value(<_i21.UTXO>[]),
-      ) as _i11.Future<List<_i21.UTXO>>);
+        returnValue: _i11.Future<List<_i22.UTXO>>.value(<_i22.UTXO>[]),
+      ) as _i11.Future<List<_i22.UTXO>>);
   @override
   set walletName(String? newName) => super.noSuchMethod(
         Invocation.setter(

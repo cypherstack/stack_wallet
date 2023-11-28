@@ -401,9 +401,9 @@ class MockElectrumXClient extends _i1.Mock implements _i4.ElectrumXClient {
             _i5.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i5.Future<Map<String, dynamic>>);
   @override
-  _i5.Future<Map<String, dynamic>> getSparkMintMetaData({
+  _i5.Future<List<Map<String, dynamic>>> getSparkMintMetaData({
     String? requestID,
-    required List<({int denom, String pubCoin})>? sparkCoinHashes,
+    required List<String>? sparkCoinHashes,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -414,9 +414,9 @@ class MockElectrumXClient extends _i1.Mock implements _i4.ElectrumXClient {
             #sparkCoinHashes: sparkCoinHashes,
           },
         ),
-        returnValue:
-            _i5.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
-      ) as _i5.Future<Map<String, dynamic>>);
+        returnValue: _i5.Future<List<Map<String, dynamic>>>.value(
+            <Map<String, dynamic>>[]),
+      ) as _i5.Future<List<Map<String, dynamic>>>);
   @override
   _i5.Future<int> getSparkLatestCoinId({String? requestID}) =>
       (super.noSuchMethod(

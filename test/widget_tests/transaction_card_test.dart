@@ -2,7 +2,6 @@ import 'package:mockito/annotations.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/price_service.dart';
 import 'package:stackwallet/services/wallets.dart';
@@ -12,7 +11,6 @@ import 'package:stackwallet/utilities/prefs.dart';
 @GenerateMocks([
   Wallets,
   CoinServiceAPI,
-  FiroWallet,
   LocaleService,
   Prefs,
   PriceService,
