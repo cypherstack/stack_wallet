@@ -1,8 +1,10 @@
 import 'dart:typed_data';
 
+import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
@@ -27,22 +29,28 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     throw UnimplementedError();
   }
 
-  Future<Address> generateNextSparkAddress() async {
+  Future<Address> generateNextSparkAddress({int index = 1}) async {
     final highestStoredDiversifier =
         (await getCurrentReceivingSparkAddress())?.derivationIndex;
 
     // default to starting at 1 if none found
     final int diversifier = (highestStoredDiversifier ?? 0) + 1;
 
-    // TODO: use real data
-    final String derivationPath = "";
-    final Uint8List publicKey = Uint8List(0); // incomingViewKey?
-    final String addressString = "";
+    final root = await getRootHDNode();
+    final derivationPath = "$kSparkBaseDerivationPath$index";
+    final keys = root.derivePath(derivationPath);
+
+    final String addressString = await LibSpark.getAddress(
+      privateKey: keys.privateKey.data,
+      index: index,
+      diversifier: diversifier,
+      isTestNet: cryptoCurrency.network == CryptoCurrencyNetwork.test,
+    );
 
     return Address(
       walletId: walletId,
       value: addressString,
-      publicKey: publicKey,
+      publicKey: keys.publicKey.data,
       derivationIndex: diversifier,
       derivationPath: DerivationPath()..value = derivationPath,
       type: AddressType.spark,

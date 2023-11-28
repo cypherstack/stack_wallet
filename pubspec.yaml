@@ -27,6 +27,9 @@ dependencies:
   lelantus:
     path: ./crypto_plugins/flutter_liblelantus
 
+  flutter_libsparkmobile:
+    path: ../flutter_libsparkmobile
+
   flutter_libmonero:
     path: ./crypto_plugins/flutter_libmonero
 

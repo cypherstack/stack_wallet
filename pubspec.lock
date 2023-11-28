@@ -659,6 +659,13 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  flutter_libsparkmobile:
+    dependency: "direct main"
+    description:
+      path: "../flutter_libsparkmobile"
+      relative: true
+    source: path
+    version: "0.0.1"
   flutter_lints:
     dependency: "direct dev"
     description:
