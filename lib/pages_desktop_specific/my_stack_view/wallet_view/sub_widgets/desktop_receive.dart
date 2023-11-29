@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/receive_view/generate_receiving_uri_qr_code_view.dart';
 import 'package:stackwallet/pages/token_view/token_view.dart';
@@ -30,6 +31,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -57,6 +59,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
   late final Coin coin;
   late final String walletId;
   late final ClipboardInterface clipboard;
+  late final bool supportsSpark;
 
   Future<void> generateNewAddress() async {
     final wallet = ref.read(pWallets).getWallet(walletId);
@@ -98,6 +101,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
     walletId = widget.walletId;
     coin = ref.read(pWalletInfo(walletId)).coin;
     clipboard = widget.clipboard;
+    supportsSpark = ref.read(pWallets).getWallet(walletId) is SparkInterface;
 
     super.initState();
   }
@@ -111,6 +115,106 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (supportsSpark)
+          MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              onTap: () {
+                clipboard.setData(
+                  ClipboardData(text: receivingAddress),
+                );
+                showFloatingFlushBar(
+                  type: FlushBarType.info,
+                  message: "Copied to clipboard",
+                  iconAsset: Assets.svg.copy,
+                  context: context,
+                );
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .backgroundAppBar,
+                    width: 1,
+                  ),
+                  borderRadius: BorderRadius.circular(
+                    Constants.size.circularBorderRadius,
+                  ),
+                ),
+                child: RoundedWhiteContainer(
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            "Your ${widget.contractAddress == null ? coin.ticker : ref.watch(
+                                tokenServiceProvider.select(
+                                  (value) => value!.tokenContract.symbol,
+                                ),
+                              )} SPARK address",
+                            style: STextStyles.itemSubtitle(context),
+                          ),
+                          const Spacer(),
+                          Row(
+                            children: [
+                              SvgPicture.asset(
+                                Assets.svg.copy,
+                                width: 15,
+                                height: 15,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .infoItemIcons,
+                              ),
+                              const SizedBox(
+                                width: 4,
+                              ),
+                              Text(
+                                "Copy",
+                                style: STextStyles.link2(context),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(
+                        height: 8,
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: FutureBuilder<Address?>(
+                              future: (ref.watch(pWallets).getWallet(walletId)
+                                      as SparkInterface)
+                                  .getCurrentReceivingSparkAddress(),
+                              builder: (context, snapshot) {
+                                String addressString = "Error";
+                                if (snapshot.hasData) {
+                                  addressString = snapshot.data!.value;
+                                }
+
+                                return Text(
+                                  addressString,
+                                  style: STextStyles.desktopTextExtraExtraSmall(
+                                          context)
+                                      .copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
         MouseRegion(
           cursor: SystemMouseCursors.click,
           child: GestureDetector(

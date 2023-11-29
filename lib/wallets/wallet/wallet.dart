@@ -289,7 +289,10 @@ abstract class Wallet<T extends CryptoCurrency> {
 
   // listen to changes in db and updated wallet info property as required
   void _watchWalletInfo() {
-    _walletInfoStream = mainDB.isar.walletInfo.watchObject(_walletInfo.id);
+    _walletInfoStream = mainDB.isar.walletInfo.watchObject(
+      _walletInfo.id,
+      fireImmediately: true,
+    );
     _walletInfoStream.forEach((element) {
       if (element != null) {
         _walletInfo = element;

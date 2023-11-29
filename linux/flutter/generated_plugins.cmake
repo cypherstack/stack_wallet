@@ -7,7 +7,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   devicelocale
   flutter_libepiccash
   flutter_libmonero
-  flutter_libsparkmobile
   flutter_secure_storage_linux
   isar_flutter_libs
   stack_wallet_backup
@@ -17,6 +16,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
   coinlib_flutter
+  flutter_libsparkmobile
   tor_ffi_plugin
 )
 

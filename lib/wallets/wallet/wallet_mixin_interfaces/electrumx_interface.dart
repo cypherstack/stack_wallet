@@ -1641,7 +1641,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
 
   @override
   Future<void> updateUTXOs() async {
-    final allAddresses = await fetchAllOwnAddresses();
+    final allAddresses = await fetchAddressesForElectrumXScan();
 
     try {
       final fetchedUtxoList = <List<Map<String, dynamic>>>[];
@@ -1856,7 +1856,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
   int estimateTxFee({required int vSize, required int feeRatePerKB});
   Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB);
 
-  Future<List<Address>> fetchAllOwnAddresses();
+  Future<List<Address>> fetchAddressesForElectrumXScan();
 
   /// Certain coins need to check if the utxo should be marked
   /// as blocked as well as give a reason.

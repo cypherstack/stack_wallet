@@ -63,7 +63,7 @@ class BitcoincashWallet extends Bip39HDWallet
   // ===========================================================================
 
   @override
-  Future<List<Address>> fetchAllOwnAddresses() async {
+  Future<List<Address>> fetchAddressesForElectrumXScan() async {
     final allAddresses = await mainDB
         .getAddresses(walletId)
         .filter()
@@ -94,7 +94,7 @@ class BitcoincashWallet extends Bip39HDWallet
 
   @override
   Future<void> updateTransactions() async {
-    List<Address> allAddressesOld = await fetchAllOwnAddresses();
+    List<Address> allAddressesOld = await fetchAddressesForElectrumXScan();
 
     Set<String> receivingAddresses = allAddressesOld
         .where((e) => e.subType == AddressSubType.receiving)

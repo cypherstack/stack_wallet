@@ -24,7 +24,7 @@ class DogecoinWallet extends Bip39HDWallet
   // ===========================================================================
 
   @override
-  Future<List<Address>> fetchAllOwnAddresses() async {
+  Future<List<Address>> fetchAddressesForElectrumXScan() async {
     final allAddresses = await mainDB
         .getAddresses(walletId)
         .filter()
@@ -47,7 +47,7 @@ class DogecoinWallet extends Bip39HDWallet
 
     // TODO: [prio=med] switch to V2 transactions
     final data = await fetchTransactionsV1(
-      addresses: await fetchAllOwnAddresses(),
+      addresses: await fetchAddressesForElectrumXScan(),
       currentChainHeight: currentChainHeight,
     );
 

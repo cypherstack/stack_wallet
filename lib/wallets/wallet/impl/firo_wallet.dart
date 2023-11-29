@@ -37,24 +37,6 @@ class FiroWallet extends Bip39HDWallet
 
   // ===========================================================================
 
-  @override
-  Future<List<Address>> fetchAllOwnAddresses() async {
-    final allAddresses = await mainDB
-        .getAddresses(walletId)
-        .filter()
-        .not()
-        .group(
-          (q) => q
-              .typeEqualTo(AddressType.nonWallet)
-              .or()
-              .subTypeEqualTo(AddressSubType.nonWallet),
-        )
-        .findAll();
-    return allAddresses;
-  }
-
-  // ===========================================================================
-
   bool _duplicateTxCheck(
       List<Map<String, dynamic>> allTransactions, String txid) {
     for (int i = 0; i < allTransactions.length; i++) {
@@ -67,7 +49,7 @@ class FiroWallet extends Bip39HDWallet
 
   @override
   Future<void> updateTransactions() async {
-    final allAddresses = await fetchAllOwnAddresses();
+    final allAddresses = await fetchAddressesForElectrumXScan();
 
     Set<String> receivingAddresses = allAddresses
         .where((e) => e.subType == AddressSubType.receiving)

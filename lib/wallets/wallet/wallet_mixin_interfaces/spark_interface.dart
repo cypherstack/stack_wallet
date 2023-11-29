@@ -10,6 +10,40 @@ import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 
 mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
+  @override
+  Future<void> init() async {
+    Address? address = await getCurrentReceivingSparkAddress();
+    if (address == null) {
+      address = await generateNextSparkAddress();
+      await mainDB.putAddress(address);
+    } // TODO add other address types to wallet info?
+
+    // await info.updateReceivingAddress(
+    //   newAddress: address.value,
+    //   isar: mainDB.isar,
+    // );
+
+    await super.init();
+  }
+
+  @override
+  Future<List<Address>> fetchAddressesForElectrumXScan() async {
+    final allAddresses = await mainDB
+        .getAddresses(walletId)
+        .filter()
+        .not()
+        .group(
+          (q) => q
+              .typeEqualTo(AddressType.spark)
+              .or()
+              .typeEqualTo(AddressType.nonWallet)
+              .or()
+              .subTypeEqualTo(AddressSubType.nonWallet),
+        )
+        .findAll();
+    return allAddresses;
+  }
+
   Future<Address?> getCurrentReceivingSparkAddress() async {
     return await mainDB.isar.addresses
         .where()
@@ -29,15 +63,18 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     throw UnimplementedError();
   }
 
-  Future<Address> generateNextSparkAddress({int index = 1}) async {
+  Future<Address> generateNextSparkAddress() async {
     final highestStoredDiversifier =
         (await getCurrentReceivingSparkAddress())?.derivationIndex;
 
     // default to starting at 1 if none found
     final int diversifier = (highestStoredDiversifier ?? 0) + 1;
 
+    // TODO: check that this stays constant and only the diversifier changes?
+    const index = 1;
+
     final root = await getRootHDNode();
-    final derivationPath = "$kSparkBaseDerivationPath$index";
+    const derivationPath = "$kSparkBaseDerivationPath$index";
     final keys = root.derivePath(derivationPath);
 
     final String addressString = await LibSpark.getAddress(
