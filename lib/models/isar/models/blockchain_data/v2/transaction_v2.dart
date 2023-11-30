@@ -84,7 +84,14 @@ class TransactionV2 {
         .where((e) => e.walletOwns)
         .fold(BigInt.zero, (p, e) => p + e.value);
 
-    return Amount(rawValue: inSum, fractionDigits: coin.decimals);
+    return Amount(
+          rawValue: inSum,
+          fractionDigits: coin.decimals,
+        ) -
+        getAmountReceivedThisWallet(
+          coin: coin,
+        ) -
+        getFee(coin: coin);
   }
 
   Set<String> associatedAddresses() => {
