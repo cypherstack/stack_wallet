@@ -482,7 +482,8 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                             } else {
                               await Navigator.of(context).pushNamed(
                                 coin == Coin.bitcoincash ||
-                                        coin == Coin.bitcoincashTestnet
+                                        coin == Coin.bitcoincashTestnet ||
+                                        coin == Coin.eCash
                                     ? AllTransactionsV2View.routeName
                                     : AllTransactionsView.routeName,
                                 arguments: widget.walletId,
@@ -520,7 +521,8 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                               walletId: widget.walletId,
                             )
                           : coin == Coin.bitcoincash ||
-                                  coin == Coin.bitcoincashTestnet
+                                  coin == Coin.bitcoincashTestnet ||
+                                  coin == Coin.eCash
                               ? TransactionsV2List(
                                   walletId: widget.walletId,
                                 )

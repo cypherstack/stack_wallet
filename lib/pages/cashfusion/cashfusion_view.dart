@@ -61,10 +61,11 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
   FusionOption _option = FusionOption.continuous;
 
   Future<void> _startFusion() async {
-    final fusionWallet = ref
+    final wallet = ref
         .read(walletsChangeNotifierProvider)
         .getManager(widget.walletId)
-        .wallet as FusionWalletInterface;
+        .wallet;
+    final fusionWallet = wallet as FusionWalletInterface;
 
     try {
       fusionWallet.uiState = ref.read(
@@ -89,7 +90,9 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
     );
 
     // update user prefs (persistent)
-    ref.read(prefsChangeNotifierProvider).fusionServerInfo = newInfo;
+    ref
+        .read(prefsChangeNotifierProvider)
+        .setFusionServerInfo(wallet.coin, newInfo);
 
     unawaited(
       fusionWallet.fuse(
@@ -113,7 +116,11 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
     portFocusNode = FocusNode();
     fusionRoundFocusNode = FocusNode();
 
-    final info = ref.read(prefsChangeNotifierProvider).fusionServerInfo;
+    final info = ref.read(prefsChangeNotifierProvider).getFusionServerInfo(ref
+        .read(walletsChangeNotifierProvider)
+        .getManager(widget.walletId)
+        .wallet
+        .coin);
     serverController.text = info.host;
     portController.text = info.port.toString();
     _enableSSLCheckbox = info.ssl;
@@ -150,7 +157,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
             automaticallyImplyLeading: false,
             leading: const AppBarBackButton(),
             title: Text(
-              "CashFusion",
+              "Fusion",
               style: STextStyles.navBarTitle(context),
             ),
             titleSpacing: 0,
@@ -189,7 +196,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                         children: [
                           RoundedWhiteContainer(
                             child: Text(
-                              "CashFusion allows you to anonymize your BCH coins.",
+                              "Fusion helps anonymize your coins by mixing them.",
                               style: STextStyles.w500_12(context).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
@@ -214,7 +221,11 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                               CustomTextButton(
                                 text: "Default",
                                 onTap: () {
-                                  const def = FusionInfo.DEFAULTS;
+                                  final def = kFusionServerInfoDefaults[ref
+                                      .read(walletsChangeNotifierProvider)
+                                      .getManager(widget.walletId)
+                                      .wallet
+                                      .coin]!;
                                   serverController.text = def.host;
                                   portController.text = def.port.toString();
                                   fusionRoundController.text =

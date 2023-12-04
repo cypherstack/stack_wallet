@@ -8,6 +8,8 @@
  *
  */
 
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/services/event_bus/events/global/tor_status_changed_event.dart';
@@ -936,32 +938,74 @@ class Prefs extends ChangeNotifier {
 
   // fusion server info
 
-  FusionInfo _fusionServerInfo = FusionInfo.DEFAULTS;
+  Map<Coin, FusionInfo> _fusionServerInfo = {};
 
-  FusionInfo get fusionServerInfo => _fusionServerInfo;
+  FusionInfo getFusionServerInfo(Coin coin) {
+    return _fusionServerInfo[coin] ?? kFusionServerInfoDefaults[coin]!;
+  }
 
-  set fusionServerInfo(FusionInfo fusionServerInfo) {
-    if (this.fusionServerInfo != fusionServerInfo) {
+  void setFusionServerInfo(Coin coin, FusionInfo fusionServerInfo) {
+    if (_fusionServerInfo[coin] != fusionServerInfo) {
+      _fusionServerInfo[coin] = fusionServerInfo;
+
       DB.instance.put<dynamic>(
         boxName: DB.boxNamePrefs,
-        key: "fusionServerInfo",
-        value: fusionServerInfo.toJsonString(),
+        key: "fusionServerInfoMap",
+        value: _fusionServerInfo.map(
+          (key, value) => MapEntry(
+            key.name,
+            value.toJsonString(),
+          ),
+        ),
       );
-      _fusionServerInfo = fusionServerInfo;
       notifyListeners();
     }
   }
 
-  Future<FusionInfo> _getFusionServerInfo() async {
-    final saved = await DB.instance.get<dynamic>(
+  Future<Map<Coin, FusionInfo>> _getFusionServerInfo() async {
+    final map = await DB.instance.get<dynamic>(
       boxName: DB.boxNamePrefs,
-      key: "fusionServerInfo",
-    ) as String?;
+      key: "fusionServerInfoMap",
+    ) as Map?;
 
-    try {
-      return FusionInfo.fromJsonString(saved!);
-    } catch (_) {
-      return FusionInfo.DEFAULTS;
+    if (map == null) {
+      return _fusionServerInfo;
     }
+
+    final actualMap = Map<String, String>.from(map).map(
+      (key, value) => MapEntry(
+        coinFromPrettyName(key),
+        FusionInfo.fromJsonString(value),
+      ),
+    );
+
+    // legacy bch check
+    if (actualMap[Coin.bitcoincash] == null ||
+        actualMap[Coin.bitcoincashTestnet] == null) {
+      final saved = await DB.instance.get<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "fusionServerInfo",
+      ) as String?;
+
+      if (saved != null) {
+        final bchInfo = FusionInfo.fromJsonString(saved);
+        actualMap[Coin.bitcoincash] = bchInfo;
+        actualMap[Coin.bitcoincashTestnet] = bchInfo;
+        unawaited(
+          DB.instance.put<dynamic>(
+            boxName: DB.boxNamePrefs,
+            key: "fusionServerInfoMap",
+            value: actualMap.map(
+              (key, value) => MapEntry(
+                key.name,
+                value.toJsonString(),
+              ),
+            ),
+          ),
+        );
+      }
+    }
+
+    return actualMap;
   }
 }
