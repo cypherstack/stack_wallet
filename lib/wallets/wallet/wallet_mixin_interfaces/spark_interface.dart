@@ -4,7 +4,9 @@ import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/extensions/impl/uint8_list.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:stackwallet/wallets/isar/models/spark_coin.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
@@ -151,26 +153,81 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
   // have not yet parsed.
   Future<void> refreshSparkData() async {
     try {
+      final privateKeyHex = "TODO";
+      final index = 0;
+
       final latestSparkCoinId = await electrumXClient.getSparkLatestCoinId();
 
-      // TODO improve performance by adding this call to the cached client
-      final anonymitySet = await electrumXClient.getSparkAnonymitySet(
-        coinGroupId: latestSparkCoinId.toString(),
-      );
+      // TODO improve performance by adding these calls to the cached client
+      final futureResults = await Future.wait([
+        electrumXClient.getSparkAnonymitySet(
+          coinGroupId: latestSparkCoinId.toString(),
+        ),
+        electrumXClient.getSparkUsedCoinsTags(
+          startNumber: 0,
+        ),
+      ]);
 
-      // TODO loop over set and see which coins are ours using the FFI call `identifyCoin`
-      List myCoins = [];
+      final anonymitySet = futureResults[0];
+      final spentCoinTags = List<String>.from(
+        futureResults[1]["tags"] as List,
+      ).toSet();
 
-      // fetch metadata for myCoins
+      // find our coins
+      final List<SparkCoin> myCoins = [];
+      for (final data
+          in List<List<String>>.from(anonymitySet["coin"] as List)) {
+        if (data.length != 2) {
+          throw Exception("Unexpected serialized coin info found");
+        }
 
-      // check against spent list (this call could possibly also be cached later on)
-      final spentCoinTags = await electrumXClient.getSparkUsedCoinsTags(
-        startNumber: 0,
-      );
+        final serializedCoin = data.first;
+        final txHash = data.last;
 
-      // create list of Spark Coin isar objects
+        final coin = LibSpark.identifyAndRecoverCoin(
+          serializedCoin,
+          privateKeyHex: privateKeyHex,
+          index: index,
+        );
+
+        // its ours
+        if (coin != null) {
+          final SparkCoinType coinType;
+          switch (coin.type.value) {
+            case 0:
+              coinType = SparkCoinType.mint;
+            case 1:
+              coinType = SparkCoinType.spend;
+            default:
+              throw Exception("Unknown spark coin type detected");
+          }
+          myCoins.add(
+            SparkCoin(
+              walletId: walletId,
+              type: coinType,
+              isUsed: spentCoinTags
+                  .contains(coin.lTagHash!.toHex), // TODO: is hex right?
+              address: coin.address!,
+              txHash: txHash,
+              valueIntString: coin.value!.toString(),
+              lTagHash: coin.lTagHash!.toHex, // TODO: is hex right?
+              tag: coin.tag,
+              memo: coin.memo,
+              serial: coin.serial,
+              serialContext: coin.serialContext,
+              diversifierIntString: coin.diversifier!.toString(),
+              encryptedDiversifier: coin.encryptedDiversifier,
+            ),
+          );
+        }
+      }
 
       // update wallet spark coins in isar
+      if (myCoins.isNotEmpty) {
+        await mainDB.isar.writeTxn(() async {
+          await mainDB.isar.sparkCoins.putAll(myCoins);
+        });
+      }
 
       // refresh spark balance?
 
