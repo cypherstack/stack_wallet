@@ -2007,6 +2007,7 @@ class _SendViewState extends ConsumerState<SendView> {
                           ),
                           if (coin != Coin.epicCash &&
                               coin != Coin.nano &&
+                              coin != Coin.tezos &&
                               coin != Coin.banano)
                             Text(
                               "Transaction fee (estimated)",
@@ -2015,12 +2016,14 @@ class _SendViewState extends ConsumerState<SendView> {
                             ),
                           if (coin != Coin.epicCash &&
                               coin != Coin.nano &&
+                              coin != Coin.tezos &&
                               coin != Coin.banano)
                             const SizedBox(
                               height: 8,
                             ),
                           if (coin != Coin.epicCash &&
                               coin != Coin.nano &&
+                              coin != Coin.tezos &&
                               coin != Coin.banano)
                             Stack(
                               children: [

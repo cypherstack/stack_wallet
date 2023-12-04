@@ -142,6 +142,14 @@ packages:
       url: "https://github.com/cypherstack/bitcoindart.git"
     source: git
     version: "3.0.1"
+  blockchain_signer:
+    dependency: transitive
+    description:
+      name: blockchain_signer
+      sha256: aa62c62df1fec11dbce7516444715ae492862ebdf3108b8b464a1909827963cd
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.0"
   boolean_selector:
     dependency: transitive
     description:
@@ -1649,10 +1657,11 @@ packages:
   tezart:
     dependency: "direct main"
     description:
-      name: tezart
-      sha256: "35d526f2e6ca250c64461ebfb4fa9f64b6599fab8c4242c8e89ae27d4ac2e15a"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: main
+      resolved-ref: "8a7070f533e63dd150edae99476f6853bfb25913"
+      url: "https://github.com/cypherstack/tezart.git"
+    source: git
     version: "2.0.5"
   time:
     dependency: transitive
