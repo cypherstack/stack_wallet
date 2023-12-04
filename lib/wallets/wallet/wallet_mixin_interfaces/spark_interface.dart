@@ -4,7 +4,6 @@ import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/extensions/impl/uint8_list.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/spark_coin.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
@@ -205,12 +204,11 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
             SparkCoin(
               walletId: walletId,
               type: coinType,
-              isUsed: spentCoinTags
-                  .contains(coin.lTagHash!.toHex), // TODO: is hex right?
+              isUsed: spentCoinTags.contains(coin.lTagHash!),
               address: coin.address!,
               txHash: txHash,
               valueIntString: coin.value!.toString(),
-              lTagHash: coin.lTagHash!.toHex, // TODO: is hex right?
+              lTagHash: coin.lTagHash!,
               tag: coin.tag,
               memo: coin.memo,
               serial: coin.serial,
