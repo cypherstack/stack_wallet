@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
@@ -205,7 +206,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
           }
 
           final serializedCoin = data.first;
-          final txHash = data.last;
+          final txHash = base64ToReverseHex(data.last);
 
           final coin = LibSpark.identifyAndRecoverCoin(
             serializedCoin,
@@ -332,3 +333,9 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     await normalBalanceFuture;
   }
 }
+
+String base64ToReverseHex(String source) =>
+    base64Decode(LineSplitter.split(source).join())
+        .reversed
+        .map((e) => e.toRadixString(16).padLeft(2, '0'))
+        .join();
