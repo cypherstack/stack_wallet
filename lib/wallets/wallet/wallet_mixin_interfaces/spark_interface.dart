@@ -152,8 +152,12 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
   // have not yet parsed.
   Future<void> refreshSparkData() async {
     try {
-      final privateKeyHex = "TODO";
-      final index = 0;
+      const privateKeyHex =
+          "8acecb5844fbcb700706a90385d20e4752ec8aecb2d13b8f03d685374e2539b2";
+      // This corresponds to the `jazz settle...` test mnemonic included in the
+      // plugin integration test.  TODO move to test.
+      const index = 1;
+      //
 
       final latestSparkCoinId = await electrumXClient.getSparkLatestCoinId();
 
