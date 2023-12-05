@@ -178,8 +178,9 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
 
       // find our coins
       final List<SparkCoin> myCoins = [];
-      for (final data
-          in List<List<String>>.from(anonymitySet["coin"] as List)) {
+      // for (final data
+      //     in List<List<String>>.from(anonymitySet["coin"] as List)) {
+      for (final data in anonymitySet["coins"] as List) {
         if (data.length != 2) {
           throw Exception("Unexpected serialized coin info found");
         }
@@ -188,9 +189,10 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         final txHash = data.last;
 
         final coin = LibSpark.identifyAndRecoverCoin(
-          serializedCoin,
+          "$serializedCoin",
           privateKeyHex: privateKeyHex,
           index: index,
+          isTestNet: true,
         );
 
         // its ours
