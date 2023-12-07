@@ -333,6 +333,23 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     throw UnimplementedError();
   }
 
+  /// Broadcast a tx and TODO update Spark balance.
+  Future<TxData> confirmSparkMintTransaction({required TxData txData}) async {
+    // Broadcast tx.
+    final txid = await electrumXClient.broadcastTransaction(
+      rawTx: txData.raw!,
+    );
+
+    // Check txid.
+    assert(txid == txData.txid!);
+
+    // TODO update spark balance.
+
+    return txData.copyWith(
+      txid: txid,
+    );
+  }
+
   @override
   Future<void> updateBalance() async {
     // call to super to update transparent balance (and lelantus balance if
