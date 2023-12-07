@@ -881,7 +881,7 @@ class ElectrumXClient {
   ///
   /// Returns blockHash (last block hash),
   /// setHash (hash of current set)
-  /// and mints (the list of pairs serialized coin and tx hash)
+  /// and coins (the list of pairs serialized coin and tx hash)
   Future<Map<String, dynamic>> getSparkAnonymitySet({
     String coinGroupId = "1",
     String startBlockHash = "",
