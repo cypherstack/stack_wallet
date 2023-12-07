@@ -850,9 +850,10 @@ class NanoWallet extends CoinServiceAPI with WalletCache, WalletDB {
   int get storedChainHeight => getCachedChainHeight();
 
   NodeModel getCurrentNode() {
-    return _xnoNode ??
-        NodeService(secureStorageInterface: _secureStore)
-            .getPrimaryNodeFor(coin: coin) ??
+    return
+        // _xnoNode ??
+        //   NodeService(secureStorageInterface: _secureStore)
+        //       .getPrimaryNodeFor(coin: coin) ??
         DefaultNodes.getNodeFor(coin);
   }
 
