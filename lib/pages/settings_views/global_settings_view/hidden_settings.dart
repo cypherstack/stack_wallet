@@ -26,6 +26,7 @@ import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -605,6 +606,55 @@ class HiddenSettings extends StatelessWidget {
                               child: RoundedWhiteContainer(
                                 child: Text(
                                   "Refresh Spark wallet",
+                                  style: STextStyles.button(context).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(
+                          height: 12,
+                        ),
+                        Consumer(
+                          builder: (_, ref, __) {
+                            return GestureDetector(
+                              onTap: () async {
+                                try {
+                                  // Run prepareSparkMintTransaction.
+                                  for (final wallet
+                                      in ref.read(pWallets).wallets) {
+                                    // Prepare tx with a Firo testnet wallet.
+                                    if (!(wallet.info.coin ==
+                                        Coin.firoTestNet)) {
+                                      continue;
+                                    }
+                                    final walletId = wallet.info.walletId;
+
+                                    // Get a Spark interface.
+                                    final fusionWallet = ref
+                                        .read(pWallets)
+                                        .getWallet(walletId) as SparkInterface;
+
+                                    // Make a dummy TxData.
+                                    TxData txData = TxData(); // TODO
+
+                                    await fusionWallet
+                                        .prepareSparkMintTransaction(
+                                            txData: txData);
+
+                                    // We only need to run this once.
+                                    break;
+                                  }
+                                } catch (e, s) {
+                                  print("$e\n$s");
+                                }
+                              },
+                              child: RoundedWhiteContainer(
+                                child: Text(
+                                  "Prepare Spark mint transaction",
                                   style: STextStyles.button(context).copyWith(
                                       color: Theme.of(context)
                                           .extension<StackColors>()!
