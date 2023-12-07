@@ -300,12 +300,12 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     }
   }
 
-  /// Transparent to Spark (mint) transaction creation
+  /// Transparent to Spark (mint) transaction creation.
   Future<TxData> prepareSparkMintTransaction({required TxData txData}) async {
     // https://docs.google.com/document/d/1RG52GoYTZDvKlZz_3G4sQu-PpT6JWSZGHLNswWcrE3o/edit
 
     // this kind of transaction is generated like a regular transaction, but in
-    // place of regulart outputs we put spark outputs, so for that we call
+    // place of regular outputs we put spark outputs, so for that we call
     // createSparkMintRecipients function, we get spark related data,
     // everything else we do like for regular transaction, and we put CRecipient
     // object as a tx outputs, we need to keep the order..
@@ -318,8 +318,35 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     // first then we generate spark related data. And we sign like regular
     // transactions at the end.
 
-    List<int> serialContext = [];
+    // Validate inputs.
 
+    // There should be at least one recipient.
+    if (txData.recipients == null || txData.recipients!.isEmpty) {
+      throw Exception("No recipients provided");
+    }
+
+    // For now let's limit to one recipient.
+    if (txData.recipients!.length > 1) {
+      throw Exception("Only one recipient supported");
+    }
+
+    // Limit outputs per tx to 16.
+    //
+    // See SPARK_OUT_LIMIT_PER_TX at https://github.com/firoorg/sparkmobile/blob/ef2e39aae18ecc49e0ddc63a3183e9764b96012e/include/spark.h#L16
+    // TODO limit outputs to 16.
+
+    // Limit spend value per tx to 1000000000000 satoshis.
+    //
+    // See SPARK_VALUE_SPEND_LIMIT_PER_TRANSACTION at https://github.com/firoorg/sparkmobile/blob/ef2e39aae18ecc49e0ddc63a3183e9764b96012e/include/spark.h#L17
+    // and COIN https://github.com/firoorg/sparkmobile/blob/ef2e39aae18ecc49e0ddc63a3183e9764b96012e/bitcoin/amount.h#L17
+    // Note that as MAX_MONEY is greater than this limit, we can ignore it.  See https://github.com/firoorg/sparkmobile/blob/ef2e39aae18ecc49e0ddc63a3183e9764b96012e/bitcoin/amount.h#L31
+    // TODO limit spend value per tx to 1000000000000 satoshis.
+
+    // Create the serial context.
+    List<int> serialContext = [];
+    // TODO set serialContext to the serialized inputs.
+
+    // Create outputs.
     final mintRecipients = LibSpark.createSparkMintRecipients(
       outputs: txData.recipients!
           .map((e) => (
@@ -330,6 +357,9 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
           .toList(),
       serialContext: Uint8List.fromList(serialContext),
     );
+
+    // TODO Add outputs to txData.
+
     throw UnimplementedError();
   }
 
