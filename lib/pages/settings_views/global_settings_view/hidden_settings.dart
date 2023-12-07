@@ -23,8 +23,10 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/onetime_popups/tor_has_been_add_dialog.dart';
@@ -543,6 +545,66 @@ class HiddenSettings extends StatelessWidget {
                               child: RoundedWhiteContainer(
                                 child: Text(
                                   "Spark getSparkLatestCoinId",
+                                  style: STextStyles.button(context).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(
+                          height: 12,
+                        ),
+                        Consumer(
+                          builder: (_, ref, __) {
+                            return GestureDetector(
+                              onTap: () async {
+                                try {
+                                  // Run refreshSparkData.
+                                  //
+                                  // Search wallets for a Firo testnet wallet.
+                                  for (final wallet
+                                      in ref.read(pWallets).wallets) {
+                                    if (!(wallet.info.coin ==
+                                        Coin.firoTestNet)) {
+                                      continue;
+                                    }
+                                    // This is a Firo testnet wallet.
+                                    final walletId = wallet.info.walletId;
+
+                                    // // Search for `circle chunk...` mnemonic.
+                                    // final potentialWallet =
+                                    //     ref.read(pWallets).getWallet(walletId)
+                                    //         as MnemonicInterface;
+                                    // final mnemonic = await potentialWallet
+                                    //     .getMnemonicAsWords();
+                                    // if (!(mnemonic[0] == "circle" &&
+                                    //     mnemonic[1] == "chunk)")) {
+                                    //   // That ain't it.  Skip this one.
+                                    //   return;
+                                    // }
+                                    // Hardcode key in refreshSparkData instead.
+
+                                    // Get a Spark interface.
+                                    final fusionWallet = ref
+                                        .read(pWallets)
+                                        .getWallet(walletId) as SparkInterface;
+
+                                    // Refresh Spark data.
+                                    await fusionWallet.refreshSparkData();
+
+                                    // We only need to run this once.
+                                    break;
+                                  }
+                                } catch (e, s) {
+                                  print("$e\n$s");
+                                }
+                              },
+                              child: RoundedWhiteContainer(
+                                child: Text(
+                                  "Refresh Spark wallet",
                                   style: STextStyles.button(context).copyWith(
                                       color: Theme.of(context)
                                           .extension<StackColors>()!
