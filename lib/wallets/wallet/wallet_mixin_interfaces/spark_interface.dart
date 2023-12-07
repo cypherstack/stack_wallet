@@ -318,6 +318,18 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     // first then we generate spark related data. And we sign like regular
     // transactions at the end.
 
+    List<int> serialContext = [];
+
+    final mintRecipients = LibSpark.createSparkMintRecipients(
+      outputs: txData.utxos!
+          .map((e) => (
+                sparkAddress: e.address!,
+                value: e.value,
+                memo: "Stackwallet spark mint"
+              ))
+          .toList(),
+      serialContext: Uint8List.fromList(serialContext),
+    );
     throw UnimplementedError();
   }
 
