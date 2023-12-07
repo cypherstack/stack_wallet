@@ -321,10 +321,10 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     List<int> serialContext = [];
 
     final mintRecipients = LibSpark.createSparkMintRecipients(
-      outputs: txData.utxos!
+      outputs: txData.recipients!
           .map((e) => (
-                sparkAddress: e.address!,
-                value: e.value,
+                sparkAddress: e.address,
+                value: e.amount.raw.toInt(),
                 memo: "Stackwallet spark mint"
               ))
           .toList(),
