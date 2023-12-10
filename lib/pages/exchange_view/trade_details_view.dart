@@ -88,7 +88,10 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
 
   bool isStackCoin(String ticker) {
     try {
-      coinFromTickerCaseInsensitive(ticker);
+      try {
+        coinFromTickerCaseInsensitive(ticker);
+      } catch (_) {}
+      coinFromPrettyName(ticker);
       return true;
     } on ArgumentError catch (_) {
       return false;
@@ -272,8 +275,13 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       label: "Send from Stack",
                       buttonHeight: ButtonHeight.l,
                       onPressed: () {
-                        final coin =
-                            coinFromTickerCaseInsensitive(trade.payInCurrency);
+                        Coin coin;
+                        try {
+                          coin = coinFromTickerCaseInsensitive(
+                              trade.payInCurrency);
+                        } catch (_) {
+                          coin = coinFromPrettyName(trade.payInCurrency);
+                        }
                         final amount = Amount.fromDecimal(
                           sendAmount,
                           fractionDigits: coin.decimals,
@@ -1349,8 +1357,12 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
               SecondaryButton(
                 label: "Send from Stack",
                 onPressed: () {
-                  final coin =
-                      coinFromTickerCaseInsensitive(trade.payInCurrency);
+                  Coin coin;
+                  try {
+                    coin = coinFromTickerCaseInsensitive(trade.payInCurrency);
+                  } catch (_) {
+                    coin = coinFromPrettyName(trade.payInCurrency);
+                  }
                   final amount = Amount.fromDecimal(
                     sendAmount,
                     fractionDigits: coin.decimals,
