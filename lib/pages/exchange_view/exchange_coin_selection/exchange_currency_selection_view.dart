@@ -107,6 +107,7 @@ class _ExchangeCurrencySelectionViewState
     if (widget.pairedTicker == null) {
       return await _getCurrencies();
     }
+    await ExchangeDataLoadingService.instance.initDB();
     List<Currency> currencies = await ExchangeDataLoadingService
         .instance.isar.currencies
         .where()
@@ -153,6 +154,7 @@ class _ExchangeCurrencySelectionViewState
   }
 
   Future<List<Currency>> _getCurrencies() async {
+    await ExchangeDataLoadingService.instance.initDB();
     final currencies = await ExchangeDataLoadingService.instance.isar.currencies
         .where()
         .filter()
