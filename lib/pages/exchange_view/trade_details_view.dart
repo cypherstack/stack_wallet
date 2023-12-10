@@ -274,8 +274,10 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       onPressed: () {
                         final coin =
                             coinFromTickerCaseInsensitive(trade.payInCurrency);
-                        final amount =
-                            sendAmount.toAmount(fractionDigits: coin.decimals);
+                        final amount = Amount.fromDecimal(
+                          sendAmount,
+                          fractionDigits: coin.decimals,
+                        );
                         final address = trade.payInAddress;
 
                         Navigator.of(context).pushNamed(
@@ -1347,11 +1349,13 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
               SecondaryButton(
                 label: "Send from Stack",
                 onPressed: () {
-                  final amount = sendAmount;
-                  final address = trade.payInAddress;
-
                   final coin =
                       coinFromTickerCaseInsensitive(trade.payInCurrency);
+                  final amount = Amount.fromDecimal(
+                    sendAmount,
+                    fractionDigits: coin.decimals,
+                  );
+                  final address = trade.payInAddress;
 
                   Navigator.of(context).pushNamed(
                     SendFromView.routeName,
