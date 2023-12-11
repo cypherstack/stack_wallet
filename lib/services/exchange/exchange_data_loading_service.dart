@@ -196,6 +196,9 @@ class ExchangeDataLoadingService {
   }
 
   Future<void> _loadChangeNowCurrencies() async {
+    if (_isar == null) {
+      await initDB();
+    }
     final exchange = ChangeNowExchange.instance;
     final responseCurrencies = await exchange.getAllCurrencies(false);
     if (responseCurrencies.value != null) {
@@ -325,6 +328,9 @@ class ExchangeDataLoadingService {
   // }
 
   Future<void> loadMajesticBankCurrencies() async {
+    if (_isar == null) {
+      await initDB();
+    }
     final exchange = MajesticBankExchange.instance;
     final responseCurrencies = await exchange.getAllCurrencies(false);
 
@@ -347,6 +353,9 @@ class ExchangeDataLoadingService {
   }
 
   Future<void> loadTrocadorCurrencies() async {
+    if (_isar == null) {
+      await initDB();
+    }
     final exchange = TrocadorExchange.instance;
     final responseCurrencies = await exchange.getAllCurrencies(false);
 
