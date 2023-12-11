@@ -21,6 +21,7 @@ import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dar
 import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
+import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -110,7 +111,10 @@ class _ExchangeCurrencySelectionViewState
     List<Currency> currencies = await ExchangeDataLoadingService
         .instance.isar.currencies
         .where()
+        .filter()
         .exchangeNameEqualTo(MajesticBankExchange.exchangeName)
+        .or()
+        .exchangeNameStartsWith(TrocadorExchange.exchangeName)
         .findAll();
 
     final cn = await ChangeNowExchange.instance.getPairedCurrencies(
@@ -120,7 +124,7 @@ class _ExchangeCurrencySelectionViewState
 
     if (cn.value == null) {
       if (cn.exception is UnsupportedCurrencyException) {
-        return currencies;
+        return _getDistinctCurrenciesFrom(currencies);
       }
 
       if (mounted) {
@@ -186,7 +190,8 @@ class _ExchangeCurrencySelectionViewState
   List<Currency> _getDistinctCurrenciesFrom(List<Currency> currencies) {
     final List<Currency> distinctCurrencies = [];
     for (final currency in currencies) {
-      if (!distinctCurrencies.any((e) => e.ticker == currency.ticker)) {
+      if (!distinctCurrencies.any(
+          (e) => e.ticker.toLowerCase() == currency.ticker.toLowerCase())) {
         distinctCurrencies.add(currency);
       }
     }
