@@ -22,6 +22,33 @@ import 'package:stackwallet/utilities/stack_file_system.dart';
 
 const String kReservedFusionAddress = "reserved_fusion_address";
 
+final kFusionServerInfoDefaults = Map<Coin, FusionInfo>.unmodifiable(const {
+  Coin.bitcoincash: FusionInfo(
+    host: "fusion.servo.cash",
+    port: 8789,
+    ssl: true,
+    // host: "cashfusion.stackwallet.com",
+    // port: 8787,
+    // ssl: false,
+    rounds: 0, // 0 is continuous
+  ),
+  Coin.bitcoincashTestnet: FusionInfo(
+    host: "fusion.servo.cash",
+    port: 8789,
+    ssl: true,
+    // host: "cashfusion.stackwallet.com",
+    // port: 8787,
+    // ssl: false,
+    rounds: 0, // 0 is continuous
+  ),
+  Coin.eCash: FusionInfo(
+    host: "fusion.tokamak.cash",
+    port: 8788,
+    ssl: true,
+    rounds: 0, // 0 is continuous
+  ),
+});
+
 class FusionInfo {
   final String host;
   final int port;
@@ -36,16 +63,6 @@ class FusionInfo {
     required this.ssl,
     required this.rounds,
   }) : assert(rounds >= 0);
-
-  static const DEFAULTS = FusionInfo(
-    host: "fusion.servo.cash",
-    port: 8789,
-    ssl: true,
-    // host: "cashfusion.stackwallet.com",
-    // port: 8787,
-    // ssl: false,
-    rounds: 0, // 0 is continuous
-  );
 
   factory FusionInfo.fromJsonString(String jsonString) {
     final json = jsonDecode(jsonString);
@@ -95,7 +112,7 @@ class FusionInfo {
   }
 }
 
-/// A mixin for the BitcoinCashWallet class that adds CashFusion functionality.
+/// A mixin that adds CashFusion functionality.
 mixin FusionWalletInterface {
   // Passed in wallet data.
   late final String _walletId;
@@ -630,14 +647,25 @@ mixin FusionWalletInterface {
         // Loop through UTXOs, checking and adding valid ones.
         for (final utxo in walletUtxos) {
           final String addressString = utxo.address!;
-          final List<String> possibleAddresses = [addressString];
+          final Set<String> possibleAddresses = {};
 
           if (bitbox.Address.detectFormat(addressString) ==
               bitbox.Address.formatCashAddr) {
-            possibleAddresses
-                .add(bitbox.Address.toLegacyAddress(addressString));
+            possibleAddresses.add(addressString);
+            possibleAddresses.add(
+              bitbox.Address.toLegacyAddress(addressString),
+            );
           } else {
-            possibleAddresses.add(bitbox.Address.toCashAddress(addressString));
+            possibleAddresses.add(addressString);
+            if (_coin == Coin.eCash) {
+              possibleAddresses.add(
+                  bitbox.Address.toECashAddress(addressString),
+              );
+            } else {
+              possibleAddresses.add(
+                bitbox.Address.toCashAddress(addressString),
+              );
+            }
           }
 
           // Fetch address to get pubkey
@@ -645,13 +673,13 @@ mixin FusionWalletInterface {
               .getAddresses(_walletId)
               .filter()
               .anyOf<String,
-                      QueryBuilder<Address, Address, QAfterFilterCondition>>(
-                  possibleAddresses, (q, e) => q.valueEqualTo(e))
+              QueryBuilder<Address, Address, QAfterFilterCondition>>(
+              possibleAddresses, (q, e) => q.valueEqualTo(e))
               .and()
               .group((q) => q
-                  .subTypeEqualTo(AddressSubType.change)
-                  .or()
-                  .subTypeEqualTo(AddressSubType.receiving))
+              .subTypeEqualTo(AddressSubType.change)
+              .or()
+              .subTypeEqualTo(AddressSubType.receiving))
               .and()
               .typeEqualTo(AddressType.p2pkh)
               .findFirst();
@@ -681,6 +709,10 @@ mixin FusionWalletInterface {
 
         // Fuse UTXOs.
         try {
+          if (coinList.isEmpty) {
+            throw Exception("Started with no coins");
+          }
+
           await _mainFusionObject!.fuse(
             inputsFromWallet: coinList,
             network: _coin.isTestNet
@@ -709,6 +741,16 @@ mixin FusionWalletInterface {
 
           // Do the same for the UI state.
           _uiState?.incrementFusionRoundsFailed();
+
+          // If we have no coins, stop trying.
+          if (coinList.isEmpty ||
+              e.toString().contains("Started with no coins")) {
+            _updateStatus(
+                status: fusion.FusionStatus.failed,
+                info: "Started with no coins, stopping.");
+            _stopRequested = true;
+            _uiState?.setFailed(true, shouldNotify: true);
+          }
 
           // If we fail too many times in a row, stop trying.
           if (_failedFuseCount >= maxFailedFuseCount) {

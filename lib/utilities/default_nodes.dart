@@ -206,7 +206,8 @@ abstract class DefaultNodes {
       isDown: false);
 
   static NodeModel get nano => NodeModel(
-      host: "https://rainstorm.city/api",
+      // host: "https://rainstorm.city/api",
+      host: "https://app.natrium.io/api",
       port: 443,
       name: defaultName,
       id: _nodeId(Coin.nano),

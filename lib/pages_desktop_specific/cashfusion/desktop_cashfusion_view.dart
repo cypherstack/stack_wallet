@@ -26,6 +26,7 @@ import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -58,6 +59,7 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
   late final FocusNode portFocusNode;
   late final TextEditingController fusionRoundController;
   late final FocusNode fusionRoundFocusNode;
+  late final Coin coin;
 
   bool _enableStartButton = false;
   bool _enableSSLCheckbox = false;
@@ -93,7 +95,7 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
     );
 
     // update user prefs (persistent)
-    ref.read(prefsChangeNotifierProvider).fusionServerInfo = newInfo;
+    ref.read(prefsChangeNotifierProvider).setFusionServerInfo(coin, newInfo);
 
     unawaited(
       fusionWallet.fuse(
@@ -121,8 +123,14 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
     serverFocusNode = FocusNode();
     portFocusNode = FocusNode();
     fusionRoundFocusNode = FocusNode();
+    coin = ref
+        .read(walletsChangeNotifierProvider)
+        .getManager(widget.walletId)
+        .wallet
+        .coin;
 
-    final info = ref.read(prefsChangeNotifierProvider).fusionServerInfo;
+    final info =
+        ref.read(prefsChangeNotifierProvider).getFusionServerInfo(coin);
     serverController.text = info.host;
     portController.text = info.port.toString();
     _enableSSLCheckbox = info.ssl;
@@ -197,7 +205,7 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                       width: 12,
                     ),
                     Text(
-                      "CashFusion",
+                      "Fusion",
                       style: STextStyles.desktopH3(context),
                     ),
                   ],
@@ -219,7 +227,7 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                         ),
                         RichText(
                           text: TextSpan(
-                            text: "What is CashFusion?",
+                            text: "What is Fusion?",
                             style: STextStyles.richLink(context).copyWith(
                               fontSize: 16,
                             ),
@@ -248,7 +256,7 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                                                       .spaceBetween,
                                               children: [
                                                 Text(
-                                                  "What is CashFusion?",
+                                                  "What is Fusion?",
                                                   style: STextStyles.desktopH2(
                                                       context),
                                                 ),
@@ -308,7 +316,7 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                     child: Row(
                       children: [
                         Text(
-                          "CashFusion allows you to anonymize your BCH coins.",
+                          "Fusion helps anonymize your coins by mixing them.",
                           style:
                               STextStyles.desktopTextExtraExtraSmall(context),
                         ),
@@ -336,7 +344,11 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                             CustomTextButton(
                               text: "Default",
                               onTap: () {
-                                const def = FusionInfo.DEFAULTS;
+                                final def = kFusionServerInfoDefaults[ref
+                                    .read(walletsChangeNotifierProvider)
+                                    .getManager(widget.walletId)
+                                    .wallet
+                                    .coin]!;
                                 serverController.text = def.host;
                                 portController.text = def.port.toString();
                                 fusionRoundController.text =

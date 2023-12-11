@@ -611,7 +611,8 @@ abstract class EthereumAPI {
     try {
       final response = await client.get(
         url: Uri.parse(
-          "$stackBaseServer/tokens?addrs=$contractAddress&parts=all",
+          // "$stackBaseServer/tokens?addrs=$contractAddress&parts=all",
+          "$stackBaseServer/names?terms=$contractAddress",
         ),
         proxyInfo: Prefs.instance.useTor
             ? TorService.sharedInstance.getProxyInfo()
@@ -621,6 +622,10 @@ abstract class EthereumAPI {
       if (response.code == 200) {
         final json = jsonDecode(response.body) as Map;
         if (json["data"] is List) {
+          if ((json["data"] as List).isEmpty) {
+            throw EthApiException("Unknown token");
+          }
+
           final map = Map<String, dynamic>.from(json["data"].first as Map);
           EthContract? token;
           if (map["isErc20"] == true) {

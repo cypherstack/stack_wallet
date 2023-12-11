@@ -26,9 +26,13 @@ import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx.dart';
 import 'package:stackwallet/exceptions/electrumx/no_such_transaction.dart';
 import 'package:stackwallet/models/balance.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/signing_data.dart';
+import 'package:stackwallet/services/coins/bitcoincash/bch_utils.dart';
 import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
@@ -37,6 +41,7 @@ import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/mixins/coin_control_interface.dart';
 import 'package:stackwallet/services/mixins/electrum_x_parsing.dart';
+import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/mixins/xpubable.dart';
@@ -50,6 +55,7 @@ import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
+import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
@@ -130,7 +136,12 @@ String constructDerivePath({
 }
 
 class ECashWallet extends CoinServiceAPI
-    with WalletCache, WalletDB, ElectrumXParsing, CoinControlInterface
+    with
+        WalletCache,
+        WalletDB,
+        ElectrumXParsing,
+        CoinControlInterface,
+        FusionWalletInterface
     implements XPubAble {
   ECashWallet({
     required String walletId,
@@ -162,6 +173,19 @@ class ECashWallet extends CoinServiceAPI
         await updateCachedBalance(_balance!);
       },
     );
+    initFusionInterface(
+      walletId: walletId,
+      coin: coin,
+      db: db,
+      getWalletCachedElectrumX: () => cachedElectrumXClient,
+      getNextUnusedChangeAddress: _getUnusedChangeAddresses,
+      getChainHeight: () async => chainHeight,
+      updateWalletUTXOS: _updateUTXOs,
+      mnemonic: mnemonicString,
+      mnemonicPassphrase: mnemonicPassphrase,
+      network: _network,
+      convertToScriptHash: _convertToScriptHash,
+    );
   }
 
   static const integrationTestFlag =
@@ -183,6 +207,81 @@ class ECashWallet extends CoinServiceAPI
       default:
         throw Exception("Invalid network type!");
     }
+  }
+
+  Future<List<isar_models.Address>> _getUnusedChangeAddresses({
+    int numberOfAddresses = 1,
+  }) async {
+    if (numberOfAddresses < 1) {
+      throw ArgumentError.value(
+        numberOfAddresses,
+        "numberOfAddresses",
+        "Must not be less than 1",
+      );
+    }
+
+    final changeAddresses = await db
+        .getAddresses(walletId)
+        .filter()
+        .typeEqualTo(isar_models.AddressType.p2pkh)
+        .subTypeEqualTo(isar_models.AddressSubType.change)
+        .derivationPath((q) => q.not().valueStartsWith("m/44'/0'"))
+        .sortByDerivationIndex()
+        .findAll();
+
+    final List<isar_models.Address> unused = [];
+
+    for (final addr in changeAddresses) {
+      if (await _isUnused(addr.value)) {
+        unused.add(addr);
+        if (unused.length == numberOfAddresses) {
+          return unused;
+        }
+      }
+    }
+
+    // if not returned by now, we need to create more addresses
+    int countMissing = numberOfAddresses - unused.length;
+
+    int nextIndex =
+        changeAddresses.isEmpty ? 0 : changeAddresses.last.derivationIndex + 1;
+
+    while (countMissing > 0) {
+      //   create a new address
+      final address = await _generateAddressForChain(
+        1,
+        nextIndex,
+        DerivePathTypeExt.primaryFor(coin),
+      );
+      nextIndex++;
+      await db.updateOrPutAddresses([address]);
+
+      // check if it has been used before adding
+      if (await _isUnused(address.value)) {
+        unused.add(address);
+        countMissing--;
+      }
+    }
+
+    return unused;
+  }
+
+  Future<bool> _isUnused(String address) async {
+    final txCountInDB = await db
+        .getTransactions(_walletId)
+        .filter()
+        .address((q) => q.valueEqualTo(address))
+        .count();
+    if (txCountInDB == 0) {
+      // double check via electrumx
+      // _getTxCountForAddress can throw!
+      // final count = await getTxCount(address: address);
+      // if (count == 0) {
+      return true;
+      // }
+    }
+
+    return false;
   }
 
   @override
@@ -1160,6 +1259,8 @@ class ECashWallet extends CoinServiceAPI
       }
     }).toSet();
 
+    final allAddressesSet = {...receivingAddresses, ...changeAddresses};
+
     final List<Map<String, dynamic>> allTxHashes =
         await _fetchHistory([...receivingAddresses, ...changeAddresses]);
 
@@ -1194,207 +1295,168 @@ class ECashWallet extends CoinServiceAPI
       }
     }
 
-    final List<Tuple2<isar_models.Transaction, isar_models.Address?>> txns = [];
+    final List<TransactionV2> txns = [];
 
     for (final txData in allTransactions) {
-      Set<String> inputAddresses = {};
-      Set<String> outputAddresses = {};
+      // set to true if any inputs were detected as owned by this wallet
+      bool wasSentFromThisWallet = false;
 
-      Logging.instance.log(txData, level: LogLevel.Fatal);
-
-      Amount totalInputValue = Amount(
-        rawValue: BigInt.from(0),
-        fractionDigits: coin.decimals,
-      );
-      Amount totalOutputValue = Amount(
-        rawValue: BigInt.from(0),
-        fractionDigits: coin.decimals,
-      );
-
-      Amount amountSentFromWallet = Amount(
-        rawValue: BigInt.from(0),
-        fractionDigits: coin.decimals,
-      );
-      Amount amountReceivedInWallet = Amount(
-        rawValue: BigInt.from(0),
-        fractionDigits: coin.decimals,
-      );
-      Amount changeAmount = Amount(
-        rawValue: BigInt.from(0),
-        fractionDigits: coin.decimals,
-      );
+      // set to true if any outputs were detected as owned by this wallet
+      bool wasReceivedInThisWallet = false;
+      BigInt amountReceivedInThisWallet = BigInt.zero;
+      BigInt changeAmountReceivedInThisWallet = BigInt.zero;
 
       // parse inputs
-      for (final input in txData["vin"] as List) {
-        final prevTxid = input["txid"] as String;
-        final prevOut = input["vout"] as int;
+      final List<InputV2> inputs = [];
+      for (final jsonInput in txData["vin"] as List) {
+        final map = Map<String, dynamic>.from(jsonInput as Map);
 
-        // fetch input tx to get address
-        final inputTx = await cachedElectrumXClient.getTransaction(
-          txHash: prevTxid,
-          coin: coin,
-        );
+        final List<String> addresses = [];
+        String valueStringSats = "0";
+        OutpointV2? outpoint;
 
-        for (final output in inputTx["vout"] as List) {
-          // check matching output
-          if (prevOut == output["n"]) {
-            // get value
-            final value = Amount.fromDecimal(
-              Decimal.parse(output["value"].toString()),
-              fractionDigits: coin.decimals,
-            );
+        final coinbase = map["coinbase"] as String?;
 
-            // add value to total
-            totalInputValue = totalInputValue + value;
+        if (coinbase == null) {
+          final txid = map["txid"] as String;
+          final vout = map["vout"] as int;
 
-            // get input(prevOut) address
-            final address =
-                output["scriptPubKey"]?["addresses"]?[0] as String? ??
-                    output["scriptPubKey"]?["address"] as String?;
-
-            if (address != null) {
-              inputAddresses.add(address);
-
-              // if input was from my wallet, add value to amount sent
-              if (receivingAddresses.contains(address) ||
-                  changeAddresses.contains(address)) {
-                amountSentFromWallet = amountSentFromWallet + value;
-              }
-            }
-          }
-        }
-      }
-
-      // parse outputs
-      for (final output in txData["vout"] as List) {
-        // get value
-        final value = Amount.fromDecimal(
-          Decimal.parse(output["value"].toString()),
-          fractionDigits: coin.decimals,
-        );
-
-        // add value to total
-        totalOutputValue += value;
-
-        // get output address
-        final address = output["scriptPubKey"]?["addresses"]?[0] as String? ??
-            output["scriptPubKey"]?["address"] as String?;
-        if (address != null) {
-          outputAddresses.add(address);
-
-          // if output was to my wallet, add value to amount received
-          if (receivingAddresses.contains(address)) {
-            amountReceivedInWallet += value;
-          } else if (changeAddresses.contains(address)) {
-            changeAmount += value;
-          }
-        }
-      }
-
-      final mySentFromAddresses = [
-        ...receivingAddresses.intersection(inputAddresses),
-        ...changeAddresses.intersection(inputAddresses)
-      ];
-      final myReceivedOnAddresses =
-          receivingAddresses.intersection(outputAddresses);
-      final myChangeReceivedOnAddresses =
-          changeAddresses.intersection(outputAddresses);
-
-      final fee = totalInputValue - totalOutputValue;
-
-      // this is the address initially used to fetch the txid
-      isar_models.Address transactionAddress =
-          txData["address"] as isar_models.Address;
-
-      isar_models.TransactionType type;
-      Amount amount;
-      if (mySentFromAddresses.isNotEmpty && myReceivedOnAddresses.isNotEmpty) {
-        // tx is sent to self
-        type = isar_models.TransactionType.sentToSelf;
-        amount =
-            amountSentFromWallet - amountReceivedInWallet - fee - changeAmount;
-      } else if (mySentFromAddresses.isNotEmpty) {
-        // outgoing tx
-        type = isar_models.TransactionType.outgoing;
-        amount = amountSentFromWallet - changeAmount - fee;
-        final possible =
-            outputAddresses.difference(myChangeReceivedOnAddresses).first;
-
-        if (transactionAddress.value != possible) {
-          transactionAddress = isar_models.Address(
-            walletId: walletId,
-            value: possible,
-            publicKey: [],
-            type: isar_models.AddressType.nonWallet,
-            derivationIndex: -1,
-            derivationPath: null,
-            subType: isar_models.AddressSubType.nonWallet,
+          final inputTx = await cachedElectrumXClient.getTransaction(
+            txHash: txid,
+            coin: coin,
           );
+
+          final prevOutJson = Map<String, dynamic>.from(
+              (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout)
+                  as Map);
+
+          final prevOut = OutputV2.fromElectrumXJson(
+            prevOutJson,
+            decimalPlaces: coin.decimals,
+            walletOwns: false, // doesn't matter here as this is not saved
+          );
+
+          outpoint = OutpointV2.isarCantDoRequiredInDefaultConstructor(
+            txid: txid,
+            vout: vout,
+          );
+          valueStringSats = prevOut.valueStringSats;
+          addresses.addAll(prevOut.addresses);
         }
-      } else {
-        // incoming tx
-        type = isar_models.TransactionType.incoming;
-        amount = amountReceivedInWallet;
-      }
 
-      List<isar_models.Input> inputs = [];
-      List<isar_models.Output> outputs = [];
-
-      for (final json in txData["vin"] as List) {
-        bool isCoinBase = json['coinbase'] != null;
-        final input = isar_models.Input(
-          txid: json['txid'] as String,
-          vout: json['vout'] as int? ?? -1,
-          scriptSig: json['scriptSig']?['hex'] as String?,
-          scriptSigAsm: json['scriptSig']?['asm'] as String?,
-          isCoinbase: isCoinBase ? isCoinBase : json['is_coinbase'] as bool?,
-          sequence: json['sequence'] as int?,
-          innerRedeemScriptAsm: json['innerRedeemscriptAsm'] as String?,
+        InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
+          scriptSigHex: map["scriptSig"]?["hex"] as String?,
+          sequence: map["sequence"] as int?,
+          outpoint: outpoint,
+          valueStringSats: valueStringSats,
+          addresses: addresses,
+          witness: map["witness"] as String?,
+          coinbase: coinbase,
+          innerRedeemScriptAsm: map["innerRedeemscriptAsm"] as String?,
+          // don't know yet if wallet owns. Need addresses first
+          walletOwns: false,
         );
+
+        if (allAddressesSet.intersection(input.addresses.toSet()).isNotEmpty) {
+          wasSentFromThisWallet = true;
+          input = input.copyWith(walletOwns: true);
+        }
+
         inputs.add(input);
       }
 
-      for (final json in txData["vout"] as List) {
-        final output = isar_models.Output(
-          scriptPubKey: json['scriptPubKey']?['hex'] as String?,
-          scriptPubKeyAsm: json['scriptPubKey']?['asm'] as String?,
-          scriptPubKeyType: json['scriptPubKey']?['type'] as String?,
-          scriptPubKeyAddress:
-              json["scriptPubKey"]?["addresses"]?[0] as String? ??
-                  json['scriptPubKey']['type'] as String,
-          value: Amount.fromDecimal(
-            Decimal.parse(json["value"].toString()),
-            fractionDigits: coin.decimals,
-          ).raw.toInt(),
+      // parse outputs
+      final List<OutputV2> outputs = [];
+      for (final outputJson in txData["vout"] as List) {
+        OutputV2 output = OutputV2.fromElectrumXJson(
+          Map<String, dynamic>.from(outputJson as Map),
+          decimalPlaces: coin.decimals,
+          // don't know yet if wallet owns. Need addresses first
+          walletOwns: false,
         );
+
+        // if output was to my wallet, add value to amount received
+        if (receivingAddresses
+            .intersection(output.addresses.toSet())
+            .isNotEmpty) {
+          wasReceivedInThisWallet = true;
+          amountReceivedInThisWallet += output.value;
+          output = output.copyWith(walletOwns: true);
+        } else if (changeAddresses
+            .intersection(output.addresses.toSet())
+            .isNotEmpty) {
+          wasReceivedInThisWallet = true;
+          changeAmountReceivedInThisWallet += output.value;
+          output = output.copyWith(walletOwns: true);
+        }
+
         outputs.add(output);
       }
 
-      final tx = isar_models.Transaction(
+      final totalOut = outputs
+          .map((e) => e.value)
+          .fold(BigInt.zero, (value, element) => value + element);
+
+      isar_models.TransactionType type;
+      isar_models.TransactionSubType subType =
+          isar_models.TransactionSubType.none;
+
+      // at least one input was owned by this wallet
+      if (wasSentFromThisWallet) {
+        type = isar_models.TransactionType.outgoing;
+
+        if (wasReceivedInThisWallet) {
+          if (changeAmountReceivedInThisWallet + amountReceivedInThisWallet ==
+              totalOut) {
+            // definitely sent all to self
+            type = isar_models.TransactionType.sentToSelf;
+          } else if (amountReceivedInThisWallet == BigInt.zero) {
+            // most likely just a typical send
+            // do nothing here yet
+          }
+
+          // check vout 0 for special scripts
+          if (outputs.isNotEmpty) {
+            final output = outputs.first;
+
+            // check for fusion
+            if (BchUtils.isFUZE(output.scriptPubKeyHex.toUint8ListFromHex)) {
+              subType = isar_models.TransactionSubType.cashFusion;
+            } else {
+              // check other cases here such as SLP or cash tokens etc
+            }
+          }
+        }
+      } else if (wasReceivedInThisWallet) {
+        // only found outputs owned by this wallet
+        type = isar_models.TransactionType.incoming;
+      } else {
+        Logging.instance.log(
+          "Unexpected tx found (ignoring it): $txData",
+          level: LogLevel.Error,
+        );
+        continue;
+      }
+
+      final tx = TransactionV2(
         walletId: walletId,
+        blockHash: txData["blockhash"] as String?,
+        hash: txData["hash"] as String,
         txid: txData["txid"] as String,
-        timestamp: txData["blocktime"] as int? ??
-            (DateTime.now().millisecondsSinceEpoch ~/ 1000),
-        type: type,
-        subType: isar_models.TransactionSubType.none,
-        amount: amount.raw.toInt(),
-        amountString: amount.toJsonString(),
-        fee: fee.raw.toInt(),
         height: txData["height"] as int?,
-        isCancelled: false,
-        isLelantus: false,
-        slateId: null,
-        otherData: null,
-        nonce: null,
-        inputs: inputs,
-        outputs: outputs,
-        numberOfMessages: null,
+        version: txData["version"] as int,
+        timestamp: txData["blocktime"] as int? ??
+            DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
+        inputs: List.unmodifiable(inputs),
+        outputs: List.unmodifiable(outputs),
+        type: type,
+        subType: subType,
       );
 
-      txns.add(Tuple2(tx, transactionAddress));
+      txns.add(tx);
     }
 
-    await db.addNewTransactionData(txns, walletId);
+    await db.updateOrPutTransactionV2s(txns);
 
     // quick hack to notify manager to call notifyListeners if
     // transactions changed

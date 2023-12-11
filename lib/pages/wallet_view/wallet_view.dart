@@ -845,7 +845,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                 onTap: () {
                                   Navigator.of(context).pushNamed(
                                     coin == Coin.bitcoincash ||
-                                            coin == Coin.bitcoincashTestnet
+                                            coin == Coin.bitcoincashTestnet ||
+                                            coin == Coin.eCash
                                         ? AllTransactionsV2View.routeName
                                         : AllTransactionsView.routeName,
                                     arguments: walletId,
@@ -902,7 +903,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                     children: [
                                       Expanded(
                                         child: coin == Coin.bitcoincash ||
-                                                coin == Coin.bitcoincashTestnet
+                                                coin ==
+                                                    Coin.bitcoincashTestnet ||
+                                                coin == Coin.eCash
                                             ? TransactionsV2List(
                                                 walletId: widget.walletId,
                                               )

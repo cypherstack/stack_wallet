@@ -18,6 +18,7 @@ import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -43,6 +44,8 @@ class FusionProgressView extends ConsumerStatefulWidget {
 }
 
 class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
+  late final Coin coin;
+
   Future<bool> _requestAndProcessCancel() async {
     final shouldCancel = await showDialog<bool?>(
       context: context,
@@ -86,6 +89,16 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
     } else {
       return false;
     }
+  }
+
+  @override
+  void initState() {
+    coin = ref
+        .read(walletsChangeNotifierProvider)
+        .getManager(widget.walletId)
+        .wallet
+        .coin;
+    super.initState();
   }
 
   @override
@@ -230,7 +243,8 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
         .getManager(widget.walletId)
         .wallet as FusionWalletInterface;
 
-    final fusionInfo = ref.read(prefsChangeNotifierProvider).fusionServerInfo;
+    final fusionInfo =
+        ref.read(prefsChangeNotifierProvider).getFusionServerInfo(coin);
 
     try {
       fusionWallet.uiState = ref.read(
