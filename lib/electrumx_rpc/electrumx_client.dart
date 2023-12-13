@@ -908,7 +908,7 @@ class ElectrumXClient {
 
   /// Takes [startNumber], if it is 0, we get the full set,
   /// otherwise the used tags after that number
-  Future<Map<String, dynamic>> getSparkUsedCoinsTags({
+  Future<Set<String>> getSparkUsedCoinsTags({
     String? requestID,
     required int startNumber,
   }) async {
@@ -921,7 +921,8 @@ class ElectrumXClient {
         ],
         requestTimeout: const Duration(minutes: 2),
       );
-      return Map<String, dynamic>.from(response["result"] as Map);
+      final map = Map<String, dynamic>.from(response["result"] as Map);
+      return Set<String>.from(map["tags"] as List);
     } catch (e) {
       Logging.instance.log(e, level: LogLevel.Error);
       rethrow;

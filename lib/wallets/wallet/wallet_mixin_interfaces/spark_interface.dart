@@ -430,15 +430,11 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
           groupId: latestSparkCoinId.toString(),
           coin: info.coin,
         ),
-        electrumXClient.getSparkUsedCoinsTags(
-          startNumber: 0,
-        ),
+        electrumXCachedClient.getSparkUsedCoinsTags(coin: info.coin),
       ]);
 
-      final anonymitySet = futureResults[0];
-      final spentCoinTags = List<String>.from(
-        futureResults[1]["tags"] as List,
-      ).toSet();
+      final anonymitySet = futureResults[0] as Map<String, dynamic>;
+      final spentCoinTags = futureResults[1] as Set<String>;
 
       // find our coins
       final List<SparkCoin> myCoins = [];

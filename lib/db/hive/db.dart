@@ -57,6 +57,8 @@ class DB {
       "${coin.name}_anonymitySetSparkCache";
   String _boxNameUsedSerialsCache({required Coin coin}) =>
       "${coin.name}_usedSerialsCache";
+  String _boxNameSparkUsedCoinsTagsCache({required Coin coin}) =>
+      "${coin.name}_sparkUsedCoinsTagsCache";
 
   Box<NodeModel>? _boxNodeModels;
   Box<NodeModel>? _boxPrimaryNodes;
@@ -79,6 +81,7 @@ class DB {
   final Map<Coin, Box<dynamic>> _setCacheBoxes = {};
   final Map<Coin, Box<dynamic>> _setSparkCacheBoxes = {};
   final Map<Coin, Box<dynamic>> _usedSerialsCacheBoxes = {};
+  final Map<Coin, Box<dynamic>> _getSparkUsedCoinsTagsCacheBoxes = {};
 
   // exposed for monero
   Box<xmr.WalletInfo> get moneroWalletInfoBox => _walletInfoSource!;
@@ -221,6 +224,16 @@ class DB {
         await Hive.openBox<dynamic>(_boxNameUsedSerialsCache(coin: coin));
   }
 
+  Future<Box<dynamic>> getSparkUsedCoinsTagsCacheBox(
+      {required Coin coin}) async {
+    if (_getSparkUsedCoinsTagsCacheBoxes[coin]?.isOpen != true) {
+      _getSparkUsedCoinsTagsCacheBoxes.remove(coin);
+    }
+    return _getSparkUsedCoinsTagsCacheBoxes[coin] ??=
+        await Hive.openBox<dynamic>(
+            _boxNameSparkUsedCoinsTagsCache(coin: coin));
+  }
+
   Future<void> closeUsedSerialsCacheBox({required Coin coin}) async {
     await _usedSerialsCacheBoxes[coin]?.close();
   }
@@ -232,6 +245,8 @@ class DB {
       await deleteAll<dynamic>(boxName: _boxNameSetCache(coin: coin));
       await deleteAll<dynamic>(boxName: _boxNameSetSparkCache(coin: coin));
       await deleteAll<dynamic>(boxName: _boxNameUsedSerialsCache(coin: coin));
+      await deleteAll<dynamic>(
+          boxName: _boxNameSparkUsedCoinsTagsCache(coin: coin));
     }
   }
 

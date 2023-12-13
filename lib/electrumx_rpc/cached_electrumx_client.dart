@@ -154,7 +154,7 @@ class CachedElectrumXClient {
       return set;
     } catch (e, s) {
       Logging.instance.log(
-          "Failed to process CachedElectrumX.getAnonymitySet(): $e\n$s",
+          "Failed to process CachedElectrumX.getSparkAnonymitySet(): $e\n$s",
           level: LogLevel.Error);
       rethrow;
     }
@@ -251,8 +251,55 @@ class CachedElectrumXClient {
       return resultingList;
     } catch (e, s) {
       Logging.instance.log(
-          "Failed to process CachedElectrumX.getTransaction(): $e\n$s",
-          level: LogLevel.Error);
+        "Failed to process CachedElectrumX.getUsedCoinSerials(): $e\n$s",
+        level: LogLevel.Error,
+      );
+      rethrow;
+    }
+  }
+
+  Future<Set<String>> getSparkUsedCoinsTags({
+    required Coin coin,
+  }) async {
+    try {
+      final box = await DB.instance.getSparkUsedCoinsTagsCacheBox(coin: coin);
+
+      final _list = box.get("tags") as List?;
+
+      Set<String> cachedTags =
+          _list == null ? {} : List<String>.from(_list).toSet();
+
+      final startNumber = max(
+        0,
+        cachedTags.length - 100, // 100 being some arbitrary buffer
+      );
+
+      final tags = await electrumXClient.getSparkUsedCoinsTags(
+        startNumber: startNumber,
+      );
+
+      // final newSerials = List<String>.from(serials["serials"] as List)
+      //     .map((e) => !isHexadecimal(e) ? base64ToHex(e) : e)
+      //     .toSet();
+
+      // ensure we are getting some overlap so we know we are not missing any
+      if (cachedTags.isNotEmpty && tags.isNotEmpty) {
+        assert(cachedTags.intersection(tags).isNotEmpty);
+      }
+
+      cachedTags.addAll(tags);
+
+      await box.put(
+        "tags",
+        cachedTags.toList(),
+      );
+
+      return cachedTags;
+    } catch (e, s) {
+      Logging.instance.log(
+        "Failed to process CachedElectrumX.getSparkUsedCoinsTags(): $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }
