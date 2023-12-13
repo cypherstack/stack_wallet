@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:bitcoindart/bitcoindart.dart' as btc;
+import 'package:bitcoindart/src/utils/script.dart' as bscript;
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
@@ -57,15 +59,6 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         .findFirst();
   }
 
-  Future<Uint8List> _getSpendKey() async {
-    final mnemonic = await getMnemonic();
-    final mnemonicPassphrase = await getMnemonicPassphrase();
-
-    // TODO call ffi lib to generate spend key
-
-    throw UnimplementedError();
-  }
-
   Future<Address> generateNextSparkAddress() async {
     final highestStoredDiversifier =
         (await getCurrentReceivingSparkAddress())?.derivationIndex;
@@ -111,11 +104,46 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
   Future<TxData> prepareSendSpark({
     required TxData txData,
   }) async {
+    // todo fetch
+    final List<Uint8List> serializedMintMetas = [];
+    final List<LibSparkCoin> myCoins = [];
+
+    final currentId = await electrumXClient.getSparkLatestCoinId();
+    final List<Map<String, dynamic>> setMaps = [];
+    for (int i = 0; i <= currentId; i++) {
+      final set = await electrumXClient.getSparkAnonymitySet(
+        coinGroupId: i.toString(),
+      );
+      set["coinGroupID"] = i;
+      setMaps.add(set);
+    }
+
+    final allAnonymitySets = setMaps
+        .map((e) => (
+              setId: e["coinGroupID"] as int,
+              setHash: e["setHash"] as String,
+              set: (e["coins"] as List)
+                  .map((e) => (
+                        serializedCoin: e[0] as String,
+                        txHash: e[1] as String,
+                      ))
+                  .toList(),
+            ))
+        .toList();
+
     // https://docs.google.com/document/d/1RG52GoYTZDvKlZz_3G4sQu-PpT6JWSZGHLNswWcrE3o/edit
     // To generate  a spark spend we need to call createSparkSpendTransaction,
     // first unlock the wallet and generate all 3 spark keys,
-    final spendKey = await _getSpendKey();
+    const index = 1;
 
+    final root = await getRootHDNode();
+    final String derivationPath;
+    if (cryptoCurrency.network == CryptoCurrencyNetwork.test) {
+      derivationPath = "$kSparkBaseDerivationPathTestnet$index";
+    } else {
+      derivationPath = "$kSparkBaseDerivationPath$index";
+    }
+    final privateKey = root.derivePath(derivationPath).privateKey.data;
     //
     // recipients is a list of pairs of amounts and bools, this is for transparent
     // outputs, first how much to send and second, subtractFeeFromAmount argument
@@ -144,7 +172,227 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     // outputScripts is a output data, it is a list of scripts, which we need
     // to put in separate tx outputs, and keep the order,
 
-    throw UnimplementedError();
+    // Amount vOut = Amount(
+    //     rawValue: BigInt.zero, fractionDigits: cryptoCurrency.fractionDigits);
+    // Amount mintVOut = Amount(
+    //     rawValue: BigInt.zero, fractionDigits: cryptoCurrency.fractionDigits);
+    // int recipientsToSubtractFee = 0;
+    //
+    // for (int i = 0; i < (txData.recipients?.length ?? 0); i++) {
+    //   vOut += txData.recipients![i].amount;
+    // }
+    //
+    // if (vOut.raw > BigInt.from(SPARK_VALUE_SPEND_LIMIT_PER_TRANSACTION)) {
+    //   throw Exception(
+    //     "Spend to transparent address limit exceeded (10,000 Firo per transaction).",
+    //   );
+    // }
+    //
+    // for (int i = 0; i < (txData.sparkRecipients?.length ?? 0); i++) {
+    //   mintVOut += txData.sparkRecipients![i].amount;
+    //   if (txData.sparkRecipients![i].subtractFeeFromAmount) {
+    //     recipientsToSubtractFee++;
+    //   }
+    // }
+    //
+    // int fee;
+
+    final txb = btc.TransactionBuilder(
+      network: btc.NetworkType(
+        messagePrefix: cryptoCurrency.networkParams.messagePrefix,
+        bech32: cryptoCurrency.networkParams.bech32Hrp,
+        bip32: btc.Bip32Type(
+          public: cryptoCurrency.networkParams.pubHDPrefix,
+          private: cryptoCurrency.networkParams.privHDPrefix,
+        ),
+        pubKeyHash: cryptoCurrency.networkParams.p2pkhPrefix,
+        scriptHash: cryptoCurrency.networkParams.p2shPrefix,
+        wif: cryptoCurrency.networkParams.wifPrefix,
+      ),
+    );
+    txb.setLockTime(await chainHeight);
+    txb.setVersion(3 | (9 << 16));
+
+    // final estimated = LibSpark.selectSparkCoins(
+    //   requiredAmount: mintVOut.raw.toInt(),
+    //   subtractFeeFromAmount: recipientsToSubtractFee > 0,
+    //   coins: myCoins,
+    //   privateRecipientsCount: txData.sparkRecipients?.length ?? 0,
+    // );
+    //
+    // fee = estimated.fee;
+    // bool remainderSubtracted = false;
+
+    // for (int i = 0; i < (txData.recipients?.length ?? 0); i++) {
+    //
+    //
+    //   if (recipient.fSubtractFeeFromAmount) {
+    //     // Subtract fee equally from each selected recipient.
+    //     recipient.nAmount -= fee / recipientsToSubtractFee;
+    //
+    //     if (!remainderSubtracted) {
+    //       // First receiver pays the remainder not divisible by output count.
+    //       recipient.nAmount -= fee % recipientsToSubtractFee;
+    //       remainderSubtracted = true;
+    //     }
+    //   }
+    // }
+
+    // outputs
+
+    // for (int i = 0; i < (txData.sparkRecipients?.length ?? 0); i++) {
+    //   if (txData.sparkRecipients![i].subtractFeeFromAmount) {
+    //     BigInt amount = txData.sparkRecipients![i].amount.raw;
+    //
+    //     // Subtract fee equally from each selected recipient.
+    //     amount -= BigInt.from(fee / recipientsToSubtractFee);
+    //
+    //     if (!remainderSubtracted) {
+    //       // First receiver pays the remainder not divisible by output count.
+    //       amount -= BigInt.from(fee % recipientsToSubtractFee);
+    //       remainderSubtracted = true;
+    //     }
+    //
+    //     txData.sparkRecipients![i] = (
+    //       address: txData.sparkRecipients![i].address,
+    //       amount: Amount(
+    //         rawValue: amount,
+    //         fractionDigits: cryptoCurrency.fractionDigits,
+    //       ),
+    //       subtractFeeFromAmount:
+    //           txData.sparkRecipients![i].subtractFeeFromAmount,
+    //       memo: txData.sparkRecipients![i].memo,
+    //     );
+    //   }
+    // }
+    //
+    // int spendInCurrentTx = 0;
+    // for (final spendCoin in estimated.coins) {
+    //   spendInCurrentTx += spendCoin.value?.toInt() ?? 0;
+    // }
+    // spendInCurrentTx -= fee;
+    //
+    // int transparentOut = 0;
+
+    for (int i = 0; i < (txData.recipients?.length ?? 0); i++) {
+      if (txData.recipients![i].amount.raw == BigInt.zero) {
+        continue;
+      }
+      if (txData.recipients![i].amount < cryptoCurrency.dustLimit) {
+        throw Exception("Output below dust limit");
+      }
+      //
+      // transparentOut += txData.recipients![i].amount.raw.toInt();
+      txb.addOutput(
+        txData.recipients![i].address,
+        txData.recipients![i].amount.raw.toInt(),
+      );
+    }
+
+    // // spendInCurrentTx -= transparentOut;
+    // final List<({String address, int amount, String memo})> privOutputs = [];
+    //
+    // for (int i = 0; i < (txData.sparkRecipients?.length ?? 0); i++) {
+    //   if (txData.sparkRecipients![i].amount.raw == BigInt.zero) {
+    //     continue;
+    //   }
+    //
+    //   final recipientAmount = txData.sparkRecipients![i].amount.raw.toInt();
+    //   // spendInCurrentTx -= recipientAmount;
+    //
+    //   privOutputs.add(
+    //     (
+    //       address: txData.sparkRecipients![i].address,
+    //       amount: recipientAmount,
+    //       memo: txData.sparkRecipients![i].memo,
+    //     ),
+    //   );
+    // }
+
+    // if (spendInCurrentTx < 0) {
+    //   throw Exception("Unable to create spend transaction.");
+    // }
+    //
+    // if (privOutputs.isEmpty || spendInCurrentTx > 0) {
+    //   final changeAddress = await LibSpark.getAddress(
+    //     privateKey: privateKey,
+    //     index: index,
+    //     diversifier: kSparkChange,
+    //   );
+    //
+    //   privOutputs.add(
+    //     (
+    //       address: changeAddress,
+    //       amount: spendInCurrentTx > 0 ? spendInCurrentTx : 0,
+    //       memo: "",
+    //     ),
+    //   );
+    // }
+
+    // inputs
+
+    final opReturnScript = bscript.compile([
+      0xd3, // OP_SPARKSPEND
+      Uint8List(0),
+    ]);
+
+    txb.addInput(
+      '0000000000000000000000000000000000000000000000000000000000000000',
+      0xffffffff,
+      0xffffffff,
+      opReturnScript,
+    );
+
+    // final sig = extractedTx.getId();
+
+    // for (final coin in estimated.coins) {
+    //   final groupId = coin.id!;
+    // }
+
+    final spend = LibSpark.createSparkSendTransaction(
+      privateKeyHex: privateKey.toHex,
+      index: index,
+      recipients: [],
+      privateRecipients: txData.sparkRecipients
+              ?.map((e) => (
+                    sparkAddress: e.address,
+                    amount: e.amount.raw.toInt(),
+                    subtractFeeFromAmount: e.subtractFeeFromAmount,
+                    memo: e.memo,
+                  ))
+              .toList() ??
+          [],
+      serializedMintMetas: serializedMintMetas,
+      allAnonymitySets: allAnonymitySets,
+    );
+
+    print("SPARK SPEND ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    print("fee: ${spend.fee}");
+    print("spend: ${spend.serializedSpendPayload}");
+    print("scripts:");
+    spend.outputScripts.forEach(print);
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+
+    for (final outputScript in spend.outputScripts) {
+      txb.addOutput(outputScript, 0);
+    }
+
+    final extractedTx = txb.buildIncomplete();
+
+    // TODO: verify encoding
+    extractedTx.setPayload(spend.serializedSpendPayload.toUint8ListFromUtf8);
+
+    final rawTxHex = extractedTx.toHex();
+
+    return txData.copyWith(
+      raw: rawTxHex,
+      vSize: extractedTx.virtualSize(),
+      fee: Amount(
+        rawValue: BigInt.from(spend.fee),
+        fractionDigits: cryptoCurrency.fractionDigits,
+      ),
+      // TODO used coins
+    );
   }
 
   // this may not be needed for either mints or spends or both
@@ -247,6 +495,8 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         }
       }
 
+      print("FOUND COINS: $myCoins");
+
       // update wallet spark coins in isar
       if (myCoins.isNotEmpty) {
         await mainDB.isar.writeTxn(() async {
@@ -255,6 +505,20 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       }
 
       // refresh spark balance?
+
+      await prepareSendSpark(
+          txData: TxData(
+        sparkRecipients: [
+          (
+            address: (await getCurrentReceivingSparkAddress())!.value,
+            amount: Amount(
+                rawValue: BigInt.from(100000000),
+                fractionDigits: cryptoCurrency.fractionDigits),
+            subtractFeeFromAmount: true,
+            memo: "LOL MEMO OPK",
+          ),
+        ],
+      ));
 
       throw UnimplementedError();
     } catch (e, s) {
