@@ -107,6 +107,59 @@ class CachedElectrumXClient {
     }
   }
 
+  Future<Map<String, dynamic>> getSparkAnonymitySet({
+    required String groupId,
+    String blockhash = "",
+    required Coin coin,
+  }) async {
+    try {
+      final box = await DB.instance.getSparkAnonymitySetCacheBox(coin: coin);
+      final cachedSet = box.get(groupId) as Map?;
+
+      Map<String, dynamic> set;
+
+      // null check to see if there is a cached set
+      if (cachedSet == null) {
+        set = {
+          "setId": groupId,
+          "blockHash": blockhash,
+          "setHash": "",
+          "coins": <dynamic>[],
+        };
+      } else {
+        set = Map<String, dynamic>.from(cachedSet);
+      }
+
+      final newSet = await electrumXClient.getSparkAnonymitySet(
+        coinGroupId: groupId,
+        startBlockHash: set["blockHash"] as String,
+      );
+
+      // update set with new data
+      if (newSet["setHash"] != "" && set["setHash"] != newSet["setHash"]) {
+        set["setHash"] = newSet["setHash"];
+        set["blockHash"] = newSet["blockHash"];
+        for (int i = (newSet["coins"] as List).length - 1; i >= 0; i--) {
+          // TODO verify this is correct (or append?)
+          set["coins"].insert(0, newSet["coins"][i]);
+        }
+        // save set to db
+        await box.put(groupId, set);
+        Logging.instance.log(
+          "Updated current anonymity set for ${coin.name} with group ID $groupId",
+          level: LogLevel.Info,
+        );
+      }
+
+      return set;
+    } catch (e, s) {
+      Logging.instance.log(
+          "Failed to process CachedElectrumX.getAnonymitySet(): $e\n$s",
+          level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
   String base64ToHex(String source) =>
       base64Decode(LineSplitter.split(source).join())
           .map((e) => e.toRadixString(16).padLeft(2, '0'))

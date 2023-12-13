@@ -53,6 +53,8 @@ class DB {
   // firo only
   String _boxNameSetCache({required Coin coin}) =>
       "${coin.name}_anonymitySetCache";
+  String _boxNameSetSparkCache({required Coin coin}) =>
+      "${coin.name}_anonymitySetSparkCache";
   String _boxNameUsedSerialsCache({required Coin coin}) =>
       "${coin.name}_usedSerialsCache";
 
@@ -75,6 +77,7 @@ class DB {
 
   final Map<Coin, Box<dynamic>> _txCacheBoxes = {};
   final Map<Coin, Box<dynamic>> _setCacheBoxes = {};
+  final Map<Coin, Box<dynamic>> _setSparkCacheBoxes = {};
   final Map<Coin, Box<dynamic>> _usedSerialsCacheBoxes = {};
 
   // exposed for monero
@@ -197,6 +200,15 @@ class DB {
         await Hive.openBox<dynamic>(_boxNameSetCache(coin: coin));
   }
 
+  Future<Box<dynamic>> getSparkAnonymitySetCacheBox(
+      {required Coin coin}) async {
+    if (_setSparkCacheBoxes[coin]?.isOpen != true) {
+      _setSparkCacheBoxes.remove(coin);
+    }
+    return _setSparkCacheBoxes[coin] ??=
+        await Hive.openBox<dynamic>(_boxNameSetSparkCache(coin: coin));
+  }
+
   Future<void> closeAnonymitySetCacheBox({required Coin coin}) async {
     await _setCacheBoxes[coin]?.close();
   }
@@ -218,6 +230,7 @@ class DB {
     await deleteAll<dynamic>(boxName: _boxNameTxCache(coin: coin));
     if (coin == Coin.firo) {
       await deleteAll<dynamic>(boxName: _boxNameSetCache(coin: coin));
+      await deleteAll<dynamic>(boxName: _boxNameSetSparkCache(coin: coin));
       await deleteAll<dynamic>(boxName: _boxNameUsedSerialsCache(coin: coin));
     }
   }
