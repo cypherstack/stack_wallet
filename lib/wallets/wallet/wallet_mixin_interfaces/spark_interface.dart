@@ -110,9 +110,11 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
 
     final currentId = await electrumXClient.getSparkLatestCoinId();
     final List<Map<String, dynamic>> setMaps = [];
-    for (int i = 0; i <= currentId; i++) {
-      final set = await electrumXClient.getSparkAnonymitySet(
-        coinGroupId: i.toString(),
+    // for (int i = 0; i <= currentId; i++) {
+    for (int i = currentId; i <= currentId; i++) {
+      final set = await electrumXCachedClient.getSparkAnonymitySet(
+        groupId: i.toString(),
+        coin: info.coin,
       );
       set["coinGroupID"] = i;
       setMaps.add(set);
@@ -423,10 +425,10 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
 
       final latestSparkCoinId = await electrumXClient.getSparkLatestCoinId();
 
-      // TODO improve performance by adding these calls to the cached client
       final futureResults = await Future.wait([
-        electrumXClient.getSparkAnonymitySet(
-          coinGroupId: latestSparkCoinId.toString(),
+        electrumXCachedClient.getSparkAnonymitySet(
+          groupId: latestSparkCoinId.toString(),
+          coin: info.coin,
         ),
         electrumXClient.getSparkUsedCoinsTags(
           startNumber: 0,
@@ -542,9 +544,9 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
 
       final latestSparkCoinId = await electrumXClient.getSparkLatestCoinId();
 
-      // TODO improve performance by adding this call to the cached client
-      final anonymitySet = await electrumXClient.getSparkAnonymitySet(
-        coinGroupId: latestSparkCoinId.toString(),
+      final anonymitySet = await electrumXCachedClient.getSparkAnonymitySet(
+        groupId: latestSparkCoinId.toString(),
+        coin: info.coin,
       );
 
       // TODO loop over set and see which coins are ours using the FFI call `identifyCoin`

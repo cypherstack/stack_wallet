@@ -121,7 +121,7 @@ class CachedElectrumXClient {
       // null check to see if there is a cached set
       if (cachedSet == null) {
         set = {
-          "setId": groupId,
+          "coinGroupID": int.parse(groupId),
           "blockHash": blockhash,
           "setHash": "",
           "coins": <dynamic>[],
@@ -259,6 +259,7 @@ class CachedElectrumXClient {
 
   /// Clear all cached transactions for the specified coin
   Future<void> clearSharedTransactionCache({required Coin coin}) async {
+    await DB.instance.clearSharedTransactionCache(coin: coin);
     await DB.instance.closeAnonymitySetCacheBox(coin: coin);
   }
 }

@@ -228,7 +228,7 @@ class DB {
   /// Clear all cached transactions for the specified coin
   Future<void> clearSharedTransactionCache({required Coin coin}) async {
     await deleteAll<dynamic>(boxName: _boxNameTxCache(coin: coin));
-    if (coin == Coin.firo) {
+    if (coin == Coin.firo || coin == Coin.firoTestNet) {
       await deleteAll<dynamic>(boxName: _boxNameSetCache(coin: coin));
       await deleteAll<dynamic>(boxName: _boxNameSetSparkCache(coin: coin));
       await deleteAll<dynamic>(boxName: _boxNameUsedSerialsCache(coin: coin));
