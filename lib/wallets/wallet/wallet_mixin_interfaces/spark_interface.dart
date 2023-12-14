@@ -666,7 +666,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       ),
     );
     txb.setLockTime(await chainHeight);
-    txb.setVersion(3 | (9 << 16));
+    txb.setVersion(1);
 
     // Create a mint script.
     final mintScript = bscript.compile([
