@@ -562,26 +562,144 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     }
   }
 
-  /// Transparent to Spark (mint) transaction creation
+  /// Transparent to Spark (mint) transaction creation.
+  ///
+  /// See https://docs.google.com/document/d/1RG52GoYTZDvKlZz_3G4sQu-PpT6JWSZGHLNswWcrE3o
   Future<TxData> prepareSparkMintTransaction({required TxData txData}) async {
-    // https://docs.google.com/document/d/1RG52GoYTZDvKlZz_3G4sQu-PpT6JWSZGHLNswWcrE3o/edit
+    // "this kind of transaction is generated like a regular transaction, but in
+    // place of [regular] outputs we put spark outputs... we construct the input
+    // part of the transaction first then we generate spark related data [and]
+    // we sign like regular transactions at the end."
 
-    // this kind of transaction is generated like a regular transaction, but in
-    // place of regulart outputs we put spark outputs, so for that we call
-    // createSparkMintRecipients function, we get spark related data,
-    // everything else we do like for regular transaction, and we put CRecipient
-    // object as a tx outputs, we need to keep the order..
-    // First we pass spark::MintedCoinData>, has following members, Address
-    // which is any spark address, amount (v) how much we want to send, and
-    // memo which can be any string with 32 length (any string we want to send
-    // to receiver), serial_context is a byte array, which should be unique for
-    // each transaction, and for that we serialize and put all inputs into
-    // serial_context vector. So we construct the input part of the transaction
-    // first then we generate spark related data. And we sign like regular
-    // transactions at the end.
+    // Validate inputs.
 
+    // There should be at least one input.
+    if (txData.utxos == null || txData.utxos!.isEmpty) {
+      throw Exception("No inputs provided.");
+    }
+
+    // For now let's limit to one input.
+    if (txData.utxos!.length > 1) {
+      throw Exception("Only one input supported.");
+      // TODO remove and test with multiple inputs.
+    }
+
+    // Validate individual inputs.
+    for (final utxo in txData.utxos!) {
+      // Input amount must be greater than zero.
+      if (utxo.value == 0) {
+        throw Exception("Input value cannot be zero.");
+      }
+
+      // Input value must be greater than dust limit.
+      if (BigInt.from(utxo.value) < cryptoCurrency.dustLimit.raw) {
+        throw Exception("Input value below dust limit.");
+      }
+    }
+
+    // Validate outputs.
+
+    // There should be at least one output.
+    if (txData.recipients == null || txData.recipients!.isEmpty) {
+      throw Exception("No recipients provided.");
+    }
+
+    // For now let's limit to one output.
+    if (txData.recipients!.length > 1) {
+      throw Exception("Only one recipient supported.");
+      // TODO remove and test with multiple recipients.
+    }
+
+    // Limit outputs per tx to 16.
+    //
+    // See SPARK_OUT_LIMIT_PER_TX at https://github.com/firoorg/sparkmobile/blob/ef2e39aae18ecc49e0ddc63a3183e9764b96012e/include/spark.h#L16
+    if (txData.recipients!.length > 16) {
+      throw Exception("Too many recipients.");
+    }
+
+    // Limit spend value per tx to 1000000000000 satoshis.
+    //
+    // See SPARK_VALUE_SPEND_LIMIT_PER_TRANSACTION at https://github.com/firoorg/sparkmobile/blob/ef2e39aae18ecc49e0ddc63a3183e9764b96012e/include/spark.h#L17
+    // and COIN https://github.com/firoorg/sparkmobile/blob/ef2e39aae18ecc49e0ddc63a3183e9764b96012e/bitcoin/amount.h#L17
+    // Note that as MAX_MONEY is greater than this limit, we can ignore it.  See https://github.com/firoorg/sparkmobile/blob/ef2e39aae18ecc49e0ddc63a3183e9764b96012e/bitcoin/amount.h#L31
+    //
+    // This will be added to and checked as we validate outputs.
+    Amount totalAmount = Amount(
+      rawValue: BigInt.zero,
+      fractionDigits: cryptoCurrency.fractionDigits,
+    );
+
+    // Validate individual outputs.
+    for (final recipient in txData.recipients!) {
+      // Output amount must be greater than zero.
+      if (recipient.amount.raw == BigInt.zero) {
+        throw Exception("Output amount cannot be zero.");
+        // Could refactor this for loop to use an index and remove this output.
+      }
+
+      // Output amount must be greater than dust limit.
+      if (recipient.amount < cryptoCurrency.dustLimit) {
+        throw Exception("Output below dust limit.");
+      }
+
+      // Do not add outputs that would exceed the spend limit.
+      totalAmount += recipient.amount;
+      if (totalAmount.raw > BigInt.from(1000000000000)) {
+        throw Exception(
+          "Spend limit exceeded (10,000 FIRO per tx).",
+        );
+      }
+    }
+
+    // Create a transaction builder and set locktime and version.
+    final txb = btc.TransactionBuilder(
+      network: btc.NetworkType(
+        messagePrefix: cryptoCurrency.networkParams.messagePrefix,
+        bech32: cryptoCurrency.networkParams.bech32Hrp,
+        bip32: btc.Bip32Type(
+          public: cryptoCurrency.networkParams.pubHDPrefix,
+          private: cryptoCurrency.networkParams.privHDPrefix,
+        ),
+        pubKeyHash: cryptoCurrency.networkParams.p2pkhPrefix,
+        scriptHash: cryptoCurrency.networkParams.p2shPrefix,
+        wif: cryptoCurrency.networkParams.wifPrefix,
+      ),
+    );
+    txb.setLockTime(await chainHeight);
+    txb.setVersion(3 | (9 << 16));
+
+    // Create a mint script.
+    final mintScript = bscript.compile([
+      0xd1, // OP_SPARKMINT.
+      Uint8List(0),
+    ]);
+
+    // Add inputs.
+    for (final utxo in txData.utxos!) {
+      txb.addInput(
+        utxo.txid,
+        utxo.vout,
+        0xffffffff,
+        mintScript,
+      );
+    }
+
+    // Create the serial context.
+    //
+    // "...serial_context is a byte array, which should be unique for each
+    // transaction, and for that we serialize and put all inputs into
+    // serial_context vector."
     List<int> serialContext = [];
+    for (final utxo in txData.utxos!) {
+      serialContext.addAll(
+        bscript.compile([
+          utxo.txid,
+          utxo.vout,
+        ]),
+      );
+    }
 
+    // Create mint recipients.
     final mintRecipients = LibSpark.createSparkMintRecipients(
       outputs: txData.recipients!
           .map((e) => (
@@ -591,8 +709,37 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
               ))
           .toList(),
       serialContext: Uint8List.fromList(serialContext),
+      // generate: true // TODO is this needed?
     );
+
+    // Add mint output(s).
+    for (final mint in mintRecipients) {
+      txb.addOutput(
+        mint.scriptPubKey,
+        mint.amount,
+      );
+    }
+
+    // TODO Sign the transaction.
+
     throw UnimplementedError();
+  }
+
+  /// Broadcast a tx and TODO update Spark balance.
+  Future<TxData> confirmSparkMintTransaction({required TxData txData}) async {
+    // Broadcast tx.
+    final txid = await electrumXClient.broadcastTransaction(
+      rawTx: txData.raw!,
+    );
+
+    // Check txid.
+    assert(txid == txData.txid!);
+
+    // TODO update spark balance.
+
+    return txData.copyWith(
+      txid: txid,
+    );
   }
 
   @override
