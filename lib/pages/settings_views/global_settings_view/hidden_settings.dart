@@ -444,7 +444,7 @@ class HiddenSettings extends StatelessWidget {
                                       .getSparkUsedCoinsTags(startNumber: 0);
 
                                   print(
-                                      "usedCoinsTags['tags'].length: ${usedCoinsTags["tags"].length}");
+                                      "usedCoinsTags['tags'].length: ${usedCoinsTags.length}");
                                   Util.printJson(
                                       usedCoinsTags, "usedCoinsTags");
                                 } catch (e, s) {

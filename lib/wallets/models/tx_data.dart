@@ -55,6 +55,15 @@ class TxData {
   // tezos specific
   final tezart.OperationsList? tezosOperationsList;
 
+  // firo spark specific
+  final List<
+      ({
+        String address,
+        Amount amount,
+        bool subtractFeeFromAmount,
+        String memo,
+      })>? sparkRecipients;
+
   TxData({
     this.feeRateType,
     this.feeRateAmount,
@@ -85,6 +94,7 @@ class TxData {
     this.txSubType,
     this.mintsMapLelantus,
     this.tezosOperationsList,
+    this.sparkRecipients,
   });
 
   Amount? get amount => recipients != null && recipients!.isNotEmpty
@@ -127,6 +137,14 @@ class TxData {
     TransactionSubType? txSubType,
     List<Map<String, dynamic>>? mintsMapLelantus,
     tezart.OperationsList? tezosOperationsList,
+    List<
+            ({
+              String address,
+              Amount amount,
+              bool subtractFeeFromAmount,
+              String memo,
+            })>?
+        sparkRecipients,
   }) {
     return TxData(
       feeRateType: feeRateType ?? this.feeRateType,
@@ -159,6 +177,7 @@ class TxData {
       txSubType: txSubType ?? this.txSubType,
       mintsMapLelantus: mintsMapLelantus ?? this.mintsMapLelantus,
       tezosOperationsList: tezosOperationsList ?? this.tezosOperationsList,
+      sparkRecipients: sparkRecipients ?? this.sparkRecipients,
     );
   }
 
@@ -193,5 +212,6 @@ class TxData {
       'txSubType: $txSubType, '
       'mintsMapLelantus: $mintsMapLelantus, '
       'tezosOperationsList: $tezosOperationsList, '
+      'sparkRecipients: $sparkRecipients, '
       '}';
 }
