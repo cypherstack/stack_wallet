@@ -624,7 +624,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     // Note that as MAX_MONEY is greater than this limit, we can ignore it.  See https://github.com/firoorg/sparkmobile/blob/ef2e39aae18ecc49e0ddc63a3183e9764b96012e/bitcoin/amount.h#L31
     //
     // This will be added to and checked as we validate outputs.
-    Amount amountSent = Amount(
+    Amount totalAmount = Amount(
       rawValue: BigInt.zero,
       fractionDigits: cryptoCurrency.fractionDigits,
     );
@@ -643,24 +643,61 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       }
 
       // Do not add outputs that would exceed the spend limit.
-      amountSent += recipient.amount;
-      if (amountSent.raw > BigInt.from(1000000000000)) {
+      totalAmount += recipient.amount;
+      if (totalAmount.raw > BigInt.from(1000000000000)) {
         throw Exception(
           "Spend limit exceeded (10,000 FIRO per tx).",
         );
       }
     }
 
-    // TODO create a transaction builder and add inputs.
+    // Create a transaction builder and set locktime and version.
+    final txb = btc.TransactionBuilder(
+      network: btc.NetworkType(
+        messagePrefix: cryptoCurrency.networkParams.messagePrefix,
+        bech32: cryptoCurrency.networkParams.bech32Hrp,
+        bip32: btc.Bip32Type(
+          public: cryptoCurrency.networkParams.pubHDPrefix,
+          private: cryptoCurrency.networkParams.privHDPrefix,
+        ),
+        pubKeyHash: cryptoCurrency.networkParams.p2pkhPrefix,
+        scriptHash: cryptoCurrency.networkParams.p2shPrefix,
+        wif: cryptoCurrency.networkParams.wifPrefix,
+      ),
+    );
+    txb.setLockTime(await chainHeight);
+    txb.setVersion(3 | (9 << 16));
+
+    // Create a mint script.
+    final mintScript = bscript.compile([
+      0xd1, // OP_SPARKMINT.
+      Uint8List(0),
+    ]);
+
+    // Add inputs.
+    for (final utxo in txData.utxos!) {
+      txb.addInput(
+        utxo.txid,
+        utxo.vout,
+        0xffffffff,
+        mintScript,
+      );
+    }
 
     // Create the serial context.
     //
     // "...serial_context is a byte array, which should be unique for each
     // transaction, and for that we serialize and put all inputs into
-    // serial_context vector. So we construct the input part of the transaction
-    // first then we generate spark related data."
+    // serial_context vector."
     List<int> serialContext = [];
-    // TODO set serialContext to the serialized inputs.
+    for (final utxo in txData.utxos!) {
+      serialContext.addAll(
+        bscript.compile([
+          utxo.txid,
+          utxo.vout,
+        ]),
+      );
+    }
 
     // Create mint recipients.
     final mintRecipients = LibSpark.createSparkMintRecipients(
@@ -675,7 +712,15 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       // generate: true // TODO is this needed?
     );
 
-    // TODO finish.
+    // Add mint output(s).
+    for (final mint in mintRecipients) {
+      txb.addOutput(
+        mint.scriptPubKey,
+        mint.amount,
+      );
+    }
+
+    // TODO Sign the transaction.
 
     throw UnimplementedError();
   }
