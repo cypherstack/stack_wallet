@@ -288,6 +288,7 @@ class EcashWallet extends Bip39HDWallet
         outputs: List.unmodifiable(outputs),
         type: type,
         subType: subType,
+        otherData: null,
       );
 
       txns.add(tx);
