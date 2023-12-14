@@ -37,6 +37,8 @@ class TransactionV2 {
   @enumerated
   final TransactionSubType subType;
 
+  final String? otherData;
+
   TransactionV2({
     required this.walletId,
     required this.blockHash,
@@ -49,6 +51,7 @@ class TransactionV2 {
     required this.version,
     required this.type,
     required this.subType,
+    required this.otherData,
   });
 
   int getConfirmations(int currentChainHeight) {
