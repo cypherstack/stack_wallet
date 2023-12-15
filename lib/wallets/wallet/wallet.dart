@@ -421,6 +421,10 @@ abstract class Wallet<T extends CryptoCurrency> {
             .checkChangeAddressForTransactions();
       }
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.3, walletId));
+      if (this is SparkInterface) {
+        // this should be called before updateTransactions()
+        await (this as SparkInterface).refreshSparkData();
+      }
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.50, walletId));
       final fetchFuture = updateTransactions();
@@ -439,9 +443,6 @@ abstract class Wallet<T extends CryptoCurrency> {
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       if (this is LelantusInterface) {
         await (this as LelantusInterface).refreshLelantusData();
-      }
-      if (this is SparkInterface) {
-        await (this as SparkInterface).refreshSparkData();
       }
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.90, walletId));
 

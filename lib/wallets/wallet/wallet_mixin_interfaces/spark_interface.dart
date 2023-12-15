@@ -504,6 +504,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         });
       }
 
+      // update wallet spark coin height
       final coinsToCheck = await mainDB.isar.sparkCoins
           .where()
           .walletIdEqualToAnyLTagHash(walletId)
@@ -512,15 +513,14 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
           .findAll();
       final List<SparkCoin> updatedCoins = [];
       for (final coin in coinsToCheck) {
-        final storedTx = await mainDB.getTransaction(walletId, coin.txHash);
-        if (storedTx?.height != null) {
-          updatedCoins.add(coin.copyWith(height: storedTx!.height!));
-        } else {
-          // TODO fetch tx from electrumx (and parse it to db?)
+        final tx = await electrumXCachedClient.getTransaction(
+          txHash: coin.txHash,
+          coin: info.coin,
+        );
+        if (tx["height"] is int) {
+          updatedCoins.add(coin.copyWith(height: tx["height"] as int));
         }
       }
-
-      // update wallet spark coins in isar
       if (updatedCoins.isNotEmpty) {
         await mainDB.isar.writeTxn(() async {
           await mainDB.isar.sparkCoins.putAll(updatedCoins);

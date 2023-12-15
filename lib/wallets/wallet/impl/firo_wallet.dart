@@ -193,6 +193,7 @@ class FiroWallet extends Bip39HDWallet
         OutputV2 output = OutputV2.fromElectrumXJson(
           outMap,
           decimalPlaces: cryptoCurrency.fractionDigits,
+          isFullAmountNotSats: true,
           // don't know yet if wallet owns. Need addresses first
           walletOwns: false,
         );
@@ -294,6 +295,7 @@ class FiroWallet extends Bip39HDWallet
           final prevOut = OutputV2.fromElectrumXJson(
             prevOutJson,
             decimalPlaces: cryptoCurrency.fractionDigits,
+            isFullAmountNotSats: true,
             walletOwns: false, // doesn't matter here as this is not saved
           );
 
@@ -350,6 +352,9 @@ class FiroWallet extends Bip39HDWallet
           if (changeAmountReceivedInThisWallet + amountReceivedInThisWallet ==
               totalOut) {
             // definitely sent all to self
+            type = TransactionType.sentToSelf;
+          } else if (isSparkMint) {
+            // probably sent to self
             type = TransactionType.sentToSelf;
           } else if (amountReceivedInThisWallet == BigInt.zero) {
             // most likely just a typical send
