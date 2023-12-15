@@ -29,7 +29,7 @@ class SparkCoin {
 
   final bool isUsed;
 
-  final List<int>? k; // TODO: proper name (not single char!!) is this nonce???
+  final List<int>? nonce;
 
   final String address;
   final String txHash;
@@ -47,6 +47,8 @@ class SparkCoin {
 
   final String lTagHash;
 
+  final int? height;
+
   @ignore
   BigInt get value => BigInt.parse(valueIntString);
 
@@ -57,7 +59,7 @@ class SparkCoin {
     required this.walletId,
     required this.type,
     required this.isUsed,
-    this.k,
+    this.nonce,
     required this.address,
     required this.txHash,
     required this.valueIntString,
@@ -68,12 +70,13 @@ class SparkCoin {
     this.serial,
     this.tag,
     required this.lTagHash,
+    this.height,
   });
 
   SparkCoin copyWith({
     SparkCoinType? type,
     bool? isUsed,
-    List<int>? k,
+    List<int>? nonce,
     String? address,
     String? txHash,
     BigInt? value,
@@ -84,12 +87,13 @@ class SparkCoin {
     List<int>? serial,
     List<int>? tag,
     String? lTagHash,
+    int? height,
   }) {
     return SparkCoin(
       walletId: walletId,
       type: type ?? this.type,
       isUsed: isUsed ?? this.isUsed,
-      k: k ?? this.k,
+      nonce: nonce ?? this.nonce,
       address: address ?? this.address,
       txHash: txHash ?? this.txHash,
       valueIntString: value?.toString() ?? this.value.toString(),
@@ -101,16 +105,17 @@ class SparkCoin {
       serial: serial ?? this.serial,
       tag: tag ?? this.tag,
       lTagHash: lTagHash ?? this.lTagHash,
+      height: height ?? this.height,
     );
   }
 
   @override
   String toString() {
     return 'SparkCoin('
-        ', walletId: $walletId'
+        'walletId: $walletId'
         ', type: $type'
         ', isUsed: $isUsed'
-        ', k: $k'
+        ', k: $nonce'
         ', address: $address'
         ', txHash: $txHash'
         ', value: $value'
@@ -121,6 +126,7 @@ class SparkCoin {
         ', serial: $serial'
         ', tag: $tag'
         ', lTagHash: $lTagHash'
+        ', height: $height'
         ')';
   }
 }

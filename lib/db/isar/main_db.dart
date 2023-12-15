@@ -21,6 +21,7 @@ import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
+import 'package:stackwallet/wallets/isar/models/spark_coin.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:tuple/tuple.dart';
 
@@ -61,6 +62,7 @@ class MainDB {
         LelantusCoinSchema,
         WalletInfoSchema,
         TransactionV2Schema,
+        SparkCoinSchema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
       // inspector: kDebugMode,
