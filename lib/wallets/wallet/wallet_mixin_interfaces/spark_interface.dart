@@ -447,17 +447,18 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         for (final dynData in anonymitySet["coins"] as List) {
           final data = List<String>.from(dynData as List);
 
-          if (data.length != 2) {
+          if (data.length != 3) {
             throw Exception("Unexpected serialized coin info found");
           }
 
-          final serializedCoin = data.first;
-          final txHash = base64ToReverseHex(data.last);
+          final serializedCoin = data[0];
+          final txHash = base64ToReverseHex(data[1]);
 
           final coin = LibSpark.identifyAndRecoverCoin(
             serializedCoin,
             privateKeyHex: privateKeyHex,
             index: index,
+            context: base64Decode(data[2]),
             isTestNet: cryptoCurrency.network == CryptoCurrencyNetwork.test,
           );
 
