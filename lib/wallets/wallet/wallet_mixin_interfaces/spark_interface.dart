@@ -5,6 +5,7 @@ import 'package:bitcoindart/bitcoindart.dart' as btc;
 import 'package:bitcoindart/src/utils/script.dart' as bscript;
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:isar/isar.dart';
+import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/extensions/extensions.dart';
@@ -496,8 +497,6 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         }
       }
 
-      print("FOUND COINS: $myCoins");
-
       // update wallet spark coins in isar
       if (myCoins.isNotEmpty) {
         await mainDB.isar.writeTxn(() async {
@@ -505,23 +504,68 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         });
       }
 
-      // refresh spark balance?
+      final coinsToCheck = await mainDB.isar.sparkCoins
+          .where()
+          .walletIdEqualToAnyLTagHash(walletId)
+          .filter()
+          .heightIsNull()
+          .findAll();
+      final List<SparkCoin> updatedCoins = [];
+      for (final coin in coinsToCheck) {
+        final storedTx = await mainDB.getTransaction(walletId, coin.txHash);
+        if (storedTx?.height != null) {
+          updatedCoins.add(coin.copyWith(height: storedTx!.height!));
+        } else {
+          // TODO fetch tx from electrumx (and parse it to db?)
+        }
+      }
 
-      await prepareSendSpark(
-          txData: TxData(
-        sparkRecipients: [
-          (
-            address: (await getCurrentReceivingSparkAddress())!.value,
-            amount: Amount(
-                rawValue: BigInt.from(100000000),
-                fractionDigits: cryptoCurrency.fractionDigits),
-            subtractFeeFromAmount: true,
-            memo: "LOL MEMO OPK",
-          ),
-        ],
-      ));
+      // update wallet spark coins in isar
+      if (updatedCoins.isNotEmpty) {
+        await mainDB.isar.writeTxn(() async {
+          await mainDB.isar.sparkCoins.putAll(updatedCoins);
+        });
+      }
 
-      throw UnimplementedError();
+      // refresh spark balance
+      final currentHeight = await chainHeight;
+      final unusedCoins = await mainDB.isar.sparkCoins
+          .where()
+          .walletIdEqualToAnyLTagHash(walletId)
+          .filter()
+          .isUsedEqualTo(false)
+          .findAll();
+
+      final total = Amount(
+        rawValue: unusedCoins
+            .map((e) => e.value)
+            .fold(BigInt.zero, (prev, e) => prev + e),
+        fractionDigits: cryptoCurrency.fractionDigits,
+      );
+      final spendable = Amount(
+        rawValue: unusedCoins
+            .where((e) =>
+                e.height != null &&
+                e.height! + cryptoCurrency.minConfirms >= currentHeight)
+            .map((e) => e.value)
+            .fold(BigInt.zero, (prev, e) => prev + e),
+        fractionDigits: cryptoCurrency.fractionDigits,
+      );
+
+      final sparkBalance = Balance(
+        total: total,
+        spendable: spendable,
+        blockedTotal: Amount(
+          rawValue: BigInt.zero,
+          fractionDigits: cryptoCurrency.fractionDigits,
+        ),
+        pendingSpendable: total - spendable,
+      );
+
+      await info.updateBalanceTertiary(
+        newBalance: sparkBalance,
+        isar: mainDB.isar,
+      );
     } catch (e, s) {
       // todo logging
 
