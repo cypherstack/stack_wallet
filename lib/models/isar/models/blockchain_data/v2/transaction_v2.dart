@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:isar/isar.dart';
@@ -102,6 +103,15 @@ class TransactionV2 {
         ...outputs.map((e) => e.addresses).expand((e) => e),
       };
 
+  Amount? getAnonFee() {
+    try {
+      final map = jsonDecode(otherData!) as Map;
+      return Amount.fromSerializedJsonString(map["anonFees"] as String);
+    } catch (_) {
+      return null;
+    }
+  }
+
   @override
   String toString() {
     return 'TransactionV2(\n'
@@ -116,6 +126,7 @@ class TransactionV2 {
         '  version: $version,\n'
         '  inputs: $inputs,\n'
         '  outputs: $outputs,\n'
+        '  otherData: $otherData,\n'
         ')';
   }
 }

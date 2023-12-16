@@ -95,7 +95,12 @@ class _TransactionV2DetailsViewState
     minConfirms =
         ref.read(pWallets).getWallet(walletId).cryptoCurrency.minConfirms;
 
-    fee = _transaction.getFee(coin: coin);
+    if (_transaction.subType == TransactionSubType.join ||
+        _transaction.subType == TransactionSubType.sparkSpend) {
+      fee = _transaction.getAnonFee()!;
+    } else {
+      fee = _transaction.getFee(coin: coin);
+    }
 
     if (_transaction.subType == TransactionSubType.cashFusion ||
         _transaction.type == TransactionType.sentToSelf) {

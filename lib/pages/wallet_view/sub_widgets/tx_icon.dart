@@ -56,6 +56,17 @@ class TxIcon extends ConsumerWidget {
       return Assets.svg.anonymize;
     }
 
+    if (subType == TransactionSubType.mint ||
+        subType == TransactionSubType.sparkMint) {
+      if (isCancelled) {
+        return Assets.svg.anonymizeFailed;
+      }
+      if (isPending) {
+        return Assets.svg.anonymizePending;
+      }
+      return Assets.svg.anonymize;
+    }
+
     if (isReceived) {
       if (isCancelled) {
         return assets.receiveCancelled;

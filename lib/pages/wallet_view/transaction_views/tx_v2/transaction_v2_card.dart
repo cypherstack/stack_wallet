@@ -50,7 +50,9 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
       ref.read(pWallets).getWallet(walletId).cryptoCurrency.minConfirms,
     );
 
-    if (_transaction.subType == TransactionSubType.cashFusion) {
+    if (_transaction.subType == TransactionSubType.cashFusion ||
+        _transaction.subType == TransactionSubType.sparkMint ||
+        _transaction.subType == TransactionSubType.mint) {
       if (confirmedStatus) {
         return "Anonymized";
       } else {
