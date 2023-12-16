@@ -9,6 +9,7 @@ import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/extensions/extensions.dart';
+import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/spark_coin.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
@@ -625,12 +626,6 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       throw Exception("No inputs provided.");
     }
 
-    // For now let's limit to one input.
-    if (txData.utxos!.length > 1) {
-      throw Exception("Only one input supported.");
-      // TODO remove and test with multiple inputs.
-    }
-
     // Validate individual inputs.
     for (final utxo in txData.utxos!) {
       // Input amount must be greater than zero.
@@ -762,9 +757,41 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       );
     }
 
-    // TODO Sign the transaction.
+    try {
+      // Sign the transaction accordingly
+      for (var i = 0; i < signingData.length; i++) {
+        txb.sign(
+          vin: i,
+          keyPair: signingData[i].keyPair!,
+          witnessValue: signingData[i].utxo.value,
+          redeemScript: signingData[i].redeemScript,
+        );
+      }
+    } catch (e, s) {
+      Logging.instance.log(
+        "Caught exception while signing spark mint transaction: $e\n$s",
+        level: LogLevel.Error,
+      );
+      rethrow;
+    }
 
-    throw UnimplementedError();
+    final builtTx = txb.build();
+
+    // TODO any changes to this txData object required?
+    return txData.copyWith(
+      // recipients: [
+      //   (
+      //   amount: Amount(
+      //     rawValue: BigInt.from(incomplete.outs[0].value!),
+      //     fractionDigits: cryptoCurrency.fractionDigits,
+      //   ),
+      //   address: "no address for lelantus mints",
+      //   )
+      // ],
+      vSize: builtTx.virtualSize(),
+      txid: builtTx.getId(),
+      raw: builtTx.toHex(),
+    );
   }
 
   /// Broadcast a tx and TODO update Spark balance.
@@ -775,7 +802,11 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     );
 
     // Check txid.
-    assert(txid == txData.txid!);
+    if (txid == txData.txid!) {
+      print("SPARK TXIDS MATCH!!");
+    } else {
+      print("SUBMITTED SPARK TXID DOES NOT MATCH WHAT WE GENERATED");
+    }
 
     // TODO update spark balance.
 

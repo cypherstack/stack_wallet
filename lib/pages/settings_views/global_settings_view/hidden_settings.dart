@@ -14,12 +14,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:isar/isar.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/debug_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
@@ -27,6 +31,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
+import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -664,35 +669,95 @@ class HiddenSettings extends StatelessWidget {
                             );
                           },
                         ),
-                        // const SizedBox(
-                        //   height: 12,
-                        // ),
-                        // GestureDetector(
-                        //   onTap: () async {
-                        //     showDialog<void>(
-                        //       context: context,
-                        //       builder: (_) {
-                        //         return StackDialogBase(
-                        //           child: SizedBox(
-                        //             width: 300,
-                        //             child: Lottie.asset(
-                        //               Assets.lottie.plain(Coin.bitcoincash),
-                        //             ),
-                        //           ),
-                        //         );
-                        //       },
-                        //     );
-                        //   },
-                        //   child: RoundedWhiteContainer(
-                        //     child: Text(
-                        //       "Lottie test",
-                        //       style: STextStyles.button(context).copyWith(
-                        //           color: Theme.of(context)
-                        //               .extension<StackColors>()!
-                        //               .accentColorDark),
-                        //     ),
-                        //   ),
-                        // ),
+                        const SizedBox(
+                          height: 12,
+                        ),
+                        Consumer(
+                          builder: (_, ref, __) {
+                            return GestureDetector(
+                              onTap: () async {
+                                const enableBurningMints = false;
+
+                                try {
+                                  if (enableBurningMints) {
+                                    final wallet = ref
+                                            .read(pWallets)
+                                            .wallets
+                                            .firstWhere((e) =>
+                                                e.info.name == "circle chunk")
+                                        as FiroWallet;
+
+                                    final utxos = await ref
+                                        .read(mainDBProvider)
+                                        .isar
+                                        .utxos
+                                        .where()
+                                        .walletIdEqualTo(wallet.walletId)
+                                        .findAll();
+
+                                    final Set<UTXO> utxosToUse = {};
+
+                                    for (final u in utxos) {
+                                      if (u.used != true &&
+                                          u.value < 500000000 &&
+                                          u.value > 9000000) {
+                                        utxosToUse.add(u);
+                                        break;
+                                      }
+                                      if (utxosToUse.length > 2) {
+                                        break;
+                                      }
+                                    }
+
+                                    print("utxosToUse: $utxosToUse");
+
+                                    final inputData = TxData(
+                                      utxos: utxosToUse,
+                                      recipients: [
+                                        (
+                                          address: (await wallet
+                                                  .getCurrentReceivingSparkAddress())!
+                                              .value,
+                                          amount: Amount(
+                                            rawValue: BigInt.from(utxosToUse
+                                                    .map((e) => e.value)
+                                                    .fold(0, (p, e) => p + e) -
+                                                20000),
+                                            fractionDigits: 8,
+                                          ),
+                                        ),
+                                      ],
+                                    );
+
+                                    final mint = await wallet
+                                        .prepareSparkMintTransaction(
+                                      txData: inputData,
+                                    );
+
+                                    print("MINT: $mint");
+
+                                    print("Submitting...");
+                                    final result = await wallet
+                                        .confirmSparkMintTransaction(
+                                            txData: mint);
+                                    print("Submitted result: $result");
+                                  }
+                                } catch (e, s) {
+                                  print("$e\n$s");
+                                }
+                              },
+                              child: RoundedWhiteContainer(
+                                child: Text(
+                                  "💣💣💣 DANGER 💣💣💣** Random Spark mint **💣💣💣 DANGER 💣💣💣 ",
+                                  style: STextStyles.button(context).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                       ],
                     ),
                   ),
