@@ -715,34 +715,29 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     txb.setLockTime(await chainHeight);
     txb.setVersion(1);
 
-    // Create a mint script.
-    final mintScript = bscript.compile([
-      0xd1, // OP_SPARKMINT.
-      Uint8List(0),
-    ]);
-
-    // Add inputs.
-    for (final utxo in txData.utxos!) {
-      txb.addInput(
-        utxo.txid,
-        utxo.vout,
-        0xffffffff,
-        mintScript,
-      );
-    }
+    final signingData = await fetchBuildTxData(txData.utxos!.toList());
 
     // Create the serial context.
     //
     // "...serial_context is a byte array, which should be unique for each
     // transaction, and for that we serialize and put all inputs into
     // serial_context vector."
-    List<int> serialContext = [];
-    for (final utxo in txData.utxos!) {
-      serialContext.addAll(
-        bscript.compile([
-          utxo.txid,
-          utxo.vout,
-        ]),
+    final serialContext = LibSpark.serializeMintContext(
+      inputs: signingData
+          .map((e) => (
+                e.utxo.txid,
+                e.utxo.vout,
+              ))
+          .toList(),
+    );
+
+    // Add inputs.
+    for (final sd in signingData) {
+      txb.addInput(
+        sd.utxo.txid,
+        sd.utxo.vout,
+        null,
+        sd.output,
       );
     }
 
@@ -756,7 +751,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
               ))
           .toList(),
       serialContext: Uint8List.fromList(serialContext),
-      // generate: true // TODO is this needed?
+      generate: true,
     );
 
     // Add mint output(s).
