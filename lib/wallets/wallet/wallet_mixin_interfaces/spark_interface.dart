@@ -742,7 +742,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
           .map((e) => (
                 sparkAddress: e.address,
                 value: e.amount.raw.toInt(),
-                memo: "Stackwallet spark mint"
+                memo: "",
               ))
           .toList(),
       serialContext: Uint8List.fromList(serialContext),
