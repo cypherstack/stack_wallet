@@ -16,6 +16,8 @@ import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 
+const kDefaultSparkIndex = 1;
+
 mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
   @override
   Future<void> init() async {
@@ -68,21 +70,18 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     // default to starting at 1 if none found
     final int diversifier = (highestStoredDiversifier ?? 0) + 1;
 
-    // TODO: check that this stays constant and only the diversifier changes?
-    const index = 1;
-
     final root = await getRootHDNode();
     final String derivationPath;
     if (cryptoCurrency.network == CryptoCurrencyNetwork.test) {
-      derivationPath = "$kSparkBaseDerivationPathTestnet$index";
+      derivationPath = "$kSparkBaseDerivationPathTestnet$kDefaultSparkIndex";
     } else {
-      derivationPath = "$kSparkBaseDerivationPath$index";
+      derivationPath = "$kSparkBaseDerivationPath$kDefaultSparkIndex";
     }
     final keys = root.derivePath(derivationPath);
 
     final String addressString = await LibSpark.getAddress(
       privateKey: keys.privateKey.data,
-      index: index,
+      index: kDefaultSparkIndex,
       diversifier: diversifier,
       isTestNet: cryptoCurrency.network == CryptoCurrencyNetwork.test,
     );
@@ -138,14 +137,13 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     // https://docs.google.com/document/d/1RG52GoYTZDvKlZz_3G4sQu-PpT6JWSZGHLNswWcrE3o/edit
     // To generate  a spark spend we need to call createSparkSpendTransaction,
     // first unlock the wallet and generate all 3 spark keys,
-    const index = 1;
 
     final root = await getRootHDNode();
     final String derivationPath;
     if (cryptoCurrency.network == CryptoCurrencyNetwork.test) {
-      derivationPath = "$kSparkBaseDerivationPathTestnet$index";
+      derivationPath = "$kSparkBaseDerivationPathTestnet$kDefaultSparkIndex";
     } else {
-      derivationPath = "$kSparkBaseDerivationPath$index";
+      derivationPath = "$kSparkBaseDerivationPath$kDefaultSparkIndex";
     }
     final privateKey = root.derivePath(derivationPath).privateKey.data;
     //
@@ -355,7 +353,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
 
     final spend = LibSpark.createSparkSendTransaction(
       privateKeyHex: privateKey.toHex,
-      index: index,
+      index: kDefaultSparkIndex,
       recipients: [],
       privateRecipients: txData.sparkRecipients
               ?.map((e) => (
@@ -366,7 +364,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
                   ))
               .toList() ??
           [],
-      serializedMintMetas: serializedMintMetas,
+      serializedCoins: serializedCoins,
       allAnonymitySets: allAnonymitySets,
     );
 
@@ -421,152 +419,41 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         sparkAddresses.map((e) => e.derivationPath!.value).toSet();
 
     try {
-      const index = 1;
-
-      final root = await getRootHDNode();
-
       final latestSparkCoinId = await electrumXClient.getSparkLatestCoinId();
 
+      final blockHash = await _getCachedSparkBlockHash();
+
       final futureResults = await Future.wait([
-        electrumXCachedClient.getSparkAnonymitySet(
-          groupId: latestSparkCoinId.toString(),
-          coin: info.coin,
-        ),
+        blockHash == null
+            ? electrumXCachedClient.getSparkAnonymitySet(
+                groupId: latestSparkCoinId.toString(),
+                coin: info.coin,
+              )
+            : electrumXClient.getSparkAnonymitySet(
+                coinGroupId: latestSparkCoinId.toString(),
+                startBlockHash: blockHash,
+              ),
         electrumXCachedClient.getSparkUsedCoinsTags(coin: info.coin),
       ]);
 
       final anonymitySet = futureResults[0] as Map<String, dynamic>;
       final spentCoinTags = futureResults[1] as Set<String>;
 
-      // find our coins
-      final List<SparkCoin> myCoins = [];
-
-      for (final path in paths) {
-        final keys = root.derivePath(path);
-
-        final privateKeyHex = keys.privateKey.data.toHex;
-
-        for (final dynData in anonymitySet["coins"] as List) {
-          final data = List<String>.from(dynData as List);
-
-          if (data.length != 3) {
-            throw Exception("Unexpected serialized coin info found");
-          }
-
-          final serializedCoin = data[0];
-          final txHash = base64ToReverseHex(data[1]);
-
-          final coin = LibSpark.identifyAndRecoverCoin(
-            serializedCoin,
-            privateKeyHex: privateKeyHex,
-            index: index,
-            context: base64Decode(data[2]),
-            isTestNet: cryptoCurrency.network == CryptoCurrencyNetwork.test,
-          );
-
-          // its ours
-          if (coin != null) {
-            final SparkCoinType coinType;
-            switch (coin.type.value) {
-              case 0:
-                coinType = SparkCoinType.mint;
-              case 1:
-                coinType = SparkCoinType.spend;
-              default:
-                throw Exception("Unknown spark coin type detected");
-            }
-            myCoins.add(
-              SparkCoin(
-                walletId: walletId,
-                type: coinType,
-                isUsed: spentCoinTags.contains(coin.lTagHash!),
-                nonce: coin.nonceHex?.toUint8ListFromHex,
-                address: coin.address!,
-                txHash: txHash,
-                valueIntString: coin.value!.toString(),
-                memo: coin.memo,
-                serialContext: coin.serialContext,
-                diversifierIntString: coin.diversifier!.toString(),
-                encryptedDiversifier: coin.encryptedDiversifier,
-                serial: coin.serial,
-                tag: coin.tag,
-                lTagHash: coin.lTagHash!,
-                height: coin.height,
-              ),
-            );
-          }
-        }
-      }
+      final myCoins = await _identifyCoins(
+        anonymitySet: anonymitySet,
+        spentCoinTags: spentCoinTags,
+        sparkAddressDerivationPaths: paths,
+      );
 
       // update wallet spark coins in isar
-      if (myCoins.isNotEmpty) {
-        await mainDB.isar.writeTxn(() async {
-          await mainDB.isar.sparkCoins.putAll(myCoins);
-        });
-      }
+      await _addOrUpdateSparkCoins(myCoins);
 
-      // update wallet spark coin height
-      final coinsToCheck = await mainDB.isar.sparkCoins
-          .where()
-          .walletIdEqualToAnyLTagHash(walletId)
-          .filter()
-          .heightIsNull()
-          .findAll();
-      final List<SparkCoin> updatedCoins = [];
-      for (final coin in coinsToCheck) {
-        final tx = await electrumXCachedClient.getTransaction(
-          txHash: coin.txHash,
-          coin: info.coin,
-        );
-        if (tx["height"] is int) {
-          updatedCoins.add(coin.copyWith(height: tx["height"] as int));
-        }
-      }
-      if (updatedCoins.isNotEmpty) {
-        await mainDB.isar.writeTxn(() async {
-          await mainDB.isar.sparkCoins.putAll(updatedCoins);
-        });
-      }
+      // update blockHash in cache
+      final String newBlockHash = anonymitySet["blockHash"] as String;
+      await _setCachedSparkBlockHash(newBlockHash);
 
       // refresh spark balance
-      final currentHeight = await chainHeight;
-      final unusedCoins = await mainDB.isar.sparkCoins
-          .where()
-          .walletIdEqualToAnyLTagHash(walletId)
-          .filter()
-          .isUsedEqualTo(false)
-          .findAll();
-
-      final total = Amount(
-        rawValue: unusedCoins
-            .map((e) => e.value)
-            .fold(BigInt.zero, (prev, e) => prev + e),
-        fractionDigits: cryptoCurrency.fractionDigits,
-      );
-      final spendable = Amount(
-        rawValue: unusedCoins
-            .where((e) =>
-                e.height != null &&
-                e.height! + cryptoCurrency.minConfirms >= currentHeight)
-            .map((e) => e.value)
-            .fold(BigInt.zero, (prev, e) => prev + e),
-        fractionDigits: cryptoCurrency.fractionDigits,
-      );
-
-      final sparkBalance = Balance(
-        total: total,
-        spendable: spendable,
-        blockedTotal: Amount(
-          rawValue: BigInt.zero,
-          fractionDigits: cryptoCurrency.fractionDigits,
-        ),
-        pendingSpendable: total - spendable,
-      );
-
-      await info.updateBalanceTertiary(
-        newBalance: sparkBalance,
-        isar: mainDB.isar,
-      );
+      await refreshSparkBalance();
     } catch (e, s) {
       // todo logging
 
@@ -574,35 +461,85 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     }
   }
 
+  Future<void> refreshSparkBalance() async {
+    final currentHeight = await chainHeight;
+    final unusedCoins = await mainDB.isar.sparkCoins
+        .where()
+        .walletIdEqualToAnyLTagHash(walletId)
+        .filter()
+        .isUsedEqualTo(false)
+        .findAll();
+
+    final total = Amount(
+      rawValue: unusedCoins
+          .map((e) => e.value)
+          .fold(BigInt.zero, (prev, e) => prev + e),
+      fractionDigits: cryptoCurrency.fractionDigits,
+    );
+    final spendable = Amount(
+      rawValue: unusedCoins
+          .where((e) =>
+              e.height != null &&
+              e.height! + cryptoCurrency.minConfirms >= currentHeight)
+          .map((e) => e.value)
+          .fold(BigInt.zero, (prev, e) => prev + e),
+      fractionDigits: cryptoCurrency.fractionDigits,
+    );
+
+    final sparkBalance = Balance(
+      total: total,
+      spendable: spendable,
+      blockedTotal: Amount(
+        rawValue: BigInt.zero,
+        fractionDigits: cryptoCurrency.fractionDigits,
+      ),
+      pendingSpendable: total - spendable,
+    );
+
+    await info.updateBalanceTertiary(
+      newBalance: sparkBalance,
+      isar: mainDB.isar,
+    );
+  }
+
   /// Should only be called within the standard wallet [recover] function due to
   /// mutex locking. Otherwise behaviour MAY be undefined.
-  Future<void> recoverSparkWallet(
-      // {
-      // required int latestSetId,
-      // required Map<dynamic, dynamic> setDataMap,
-      // required Set<String> usedSerialNumbers,
-      // }
-      ) async {
+  Future<void> recoverSparkWallet({
+    required Map<dynamic, dynamic> anonymitySet,
+    required Set<String> spentCoinTags,
+  }) async {
+    //   generate spark addresses if non existing
+    if (await getCurrentReceivingSparkAddress() == null) {
+      final address = await generateNextSparkAddress();
+      await mainDB.putAddress(address);
+    }
+
+    final sparkAddresses = await mainDB.isar.addresses
+        .where()
+        .walletIdEqualTo(walletId)
+        .filter()
+        .typeEqualTo(AddressType.spark)
+        .findAll();
+
+    final Set<String> paths =
+        sparkAddresses.map((e) => e.derivationPath!.value).toSet();
+
     try {
-      // do we need to generate any spark address(es) here?
-
-      final latestSparkCoinId = await electrumXClient.getSparkLatestCoinId();
-
-      final anonymitySet = await electrumXCachedClient.getSparkAnonymitySet(
-        groupId: latestSparkCoinId.toString(),
-        coin: info.coin,
+      final myCoins = await _identifyCoins(
+        anonymitySet: anonymitySet,
+        spentCoinTags: spentCoinTags,
+        sparkAddressDerivationPaths: paths,
       );
 
-      // TODO loop over set and see which coins are ours using the FFI call `identifyCoin`
-      List myCoins = [];
-
-      // fetch metadata for myCoins
-
-      // create list of Spark Coin isar objects
-
       // update wallet spark coins in isar
+      await _addOrUpdateSparkCoins(myCoins);
 
-      throw UnimplementedError();
+      // update blockHash in cache
+      final String newBlockHash = anonymitySet["blockHash"] as String;
+      await _setCachedSparkBlockHash(newBlockHash);
+
+      // refresh spark balance
+      await refreshSparkBalance();
     } catch (e, s) {
       // todo logging
 
@@ -825,6 +762,124 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
 
     // wait for normalBalanceFuture to complete before returning
     await normalBalanceFuture;
+  }
+
+  // ====================== Private ============================================
+
+  final _kSparkAnonSetCachedBlockHashKey = "SparkAnonSetCachedBlockHashKey";
+
+  Future<String?> _getCachedSparkBlockHash() async {
+    return info.otherData[_kSparkAnonSetCachedBlockHashKey] as String?;
+  }
+
+  Future<void> _setCachedSparkBlockHash(String blockHash) async {
+    await info.updateOtherData(
+      newEntries: {_kSparkAnonSetCachedBlockHashKey: blockHash},
+      isar: mainDB.isar,
+    );
+  }
+
+  Future<List<SparkCoin>> _identifyCoins({
+    required Map<dynamic, dynamic> anonymitySet,
+    required Set<String> spentCoinTags,
+    required Set<String> sparkAddressDerivationPaths,
+  }) async {
+    final root = await getRootHDNode();
+
+    final List<SparkCoin> myCoins = [];
+
+    for (final path in sparkAddressDerivationPaths) {
+      final keys = root.derivePath(path);
+
+      final privateKeyHex = keys.privateKey.data.toHex;
+
+      for (final dynData in anonymitySet["coins"] as List) {
+        final data = List<String>.from(dynData as List);
+
+        if (data.length != 3) {
+          throw Exception("Unexpected serialized coin info found");
+        }
+
+        final serializedCoinB64 = data[0];
+        final txHash = base64ToReverseHex(data[1]);
+        final contextB64 = data[2];
+
+        final coin = LibSpark.identifyAndRecoverCoin(
+          serializedCoinB64,
+          privateKeyHex: privateKeyHex,
+          index: kDefaultSparkIndex,
+          context: base64Decode(contextB64),
+          isTestNet: cryptoCurrency.network == CryptoCurrencyNetwork.test,
+        );
+
+        // its ours
+        if (coin != null) {
+          final SparkCoinType coinType;
+          switch (coin.type.value) {
+            case 0:
+              coinType = SparkCoinType.mint;
+            case 1:
+              coinType = SparkCoinType.spend;
+            default:
+              throw Exception("Unknown spark coin type detected");
+          }
+          myCoins.add(
+            SparkCoin(
+              walletId: walletId,
+              type: coinType,
+              isUsed: spentCoinTags.contains(coin.lTagHash!),
+              nonce: coin.nonceHex?.toUint8ListFromHex,
+              address: coin.address!,
+              txHash: txHash,
+              valueIntString: coin.value!.toString(),
+              memo: coin.memo,
+              serialContext: coin.serialContext,
+              diversifierIntString: coin.diversifier!.toString(),
+              encryptedDiversifier: coin.encryptedDiversifier,
+              serial: coin.serial,
+              tag: coin.tag,
+              lTagHash: coin.lTagHash!,
+              height: coin.height,
+              serializedCoinB64: serializedCoinB64,
+              contextB64: contextB64,
+            ),
+          );
+        }
+      }
+    }
+
+    return myCoins;
+  }
+
+  Future<void> _addOrUpdateSparkCoins(List<SparkCoin> coins) async {
+    if (coins.isNotEmpty) {
+      await mainDB.isar.writeTxn(() async {
+        await mainDB.isar.sparkCoins.putAll(coins);
+      });
+    }
+
+    // update wallet spark coin height
+    final coinsToCheck = await mainDB.isar.sparkCoins
+        .where()
+        .walletIdEqualToAnyLTagHash(walletId)
+        .filter()
+        .heightIsNull()
+        .findAll();
+    final List<SparkCoin> updatedCoins = [];
+    for (final coin in coinsToCheck) {
+      final tx = await electrumXCachedClient.getTransaction(
+        txHash: coin.txHash,
+        coin: info.coin,
+      );
+      if (tx["height"] is int) {
+        updatedCoins.add(coin.copyWith(height: tx["height"] as int));
+      }
+    }
+    if (updatedCoins.isNotEmpty) {
+      await mainDB.isar.writeTxn(() async {
+        await mainDB.isar.sparkCoins.putAll(updatedCoins);
+      });
+    }
   }
 }
 

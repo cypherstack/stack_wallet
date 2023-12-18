@@ -485,10 +485,22 @@ class FiroWallet extends Bip39HDWallet
           await mainDB.deleteWalletBlockchainData(walletId);
         }
 
+        // lelantus
         final latestSetId = await electrumXClient.getLelantusLatestCoinId();
         final setDataMapFuture = getSetDataMap(latestSetId);
         final usedSerialNumbersFuture =
             electrumXCachedClient.getUsedCoinSerials(
+          coin: info.coin,
+        );
+
+        // spark
+        final latestSparkCoinId = await electrumXClient.getSparkLatestCoinId();
+        final sparkAnonSetFuture = electrumXCachedClient.getSparkAnonymitySet(
+          groupId: latestSparkCoinId.toString(),
+          coin: info.coin,
+        );
+        final sparkUsedCoinTagsFuture =
+            electrumXCachedClient.getSparkUsedCoinsTags(
           coin: info.coin,
         );
 
@@ -595,16 +607,29 @@ class FiroWallet extends Bip39HDWallet
         final futureResults = await Future.wait([
           usedSerialNumbersFuture,
           setDataMapFuture,
+          sparkAnonSetFuture,
+          sparkUsedCoinTagsFuture,
         ]);
 
+        // lelantus
         final usedSerialsSet = (futureResults[0] as List<String>).toSet();
         final setDataMap = futureResults[1] as Map<dynamic, dynamic>;
 
-        await recoverLelantusWallet(
-          latestSetId: latestSetId,
-          usedSerialNumbers: usedSerialsSet,
-          setDataMap: setDataMap,
-        );
+        // spark
+        final sparkAnonymitySet = futureResults[2] as Map<String, dynamic>;
+        final sparkSpentCoinTags = futureResults[3] as Set<String>;
+
+        await Future.wait([
+          recoverLelantusWallet(
+            latestSetId: latestSetId,
+            usedSerialNumbers: usedSerialsSet,
+            setDataMap: setDataMap,
+          ),
+          recoverSparkWallet(
+            anonymitySet: sparkAnonymitySet,
+            spentCoinTags: sparkSpentCoinTags,
+          ),
+        ]);
       });
 
       await refresh();

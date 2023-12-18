@@ -484,6 +484,12 @@ class MainDB {
       //         .findAll();
       //     await isar.lelantusCoins.deleteAll(lelantusCoinIds);
       //   }
+
+      // spark coins
+      await isar.sparkCoins
+          .where()
+          .walletIdEqualToAnyLTagHash(walletId)
+          .deleteAll();
     });
   }
 

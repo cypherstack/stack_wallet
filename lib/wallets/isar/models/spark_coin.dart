@@ -49,6 +49,9 @@ class SparkCoin {
 
   final int? height;
 
+  final String? serializedCoinB64;
+  final String? contextB64;
+
   @ignore
   BigInt get value => BigInt.parse(valueIntString);
 
@@ -71,6 +74,8 @@ class SparkCoin {
     this.tag,
     required this.lTagHash,
     this.height,
+    this.serializedCoinB64,
+    this.contextB64,
   });
 
   SparkCoin copyWith({
@@ -88,6 +93,8 @@ class SparkCoin {
     List<int>? tag,
     String? lTagHash,
     int? height,
+    String? serializedCoinB64,
+    String? contextB64,
   }) {
     return SparkCoin(
       walletId: walletId,
@@ -106,6 +113,8 @@ class SparkCoin {
       tag: tag ?? this.tag,
       lTagHash: lTagHash ?? this.lTagHash,
       height: height ?? this.height,
+      serializedCoinB64: serializedCoinB64 ?? this.serializedCoinB64,
+      contextB64: contextB64 ?? this.contextB64,
     );
   }
 
@@ -127,6 +136,8 @@ class SparkCoin {
         ', tag: $tag'
         ', lTagHash: $lTagHash'
         ', height: $height'
+        ', serializedCoinB64: $serializedCoinB64'
+        ', contextB64: $contextB64'
         ')';
   }
 }
