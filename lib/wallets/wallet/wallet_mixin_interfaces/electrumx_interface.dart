@@ -625,9 +625,19 @@ mixin ElectrumXInterface on Bip39HDWallet {
     // TODO: use coinlib
 
     final txb = bitcoindart.TransactionBuilder(
-      network: bitcoindart.testnet,
+      network: bitcoindart.NetworkType(
+        messagePrefix: cryptoCurrency.networkParams.messagePrefix,
+        bech32: cryptoCurrency.networkParams.bech32Hrp,
+        bip32: bitcoindart.Bip32Type(
+          public: cryptoCurrency.networkParams.pubHDPrefix,
+          private: cryptoCurrency.networkParams.privHDPrefix,
+        ),
+        pubKeyHash: cryptoCurrency.networkParams.p2pkhPrefix,
+        scriptHash: cryptoCurrency.networkParams.p2shPrefix,
+        wif: cryptoCurrency.networkParams.wifPrefix,
+      ),
     );
-    txb.setVersion(1);
+    txb.setVersion(1); // TODO possibly override this for certain coins?
 
     // Add transaction inputs
     for (var i = 0; i < utxoSigningData.length; i++) {

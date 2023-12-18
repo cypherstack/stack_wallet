@@ -142,15 +142,14 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     if ((coin == Coin.firo || coin == Coin.firoTestNet)) {
       if (ref.read(publicPrivateBalanceStateProvider.state).state ==
           "Private") {
-        availableBalance = wallet.info.cachedBalance.spendable;
+        availableBalance = wallet.info.cachedBalanceSecondary.spendable;
         // (manager.wallet as FiroWallet).availablePrivateBalance();
       } else {
-        availableBalance = wallet.info.cachedBalanceSecondary.spendable;
+        availableBalance = wallet.info.cachedBalance.spendable;
         // (manager.wallet as FiroWallet).availablePublicBalance();
       }
     } else {
       availableBalance = wallet.info.cachedBalance.spendable;
-      ;
     }
 
     final coinControlEnabled =
@@ -821,7 +820,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         const SizedBox(
           height: 4,
         ),
-        if (coin == Coin.firo)
+        if (coin == Coin.firo || coin == Coin.firoTestNet)
           Text(
             "Send from",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
@@ -831,11 +830,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ),
             textAlign: TextAlign.left,
           ),
-        if (coin == Coin.firo)
+        if (coin == Coin.firo || coin == Coin.firoTestNet)
           const SizedBox(
             height: 10,
           ),
-        if (coin == Coin.firo)
+        if (coin == Coin.firo || coin == Coin.firoTestNet)
           DropdownButtonHideUnderline(
             child: DropdownButton2(
               isExpanded: true,
@@ -917,7 +916,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
             ),
           ),
-        if (coin == Coin.firo)
+        if (coin == Coin.firo || coin == Coin.firoTestNet)
           const SizedBox(
             height: 20,
           ),
@@ -1486,7 +1485,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                                             .read(
                                                 publicPrivateBalanceStateProvider
                                                     .state)
-                                            .state !=
+                                            .state ==
                                         "Private") {
                                   throw UnimplementedError("FIXME");
                                   // TODO: [prio=high] firo fee fix
