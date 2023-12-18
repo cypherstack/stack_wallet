@@ -352,6 +352,16 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                     data: address.derivationPath!.value,
                     button: Container(),
                   ),
+                if (address.type == AddressType.spark)
+                  const _Div(
+                    height: 12,
+                  ),
+                if (address.type == AddressType.spark)
+                  _Item(
+                    title: "Diversifier",
+                    data: address.derivationIndex.toString(),
+                    button: Container(),
+                  ),
                 const _Div(
                   height: 12,
                 ),
