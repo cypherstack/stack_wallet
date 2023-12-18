@@ -105,9 +105,15 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
   Future<TxData> prepareSendSpark({
     required TxData txData,
   }) async {
-    // todo fetch
-    final List<Uint8List> serializedMintMetas = [];
-    final List<LibSparkCoin> myCoins = [];
+    final coins = await mainDB.isar.sparkCoins
+        .where()
+        .walletIdEqualToAnyLTagHash(walletId)
+        .filter()
+        .isUsedEqualTo(false)
+        .findAll();
+
+    final serializedCoins =
+        coins.map((e) => (e.serializedCoinB64!, e.contextB64!)).toList();
 
     final currentId = await electrumXClient.getSparkLatestCoinId();
     final List<Map<String, dynamic>> setMaps = [];
