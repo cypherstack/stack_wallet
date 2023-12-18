@@ -731,7 +731,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       txb.addInput(
         sd.utxo.txid,
         sd.utxo.vout,
-        null,
+        0xffffffff - 1,
         sd.output,
       );
     }
