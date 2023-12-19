@@ -19,6 +19,12 @@ import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_int
 const kDefaultSparkIndex = 1;
 
 mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
+  static bool validateSparkAddress({
+    required String address,
+    required bool isTestNet,
+  }) =>
+      LibSpark.validateAddress(address: address, isTestNet: isTestNet);
+
   @override
   Future<void> init() async {
     Address? address = await getCurrentReceivingSparkAddress();

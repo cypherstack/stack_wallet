@@ -7,6 +7,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 
 class Firo extends Bip39HDCurrency {
   Firo(super.network) {
@@ -132,9 +133,15 @@ class Firo extends Bip39HDCurrency {
       coinlib.Address.fromString(address, networkParams);
       return true;
     } catch (_) {
-      return false;
+      return validateSparkAddress(address);
     }
-    // TODO: implement validateAddress for spark addresses?
+  }
+
+  bool validateSparkAddress(String address) {
+    return SparkInterface.validateSparkAddress(
+      address: address,
+      isTestNet: network == CryptoCurrencyNetwork.test,
+    );
   }
 
   @override
