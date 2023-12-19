@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:bitcoindart/bitcoindart.dart' as btc;
 import 'package:bitcoindart/src/utils/script.dart' as bscript;
+import 'package:flutter/foundation.dart';
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/balance.dart';
@@ -435,34 +435,47 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
 
       final blockHash = await _getCachedSparkBlockHash();
 
-      final futureResults = await Future.wait([
-        blockHash == null
-            ? electrumXCachedClient.getSparkAnonymitySet(
-                groupId: latestSparkCoinId.toString(),
-                coin: info.coin,
-              )
-            : electrumXClient.getSparkAnonymitySet(
-                coinGroupId: latestSparkCoinId.toString(),
-                startBlockHash: blockHash,
-              ),
-        electrumXCachedClient.getSparkUsedCoinsTags(coin: info.coin),
-      ]);
+      final anonymitySet = blockHash == null
+          ? await electrumXCachedClient.getSparkAnonymitySet(
+              groupId: latestSparkCoinId.toString(),
+              coin: info.coin,
+            )
+          : await electrumXClient.getSparkAnonymitySet(
+              coinGroupId: latestSparkCoinId.toString(),
+              startBlockHash: blockHash,
+            );
 
-      final anonymitySet = futureResults[0] as Map<String, dynamic>;
-      final spentCoinTags = futureResults[1] as Set<String>;
+      if (anonymitySet["coins"] is List &&
+          (anonymitySet["coins"] as List).isNotEmpty) {
+        final spentCoinTags =
+            await electrumXCachedClient.getSparkUsedCoinsTags(coin: info.coin);
 
-      final myCoins = await _identifyCoins(
-        anonymitySet: anonymitySet,
-        spentCoinTags: spentCoinTags,
-        sparkAddressDerivationPaths: paths,
-      );
+        final root = await getRootHDNode();
+        final privateKeyHexSet = paths
+            .map(
+              (e) => root.derivePath(e).privateKey.data.toHex,
+            )
+            .toSet();
 
-      // update wallet spark coins in isar
-      await _addOrUpdateSparkCoins(myCoins);
+        final myCoins = await compute(
+          _identifyCoins,
+          (
+            anonymitySetCoins: anonymitySet["coins"] as List,
+            spentCoinTags: spentCoinTags,
+            privateKeyHexSet: privateKeyHexSet,
+            walletId: walletId,
+            isTestNet: cryptoCurrency.network == CryptoCurrencyNetwork.test,
+          ),
+        );
 
-      // update blockHash in cache
-      final String newBlockHash = anonymitySet["blockHash"] as String;
-      await _setCachedSparkBlockHash(newBlockHash);
+        // update wallet spark coins in isar
+        await _addOrUpdateSparkCoins(myCoins);
+
+        // update blockHash in cache
+        final String newBlockHash =
+            base64ToReverseHex(anonymitySet["blockHash"] as String);
+        await _setCachedSparkBlockHash(newBlockHash);
+      }
 
       // refresh spark balance
       await refreshSparkBalance();
@@ -537,10 +550,19 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         sparkAddresses.map((e) => e.derivationPath!.value).toSet();
 
     try {
-      final myCoins = await _identifyCoins(
-        anonymitySet: anonymitySet,
-        spentCoinTags: spentCoinTags,
-        sparkAddressDerivationPaths: paths,
+      final root = await getRootHDNode();
+      final privateKeyHexSet =
+          paths.map((e) => root.derivePath(e).privateKey.data.toHex).toSet();
+
+      final myCoins = await compute(
+        _identifyCoins,
+        (
+          anonymitySetCoins: anonymitySet["coins"] as List,
+          spentCoinTags: spentCoinTags,
+          privateKeyHexSet: privateKeyHexSet,
+          walletId: walletId,
+          isTestNet: cryptoCurrency.network == CryptoCurrencyNetwork.test,
+        ),
       );
 
       // update wallet spark coins in isar
@@ -680,7 +702,8 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       txb.addInput(
         sd.utxo.txid,
         sd.utxo.vout,
-        0xffffffff - 1,
+        0xffffffff -
+            1, // minus 1 is important. 0xffffffff on its own will burn funds
         sd.output,
       );
     }
@@ -791,78 +814,6 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     );
   }
 
-  Future<List<SparkCoin>> _identifyCoins({
-    required Map<dynamic, dynamic> anonymitySet,
-    required Set<String> spentCoinTags,
-    required Set<String> sparkAddressDerivationPaths,
-  }) async {
-    final root = await getRootHDNode();
-
-    final List<SparkCoin> myCoins = [];
-
-    for (final path in sparkAddressDerivationPaths) {
-      final keys = root.derivePath(path);
-
-      final privateKeyHex = keys.privateKey.data.toHex;
-
-      for (final dynData in anonymitySet["coins"] as List) {
-        final data = List<String>.from(dynData as List);
-
-        if (data.length != 3) {
-          throw Exception("Unexpected serialized coin info found");
-        }
-
-        final serializedCoinB64 = data[0];
-        final txHash = base64ToReverseHex(data[1]);
-        final contextB64 = data[2];
-
-        final coin = LibSpark.identifyAndRecoverCoin(
-          serializedCoinB64,
-          privateKeyHex: privateKeyHex,
-          index: kDefaultSparkIndex,
-          context: base64Decode(contextB64),
-          isTestNet: cryptoCurrency.network == CryptoCurrencyNetwork.test,
-        );
-
-        // its ours
-        if (coin != null) {
-          final SparkCoinType coinType;
-          switch (coin.type.value) {
-            case 0:
-              coinType = SparkCoinType.mint;
-            case 1:
-              coinType = SparkCoinType.spend;
-            default:
-              throw Exception("Unknown spark coin type detected");
-          }
-          myCoins.add(
-            SparkCoin(
-              walletId: walletId,
-              type: coinType,
-              isUsed: spentCoinTags.contains(coin.lTagHash!),
-              nonce: coin.nonceHex?.toUint8ListFromHex,
-              address: coin.address!,
-              txHash: txHash,
-              valueIntString: coin.value!.toString(),
-              memo: coin.memo,
-              serialContext: coin.serialContext,
-              diversifierIntString: coin.diversifier!.toString(),
-              encryptedDiversifier: coin.encryptedDiversifier,
-              serial: coin.serial,
-              tag: coin.tag,
-              lTagHash: coin.lTagHash!,
-              height: coin.height,
-              serializedCoinB64: serializedCoinB64,
-              contextB64: contextB64,
-            ),
-          );
-        }
-      }
-    }
-
-    return myCoins;
-  }
-
   Future<void> _addOrUpdateSparkCoins(List<SparkCoin> coins) async {
     if (coins.isNotEmpty) {
       await mainDB.isar.writeTxn(() async {
@@ -900,3 +851,73 @@ String base64ToReverseHex(String source) =>
         .reversed
         .map((e) => e.toRadixString(16).padLeft(2, '0'))
         .join();
+
+/// Top level function which should be called wrapped in [compute]
+Future<List<SparkCoin>> _identifyCoins(
+    ({
+      List<dynamic> anonymitySetCoins,
+      Set<String> spentCoinTags,
+      Set<String> privateKeyHexSet,
+      String walletId,
+      bool isTestNet,
+    }) args) async {
+  final List<SparkCoin> myCoins = [];
+
+  for (final privateKeyHex in args.privateKeyHexSet) {
+    for (final dynData in args.anonymitySetCoins) {
+      final data = List<String>.from(dynData as List);
+
+      if (data.length != 3) {
+        throw Exception("Unexpected serialized coin info found");
+      }
+
+      final serializedCoinB64 = data[0];
+      final txHash = base64ToReverseHex(data[1]);
+      final contextB64 = data[2];
+
+      final coin = LibSpark.identifyAndRecoverCoin(
+        serializedCoinB64,
+        privateKeyHex: privateKeyHex,
+        index: kDefaultSparkIndex,
+        context: base64Decode(contextB64),
+        isTestNet: args.isTestNet,
+      );
+
+      // its ours
+      if (coin != null) {
+        final SparkCoinType coinType;
+        switch (coin.type.value) {
+          case 0:
+            coinType = SparkCoinType.mint;
+          case 1:
+            coinType = SparkCoinType.spend;
+          default:
+            throw Exception("Unknown spark coin type detected");
+        }
+        myCoins.add(
+          SparkCoin(
+            walletId: args.walletId,
+            type: coinType,
+            isUsed: args.spentCoinTags.contains(coin.lTagHash!),
+            nonce: coin.nonceHex?.toUint8ListFromHex,
+            address: coin.address!,
+            txHash: txHash,
+            valueIntString: coin.value!.toString(),
+            memo: coin.memo,
+            serialContext: coin.serialContext,
+            diversifierIntString: coin.diversifier!.toString(),
+            encryptedDiversifier: coin.encryptedDiversifier,
+            serial: coin.serial,
+            tag: coin.tag,
+            lTagHash: coin.lTagHash!,
+            height: coin.height,
+            serializedCoinB64: serializedCoinB64,
+            contextB64: contextB64,
+          ),
+        );
+      }
+    }
+  }
+
+  return myCoins;
+}
