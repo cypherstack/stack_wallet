@@ -37,69 +37,74 @@ const SparkCoinSchema = CollectionSchema(
       name: r'encryptedDiversifier',
       type: IsarType.longList,
     ),
-    r'height': PropertySchema(
+    r'groupId': PropertySchema(
       id: 4,
+      name: r'groupId',
+      type: IsarType.long,
+    ),
+    r'height': PropertySchema(
+      id: 5,
       name: r'height',
       type: IsarType.long,
     ),
     r'isUsed': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'isUsed',
       type: IsarType.bool,
     ),
     r'lTagHash': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'lTagHash',
       type: IsarType.string,
     ),
     r'memo': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'memo',
       type: IsarType.string,
     ),
     r'nonce': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'nonce',
       type: IsarType.longList,
     ),
     r'serial': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'serial',
       type: IsarType.longList,
     ),
     r'serialContext': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'serialContext',
       type: IsarType.longList,
     ),
     r'serializedCoinB64': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'serializedCoinB64',
       type: IsarType.string,
     ),
     r'tag': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'tag',
       type: IsarType.longList,
     ),
     r'txHash': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'txHash',
       type: IsarType.string,
     ),
     r'type': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'type',
       type: IsarType.byte,
       enumMap: _SparkCointypeEnumValueMap,
     ),
     r'valueIntString': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'valueIntString',
       type: IsarType.string,
     ),
     r'walletId': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'walletId',
       type: IsarType.string,
     )
@@ -210,19 +215,20 @@ void _sparkCoinSerialize(
   writer.writeString(offsets[1], object.contextB64);
   writer.writeString(offsets[2], object.diversifierIntString);
   writer.writeLongList(offsets[3], object.encryptedDiversifier);
-  writer.writeLong(offsets[4], object.height);
-  writer.writeBool(offsets[5], object.isUsed);
-  writer.writeString(offsets[6], object.lTagHash);
-  writer.writeString(offsets[7], object.memo);
-  writer.writeLongList(offsets[8], object.nonce);
-  writer.writeLongList(offsets[9], object.serial);
-  writer.writeLongList(offsets[10], object.serialContext);
-  writer.writeString(offsets[11], object.serializedCoinB64);
-  writer.writeLongList(offsets[12], object.tag);
-  writer.writeString(offsets[13], object.txHash);
-  writer.writeByte(offsets[14], object.type.index);
-  writer.writeString(offsets[15], object.valueIntString);
-  writer.writeString(offsets[16], object.walletId);
+  writer.writeLong(offsets[4], object.groupId);
+  writer.writeLong(offsets[5], object.height);
+  writer.writeBool(offsets[6], object.isUsed);
+  writer.writeString(offsets[7], object.lTagHash);
+  writer.writeString(offsets[8], object.memo);
+  writer.writeLongList(offsets[9], object.nonce);
+  writer.writeLongList(offsets[10], object.serial);
+  writer.writeLongList(offsets[11], object.serialContext);
+  writer.writeString(offsets[12], object.serializedCoinB64);
+  writer.writeLongList(offsets[13], object.tag);
+  writer.writeString(offsets[14], object.txHash);
+  writer.writeByte(offsets[15], object.type.index);
+  writer.writeString(offsets[16], object.valueIntString);
+  writer.writeString(offsets[17], object.walletId);
 }
 
 SparkCoin _sparkCoinDeserialize(
@@ -236,20 +242,21 @@ SparkCoin _sparkCoinDeserialize(
     contextB64: reader.readStringOrNull(offsets[1]),
     diversifierIntString: reader.readString(offsets[2]),
     encryptedDiversifier: reader.readLongList(offsets[3]),
-    height: reader.readLongOrNull(offsets[4]),
-    isUsed: reader.readBool(offsets[5]),
-    lTagHash: reader.readString(offsets[6]),
-    memo: reader.readStringOrNull(offsets[7]),
-    nonce: reader.readLongList(offsets[8]),
-    serial: reader.readLongList(offsets[9]),
-    serialContext: reader.readLongList(offsets[10]),
-    serializedCoinB64: reader.readStringOrNull(offsets[11]),
-    tag: reader.readLongList(offsets[12]),
-    txHash: reader.readString(offsets[13]),
-    type: _SparkCointypeValueEnumMap[reader.readByteOrNull(offsets[14])] ??
+    groupId: reader.readLong(offsets[4]),
+    height: reader.readLongOrNull(offsets[5]),
+    isUsed: reader.readBool(offsets[6]),
+    lTagHash: reader.readString(offsets[7]),
+    memo: reader.readStringOrNull(offsets[8]),
+    nonce: reader.readLongList(offsets[9]),
+    serial: reader.readLongList(offsets[10]),
+    serialContext: reader.readLongList(offsets[11]),
+    serializedCoinB64: reader.readStringOrNull(offsets[12]),
+    tag: reader.readLongList(offsets[13]),
+    txHash: reader.readString(offsets[14]),
+    type: _SparkCointypeValueEnumMap[reader.readByteOrNull(offsets[15])] ??
         SparkCoinType.mint,
-    valueIntString: reader.readString(offsets[15]),
-    walletId: reader.readString(offsets[16]),
+    valueIntString: reader.readString(offsets[16]),
+    walletId: reader.readString(offsets[17]),
   );
   object.id = id;
   return object;
@@ -271,31 +278,33 @@ P _sparkCoinDeserializeProp<P>(
     case 3:
       return (reader.readLongList(offset)) as P;
     case 4:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 5:
-      return (reader.readBool(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 6:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 7:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 8:
-      return (reader.readLongList(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 9:
       return (reader.readLongList(offset)) as P;
     case 10:
       return (reader.readLongList(offset)) as P;
     case 11:
-      return (reader.readStringOrNull(offset)) as P;
-    case 12:
       return (reader.readLongList(offset)) as P;
+    case 12:
+      return (reader.readStringOrNull(offset)) as P;
     case 13:
-      return (reader.readString(offset)) as P;
+      return (reader.readLongList(offset)) as P;
     case 14:
+      return (reader.readString(offset)) as P;
+    case 15:
       return (_SparkCointypeValueEnumMap[reader.readByteOrNull(offset)] ??
           SparkCoinType.mint) as P;
-    case 15:
-      return (reader.readString(offset)) as P;
     case 16:
+      return (reader.readString(offset)) as P;
+    case 17:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1158,6 +1167,59 @@ extension SparkCoinQueryFilter
         upper,
         includeUpper,
       );
+    });
+  }
+
+  QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> groupIdEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'groupId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> groupIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'groupId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> groupIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'groupId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<SparkCoin, SparkCoin, QAfterFilterCondition> groupIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'groupId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
@@ -2852,6 +2914,18 @@ extension SparkCoinQuerySortBy on QueryBuilder<SparkCoin, SparkCoin, QSortBy> {
     });
   }
 
+  QueryBuilder<SparkCoin, SparkCoin, QAfterSortBy> sortByGroupId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'groupId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SparkCoin, SparkCoin, QAfterSortBy> sortByGroupIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'groupId', Sort.desc);
+    });
+  }
+
   QueryBuilder<SparkCoin, SparkCoin, QAfterSortBy> sortByHeight() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'height', Sort.asc);
@@ -2999,6 +3073,18 @@ extension SparkCoinQuerySortThenBy
       thenByDiversifierIntStringDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'diversifierIntString', Sort.desc);
+    });
+  }
+
+  QueryBuilder<SparkCoin, SparkCoin, QAfterSortBy> thenByGroupId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'groupId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SparkCoin, SparkCoin, QAfterSortBy> thenByGroupIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'groupId', Sort.desc);
     });
   }
 
@@ -3155,6 +3241,12 @@ extension SparkCoinQueryWhereDistinct
     });
   }
 
+  QueryBuilder<SparkCoin, SparkCoin, QDistinct> distinctByGroupId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'groupId');
+    });
+  }
+
   QueryBuilder<SparkCoin, SparkCoin, QDistinct> distinctByHeight() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'height');
@@ -3273,6 +3365,12 @@ extension SparkCoinQueryProperty
       encryptedDiversifierProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'encryptedDiversifier');
+    });
+  }
+
+  QueryBuilder<SparkCoin, int, QQueryOperations> groupIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'groupId');
     });
   }
 

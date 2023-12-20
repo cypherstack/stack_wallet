@@ -28,6 +28,7 @@ class SparkCoin {
   final SparkCoinType type;
 
   final bool isUsed;
+  final int groupId;
 
   final List<int>? nonce;
 
@@ -62,6 +63,7 @@ class SparkCoin {
     required this.walletId,
     required this.type,
     required this.isUsed,
+    required this.groupId,
     this.nonce,
     required this.address,
     required this.txHash,
@@ -81,6 +83,7 @@ class SparkCoin {
   SparkCoin copyWith({
     SparkCoinType? type,
     bool? isUsed,
+    int? groupId,
     List<int>? nonce,
     String? address,
     String? txHash,
@@ -100,6 +103,7 @@ class SparkCoin {
       walletId: walletId,
       type: type ?? this.type,
       isUsed: isUsed ?? this.isUsed,
+      groupId: groupId ?? this.groupId,
       nonce: nonce ?? this.nonce,
       address: address ?? this.address,
       txHash: txHash ?? this.txHash,
@@ -124,6 +128,7 @@ class SparkCoin {
         'walletId: $walletId'
         ', type: $type'
         ', isUsed: $isUsed'
+        ', groupId: $groupId'
         ', k: $nonce'
         ', address: $address'
         ', txHash: $txHash'

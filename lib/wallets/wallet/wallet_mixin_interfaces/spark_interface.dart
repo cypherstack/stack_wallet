@@ -123,21 +123,35 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         .walletIdEqualToAnyLTagHash(walletId)
         .filter()
         .isUsedEqualTo(false)
+        .and()
+        .heightIsNotNull()
         .findAll();
 
-    final serializedCoins =
-        coins.map((e) => (e.serializedCoinB64!, e.contextB64!)).toList();
+    final serializedCoins = coins
+        .map((e) => (
+              serializedCoin: e.serializedCoinB64!,
+              serializedCoinContext: e.contextB64!,
+              groupId: e.groupId,
+              height: e.height!,
+            ))
+        .toList();
 
     final currentId = await electrumXClient.getSparkLatestCoinId();
     final List<Map<String, dynamic>> setMaps = [];
-    // for (int i = 0; i <= currentId; i++) {
-    for (int i = currentId; i <= currentId; i++) {
+    final List<({int groupId, String blockHash})> idAndBlockHashes = [];
+    for (int i = 1; i <= currentId; i++) {
       final set = await electrumXCachedClient.getSparkAnonymitySet(
         groupId: i.toString(),
         coin: info.coin,
       );
       set["coinGroupID"] = i;
       setMaps.add(set);
+      idAndBlockHashes.add(
+        (
+          groupId: i,
+          blockHash: set["blockHash"] as String,
+        ),
+      );
     }
 
     final allAnonymitySets = setMaps
@@ -385,6 +399,9 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
           [],
       serializedCoins: serializedCoins,
       allAnonymitySets: allAnonymitySets,
+      idAndBlockHashes: idAndBlockHashes
+          .map((e) => (setId: e.groupId, blockHash: base64Decode(e.blockHash)))
+          .toList(),
     );
 
     print("SPARK SPEND ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
@@ -399,10 +416,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     }
 
     final extractedTx = txb.buildIncomplete();
-
-    // TODO: verify encoding
-    extractedTx.setPayload(spend.serializedSpendPayload.toUint8ListFromUtf8);
-
+    extractedTx.setPayload(spend.serializedSpendPayload);
     final rawTxHex = extractedTx.toHex();
 
     return txData.copyWith(
@@ -468,6 +482,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
           _identifyCoins,
           (
             anonymitySetCoins: anonymitySet["coins"] as List,
+            groupId: latestSparkCoinId,
             spentCoinTags: spentCoinTags,
             privateKeyHexSet: privateKeyHexSet,
             walletId: walletId,
@@ -565,6 +580,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         _identifyCoins,
         (
           anonymitySetCoins: anonymitySet["coins"] as List,
+          groupId: anonymitySet["coinGroupID"] as int,
           spentCoinTags: spentCoinTags,
           privateKeyHexSet: privateKeyHexSet,
           walletId: walletId,
@@ -863,6 +879,7 @@ String base64ToReverseHex(String source) =>
 Future<List<SparkCoin>> _identifyCoins(
     ({
       List<dynamic> anonymitySetCoins,
+      int groupId,
       Set<String> spentCoinTags,
       Set<String> privateKeyHexSet,
       String walletId,
@@ -906,6 +923,7 @@ Future<List<SparkCoin>> _identifyCoins(
             walletId: args.walletId,
             type: coinType,
             isUsed: args.spentCoinTags.contains(coin.lTagHash!),
+            groupId: args.groupId,
             nonce: coin.nonceHex?.toUint8ListFromHex,
             address: coin.address!,
             txHash: txHash,
