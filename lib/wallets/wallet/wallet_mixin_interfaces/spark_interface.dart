@@ -456,21 +456,31 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
 
       final blockHash = await _getCachedSparkBlockHash();
 
-      final anonymitySet = blockHash == null
-          ? await electrumXCachedClient.getSparkAnonymitySet(
+      final anonymitySetFuture = blockHash == null
+          ? electrumXCachedClient.getSparkAnonymitySet(
               groupId: latestSparkCoinId.toString(),
               coin: info.coin,
             )
-          : await electrumXClient.getSparkAnonymitySet(
+          : electrumXClient.getSparkAnonymitySet(
               coinGroupId: latestSparkCoinId.toString(),
               startBlockHash: blockHash,
             );
+      final spentCoinTagsFuture =
+          electrumXClient.getSparkUsedCoinsTags(startNumber: 0);
+      // electrumXCachedClient.getSparkUsedCoinsTags(coin: info.coin);
+
+      final futureResults = await Future.wait([
+        anonymitySetFuture,
+        spentCoinTagsFuture,
+      ]);
+
+      final anonymitySet = futureResults[0] as Map<String, dynamic>;
+      final spentCoinTags = futureResults[1] as Set<String>;
+
+      final List<SparkCoin> myCoins = [];
 
       if (anonymitySet["coins"] is List &&
           (anonymitySet["coins"] as List).isNotEmpty) {
-        final spentCoinTags =
-            await electrumXCachedClient.getSparkUsedCoinsTags(coin: info.coin);
-
         final root = await getRootHDNode();
         final privateKeyHexSet = paths
             .map(
@@ -478,7 +488,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
             )
             .toSet();
 
-        final myCoins = await compute(
+        final identifiedCoins = await compute(
           _identifyCoins,
           (
             anonymitySetCoins: anonymitySet["coins"] as List,
@@ -490,14 +500,29 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
           ),
         );
 
-        // update wallet spark coins in isar
-        await _addOrUpdateSparkCoins(myCoins);
+        myCoins.addAll(identifiedCoins);
 
         // update blockHash in cache
         final String newBlockHash =
             base64ToReverseHex(anonymitySet["blockHash"] as String);
         await _setCachedSparkBlockHash(newBlockHash);
       }
+
+      // check current coins
+      final currentCoins = await mainDB.isar.sparkCoins
+          .where()
+          .walletIdEqualToAnyLTagHash(walletId)
+          .filter()
+          .isUsedEqualTo(false)
+          .findAll();
+      for (final coin in currentCoins) {
+        if (spentCoinTags.contains(coin.lTagHash)) {
+          myCoins.add(coin.copyWith(isUsed: true));
+        }
+      }
+
+      // update wallet spark coins in isar
+      await _addOrUpdateSparkCoins(myCoins);
 
       // refresh spark balance
       await refreshSparkBalance();

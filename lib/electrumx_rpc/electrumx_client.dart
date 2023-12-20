@@ -15,6 +15,8 @@ import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:decimal/decimal.dart';
 import 'package:event_bus/event_bus.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stackwallet/electrumx_rpc/rpc.dart';
 import 'package:stackwallet/exceptions/electrumx/no_such_transaction.dart';
@@ -922,7 +924,8 @@ class ElectrumXClient {
         requestTimeout: const Duration(minutes: 2),
       );
       final map = Map<String, dynamic>.from(response["result"] as Map);
-      return Set<String>.from(map["tags"] as List);
+      final set = Set<String>.from(map["tags"] as List);
+      return await compute(_ffiHashTagsComputeWrapper, set);
     } catch (e) {
       Logging.instance.log(e, level: LogLevel.Error);
       rethrow;
@@ -1035,4 +1038,8 @@ class ElectrumXClient {
       rethrow;
     }
   }
+}
+
+Set<String> _ffiHashTagsComputeWrapper(Set<String> base64Tags) {
+  return LibSpark.hashTags(base64Tags: base64Tags);
 }

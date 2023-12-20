@@ -132,6 +132,14 @@ class _SparkCoinsViewState extends ConsumerState<SparkCoinsView> {
                       ),
                     ),
                     Expanded(
+                      flex: 9,
+                      child: Text(
+                        "LTag Hash",
+                        style: STextStyles.itemSubtitle(context),
+                        textAlign: TextAlign.left,
+                      ),
+                    ),
+                    Expanded(
                       flex: 3,
                       child: Text(
                         "Value (sats)",
@@ -143,6 +151,14 @@ class _SparkCoinsViewState extends ConsumerState<SparkCoinsView> {
                       flex: 2,
                       child: Text(
                         "Height",
+                        style: STextStyles.itemSubtitle(context),
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Text(
+                        "Group Id",
                         style: STextStyles.itemSubtitle(context),
                         textAlign: TextAlign.right,
                       ),
@@ -191,6 +207,13 @@ class _SparkCoinsViewState extends ConsumerState<SparkCoinsView> {
                           ),
                         ),
                         Expanded(
+                          flex: 9,
+                          child: SelectableText(
+                            _coins[index].lTagHash,
+                            style: STextStyles.itemSubtitle12(context),
+                          ),
+                        ),
+                        Expanded(
                           flex: 3,
                           child: SelectableText(
                             _coins[index].value.toString(),
@@ -202,6 +225,14 @@ class _SparkCoinsViewState extends ConsumerState<SparkCoinsView> {
                           flex: 2,
                           child: SelectableText(
                             _coins[index].height.toString(),
+                            style: STextStyles.itemSubtitle12(context),
+                            textAlign: TextAlign.right,
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: SelectableText(
+                            _coins[index].groupId.toString(),
                             style: STextStyles.itemSubtitle12(context),
                             textAlign: TextAlign.right,
                           ),
