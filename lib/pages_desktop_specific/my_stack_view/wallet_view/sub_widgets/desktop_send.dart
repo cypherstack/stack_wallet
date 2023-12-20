@@ -437,7 +437,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           ),
         );
       }
-    } catch (e) {
+    } catch (e, s) {
+      Logging.instance.log("Desktop send: $e\n$s", level: LogLevel.Warning);
       if (mounted) {
         // pop building dialog
         Navigator.of(
