@@ -12,6 +12,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_balance_toggle_sheet.dart';
@@ -29,6 +30,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/impl/banano_wallet.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 
 class WalletSummaryInfo extends ConsumerWidget {
@@ -45,6 +47,8 @@ class WalletSummaryInfo extends ConsumerWidget {
     showModalBottomSheet<dynamic>(
       backgroundColor: Colors.transparent,
       context: context,
+      useSafeArea: true,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(20),
@@ -57,10 +61,6 @@ class WalletSummaryInfo extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: $runtimeType");
-
-    bool isMonkey = true;
-
-    final receivingAddress = ref.watch(pWalletReceivingAddress(walletId));
 
     final externalCalls = ref.watch(
         prefsChangeNotifierProvider.select((value) => value.externalCalls));
@@ -81,19 +81,28 @@ class WalletSummaryInfo extends ConsumerWidget {
             WalletBalanceToggleState.available;
 
     final Amount balanceToShow;
-    String title;
+    final String title;
 
     if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      final _showPrivate =
-          ref.watch(publicPrivateBalanceStateProvider.state).state == "Private";
+      final type = ref.watch(publicPrivateBalanceStateProvider.state).state;
+      title =
+          "${_showAvailable ? "Available" : "Full"} ${type.name.capitalize()} balance";
+      switch (type) {
+        case FiroType.spark:
+          final balance = ref.watch(pWalletBalanceTertiary(walletId));
+          balanceToShow = _showAvailable ? balance.spendable : balance.total;
+          break;
 
-      final secondaryBal = ref.watch(pWalletBalanceSecondary(walletId));
+        case FiroType.lelantus:
+          final balance = ref.watch(pWalletBalanceSecondary(walletId));
+          balanceToShow = _showAvailable ? balance.spendable : balance.total;
+          break;
 
-      final bal = _showPrivate ? balance : secondaryBal;
-
-      balanceToShow = _showAvailable ? bal.spendable : bal.total;
-      title = _showAvailable ? "Available" : "Full";
-      title += _showPrivate ? " private balance" : " public balance";
+        case FiroType.public:
+          final balance = ref.watch(pWalletBalance(walletId));
+          balanceToShow = _showAvailable ? balance.spendable : balance.total;
+          break;
+      }
     } else {
       balanceToShow = _showAvailable ? balance.spendable : balance.total;
       title = _showAvailable ? "Available balance" : "Full balance";
@@ -102,8 +111,8 @@ class WalletSummaryInfo extends ConsumerWidget {
     List<int>? imageBytes;
 
     if (coin == Coin.banano) {
-      // TODO: [prio=high] fix this and uncomment:
-      // imageBytes = (manager.wallet as BananoWallet).getMonkeyImageBytes();
+      imageBytes = (ref.watch(pWallets).getWallet(walletId) as BananoWallet)
+          .getMonkeyImageBytes();
     }
 
     return ConditionalParent(

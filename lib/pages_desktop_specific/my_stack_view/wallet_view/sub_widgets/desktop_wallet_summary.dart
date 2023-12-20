@@ -15,6 +15,7 @@ import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_balance_toggle_button.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -61,6 +62,7 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
       ),
     );
     final coin = ref.watch(pWalletCoin(widget.walletId));
+    final isFiro = coin == Coin.firo || coin == Coin.firoTestNet;
     final locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
 
@@ -82,29 +84,30 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
         ref.watch(walletBalanceToggleStateProvider.state).state ==
             WalletBalanceToggleState.available;
 
-    Balance balance = widget.isToken
-        ? ref.watch(tokenServiceProvider.select((value) => value!.balance))
-        : ref.watch(pWalletBalance(walletId));
+    final Amount balanceToShow;
+    if (isFiro) {
+      switch (ref.watch(publicPrivateBalanceStateProvider.state).state) {
+        case FiroType.spark:
+          final balance = ref.watch(pWalletBalanceTertiary(walletId));
+          balanceToShow = _showAvailable ? balance.spendable : balance.total;
+          break;
 
-    Amount balanceToShow;
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      final balanceSecondary = ref.watch(pWalletBalanceSecondary(walletId));
-      final showPrivate =
-          ref.watch(walletPrivateBalanceToggleStateProvider.state).state ==
-              WalletBalanceToggleState.available;
+        case FiroType.lelantus:
+          final balance = ref.watch(pWalletBalanceSecondary(walletId));
+          balanceToShow = _showAvailable ? balance.spendable : balance.total;
+          break;
 
-      if (_showAvailable) {
-        balanceToShow =
-            showPrivate ? balanceSecondary.spendable : balance.spendable;
-      } else {
-        balanceToShow = showPrivate ? balanceSecondary.total : balance.total;
+        case FiroType.public:
+          final balance = ref.watch(pWalletBalance(walletId));
+          balanceToShow = _showAvailable ? balance.spendable : balance.total;
+          break;
       }
     } else {
-      if (_showAvailable) {
-        balanceToShow = balance.spendable;
-      } else {
-        balanceToShow = balance.total;
-      }
+      Balance balance = widget.isToken
+          ? ref.watch(tokenServiceProvider.select((value) => value!.balance))
+          : ref.watch(pWalletBalance(walletId));
+
+      balanceToShow = _showAvailable ? balance.spendable : balance.total;
     }
 
     return Consumer(

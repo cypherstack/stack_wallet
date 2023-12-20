@@ -104,7 +104,14 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
   }
 
   Future<Amount> estimateFeeForSpark(Amount amount) async {
-    throw UnimplementedError();
+    // int spendAmount = amount.raw.toInt();
+    // if (spendAmount == 0) {
+    return Amount(
+      rawValue: BigInt.from(0),
+      fractionDigits: cryptoCurrency.fractionDigits,
+    );
+    // }
+    // TODO actual fee estimation
   }
 
   /// Spark to Spark/Transparent (spend) creation
@@ -505,7 +512,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       rawValue: unusedCoins
           .where((e) =>
               e.height != null &&
-              e.height! + cryptoCurrency.minConfirms >= currentHeight)
+              e.height! + cryptoCurrency.minConfirms <= currentHeight)
           .map((e) => e.value)
           .fold(BigInt.zero, (prev, e) => prev + e),
       fractionDigits: cryptoCurrency.fractionDigits,

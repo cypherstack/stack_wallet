@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -80,6 +81,8 @@ class DesktopPrivateBalanceToggleButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final currentType = ref.watch(publicPrivateBalanceStateProvider);
+
     return SizedBox(
       height: 22,
       width: 22,
@@ -87,13 +90,21 @@ class DesktopPrivateBalanceToggleButton extends ConsumerWidget {
         color: Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
         splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         onPressed: () {
-          if (ref.read(walletPrivateBalanceToggleStateProvider.state).state ==
-              WalletBalanceToggleState.available) {
-            ref.read(walletPrivateBalanceToggleStateProvider.state).state =
-                WalletBalanceToggleState.full;
-          } else {
-            ref.read(walletPrivateBalanceToggleStateProvider.state).state =
-                WalletBalanceToggleState.available;
+          switch (currentType) {
+            case FiroType.public:
+              ref.read(publicPrivateBalanceStateProvider.state).state =
+                  FiroType.lelantus;
+              break;
+
+            case FiroType.lelantus:
+              ref.read(publicPrivateBalanceStateProvider.state).state =
+                  FiroType.spark;
+              break;
+
+            case FiroType.spark:
+              ref.read(publicPrivateBalanceStateProvider.state).state =
+                  FiroType.public;
+              break;
           }
           onPressed?.call();
         },
@@ -110,12 +121,14 @@ class DesktopPrivateBalanceToggleButton extends ConsumerWidget {
         child: Center(
           child: Image(
             image: AssetImage(
-              ref.watch(walletPrivateBalanceToggleStateProvider.state).state ==
-                      WalletBalanceToggleState.available
-                  ? Assets.png.glassesHidden
-                  : Assets.png.glasses,
+              currentType == FiroType.public
+                  ? Assets.png.glasses
+                  : Assets.png.glassesHidden,
             ),
             width: 16,
+            color: currentType == FiroType.spark
+                ? Theme.of(context).extension<StackColors>()!.accentColorYellow
+                : null,
           ),
         ),
       ),

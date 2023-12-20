@@ -48,10 +48,12 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -123,6 +125,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   bool get isPaynymSend => widget.accountLite != null;
 
+  bool _isSparkAddress = false;
+
   bool isCustomFee = false;
   int customFeeRate = 1;
   (FeeRateType, String?, String?)? feeSelectionResult;
@@ -140,13 +144,16 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     final Amount amount = _amountToSend!;
     final Amount availableBalance;
     if ((coin == Coin.firo || coin == Coin.firoTestNet)) {
-      if (ref.read(publicPrivateBalanceStateProvider.state).state ==
-          "Private") {
-        availableBalance = wallet.info.cachedBalanceSecondary.spendable;
-        // (manager.wallet as FiroWallet).availablePrivateBalance();
-      } else {
-        availableBalance = wallet.info.cachedBalance.spendable;
-        // (manager.wallet as FiroWallet).availablePublicBalance();
+      switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
+        case FiroType.public:
+          availableBalance = wallet.info.cachedBalance.spendable;
+          break;
+        case FiroType.lelantus:
+          availableBalance = wallet.info.cachedBalanceSecondary.spendable;
+          break;
+        case FiroType.spark:
+          availableBalance = wallet.info.cachedBalanceTertiary.spendable;
+          break;
       }
     } else {
       availableBalance = wallet.info.cachedBalance.spendable;
@@ -311,14 +318,63 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 : null,
           ),
         );
-      } else if (wallet is FiroWallet &&
-          ref.read(publicPrivateBalanceStateProvider.state).state ==
-              "Private") {
-        txDataFuture = wallet.prepareSendLelantus(
-          txData: TxData(
-            recipients: [(address: _address!, amount: amount)],
-          ),
-        );
+      } else if (wallet is FiroWallet) {
+        switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
+          case FiroType.public:
+            txDataFuture = wallet.prepareSend(
+              txData: TxData(
+                recipients: _isSparkAddress
+                    ? null
+                    : [(address: _address!, amount: amount)],
+                sparkRecipients: _isSparkAddress
+                    ? [
+                        (
+                          address: _address!,
+                          amount: amount,
+                          memo: memoController.text,
+                          subtractFeeFromAmount: false,
+                        )
+                      ]
+                    : null,
+                feeRateType: ref.read(feeRateTypeStateProvider),
+                satsPerVByte: isCustomFee ? customFeeRate : null,
+                utxos: (wallet is CoinControlInterface &&
+                        coinControlEnabled &&
+                        ref.read(desktopUseUTXOs).isNotEmpty)
+                    ? ref.read(desktopUseUTXOs)
+                    : null,
+              ),
+            );
+            break;
+
+          case FiroType.lelantus:
+            txDataFuture = wallet.prepareSendLelantus(
+              txData: TxData(
+                recipients: [(address: _address!, amount: amount)],
+              ),
+            );
+            break;
+
+          case FiroType.spark:
+            txDataFuture = wallet.prepareSendSpark(
+              txData: TxData(
+                recipients: _isSparkAddress
+                    ? null
+                    : [(address: _address!, amount: amount)],
+                sparkRecipients: _isSparkAddress
+                    ? [
+                        (
+                          address: _address!,
+                          amount: amount,
+                          memo: memoController.text,
+                          subtractFeeFromAmount: false,
+                        )
+                      ]
+                    : null,
+              ),
+            );
+            break;
+        }
       } else {
         final memo = isStellar ? memoController.text : null;
         txDataFuture = wallet.prepareSend(
@@ -520,11 +576,17 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       ref.read(previewTxButtonStateProvider.state).state =
           (amount != null && amount > Amount.zero);
     } else {
-      final isValidAddress = ref
-          .read(pWallets)
-          .getWallet(walletId)
-          .cryptoCurrency
-          .validateAddress(address ?? "");
+      final walletCurrency =
+          ref.read(pWallets).getWallet(walletId).cryptoCurrency;
+      final isValidAddress = walletCurrency.validateAddress(address ?? "");
+
+      _isSparkAddress = isValidAddress
+          ? SparkInterface.validateSparkAddress(
+              address: address!,
+              isTestNet: walletCurrency.network == CryptoCurrencyNetwork.test,
+            )
+          : false;
+
       ref.read(previewTxButtonStateProvider.state).state =
           (isValidAddress && amount != null && amount > Amount.zero);
     }
@@ -687,11 +749,23 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   Future<void> sendAllTapped() async {
     final info = ref.read(pWalletInfo(walletId));
 
-    if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-        ref.read(publicPrivateBalanceStateProvider.state).state == "Private") {
-      cryptoAmountController.text = info
-          .cachedBalanceSecondary.spendable.decimal
-          .toStringAsFixed(coin.decimals);
+    if (coin == Coin.firo || coin == Coin.firoTestNet) {
+      switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
+        case FiroType.public:
+          cryptoAmountController.text = info.cachedBalance.spendable.decimal
+              .toStringAsFixed(coin.decimals);
+          break;
+        case FiroType.lelantus:
+          cryptoAmountController.text = info
+              .cachedBalanceSecondary.spendable.decimal
+              .toStringAsFixed(coin.decimals);
+          break;
+        case FiroType.spark:
+          cryptoAmountController.text = info
+              .cachedBalanceTertiary.spendable.decimal
+              .toStringAsFixed(coin.decimals);
+          break;
+      }
     } else {
       cryptoAmountController.text =
           info.cachedBalance.spendable.decimal.toStringAsFixed(coin.decimals);
@@ -841,11 +915,31 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               value: ref.watch(publicPrivateBalanceStateProvider.state).state,
               items: [
                 DropdownMenuItem(
-                  value: "Private",
+                  value: FiroType.spark,
                   child: Row(
                     children: [
                       Text(
-                        "Private balance",
+                        "Spark balance",
+                        style: STextStyles.itemSubtitle12(context),
+                      ),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      Text(
+                        ref.watch(pAmountFormatter(coin)).format(ref
+                            .watch(pWalletBalanceTertiary(walletId))
+                            .spendable),
+                        style: STextStyles.itemSubtitle(context),
+                      ),
+                    ],
+                  ),
+                ),
+                DropdownMenuItem(
+                  value: FiroType.lelantus,
+                  child: Row(
+                    children: [
+                      Text(
+                        "Lelantus balance",
                         style: STextStyles.itemSubtitle12(context),
                       ),
                       const SizedBox(
@@ -861,7 +955,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   ),
                 ),
                 DropdownMenuItem(
-                  value: "Public",
+                  value: FiroType.public,
                   child: Row(
                     children: [
                       Text(
@@ -881,9 +975,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 ),
               ],
               onChanged: (value) {
-                if (value is String) {
+                if (value is FiroType) {
                   setState(() {
-                    ref.watch(publicPrivateBalanceStateProvider.state).state =
+                    ref.read(publicPrivateBalanceStateProvider.state).state =
                         value;
                   });
                 }
@@ -1316,11 +1410,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               }
             },
           ),
-        if (isStellar)
+        if (isStellar || _isSparkAddress)
           const SizedBox(
             height: 10,
           ),
-        if (isStellar)
+        if (isStellar || _isSparkAddress)
           ClipRRect(
             borderRadius: BorderRadius.circular(
               Constants.size.circularBorderRadius,
@@ -1386,8 +1480,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           ConditionalParent(
             condition: coin.isElectrumXCoin &&
                 !(((coin == Coin.firo || coin == Coin.firoTestNet) &&
-                    ref.read(publicPrivateBalanceStateProvider.state).state ==
-                        "Private")),
+                    (ref.watch(publicPrivateBalanceStateProvider.state).state ==
+                            FiroType.lelantus ||
+                        ref
+                                .watch(publicPrivateBalanceStateProvider.state)
+                                .state ==
+                            FiroType.spark))),
             builder: (child) => Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -1485,15 +1583,33 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                                             .read(
                                                 publicPrivateBalanceStateProvider
                                                     .state)
-                                            .state ==
-                                        "Private") {
-                                  throw UnimplementedError("FIXME");
-                                  // TODO: [prio=high] firo fee fix
-                                  // ref
-                                  //     .read(feeSheetSessionCacheProvider)
-                                  //     .average[amount] = await (manager.wallet
-                                  //         as FiroWallet)
-                                  //     .estimateFeeForPublic(amount, feeRate);
+                                            .state !=
+                                        FiroType.public) {
+                                  final firoWallet = wallet as FiroWallet;
+
+                                  if (ref
+                                          .read(
+                                              publicPrivateBalanceStateProvider
+                                                  .state)
+                                          .state ==
+                                      FiroType.lelantus) {
+                                    ref
+                                            .read(feeSheetSessionCacheProvider)
+                                            .average[amount] =
+                                        await firoWallet
+                                            .estimateFeeForLelantus(amount);
+                                  } else if (ref
+                                          .read(
+                                              publicPrivateBalanceStateProvider
+                                                  .state)
+                                          .state ==
+                                      FiroType.spark) {
+                                    ref
+                                            .read(feeSheetSessionCacheProvider)
+                                            .average[amount] =
+                                        await firoWallet
+                                            .estimateFeeForSpark(amount);
+                                  }
                                 } else {
                                   ref
                                           .read(feeSheetSessionCacheProvider)
@@ -1531,7 +1647,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                                   .watch(
                                       publicPrivateBalanceStateProvider.state)
                                   .state ==
-                              "Private"
+                              FiroType.lelantus
                       ? Text(
                           "~${ref.watch(pAmountFormatter(coin)).format(
                                 Amount(

@@ -46,8 +46,6 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
-import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
-import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
@@ -63,7 +61,6 @@ import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -951,20 +948,21 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     label: "Send",
                     icon: const SendNavIcon(),
                     onTap: () {
-                      switch (ref
-                          .read(walletBalanceToggleStateProvider.state)
-                          .state) {
-                        case WalletBalanceToggleState.full:
-                          ref
-                              .read(publicPrivateBalanceStateProvider.state)
-                              .state = "Public";
-                          break;
-                        case WalletBalanceToggleState.available:
-                          ref
-                              .read(publicPrivateBalanceStateProvider.state)
-                              .state = "Private";
-                          break;
-                      }
+                      // not sure what this is supposed to accomplish?
+                      // switch (ref
+                      //     .read(walletBalanceToggleStateProvider.state)
+                      //     .state) {
+                      //   case WalletBalanceToggleState.full:
+                      //     ref
+                      //         .read(publicPrivateBalanceStateProvider.state)
+                      //         .state = "Public";
+                      //     break;
+                      //   case WalletBalanceToggleState.available:
+                      //     ref
+                      //         .read(publicPrivateBalanceStateProvider.state)
+                      //         .state = "Private";
+                      //     break;
+                      // }
                       Navigator.of(context).pushNamed(
                         SendView.routeName,
                         arguments: Tuple2(
