@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:bitcoindart/bitcoindart.dart' as btc;
-import 'package:bitcoindart/src/utils/script.dart' as bscript;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:isar/isar.dart';
@@ -118,6 +117,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
   Future<TxData> prepareSendSpark({
     required TxData txData,
   }) async {
+    // fetch spendable spark coins
     final coins = await mainDB.isar.sparkCoins
         .where()
         .walletIdEqualToAnyLTagHash(walletId)
@@ -127,6 +127,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         .heightIsNotNull()
         .findAll();
 
+    // prepare coin data for ffi
     final serializedCoins = coins
         .map((e) => (
               serializedCoin: e.serializedCoinB64!,
@@ -366,18 +367,6 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
 
     // inputs
 
-    final opReturnScript = bscript.compile([
-      0xd3, // OP_SPARKSPEND
-      Uint8List(0),
-    ]);
-
-    txb.addInput(
-      '0000000000000000000000000000000000000000000000000000000000000000',
-      0xffffffff,
-      0xffffffff,
-      opReturnScript,
-    );
-
     // final sig = extractedTx.getId();
 
     // for (final coin in estimated.coins) {
@@ -404,18 +393,20 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
           .toList(),
     );
 
-    print("SPARK SPEND ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-    print("fee: ${spend.fee}");
-    print("spend: ${spend.serializedSpendPayload}");
-    print("scripts:");
-    spend.outputScripts.forEach(print);
-    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-
     for (final outputScript in spend.outputScripts) {
       txb.addOutput(outputScript, 0);
     }
 
     final extractedTx = txb.buildIncomplete();
+
+    extractedTx.addInput(
+      '0000000000000000000000000000000000000000000000000000000000000000'
+          .toUint8ListFromHex,
+      0xffffffff,
+      0xffffffff,
+      "d3".toUint8ListFromHex, // OP_SPARKSPEND
+    );
+
     extractedTx.setPayload(spend.serializedSpendPayload);
     final rawTxHex = extractedTx.toHex();
 

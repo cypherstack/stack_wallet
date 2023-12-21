@@ -103,6 +103,13 @@ class TxData {
           .reduce((total, amount) => total += amount)
       : null;
 
+  Amount? get amountSpark =>
+      sparkRecipients != null && sparkRecipients!.isNotEmpty
+          ? sparkRecipients!
+              .map((e) => e.amount)
+              .reduce((total, amount) => total += amount)
+          : null;
+
   int? get estimatedSatsPerVByte => fee != null && vSize != null
       ? (fee!.raw ~/ BigInt.from(vSize!)).toInt()
       : null;

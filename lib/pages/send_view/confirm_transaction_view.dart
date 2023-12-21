@@ -625,7 +625,9 @@ class _ConfirmTransactionViewState
                             ),
                             Builder(
                               builder: (context) {
-                                final amount = widget.txData.amount!;
+                                // TODO: [prio=high] spark transaction specifics - better handling
+                                final amount = widget.txData.amount ??
+                                    widget.txData.amountSpark!;
                                 final externalCalls = ref.watch(
                                     prefsChangeNotifierProvider.select(
                                         (value) => value.externalCalls));
@@ -723,9 +725,12 @@ class _ConfirmTransactionViewState
                               height: 2,
                             ),
                             SelectableText(
+                              // TODO: [prio=high] spark transaction specifics - better handling
                               widget.isPaynymTransaction
                                   ? widget.txData.paynymAccountLite!.nymName
-                                  : widget.txData.recipients!.first.address,
+                                  : widget.txData.recipients?.first.address ??
+                                      widget.txData.sparkRecipients!.first
+                                          .address,
                               style: STextStyles.desktopTextExtraExtraSmall(
                                       context)
                                   .copyWith(
@@ -1072,7 +1077,9 @@ class _ConfirmTransactionViewState
                       Builder(builder: (context) {
                         final fee = widget.txData.fee!;
 
-                        final amount = widget.txData.amount!;
+                        // TODO: [prio=high] spark transaction specifics - better handling
+                        final amount =
+                            widget.txData.amount ?? widget.txData.amountSpark!;
                         return SelectableText(
                           ref
                               .watch(pAmountFormatter(coin))
