@@ -304,32 +304,36 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     );
     extractedTx.setPayload(Uint8List(0));
 
-    final spend = LibSpark.createSparkSendTransaction(
-      privateKeyHex: privateKey.toHex,
-      index: kDefaultSparkIndex,
-      recipients: txData.recipients
-              ?.map((e) => (
-                    address: e.address,
-                    amount: e.amount.raw.toInt(),
-                    subtractFeeFromAmount: isSendAll,
-                  ))
-              .toList() ??
-          [],
-      privateRecipients: txData.sparkRecipients
-              ?.map((e) => (
-                    sparkAddress: e.address,
-                    amount: e.amount.raw.toInt(),
-                    subtractFeeFromAmount: isSendAll,
-                    memo: e.memo,
-                  ))
-              .toList() ??
-          [],
-      serializedCoins: serializedCoins,
-      allAnonymitySets: allAnonymitySets,
-      idAndBlockHashes: idAndBlockHashes
-          .map((e) => (setId: e.groupId, blockHash: base64Decode(e.blockHash)))
-          .toList(),
-      txHash: extractedTx.getHash(),
+    final spend = await compute(
+      _createSparkSend,
+      (
+        privateKeyHex: privateKey.toHex,
+        index: kDefaultSparkIndex,
+        recipients: txData.recipients
+                ?.map((e) => (
+                      address: e.address,
+                      amount: e.amount.raw.toInt(),
+                      subtractFeeFromAmount: isSendAll,
+                    ))
+                .toList() ??
+            [],
+        privateRecipients: txData.sparkRecipients
+                ?.map((e) => (
+                      sparkAddress: e.address,
+                      amount: e.amount.raw.toInt(),
+                      subtractFeeFromAmount: isSendAll,
+                      memo: e.memo,
+                    ))
+                .toList() ??
+            [],
+        serializedCoins: serializedCoins,
+        allAnonymitySets: allAnonymitySets,
+        idAndBlockHashes: idAndBlockHashes
+            .map(
+                (e) => (setId: e.groupId, blockHash: base64Decode(e.blockHash)))
+            .toList(),
+        txHash: extractedTx.getHash(),
+      ),
     );
 
     for (final outputScript in spend.outputScripts) {
@@ -852,6 +856,63 @@ String base64ToReverseHex(String source) =>
         .reversed
         .map((e) => e.toRadixString(16).padLeft(2, '0'))
         .join();
+
+/// Top level function which should be called wrapped in [compute]
+Future<
+    ({
+      Uint8List serializedSpendPayload,
+      List<Uint8List> outputScripts,
+      int fee,
+    })> _createSparkSend(
+    ({
+      String privateKeyHex,
+      int index,
+      List<
+          ({
+            String address,
+            int amount,
+            bool subtractFeeFromAmount
+          })> recipients,
+      List<
+          ({
+            String sparkAddress,
+            int amount,
+            bool subtractFeeFromAmount,
+            String memo
+          })> privateRecipients,
+      List<
+          ({
+            String serializedCoin,
+            String serializedCoinContext,
+            int groupId,
+            int height,
+          })> serializedCoins,
+      List<
+          ({
+            int setId,
+            String setHash,
+            List<({String serializedCoin, String txHash})> set
+          })> allAnonymitySets,
+      List<
+          ({
+            int setId,
+            Uint8List blockHash,
+          })> idAndBlockHashes,
+      Uint8List txHash,
+    }) args) async {
+  final spend = LibSpark.createSparkSendTransaction(
+    privateKeyHex: args.privateKeyHex,
+    index: args.index,
+    recipients: args.recipients,
+    privateRecipients: args.privateRecipients,
+    serializedCoins: args.serializedCoins,
+    allAnonymitySets: args.allAnonymitySets,
+    idAndBlockHashes: args.idAndBlockHashes,
+    txHash: args.txHash,
+  );
+
+  return spend;
+}
 
 /// Top level function which should be called wrapped in [compute]
 Future<List<SparkCoin>> _identifyCoins(
