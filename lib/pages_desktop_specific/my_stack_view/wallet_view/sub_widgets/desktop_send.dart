@@ -332,7 +332,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                           address: _address!,
                           amount: amount,
                           memo: memoController.text,
-                          subtractFeeFromAmount: false,
                         )
                       ]
                     : null,
@@ -367,7 +366,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                           address: _address!,
                           amount: amount,
                           memo: memoController.text,
-                          subtractFeeFromAmount: false,
                         )
                       ]
                     : null,

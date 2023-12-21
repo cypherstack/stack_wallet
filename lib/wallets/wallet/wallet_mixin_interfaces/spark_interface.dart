@@ -125,7 +125,31 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         .isUsedEqualTo(false)
         .and()
         .heightIsNotNull()
+        .and()
+        .not()
+        .valueIntStringEqualTo("0")
         .findAll();
+
+    final available = info.cachedBalanceTertiary.spendable;
+
+    final txAmount = (txData.recipients ?? []).map((e) => e.amount).fold(
+            Amount(
+              rawValue: BigInt.zero,
+              fractionDigits: cryptoCurrency.fractionDigits,
+            ),
+            (p, e) => p + e) +
+        (txData.sparkRecipients ?? []).map((e) => e.amount).fold(
+            Amount(
+              rawValue: BigInt.zero,
+              fractionDigits: cryptoCurrency.fractionDigits,
+            ),
+            (p, e) => p + e);
+
+    if (txAmount > available) {
+      throw Exception("Insufficient Spark balance");
+    }
+
+    final bool isSendAll = available == txAmount;
 
     // prepare coin data for ffi
     final serializedCoins = coins
@@ -177,34 +201,89 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     }
     final privateKey = root.derivePath(derivationPath).privateKey.data;
 
-    final txb = btc.TransactionBuilder(
-      network: btc.NetworkType(
-        messagePrefix: cryptoCurrency.networkParams.messagePrefix,
-        bech32: cryptoCurrency.networkParams.bech32Hrp,
-        bip32: btc.Bip32Type(
-          public: cryptoCurrency.networkParams.pubHDPrefix,
-          private: cryptoCurrency.networkParams.privHDPrefix,
-        ),
-        pubKeyHash: cryptoCurrency.networkParams.p2pkhPrefix,
-        scriptHash: cryptoCurrency.networkParams.p2shPrefix,
-        wif: cryptoCurrency.networkParams.wifPrefix,
+    final btcDartNetwork = btc.NetworkType(
+      messagePrefix: cryptoCurrency.networkParams.messagePrefix,
+      bech32: cryptoCurrency.networkParams.bech32Hrp,
+      bip32: btc.Bip32Type(
+        public: cryptoCurrency.networkParams.pubHDPrefix,
+        private: cryptoCurrency.networkParams.privHDPrefix,
       ),
+      pubKeyHash: cryptoCurrency.networkParams.p2pkhPrefix,
+      scriptHash: cryptoCurrency.networkParams.p2shPrefix,
+      wif: cryptoCurrency.networkParams.wifPrefix,
+    );
+    final txb = btc.TransactionBuilder(
+      network: btcDartNetwork,
     );
     txb.setLockTime(await chainHeight);
     txb.setVersion(3 | (9 << 16));
+
+    final List<({String address, Amount amount})> recipientsWithFeeSubtracted =
+        [];
+    final List<
+        ({
+          String address,
+          Amount amount,
+          String memo,
+        })> sparkRecipientsWithFeeSubtracted = [];
+    final outputCount = (txData.recipients
+                ?.where(
+                  (e) => e.amount.raw > BigInt.zero,
+                )
+                .length ??
+            0) +
+        (txData.sparkRecipients?.length ?? 0);
+    final BigInt estimatedFee;
+    if (isSendAll) {
+      final estFee = LibSpark.estimateSparkFee(
+        privateKeyHex: privateKey.toHex,
+        index: kDefaultSparkIndex,
+        sendAmount: txAmount.raw.toInt(),
+        subtractFeeFromAmount: true,
+        serializedCoins: serializedCoins,
+        privateRecipientsCount: (txData.sparkRecipients?.length ?? 0),
+      );
+      estimatedFee = BigInt.from(estFee);
+    } else {
+      estimatedFee = BigInt.zero;
+    }
+
+    for (int i = 0; i < (txData.sparkRecipients?.length ?? 0); i++) {
+      sparkRecipientsWithFeeSubtracted.add(
+        (
+          address: txData.sparkRecipients![i].address,
+          amount: Amount(
+            rawValue: txData.sparkRecipients![i].amount.raw -
+                (estimatedFee ~/ BigInt.from(outputCount)),
+            fractionDigits: cryptoCurrency.fractionDigits,
+          ),
+          memo: txData.sparkRecipients![i].memo,
+        ),
+      );
+    }
 
     for (int i = 0; i < (txData.recipients?.length ?? 0); i++) {
       if (txData.recipients![i].amount.raw == BigInt.zero) {
         continue;
       }
-      if (txData.recipients![i].amount < cryptoCurrency.dustLimit) {
-        throw Exception("Output below dust limit");
-      }
-      //
-      // transparentOut += txData.recipients![i].amount.raw.toInt();
-      txb.addOutput(
+      recipientsWithFeeSubtracted.add(
+        (
+          address: txData.recipients![i].address,
+          amount: Amount(
+            rawValue: txData.recipients![i].amount.raw -
+                (estimatedFee ~/ BigInt.from(outputCount)),
+            fractionDigits: cryptoCurrency.fractionDigits,
+          ),
+        ),
+      );
+
+      final scriptPubKey = btc.Address.addressToOutputScript(
         txData.recipients![i].address,
-        txData.recipients![i].amount.raw.toInt(),
+        btcDartNetwork,
+      );
+      txb.addOutput(
+        scriptPubKey,
+        recipientsWithFeeSubtracted[i].amount.raw.toInt(),
       );
     }
 
@@ -221,12 +300,19 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     final spend = LibSpark.createSparkSendTransaction(
       privateKeyHex: privateKey.toHex,
       index: kDefaultSparkIndex,
-      recipients: [],
+      recipients: txData.recipients
+              ?.map((e) => (
+                    address: e.address,
+                    amount: e.amount.raw.toInt(),
+                    subtractFeeFromAmount: isSendAll,
+                  ))
+              .toList() ??
+          [],
       privateRecipients: txData.sparkRecipients
               ?.map((e) => (
                     sparkAddress: e.address,
                     amount: e.amount.raw.toInt(),
-                    subtractFeeFromAmount: e.subtractFeeFromAmount,
+                    subtractFeeFromAmount: isSendAll,
                     memo: e.memo,
                   ))
               .toList() ??
@@ -245,6 +331,13 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
 
     extractedTx.setPayload(spend.serializedSpendPayload);
     final rawTxHex = extractedTx.toHex();
+
+    if (isSendAll) {
+      txData = txData.copyWith(
+        recipients: recipientsWithFeeSubtracted,
+        sparkRecipients: sparkRecipientsWithFeeSubtracted,
+      );
+    }
 
     return txData.copyWith(
       raw: rawTxHex,
@@ -279,8 +372,8 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         txHash: txHash,
         txid: txHash,
       );
-      // mark utxos as used
-      await mainDB.putUTXOs(txData.usedUTXOs!);
+      // // mark utxos as used
+      // await mainDB.putUTXOs(txData.usedUTXOs!);
 
       return txData;
     } catch (e, s) {

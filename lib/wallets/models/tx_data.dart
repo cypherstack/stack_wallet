@@ -60,7 +60,6 @@ class TxData {
       ({
         String address,
         Amount amount,
-        bool subtractFeeFromAmount,
         String memo,
       })>? sparkRecipients;
 
@@ -148,7 +147,6 @@ class TxData {
             ({
               String address,
               Amount amount,
-              bool subtractFeeFromAmount,
               String memo,
             })>?
         sparkRecipients,

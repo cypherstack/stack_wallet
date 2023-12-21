@@ -141,7 +141,11 @@ class CachedElectrumXClient {
         set["blockHash"] = newSet["blockHash"];
         for (int i = (newSet["coins"] as List).length - 1; i >= 0; i--) {
           // TODO verify this is correct (or append?)
-          set["coins"].insert(0, newSet["coins"][i]);
+          if ((set["coins"] as List)
+              .where((e) => e[0] == newSet["coins"][i][0])
+              .isEmpty) {
+            set["coins"].insert(0, newSet["coins"][i]);
+          }
         }
         // save set to db
         await box.put(groupId, set);

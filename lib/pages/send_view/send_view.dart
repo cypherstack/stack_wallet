@@ -535,7 +535,6 @@ class _SendViewState extends ConsumerState<SendView> {
                           address: _address!,
                           amount: amount,
                           memo: memoController.text,
-                          subtractFeeFromAmount: false,
                         )
                       ]
                     : null,
@@ -570,7 +569,6 @@ class _SendViewState extends ConsumerState<SendView> {
                           address: _address!,
                           amount: amount,
                           memo: memoController.text,
-                          subtractFeeFromAmount: false,
                         )
                       ]
                     : null,
