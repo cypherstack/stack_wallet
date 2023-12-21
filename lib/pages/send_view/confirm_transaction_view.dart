@@ -243,9 +243,13 @@ class _ConfirmTransactionViewState
                     const SizedBox(
                       height: 24,
                     ),
-                    Text(
-                      e.toString(),
-                      style: STextStyles.smallMed14(context),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        child: SelectableText(
+                          e.toString(),
+                          style: STextStyles.smallMed14(context),
+                        ),
+                      ),
                     ),
                     const SizedBox(
                       height: 56,
