@@ -168,10 +168,6 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
             ))
         .toList();
 
-    // https://docs.google.com/document/d/1RG52GoYTZDvKlZz_3G4sQu-PpT6JWSZGHLNswWcrE3o/edit
-    // To generate  a spark spend we need to call createSparkSpendTransaction,
-    // first unlock the wallet and generate all 3 spark keys,
-
     final root = await getRootHDNode();
     final String derivationPath;
     if (cryptoCurrency.network == CryptoCurrencyNetwork.test) {
@@ -180,58 +176,6 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       derivationPath = "$kSparkBaseDerivationPath$kDefaultSparkIndex";
     }
     final privateKey = root.derivePath(derivationPath).privateKey.data;
-    //
-    // recipients is a list of pairs of amounts and bools, this is for transparent
-    // outputs, first how much to send and second, subtractFeeFromAmount argument
-    // for each receiver.
-    //
-    // privateRecipients is again the list of pairs, first the receiver data
-    // which has following members, Address which is any spark address,
-    // amount (v) how much we want to send, and memo which can be any string
-    // with 32 length (any string we want to send to receiver), and the second
-    // subtractFeeFromAmount,
-    //
-    // coins is the list of all our available spark coins
-    //
-    // cover_set_data_all is the list of all anonymity sets,
-    //
-    // idAndBlockHashes_all is the list of block hashes for each anonymity set
-    //
-    // txHashSig is the transaction hash only without spark data, tx version,
-    // type, transparent outputs and everything else should be set before generating it.
-    //
-    // fee is a output data
-    //
-    // serializedSpend is a output data, byte array with spark spend, we need
-    // to put it into vExtraPayload (this naming can be different in your codebase)
-    //
-    // outputScripts is a output data, it is a list of scripts, which we need
-    // to put in separate tx outputs, and keep the order,
-
-    // Amount vOut = Amount(
-    //     rawValue: BigInt.zero, fractionDigits: cryptoCurrency.fractionDigits);
-    // Amount mintVOut = Amount(
-    //     rawValue: BigInt.zero, fractionDigits: cryptoCurrency.fractionDigits);
-    // int recipientsToSubtractFee = 0;
-    //
-    // for (int i = 0; i < (txData.recipients?.length ?? 0); i++) {
-    //   vOut += txData.recipients![i].amount;
-    // }
-    //
-    // if (vOut.raw > BigInt.from(SPARK_VALUE_SPEND_LIMIT_PER_TRANSACTION)) {
-    //   throw Exception(
-    //     "Spend to transparent address limit exceeded (10,000 Firo per transaction).",
-    //   );
-    // }
-    //
-    // for (int i = 0; i < (txData.sparkRecipients?.length ?? 0); i++) {
-    //   mintVOut += txData.sparkRecipients![i].amount;
-    //   if (txData.sparkRecipients![i].subtractFeeFromAmount) {
-    //     recipientsToSubtractFee++;
-    //   }
-    // }
-    //
-    // int fee;
 
     final txb = btc.TransactionBuilder(
       network: btc.NetworkType(
@@ -249,67 +193,6 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     txb.setLockTime(await chainHeight);
     txb.setVersion(3 | (9 << 16));
 
-    // final estimated = LibSpark.selectSparkCoins(
-    //   requiredAmount: mintVOut.raw.toInt(),
-    //   subtractFeeFromAmount: recipientsToSubtractFee > 0,
-    //   coins: myCoins,
-    //   privateRecipientsCount: txData.sparkRecipients?.length ?? 0,
-    // );
-    //
-    // fee = estimated.fee;
-    // bool remainderSubtracted = false;
-
-    // for (int i = 0; i < (txData.recipients?.length ?? 0); i++) {
-    //
-    //
-    //   if (recipient.fSubtractFeeFromAmount) {
-    //     // Subtract fee equally from each selected recipient.
-    //     recipient.nAmount -= fee / recipientsToSubtractFee;
-    //
-    //     if (!remainderSubtracted) {
-    //       // First receiver pays the remainder not divisible by output count.
-    //       recipient.nAmount -= fee % recipientsToSubtractFee;
-    //       remainderSubtracted = true;
-    //     }
-    //   }
-    // }
-
-    // outputs
-
-    // for (int i = 0; i < (txData.sparkRecipients?.length ?? 0); i++) {
-    //   if (txData.sparkRecipients![i].subtractFeeFromAmount) {
-    //     BigInt amount = txData.sparkRecipients![i].amount.raw;
-    //
-    //     // Subtract fee equally from each selected recipient.
-    //     amount -= BigInt.from(fee / recipientsToSubtractFee);
-    //
-    //     if (!remainderSubtracted) {
-    //       // First receiver pays the remainder not divisible by output count.
-    //       amount -= BigInt.from(fee % recipientsToSubtractFee);
-    //       remainderSubtracted = true;
-    //     }
-    //
-    //     txData.sparkRecipients![i] = (
-    //       address: txData.sparkRecipients![i].address,
-    //       amount: Amount(
-    //         rawValue: amount,
-    //         fractionDigits: cryptoCurrency.fractionDigits,
-    //       ),
-    //       subtractFeeFromAmount:
-    //           txData.sparkRecipients![i].subtractFeeFromAmount,
-    //       memo: txData.sparkRecipients![i].memo,
-    //     );
-    //   }
-    // }
-    //
-    // int spendInCurrentTx = 0;
-    // for (final spendCoin in estimated.coins) {
-    //   spendInCurrentTx += spendCoin.value?.toInt() ?? 0;
-    // }
-    // spendInCurrentTx -= fee;
-    //
-    // int transparentOut = 0;
-
     for (int i = 0; i < (txData.recipients?.length ?? 0); i++) {
       if (txData.recipients![i].amount.raw == BigInt.zero) {
         continue;
@@ -325,53 +208,15 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       );
     }
 
-    // // spendInCurrentTx -= transparentOut;
-    // final List<({String address, int amount, String memo})> privOutputs = [];
-    //
-    // for (int i = 0; i < (txData.sparkRecipients?.length ?? 0); i++) {
-    //   if (txData.sparkRecipients![i].amount.raw == BigInt.zero) {
-    //     continue;
-    //   }
-    //
-    //   final recipientAmount = txData.sparkRecipients![i].amount.raw.toInt();
-    //   // spendInCurrentTx -= recipientAmount;
-    //
-    //   privOutputs.add(
-    //     (
-    //       address: txData.sparkRecipients![i].address,
-    //       amount: recipientAmount,
-    //       memo: txData.sparkRecipients![i].memo,
-    //     ),
-    //   );
-    // }
-
-    // if (spendInCurrentTx < 0) {
-    //   throw Exception("Unable to create spend transaction.");
-    // }
-    //
-    // if (privOutputs.isEmpty || spendInCurrentTx > 0) {
-    //   final changeAddress = await LibSpark.getAddress(
-    //     privateKey: privateKey,
-    //     index: index,
-    //     diversifier: kSparkChange,
-    //   );
-    //
-    //   privOutputs.add(
-    //     (
-    //       address: changeAddress,
-    //       amount: spendInCurrentTx > 0 ? spendInCurrentTx : 0,
-    //       memo: "",
-    //     ),
-    //   );
-    // }
-
-    // inputs
-
-    // final sig = extractedTx.getId();
-
-    // for (final coin in estimated.coins) {
-    //   final groupId = coin.id!;
-    // }
+    final extractedTx = txb.buildIncomplete();
+    extractedTx.addInput(
+      '0000000000000000000000000000000000000000000000000000000000000000'
+          .toUint8ListFromHex,
+      0xffffffff,
+      0xffffffff,
+      "d3".toUint8ListFromHex, // OP_SPARKSPEND
+    );
+    extractedTx.setPayload(Uint8List(0));
 
     final spend = LibSpark.createSparkSendTransaction(
       privateKeyHex: privateKey.toHex,
@@ -391,21 +236,12 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       idAndBlockHashes: idAndBlockHashes
           .map((e) => (setId: e.groupId, blockHash: base64Decode(e.blockHash)))
           .toList(),
+      txHash: extractedTx.getHash(),
     );
 
     for (final outputScript in spend.outputScripts) {
-      txb.addOutput(outputScript, 0);
+      extractedTx.addOutput(outputScript, 0);
     }
-
-    final extractedTx = txb.buildIncomplete();
-
-    extractedTx.addInput(
-      '0000000000000000000000000000000000000000000000000000000000000000'
-          .toUint8ListFromHex,
-      0xffffffff,
-      0xffffffff,
-      "d3".toUint8ListFromHex, // OP_SPARKSPEND
-    );
 
     extractedTx.setPayload(spend.serializedSpendPayload);
     final rawTxHex = extractedTx.toHex();
@@ -425,7 +261,33 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
   Future<TxData> confirmSendSpark({
     required TxData txData,
   }) async {
-    throw UnimplementedError();
+    try {
+      Logging.instance.log("confirmSend txData: $txData", level: LogLevel.Info);
+
+      final txHash = await electrumXClient.broadcastTransaction(
+        rawTx: txData.raw!,
+      );
+      Logging.instance.log("Sent txHash: $txHash", level: LogLevel.Info);
+
+      txData = txData.copyWith(
+        // TODO mark spark coins as spent locally and update balance before waiting to check via electrumx?
+
+        // usedUTXOs:
+        // txData.usedUTXOs!.map((e) => e.copyWith(used: true)).toList(),
+
+        // TODO revisit setting these both
+        txHash: txHash,
+        txid: txHash,
+      );
+      // mark utxos as used
+      await mainDB.putUTXOs(txData.usedUTXOs!);
+
+      return txData;
+    } catch (e, s) {
+      Logging.instance.log("Exception rethrown from confirmSend(): $e\n$s",
+          level: LogLevel.Error);
+      rethrow;
+    }
   }
 
   // TODO lots of room for performance improvements here. Should be similar to

@@ -140,10 +140,20 @@ class _ConfirmTransactionViewState
       } else if (widget.isPaynymTransaction) {
         txDataFuture = wallet.confirmSend(txData: widget.txData);
       } else {
-        if (wallet is FiroWallet &&
-            ref.read(publicPrivateBalanceStateProvider.state).state ==
-                "Private") {
-          txDataFuture = wallet.confirmSendLelantus(txData: widget.txData);
+        if (wallet is FiroWallet) {
+          switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
+            case FiroType.public:
+              txDataFuture = wallet.confirmSend(txData: widget.txData);
+              break;
+
+            case FiroType.lelantus:
+              txDataFuture = wallet.confirmSendLelantus(txData: widget.txData);
+              break;
+
+            case FiroType.spark:
+              txDataFuture = wallet.confirmSendSpark(txData: widget.txData);
+              break;
+          }
         } else {
           if (coin == Coin.epicCash) {
             txDataFuture = wallet.confirmSend(
