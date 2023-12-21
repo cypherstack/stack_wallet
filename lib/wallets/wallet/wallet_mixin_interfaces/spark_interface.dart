@@ -218,21 +218,21 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     txb.setLockTime(await chainHeight);
     txb.setVersion(3 | (9 << 16));
 
-    final List<({String address, Amount amount})> recipientsWithFeeSubtracted =
-        [];
-    final List<
+    List<({String address, Amount amount})>? recipientsWithFeeSubtracted;
+    List<
         ({
           String address,
           Amount amount,
           String memo,
-        })> sparkRecipientsWithFeeSubtracted = [];
-    final outputCount = (txData.recipients
-                ?.where(
-                  (e) => e.amount.raw > BigInt.zero,
-                )
-                .length ??
-            0) +
-        (txData.sparkRecipients?.length ?? 0);
+        })>? sparkRecipientsWithFeeSubtracted;
+    final recipientCount = (txData.recipients
+            ?.where(
+              (e) => e.amount.raw > BigInt.zero,
+            )
+            .length ??
+        0);
+    final totalRecipientCount =
+        recipientCount + (txData.sparkRecipients?.length ?? 0);
     final BigInt estimatedFee;
     if (isSendAll) {
       final estFee = LibSpark.estimateSparkFee(
@@ -248,13 +248,20 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       estimatedFee = BigInt.zero;
     }
 
+    if ((txData.sparkRecipients?.length ?? 0) > 0) {
+      sparkRecipientsWithFeeSubtracted = [];
+    }
+    if (recipientCount > 0) {
+      recipientsWithFeeSubtracted = [];
+    }
+
     for (int i = 0; i < (txData.sparkRecipients?.length ?? 0); i++) {
-      sparkRecipientsWithFeeSubtracted.add(
+      sparkRecipientsWithFeeSubtracted!.add(
         (
           address: txData.sparkRecipients![i].address,
           amount: Amount(
             rawValue: txData.sparkRecipients![i].amount.raw -
-                (estimatedFee ~/ BigInt.from(outputCount)),
+                (estimatedFee ~/ BigInt.from(totalRecipientCount)),
             fractionDigits: cryptoCurrency.fractionDigits,
           ),
           memo: txData.sparkRecipients![i].memo,
@@ -266,12 +273,12 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       if (txData.recipients![i].amount.raw == BigInt.zero) {
         continue;
       }
-      recipientsWithFeeSubtracted.add(
+      recipientsWithFeeSubtracted!.add(
         (
           address: txData.recipients![i].address,
           amount: Amount(
             rawValue: txData.recipients![i].amount.raw -
-                (estimatedFee ~/ BigInt.from(outputCount)),
+                (estimatedFee ~/ BigInt.from(totalRecipientCount)),
             fractionDigits: cryptoCurrency.fractionDigits,
           ),
         ),
