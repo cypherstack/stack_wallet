@@ -1,11 +1,13 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:bitcoindart/bitcoindart.dart' as btc;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/models/signing_data.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -16,6 +18,12 @@ import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 
 const kDefaultSparkIndex = 1;
+
+const MAX_STANDARD_TX_WEIGHT = 400000;
+
+const OP_SPARKMINT = 0xd1;
+const OP_SPARKSMINT = 0xd2;
+const OP_SPARKSPEND = 0xd3;
 
 mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
   static bool validateSparkAddress({
@@ -201,19 +209,8 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     }
     final privateKey = root.derivePath(derivationPath).privateKey.data;
 
-    final btcDartNetwork = btc.NetworkType(
-      messagePrefix: cryptoCurrency.networkParams.messagePrefix,
-      bech32: cryptoCurrency.networkParams.bech32Hrp,
-      bip32: btc.Bip32Type(
-        public: cryptoCurrency.networkParams.pubHDPrefix,
-        private: cryptoCurrency.networkParams.privHDPrefix,
-      ),
-      pubKeyHash: cryptoCurrency.networkParams.p2pkhPrefix,
-      scriptHash: cryptoCurrency.networkParams.p2shPrefix,
-      wif: cryptoCurrency.networkParams.wifPrefix,
-    );
     final txb = btc.TransactionBuilder(
-      network: btcDartNetwork,
+      network: _bitcoinDartNetwork,
     );
     txb.setLockTime(await chainHeight);
     txb.setVersion(3 | (9 << 16));
@@ -286,7 +283,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
 
       final scriptPubKey = btc.Address.addressToOutputScript(
         txData.recipients![i].address,
-        btcDartNetwork,
+        _bitcoinDartNetwork,
       );
       txb.addOutput(
         scriptPubKey,
@@ -586,6 +583,466 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     }
   }
 
+  Future<List<TxData>> createSparkMintTransactions({
+    required List<UTXO> availableUtxos,
+    required List<MutableSparkRecipient> outputs,
+    required bool subtractFeeFromAmount,
+    required bool autoMintAll,
+  }) async {
+    // pre checks
+    if (outputs.isEmpty) {
+      throw Exception("Cannot mint without some recipients");
+    }
+    BigInt valueToMint =
+        outputs.map((e) => e.value).reduce((value, element) => value + element);
+
+    if (valueToMint <= BigInt.zero) {
+      throw Exception("Cannot mint amount=$valueToMint");
+    }
+    final totalUtxosValue = _sum(availableUtxos);
+    if (valueToMint > totalUtxosValue) {
+      throw Exception("Insufficient balance to create spark mint(s)");
+    }
+
+    // organise utxos
+    Map<String, List<UTXO>> utxosByAddress = {};
+    for (final utxo in availableUtxos) {
+      utxosByAddress[utxo.address!] ??= [];
+      utxosByAddress[utxo.address!]!.add(utxo);
+    }
+    final valueAndUTXOs = utxosByAddress.values.toList();
+
+    // setup some vars
+    int nChangePosInOut = -1;
+    int nChangePosRequest = nChangePosInOut;
+    List<MutableSparkRecipient> outputs_ = outputs.toList();
+    final currentHeight = await chainHeight;
+    final random = Random.secure();
+    final List<TxData> results = [];
+
+    valueAndUTXOs.shuffle(random);
+
+    while (valueAndUTXOs.isNotEmpty) {
+      final lockTime = random.nextInt(10) == 0
+          ? max(0, currentHeight - random.nextInt(100))
+          : currentHeight;
+      const txVersion = 1;
+      final List<SigningData> vin = [];
+      final List<(dynamic, int)> vout = [];
+
+      BigInt nFeeRet = BigInt.zero;
+
+      final itr = valueAndUTXOs.first;
+      BigInt valueToMintInTx = _sum(itr);
+
+      if (!autoMintAll) {
+        valueToMintInTx = _min(valueToMintInTx, valueToMint);
+      }
+
+      BigInt nValueToSelect, mintedValue;
+      final List<SigningData> setCoins = [];
+      bool skipCoin = false;
+
+      // Start with no fee and loop until there is enough fee
+      while (true) {
+        mintedValue = valueToMintInTx;
+
+        if (subtractFeeFromAmount) {
+          nValueToSelect = mintedValue;
+        } else {
+          nValueToSelect = mintedValue + nFeeRet;
+        }
+
+        // if not enough coins in this group then subtract fee from mint
+        if (nValueToSelect > _sum(itr) && !subtractFeeFromAmount) {
+          nValueToSelect = mintedValue;
+          mintedValue -= nFeeRet;
+        }
+
+        // if (!MoneyRange(mintedValue) || mintedValue == 0) {
+        if (mintedValue == BigInt.zero) {
+          valueAndUTXOs.remove(itr);
+          skipCoin = true;
+          break;
+        }
+
+        nChangePosInOut = nChangePosRequest;
+        vin.clear();
+        vout.clear();
+        setCoins.clear();
+        final remainingOutputs = outputs_.toList();
+        final List<MutableSparkRecipient> singleTxOutputs = [];
+        if (autoMintAll) {
+          singleTxOutputs.add(
+            MutableSparkRecipient(
+              (await getCurrentReceivingSparkAddress())!.value,
+              mintedValue,
+              "",
+            ),
+          );
+        } else {
+          BigInt remainingMintValue = mintedValue;
+          while (remainingMintValue > BigInt.zero) {
+            final singleMintValue =
+                _min(remainingMintValue, remainingOutputs.first.value);
+            singleTxOutputs.add(
+              MutableSparkRecipient(
+                remainingOutputs.first.address,
+                singleMintValue,
+                remainingOutputs.first.memo,
+              ),
+            );
+
+            // subtract minted amount from remaining value
+            remainingMintValue -= singleMintValue;
+            remainingOutputs.first.value -= singleMintValue;
+
+            if (remainingOutputs.first.value == BigInt.zero) {
+              remainingOutputs.remove(remainingOutputs.first);
+            }
+          }
+        }
+
+        if (subtractFeeFromAmount) {
+          final BigInt singleFee =
+              nFeeRet ~/ BigInt.from(singleTxOutputs.length);
+          BigInt remainder = nFeeRet % BigInt.from(singleTxOutputs.length);
+
+          for (int i = 0; i < singleTxOutputs.length; ++i) {
+            if (singleTxOutputs[i].value <= singleFee) {
+              singleTxOutputs.removeAt(i);
+              remainder += singleTxOutputs[i].value - singleFee;
+              --i;
+            }
+            singleTxOutputs[i].value -= singleFee;
+            if (remainder > BigInt.zero &&
+                singleTxOutputs[i].value >
+                    nFeeRet % BigInt.from(singleTxOutputs.length)) {
+              // first receiver pays the remainder not divisible by output count
+              singleTxOutputs[i].value -= remainder;
+              remainder = BigInt.zero;
+            }
+          }
+        }
+
+        // Generate dummy mint coins to save time
+        final dummyRecipients = LibSpark.createSparkMintRecipients(
+          outputs: singleTxOutputs
+              .map((e) => (
+                    sparkAddress: e.address,
+                    value: e.value.toInt(),
+                    memo: "",
+                  ))
+              .toList(),
+          serialContext: Uint8List(0),
+          generate: false,
+        );
+
+        final dummyTxb = btc.TransactionBuilder(network: _bitcoinDartNetwork);
+        dummyTxb.setVersion(txVersion);
+        dummyTxb.setLockTime(lockTime);
+        for (final recipient in dummyRecipients) {
+          if (recipient.amount < cryptoCurrency.dustLimit.raw.toInt()) {
+            throw Exception("Output amount too small");
+          }
+          vout.add((
+            recipient.scriptPubKey,
+            recipient.amount,
+          ));
+        }
+
+        // Choose coins to use
+        BigInt nValueIn = BigInt.zero;
+        for (final utxo in itr) {
+          if (nValueToSelect > nValueIn) {
+            setCoins.add((await fetchBuildTxData([utxo])).first);
+            nValueIn += BigInt.from(utxo.value);
+          }
+        }
+        if (nValueIn < nValueToSelect) {
+          throw Exception("Insufficient funds");
+        }
+
+        // priority stuff???
+
+        BigInt nChange = nValueIn - nValueToSelect;
+        if (nChange > BigInt.zero) {
+          if (nChange < cryptoCurrency.dustLimit.raw) {
+            nChangePosInOut = -1;
+            nFeeRet += nChange;
+          } else {
+            if (nChangePosInOut == -1) {
+              nChangePosInOut = random.nextInt(vout.length + 1);
+            } else if (nChangePosInOut > vout.length) {
+              throw Exception("Change index out of range");
+            }
+
+            final changeAddress = await getCurrentChangeAddress();
+            vout.insert(
+              nChangePosInOut,
+              (changeAddress!.value, nChange.toInt()),
+            );
+          }
+        }
+
+        // add outputs for dummy tx to check fees
+        for (final out in vout) {
+          dummyTxb.addOutput(out.$1, out.$2);
+        }
+
+        // fill vin
+        for (final sd in setCoins) {
+          vin.add(sd);
+
+          // add to dummy tx
+          dummyTxb.addInput(
+            sd.utxo.txid,
+            sd.utxo.vout,
+            0xffffffff -
+                1, // minus 1 is important. 0xffffffff on its own will burn funds
+            sd.output,
+          );
+        }
+
+        // sign dummy tx
+        for (var i = 0; i < setCoins.length; i++) {
+          dummyTxb.sign(
+            vin: i,
+            keyPair: setCoins[i].keyPair!,
+            witnessValue: setCoins[i].utxo.value,
+            redeemScript: setCoins[i].redeemScript,
+          );
+        }
+
+        final dummyTx = dummyTxb.build();
+        final nBytes = dummyTx.virtualSize();
+
+        if (dummyTx.weight() > MAX_STANDARD_TX_WEIGHT) {
+          throw Exception("Transaction too large");
+        }
+
+        final nFeeNeeded =
+            BigInt.from(nBytes); // One day we'll do this properly
+
+        if (nFeeRet >= nFeeNeeded) {
+          for (final usedCoin in setCoins) {
+            itr.removeWhere((e) => e == usedCoin.utxo);
+          }
+          if (itr.isEmpty) {
+            final preLength = valueAndUTXOs.length;
+            valueAndUTXOs.remove(itr);
+            assert(preLength - 1 == valueAndUTXOs.length);
+          }
+
+          // Generate real mint coins
+          final serialContext = LibSpark.serializeMintContext(
+            inputs: setCoins
+                .map((e) => (
+                      e.utxo.txid,
+                      e.utxo.vout,
+                    ))
+                .toList(),
+          );
+          final recipients = LibSpark.createSparkMintRecipients(
+            outputs: singleTxOutputs
+                .map(
+                  (e) => (
+                    sparkAddress: e.address,
+                    memo: e.memo,
+                    value: e.value.toInt(),
+                  ),
+                )
+                .toList(),
+            serialContext: serialContext,
+            generate: true,
+          );
+
+          int i = 0;
+          for (final recipient in recipients) {
+            final out = (recipient.scriptPubKey, recipient.amount);
+            while (i < vout.length) {
+              if (vout[i].$1 is Uint8List &&
+                  (vout[i].$1 as Uint8List).isNotEmpty &&
+                  (vout[i].$1 as Uint8List)[0] == OP_SPARKMINT) {
+                vout[i] = out;
+                break;
+              }
+              ++i;
+            }
+            ++i;
+          }
+
+          outputs_ = remainingOutputs;
+
+          break; // Done, enough fee included.
+        }
+
+        // Include more fee and try again.
+        nFeeRet = nFeeNeeded;
+        continue;
+      }
+
+      if (skipCoin) {
+        continue;
+      }
+
+      // sign
+      final txb = btc.TransactionBuilder(network: _bitcoinDartNetwork);
+      txb.setVersion(txVersion);
+      txb.setLockTime(lockTime);
+      for (final input in vin) {
+        txb.addInput(
+          input.utxo.txid,
+          input.utxo.vout,
+          0xffffffff -
+              1, // minus 1 is important. 0xffffffff on its own will burn funds
+          input.output,
+        );
+      }
+
+      for (final output in vout) {
+        txb.addOutput(output.$1, output.$2);
+      }
+
+      try {
+        for (var i = 0; i < vin.length; i++) {
+          txb.sign(
+            vin: i,
+            keyPair: vin[i].keyPair!,
+            witnessValue: vin[i].utxo.value,
+            redeemScript: vin[i].redeemScript,
+          );
+        }
+      } catch (e, s) {
+        Logging.instance.log(
+          "Caught exception while signing spark mint transaction: $e\n$s",
+          level: LogLevel.Error,
+        );
+        rethrow;
+      }
+      final builtTx = txb.build();
+      final data = TxData(
+        // TODO: add fee output to recipients?
+        sparkRecipients: vout
+            .map(
+              (e) => (
+                address: "lol",
+                memo: "",
+                amount: Amount(
+                  rawValue: BigInt.from(e.$2),
+                  fractionDigits: cryptoCurrency.fractionDigits,
+                ),
+              ),
+            )
+            .toList(),
+        vSize: builtTx.virtualSize(),
+        txid: builtTx.getId(),
+        raw: builtTx.toHex(),
+        fee: Amount(
+          rawValue: nFeeRet,
+          fractionDigits: cryptoCurrency.fractionDigits,
+        ),
+      );
+
+      results.add(data);
+
+      if (nChangePosInOut >= 0) {
+        final vOut = vout[nChangePosInOut];
+        assert(vOut.$1 is String); // check to make sure is change address
+
+        final out = UTXO(
+          walletId: walletId,
+          txid: data.txid!,
+          vout: nChangePosInOut,
+          value: vOut.$2,
+          address: vOut.$1 as String,
+          name: "Spark mint change",
+          isBlocked: false,
+          blockedReason: null,
+          isCoinbase: false,
+          blockHash: null,
+          blockHeight: null,
+          blockTime: null,
+        );
+
+        bool added = false;
+        for (final utxos in valueAndUTXOs) {
+          if (utxos.first.address == out.address) {
+            utxos.add(out);
+            added = true;
+          }
+        }
+
+        if (!added) {
+          valueAndUTXOs.add([out]);
+        }
+      }
+
+      if (!autoMintAll) {
+        valueToMint -= mintedValue;
+        if (valueToMint == BigInt.zero) {
+          break;
+        }
+      }
+    }
+
+    if (!autoMintAll && valueToMint > BigInt.zero) {
+      // TODO: Is this a valid error message?
+      throw Exception("Failed to mint expected amounts");
+    }
+
+    return results;
+  }
+
+  Future<void> anonymizeAllSpark() async {
+    const subtractFeeFromAmount = true; // must be true for mint all
+    final currentHeight = await chainHeight;
+
+    // TODO: this is broken?
+    final spendableUtxos = await mainDB.isar.utxos
+        .where()
+        .walletIdEqualTo(walletId)
+        .filter()
+        .isBlockedEqualTo(false)
+        .and()
+        .valueGreaterThan(0)
+        .and()
+        .usedEqualTo(false)
+        .and()
+        .blockHeightIsNotNull()
+        .and()
+        .blockHeightLessThan(
+          currentHeight + cryptoCurrency.minConfirms,
+          include: true,
+        )
+        .findAll();
+
+    if (spendableUtxos.isEmpty) {
+      throw Exception("No available UTXOs found to anonymize");
+    }
+
+    final results = await createSparkMintTransactions(
+      subtractFeeFromAmount: subtractFeeFromAmount,
+      autoMintAll: true,
+      availableUtxos: spendableUtxos,
+      outputs: [
+        MutableSparkRecipient(
+          (await getCurrentReceivingSparkAddress())!.value,
+          spendableUtxos
+              .map((e) => BigInt.from(e.value))
+              .fold(BigInt.zero, (p, e) => p + e),
+          "",
+        ),
+      ],
+    );
+
+    int i = 0;
+    for (final data in results) {
+      print("Results data $i=$data");
+      i++;
+    }
+  }
+
   /// Transparent to Spark (mint) transaction creation.
   ///
   /// See https://docs.google.com/document/d/1RG52GoYTZDvKlZz_3G4sQu-PpT6JWSZGHLNswWcrE3o
@@ -671,17 +1128,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
 
     // Create a transaction builder and set locktime and version.
     final txb = btc.TransactionBuilder(
-      network: btc.NetworkType(
-        messagePrefix: cryptoCurrency.networkParams.messagePrefix,
-        bech32: cryptoCurrency.networkParams.bech32Hrp,
-        bip32: btc.Bip32Type(
-          public: cryptoCurrency.networkParams.pubHDPrefix,
-          private: cryptoCurrency.networkParams.privHDPrefix,
-        ),
-        pubKeyHash: cryptoCurrency.networkParams.p2pkhPrefix,
-        scriptHash: cryptoCurrency.networkParams.p2shPrefix,
-        wif: cryptoCurrency.networkParams.wifPrefix,
-      ),
+      network: _bitcoinDartNetwork,
     );
     txb.setLockTime(await chainHeight);
     txb.setVersion(1);
@@ -849,6 +1296,18 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       });
     }
   }
+
+  btc.NetworkType get _bitcoinDartNetwork => btc.NetworkType(
+        messagePrefix: cryptoCurrency.networkParams.messagePrefix,
+        bech32: cryptoCurrency.networkParams.bech32Hrp,
+        bip32: btc.Bip32Type(
+          public: cryptoCurrency.networkParams.pubHDPrefix,
+          private: cryptoCurrency.networkParams.privHDPrefix,
+        ),
+        pubKeyHash: cryptoCurrency.networkParams.p2pkhPrefix,
+        scriptHash: cryptoCurrency.networkParams.p2shPrefix,
+        wif: cryptoCurrency.networkParams.wifPrefix,
+      );
 }
 
 String base64ToReverseHex(String source) =>
@@ -984,4 +1443,24 @@ Future<List<SparkCoin>> _identifyCoins(
   }
 
   return myCoins;
+}
+
+BigInt _min(BigInt a, BigInt b) {
+  if (a <= b) {
+    return a;
+  } else {
+    return b;
+  }
+}
+
+BigInt _sum(List<UTXO> utxos) => utxos
+    .map((e) => BigInt.from(e.value))
+    .fold(BigInt.zero, (previousValue, element) => previousValue + element);
+
+class MutableSparkRecipient {
+  String address;
+  BigInt value;
+  String memo;
+
+  MutableSparkRecipient(this.address, this.value, this.memo);
 }

@@ -1047,7 +1047,7 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
     return mints;
   }
 
-  Future<void> anonymizeAllPublicFunds() async {
+  Future<void> anonymizeAllLelantus() async {
     try {
       final mintResult = await _mintSelection();
 

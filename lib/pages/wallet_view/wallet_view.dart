@@ -430,7 +430,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
     }
 
     try {
-      await firoWallet.anonymizeAllPublicFunds();
+      // await firoWallet.anonymizeAllLelantus();
+      await firoWallet.anonymizeAllSpark();
       shouldPop = true;
       if (mounted) {
         Navigator.of(context).popUntil(
