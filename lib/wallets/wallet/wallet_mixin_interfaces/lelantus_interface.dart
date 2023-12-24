@@ -1056,7 +1056,7 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
       unawaited(refresh());
     } catch (e, s) {
       Logging.instance.log(
-        "Exception caught in anonymizeAllPublicFunds(): $e\n$s",
+        "Exception caught in anonymizeAllLelantus(): $e\n$s",
         level: LogLevel.Warning,
       );
       rethrow;

@@ -616,6 +616,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     int nChangePosInOut = -1;
     int nChangePosRequest = nChangePosInOut;
     List<MutableSparkRecipient> outputs_ = outputs.toList();
+    final feesObject = await fees;
     final currentHeight = await chainHeight;
     final random = Random.secure();
     final List<TxData> results = [];
@@ -821,8 +822,12 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
           throw Exception("Transaction too large");
         }
 
-        final nFeeNeeded =
-            BigInt.from(nBytes); // One day we'll do this properly
+        final nFeeNeeded = BigInt.from(
+          estimateTxFee(
+            vSize: nBytes,
+            feeRatePerKB: feesObject.medium,
+          ),
+        ); // One day we'll do this properly
 
         if (nFeeRet >= nFeeNeeded) {
           for (final usedCoin in setCoins) {
@@ -944,6 +949,10 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         ),
       );
 
+      if (nFeeRet.toInt() < data.vSize!) {
+        throw Exception("fee is less than vSize");
+      }
+
       results.add(data);
 
       if (nChangePosInOut >= 0) {
@@ -995,51 +1004,56 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
   }
 
   Future<void> anonymizeAllSpark() async {
-    const subtractFeeFromAmount = true; // must be true for mint all
-    final currentHeight = await chainHeight;
+    try {
+      const subtractFeeFromAmount = true; // must be true for mint all
+      final currentHeight = await chainHeight;
 
-    // TODO: this is broken?
-    final spendableUtxos = await mainDB.isar.utxos
-        .where()
-        .walletIdEqualTo(walletId)
-        .filter()
-        .isBlockedEqualTo(false)
-        .and()
-        .valueGreaterThan(0)
-        .and()
-        .usedEqualTo(false)
-        .and()
-        .blockHeightIsNotNull()
-        .and()
-        .blockHeightLessThan(
-          currentHeight + cryptoCurrency.minConfirms,
-          include: true,
-        )
-        .findAll();
+      final spendableUtxos = await mainDB.isar.utxos
+          .where()
+          .walletIdEqualTo(walletId)
+          .filter()
+          .isBlockedEqualTo(false)
+          .and()
+          .group((q) => q.usedEqualTo(false).or().usedIsNull())
+          .and()
+          .valueGreaterThan(0)
+          .findAll();
 
-    if (spendableUtxos.isEmpty) {
-      throw Exception("No available UTXOs found to anonymize");
-    }
-
-    final results = await createSparkMintTransactions(
-      subtractFeeFromAmount: subtractFeeFromAmount,
-      autoMintAll: true,
-      availableUtxos: spendableUtxos,
-      outputs: [
-        MutableSparkRecipient(
-          (await getCurrentReceivingSparkAddress())!.value,
-          spendableUtxos
-              .map((e) => BigInt.from(e.value))
-              .fold(BigInt.zero, (p, e) => p + e),
-          "",
+      spendableUtxos.removeWhere(
+        (e) => !e.isConfirmed(
+          currentHeight,
+          cryptoCurrency.minConfirms,
         ),
-      ],
-    );
+      );
 
-    int i = 0;
-    for (final data in results) {
-      print("Results data $i=$data");
-      i++;
+      if (spendableUtxos.isEmpty) {
+        throw Exception("No available UTXOs found to anonymize");
+      }
+
+      final results = await createSparkMintTransactions(
+        subtractFeeFromAmount: subtractFeeFromAmount,
+        autoMintAll: true,
+        availableUtxos: spendableUtxos,
+        outputs: [
+          MutableSparkRecipient(
+            (await getCurrentReceivingSparkAddress())!.value,
+            spendableUtxos
+                .map((e) => BigInt.from(e.value))
+                .fold(BigInt.zero, (p, e) => p + e),
+            "",
+          ),
+        ],
+      );
+
+      for (final data in results) {
+        await confirmSparkMintTransaction(txData: data);
+      }
+    } catch (e, s) {
+      Logging.instance.log(
+        "Exception caught in anonymizeAllSpark(): $e\n$s",
+        level: LogLevel.Warning,
+      );
+      rethrow;
     }
   }
 
