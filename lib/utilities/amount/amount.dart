@@ -26,6 +26,10 @@ class Amount {
         fractionDigits: 0,
       );
 
+  Amount.zeroWith({required this.fractionDigits})
+      : assert(fractionDigits >= 0),
+        _value = BigInt.zero;
+
   /// truncate decimal value to [fractionDigits] places
   Amount.fromDecimal(Decimal amount, {required this.fractionDigits})
       : assert(fractionDigits >= 0),
