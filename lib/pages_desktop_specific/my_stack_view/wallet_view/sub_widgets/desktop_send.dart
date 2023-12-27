@@ -321,29 +321,39 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       } else if (wallet is FiroWallet) {
         switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
           case FiroType.public:
-            txDataFuture = wallet.prepareSend(
-              txData: TxData(
-                recipients: _isSparkAddress
-                    ? null
-                    : [(address: _address!, amount: amount)],
-                sparkRecipients: _isSparkAddress
-                    ? [
-                        (
-                          address: _address!,
-                          amount: amount,
-                          memo: memoController.text,
-                        )
-                      ]
-                    : null,
-                feeRateType: ref.read(feeRateTypeStateProvider),
-                satsPerVByte: isCustomFee ? customFeeRate : null,
-                utxos: (wallet is CoinControlInterface &&
-                        coinControlEnabled &&
-                        ref.read(desktopUseUTXOs).isNotEmpty)
-                    ? ref.read(desktopUseUTXOs)
-                    : null,
-              ),
-            );
+            if (_isSparkAddress) {
+              txDataFuture = wallet.prepareSparkMintTransaction(
+                txData: TxData(
+                  sparkRecipients: [
+                    (
+                      address: _address!,
+                      amount: amount,
+                      memo: memoController.text,
+                    )
+                  ],
+                  feeRateType: ref.read(feeRateTypeStateProvider),
+                  satsPerVByte: isCustomFee ? customFeeRate : null,
+                  utxos: (wallet is CoinControlInterface &&
+                          coinControlEnabled &&
+                          ref.read(desktopUseUTXOs).isNotEmpty)
+                      ? ref.read(desktopUseUTXOs)
+                      : null,
+                ),
+              );
+            } else {
+              txDataFuture = wallet.prepareSend(
+                txData: TxData(
+                  recipients: [(address: _address!, amount: amount)],
+                  feeRateType: ref.read(feeRateTypeStateProvider),
+                  satsPerVByte: isCustomFee ? customFeeRate : null,
+                  utxos: (wallet is CoinControlInterface &&
+                          coinControlEnabled &&
+                          ref.read(desktopUseUTXOs).isNotEmpty)
+                      ? ref.read(desktopUseUTXOs)
+                      : null,
+                ),
+              );
+            }
             break;
 
           case FiroType.lelantus:
@@ -579,7 +589,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           ref.read(pWallets).getWallet(walletId).cryptoCurrency;
       final isValidAddress = walletCurrency.validateAddress(address ?? "");
 
-      _isSparkAddress = isValidAddress
+      _isSparkAddress = isValidAddress &&
+              ref.read(publicPrivateBalanceStateProvider.state).state !=
+                  FiroType.lelantus
           ? SparkInterface.validateSparkAddress(
               address: address!,
               isTestNet: walletCurrency.network == CryptoCurrencyNetwork.test,
@@ -1409,11 +1421,17 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               }
             },
           ),
-        if (isStellar || _isSparkAddress)
+        if (isStellar ||
+            (_isSparkAddress &&
+                ref.watch(publicPrivateBalanceStateProvider) !=
+                    FiroType.public))
           const SizedBox(
             height: 10,
           ),
-        if (isStellar || _isSparkAddress)
+        if (isStellar ||
+            (_isSparkAddress &&
+                ref.watch(publicPrivateBalanceStateProvider) !=
+                    FiroType.public))
           ClipRRect(
             borderRadius: BorderRadius.circular(
               Constants.size.circularBorderRadius,

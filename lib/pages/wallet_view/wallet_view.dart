@@ -68,6 +68,7 @@ import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -114,6 +115,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
   late final EventBus eventBus;
   late final String walletId;
   late final Coin coin;
+
+  late final bool isSparkWallet;
 
   late final bool _shouldDisableAutoSyncOnLogOut;
 
@@ -170,6 +173,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
     } else {
       _shouldDisableAutoSyncOnLogOut = false;
     }
+
+    isSparkWallet = wallet is SparkInterface;
 
     if (coin == Coin.firo &&
         (wallet as FiroWallet).lelantusCoinIsarRescanRequired) {
@@ -758,11 +763,11 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             ),
                           ),
                         ),
-                        if (coin == Coin.firo)
+                        if (isSparkWallet)
                           const SizedBox(
                             height: 10,
                           ),
-                        if (coin == Coin.firo)
+                        if (isSparkWallet)
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: Row(

@@ -120,7 +120,7 @@ class _ConfirmTransactionViewState
       ),
     );
 
-    late String txid;
+    final List<String> txids = [];
     Future<TxData> txDataFuture;
 
     final note = noteController.text;
@@ -143,7 +143,12 @@ class _ConfirmTransactionViewState
         if (wallet is FiroWallet) {
           switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
             case FiroType.public:
-              txDataFuture = wallet.confirmSend(txData: widget.txData);
+              if (widget.txData.sparkMints == null) {
+                txDataFuture = wallet.confirmSend(txData: widget.txData);
+              } else {
+                txDataFuture =
+                    wallet.confirmSparkMintTransactions(txData: widget.txData);
+              }
               break;
 
             case FiroType.lelantus:
@@ -175,17 +180,24 @@ class _ConfirmTransactionViewState
       sendProgressController.triggerSuccess?.call();
       await Future<void>.delayed(const Duration(seconds: 5));
 
-      txid = (results.first as TxData).txid!;
+      if (wallet is FiroWallet &&
+          (results.first as TxData).sparkMints != null) {
+        txids.addAll((results.first as TxData).sparkMints!.map((e) => e.txid!));
+      } else {
+        txids.add((results.first as TxData).txid!);
+      }
       ref.refresh(desktopUseUTXOs);
 
       // save note
-      await ref.read(mainDBProvider).putTransactionNote(
-            TransactionNote(
-              walletId: walletId,
-              txid: txid,
-              value: note,
-            ),
-          );
+      for (final txid in txids) {
+        await ref.read(mainDBProvider).putTransactionNote(
+              TransactionNote(
+                walletId: walletId,
+                txid: txid,
+                value: note,
+              ),
+            );
+      }
 
       if (widget.isTokenTx) {
         unawaited(ref.read(tokenServiceProvider)!.refresh());
@@ -333,6 +345,48 @@ class _ConfirmTransactionViewState
     } else {
       unit = coin.ticker;
     }
+
+    final Amount? fee;
+    final Amount amount;
+
+    final wallet = ref.watch(pWallets).getWallet(walletId);
+
+    if (wallet is FiroWallet) {
+      switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
+        case FiroType.public:
+          if (widget.txData.sparkMints != null) {
+            fee = widget.txData.sparkMints!
+                .map((e) => e.fee!)
+                .reduce((value, element) => value += element);
+            amount = widget.txData.sparkMints!
+                .map((e) => e.amountSpark!)
+                .reduce((value, element) => value += element);
+          } else {
+            fee = widget.txData.fee;
+            amount = widget.txData.amount!;
+          }
+          break;
+
+        case FiroType.lelantus:
+          fee = widget.txData.fee;
+          amount = widget.txData.amount!;
+          break;
+
+        case FiroType.spark:
+          fee = widget.txData.fee;
+          amount = (widget.txData.amount ??
+                  Amount.zeroWith(
+                      fractionDigits: wallet.cryptoCurrency.fractionDigits)) +
+              (widget.txData.amountSpark ??
+                  Amount.zeroWith(
+                      fractionDigits: wallet.cryptoCurrency.fractionDigits));
+          break;
+      }
+    } else {
+      fee = widget.txData.fee;
+      amount = widget.txData.amount!;
+    }
+
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
@@ -438,7 +492,8 @@ class _ConfirmTransactionViewState
                         Text(
                           widget.isPaynymTransaction
                               ? widget.txData.paynymAccountLite!.nymName
-                              : widget.txData.recipients!.first.address,
+                              : widget.txData.recipients?.first.address ??
+                                  widget.txData.sparkRecipients!.first.address,
                           style: STextStyles.itemSubtitle12(context),
                         ),
                       ],
@@ -457,7 +512,7 @@ class _ConfirmTransactionViewState
                         ),
                         SelectableText(
                           ref.watch(pAmountFormatter(coin)).format(
-                                widget.txData.amount!,
+                                amount,
                                 ethContract: ref
                                     .watch(tokenServiceProvider)
                                     ?.tokenContract,
@@ -482,9 +537,7 @@ class _ConfirmTransactionViewState
                             style: STextStyles.smallMed12(context),
                           ),
                           SelectableText(
-                            ref
-                                .watch(pAmountFormatter(coin))
-                                .format(widget.txData.fee!),
+                            ref.watch(pAmountFormatter(coin)).format(fee!),
                             style: STextStyles.itemSubtitle12(context),
                             textAlign: TextAlign.right,
                           ),
@@ -508,7 +561,7 @@ class _ConfirmTransactionViewState
                             height: 4,
                           ),
                           SelectableText(
-                            "~${widget.txData.fee!.raw.toInt() ~/ widget.txData.vSize!}",
+                            "~${fee!.raw.toInt() ~/ widget.txData.vSize!}",
                             style: STextStyles.itemSubtitle12(context),
                           ),
                         ],
@@ -639,9 +692,6 @@ class _ConfirmTransactionViewState
                             ),
                             Builder(
                               builder: (context) {
-                                // TODO: [prio=high] spark transaction specifics - better handling
-                                final amount = widget.txData.amount ??
-                                    widget.txData.amountSpark!;
                                 final externalCalls = ref.watch(
                                     prefsChangeNotifierProvider.select(
                                         (value) => value.externalCalls));
@@ -778,24 +828,15 @@ class _ConfirmTransactionViewState
                               const SizedBox(
                                 height: 2,
                               ),
-                              Builder(
-                                builder: (context) {
-                                  final fee = widget.txData.fee!;
-
-                                  return SelectableText(
-                                    ref
-                                        .watch(pAmountFormatter(coin))
-                                        .format(fee),
-                                    style:
-                                        STextStyles.desktopTextExtraExtraSmall(
-                                                context)
-                                            .copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textDark,
-                                    ),
-                                  );
-                                },
+                              SelectableText(
+                                ref.watch(pAmountFormatter(coin)).format(fee!),
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                        context)
+                                    .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark,
+                                ),
                               ),
                             ],
                           ),
@@ -1000,15 +1041,9 @@ class _ConfirmTransactionViewState
                   color: Theme.of(context)
                       .extension<StackColors>()!
                       .textFieldDefaultBG,
-                  child: Builder(
-                    builder: (context) {
-                      final fee = widget.txData.fee!;
-
-                      return SelectableText(
-                        ref.watch(pAmountFormatter(coin)).format(fee),
-                        style: STextStyles.itemSubtitle(context),
-                      );
-                    },
+                  child: SelectableText(
+                    ref.watch(pAmountFormatter(coin)).format(fee!),
+                    style: STextStyles.itemSubtitle(context),
                   ),
                 ),
               ),
@@ -1044,7 +1079,7 @@ class _ConfirmTransactionViewState
                       .extension<StackColors>()!
                       .textFieldDefaultBG,
                   child: SelectableText(
-                    "~${widget.txData.fee!.raw.toInt() ~/ widget.txData.vSize!}",
+                    "~${fee!.raw.toInt() ~/ widget.txData.vSize!}",
                     style: STextStyles.itemSubtitle(context),
                   ),
                 ),
@@ -1088,31 +1123,22 @@ class _ConfirmTransactionViewState
                                     .textConfirmTotalAmount,
                               ),
                       ),
-                      Builder(builder: (context) {
-                        final fee = widget.txData.fee!;
-
-                        // TODO: [prio=high] spark transaction specifics - better handling
-                        final amount =
-                            widget.txData.amount ?? widget.txData.amountSpark!;
-                        return SelectableText(
-                          ref
-                              .watch(pAmountFormatter(coin))
-                              .format(amount + fee),
-                          style: isDesktop
-                              ? STextStyles.desktopTextExtraExtraSmall(context)
-                                  .copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textConfirmTotalAmount,
-                                )
-                              : STextStyles.itemSubtitle12(context).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textConfirmTotalAmount,
-                                ),
-                          textAlign: TextAlign.right,
-                        );
-                      }),
+                      SelectableText(
+                        ref.watch(pAmountFormatter(coin)).format(amount + fee!),
+                        style: isDesktop
+                            ? STextStyles.desktopTextExtraExtraSmall(context)
+                                .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textConfirmTotalAmount,
+                              )
+                            : STextStyles.itemSubtitle12(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textConfirmTotalAmount,
+                              ),
+                        textAlign: TextAlign.right,
+                      ),
                     ],
                   ),
                 ),

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:bitcoindart/bitcoindart.dart' as btc;
+import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:isar/isar.dart';
@@ -19,7 +20,11 @@ import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_int
 
 const kDefaultSparkIndex = 1;
 
+// TODO dart style constants. Maybe move to spark lib?
 const MAX_STANDARD_TX_WEIGHT = 400000;
+
+//https://github.com/firoorg/sparkmobile/blob/ef2e39aae18ecc49e0ddc63a3183e9764b96012e/include/spark.h#L16
+const SPARK_OUT_LIMIT_PER_TX = 16;
 
 const OP_SPARKMINT = 0xd1;
 const OP_SPARKSMINT = 0xd2;
@@ -125,6 +130,47 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
   Future<TxData> prepareSendSpark({
     required TxData txData,
   }) async {
+    // There should be at least one output.
+    if (!(txData.recipients?.isNotEmpty == true ||
+        txData.sparkRecipients?.isNotEmpty == true)) {
+      throw Exception("No recipients provided.");
+    }
+
+    if (txData.sparkRecipients?.isNotEmpty == true &&
+        txData.sparkRecipients!.length >= SPARK_OUT_LIMIT_PER_TX - 1) {
+      throw Exception("Spark shielded output limit exceeded.");
+    }
+
+    final transparentSumOut =
+        (txData.recipients ?? []).map((e) => e.amount).fold(
+            Amount(
+              rawValue: BigInt.zero,
+              fractionDigits: cryptoCurrency.fractionDigits,
+            ),
+            (p, e) => p + e);
+
+    // See SPARK_VALUE_SPEND_LIMIT_PER_TRANSACTION at https://github.com/firoorg/sparkmobile/blob/ef2e39aae18ecc49e0ddc63a3183e9764b96012e/include/spark.h#L17
+    // and COIN https://github.com/firoorg/sparkmobile/blob/ef2e39aae18ecc49e0ddc63a3183e9764b96012e/bitcoin/amount.h#L17
+    // Note that as MAX_MONEY is greater than this limit, we can ignore it.  See https://github.com/firoorg/sparkmobile/blob/ef2e39aae18ecc49e0ddc63a3183e9764b96012e/bitcoin/amount.h#L31
+    if (transparentSumOut >
+        Amount.fromDecimal(
+          Decimal.parse("10000"),
+          fractionDigits: cryptoCurrency.fractionDigits,
+        )) {
+      throw Exception(
+          "Spend to transparent address limit exceeded (10,000 Firo per transaction).");
+    }
+
+    final sparkSumOut =
+        (txData.sparkRecipients ?? []).map((e) => e.amount).fold(
+            Amount(
+              rawValue: BigInt.zero,
+              fractionDigits: cryptoCurrency.fractionDigits,
+            ),
+            (p, e) => p + e);
+
+    final txAmount = transparentSumOut + sparkSumOut;
+
     // fetch spendable spark coins
     final coins = await mainDB.isar.sparkCoins
         .where()
@@ -139,19 +185,6 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         .findAll();
 
     final available = info.cachedBalanceTertiary.spendable;
-
-    final txAmount = (txData.recipients ?? []).map((e) => e.amount).fold(
-            Amount(
-              rawValue: BigInt.zero,
-              fractionDigits: cryptoCurrency.fractionDigits,
-            ),
-            (p, e) => p + e) +
-        (txData.sparkRecipients ?? []).map((e) => e.amount).fold(
-            Amount(
-              rawValue: BigInt.zero,
-              fractionDigits: cryptoCurrency.fractionDigits,
-            ),
-            (p, e) => p + e);
 
     if (txAmount > available) {
       throw Exception("Insufficient Spark balance");
@@ -583,7 +616,8 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     }
   }
 
-  Future<List<TxData>> createSparkMintTransactions({
+  // modelled on CSparkWallet::CreateSparkMintTransactions https://github.com/firoorg/firo/blob/39c41e5e7ec634ced3700fe3f4f5509dc2e480d0/src/spark/sparkwallet.cpp#L752
+  Future<List<TxData>> _createSparkMintTransactions({
     required List<UTXO> availableUtxos,
     required List<MutableSparkRecipient> outputs,
     required bool subtractFeeFromAmount,
@@ -593,6 +627,11 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     if (outputs.isEmpty) {
       throw Exception("Cannot mint without some recipients");
     }
+
+    // TODO remove when multiple recipients gui is added. Will need to handle
+    // addresses when confirming the transactions later as well
+    assert(outputs.length == 1);
+
     BigInt valueToMint =
         outputs.map((e) => e.value).reduce((value, element) => value + element);
 
@@ -615,7 +654,9 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     // setup some vars
     int nChangePosInOut = -1;
     int nChangePosRequest = nChangePosInOut;
-    List<MutableSparkRecipient> outputs_ = outputs.toList();
+    List<MutableSparkRecipient> outputs_ = outputs
+        .map((e) => MutableSparkRecipient(e.address, e.value, e.memo))
+        .toList(); // deep copy
     final feesObject = await fees;
     final currentHeight = await chainHeight;
     final random = Random.secure();
@@ -671,8 +712,13 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         vin.clear();
         vout.clear();
         setCoins.clear();
-        final remainingOutputs = outputs_.toList();
+
+        // deep copy
+        final remainingOutputs = outputs_
+            .map((e) => MutableSparkRecipient(e.address, e.value, e.memo))
+            .toList();
         final List<MutableSparkRecipient> singleTxOutputs = [];
+
         if (autoMintAll) {
           singleTxOutputs.add(
             MutableSparkRecipient(
@@ -682,7 +728,8 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
             ),
           );
         } else {
-          BigInt remainingMintValue = mintedValue;
+          BigInt remainingMintValue = BigInt.parse(mintedValue.toString());
+
           while (remainingMintValue > BigInt.zero) {
             final singleMintValue =
                 _min(remainingMintValue, remainingOutputs.first.value);
@@ -877,7 +924,10 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
             ++i;
           }
 
-          outputs_ = remainingOutputs;
+          // deep copy
+          outputs_ = remainingOutputs
+              .map((e) => MutableSparkRecipient(e.address, e.value, e.memo))
+              .toList();
 
           break; // Done, enough fee included.
         }
@@ -926,12 +976,17 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         rethrow;
       }
       final builtTx = txb.build();
+
+      // TODO: see todo at top of this function
+      assert(outputs.length == 1);
+
       final data = TxData(
-        // TODO: add fee output to recipients?
         sparkRecipients: vout
+            .where((e) => e.$1 is Uint8List) // ignore change
             .map(
               (e) => (
-                address: "lol",
+                address: outputs.first
+                    .address, // for display purposes on confirm tx screen. See todos above
                 memo: "",
                 amount: Amount(
                   rawValue: BigInt.from(e.$2),
@@ -947,6 +1002,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
           rawValue: nFeeRet,
           fractionDigits: cryptoCurrency.fractionDigits,
         ),
+        usedUTXOs: vin.map((e) => e.utxo).toList(),
       );
 
       if (nFeeRet.toInt() < data.vSize!) {
@@ -1030,7 +1086,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         throw Exception("No available UTXOs found to anonymize");
       }
 
-      final results = await createSparkMintTransactions(
+      final mints = await _createSparkMintTransactions(
         subtractFeeFromAmount: subtractFeeFromAmount,
         autoMintAll: true,
         availableUtxos: spendableUtxos,
@@ -1045,9 +1101,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         ],
       );
 
-      for (final data in results) {
-        await confirmSparkMintTransaction(txData: data);
-      }
+      await confirmSparkMintTransactions(txData: TxData(sparkMints: mints));
     } catch (e, s) {
       Logging.instance.log(
         "Exception caught in anonymizeAllSpark(): $e\n$s",
@@ -1061,196 +1115,98 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
   ///
   /// See https://docs.google.com/document/d/1RG52GoYTZDvKlZz_3G4sQu-PpT6JWSZGHLNswWcrE3o
   Future<TxData> prepareSparkMintTransaction({required TxData txData}) async {
-    // "this kind of transaction is generated like a regular transaction, but in
-    // place of [regular] outputs we put spark outputs... we construct the input
-    // part of the transaction first then we generate spark related data [and]
-    // we sign like regular transactions at the end."
-
-    // Validate inputs.
-
-    // There should be at least one input.
-    if (txData.utxos == null || txData.utxos!.isEmpty) {
-      throw Exception("No inputs provided.");
-    }
-
-    // Validate individual inputs.
-    for (final utxo in txData.utxos!) {
-      // Input amount must be greater than zero.
-      if (utxo.value == 0) {
-        throw Exception("Input value cannot be zero.");
-      }
-
-      // Input value must be greater than dust limit.
-      if (BigInt.from(utxo.value) < cryptoCurrency.dustLimit.raw) {
-        throw Exception("Input value below dust limit.");
-      }
-    }
-
-    // Validate outputs.
-
-    // There should be at least one output.
-    if (txData.recipients == null || txData.recipients!.isEmpty) {
-      throw Exception("No recipients provided.");
-    }
-
-    // For now let's limit to one output.
-    if (txData.recipients!.length > 1) {
-      throw Exception("Only one recipient supported.");
-      // TODO remove and test with multiple recipients.
-    }
-
-    // Limit outputs per tx to 16.
-    //
-    // See SPARK_OUT_LIMIT_PER_TX at https://github.com/firoorg/sparkmobile/blob/ef2e39aae18ecc49e0ddc63a3183e9764b96012e/include/spark.h#L16
-    if (txData.recipients!.length > 16) {
-      throw Exception("Too many recipients.");
-    }
-
-    // Limit spend value per tx to 1000000000000 satoshis.
-    //
-    // See SPARK_VALUE_SPEND_LIMIT_PER_TRANSACTION at https://github.com/firoorg/sparkmobile/blob/ef2e39aae18ecc49e0ddc63a3183e9764b96012e/include/spark.h#L17
-    // and COIN https://github.com/firoorg/sparkmobile/blob/ef2e39aae18ecc49e0ddc63a3183e9764b96012e/bitcoin/amount.h#L17
-    // Note that as MAX_MONEY is greater than this limit, we can ignore it.  See https://github.com/firoorg/sparkmobile/blob/ef2e39aae18ecc49e0ddc63a3183e9764b96012e/bitcoin/amount.h#L31
-    //
-    // This will be added to and checked as we validate outputs.
-    Amount totalAmount = Amount(
-      rawValue: BigInt.zero,
-      fractionDigits: cryptoCurrency.fractionDigits,
-    );
-
-    // Validate individual outputs.
-    for (final recipient in txData.recipients!) {
-      // Output amount must be greater than zero.
-      if (recipient.amount.raw == BigInt.zero) {
-        throw Exception("Output amount cannot be zero.");
-        // Could refactor this for loop to use an index and remove this output.
-      }
-
-      // Output amount must be greater than dust limit.
-      if (recipient.amount < cryptoCurrency.dustLimit) {
-        throw Exception("Output below dust limit.");
-      }
-
-      // Do not add outputs that would exceed the spend limit.
-      totalAmount += recipient.amount;
-      if (totalAmount.raw > BigInt.from(1000000000000)) {
-        throw Exception(
-          "Spend limit exceeded (10,000 FIRO per tx).",
-        );
-      }
-    }
-
-    // Create a transaction builder and set locktime and version.
-    final txb = btc.TransactionBuilder(
-      network: _bitcoinDartNetwork,
-    );
-    txb.setLockTime(await chainHeight);
-    txb.setVersion(1);
-
-    final signingData = await fetchBuildTxData(txData.utxos!.toList());
-
-    // Create the serial context.
-    //
-    // "...serial_context is a byte array, which should be unique for each
-    // transaction, and for that we serialize and put all inputs into
-    // serial_context vector."
-    final serialContext = LibSpark.serializeMintContext(
-      inputs: signingData
-          .map((e) => (
-                e.utxo.txid,
-                e.utxo.vout,
-              ))
-          .toList(),
-    );
-
-    // Add inputs.
-    for (final sd in signingData) {
-      txb.addInput(
-        sd.utxo.txid,
-        sd.utxo.vout,
-        0xffffffff -
-            1, // minus 1 is important. 0xffffffff on its own will burn funds
-        sd.output,
-      );
-    }
-
-    // Create mint recipients.
-    final mintRecipients = LibSpark.createSparkMintRecipients(
-      outputs: txData.recipients!
-          .map((e) => (
-                sparkAddress: e.address,
-                value: e.amount.raw.toInt(),
-                memo: "",
-              ))
-          .toList(),
-      serialContext: Uint8List.fromList(serialContext),
-      generate: true,
-    );
-
-    // Add mint output(s).
-    for (final mint in mintRecipients) {
-      txb.addOutput(
-        mint.scriptPubKey,
-        mint.amount,
-      );
-    }
-
     try {
-      // Sign the transaction accordingly
-      for (var i = 0; i < signingData.length; i++) {
-        txb.sign(
-          vin: i,
-          keyPair: signingData[i].keyPair!,
-          witnessValue: signingData[i].utxo.value,
-          redeemScript: signingData[i].redeemScript,
-        );
+      if (txData.sparkRecipients?.isNotEmpty != true) {
+        throw Exception("Missing spark recipients.");
       }
+      final recipients = txData.sparkRecipients!
+          .map(
+            (e) => MutableSparkRecipient(
+              e.address,
+              e.amount.raw,
+              e.memo,
+            ),
+          )
+          .toList();
+
+      final total = recipients
+          .map((e) => e.value)
+          .reduce((value, element) => value += element);
+
+      if (total < BigInt.zero) {
+        throw Exception("Attempted send of negative amount");
+      } else if (total == BigInt.zero) {
+        throw Exception("Attempted send of zero amount");
+      }
+
+      final currentHeight = await chainHeight;
+
+      // coin control not enabled for firo currently so we can ignore this
+      // final utxosToUse = txData.utxos?.toList() ??  await mainDB.isar.utxos
+      //     .where()
+      //     .walletIdEqualTo(walletId)
+      //     .filter()
+      //     .isBlockedEqualTo(false)
+      //     .and()
+      //     .group((q) => q.usedEqualTo(false).or().usedIsNull())
+      //     .and()
+      //     .valueGreaterThan(0)
+      //     .findAll();
+      final spendableUtxos = await mainDB.isar.utxos
+          .where()
+          .walletIdEqualTo(walletId)
+          .filter()
+          .isBlockedEqualTo(false)
+          .and()
+          .group((q) => q.usedEqualTo(false).or().usedIsNull())
+          .and()
+          .valueGreaterThan(0)
+          .findAll();
+
+      spendableUtxos.removeWhere(
+        (e) => !e.isConfirmed(
+          currentHeight,
+          cryptoCurrency.minConfirms,
+        ),
+      );
+
+      if (spendableUtxos.isEmpty) {
+        throw Exception("No available UTXOs found to anonymize");
+      }
+
+      final available = spendableUtxos
+          .map((e) => BigInt.from(e.value))
+          .reduce((value, element) => value += element);
+
+      final bool subtractFeeFromAmount;
+      if (available < total) {
+        throw Exception("Insufficient balance");
+      } else if (available == total) {
+        subtractFeeFromAmount = true;
+      } else {
+        subtractFeeFromAmount = false;
+      }
+
+      final mints = await _createSparkMintTransactions(
+        subtractFeeFromAmount: subtractFeeFromAmount,
+        autoMintAll: false,
+        availableUtxos: spendableUtxos,
+        outputs: recipients,
+      );
+
+      return txData.copyWith(sparkMints: mints);
     } catch (e, s) {
       Logging.instance.log(
-        "Caught exception while signing spark mint transaction: $e\n$s",
-        level: LogLevel.Error,
+        "Exception caught in prepareSparkMintTransaction(): $e\n$s",
+        level: LogLevel.Warning,
       );
       rethrow;
     }
-
-    final builtTx = txb.build();
-
-    // TODO any changes to this txData object required?
-    return txData.copyWith(
-      // recipients: [
-      //   (
-      //   amount: Amount(
-      //     rawValue: BigInt.from(incomplete.outs[0].value!),
-      //     fractionDigits: cryptoCurrency.fractionDigits,
-      //   ),
-      //   address: "no address for lelantus mints",
-      //   )
-      // ],
-      vSize: builtTx.virtualSize(),
-      txid: builtTx.getId(),
-      raw: builtTx.toHex(),
-    );
   }
 
-  /// Broadcast a tx and TODO update Spark balance.
-  Future<TxData> confirmSparkMintTransaction({required TxData txData}) async {
-    // Broadcast tx.
-    final txid = await electrumXClient.broadcastTransaction(
-      rawTx: txData.raw!,
-    );
-
-    // Check txid.
-    if (txid == txData.txid!) {
-      print("SPARK TXIDS MATCH!!");
-    } else {
-      print("SUBMITTED SPARK TXID DOES NOT MATCH WHAT WE GENERATED");
-    }
-
-    // TODO update spark balance.
-
-    return txData.copyWith(
-      txid: txid,
-    );
+  Future<TxData> confirmSparkMintTransactions({required TxData txData}) async {
+    final futures = txData.sparkMints!.map((e) => confirmSend(txData: e));
+    return txData.copyWith(sparkMints: await Future.wait(futures));
   }
 
   @override
@@ -1259,7 +1215,8 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     // what ever class this mixin is used on uses LelantusInterface as well)
     final normalBalanceFuture = super.updateBalance();
 
-    // todo: spark balance aka update info.tertiaryBalance
+    // todo: spark balance aka update info.tertiaryBalance here?
+    // currently happens on spark coins update/refresh
 
     // wait for normalBalanceFuture to complete before returning
     await normalBalanceFuture;
@@ -1477,4 +1434,9 @@ class MutableSparkRecipient {
   String memo;
 
   MutableSparkRecipient(this.address, this.value, this.memo);
+
+  @override
+  String toString() {
+    return 'MutableSparkRecipient{ address: $address, value: $value, memo: $memo }';
+  }
 }

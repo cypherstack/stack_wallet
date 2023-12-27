@@ -62,6 +62,7 @@ class TxData {
         Amount amount,
         String memo,
       })>? sparkRecipients;
+  final List<TxData>? sparkMints;
 
   TxData({
     this.feeRateType,
@@ -94,6 +95,7 @@ class TxData {
     this.mintsMapLelantus,
     this.tezosOperationsList,
     this.sparkRecipients,
+    this.sparkMints,
   });
 
   Amount? get amount => recipients != null && recipients!.isNotEmpty
@@ -150,6 +152,7 @@ class TxData {
               String memo,
             })>?
         sparkRecipients,
+    List<TxData>? sparkMints,
   }) {
     return TxData(
       feeRateType: feeRateType ?? this.feeRateType,
@@ -183,6 +186,7 @@ class TxData {
       mintsMapLelantus: mintsMapLelantus ?? this.mintsMapLelantus,
       tezosOperationsList: tezosOperationsList ?? this.tezosOperationsList,
       sparkRecipients: sparkRecipients ?? this.sparkRecipients,
+      sparkMints: sparkMints ?? this.sparkMints,
     );
   }
 
@@ -218,5 +222,6 @@ class TxData {
       'mintsMapLelantus: $mintsMapLelantus, '
       'tezosOperationsList: $tezosOperationsList, '
       'sparkRecipients: $sparkRecipients, '
+      'sparkMints: $sparkMints, '
       '}';
 }

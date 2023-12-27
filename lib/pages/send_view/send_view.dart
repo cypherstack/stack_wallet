@@ -524,29 +524,39 @@ class _SendViewState extends ConsumerState<SendView> {
       } else if (wallet is FiroWallet) {
         switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
           case FiroType.public:
-            txDataFuture = wallet.prepareSend(
-              txData: TxData(
-                recipients: _isSparkAddress
-                    ? null
-                    : [(address: _address!, amount: amount)],
-                sparkRecipients: _isSparkAddress
-                    ? [
-                        (
-                          address: _address!,
-                          amount: amount,
-                          memo: memoController.text,
-                        )
-                      ]
-                    : null,
-                feeRateType: ref.read(feeRateTypeStateProvider),
-                satsPerVByte: isCustomFee ? customFeeRate : null,
-                utxos: (wallet is CoinControlInterface &&
-                        coinControlEnabled &&
-                        selectedUTXOs.isNotEmpty)
-                    ? selectedUTXOs
-                    : null,
-              ),
-            );
+            if (_isSparkAddress) {
+              txDataFuture = wallet.prepareSparkMintTransaction(
+                txData: TxData(
+                  sparkRecipients: [
+                    (
+                      address: _address!,
+                      amount: amount,
+                      memo: memoController.text,
+                    )
+                  ],
+                  feeRateType: ref.read(feeRateTypeStateProvider),
+                  satsPerVByte: isCustomFee ? customFeeRate : null,
+                  utxos: (wallet is CoinControlInterface &&
+                          coinControlEnabled &&
+                          selectedUTXOs.isNotEmpty)
+                      ? selectedUTXOs
+                      : null,
+                ),
+              );
+            } else {
+              txDataFuture = wallet.prepareSend(
+                txData: TxData(
+                  recipients: [(address: _address!, amount: amount)],
+                  feeRateType: ref.read(feeRateTypeStateProvider),
+                  satsPerVByte: isCustomFee ? customFeeRate : null,
+                  utxos: (wallet is CoinControlInterface &&
+                          coinControlEnabled &&
+                          selectedUTXOs.isNotEmpty)
+                      ? selectedUTXOs
+                      : null,
+                ),
+              );
+            }
             break;
 
           case FiroType.lelantus:
