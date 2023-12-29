@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:decimal/decimal.dart';
+import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
@@ -9,6 +10,7 @@ import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
@@ -60,17 +62,20 @@ class FiroWallet extends Bip39HDWallet
     final List<Map<String, dynamic>> allTxHashes =
         await fetchHistory(allAddressesSet);
 
-    final sparkTxids = await mainDB.isar.sparkCoins
+    final sparkCoins = await mainDB.isar.sparkCoins
         .where()
         .walletIdEqualToAnyLTagHash(walletId)
-        .txHashProperty()
         .findAll();
 
-    for (final txid in sparkTxids) {
+    final Set<String> sparkTxids = {};
+
+    for (final coin in sparkCoins) {
+      sparkTxids.add(coin.txHash);
       // check for duplicates before adding to list
-      if (allTxHashes.indexWhere((e) => e["tx_hash"] == txid) == -1) {
+      if (allTxHashes.indexWhere((e) => e["tx_hash"] == coin.txHash) == -1) {
         final info = {
-          "tx_hash": txid,
+          "tx_hash": coin.txHash,
+          "height": coin.height,
         };
         allTxHashes.add(info);
       }
@@ -148,6 +153,17 @@ class FiroWallet extends Bip39HDWallet
       bool isSparkMint = false;
       bool isMasterNodePayment = false;
       final bool isSparkSpend = txData["type"] == 9 && txData["version"] == 3;
+      final bool isMySpark = sparkTxids.contains(txData["txid"] as String);
+
+      final sparkCoinsInvolved =
+          sparkCoins.where((e) => e.txHash == txData["txid"]);
+      if (isMySpark && sparkCoinsInvolved.isEmpty) {
+        Logging.instance.log(
+          "sparkCoinsInvolved is empty and should not be! (ignoring tx parsing)",
+          level: LogLevel.Error,
+        );
+        continue;
+      }
 
       // parse outputs
       final List<OutputV2> outputs = [];
@@ -173,10 +189,12 @@ class FiroWallet extends Bip39HDWallet
             );
           }
         }
-        if (outMap["scriptPubKey"]?["type"] == "sparkmint") {
+        if (outMap["scriptPubKey"]?["type"] == "sparkmint" ||
+            outMap["scriptPubKey"]?["type"] == "sparksmint") {
           final asm = outMap["scriptPubKey"]?["asm"] as String?;
           if (asm != null) {
-            if (asm.startsWith("OP_SPARKMINT")) {
+            if (asm.startsWith("OP_SPARKMINT") ||
+                asm.startsWith("OP_SPARKSMINT")) {
               isSparkMint = true;
             } else {
               Logging.instance.log(
@@ -192,16 +210,6 @@ class FiroWallet extends Bip39HDWallet
           }
         }
 
-        if (isSparkSpend) {
-          // TODO
-        } else if (isSparkMint) {
-          // TODO
-        } else if (isMint || isJMint) {
-          // do nothing extra ?
-        } else {
-          // TODO
-        }
-
         OutputV2 output = OutputV2.fromElectrumXJson(
           outMap,
           decimalPlaces: cryptoCurrency.fractionDigits,
@@ -209,6 +217,46 @@ class FiroWallet extends Bip39HDWallet
           // don't know yet if wallet owns. Need addresses first
           walletOwns: false,
         );
+
+        // if (isSparkSpend) {
+        //   // TODO?
+        // } else
+        if (isSparkMint) {
+          if (isMySpark) {
+            if (output.addresses.isEmpty &&
+                output.scriptPubKeyHex.length >= 488) {
+              // likely spark related
+              final opByte = output.scriptPubKeyHex
+                  .substring(0, 2)
+                  .toUint8ListFromHex
+                  .first;
+              if (opByte == OP_SPARKMINT || opByte == OP_SPARKSMINT) {
+                final serCoin = base64Encode(output.scriptPubKeyHex
+                    .substring(2, 488)
+                    .toUint8ListFromHex);
+                final coin = sparkCoinsInvolved
+                    .where((e) => e.serializedCoinB64!.startsWith(serCoin))
+                    .firstOrNull;
+
+                if (coin == null) {
+                  // not ours
+                } else {
+                  output = output.copyWith(
+                    walletOwns: true,
+                    valueStringSats: coin.value.toString(),
+                    addresses: [
+                      coin.address,
+                    ],
+                  );
+                }
+              }
+            }
+          }
+        } else if (isMint || isJMint) {
+          // do nothing extra ?
+        } else {
+          // TODO?
+        }
 
         // if output was to my wallet, add value to amount received
         if (receivingAddresses
@@ -223,6 +271,13 @@ class FiroWallet extends Bip39HDWallet
           wasReceivedInThisWallet = true;
           changeAmountReceivedInThisWallet += output.value;
           output = output.copyWith(walletOwns: true);
+        } else if (isSparkMint && isMySpark) {
+          wasReceivedInThisWallet = true;
+          if (output.addresses.contains(sparkChangeAddress)) {
+            changeAmountReceivedInThisWallet += output.value;
+          } else {
+            amountReceivedInThisWallet += output.value;
+          }
         }
 
         outputs.add(output);
@@ -333,6 +388,32 @@ class FiroWallet extends Bip39HDWallet
         if (allAddressesSet.intersection(input.addresses.toSet()).isNotEmpty) {
           wasSentFromThisWallet = true;
           input = input.copyWith(walletOwns: true);
+        } else if (isMySpark) {
+          final lTags = map["lTags"] as List?;
+
+          if (lTags?.isNotEmpty == true) {
+            final List<SparkCoin> usedCoins = [];
+            for (final tag in lTags!) {
+              final components = (tag as String).split(",");
+              final x = components[0].substring(1);
+              final y = components[1].substring(0, components[1].length - 1);
+
+              final hash = LibSpark.hashTag(x, y);
+              usedCoins.addAll(sparkCoins.where((e) => e.lTagHash == hash));
+            }
+
+            if (usedCoins.isNotEmpty) {
+              input = input.copyWith(
+                addresses: usedCoins.map((e) => e.address).toList(),
+                valueStringSats: usedCoins
+                    .map((e) => e.value)
+                    .reduce((value, element) => value += element)
+                    .toString(),
+                walletOwns: true,
+              );
+              wasSentFromThisWallet = true;
+            }
+          }
         }
 
         inputs.add(input);
@@ -365,24 +446,9 @@ class FiroWallet extends Bip39HDWallet
               totalOut) {
             // definitely sent all to self
             type = TransactionType.sentToSelf;
-          } else if (isSparkMint) {
-            // probably sent to self
-            type = TransactionType.sentToSelf;
           } else if (amountReceivedInThisWallet == BigInt.zero) {
             // most likely just a typical send
             // do nothing here yet
-          }
-
-          // check vout 0 for special scripts
-          if (outputs.isNotEmpty) {
-            final output = outputs.first;
-
-            // // check for fusion
-            // if (BchUtils.isFUZE(output.scriptPubKeyHex.toUint8ListFromHex)) {
-            //   subType = TransactionSubType.cashFusion;
-            // } else {
-            //   // check other cases here such as SLP or cash tokens etc
-            // }
           }
         }
       } else if (wasReceivedInThisWallet) {

@@ -23,6 +23,8 @@ const kDefaultSparkIndex = 1;
 // TODO dart style constants. Maybe move to spark lib?
 const MAX_STANDARD_TX_WEIGHT = 400000;
 
+const SPARK_CHANGE_D = 0x270F;
+
 //https://github.com/firoorg/sparkmobile/blob/ef2e39aae18ecc49e0ddc63a3183e9764b96012e/include/spark.h#L16
 const SPARK_OUT_LIMIT_PER_TX = 16;
 
@@ -31,6 +33,16 @@ const OP_SPARKSMINT = 0xd2;
 const OP_SPARKSPEND = 0xd3;
 
 mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
+  String? _sparkChangeAddressCached;
+
+  /// Spark change address. Should generally not be exposed to end users.
+  String get sparkChangeAddress {
+    if (_sparkChangeAddressCached == null) {
+      throw Exception("_sparkChangeAddressCached was not initialized");
+    }
+    return _sparkChangeAddressCached!;
+  }
+
   static bool validateSparkAddress({
     required String address,
     required bool isTestNet,
@@ -44,6 +56,24 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       address = await generateNextSparkAddress();
       await mainDB.putAddress(address);
     } // TODO add other address types to wallet info?
+
+    if (_sparkChangeAddressCached == null) {
+      final root = await getRootHDNode();
+      final String derivationPath;
+      if (cryptoCurrency.network == CryptoCurrencyNetwork.test) {
+        derivationPath = "$kSparkBaseDerivationPathTestnet$kDefaultSparkIndex";
+      } else {
+        derivationPath = "$kSparkBaseDerivationPath$kDefaultSparkIndex";
+      }
+      final keys = root.derivePath(derivationPath);
+
+      _sparkChangeAddressCached = await LibSpark.getAddress(
+        privateKey: keys.privateKey.data,
+        index: kDefaultSparkIndex,
+        diversifier: SPARK_CHANGE_D,
+        isTestNet: cryptoCurrency.network == CryptoCurrencyNetwork.test,
+      );
+    }
 
     // await info.updateReceivingAddress(
     //   newAddress: address.value,
