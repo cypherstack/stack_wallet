@@ -193,6 +193,7 @@ class CachedElectrumXClient {
 
         result.remove("hex");
         result.remove("lelantusData");
+        result.remove("sparkData");
 
         if (result["confirmations"] != null &&
             result["confirmations"] as int > minCacheConfirms) {
