@@ -20,16 +20,18 @@ abstract class StackFileSystem {
   static Future<Directory> applicationRootDirectory() async {
     Directory appDirectory;
 
+    // if this is changed, the directories in libmonero must also be changed!!!!!
+    const dirName = "stackwallet";
+
     // todo: can merge and do same as regular linux home dir?
     if (Logging.isArmLinux) {
       appDirectory = await getApplicationDocumentsDirectory();
-      appDirectory = Directory("${appDirectory.path}/.stackwallet");
+      appDirectory = Directory("${appDirectory.path}/.$dirName");
     } else if (Platform.isLinux) {
       if (overrideDir != null) {
         appDirectory = Directory(overrideDir!);
       } else {
-        appDirectory =
-            Directory("${Platform.environment['HOME']}/.stackwallet");
+        appDirectory = Directory("${Platform.environment['HOME']}/.$dirName");
       }
     } else if (Platform.isWindows) {
       if (overrideDir != null) {
@@ -42,7 +44,7 @@ abstract class StackFileSystem {
         appDirectory = Directory(overrideDir!);
       } else {
         appDirectory = await getLibraryDirectory();
-        appDirectory = Directory("${appDirectory.path}/stackwallet");
+        appDirectory = Directory("${appDirectory.path}/$dirName");
       }
     } else if (Platform.isIOS) {
       // todo: check if we need different behaviour here
