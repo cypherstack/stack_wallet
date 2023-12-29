@@ -44,43 +44,12 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
   String whatIsIt(
     Coin coin,
     int currentHeight,
-  ) {
-    final confirmedStatus = _transaction.isConfirmed(
-      currentHeight,
-      ref.read(pWallets).getWallet(walletId).cryptoCurrency.minConfirms,
-    );
-
-    if (_transaction.subType == TransactionSubType.cashFusion ||
-        _transaction.subType == TransactionSubType.sparkMint ||
-        _transaction.subType == TransactionSubType.mint) {
-      if (confirmedStatus) {
-        return "Anonymized";
-      } else {
-        return "Anonymizing";
-      }
-    }
-
-    if (_transaction.type == TransactionType.incoming) {
-      // if (_transaction.isMinting) {
-      //   return "Minting";
-      // } else
-      if (confirmedStatus) {
-        return "Received";
-      } else {
-        return "Receiving";
-      }
-    } else if (_transaction.type == TransactionType.outgoing) {
-      if (confirmedStatus) {
-        return "Sent";
-      } else {
-        return "Sending";
-      }
-    } else if (_transaction.type == TransactionType.sentToSelf) {
-      return "Sent to self";
-    } else {
-      return _transaction.type.name;
-    }
-  }
+  ) =>
+      _transaction.statusLabel(
+        currentChainHeight: currentHeight,
+        minConfirms:
+            ref.read(pWallets).getWallet(walletId).cryptoCurrency.minConfirms,
+      );
 
   @override
   void initState() {
@@ -123,7 +92,7 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
     final Amount amount;
 
     if (_transaction.subType == TransactionSubType.cashFusion) {
-      amount = _transaction.getAmountReceivedThisWallet(coin: coin);
+      amount = _transaction.getAmountReceivedInThisWallet(coin: coin);
     } else {
       switch (_transaction.type) {
         case TransactionType.outgoing:
@@ -132,7 +101,11 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
 
         case TransactionType.incoming:
         case TransactionType.sentToSelf:
-          amount = _transaction.getAmountReceivedThisWallet(coin: coin);
+          if (_transaction.subType == TransactionSubType.sparkMint) {
+            amount = _transaction.getAmountSparkSelfMinted(coin: coin);
+          } else {
+            amount = _transaction.getAmountReceivedInThisWallet(coin: coin);
+          }
           break;
 
         case TransactionType.unknown:
