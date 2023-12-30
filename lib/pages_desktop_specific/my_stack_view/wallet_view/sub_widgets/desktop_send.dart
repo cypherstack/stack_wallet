@@ -114,7 +114,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   String? _note;
   String? _onChainNote;
 
-  Amount? _amountToSend;
   Amount? _cachedAmountToSend;
   String? _address;
 
@@ -124,8 +123,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   late VoidCallback onCryptoAmountChanged;
 
   bool get isPaynymSend => widget.accountLite != null;
-
-  bool _isSparkAddress = false;
 
   bool isCustomFee = false;
   int customFeeRate = 1;
@@ -141,7 +138,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   Future<void> previewSend() async {
     final wallet = ref.read(pWallets).getWallet(walletId);
 
-    final Amount amount = _amountToSend!;
+    final Amount amount = ref.read(pSendAmount)!;
     final Amount availableBalance;
     if ((coin == Coin.firo || coin == Coin.firoTestNet)) {
       switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
@@ -321,7 +318,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       } else if (wallet is FiroWallet) {
         switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
           case FiroType.public:
-            if (_isSparkAddress) {
+            if (ref.read(pValidSparkSendToAddress)) {
               txDataFuture = wallet.prepareSparkMintTransaction(
                 txData: TxData(
                   sparkRecipients: [
@@ -367,10 +364,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           case FiroType.spark:
             txDataFuture = wallet.prepareSendSpark(
               txData: TxData(
-                recipients: _isSparkAddress
+                recipients: ref.read(pValidSparkSendToAddress)
                     ? null
                     : [(address: _address!, amount: amount)],
-                sparkRecipients: _isSparkAddress
+                sparkRecipients: ref.read(pValidSparkSendToAddress)
                     ? [
                         (
                           address: _address!,
@@ -533,21 +530,21 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       final cryptoAmount = ref.read(pAmountFormatter(coin)).tryParse(
             cryptoAmountController.text,
           );
+      final Amount? amount;
       if (cryptoAmount != null) {
-        _amountToSend = cryptoAmount;
-        if (_cachedAmountToSend != null &&
-            _cachedAmountToSend == _amountToSend) {
+        amount = cryptoAmount;
+        if (_cachedAmountToSend != null && _cachedAmountToSend == amount) {
           return;
         }
-        Logging.instance.log("it changed $_amountToSend $_cachedAmountToSend",
+        Logging.instance.log("it changed $amount $_cachedAmountToSend",
             level: LogLevel.Info);
-        _cachedAmountToSend = _amountToSend;
+        _cachedAmountToSend = amount;
 
         final price =
             ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
 
         if (price > Decimal.zero) {
-          final String fiatAmountString = (_amountToSend!.decimal * price)
+          final String fiatAmountString = (amount!.decimal * price)
               .toAmount(fractionDigits: 2)
               .fiatString(
                 locale: ref.read(localeServiceChangeNotifierProvider).locale,
@@ -556,52 +553,29 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           baseAmountController.text = fiatAmountString;
         }
       } else {
-        _amountToSend = null;
+        amount = null;
         _cachedAmountToSend = null;
         baseAmountController.text = "";
       }
 
-      _updatePreviewButtonState(_address, _amountToSend);
+      ref.read(pSendAmount.notifier).state = amount;
     }
   }
 
-  String? _updateInvalidAddressText(String address) {
-    if (_data != null && _data!.contactLabel == address) {
-      return null;
-    }
-    if (address.isNotEmpty &&
-        !ref
-            .read(pWallets)
-            .getWallet(walletId)
-            .cryptoCurrency
-            .validateAddress(address)) {
-      return "Invalid address";
-    }
-    return null;
-  }
-
-  void _updatePreviewButtonState(String? address, Amount? amount) {
-    if (isPaynymSend) {
-      ref.read(previewTxButtonStateProvider.state).state =
-          (amount != null && amount > Amount.zero);
-    } else {
-      final walletCurrency =
-          ref.read(pWallets).getWallet(walletId).cryptoCurrency;
-      final isValidAddress = walletCurrency.validateAddress(address ?? "");
-
-      _isSparkAddress = isValidAddress &&
-              ref.read(publicPrivateBalanceStateProvider.state).state !=
-                  FiroType.lelantus
-          ? SparkInterface.validateSparkAddress(
-              address: address!,
-              isTestNet: walletCurrency.network == CryptoCurrencyNetwork.test,
-            )
-          : false;
-
-      ref.read(previewTxButtonStateProvider.state).state =
-          (isValidAddress && amount != null && amount > Amount.zero);
-    }
-  }
+  // String? _updateInvalidAddressText(String address) {
+  //   if (_data != null && _data!.contactLabel == address) {
+  //     return null;
+  //   }
+  //   if (address.isNotEmpty &&
+  //       !ref
+  //           .read(pWallets)
+  //           .getWallet(walletId)
+  //           .cryptoCurrency
+  //           .validateAddress(address)) {
+  //     return "Invalid address";
+  //   }
+  //   return null;
+  // }
 
   Future<void> scanQr() async {
     try {
@@ -639,10 +613,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           cryptoAmountController.text = ref
               .read(pAmountFormatter(coin))
               .format(amount, withUnitName: false);
-          _amountToSend = amount;
+          ref.read(pSendAmount.notifier).state = amount;
         }
 
-        _updatePreviewButtonState(_address, _amountToSend);
         setState(() {
           _addressToggleFlag = sendToController.text.isNotEmpty;
         });
@@ -656,7 +629,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         _address = qrResult.rawContent;
         sendToController.text = _address ?? "";
 
-        _updatePreviewButtonState(_address, _amountToSend);
+        _setValidAddressProviders(_address);
         setState(() {
           _addressToggleFlag = sendToController.text.isNotEmpty;
         });
@@ -667,6 +640,25 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       Logging.instance.log(
           "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
           level: LogLevel.Warning);
+    }
+  }
+
+  void _setValidAddressProviders(String? address) {
+    if (isPaynymSend) {
+      ref.read(pValidSendToAddress.notifier).state = true;
+    } else {
+      final wallet = ref.read(pWallets).getWallet(walletId);
+      if (wallet is SparkInterface) {
+        ref.read(pValidSparkSendToAddress.notifier).state =
+            SparkInterface.validateSparkAddress(
+          address: address ?? "",
+          isTestNet:
+              wallet.cryptoCurrency.network == CryptoCurrencyNetwork.test,
+        );
+      }
+
+      ref.read(pValidSendToAddress.notifier).state =
+          wallet.cryptoCurrency.validateAddress(address ?? "");
     }
   }
 
@@ -686,7 +678,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       sendToController.text = content;
       _address = content;
 
-      _updatePreviewButtonState(_address, _amountToSend);
+      _setValidAddressProviders(_address);
       setState(() {
         _addressToggleFlag = sendToController.text.isNotEmpty;
       });
@@ -715,28 +707,29 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       baseAmountString,
       locale: ref.read(localeServiceChangeNotifierProvider).locale,
     );
+    final Amount? amount;
     if (baseAmount != null) {
       final _price =
           ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
 
       if (_price == Decimal.zero) {
-        _amountToSend = Decimal.zero.toAmount(fractionDigits: coin.decimals);
+        amount = Decimal.zero.toAmount(fractionDigits: coin.decimals);
       } else {
-        _amountToSend = baseAmount <= Amount.zero
+        amount = baseAmount <= Amount.zero
             ? Decimal.zero.toAmount(fractionDigits: coin.decimals)
             : (baseAmount.decimal / _price)
                 .toDecimal(scaleOnInfinitePrecision: coin.decimals)
                 .toAmount(fractionDigits: coin.decimals);
       }
-      if (_cachedAmountToSend != null && _cachedAmountToSend == _amountToSend) {
+      if (_cachedAmountToSend != null && _cachedAmountToSend == amount) {
         return;
       }
-      _cachedAmountToSend = _amountToSend;
-      Logging.instance.log("it changed $_amountToSend $_cachedAmountToSend",
-          level: LogLevel.Info);
+      _cachedAmountToSend = amount;
+      Logging.instance
+          .log("it changed $amount $_cachedAmountToSend", level: LogLevel.Info);
 
       final amountString = ref.read(pAmountFormatter(coin)).format(
-            _amountToSend!,
+            amount!,
             withUnitName: false,
           );
 
@@ -744,7 +737,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       cryptoAmountController.text = amountString;
       _cryptoAmountChangeLock = false;
     } else {
-      _amountToSend = Decimal.zero.toAmount(fractionDigits: coin.decimals);
+      amount = Decimal.zero.toAmount(fractionDigits: coin.decimals);
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = "";
       _cryptoAmountChangeLock = false;
@@ -754,7 +747,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     //       Format.decimalAmountToSatoshis(
     //           _amountToSend!));
     // });
-    _updatePreviewButtonState(_address, _amountToSend);
+    ref.read(pSendAmount.notifier).state = amount;
   }
 
   Future<void> sendAllTapped() async {
@@ -784,11 +777,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   }
 
   void _showDesktopCoinControl() async {
+    final amount = ref.read(pSendAmount);
     await showDialog<void>(
       context: context,
       builder: (context) => DesktopCoinControlUseDialog(
         walletId: widget.walletId,
-        amountToSend: _amountToSend,
+        amountToSend: amount,
       ),
     );
   }
@@ -797,7 +791,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.refresh(feeSheetSessionCacheProvider);
-      ref.read(previewTxButtonStateProvider.state).state = false;
+      ref.read(pValidSendToAddress.state).state = false;
+      ref.read(pValidSparkSendToAddress.state).state = false;
     });
 
     // _calculateFeesFuture = calculateFees(0);
@@ -832,20 +827,20 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
     _cryptoFocus.addListener(() {
       if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-        if (_amountToSend == null) {
+        if (ref.read(pSendAmount) == null) {
           ref.refresh(sendAmountProvider);
         } else {
-          ref.read(sendAmountProvider.state).state = _amountToSend!;
+          ref.read(sendAmountProvider.state).state = ref.read(pSendAmount)!;
         }
       }
     });
 
     _baseFocus.addListener(() {
       if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-        if (_amountToSend == null) {
+        if (ref.read(pSendAmount) == null) {
           ref.refresh(sendAmountProvider);
         } else {
-          ref.read(sendAmountProvider.state).state = _amountToSend!;
+          ref.read(sendAmountProvider.state).state = ref.read(pSendAmount)!;
         }
       }
     });
@@ -1263,7 +1258,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
               onChanged: (newValue) {
                 _address = newValue;
-                _updatePreviewButtonState(_address, _amountToSend);
+                _setValidAddressProviders(_address);
 
                 setState(() {
                   _addressToggleFlag = newValue.isNotEmpty;
@@ -1303,8 +1298,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                                 onTap: () {
                                   sendToController.text = "";
                                   _address = "";
-                                  _updatePreviewButtonState(
-                                      _address, _amountToSend);
+                                  _setValidAddressProviders(_address);
                                   setState(() {
                                     _addressToggleFlag = false;
                                   });
@@ -1365,10 +1359,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
                                 _address = entry.address;
 
-                                _updatePreviewButtonState(
-                                  _address,
-                                  _amountToSend,
-                                );
+                                _setValidAddressProviders(_address);
 
                                 setState(() {
                                   _addressToggleFlag = true;
@@ -1393,9 +1384,44 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (!isPaynymSend)
           Builder(
             builder: (_) {
-              final error = _updateInvalidAddressText(
-                _address ?? "",
-              );
+              final String? error;
+
+              if (_address == null || _address!.isEmpty) {
+                error = null;
+              } else if (coin == Coin.firo || coin == Coin.firoTestNet) {
+                if (ref.watch(publicPrivateBalanceStateProvider) ==
+                    FiroType.lelantus) {
+                  if (_data != null && _data!.contactLabel == _address) {
+                    error = SparkInterface.validateSparkAddress(
+                            address: _data!.address, isTestNet: coin.isTestNet)
+                        ? "Lelantus to Spark not supported"
+                        : null;
+                  } else if (ref.watch(pValidSparkSendToAddress)) {
+                    error = "Lelantus to Spark not supported";
+                  } else {
+                    error = ref.watch(pValidSendToAddress)
+                        ? null
+                        : "Invalid address";
+                  }
+                } else {
+                  if (_data != null && _data!.contactLabel == _address) {
+                    error = null;
+                  } else if (!ref.watch(pValidSendToAddress) &&
+                      !ref.watch(pValidSparkSendToAddress)) {
+                    error = "Invalid address";
+                  } else {
+                    error = null;
+                  }
+                }
+              } else {
+                if (_data != null && _data!.contactLabel == _address) {
+                  error = null;
+                } else if (!ref.watch(pValidSendToAddress)) {
+                  error = "Invalid address";
+                } else {
+                  error = null;
+                }
+              }
 
               if (error == null || error.isEmpty) {
                 return Container();
@@ -1422,16 +1448,16 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             },
           ),
         if (isStellar ||
-            (_isSparkAddress &&
+            (ref.watch(pValidSparkSendToAddress) &&
                 ref.watch(publicPrivateBalanceStateProvider) !=
-                    FiroType.public))
+                    FiroType.lelantus))
           const SizedBox(
             height: 10,
           ),
         if (isStellar ||
-            (_isSparkAddress &&
+            (ref.watch(pValidSparkSendToAddress) &&
                 ref.watch(publicPrivateBalanceStateProvider) !=
-                    FiroType.public))
+                    FiroType.lelantus))
           ClipRRect(
             borderRadius: BorderRadius.circular(
               Constants.size.circularBorderRadius,
@@ -1727,10 +1753,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         PrimaryButton(
           buttonHeight: ButtonHeight.l,
           label: "Preview send",
-          enabled: ref.watch(previewTxButtonStateProvider.state).state,
-          onPressed: ref.watch(previewTxButtonStateProvider.state).state
-              ? previewSend
-              : null,
+          enabled: ref.watch(pPreviewTxButtonEnabled(coin)),
+          onPressed:
+              ref.watch(pPreviewTxButtonEnabled(coin)) ? previewSend : null,
         )
       ],
     );
