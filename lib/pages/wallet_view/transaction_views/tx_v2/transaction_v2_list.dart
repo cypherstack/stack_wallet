@@ -8,6 +8,8 @@
  *
  */
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
@@ -40,6 +42,9 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
   bool _hasLoaded = false;
   List<TransactionV2> _transactions = [];
 
+  late final StreamSubscription<List<TransactionV2>> _subscription;
+  late final QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> _query;
+
   BorderRadius get _borderRadiusFirst {
     return BorderRadius.only(
       topLeft: Radius.circular(
@@ -63,18 +68,38 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
   }
 
   @override
+  void initState() {
+    _query = ref
+        .read(mainDBProvider)
+        .isar
+        .transactionV2s
+        .where()
+        .walletIdEqualTo(widget.walletId)
+        .sortByTimestampDesc();
+
+    _subscription = _query.watch().listen((event) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _transactions = event;
+        });
+      });
+    });
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final coin = ref.watch(pWallets).getWallet(widget.walletId).info.coin;
 
     return FutureBuilder(
-      future: ref
-          .watch(mainDBProvider)
-          .isar
-          .transactionV2s
-          .where()
-          .walletIdEqualTo(widget.walletId)
-          .sortByTimestampDesc()
-          .findAll(),
+      future: _query.findAll(),
       builder: (fbContext, AsyncSnapshot<List<TransactionV2>> snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             snapshot.hasData) {
