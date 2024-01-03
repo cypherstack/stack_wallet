@@ -72,6 +72,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/all_wallets_info_provider.dart';
 import 'package:stackwallet/widgets/crypto_notifications.dart';
 import 'package:window_size/window_size.dart';
 
@@ -747,7 +748,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
                 builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
                   if (snapshot.connectionState == ConnectionState.done) {
                     // FlutterNativeSplash.remove();
-                    if (ref.read(pWallets).hasWallets ||
+                    if (ref.read(pAllWalletsInfo).isNotEmpty ||
                         ref.read(prefsChangeNotifierProvider).hasPin) {
                       // return HomeView();
 

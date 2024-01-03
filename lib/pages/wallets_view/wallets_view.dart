@@ -16,6 +16,7 @@ import 'package:stackwallet/pages/wallets_view/sub_widgets/empty_wallets.dart';
 import 'package:stackwallet/pages/wallets_view/sub_widgets/favorite_wallets.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
+import 'package:stackwallet/wallets/isar/providers/all_wallets_info_provider.dart';
 
 class WalletsView extends ConsumerWidget {
   const WalletsView({Key? key}) : super(key: key);
@@ -25,7 +26,7 @@ class WalletsView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: $runtimeType");
-    final hasWallets = ref.watch(pWallets).hasWallets;
+    final hasWallets = ref.watch(pAllWalletsInfo).isNotEmpty;
 
     final showFavorites = ref.watch(prefsChangeNotifierProvider
         .select((value) => value.showFavoriteWallets));
