@@ -165,11 +165,6 @@ dependencies:
       url: https://github.com/cypherstack/tezart.git
       ref: 8a7070f533e63dd150edae99476f6853bfb25913
   socks5_proxy: ^1.0.3+dev.3
-  coinlib_flutter:
-    git:
-      url: https://github.com/cypherstack/coinlib.git
-      path: coinlib_flutter
-      ref: 4f549b8b511a63fdc1f44796ab43b10f586635cd
   convert: ^3.1.1
   flutter_hooks: ^0.20.3
   meta: ^1.9.1
@@ -213,6 +208,17 @@ flutter_native_splash:
   android_disable_fullscreen: true
 
 dependency_overrides:
+
+  coinlib_flutter:
+    git:
+      url: https://github.com/cypherstack/coinlib.git
+      path: coinlib_flutter
+      ref: 4f549b8b511a63fdc1f44796ab43b10f586635cd
+  coinlib:
+    git:
+      url: https://github.com/cypherstack/coinlib.git
+      path: coinlib
+      ref: 4f549b8b511a63fdc1f44796ab43b10f586635cd
 
   # required for dart 3, at least until a fix is merged upstream
   wakelock_windows:
