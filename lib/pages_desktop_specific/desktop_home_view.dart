@@ -31,7 +31,6 @@ import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/onetime_popups/tor_has_been_add_dialog.dart';
 
 class DesktopHomeView extends ConsumerStatefulWidget {
   const DesktopHomeView({Key? key}) : super(key: key);
@@ -54,9 +53,9 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
       initialRoute: MyStackView.routeName,
     );
 
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      showOneTimeTorHasBeenAddedDialogIfRequired(context);
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+    //   showOneTimeTorHasBeenAddedDialogIfRequired(context);
+    // });
 
     super.initState();
   }
