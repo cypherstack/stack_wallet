@@ -659,6 +659,15 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  flutter_libsparkmobile:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: "6e2b2650a84fc5832dc676f8d016e530ae77851f"
+      resolved-ref: "6e2b2650a84fc5832dc676f8d016e530ae77851f"
+      url: "https://github.com/cypherstack/flutter_libsparkmobile.git"
+    source: git
+    version: "0.0.1"
   flutter_lints:
     dependency: "direct dev"
     description:

@@ -37,6 +37,7 @@ import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_int
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 
 abstract class Wallet<T extends CryptoCurrency> {
   // default to Transaction class. For TransactionV2 set to 2
@@ -270,7 +271,7 @@ abstract class Wallet<T extends CryptoCurrency> {
       case Coin.firo:
         return FiroWallet(CryptoCurrencyNetwork.main);
       case Coin.firoTestNet:
-        return FiroWallet(CryptoCurrencyNetwork.main);
+        return FiroWallet(CryptoCurrencyNetwork.test);
 
       case Coin.nano:
         return NanoWallet(CryptoCurrencyNetwork.main);
@@ -289,7 +290,10 @@ abstract class Wallet<T extends CryptoCurrency> {
 
   // listen to changes in db and updated wallet info property as required
   void _watchWalletInfo() {
-    _walletInfoStream = mainDB.isar.walletInfo.watchObject(_walletInfo.id);
+    _walletInfoStream = mainDB.isar.walletInfo.watchObject(
+      _walletInfo.id,
+      fireImmediately: true,
+    );
     _walletInfoStream.forEach((element) {
       if (element != null) {
         _walletInfo = element;
@@ -417,6 +421,10 @@ abstract class Wallet<T extends CryptoCurrency> {
             .checkChangeAddressForTransactions();
       }
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.3, walletId));
+      if (this is SparkInterface) {
+        // this should be called before updateTransactions()
+        await (this as SparkInterface).refreshSparkData();
+      }
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.50, walletId));
       final fetchFuture = updateTransactions();

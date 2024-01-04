@@ -13,6 +13,7 @@ import 'package:stackwallet/wallets/wallet/supporting/epiccash_wallet_info_exten
 Future<void> migrateWalletsToIsar({
   required SecureStorageInterface secureStore,
 }) async {
+  await MainDB.instance.initMainDB();
   final allWalletsBox = await Hive.openBox<dynamic>(DB.boxNameAllWalletsData);
 
   final names = DB.instance

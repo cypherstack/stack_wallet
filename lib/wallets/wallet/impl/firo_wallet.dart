@@ -1,22 +1,25 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:decimal/decimal.dart';
+import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/input.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/output.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
-import 'package:stackwallet/models/isar/models/firo_specific/lelantus_coin.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:stackwallet/wallets/isar/models/spark_coin.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
-import 'package:tuple/tuple.dart';
 
 const sparkStartBlock = 819300; // (approx 18 Jan 2024)
 
@@ -26,6 +29,9 @@ class FiroWallet extends Bip39HDWallet
   // SparkInterface MUST come after LelantusInterface.
 
   FiroWallet(CryptoCurrencyNetwork network) : super(Firo(network));
+
+  @override
+  int get isarTransactionVersion => 2;
 
   @override
   FilterOperation? get changeAddressFilterOperation =>
@@ -38,48 +44,42 @@ class FiroWallet extends Bip39HDWallet
   // ===========================================================================
 
   @override
-  Future<List<Address>> fetchAllOwnAddresses() async {
-    final allAddresses = await mainDB
-        .getAddresses(walletId)
-        .filter()
-        .not()
-        .group(
-          (q) => q
-              .typeEqualTo(AddressType.nonWallet)
-              .or()
-              .subTypeEqualTo(AddressSubType.nonWallet),
-        )
-        .findAll();
-    return allAddresses;
-  }
-
-  // ===========================================================================
-
-  bool _duplicateTxCheck(
-      List<Map<String, dynamic>> allTransactions, String txid) {
-    for (int i = 0; i < allTransactions.length; i++) {
-      if (allTransactions[i]["txid"] == txid) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
   Future<void> updateTransactions() async {
-    final allAddresses = await fetchAllOwnAddresses();
+    List<Address> allAddressesOld = await fetchAddressesForElectrumXScan();
 
-    Set<String> receivingAddresses = allAddresses
+    Set<String> receivingAddresses = allAddressesOld
         .where((e) => e.subType == AddressSubType.receiving)
-        .map((e) => e.value)
+        .map((e) => convertAddressString(e.value))
         .toSet();
-    Set<String> changeAddresses = allAddresses
+
+    Set<String> changeAddresses = allAddressesOld
         .where((e) => e.subType == AddressSubType.change)
-        .map((e) => e.value)
+        .map((e) => convertAddressString(e.value))
         .toSet();
+
+    final allAddressesSet = {...receivingAddresses, ...changeAddresses};
 
     final List<Map<String, dynamic>> allTxHashes =
-        await fetchHistory(allAddresses.map((e) => e.value).toList());
+        await fetchHistory(allAddressesSet);
+
+    final sparkCoins = await mainDB.isar.sparkCoins
+        .where()
+        .walletIdEqualToAnyLTagHash(walletId)
+        .findAll();
+
+    final Set<String> sparkTxids = {};
+
+    for (final coin in sparkCoins) {
+      sparkTxids.add(coin.txHash);
+      // check for duplicates before adding to list
+      if (allTxHashes.indexWhere((e) => e["tx_hash"] == coin.txHash) == -1) {
+        final info = {
+          "tx_hash": coin.txHash,
+          "height": coin.height,
+        };
+        allTxHashes.add(info);
+      }
+    }
 
     List<Map<String, dynamic>> allTransactions = [];
 
@@ -110,8 +110,6 @@ class FiroWallet extends Bip39HDWallet
       }
     }
 
-    // final currentHeight = await chainHeight;
-
     for (final txHash in allTxHashes) {
       // final storedTx = await db
       //     .getTransactions(walletId)
@@ -127,508 +125,372 @@ class FiroWallet extends Bip39HDWallet
         coin: info.coin,
       );
 
-      if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
-        tx["address"] = await mainDB
-            .getAddresses(walletId)
-            .filter()
-            .valueEqualTo(txHash["address"] as String)
-            .findFirst();
-        tx["height"] = txHash["height"];
+      // check for duplicates before adding to list
+      if (allTransactions
+              .indexWhere((e) => e["txid"] == tx["txid"] as String) ==
+          -1) {
+        tx["height"] ??= txHash["height"];
         allTransactions.add(tx);
       }
       // }
     }
 
-    final List<Tuple2<Transaction, Address?>> txnsData = [];
+    final List<TransactionV2> txns = [];
 
-    for (final txObject in allTransactions) {
-      final inputList = txObject["vin"] as List;
-      final outputList = txObject["vout"] as List;
+    for (final txData in allTransactions) {
+      // set to true if any inputs were detected as owned by this wallet
+      bool wasSentFromThisWallet = false;
+
+      // set to true if any outputs were detected as owned by this wallet
+      bool wasReceivedInThisWallet = false;
+      BigInt amountReceivedInThisWallet = BigInt.zero;
+      BigInt changeAmountReceivedInThisWallet = BigInt.zero;
+
+      Amount? anonFees;
 
       bool isMint = false;
       bool isJMint = false;
+      bool isSparkMint = false;
+      bool isMasterNodePayment = false;
+      final bool isSparkSpend = txData["type"] == 9 && txData["version"] == 3;
+      final bool isMySpark = sparkTxids.contains(txData["txid"] as String);
 
-      // check if tx is Mint or jMint
-      for (final output in outputList) {
-        if (output["scriptPubKey"]?["type"] == "lelantusmint") {
-          final asm = output["scriptPubKey"]?["asm"] as String?;
+      final sparkCoinsInvolved =
+          sparkCoins.where((e) => e.txHash == txData["txid"]);
+      if (isMySpark && sparkCoinsInvolved.isEmpty) {
+        Logging.instance.log(
+          "sparkCoinsInvolved is empty and should not be! (ignoring tx parsing)",
+          level: LogLevel.Error,
+        );
+        continue;
+      }
+
+      // parse outputs
+      final List<OutputV2> outputs = [];
+      for (final outputJson in txData["vout"] as List) {
+        final outMap = Map<String, dynamic>.from(outputJson as Map);
+        if (outMap["scriptPubKey"]?["type"] == "lelantusmint") {
+          final asm = outMap["scriptPubKey"]?["asm"] as String?;
           if (asm != null) {
             if (asm.startsWith("OP_LELANTUSJMINT")) {
               isJMint = true;
-              break;
             } else if (asm.startsWith("OP_LELANTUSMINT")) {
               isMint = true;
-              break;
             } else {
               Logging.instance.log(
-                "Unknown mint op code found for lelantusmint tx: ${txObject["txid"]}",
+                "Unknown mint op code found for lelantusmint tx: ${txData["txid"]}",
                 level: LogLevel.Error,
               );
             }
           } else {
             Logging.instance.log(
-              "ASM for lelantusmint tx: ${txObject["txid"]} is null!",
+              "ASM for lelantusmint tx: ${txData["txid"]} is null!",
               level: LogLevel.Error,
             );
           }
         }
-      }
-
-      Set<String> inputAddresses = {};
-      Set<String> outputAddresses = {};
-
-      Amount totalInputValue = Amount(
-        rawValue: BigInt.zero,
-        fractionDigits: cryptoCurrency.fractionDigits,
-      );
-      Amount totalOutputValue = Amount(
-        rawValue: BigInt.zero,
-        fractionDigits: cryptoCurrency.fractionDigits,
-      );
-
-      Amount amountSentFromWallet = Amount(
-        rawValue: BigInt.zero,
-        fractionDigits: cryptoCurrency.fractionDigits,
-      );
-      Amount amountReceivedInWallet = Amount(
-        rawValue: BigInt.zero,
-        fractionDigits: cryptoCurrency.fractionDigits,
-      );
-      Amount changeAmount = Amount(
-        rawValue: BigInt.zero,
-        fractionDigits: cryptoCurrency.fractionDigits,
-      );
-
-      // Parse mint transaction ================================================
-      // We should be able to assume this belongs to this wallet
-      if (isMint) {
-        List<Input> ins = [];
-
-        // Parse inputs
-        for (final input in inputList) {
-          // Both value and address should not be null for a mint
-          final address = input["address"] as String?;
-          final value = input["valueSat"] as int?;
-
-          // We should not need to check whether the mint belongs to this
-          // wallet as any tx we look up will be looked up by one of this
-          // wallet's addresses
-          if (address != null && value != null) {
-            totalInputValue += value.toAmountAsRaw(
-              fractionDigits: cryptoCurrency.fractionDigits,
+        if (outMap["scriptPubKey"]?["type"] == "sparkmint" ||
+            outMap["scriptPubKey"]?["type"] == "sparksmint") {
+          final asm = outMap["scriptPubKey"]?["asm"] as String?;
+          if (asm != null) {
+            if (asm.startsWith("OP_SPARKMINT") ||
+                asm.startsWith("OP_SPARKSMINT")) {
+              isSparkMint = true;
+            } else {
+              Logging.instance.log(
+                "Unknown mint op code found for sparkmint tx: ${txData["txid"]}",
+                level: LogLevel.Error,
+              );
+            }
+          } else {
+            Logging.instance.log(
+              "ASM for sparkmint tx: ${txData["txid"]} is null!",
+              level: LogLevel.Error,
             );
           }
-
-          ins.add(
-            Input(
-              txid: input['txid'] as String? ?? "",
-              vout: input['vout'] as int? ?? -1,
-              scriptSig: input['scriptSig']?['hex'] as String?,
-              scriptSigAsm: input['scriptSig']?['asm'] as String?,
-              isCoinbase: input['is_coinbase'] as bool?,
-              sequence: input['sequence'] as int?,
-              innerRedeemScriptAsm: input['innerRedeemscriptAsm'] as String?,
-            ),
-          );
         }
 
-        // Parse outputs
-        for (final output in outputList) {
-          // get value
-          final value = Amount.fromDecimal(
-            Decimal.parse(output["value"].toString()),
-            fractionDigits: cryptoCurrency.fractionDigits,
-          );
-
-          // add value to total
-          totalOutputValue += value;
-        }
-
-        final fee = totalInputValue - totalOutputValue;
-        final tx = Transaction(
-          walletId: walletId,
-          txid: txObject["txid"] as String,
-          timestamp: txObject["blocktime"] as int? ??
-              (DateTime.now().millisecondsSinceEpoch ~/ 1000),
-          type: TransactionType.sentToSelf,
-          subType: TransactionSubType.mint,
-          amount: totalOutputValue.raw.toInt(),
-          amountString: totalOutputValue.toJsonString(),
-          fee: fee.raw.toInt(),
-          height: txObject["height"] as int?,
-          isCancelled: false,
-          isLelantus: true,
-          slateId: null,
-          otherData: null,
-          nonce: null,
-          inputs: ins,
-          outputs: [],
-          numberOfMessages: null,
+        OutputV2 output = OutputV2.fromElectrumXJson(
+          outMap,
+          decimalPlaces: cryptoCurrency.fractionDigits,
+          isFullAmountNotSats: true,
+          // don't know yet if wallet owns. Need addresses first
+          walletOwns: false,
         );
 
-        txnsData.add(Tuple2(tx, null));
+        // if (isSparkSpend) {
+        //   // TODO?
+        // } else
+        if (isSparkMint) {
+          if (isMySpark) {
+            if (output.addresses.isEmpty &&
+                output.scriptPubKeyHex.length >= 488) {
+              // likely spark related
+              final opByte = output.scriptPubKeyHex
+                  .substring(0, 2)
+                  .toUint8ListFromHex
+                  .first;
+              if (opByte == OP_SPARKMINT || opByte == OP_SPARKSMINT) {
+                final serCoin = base64Encode(output.scriptPubKeyHex
+                    .substring(2, 488)
+                    .toUint8ListFromHex);
+                final coin = sparkCoinsInvolved
+                    .where((e) => e.serializedCoinB64!.startsWith(serCoin))
+                    .firstOrNull;
 
-        // Otherwise parse JMint transaction ===================================
-      } else if (isJMint) {
-        Amount jMintFees = Amount(
+                if (coin == null) {
+                  // not ours
+                } else {
+                  output = output.copyWith(
+                    walletOwns: true,
+                    valueStringSats: coin.value.toString(),
+                    addresses: [
+                      coin.address,
+                    ],
+                  );
+                }
+              }
+            }
+          }
+        } else if (isMint || isJMint) {
+          // do nothing extra ?
+        } else {
+          // TODO?
+        }
+
+        // if output was to my wallet, add value to amount received
+        if (receivingAddresses
+            .intersection(output.addresses.toSet())
+            .isNotEmpty) {
+          wasReceivedInThisWallet = true;
+          amountReceivedInThisWallet += output.value;
+          output = output.copyWith(walletOwns: true);
+        } else if (changeAddresses
+            .intersection(output.addresses.toSet())
+            .isNotEmpty) {
+          wasReceivedInThisWallet = true;
+          changeAmountReceivedInThisWallet += output.value;
+          output = output.copyWith(walletOwns: true);
+        } else if (isSparkMint && isMySpark) {
+          wasReceivedInThisWallet = true;
+          if (output.addresses.contains(sparkChangeAddress)) {
+            changeAmountReceivedInThisWallet += output.value;
+          } else {
+            amountReceivedInThisWallet += output.value;
+          }
+        }
+
+        outputs.add(output);
+      }
+
+      if (isJMint || isSparkSpend) {
+        anonFees = Amount(
           rawValue: BigInt.zero,
           fractionDigits: cryptoCurrency.fractionDigits,
         );
+      }
 
-        // Parse inputs
-        List<Input> ins = [];
-        for (final input in inputList) {
-          // JMint fee
-          final nFee = Decimal.tryParse(input["nFees"].toString());
+      // parse inputs
+      final List<InputV2> inputs = [];
+      for (final jsonInput in txData["vin"] as List) {
+        final map = Map<String, dynamic>.from(jsonInput as Map);
+
+        final List<String> addresses = [];
+        String valueStringSats = "0";
+        OutpointV2? outpoint;
+
+        final coinbase = map["coinbase"] as String?;
+
+        final txid = map["txid"] as String?;
+        final vout = map["vout"] as int?;
+        if (txid != null && vout != null) {
+          outpoint = OutpointV2.isarCantDoRequiredInDefaultConstructor(
+            txid: txid,
+            vout: vout,
+          );
+        }
+
+        if (isSparkSpend) {
+          // anon fees
+          final nFee = Decimal.tryParse(map["nFees"].toString());
           if (nFee != null) {
             final fees = Amount.fromDecimal(
               nFee,
               fractionDigits: cryptoCurrency.fractionDigits,
             );
 
-            jMintFees += fees;
+            anonFees = anonFees! + fees;
           }
+        } else if (isSparkMint) {
+          final address = map["address"] as String?;
+          final value = map["valueSat"] as int?;
 
-          ins.add(
-            Input(
-              txid: input['txid'] as String? ?? "",
-              vout: input['vout'] as int? ?? -1,
-              scriptSig: input['scriptSig']?['hex'] as String?,
-              scriptSigAsm: input['scriptSig']?['asm'] as String?,
-              isCoinbase: input['is_coinbase'] as bool?,
-              sequence: input['sequence'] as int?,
-              innerRedeemScriptAsm: input['innerRedeemscriptAsm'] as String?,
-            ),
-          );
-        }
-
-        bool nonWalletAddressFoundInOutputs = false;
-
-        // Parse outputs
-        List<Output> outs = [];
-        for (final output in outputList) {
-          // get value
-          final value = Amount.fromDecimal(
-            Decimal.parse(output["value"].toString()),
-            fractionDigits: cryptoCurrency.fractionDigits,
-          );
-
-          // add value to total
-          totalOutputValue += value;
-
-          final address = output["scriptPubKey"]?["addresses"]?[0] as String? ??
-              output['scriptPubKey']?['address'] as String?;
-
-          if (address != null) {
-            outputAddresses.add(address);
-            if (receivingAddresses.contains(address) ||
-                changeAddresses.contains(address)) {
-              amountReceivedInWallet += value;
-            } else {
-              nonWalletAddressFoundInOutputs = true;
-            }
+          if (address != null && value != null) {
+            valueStringSats = value.toString();
+            addresses.add(address);
           }
+        } else if (isMint) {
+          // We should be able to assume this belongs to this wallet
+          final address = map["address"] as String?;
+          final value = map["valueSat"] as int?;
 
-          outs.add(
-            Output(
-              scriptPubKey: output['scriptPubKey']?['hex'] as String?,
-              scriptPubKeyAsm: output['scriptPubKey']?['asm'] as String?,
-              scriptPubKeyType: output['scriptPubKey']?['type'] as String?,
-              scriptPubKeyAddress: address ?? "jmint",
-              value: value.raw.toInt(),
-            ),
-          );
-        }
-        final txid = txObject["txid"] as String;
-
-        const subType = TransactionSubType.join;
-
-        final type = nonWalletAddressFoundInOutputs
-            ? TransactionType.outgoing
-            : (await mainDB.isar.lelantusCoins
-                        .where()
-                        .walletIdEqualTo(walletId)
-                        .filter()
-                        .txidEqualTo(txid)
-                        .findFirst()) ==
-                    null
-                ? TransactionType.incoming
-                : TransactionType.sentToSelf;
-
-        final amount = nonWalletAddressFoundInOutputs
-            ? totalOutputValue
-            : amountReceivedInWallet;
-
-        final possibleNonWalletAddresses =
-            receivingAddresses.difference(outputAddresses);
-        final possibleReceivingAddresses =
-            receivingAddresses.intersection(outputAddresses);
-
-        final transactionAddress = nonWalletAddressFoundInOutputs
-            ? Address(
-                walletId: walletId,
-                value: possibleNonWalletAddresses.first,
-                derivationIndex: -1,
-                derivationPath: null,
-                type: AddressType.nonWallet,
-                subType: AddressSubType.nonWallet,
-                publicKey: [],
-              )
-            : allAddresses.firstWhere(
-                (e) => e.value == possibleReceivingAddresses.first,
-              );
-
-        final tx = Transaction(
-          walletId: walletId,
-          txid: txid,
-          timestamp: txObject["blocktime"] as int? ??
-              (DateTime.now().millisecondsSinceEpoch ~/ 1000),
-          type: type,
-          subType: subType,
-          amount: amount.raw.toInt(),
-          amountString: amount.toJsonString(),
-          fee: jMintFees.raw.toInt(),
-          height: txObject["height"] as int?,
-          isCancelled: false,
-          isLelantus: true,
-          slateId: null,
-          otherData: null,
-          nonce: null,
-          inputs: ins,
-          outputs: outs,
-          numberOfMessages: null,
-        );
-
-        txnsData.add(Tuple2(tx, transactionAddress));
-
-        // Master node payment =====================================
-      } else if (inputList.length == 1 &&
-          inputList.first["coinbase"] is String) {
-        List<Input> ins = [
-          Input(
-            txid: inputList.first["coinbase"] as String,
-            vout: -1,
-            scriptSig: null,
-            scriptSigAsm: null,
-            isCoinbase: true,
-            sequence: inputList.first['sequence'] as int?,
-            innerRedeemScriptAsm: null,
-          ),
-        ];
-
-        // parse outputs
-        List<Output> outs = [];
-        for (final output in outputList) {
-          // get value
-          final value = Amount.fromDecimal(
-            Decimal.parse(output["value"].toString()),
-            fractionDigits: cryptoCurrency.fractionDigits,
-          );
-
-          // get output address
-          final address = output["scriptPubKey"]?["addresses"]?[0] as String? ??
-              output["scriptPubKey"]?["address"] as String?;
-          if (address != null) {
-            outputAddresses.add(address);
-
-            // if output was to my wallet, add value to amount received
-            if (receivingAddresses.contains(address)) {
-              amountReceivedInWallet += value;
-            }
+          if (address != null && value != null) {
+            valueStringSats = value.toString();
+            addresses.add(address);
           }
-
-          outs.add(
-            Output(
-              scriptPubKey: output['scriptPubKey']?['hex'] as String?,
-              scriptPubKeyAsm: output['scriptPubKey']?['asm'] as String?,
-              scriptPubKeyType: output['scriptPubKey']?['type'] as String?,
-              scriptPubKeyAddress: address ?? "",
-              value: value.raw.toInt(),
-            ),
-          );
-        }
-
-        // this is the address initially used to fetch the txid
-        Address transactionAddress = txObject["address"] as Address;
-
-        final tx = Transaction(
-          walletId: walletId,
-          txid: txObject["txid"] as String,
-          timestamp: txObject["blocktime"] as int? ??
-              (DateTime.now().millisecondsSinceEpoch ~/ 1000),
-          type: TransactionType.incoming,
-          subType: TransactionSubType.none,
-          // amount may overflow. Deprecated. Use amountString
-          amount: amountReceivedInWallet.raw.toInt(),
-          amountString: amountReceivedInWallet.toJsonString(),
-          fee: 0,
-          height: txObject["height"] as int?,
-          isCancelled: false,
-          isLelantus: false,
-          slateId: null,
-          otherData: null,
-          nonce: null,
-          inputs: ins,
-          outputs: outs,
-          numberOfMessages: null,
-        );
-
-        txnsData.add(Tuple2(tx, transactionAddress));
-
-        // Assume non lelantus transaction =====================================
-      } else {
-        // parse inputs
-        List<Input> ins = [];
-        for (final input in inputList) {
-          final valueSat = input["valueSat"] as int?;
-          final address = input["address"] as String? ??
-              input["scriptPubKey"]?["address"] as String? ??
-              input["scriptPubKey"]?["addresses"]?[0] as String?;
-
-          if (address != null && valueSat != null) {
-            final value = valueSat.toAmountAsRaw(
+        } else if (isJMint) {
+          // anon fees
+          final nFee = Decimal.tryParse(map["nFees"].toString());
+          if (nFee != null) {
+            final fees = Amount.fromDecimal(
+              nFee,
               fractionDigits: cryptoCurrency.fractionDigits,
             );
 
-            // add value to total
-            totalInputValue += value;
-            inputAddresses.add(address);
-
-            // if input was from my wallet, add value to amount sent
-            if (receivingAddresses.contains(address) ||
-                changeAddresses.contains(address)) {
-              amountSentFromWallet += value;
-            }
+            anonFees = anonFees! + fees;
           }
-
-          ins.add(
-            Input(
-              txid: input['txid'] as String,
-              vout: input['vout'] as int? ?? -1,
-              scriptSig: input['scriptSig']?['hex'] as String?,
-              scriptSigAsm: input['scriptSig']?['asm'] as String?,
-              isCoinbase: input['is_coinbase'] as bool?,
-              sequence: input['sequence'] as int?,
-              innerRedeemScriptAsm: input['innerRedeemscriptAsm'] as String?,
-            ),
-          );
-        }
-
-        // parse outputs
-        List<Output> outs = [];
-        for (final output in outputList) {
-          // get value
-          final value = Amount.fromDecimal(
-            Decimal.parse(output["value"].toString()),
-            fractionDigits: cryptoCurrency.fractionDigits,
+        } else if (coinbase == null && txid != null && vout != null) {
+          final inputTx = await electrumXCachedClient.getTransaction(
+            txHash: txid,
+            coin: cryptoCurrency.coin,
           );
 
-          // add value to total
-          totalOutputValue += value;
+          final prevOutJson = Map<String, dynamic>.from(
+              (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout)
+                  as Map);
 
-          // get output address
-          final address = output["scriptPubKey"]?["addresses"]?[0] as String? ??
-              output["scriptPubKey"]?["address"] as String?;
-          if (address != null) {
-            outputAddresses.add(address);
-
-            // if output was to my wallet, add value to amount received
-            if (receivingAddresses.contains(address)) {
-              amountReceivedInWallet += value;
-            } else if (changeAddresses.contains(address)) {
-              changeAmount += value;
-            }
-          }
-
-          outs.add(
-            Output(
-              scriptPubKey: output['scriptPubKey']?['hex'] as String?,
-              scriptPubKeyAsm: output['scriptPubKey']?['asm'] as String?,
-              scriptPubKeyType: output['scriptPubKey']?['type'] as String?,
-              scriptPubKeyAddress: address ?? "",
-              value: value.raw.toInt(),
-            ),
+          final prevOut = OutputV2.fromElectrumXJson(
+            prevOutJson,
+            decimalPlaces: cryptoCurrency.fractionDigits,
+            isFullAmountNotSats: true,
+            walletOwns: false, // doesn't matter here as this is not saved
           );
+
+          valueStringSats = prevOut.valueStringSats;
+          addresses.addAll(prevOut.addresses);
+        } else if (coinbase == null) {
+          Util.printJson(map, "NON TXID INPUT");
         }
 
-        final mySentFromAddresses = [
-          ...receivingAddresses.intersection(inputAddresses),
-          ...changeAddresses.intersection(inputAddresses)
-        ];
-        final myReceivedOnAddresses =
-            receivingAddresses.intersection(outputAddresses);
-        final myChangeReceivedOnAddresses =
-            changeAddresses.intersection(outputAddresses);
-
-        final fee = totalInputValue - totalOutputValue;
-
-        // this is the address initially used to fetch the txid
-        Address transactionAddress = txObject["address"] as Address;
-
-        TransactionType type;
-        Amount amount;
-        if (mySentFromAddresses.isNotEmpty &&
-            myReceivedOnAddresses.isNotEmpty) {
-          // tx is sent to self
-          type = TransactionType.sentToSelf;
-
-          // should be 0
-          amount = amountSentFromWallet -
-              amountReceivedInWallet -
-              fee -
-              changeAmount;
-        } else if (mySentFromAddresses.isNotEmpty) {
-          // outgoing tx
-          type = TransactionType.outgoing;
-          amount = amountSentFromWallet - changeAmount - fee;
-
-          final possible =
-              outputAddresses.difference(myChangeReceivedOnAddresses).first;
-
-          if (transactionAddress.value != possible) {
-            transactionAddress = Address(
-              walletId: walletId,
-              value: possible,
-              derivationIndex: -1,
-              derivationPath: null,
-              subType: AddressSubType.nonWallet,
-              type: AddressType.nonWallet,
-              publicKey: [],
-            );
-          }
-        } else {
-          // incoming tx
-          type = TransactionType.incoming;
-          amount = amountReceivedInWallet;
-        }
-
-        final tx = Transaction(
-          walletId: walletId,
-          txid: txObject["txid"] as String,
-          timestamp: txObject["blocktime"] as int? ??
-              (DateTime.now().millisecondsSinceEpoch ~/ 1000),
-          type: type,
-          subType: TransactionSubType.none,
-          // amount may overflow. Deprecated. Use amountString
-          amount: amount.raw.toInt(),
-          amountString: amount.toJsonString(),
-          fee: fee.raw.toInt(),
-          height: txObject["height"] as int?,
-          isCancelled: false,
-          isLelantus: false,
-          slateId: null,
-          otherData: null,
-          nonce: null,
-          inputs: ins,
-          outputs: outs,
-          numberOfMessages: null,
+        InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
+          scriptSigHex: map["scriptSig"]?["hex"] as String?,
+          sequence: map["sequence"] as int?,
+          outpoint: outpoint,
+          valueStringSats: valueStringSats,
+          addresses: addresses,
+          witness: map["witness"] as String?,
+          coinbase: coinbase,
+          innerRedeemScriptAsm: map["innerRedeemscriptAsm"] as String?,
+          // don't know yet if wallet owns. Need addresses first
+          walletOwns: false,
         );
 
-        txnsData.add(Tuple2(tx, transactionAddress));
+        if (allAddressesSet.intersection(input.addresses.toSet()).isNotEmpty) {
+          wasSentFromThisWallet = true;
+          input = input.copyWith(walletOwns: true);
+        } else if (isMySpark) {
+          final lTags = map["lTags"] as List?;
+
+          if (lTags?.isNotEmpty == true) {
+            final List<SparkCoin> usedCoins = [];
+            for (final tag in lTags!) {
+              final components = (tag as String).split(",");
+              final x = components[0].substring(1);
+              final y = components[1].substring(0, components[1].length - 1);
+
+              final hash = LibSpark.hashTag(x, y);
+              usedCoins.addAll(sparkCoins.where((e) => e.lTagHash == hash));
+            }
+
+            if (usedCoins.isNotEmpty) {
+              input = input.copyWith(
+                addresses: usedCoins.map((e) => e.address).toList(),
+                valueStringSats: usedCoins
+                    .map((e) => e.value)
+                    .reduce((value, element) => value += element)
+                    .toString(),
+                walletOwns: true,
+              );
+              wasSentFromThisWallet = true;
+            }
+          }
+        }
+
+        inputs.add(input);
       }
+
+      final totalOut = outputs
+          .map((e) => e.value)
+          .fold(BigInt.zero, (value, element) => value + element);
+
+      TransactionType type;
+      TransactionSubType subType = TransactionSubType.none;
+
+      // TODO integrate the following with the next bit
+      if (isSparkSpend) {
+        subType = TransactionSubType.sparkSpend;
+      } else if (isSparkMint) {
+        subType = TransactionSubType.sparkMint;
+      } else if (isMint) {
+        subType = TransactionSubType.mint;
+      } else if (isJMint) {
+        subType = TransactionSubType.join;
+      }
+
+      // at least one input was owned by this wallet
+      if (wasSentFromThisWallet) {
+        type = TransactionType.outgoing;
+
+        if (wasReceivedInThisWallet) {
+          if (changeAmountReceivedInThisWallet + amountReceivedInThisWallet ==
+              totalOut) {
+            // definitely sent all to self
+            type = TransactionType.sentToSelf;
+          } else if (amountReceivedInThisWallet == BigInt.zero) {
+            // most likely just a typical send
+            // do nothing here yet
+          }
+        }
+      } else if (wasReceivedInThisWallet) {
+        // only found outputs owned by this wallet
+        type = TransactionType.incoming;
+      } else {
+        Logging.instance.log(
+          "Unexpected tx found (ignoring it): $txData",
+          level: LogLevel.Error,
+        );
+        continue;
+      }
+
+      String? otherData;
+      if (anonFees != null) {
+        otherData = jsonEncode(
+          {
+            "anonFees": anonFees.toJsonString(),
+          },
+        );
+      }
+
+      final tx = TransactionV2(
+        walletId: walletId,
+        blockHash: txData["blockhash"] as String?,
+        hash: txData["hash"] as String,
+        txid: txData["txid"] as String,
+        height: txData["height"] as int?,
+        version: txData["version"] as int,
+        timestamp: txData["blocktime"] as int? ??
+            DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
+        inputs: List.unmodifiable(inputs),
+        outputs: List.unmodifiable(outputs),
+        type: type,
+        subType: subType,
+        otherData: otherData,
+      );
+
+      txns.add(tx);
     }
 
-    await mainDB.addNewTransactionData(txnsData, walletId);
+    await mainDB.updateOrPutTransactionV2s(txns);
   }
 
   @override
@@ -689,10 +551,22 @@ class FiroWallet extends Bip39HDWallet
           await mainDB.deleteWalletBlockchainData(walletId);
         }
 
+        // lelantus
         final latestSetId = await electrumXClient.getLelantusLatestCoinId();
         final setDataMapFuture = getSetDataMap(latestSetId);
         final usedSerialNumbersFuture =
             electrumXCachedClient.getUsedCoinSerials(
+          coin: info.coin,
+        );
+
+        // spark
+        final latestSparkCoinId = await electrumXClient.getSparkLatestCoinId();
+        final sparkAnonSetFuture = electrumXCachedClient.getSparkAnonymitySet(
+          groupId: latestSparkCoinId.toString(),
+          coin: info.coin,
+        );
+        final sparkUsedCoinTagsFuture =
+            electrumXCachedClient.getSparkUsedCoinsTags(
           coin: info.coin,
         );
 
@@ -799,16 +673,29 @@ class FiroWallet extends Bip39HDWallet
         final futureResults = await Future.wait([
           usedSerialNumbersFuture,
           setDataMapFuture,
+          sparkAnonSetFuture,
+          sparkUsedCoinTagsFuture,
         ]);
 
+        // lelantus
         final usedSerialsSet = (futureResults[0] as List<String>).toSet();
         final setDataMap = futureResults[1] as Map<dynamic, dynamic>;
 
-        await recoverLelantusWallet(
-          latestSetId: latestSetId,
-          usedSerialNumbers: usedSerialsSet,
-          setDataMap: setDataMap,
-        );
+        // spark
+        final sparkAnonymitySet = futureResults[2] as Map<String, dynamic>;
+        final sparkSpentCoinTags = futureResults[3] as Set<String>;
+
+        await Future.wait([
+          recoverLelantusWallet(
+            latestSetId: latestSetId,
+            usedSerialNumbers: usedSerialsSet,
+            setDataMap: setDataMap,
+          ),
+          recoverSparkWallet(
+            anonymitySet: sparkAnonymitySet,
+            spentCoinTags: sparkSpentCoinTags,
+          ),
+        ]);
       });
 
       await refresh();

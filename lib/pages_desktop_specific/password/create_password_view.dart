@@ -65,7 +65,14 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
   bool get fieldsMatch =>
       passwordController.text == passwordRepeatController.text;
 
+  bool _nextLock = false;
+
   void onNextPressed() async {
+    if (_nextLock) {
+      return;
+    }
+    _nextLock = true;
+
     final String passphrase = passwordController.text;
     final String repeatPassphrase = passwordRepeatController.text;
 
@@ -75,6 +82,7 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
         message: "A password is required",
         context: context,
       ));
+      _nextLock = false;
       return;
     }
     if (passphrase != repeatPassphrase) {
@@ -83,6 +91,7 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
         message: "Password does not match",
         context: context,
       ));
+      _nextLock = false;
       return;
     }
 
@@ -106,6 +115,7 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
         message: "Error: $e",
         context: context,
       ));
+      _nextLock = false;
       return;
     }
 
@@ -132,6 +142,7 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
         context: context,
       ));
     }
+    _nextLock = false;
   }
 
   @override

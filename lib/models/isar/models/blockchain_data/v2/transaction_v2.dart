@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:isar/isar.dart';
@@ -6,6 +7,8 @@ import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart'
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/extensions/extensions.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 
 part 'transaction_v2.g.dart';
 
@@ -37,6 +40,8 @@ class TransactionV2 {
   @enumerated
   final TransactionSubType subType;
 
+  final String? otherData;
+
   TransactionV2({
     required this.walletId,
     required this.blockHash,
@@ -49,6 +54,7 @@ class TransactionV2 {
     required this.version,
     required this.type,
     required this.subType,
+    required this.otherData,
   });
 
   int getConfirmations(int currentChainHeight) {
@@ -71,10 +77,19 @@ class TransactionV2 {
     return Amount(rawValue: inSum - outSum, fractionDigits: coin.decimals);
   }
 
-  Amount getAmountReceivedThisWallet({required Coin coin}) {
+  Amount getAmountReceivedInThisWallet({required Coin coin}) {
     final outSum = outputs
         .where((e) => e.walletOwns)
         .fold(BigInt.zero, (p, e) => p + e.value);
+
+    return Amount(rawValue: outSum, fractionDigits: coin.decimals);
+  }
+
+  Amount getAmountSparkSelfMinted({required Coin coin}) {
+    final outSum = outputs.where((e) {
+      final op = e.scriptPubKeyHex.substring(0, 2).toUint8ListFromHex.first;
+      return e.walletOwns && (op == OP_SPARKMINT);
+    }).fold(BigInt.zero, (p, e) => p + e.value);
 
     return Amount(rawValue: outSum, fractionDigits: coin.decimals);
   }
@@ -84,13 +99,96 @@ class TransactionV2 {
         .where((e) => e.walletOwns)
         .fold(BigInt.zero, (p, e) => p + e.value);
 
-    return Amount(rawValue: inSum, fractionDigits: coin.decimals);
+    return Amount(
+          rawValue: inSum,
+          fractionDigits: coin.decimals,
+        ) -
+        getAmountReceivedInThisWallet(
+          coin: coin,
+        ) -
+        getFee(coin: coin);
   }
 
   Set<String> associatedAddresses() => {
         ...inputs.map((e) => e.addresses).expand((e) => e),
         ...outputs.map((e) => e.addresses).expand((e) => e),
       };
+
+  Amount? getAnonFee() {
+    try {
+      final map = jsonDecode(otherData!) as Map;
+      return Amount.fromSerializedJsonString(map["anonFees"] as String);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String statusLabel({
+    required int currentChainHeight,
+    required int minConfirms,
+  }) {
+    if (subType == TransactionSubType.cashFusion ||
+        subType == TransactionSubType.mint ||
+        (subType == TransactionSubType.sparkMint &&
+            type == TransactionType.sentToSelf)) {
+      if (isConfirmed(currentChainHeight, minConfirms)) {
+        return "Anonymized";
+      } else {
+        return "Anonymizing";
+      }
+    }
+
+    // if (coin == Coin.epicCash) {
+    //   if (_transaction.isCancelled) {
+    //     return "Cancelled";
+    //   } else if (type == TransactionType.incoming) {
+    //     if (isConfirmed(height, minConfirms)) {
+    //       return "Received";
+    //     } else {
+    //       if (_transaction.numberOfMessages == 1) {
+    //         return "Receiving (waiting for sender)";
+    //       } else if ((_transaction.numberOfMessages ?? 0) > 1) {
+    //         return "Receiving (waiting for confirmations)"; // TODO test if the sender still has to open again after the receiver has 2 messages present, ie. sender->receiver->sender->node (yes) vs. sender->receiver->node (no)
+    //       } else {
+    //         return "Receiving";
+    //       }
+    //     }
+    //   } else if (type == TransactionType.outgoing) {
+    //     if (isConfirmed(height, minConfirms)) {
+    //       return "Sent (confirmed)";
+    //     } else {
+    //       if (_transaction.numberOfMessages == 1) {
+    //         return "Sending (waiting for receiver)";
+    //       } else if ((_transaction.numberOfMessages ?? 0) > 1) {
+    //         return "Sending (waiting for confirmations)";
+    //       } else {
+    //         return "Sending";
+    //       }
+    //     }
+    //   }
+    // }
+
+    if (type == TransactionType.incoming) {
+      // if (_transaction.isMinting) {
+      //   return "Minting";
+      // } else
+      if (isConfirmed(currentChainHeight, minConfirms)) {
+        return "Received";
+      } else {
+        return "Receiving";
+      }
+    } else if (type == TransactionType.outgoing) {
+      if (isConfirmed(currentChainHeight, minConfirms)) {
+        return "Sent";
+      } else {
+        return "Sending";
+      }
+    } else if (type == TransactionType.sentToSelf) {
+      return "Sent to self";
+    } else {
+      return type.name;
+    }
+  }
 
   @override
   String toString() {
@@ -106,6 +204,7 @@ class TransactionV2 {
         '  version: $version,\n'
         '  inputs: $inputs,\n'
         '  outputs: $outputs,\n'
+        '  otherData: $otherData,\n'
         ')';
   }
 }

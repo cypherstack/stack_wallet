@@ -1047,7 +1047,7 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
     return mints;
   }
 
-  Future<void> anonymizeAllPublicFunds() async {
+  Future<void> anonymizeAllLelantus() async {
     try {
       final mintResult = await _mintSelection();
 
@@ -1056,7 +1056,7 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
       unawaited(refresh());
     } catch (e, s) {
       Logging.instance.log(
-        "Exception caught in anonymizeAllPublicFunds(): $e\n$s",
+        "Exception caught in anonymizeAllLelantus(): $e\n$s",
         level: LogLevel.Warning,
       );
       rethrow;

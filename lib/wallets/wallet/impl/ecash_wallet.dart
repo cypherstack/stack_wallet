@@ -58,7 +58,7 @@ class EcashWallet extends Bip39HDWallet
   // ===========================================================================
 
   @override
-  Future<List<Address>> fetchAllOwnAddresses() async {
+  Future<List<Address>> fetchAddressesForElectrumXScan() async {
     final allAddresses = await mainDB
         .getAddresses(walletId)
         .filter()
@@ -87,7 +87,7 @@ class EcashWallet extends Bip39HDWallet
 
   @override
   Future<void> updateTransactions() async {
-    List<Address> allAddressesOld = await fetchAllOwnAddresses();
+    List<Address> allAddressesOld = await fetchAddressesForElectrumXScan();
 
     Set<String> receivingAddresses = allAddressesOld
         .where((e) => e.subType == AddressSubType.receiving)
@@ -169,7 +169,7 @@ class EcashWallet extends Bip39HDWallet
           final prevOut = OutputV2.fromElectrumXJson(
             prevOutJson,
             decimalPlaces: cryptoCurrency.fractionDigits,
-            isECashFullAmountNotSats: true,
+            isFullAmountNotSats: true,
             walletOwns: false, // doesn't matter here as this is not saved
           );
 
@@ -208,7 +208,7 @@ class EcashWallet extends Bip39HDWallet
         OutputV2 output = OutputV2.fromElectrumXJson(
           Map<String, dynamic>.from(outputJson as Map),
           decimalPlaces: cryptoCurrency.fractionDigits,
-          isECashFullAmountNotSats: true,
+          isFullAmountNotSats: true,
           // don't know yet if wallet owns. Need addresses first
           walletOwns: false,
         );
@@ -288,6 +288,7 @@ class EcashWallet extends Bip39HDWallet
         outputs: List.unmodifiable(outputs),
         type: type,
         subType: subType,
+        otherData: null,
       );
 
       txns.add(tx);

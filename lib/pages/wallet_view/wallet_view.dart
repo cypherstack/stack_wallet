@@ -46,8 +46,6 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
-import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
-import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
@@ -63,7 +61,6 @@ import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -71,6 +68,7 @@ import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -117,6 +115,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
   late final EventBus eventBus;
   late final String walletId;
   late final Coin coin;
+
+  late final bool isSparkWallet;
 
   late final bool _shouldDisableAutoSyncOnLogOut;
 
@@ -173,6 +173,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
     } else {
       _shouldDisableAutoSyncOnLogOut = false;
     }
+
+    isSparkWallet = wallet is SparkInterface;
 
     if (coin == Coin.firo &&
         (wallet as FiroWallet).lelantusCoinIsarRescanRequired) {
@@ -433,7 +435,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
     }
 
     try {
-      await firoWallet.anonymizeAllPublicFunds();
+      // await firoWallet.anonymizeAllLelantus();
+      await firoWallet.anonymizeAllSpark();
       shouldPop = true;
       if (mounted) {
         Navigator.of(context).popUntil(
@@ -760,11 +763,11 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             ),
                           ),
                         ),
-                        if (coin == Coin.firo)
+                        if (isSparkWallet)
                           const SizedBox(
                             height: 10,
                           ),
-                        if (coin == Coin.firo)
+                        if (isSparkWallet)
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: Row(
@@ -951,20 +954,21 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     label: "Send",
                     icon: const SendNavIcon(),
                     onTap: () {
-                      switch (ref
-                          .read(walletBalanceToggleStateProvider.state)
-                          .state) {
-                        case WalletBalanceToggleState.full:
-                          ref
-                              .read(publicPrivateBalanceStateProvider.state)
-                              .state = "Public";
-                          break;
-                        case WalletBalanceToggleState.available:
-                          ref
-                              .read(publicPrivateBalanceStateProvider.state)
-                              .state = "Private";
-                          break;
-                      }
+                      // not sure what this is supposed to accomplish?
+                      // switch (ref
+                      //     .read(walletBalanceToggleStateProvider.state)
+                      //     .state) {
+                      //   case WalletBalanceToggleState.full:
+                      //     ref
+                      //         .read(publicPrivateBalanceStateProvider.state)
+                      //         .state = "Public";
+                      //     break;
+                      //   case WalletBalanceToggleState.available:
+                      //     ref
+                      //         .read(publicPrivateBalanceStateProvider.state)
+                      //         .state = "Private";
+                      //     break;
+                      // }
                       Navigator.of(context).pushNamed(
                         SendView.routeName,
                         arguments: Tuple2(

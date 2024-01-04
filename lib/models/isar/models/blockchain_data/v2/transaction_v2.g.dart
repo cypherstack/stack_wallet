@@ -38,41 +38,46 @@ const TransactionV2Schema = CollectionSchema(
       type: IsarType.objectList,
       target: r'InputV2',
     ),
-    r'outputs': PropertySchema(
+    r'otherData': PropertySchema(
       id: 4,
+      name: r'otherData',
+      type: IsarType.string,
+    ),
+    r'outputs': PropertySchema(
+      id: 5,
       name: r'outputs',
       type: IsarType.objectList,
       target: r'OutputV2',
     ),
     r'subType': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'subType',
       type: IsarType.byte,
       enumMap: _TransactionV2subTypeEnumValueMap,
     ),
     r'timestamp': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'timestamp',
       type: IsarType.long,
     ),
     r'txid': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'txid',
       type: IsarType.string,
     ),
     r'type': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'type',
       type: IsarType.byte,
       enumMap: _TransactionV2typeEnumValueMap,
     ),
     r'version': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'version',
       type: IsarType.long,
     ),
     r'walletId': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'walletId',
       type: IsarType.string,
     )
@@ -161,6 +166,12 @@ int _transactionV2EstimateSize(
       bytesCount += InputV2Schema.estimateSize(value, offsets, allOffsets);
     }
   }
+  {
+    final value = object.otherData;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.outputs.length * 3;
   {
     final offsets = allOffsets[OutputV2]!;
@@ -189,18 +200,19 @@ void _transactionV2Serialize(
     InputV2Schema.serialize,
     object.inputs,
   );
+  writer.writeString(offsets[4], object.otherData);
   writer.writeObjectList<OutputV2>(
-    offsets[4],
+    offsets[5],
     allOffsets,
     OutputV2Schema.serialize,
     object.outputs,
   );
-  writer.writeByte(offsets[5], object.subType.index);
-  writer.writeLong(offsets[6], object.timestamp);
-  writer.writeString(offsets[7], object.txid);
-  writer.writeByte(offsets[8], object.type.index);
-  writer.writeLong(offsets[9], object.version);
-  writer.writeString(offsets[10], object.walletId);
+  writer.writeByte(offsets[6], object.subType.index);
+  writer.writeLong(offsets[7], object.timestamp);
+  writer.writeString(offsets[8], object.txid);
+  writer.writeByte(offsets[9], object.type.index);
+  writer.writeLong(offsets[10], object.version);
+  writer.writeString(offsets[11], object.walletId);
 }
 
 TransactionV2 _transactionV2Deserialize(
@@ -220,22 +232,23 @@ TransactionV2 _transactionV2Deserialize(
           InputV2(),
         ) ??
         [],
+    otherData: reader.readStringOrNull(offsets[4]),
     outputs: reader.readObjectList<OutputV2>(
-          offsets[4],
+          offsets[5],
           OutputV2Schema.deserialize,
           allOffsets,
           OutputV2(),
         ) ??
         [],
     subType:
-        _TransactionV2subTypeValueEnumMap[reader.readByteOrNull(offsets[5])] ??
+        _TransactionV2subTypeValueEnumMap[reader.readByteOrNull(offsets[6])] ??
             TransactionSubType.none,
-    timestamp: reader.readLong(offsets[6]),
-    txid: reader.readString(offsets[7]),
-    type: _TransactionV2typeValueEnumMap[reader.readByteOrNull(offsets[8])] ??
+    timestamp: reader.readLong(offsets[7]),
+    txid: reader.readString(offsets[8]),
+    type: _TransactionV2typeValueEnumMap[reader.readByteOrNull(offsets[9])] ??
         TransactionType.outgoing,
-    version: reader.readLong(offsets[9]),
-    walletId: reader.readString(offsets[10]),
+    version: reader.readLong(offsets[10]),
+    walletId: reader.readString(offsets[11]),
   );
   object.id = id;
   return object;
@@ -263,6 +276,8 @@ P _transactionV2DeserializeProp<P>(
           ) ??
           []) as P;
     case 4:
+      return (reader.readStringOrNull(offset)) as P;
+    case 5:
       return (reader.readObjectList<OutputV2>(
             offset,
             OutputV2Schema.deserialize,
@@ -270,20 +285,20 @@ P _transactionV2DeserializeProp<P>(
             OutputV2(),
           ) ??
           []) as P;
-    case 5:
+    case 6:
       return (_TransactionV2subTypeValueEnumMap[
               reader.readByteOrNull(offset)] ??
           TransactionSubType.none) as P;
-    case 6:
-      return (reader.readLong(offset)) as P;
     case 7:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 8:
+      return (reader.readString(offset)) as P;
+    case 9:
       return (_TransactionV2typeValueEnumMap[reader.readByteOrNull(offset)] ??
           TransactionType.outgoing) as P;
-    case 9:
-      return (reader.readLong(offset)) as P;
     case 10:
+      return (reader.readLong(offset)) as P;
+    case 11:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -297,6 +312,8 @@ const _TransactionV2subTypeEnumValueMap = {
   'join': 3,
   'ethToken': 4,
   'cashFusion': 5,
+  'sparkMint': 6,
+  'sparkSpend': 7,
 };
 const _TransactionV2subTypeValueEnumMap = {
   0: TransactionSubType.none,
@@ -305,6 +322,8 @@ const _TransactionV2subTypeValueEnumMap = {
   3: TransactionSubType.join,
   4: TransactionSubType.ethToken,
   5: TransactionSubType.cashFusion,
+  6: TransactionSubType.sparkMint,
+  7: TransactionSubType.sparkSpend,
 };
 const _TransactionV2typeEnumValueMap = {
   'outgoing': 0,
@@ -1245,6 +1264,160 @@ extension TransactionV2QueryFilter
   }
 
   QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      otherDataIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'otherData',
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      otherDataIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'otherData',
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      otherDataEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'otherData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      otherDataGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'otherData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      otherDataLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'otherData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      otherDataBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'otherData',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      otherDataStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'otherData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      otherDataEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'otherData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      otherDataContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'otherData',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      otherDataMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'otherData',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      otherDataIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'otherData',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      otherDataIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'otherData',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
       outputsLengthEqualTo(int length) {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
@@ -1887,6 +2060,19 @@ extension TransactionV2QuerySortBy
     });
   }
 
+  QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> sortByOtherData() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'otherData', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy>
+      sortByOtherDataDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'otherData', Sort.desc);
+    });
+  }
+
   QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> sortBySubType() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'subType', Sort.asc);
@@ -2013,6 +2199,19 @@ extension TransactionV2QuerySortThenBy
     });
   }
 
+  QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> thenByOtherData() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'otherData', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy>
+      thenByOtherDataDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'otherData', Sort.desc);
+    });
+  }
+
   QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> thenBySubType() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'subType', Sort.asc);
@@ -2110,6 +2309,13 @@ extension TransactionV2QueryWhereDistinct
     });
   }
 
+  QueryBuilder<TransactionV2, TransactionV2, QDistinct> distinctByOtherData(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'otherData', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<TransactionV2, TransactionV2, QDistinct> distinctBySubType() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'subType');
@@ -2179,6 +2385,12 @@ extension TransactionV2QueryProperty
       inputsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'inputs');
+    });
+  }
+
+  QueryBuilder<TransactionV2, String?, QQueryOperations> otherDataProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'otherData');
     });
   }
 

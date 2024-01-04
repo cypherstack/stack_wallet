@@ -107,6 +107,63 @@ class CachedElectrumXClient {
     }
   }
 
+  Future<Map<String, dynamic>> getSparkAnonymitySet({
+    required String groupId,
+    String blockhash = "",
+    required Coin coin,
+  }) async {
+    try {
+      final box = await DB.instance.getSparkAnonymitySetCacheBox(coin: coin);
+      final cachedSet = box.get(groupId) as Map?;
+
+      Map<String, dynamic> set;
+
+      // null check to see if there is a cached set
+      if (cachedSet == null) {
+        set = {
+          "coinGroupID": int.parse(groupId),
+          "blockHash": blockhash,
+          "setHash": "",
+          "coins": <dynamic>[],
+        };
+      } else {
+        set = Map<String, dynamic>.from(cachedSet);
+      }
+
+      final newSet = await electrumXClient.getSparkAnonymitySet(
+        coinGroupId: groupId,
+        startBlockHash: set["blockHash"] as String,
+      );
+
+      // update set with new data
+      if (newSet["setHash"] != "" && set["setHash"] != newSet["setHash"]) {
+        set["setHash"] = newSet["setHash"];
+        set["blockHash"] = newSet["blockHash"];
+        for (int i = (newSet["coins"] as List).length - 1; i >= 0; i--) {
+          // TODO verify this is correct (or append?)
+          if ((set["coins"] as List)
+              .where((e) => e[0] == newSet["coins"][i][0])
+              .isEmpty) {
+            set["coins"].insert(0, newSet["coins"][i]);
+          }
+        }
+        // save set to db
+        await box.put(groupId, set);
+        Logging.instance.log(
+          "Updated current anonymity set for ${coin.name} with group ID $groupId",
+          level: LogLevel.Info,
+        );
+      }
+
+      return set;
+    } catch (e, s) {
+      Logging.instance.log(
+          "Failed to process CachedElectrumX.getSparkAnonymitySet(): $e\n$s",
+          level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
   String base64ToHex(String source) =>
       base64Decode(LineSplitter.split(source).join())
           .map((e) => e.toRadixString(16).padLeft(2, '0'))
@@ -136,6 +193,7 @@ class CachedElectrumXClient {
 
         result.remove("hex");
         result.remove("lelantusData");
+        result.remove("sparkData");
 
         if (result["confirmations"] != null &&
             result["confirmations"] as int > minCacheConfirms) {
@@ -198,14 +256,62 @@ class CachedElectrumXClient {
       return resultingList;
     } catch (e, s) {
       Logging.instance.log(
-          "Failed to process CachedElectrumX.getTransaction(): $e\n$s",
-          level: LogLevel.Error);
+        "Failed to process CachedElectrumX.getUsedCoinSerials(): $e\n$s",
+        level: LogLevel.Error,
+      );
+      rethrow;
+    }
+  }
+
+  Future<Set<String>> getSparkUsedCoinsTags({
+    required Coin coin,
+  }) async {
+    try {
+      final box = await DB.instance.getSparkUsedCoinsTagsCacheBox(coin: coin);
+
+      final _list = box.get("tags") as List?;
+
+      Set<String> cachedTags =
+          _list == null ? {} : List<String>.from(_list).toSet();
+
+      final startNumber = max(
+        0,
+        cachedTags.length - 100, // 100 being some arbitrary buffer
+      );
+
+      final tags = await electrumXClient.getSparkUsedCoinsTags(
+        startNumber: startNumber,
+      );
+
+      // final newSerials = List<String>.from(serials["serials"] as List)
+      //     .map((e) => !isHexadecimal(e) ? base64ToHex(e) : e)
+      //     .toSet();
+
+      // ensure we are getting some overlap so we know we are not missing any
+      if (cachedTags.isNotEmpty && tags.isNotEmpty) {
+        assert(cachedTags.intersection(tags).isNotEmpty);
+      }
+
+      cachedTags.addAll(tags);
+
+      await box.put(
+        "tags",
+        cachedTags.toList(),
+      );
+
+      return cachedTags;
+    } catch (e, s) {
+      Logging.instance.log(
+        "Failed to process CachedElectrumX.getSparkUsedCoinsTags(): $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }
 
   /// Clear all cached transactions for the specified coin
   Future<void> clearSharedTransactionCache({required Coin coin}) async {
+    await DB.instance.clearSharedTransactionCache(coin: coin);
     await DB.instance.closeAnonymitySetCacheBox(coin: coin);
   }
 }

@@ -198,7 +198,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     }
 
     try {
-      await firoWallet.anonymizeAllPublicFunds();
+      // await firoWallet.anonymizeAllLelantus();
+      await firoWallet.anonymizeAllSpark();
       shouldPop = true;
       if (context.mounted) {
         Navigator.of(context, rootNavigator: true).pop();

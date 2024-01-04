@@ -15,14 +15,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/debug_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -217,98 +215,7 @@ class HiddenSettings extends StatelessWidget {
                             ),
                           );
                         }),
-                        // const SizedBox(
-                        //   height: 12,
-                        // ),
-                        // Consumer(builder: (_, ref, __) {
-                        //   return GestureDetector(
-                        //     onTap: () async {
-                        //       final x =
-                        //           await MajesticBankAPI.instance.getRates();
-                        //       print(x);
-                        //     },
-                        //     child: RoundedWhiteContainer(
-                        //       child: Text(
-                        //         "Click me",
-                        //         style: STextStyles.button(context).copyWith(
-                        //             color: Theme.of(context)
-                        //                 .extension<StackColors>()!
-                        //                 .accentColorDark),
-                        //       ),
-                        //     ),
-                        //   );
-                        // }),
-                        // const SizedBox(
-                        //   height: 12,
-                        // ),
-                        // Consumer(builder: (_, ref, __) {
-                        //   return GestureDetector(
-                        //     onTap: () async {
-                        //       ref
-                        //           .read(priceAnd24hChangeNotifierProvider)
-                        //           .tokenContractAddressesToCheck
-                        //           .add(
-                        //               "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48");
-                        //       ref
-                        //           .read(priceAnd24hChangeNotifierProvider)
-                        //           .tokenContractAddressesToCheck
-                        //           .add(
-                        //               "0xdAC17F958D2ee523a2206206994597C13D831ec7");
-                        //       await ref
-                        //           .read(priceAnd24hChangeNotifierProvider)
-                        //           .updatePrice();
-                        //
-                        //       final x = ref
-                        //           .read(priceAnd24hChangeNotifierProvider)
-                        //           .getTokenPrice(
-                        //               "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48");
-                        //
-                        //       print(
-                        //           "PRICE 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48: $x");
-                        //     },
-                        //     child: RoundedWhiteContainer(
-                        //       child: Text(
-                        //         "Click me",
-                        //         style: STextStyles.button(context).copyWith(
-                        //             color: Theme.of(context)
-                        //                 .extension<StackColors>()!
-                        //                 .accentColorDark),
-                        //       ),
-                        //     ),
-                        //   );
-                        // }),
-                        // const SizedBox(
-                        //   height: 12,
-                        // ),
-                        // Consumer(builder: (_, ref, __) {
-                        //   return GestureDetector(
-                        //     onTap: () async {
-                        //       // final erc20 = Erc20ContractInfo(
-                        //       //   contractAddress: 'some con',
-                        //       //   name: "loonamsn",
-                        //       //   symbol: "DD",
-                        //       //   decimals: 19,
-                        //       // );
-                        //       //
-                        //       // final json = erc20.toJson();
-                        //       //
-                        //       // print(json);
-                        //       //
-                        //       // final ee = EthContractInfo.fromJson(json);
-                        //       //
-                        //       // print(ee);
-                        //     },
-                        //     child: RoundedWhiteContainer(
-                        //       child: Text(
-                        //         "Click me",
-                        //         style: STextStyles.button(context).copyWith(
-                        //             color: Theme.of(context)
-                        //                 .extension<StackColors>()!
-                        //                 .accentColorDark),
-                        //       ),
-                        //     ),
-                        //   );
-                        // }),
+
                         const SizedBox(
                           height: 12,
                         ),
@@ -345,9 +252,6 @@ class HiddenSettings extends StatelessWidget {
                             }
                           },
                         ),
-                        const SizedBox(
-                          height: 12,
-                        ),
                         Consumer(
                           builder: (_, ref, __) {
                             return GestureDetector(
@@ -366,221 +270,6 @@ class HiddenSettings extends StatelessWidget {
                             );
                           },
                         ),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        Consumer(
-                          builder: (_, ref, __) {
-                            return GestureDetector(
-                              onTap: () async {
-                                try {
-                                  final n = DefaultNodes.firoTestnet;
-
-                                  final e = ElectrumXClient.from(
-                                    node: ElectrumXNode(
-                                      address: n.host,
-                                      port: n.port,
-                                      name: n.name,
-                                      id: n.id,
-                                      useSSL: n.useSSL,
-                                    ),
-                                    prefs:
-                                        ref.read(prefsChangeNotifierProvider),
-                                    failovers: [],
-                                  );
-
-                                  // Call and print getSparkAnonymitySet.
-                                  final anonymitySet =
-                                      await e.getSparkAnonymitySet(
-                                    coinGroupId: "1",
-                                    startBlockHash: "",
-                                  );
-
-                                  Util.printJson(anonymitySet, "anonymitySet");
-                                } catch (e, s) {
-                                  print("$e\n$s");
-                                }
-                              },
-                              child: RoundedWhiteContainer(
-                                child: Text(
-                                  "Spark getSparkAnonymitySet",
-                                  style: STextStyles.button(context).copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorDark),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        Consumer(
-                          builder: (_, ref, __) {
-                            return GestureDetector(
-                              onTap: () async {
-                                try {
-                                  final n = DefaultNodes.firoTestnet;
-
-                                  final e = ElectrumXClient.from(
-                                    node: ElectrumXNode(
-                                      address: n.host,
-                                      port: n.port,
-                                      name: n.name,
-                                      id: n.id,
-                                      useSSL: n.useSSL,
-                                    ),
-                                    prefs:
-                                        ref.read(prefsChangeNotifierProvider),
-                                    failovers: [],
-                                  );
-
-                                  // Call and print getUsedCoinsTags.
-                                  final usedCoinsTags = await e
-                                      .getSparkUsedCoinsTags(startNumber: 0);
-
-                                  print(
-                                      "usedCoinsTags['tags'].length: ${usedCoinsTags["tags"].length}");
-                                  Util.printJson(
-                                      usedCoinsTags, "usedCoinsTags");
-                                } catch (e, s) {
-                                  print("$e\n$s");
-                                }
-                              },
-                              child: RoundedWhiteContainer(
-                                child: Text(
-                                  "Spark getSparkUsedCoinsTags",
-                                  style: STextStyles.button(context).copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorDark),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        Consumer(
-                          builder: (_, ref, __) {
-                            return GestureDetector(
-                              onTap: () async {
-                                try {
-                                  final n = DefaultNodes.firoTestnet;
-
-                                  final e = ElectrumXClient.from(
-                                    node: ElectrumXNode(
-                                      address: n.host,
-                                      port: n.port,
-                                      name: n.name,
-                                      id: n.id,
-                                      useSSL: n.useSSL,
-                                    ),
-                                    prefs:
-                                        ref.read(prefsChangeNotifierProvider),
-                                    failovers: [],
-                                  );
-
-                                  // Call and print getSparkMintMetaData.
-                                  final mintMetaData =
-                                      await e.getSparkMintMetaData(
-                                    sparkCoinHashes: [
-                                      "b476ed2b374bb081ea51d111f68f0136252521214e213d119b8dc67b92f5a390",
-                                    ],
-                                  );
-
-                                  Util.printJson(mintMetaData, "mintMetaData");
-                                } catch (e, s) {
-                                  print("$e\n$s");
-                                }
-                              },
-                              child: RoundedWhiteContainer(
-                                child: Text(
-                                  "Spark getSparkMintMetaData",
-                                  style: STextStyles.button(context).copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorDark),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        Consumer(
-                          builder: (_, ref, __) {
-                            return GestureDetector(
-                              onTap: () async {
-                                try {
-                                  final n = DefaultNodes.firoTestnet;
-
-                                  final e = ElectrumXClient.from(
-                                    node: ElectrumXNode(
-                                      address: n.host,
-                                      port: n.port,
-                                      name: n.name,
-                                      id: n.id,
-                                      useSSL: n.useSSL,
-                                    ),
-                                    prefs:
-                                        ref.read(prefsChangeNotifierProvider),
-                                    failovers: [],
-                                  );
-
-                                  // Call and print getSparkLatestCoinId.
-                                  final latestCoinId =
-                                      await e.getSparkLatestCoinId();
-
-                                  Util.printJson(latestCoinId, "latestCoinId");
-                                } catch (e, s) {
-                                  print("$e\n$s");
-                                }
-                              },
-                              child: RoundedWhiteContainer(
-                                child: Text(
-                                  "Spark getSparkLatestCoinId",
-                                  style: STextStyles.button(context).copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorDark),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                        // const SizedBox(
-                        //   height: 12,
-                        // ),
-                        // GestureDetector(
-                        //   onTap: () async {
-                        //     showDialog<void>(
-                        //       context: context,
-                        //       builder: (_) {
-                        //         return StackDialogBase(
-                        //           child: SizedBox(
-                        //             width: 300,
-                        //             child: Lottie.asset(
-                        //               Assets.lottie.plain(Coin.bitcoincash),
-                        //             ),
-                        //           ),
-                        //         );
-                        //       },
-                        //     );
-                        //   },
-                        //   child: RoundedWhiteContainer(
-                        //     child: Text(
-                        //       "Lottie test",
-                        //       style: STextStyles.button(context).copyWith(
-                        //           color: Theme.of(context)
-                        //               .extension<StackColors>()!
-                        //               .accentColorDark),
-                        //     ),
-                        //   ),
-                        // ),
                       ],
                     ),
                   ),

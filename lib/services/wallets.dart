@@ -35,8 +35,6 @@ class Wallets {
   late NodeService nodeService;
   late MainDB mainDB;
 
-  bool get hasWallets => _wallets.isNotEmpty;
-
   List<Wallet> get wallets => _wallets.values.toList();
 
   static bool hasLoaded = false;

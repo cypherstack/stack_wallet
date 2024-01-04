@@ -348,7 +348,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
         .getWallet(walletId)
         .cryptoCurrency
         .validateAddress(address ?? "");
-    ref.read(previewTxButtonStateProvider.state).state =
+    ref.read(previewTokenTxButtonStateProvider.state).state =
         (isValidAddress && amount != null && amount > Amount.zero);
   }
 
@@ -1227,12 +1227,14 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                           ),
                           TextButton(
                             onPressed: ref
-                                    .watch(previewTxButtonStateProvider.state)
+                                    .watch(
+                                        previewTokenTxButtonStateProvider.state)
                                     .state
                                 ? _previewTransaction
                                 : null,
                             style: ref
-                                    .watch(previewTxButtonStateProvider.state)
+                                    .watch(
+                                        previewTokenTxButtonStateProvider.state)
                                     .state
                                 ? Theme.of(context)
                                     .extension<StackColors>()!

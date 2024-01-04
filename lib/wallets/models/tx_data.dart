@@ -55,6 +55,15 @@ class TxData {
   // tezos specific
   final tezart.OperationsList? tezosOperationsList;
 
+  // firo spark specific
+  final List<
+      ({
+        String address,
+        Amount amount,
+        String memo,
+      })>? sparkRecipients;
+  final List<TxData>? sparkMints;
+
   TxData({
     this.feeRateType,
     this.feeRateAmount,
@@ -85,6 +94,8 @@ class TxData {
     this.txSubType,
     this.mintsMapLelantus,
     this.tezosOperationsList,
+    this.sparkRecipients,
+    this.sparkMints,
   });
 
   Amount? get amount => recipients != null && recipients!.isNotEmpty
@@ -92,6 +103,13 @@ class TxData {
           .map((e) => e.amount)
           .reduce((total, amount) => total += amount)
       : null;
+
+  Amount? get amountSpark =>
+      sparkRecipients != null && sparkRecipients!.isNotEmpty
+          ? sparkRecipients!
+              .map((e) => e.amount)
+              .reduce((total, amount) => total += amount)
+          : null;
 
   int? get estimatedSatsPerVByte => fee != null && vSize != null
       ? (fee!.raw ~/ BigInt.from(vSize!)).toInt()
@@ -127,6 +145,14 @@ class TxData {
     TransactionSubType? txSubType,
     List<Map<String, dynamic>>? mintsMapLelantus,
     tezart.OperationsList? tezosOperationsList,
+    List<
+            ({
+              String address,
+              Amount amount,
+              String memo,
+            })>?
+        sparkRecipients,
+    List<TxData>? sparkMints,
   }) {
     return TxData(
       feeRateType: feeRateType ?? this.feeRateType,
@@ -159,6 +185,8 @@ class TxData {
       txSubType: txSubType ?? this.txSubType,
       mintsMapLelantus: mintsMapLelantus ?? this.mintsMapLelantus,
       tezosOperationsList: tezosOperationsList ?? this.tezosOperationsList,
+      sparkRecipients: sparkRecipients ?? this.sparkRecipients,
+      sparkMints: sparkMints ?? this.sparkMints,
     );
   }
 
@@ -193,5 +221,7 @@ class TxData {
       'txSubType: $txSubType, '
       'mintsMapLelantus: $mintsMapLelantus, '
       'tezosOperationsList: $tezosOperationsList, '
+      'sparkRecipients: $sparkRecipients, '
+      'sparkMints: $sparkMints, '
       '}';
 }

@@ -31,7 +31,6 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -843,34 +842,10 @@ class _DesktopTransactionCardRowState
   late final String walletId;
   late final int minConfirms;
 
-  String whatIsIt(TransactionType type, Coin coin, int height) {
-    if (_transaction.subType == TransactionSubType.mint ||
-        _transaction.subType == TransactionSubType.cashFusion) {
-      if (_transaction.isConfirmed(height, minConfirms)) {
-        return "Anonymized";
-      } else {
-        return "Anonymizing";
-      }
-    }
-
-    if (type == TransactionType.incoming) {
-      if (_transaction.isConfirmed(height, minConfirms)) {
-        return "Received";
-      } else {
-        return "Receiving";
-      }
-    } else if (type == TransactionType.outgoing) {
-      if (_transaction.isConfirmed(height, minConfirms)) {
-        return "Sent";
-      } else {
-        return "Sending";
-      }
-    } else if (type == TransactionType.sentToSelf) {
-      return "Sent to self";
-    } else {
-      return type.name;
-    }
-  }
+  String whatIsIt(TransactionV2 tx, int height) => tx.statusLabel(
+        currentChainHeight: height,
+        minConfirms: minConfirms,
+      );
 
   @override
   void initState() {
@@ -917,7 +892,7 @@ class _DesktopTransactionCardRowState
     final Amount amount;
 
     if (_transaction.subType == TransactionSubType.cashFusion) {
-      amount = _transaction.getAmountReceivedThisWallet(coin: coin);
+      amount = _transaction.getAmountReceivedInThisWallet(coin: coin);
     } else {
       switch (_transaction.type) {
         case TransactionType.outgoing:
@@ -926,7 +901,11 @@ class _DesktopTransactionCardRowState
 
         case TransactionType.incoming:
         case TransactionType.sentToSelf:
-          amount = _transaction.getAmountReceivedThisWallet(coin: coin);
+          if (_transaction.subType == TransactionSubType.sparkMint) {
+            amount = _transaction.getAmountSparkSelfMinted(coin: coin);
+          } else {
+            amount = _transaction.getAmountReceivedInThisWallet(coin: coin);
+          }
           break;
 
         case TransactionType.unknown:
@@ -994,8 +973,7 @@ class _DesktopTransactionCardRowState
                 flex: 3,
                 child: Text(
                   whatIsIt(
-                    _transaction.type,
-                    coin,
+                    _transaction,
                     currentHeight,
                   ),
                   style:

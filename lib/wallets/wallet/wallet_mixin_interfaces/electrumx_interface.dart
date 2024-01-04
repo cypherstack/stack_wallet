@@ -625,9 +625,19 @@ mixin ElectrumXInterface on Bip39HDWallet {
     // TODO: use coinlib
 
     final txb = bitcoindart.TransactionBuilder(
-      network: bitcoindart.testnet,
+      network: bitcoindart.NetworkType(
+        messagePrefix: cryptoCurrency.networkParams.messagePrefix,
+        bech32: cryptoCurrency.networkParams.bech32Hrp,
+        bip32: bitcoindart.Bip32Type(
+          public: cryptoCurrency.networkParams.pubHDPrefix,
+          private: cryptoCurrency.networkParams.privHDPrefix,
+        ),
+        pubKeyHash: cryptoCurrency.networkParams.p2pkhPrefix,
+        scriptHash: cryptoCurrency.networkParams.p2shPrefix,
+        wif: cryptoCurrency.networkParams.wifPrefix,
+      ),
     );
-    txb.setVersion(1);
+    txb.setVersion(1); // TODO possibly override this for certain coins?
 
     // Add transaction inputs
     for (var i = 0; i < utxoSigningData.length; i++) {
@@ -1641,7 +1651,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
 
   @override
   Future<void> updateUTXOs() async {
-    final allAddresses = await fetchAllOwnAddresses();
+    final allAddresses = await fetchAddressesForElectrumXScan();
 
     try {
       final fetchedUtxoList = <List<Map<String, dynamic>>>[];
@@ -1856,7 +1866,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
   int estimateTxFee({required int vSize, required int feeRatePerKB});
   Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB);
 
-  Future<List<Address>> fetchAllOwnAddresses();
+  Future<List<Address>> fetchAddressesForElectrumXScan();
 
   /// Certain coins need to check if the utxo should be marked
   /// as blocked as well as give a reason.

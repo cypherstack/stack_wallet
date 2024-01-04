@@ -79,11 +79,18 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
     }
   }
 
+  bool _loginLock = false;
   Future<void> login() async {
+    if (_loginLock) {
+      return;
+    }
+    _loginLock = true;
+
     try {
       unawaited(
         showDialog(
           context: context,
+          barrierDismissible: false,
           builder: (context) => const Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -138,6 +145,8 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
           context: context,
         );
       }
+    } finally {
+      _loginLock = false;
     }
   }
 

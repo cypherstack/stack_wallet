@@ -95,7 +95,12 @@ class _TransactionV2DetailsViewState
     minConfirms =
         ref.read(pWallets).getWallet(walletId).cryptoCurrency.minConfirms;
 
-    fee = _transaction.getFee(coin: coin);
+    if (_transaction.subType == TransactionSubType.join ||
+        _transaction.subType == TransactionSubType.sparkSpend) {
+      fee = _transaction.getAnonFee()!;
+    } else {
+      fee = _transaction.getFee(coin: coin);
+    }
 
     if (_transaction.subType == TransactionSubType.cashFusion ||
         _transaction.type == TransactionType.sentToSelf) {
@@ -107,7 +112,7 @@ class _TransactionV2DetailsViewState
     unit = coin.ticker;
 
     if (_transaction.subType == TransactionSubType.cashFusion) {
-      amount = _transaction.getAmountReceivedThisWallet(coin: coin);
+      amount = _transaction.getAmountReceivedInThisWallet(coin: coin);
       data = _transaction.outputs
           .where((e) => e.walletOwns)
           .map((e) => (
@@ -131,7 +136,11 @@ class _TransactionV2DetailsViewState
 
         case TransactionType.incoming:
         case TransactionType.sentToSelf:
-          amount = _transaction.getAmountReceivedThisWallet(coin: coin);
+          if (_transaction.subType == TransactionSubType.sparkMint) {
+            amount = _transaction.getAmountSparkSelfMinted(coin: coin);
+          } else {
+            amount = _transaction.getAmountReceivedInThisWallet(coin: coin);
+          }
           data = _transaction.outputs
               .where((e) => e.walletOwns)
               .map((e) => (
@@ -164,77 +173,10 @@ class _TransactionV2DetailsViewState
     super.dispose();
   }
 
-  String whatIsIt(TransactionV2 tx, int height) {
-    final type = tx.type;
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      if (tx.subType == TransactionSubType.mint) {
-        if (tx.isConfirmed(height, minConfirms)) {
-          return "Minted";
-        } else {
-          return "Minting";
-        }
-      }
-    }
-
-    // if (coin == Coin.epicCash) {
-    //   if (_transaction.isCancelled) {
-    //     return "Cancelled";
-    //   } else if (type == TransactionType.incoming) {
-    //     if (tx.isConfirmed(height, minConfirms)) {
-    //       return "Received";
-    //     } else {
-    //       if (_transaction.numberOfMessages == 1) {
-    //         return "Receiving (waiting for sender)";
-    //       } else if ((_transaction.numberOfMessages ?? 0) > 1) {
-    //         return "Receiving (waiting for confirmations)"; // TODO test if the sender still has to open again after the receiver has 2 messages present, ie. sender->receiver->sender->node (yes) vs. sender->receiver->node (no)
-    //       } else {
-    //         return "Receiving";
-    //       }
-    //     }
-    //   } else if (type == TransactionType.outgoing) {
-    //     if (tx.isConfirmed(height, minConfirms)) {
-    //       return "Sent (confirmed)";
-    //     } else {
-    //       if (_transaction.numberOfMessages == 1) {
-    //         return "Sending (waiting for receiver)";
-    //       } else if ((_transaction.numberOfMessages ?? 0) > 1) {
-    //         return "Sending (waiting for confirmations)";
-    //       } else {
-    //         return "Sending";
-    //       }
-    //     }
-    //   }
-    // }
-
-    if (tx.subType == TransactionSubType.cashFusion) {
-      if (tx.isConfirmed(height, minConfirms)) {
-        return "Anonymized";
-      } else {
-        return "Anonymizing";
-      }
-    }
-
-    if (type == TransactionType.incoming) {
-      // if (_transaction.isMinting) {
-      //   return "Minting";
-      // } else
-      if (tx.isConfirmed(height, minConfirms)) {
-        return "Received";
-      } else {
-        return "Receiving";
-      }
-    } else if (type == TransactionType.outgoing) {
-      if (tx.isConfirmed(height, minConfirms)) {
-        return "Sent";
-      } else {
-        return "Sending";
-      }
-    } else if (type == TransactionType.sentToSelf) {
-      return "Sent to self";
-    } else {
-      return type.name;
-    }
-  }
+  String whatIsIt(TransactionV2 tx, int height) => tx.statusLabel(
+        currentChainHeight: height,
+        minConfirms: minConfirms,
+      );
 
   Future<String> fetchContactNameFor(String address) async {
     if (address.isEmpty) {

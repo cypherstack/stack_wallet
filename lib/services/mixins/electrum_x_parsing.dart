@@ -113,6 +113,7 @@ mixin ElectrumXParsing {
       outputs: List.unmodifiable(outputs),
       subType: TransactionSubType.none,
       type: TransactionType.unknown,
+      otherData: null,
     );
   }
 

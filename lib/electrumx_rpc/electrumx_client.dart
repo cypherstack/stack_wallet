@@ -15,6 +15,8 @@ import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:decimal/decimal.dart';
 import 'package:event_bus/event_bus.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stackwallet/electrumx_rpc/rpc.dart';
 import 'package:stackwallet/exceptions/electrumx/no_such_transaction.dart';
@@ -467,9 +469,9 @@ class ElectrumXClient {
   /// and the binary header as a hexadecimal string.
   /// Ex:
   /// {
-  //   "height": 520481,
-  //   "hex": "00000020890208a0ae3a3892aa047c5468725846577cfcd9b512b50000000000000000005dc2b02f2d297a9064ee103036c14d678f9afc7e3d9409cf53fd58b82e938e8ecbeca05a2d2103188ce804c4"
-  // }
+  ///   "height": 520481,
+  ///   "hex": "00000020890208a0ae3a3892aa047c5468725846577cfcd9b512b50000000000000000005dc2b02f2d297a9064ee103036c14d678f9afc7e3d9409cf53fd58b82e938e8ecbeca05a2d2103188ce804c4"
+  /// }
   Future<Map<String, dynamic>> getBlockHeadTip({String? requestID}) async {
     try {
       final response = await request(
@@ -493,15 +495,15 @@ class ElectrumXClient {
   ///
   /// Returns a map with server information
   /// Ex:
-  // {
-  // "genesis_hash": "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943",
-  // "hosts": {"14.3.140.101": {"tcp_port": 51001, "ssl_port": 51002}},
-  // "protocol_max": "1.0",
-  // "protocol_min": "1.0",
-  // "pruning": null,
-  // "server_version": "ElectrumX 1.0.17",
-  // "hash_function": "sha256"
-  // }
+  /// {
+  /// "genesis_hash": "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943",
+  /// "hosts": {"14.3.140.101": {"tcp_port": 51001, "ssl_port": 51002}},
+  /// "protocol_max": "1.0",
+  /// "protocol_min": "1.0",
+  /// "pruning": null,
+  /// "server_version": "ElectrumX 1.0.17",
+  /// "hash_function": "sha256"
+  /// }
   Future<Map<String, dynamic>> getServerFeatures({String? requestID}) async {
     try {
       final response = await request(
@@ -567,15 +569,15 @@ class ElectrumXClient {
   /// Returns a list of maps that contain the tx_hash and height of the tx.
   /// Ex:
   /// [
-  //   {
-  //     "height": 200004,
-  //     "tx_hash": "acc3758bd2a26f869fcc67d48ff30b96464d476bca82c1cd6656e7d506816412"
-  //   },
-  //   {
-  //     "height": 215008,
-  //     "tx_hash": "f3e1bf48975b8d6060a9de8884296abb80be618dc00ae3cb2f6cee3085e09403"
-  //   }
-  // ]
+  ///   {
+  ///     "height": 200004,
+  ///     "tx_hash": "acc3758bd2a26f869fcc67d48ff30b96464d476bca82c1cd6656e7d506816412"
+  ///   },
+  ///   {
+  ///     "height": 215008,
+  ///     "tx_hash": "f3e1bf48975b8d6060a9de8884296abb80be618dc00ae3cb2f6cee3085e09403"
+  ///   }
+  /// ]
   Future<List<Map<String, dynamic>>> getHistory({
     required String scripthash,
     String? requestID,
@@ -627,19 +629,19 @@ class ElectrumXClient {
   /// Returns a list of maps.
   /// Ex:
   /// [
-  //   {
-  //     "tx_pos": 0,
-  //     "value": 45318048,
-  //     "tx_hash": "9f2c45a12db0144909b5db269415f7319179105982ac70ed80d76ea79d923ebf",
-  //     "height": 437146
-  //   },
-  //   {
-  //     "tx_pos": 0,
-  //     "value": 919195,
-  //     "tx_hash": "3d2290c93436a3e964cfc2f0950174d8847b1fbe3946432c4784e168da0f019f",
-  //     "height": 441696
-  //   }
-  // ]
+  ///   {
+  ///     "tx_pos": 0,
+  ///     "value": 45318048,
+  ///     "tx_hash": "9f2c45a12db0144909b5db269415f7319179105982ac70ed80d76ea79d923ebf",
+  ///     "height": 437146
+  ///   },
+  ///   {
+  ///     "tx_pos": 0,
+  ///     "value": 919195,
+  ///     "tx_hash": "3d2290c93436a3e964cfc2f0950174d8847b1fbe3946432c4784e168da0f019f",
+  ///     "height": 441696
+  ///   }
+  /// ]
   Future<List<Map<String, dynamic>>> getUTXOs({
     required String scripthash,
     String? requestID,
@@ -881,7 +883,7 @@ class ElectrumXClient {
   ///
   /// Returns blockHash (last block hash),
   /// setHash (hash of current set)
-  /// and mints (the list of pairs serialized coin and tx hash)
+  /// and coins (the list of pairs serialized coin and tx hash)
   Future<Map<String, dynamic>> getSparkAnonymitySet({
     String coinGroupId = "1",
     String startBlockHash = "",
@@ -908,7 +910,7 @@ class ElectrumXClient {
 
   /// Takes [startNumber], if it is 0, we get the full set,
   /// otherwise the used tags after that number
-  Future<Map<String, dynamic>> getSparkUsedCoinsTags({
+  Future<Set<String>> getSparkUsedCoinsTags({
     String? requestID,
     required int startNumber,
   }) async {
@@ -921,7 +923,9 @@ class ElectrumXClient {
         ],
         requestTimeout: const Duration(minutes: 2),
       );
-      return Map<String, dynamic>.from(response["result"] as Map);
+      final map = Map<String, dynamic>.from(response["result"] as Map);
+      final set = Set<String>.from(map["tags"] as List);
+      return await compute(_ffiHashTagsComputeWrapper, set);
     } catch (e) {
       Logging.instance.log(e, level: LogLevel.Error);
       rethrow;
@@ -984,8 +988,8 @@ class ElectrumXClient {
   /// Returns a map with the kay "rate" that corresponds to the free rate in satoshis
   /// Ex:
   /// {
-  //   "rate": 1000,
-  // }
+  ///   "rate": 1000,
+  /// }
   Future<Map<String, dynamic>> getFeeRate({String? requestID}) async {
     try {
       final response = await request(
@@ -1034,4 +1038,8 @@ class ElectrumXClient {
       rethrow;
     }
   }
+}
+
+Set<String> _ffiHashTagsComputeWrapper(Set<String> base64Tags) {
+  return LibSpark.hashTags(base64Tags: base64Tags);
 }

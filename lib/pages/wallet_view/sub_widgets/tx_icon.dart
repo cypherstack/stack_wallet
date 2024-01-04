@@ -40,13 +40,16 @@ class TxIcon extends ConsumerWidget {
     bool isReceived,
     bool isPending,
     TransactionSubType subType,
+    TransactionType type,
     IThemeAssets assets,
   ) {
     if (subType == TransactionSubType.cashFusion) {
       return Assets.svg.txCashFusion;
     }
 
-    if (!isReceived && subType == TransactionSubType.mint) {
+    if ((!isReceived && subType == TransactionSubType.mint) ||
+        (subType == TransactionSubType.sparkMint &&
+            type == TransactionType.sentToSelf)) {
       if (isCancelled) {
         return Assets.svg.anonymizeFailed;
       }
@@ -91,6 +94,7 @@ class TxIcon extends ConsumerWidget {
           ref.watch(pWallets).getWallet(tx.walletId).cryptoCurrency.minConfirms,
         ),
         tx.subType,
+        tx.type,
         ref.watch(themeAssetsProvider),
       );
     } else if (transaction is TransactionV2) {
@@ -104,6 +108,7 @@ class TxIcon extends ConsumerWidget {
           ref.watch(pWallets).getWallet(tx.walletId).cryptoCurrency.minConfirms,
         ),
         tx.subType,
+        tx.type,
         ref.watch(themeAssetsProvider),
       );
     } else {
