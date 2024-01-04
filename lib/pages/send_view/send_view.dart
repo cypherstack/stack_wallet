@@ -762,52 +762,72 @@ class _SendViewState extends ConsumerState<SendView> {
         // pop building dialog
         Navigator.of(context).pop();
 
-        unawaited(Navigator.of(context).push(
-          RouteGenerator.getRoute(
-            shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-            builder: (_) => ConfirmTransactionView(
-              txData: txData,
-              walletId: walletId,
-              isPaynymTransaction: isPaynymSend,
-            ),
-            settings: const RouteSettings(
-              name: ConfirmTransactionView.routeName,
+        unawaited(
+          Navigator.of(context).push(
+            RouteGenerator.getRoute(
+              shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
+              builder: (_) => ConfirmTransactionView(
+                txData: txData,
+                walletId: walletId,
+                isPaynymTransaction: isPaynymSend,
+                onSuccess: clearSendForm,
+              ),
+              settings: const RouteSettings(
+                name: ConfirmTransactionView.routeName,
+              ),
             ),
           ),
-        ));
+        );
       }
     } catch (e) {
       if (mounted) {
         // pop building dialog
         Navigator.of(context).pop();
 
-        unawaited(showDialog<dynamic>(
-          context: context,
-          useSafeArea: false,
-          barrierDismissible: true,
-          builder: (context) {
-            return StackDialog(
-              title: "Transaction failed",
-              message: e.toString(),
-              rightButton: TextButton(
-                style: Theme.of(context)
-                    .extension<StackColors>()!
-                    .getSecondaryEnabledButtonStyle(context),
-                child: Text(
-                  "Ok",
-                  style: STextStyles.button(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark),
+        unawaited(
+          showDialog<dynamic>(
+            context: context,
+            useSafeArea: false,
+            barrierDismissible: true,
+            builder: (context) {
+              return StackDialog(
+                title: "Transaction failed",
+                message: e.toString(),
+                rightButton: TextButton(
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getSecondaryEnabledButtonStyle(context),
+                  child: Text(
+                    "Ok",
+                    style: STextStyles.button(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
                 ),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            );
-          },
-        ));
+              );
+            },
+          ),
+        );
       }
+    }
+  }
+
+  void clearSendForm() {
+    sendToController.text = "";
+    cryptoAmountController.text = "";
+    baseAmountController.text = "";
+    noteController.text = "";
+    onChainNoteController.text = "";
+    feeController.text = "";
+    memoController.text = "";
+    _address = "";
+    _addressToggleFlag = false;
+    if (mounted) {
+      setState(() {});
     }
   }
 

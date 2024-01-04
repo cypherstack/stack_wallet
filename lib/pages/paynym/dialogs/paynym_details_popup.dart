@@ -154,6 +154,9 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                   routeOnSuccessName: PaynymHomeView.routeName,
                   isPaynymNotificationTransaction: true,
                   txData: preparedTx,
+                  onSuccess: () {
+                    // do nothing extra
+                  },
                 ),
               ),
             );

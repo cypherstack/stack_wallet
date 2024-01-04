@@ -126,6 +126,9 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                     walletId: widget.walletId,
                     isPaynymNotificationTransaction: true,
                     txData: preparedTx,
+                    onSuccess: () {
+                      // do nothing extra
+                    },
                     onSuccessInsteadOfRouteOnSuccess: () {
                       Navigator.of(context, rootNavigator: true).pop();
                       Navigator.of(context, rootNavigator: true).pop();

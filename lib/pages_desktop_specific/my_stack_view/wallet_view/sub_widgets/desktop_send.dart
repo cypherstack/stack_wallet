@@ -435,6 +435,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               child: ConfirmTransactionView(
                 txData: txData,
                 walletId: walletId,
+                onSuccess: clearSendForm,
                 isPaynymTransaction: isPaynymSend,
                 routeOnSuccessName: DesktopHomeView.routeName,
               ),
@@ -522,6 +523,18 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           ),
         );
       }
+    }
+  }
+
+  void clearSendForm() {
+    sendToController.text = "";
+    cryptoAmountController.text = "";
+    baseAmountController.text = "";
+    memoController.text = "";
+    _address = "";
+    _addressToggleFlag = false;
+    if (mounted) {
+      setState(() {});
     }
   }
 

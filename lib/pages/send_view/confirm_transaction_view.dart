@@ -58,6 +58,7 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
     Key? key,
     required this.txData,
     required this.walletId,
+    required this.onSuccess,
     this.routeOnSuccessName = WalletView.routeName,
     this.isTradeTransaction = false,
     this.isPaynymTransaction = false,
@@ -76,6 +77,7 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
   final bool isPaynymNotificationTransaction;
   final bool isTokenTx;
   final VoidCallback? onSuccessInsteadOfRouteOnSuccess;
+  final VoidCallback onSuccess;
 
   @override
   ConsumerState<ConfirmTransactionView> createState() =>
@@ -204,6 +206,8 @@ class _ConfirmTransactionViewState
       } else {
         unawaited(wallet.refresh());
       }
+
+      widget.onSuccess.call();
 
       // pop back to wallet
       if (mounted) {

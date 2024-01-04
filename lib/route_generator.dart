@@ -1463,12 +1463,13 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case ConfirmTransactionView.routeName:
-        if (args is Tuple2<TxData, String>) {
+        if (args is (TxData, String, VoidCallback)) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => ConfirmTransactionView(
-              txData: args.item1,
-              walletId: args.item2,
+              txData: args.$1,
+              walletId: args.$2,
+              onSuccess: args.$3,
             ),
             settings: RouteSettings(
               name: settings.name,
