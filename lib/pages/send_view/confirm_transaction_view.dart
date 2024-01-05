@@ -351,7 +351,7 @@ class _ConfirmTransactionViewState
     }
 
     final Amount? fee;
-    final Amount amount;
+    final Amount amountWithoutChange;
 
     final wallet = ref.watch(pWallets).getWallet(walletId);
 
@@ -362,33 +362,33 @@ class _ConfirmTransactionViewState
             fee = widget.txData.sparkMints!
                 .map((e) => e.fee!)
                 .reduce((value, element) => value += element);
-            amount = widget.txData.sparkMints!
+            amountWithoutChange = widget.txData.sparkMints!
                 .map((e) => e.amountSpark!)
                 .reduce((value, element) => value += element);
           } else {
             fee = widget.txData.fee;
-            amount = widget.txData.amount!;
+            amountWithoutChange = widget.txData.amountWithoutChange!;
           }
           break;
 
         case FiroType.lelantus:
           fee = widget.txData.fee;
-          amount = widget.txData.amount!;
+          amountWithoutChange = widget.txData.amountWithoutChange!;
           break;
 
         case FiroType.spark:
           fee = widget.txData.fee;
-          amount = (widget.txData.amount ??
+          amountWithoutChange = (widget.txData.amountWithoutChange ??
                   Amount.zeroWith(
                       fractionDigits: wallet.cryptoCurrency.fractionDigits)) +
-              (widget.txData.amountSpark ??
+              (widget.txData.amountSparkWithoutChange ??
                   Amount.zeroWith(
                       fractionDigits: wallet.cryptoCurrency.fractionDigits));
           break;
       }
     } else {
       fee = widget.txData.fee;
-      amount = widget.txData.amount!;
+      amountWithoutChange = widget.txData.amountWithoutChange!;
     }
 
     return ConditionalParent(
@@ -516,7 +516,7 @@ class _ConfirmTransactionViewState
                         ),
                         SelectableText(
                           ref.watch(pAmountFormatter(coin)).format(
-                                amount,
+                                amountWithoutChange,
                                 ethContract: ref
                                     .watch(tokenServiceProvider)
                                     ?.tokenContract,
@@ -719,14 +719,15 @@ class _ConfirmTransactionViewState
                                           .getPrice(coin)
                                           .item1;
                                   if (price > Decimal.zero) {
-                                    fiatAmount = (amount.decimal * price)
-                                        .toAmount(fractionDigits: 2)
-                                        .fiatString(
-                                          locale: ref
-                                              .read(
-                                                  localeServiceChangeNotifierProvider)
-                                              .locale,
-                                        );
+                                    fiatAmount =
+                                        (amountWithoutChange.decimal * price)
+                                            .toAmount(fractionDigits: 2)
+                                            .fiatString(
+                                              locale: ref
+                                                  .read(
+                                                      localeServiceChangeNotifierProvider)
+                                                  .locale,
+                                            );
                                   }
                                 }
 
@@ -734,7 +735,7 @@ class _ConfirmTransactionViewState
                                   children: [
                                     SelectableText(
                                       ref.watch(pAmountFormatter(coin)).format(
-                                          amount,
+                                          amountWithoutChange,
                                           ethContract: ref
                                               .read(tokenServiceProvider)
                                               ?.tokenContract),
@@ -1128,7 +1129,9 @@ class _ConfirmTransactionViewState
                               ),
                       ),
                       SelectableText(
-                        ref.watch(pAmountFormatter(coin)).format(amount + fee!),
+                        ref
+                            .watch(pAmountFormatter(coin))
+                            .format(amountWithoutChange + fee!),
                         style: isDesktop
                             ? STextStyles.desktopTextExtraExtraSmall(context)
                                 .copyWith(

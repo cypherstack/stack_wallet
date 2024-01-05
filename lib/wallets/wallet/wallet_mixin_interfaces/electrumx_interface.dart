@@ -35,18 +35,30 @@ mixin ElectrumXInterface on Bip39HDWallet {
       (_serverVersion != null && _serverVersion! >= 1.6) ||
       cryptoCurrency is Firo;
 
-  List<({String address, Amount amount})> _helperRecipientsConvert(
-      List<String> addrs, List<int> satValues) {
-    final List<({String address, Amount amount})> results = [];
+  Future<List<({String address, Amount amount, bool isChange})>>
+      _helperRecipientsConvert(List<String> addrs, List<int> satValues) async {
+    final List<({String address, Amount amount, bool isChange})> results = [];
 
     for (int i = 0; i < addrs.length; i++) {
-      results.add((
-        address: addrs[i],
-        amount: Amount(
-          rawValue: BigInt.from(satValues[i]),
-          fractionDigits: cryptoCurrency.fractionDigits,
+      results.add(
+        (
+          address: addrs[i],
+          amount: Amount(
+            rawValue: BigInt.from(satValues[i]),
+            fractionDigits: cryptoCurrency.fractionDigits,
+          ),
+          isChange: (await mainDB.isar.addresses
+                  .where()
+                  .walletIdEqualTo(walletId)
+                  .filter()
+                  .subTypeEqualTo(AddressSubType.change)
+                  .and()
+                  .valueEqualTo(addrs[i])
+                  .valueProperty()
+                  .findFirst()) !=
+              null
         ),
-      ));
+      );
     }
 
     return results;
@@ -178,7 +190,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
       final int vSizeForOneOutput = (await buildTransaction(
         utxoSigningData: utxoSigningData,
         txData: txData.copyWith(
-          recipients: _helperRecipientsConvert(
+          recipients: await _helperRecipientsConvert(
             [recipientAddress],
             [satoshisBeingUsed - 1],
           ),
@@ -206,7 +218,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
       final int amount = satoshiAmountToSend - feeForOneOutput;
       final data = await buildTransaction(
         txData: txData.copyWith(
-          recipients: _helperRecipientsConvert(
+          recipients: await _helperRecipientsConvert(
             [recipientAddress],
             [amount],
           ),
@@ -228,7 +240,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
       vSizeForOneOutput = (await buildTransaction(
         utxoSigningData: utxoSigningData,
         txData: txData.copyWith(
-          recipients: _helperRecipientsConvert(
+          recipients: await _helperRecipientsConvert(
             [recipientAddress],
             [satoshisBeingUsed - 1],
           ),
@@ -245,7 +257,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
       vSizeForTwoOutPuts = (await buildTransaction(
         utxoSigningData: utxoSigningData,
         txData: txData.copyWith(
-          recipients: _helperRecipientsConvert(
+          recipients: await _helperRecipientsConvert(
             [recipientAddress, (await getCurrentChangeAddress())!.value],
             [
               satoshiAmountToSend,
@@ -321,7 +333,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
           var txn = await buildTransaction(
             utxoSigningData: utxoSigningData,
             txData: txData.copyWith(
-              recipients: _helperRecipientsConvert(
+              recipients: await _helperRecipientsConvert(
                 recipientsArray,
                 recipientsAmtArray,
               ),
@@ -352,7 +364,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
             txn = await buildTransaction(
               utxoSigningData: utxoSigningData,
               txData: txData.copyWith(
-                recipients: _helperRecipientsConvert(
+                recipients: await _helperRecipientsConvert(
                   recipientsArray,
                   recipientsAmtArray,
                 ),
@@ -383,7 +395,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
           final txn = await buildTransaction(
             utxoSigningData: utxoSigningData,
             txData: txData.copyWith(
-              recipients: _helperRecipientsConvert(
+              recipients: await _helperRecipientsConvert(
                 recipientsArray,
                 recipientsAmtArray,
               ),
@@ -415,7 +427,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
         final txn = await buildTransaction(
           utxoSigningData: utxoSigningData,
           txData: txData.copyWith(
-            recipients: _helperRecipientsConvert(
+            recipients: await _helperRecipientsConvert(
               recipientsArray,
               recipientsAmtArray,
             ),
@@ -447,7 +459,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
       final txn = await buildTransaction(
         utxoSigningData: utxoSigningData,
         txData: txData.copyWith(
-          recipients: _helperRecipientsConvert(
+          recipients: await _helperRecipientsConvert(
             recipientsArray,
             recipientsAmtArray,
           ),

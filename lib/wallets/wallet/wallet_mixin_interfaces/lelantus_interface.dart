@@ -800,6 +800,7 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
             fractionDigits: cryptoCurrency.fractionDigits,
           ),
           address: "no address for lelantus mints",
+          isChange: false,
         )
       ],
       vSize: builtHex.virtualSize(),

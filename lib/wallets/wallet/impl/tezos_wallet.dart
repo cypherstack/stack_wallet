@@ -237,6 +237,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
           (
             amount: sendAmount,
             address: txData.recipients!.first.address,
+            isChange: txData.recipients!.first.isChange,
           )
         ],
         // fee: fee,

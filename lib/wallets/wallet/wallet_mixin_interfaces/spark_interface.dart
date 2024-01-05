@@ -283,12 +283,18 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     txb.setLockTime(await chainHeight);
     txb.setVersion(3 | (9 << 16));
 
-    List<({String address, Amount amount})>? recipientsWithFeeSubtracted;
+    List<
+        ({
+          String address,
+          Amount amount,
+          bool isChange,
+        })>? recipientsWithFeeSubtracted;
     List<
         ({
           String address,
           Amount amount,
           String memo,
+          bool isChange,
         })>? sparkRecipientsWithFeeSubtracted;
     final recipientCount = (txData.recipients
             ?.where(
@@ -330,6 +336,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
             fractionDigits: cryptoCurrency.fractionDigits,
           ),
           memo: txData.sparkRecipients![i].memo,
+          isChange: sparkChangeAddress == txData.sparkRecipients![i].address,
         ),
       );
     }
@@ -350,6 +357,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
                 (estimatedFee ~/ BigInt.from(totalRecipientCount)),
             fractionDigits: cryptoCurrency.fractionDigits,
           ),
+        isChange: txData.recipients![i].isChange,
         ),
       );
 
@@ -1157,6 +1165,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
                   rawValue: BigInt.from(e.$2),
                   fractionDigits: cryptoCurrency.fractionDigits,
                 ),
+              isChange: false, // ok?
               ),
             )
             .toList(),

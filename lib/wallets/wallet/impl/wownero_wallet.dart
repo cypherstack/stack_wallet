@@ -111,6 +111,7 @@ class WowneroWallet extends CryptonoteWallet with MultiAddressInterface {
                   address:
                       "WW3iVcnoAY6K9zNdU4qmdvZELefx6xZz4PMpTwUifRkvMQckyadhSPYMVPJhBdYE8P9c27fg9RPmVaWNFx1cDaj61HnetqBiy",
                   amount: amount,
+                  isChange: false,
                 ),
               ],
               feeRateType: feeRateType,

@@ -17,4 +17,4 @@ enum FiroType {
 }
 
 final publicPrivateBalanceStateProvider =
-    StateProvider<FiroType>((_) => FiroType.lelantus);
+    StateProvider<FiroType>((_) => FiroType.spark);

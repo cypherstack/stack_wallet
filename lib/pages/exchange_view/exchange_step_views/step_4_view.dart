@@ -241,10 +241,18 @@ class _Step4ViewState extends ConsumerState<Step4View> {
 
       Future<TxData> txDataFuture;
 
+      // TODO: [prio=high] Firo spark
+
       if (wallet is FiroWallet && !firoPublicSend) {
         txDataFuture = wallet.prepareSendLelantus(
           txData: TxData(
-            recipients: [(address: address, amount: amount)],
+            recipients: [
+              (
+                address: address,
+                amount: amount,
+                isChange: false,
+              )
+            ],
             note: "${model.trade!.payInCurrency.toUpperCase()}/"
                 "${model.trade!.payOutCurrency.toUpperCase()} exchange",
           ),
@@ -259,7 +267,11 @@ class _Step4ViewState extends ConsumerState<Step4View> {
         txDataFuture = wallet.prepareSend(
           txData: TxData(
             recipients: [
-              (address: address, amount: amount),
+              (
+                address: address,
+                amount: amount,
+                isChange: false,
+              ),
             ],
             memo: memo,
             feeRateType: FeeRateType.average,

@@ -243,6 +243,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
             (
               address: _address!,
               amount: amount,
+              isChange: false,
             )
           ],
           feeRateType: ref.read(feeRateTypeStateProvider),

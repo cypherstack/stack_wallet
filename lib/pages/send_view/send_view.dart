@@ -644,6 +644,7 @@ class _SendViewState extends ConsumerState<SendView> {
               (
                 address: widget.accountLite!.code,
                 amount: amount,
+                isChange: false,
               )
             ],
             satsPerVByte: isCustomFee ? customFeeRate : null,
@@ -666,6 +667,7 @@ class _SendViewState extends ConsumerState<SendView> {
                       address: _address!,
                       amount: amount,
                       memo: memoController.text,
+                      isChange: false,
                     )
                   ],
                   feeRateType: ref.read(feeRateTypeStateProvider),
@@ -680,7 +682,13 @@ class _SendViewState extends ConsumerState<SendView> {
             } else {
               txDataFuture = wallet.prepareSend(
                 txData: TxData(
-                  recipients: [(address: _address!, amount: amount)],
+                  recipients: [
+                    (
+                      address: _address!,
+                      amount: amount,
+                      isChange: false,
+                    )
+                  ],
                   feeRateType: ref.read(feeRateTypeStateProvider),
                   satsPerVByte: isCustomFee ? customFeeRate : null,
                   utxos: (wallet is CoinControlInterface &&
@@ -696,7 +704,13 @@ class _SendViewState extends ConsumerState<SendView> {
           case FiroType.lelantus:
             txDataFuture = wallet.prepareSendLelantus(
               txData: TxData(
-                recipients: [(address: _address!, amount: amount)],
+                recipients: [
+                  (
+                    address: _address!,
+                    amount: amount,
+                    isChange: false,
+                  )
+                ],
               ),
             );
             break;
@@ -706,13 +720,20 @@ class _SendViewState extends ConsumerState<SendView> {
               txData: TxData(
                 recipients: ref.read(pValidSparkSendToAddress)
                     ? null
-                    : [(address: _address!, amount: amount)],
+                    : [
+                        (
+                          address: _address!,
+                          amount: amount,
+                          isChange: false,
+                        )
+                      ],
                 sparkRecipients: ref.read(pValidSparkSendToAddress)
                     ? [
                         (
                           address: _address!,
                           amount: amount,
                           memo: memoController.text,
+                          isChange: false,
                         )
                       ]
                     : null,
@@ -726,7 +747,13 @@ class _SendViewState extends ConsumerState<SendView> {
             : null;
         txDataFuture = wallet.prepareSend(
           txData: TxData(
-            recipients: [(address: _address!, amount: amount)],
+            recipients: [
+              (
+                address: _address!,
+                amount: amount,
+                isChange: false,
+              )
+            ],
             memo: memo,
             feeRateType: ref.read(feeRateTypeStateProvider),
             satsPerVByte: isCustomFee ? customFeeRate : null,

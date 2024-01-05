@@ -25,7 +25,7 @@ class TxData {
 
   final String? memo;
 
-  final List<({String address, Amount amount})>? recipients;
+  final List<({String address, Amount amount, bool isChange})>? recipients;
   final Set<UTXO>? utxos;
   final List<UTXO>? usedUTXOs;
 
@@ -62,6 +62,7 @@ class TxData {
         String address,
         Amount amount,
         String memo,
+        bool isChange,
       })>? sparkRecipients;
   final List<TxData>? sparkMints;
 
@@ -115,6 +116,22 @@ class TxData {
               .reduce((total, amount) => total += amount)
           : null;
 
+  Amount? get amountWithoutChange =>
+      recipients != null && recipients!.isNotEmpty
+          ? recipients!
+              .where((e) => !e.isChange)
+              .map((e) => e.amount)
+              .reduce((total, amount) => total += amount)
+          : null;
+
+  Amount? get amountSparkWithoutChange =>
+      sparkRecipients != null && sparkRecipients!.isNotEmpty
+          ? sparkRecipients!
+              .where((e) => !e.isChange)
+              .map((e) => e.amount)
+              .reduce((total, amount) => total += amount)
+          : null;
+
   int? get estimatedSatsPerVByte => fee != null && vSize != null
       ? (fee!.raw ~/ BigInt.from(vSize!)).toInt()
       : null;
@@ -133,7 +150,13 @@ class TxData {
     String? memo,
     Set<UTXO>? utxos,
     List<UTXO>? usedUTXOs,
-    List<({String address, Amount amount})>? recipients,
+    List<
+            ({
+              String address,
+              Amount amount,
+              bool isChange,
+            })>?
+        recipients,
     String? frostMSConfig,
     String? changeAddress,
     PaynymAccountLite? paynymAccountLite,
@@ -154,6 +177,7 @@ class TxData {
               String address,
               Amount amount,
               String memo,
+              bool isChange,
             })>?
         sparkRecipients,
     List<TxData>? sparkMints,

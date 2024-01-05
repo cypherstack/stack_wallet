@@ -287,7 +287,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
             recipients: [
               (
                 address: address,
-                amount: amount,
+                amount: amount, isChange: false,
               ),
             ],
             memo: memo,
@@ -303,7 +303,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
               recipients: [
                 (
                   address: address,
-                  amount: amount,
+                  amount: amount, isChange: false,
                 ),
               ],
               feeRateType: FeeRateType.average,
@@ -315,7 +315,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
               recipients: [
                 (
                   address: address,
-                  amount: amount,
+                  amount: amount, isChange: false,
                 ),
               ],
               // feeRateType: FeeRateType.average,

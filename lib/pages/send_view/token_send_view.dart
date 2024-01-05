@@ -482,6 +482,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
             (
               address: _address!,
               amount: amount,
+              isChange: false,
             )
           ],
           feeRateType: ref.read(feeRateTypeStateProvider),

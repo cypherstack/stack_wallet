@@ -421,7 +421,7 @@ class _ConfirmChangeNowSendViewState
                             builder: (context) {
                               final coin = ref.read(pWalletCoin(walletId));
                               final fee = widget.txData.fee!;
-                              final amount = widget.txData.amount!;
+                              final amount = widget.txData.amountWithoutChange!;
                               final total = amount + fee;
 
                               return Text(
@@ -580,9 +580,11 @@ class _ConfirmChangeNowSendViewState
                           final price = ref.watch(
                               priceAnd24hChangeNotifierProvider
                                   .select((value) => value.getPrice(coin)));
-                          final amount = widget.txData.amount!;
-                          final value = (price.item1 * amount.decimal)
-                              .toAmount(fractionDigits: 2);
+                          final amountWithoutChange =
+                              widget.txData.amountWithoutChange!;
+                          final value =
+                              (price.item1 * amountWithoutChange.decimal)
+                                  .toAmount(fractionDigits: 2);
                           final currency = ref.watch(prefsChangeNotifierProvider
                               .select((value) => value.currency));
                           final locale = ref.watch(
@@ -608,7 +610,7 @@ class _ConfirmChangeNowSendViewState
                       ref
                           .watch(pAmountFormatter(
                               ref.watch(pWalletCoin(walletId))))
-                          .format((widget.txData.amount!)),
+                          .format((widget.txData.amountWithoutChange!)),
                       style: STextStyles.itemSubtitle12(context),
                       textAlign: TextAlign.right,
                     ),
@@ -722,7 +724,7 @@ class _ConfirmChangeNowSendViewState
                       builder: (context) {
                         final coin = ref.watch(pWalletCoin(walletId));
                         final fee = widget.txData.fee!;
-                        final amount = widget.txData.amount!;
+                        final amount = widget.txData.amountWithoutChange!;
                         final total = amount + fee;
 
                         return Text(

@@ -370,6 +370,7 @@ mixin PaynymInterface on Bip39HDWallet, ElectrumXInterface {
             (
               address: sendToAddress.value,
               amount: txData.recipients!.first.amount,
+              isChange: false,
             ),
           ],
         ),
@@ -582,7 +583,11 @@ mixin PaynymInterface on Bip39HDWallet, ElectrumXInterface {
           final txData = TxData(
               raw: txn.item1,
               recipients: [
-                (address: targetPaymentCodeString, amount: amountToSend)
+                (
+                  address: targetPaymentCodeString,
+                  amount: amountToSend,
+                  isChange: false,
+                ),
               ],
               fee: Amount(
                 rawValue: feeBeingPaid,
@@ -610,6 +615,7 @@ mixin PaynymInterface on Bip39HDWallet, ElectrumXInterface {
                 (
                   address: targetPaymentCodeString,
                   amount: amountToSend,
+                  isChange: false,
                 )
               ],
               fee: Amount(
@@ -639,6 +645,7 @@ mixin PaynymInterface on Bip39HDWallet, ElectrumXInterface {
               (
                 address: targetPaymentCodeString,
                 amount: amountToSend,
+                isChange: false,
               )
             ],
             fee: Amount(

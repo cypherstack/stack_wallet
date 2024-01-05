@@ -304,6 +304,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               (
                 address: widget.accountLite!.code,
                 amount: amount,
+                isChange: false,
               )
             ],
             satsPerVByte: isCustomFee ? customFeeRate : null,
@@ -326,6 +327,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       address: _address!,
                       amount: amount,
                       memo: memoController.text,
+                      isChange: false,
                     )
                   ],
                   feeRateType: ref.read(feeRateTypeStateProvider),
@@ -340,7 +342,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             } else {
               txDataFuture = wallet.prepareSend(
                 txData: TxData(
-                  recipients: [(address: _address!, amount: amount)],
+                  recipients: [
+                    (
+                      address: _address!,
+                      amount: amount,
+                      isChange: false,
+                    )
+                  ],
                   feeRateType: ref.read(feeRateTypeStateProvider),
                   satsPerVByte: isCustomFee ? customFeeRate : null,
                   utxos: (wallet is CoinControlInterface &&
@@ -356,7 +364,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           case FiroType.lelantus:
             txDataFuture = wallet.prepareSendLelantus(
               txData: TxData(
-                recipients: [(address: _address!, amount: amount)],
+                recipients: [
+                  (
+                    address: _address!,
+                    amount: amount,
+                    isChange: false,
+                  )
+                ],
               ),
             );
             break;
@@ -366,13 +380,20 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               txData: TxData(
                 recipients: ref.read(pValidSparkSendToAddress)
                     ? null
-                    : [(address: _address!, amount: amount)],
+                    : [
+                        (
+                          address: _address!,
+                          amount: amount,
+                          isChange: false,
+                        )
+                      ],
                 sparkRecipients: ref.read(pValidSparkSendToAddress)
                     ? [
                         (
                           address: _address!,
                           amount: amount,
                           memo: memoController.text,
+                          isChange: false,
                         )
                       ]
                     : null,
@@ -384,7 +405,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         final memo = isStellar ? memoController.text : null;
         txDataFuture = wallet.prepareSend(
           txData: TxData(
-            recipients: [(address: _address!, amount: amount)],
+            recipients: [
+              (
+                address: _address!,
+                amount: amount,
+                isChange: false,
+              )
+            ],
             memo: memo,
             feeRateType: ref.read(feeRateTypeStateProvider),
             satsPerVByte: isCustomFee ? customFeeRate : null,

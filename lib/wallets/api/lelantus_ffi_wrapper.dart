@@ -300,6 +300,7 @@ abstract final class LelantusFfiWrapper {
       }) arg) async {
     final spendAmount = arg.txData.recipients!.first.amount.raw.toInt();
     final address = arg.txData.recipients!.first.address;
+    final isChange = arg.txData.recipients!.first.isChange;
 
     final estimateJoinSplitFee = await _estimateJoinSplitFee(
       (
@@ -465,7 +466,9 @@ abstract final class LelantusFfiWrapper {
     return arg.txData.copyWith(
       txid: txId,
       raw: txHex,
-      recipients: [(address: address, amount: amountAmount)],
+      recipients: [
+        (address: address, amount: amountAmount, isChange: isChange)
+      ],
       fee: Amount(
         rawValue: BigInt.from(fee),
         fractionDigits: arg.cryptoCurrency.fractionDigits,
