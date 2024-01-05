@@ -1,4 +1,5 @@
 import 'package:cw_wownero/pending_wownero_transaction.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -64,6 +65,8 @@ class TxData {
       })>? sparkRecipients;
   final List<TxData>? sparkMints;
 
+  final TransactionV2? tempTx;
+
   TxData({
     this.feeRateType,
     this.feeRateAmount,
@@ -96,6 +99,7 @@ class TxData {
     this.tezosOperationsList,
     this.sparkRecipients,
     this.sparkMints,
+    this.tempTx,
   });
 
   Amount? get amount => recipients != null && recipients!.isNotEmpty
@@ -153,6 +157,7 @@ class TxData {
             })>?
         sparkRecipients,
     List<TxData>? sparkMints,
+    TransactionV2? tempTx,
   }) {
     return TxData(
       feeRateType: feeRateType ?? this.feeRateType,
@@ -187,6 +192,7 @@ class TxData {
       tezosOperationsList: tezosOperationsList ?? this.tezosOperationsList,
       sparkRecipients: sparkRecipients ?? this.sparkRecipients,
       sparkMints: sparkMints ?? this.sparkMints,
+      tempTx: tempTx ?? this.tempTx,
     );
   }
 
@@ -223,5 +229,6 @@ class TxData {
       'tezosOperationsList: $tezosOperationsList, '
       'sparkRecipients: $sparkRecipients, '
       'sparkMints: $sparkMints, '
+      'tempTx: $tempTx, '
       '}';
 }

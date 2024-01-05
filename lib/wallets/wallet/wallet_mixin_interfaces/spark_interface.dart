@@ -7,6 +7,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/balance.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/signing_data.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -331,6 +334,10 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       );
     }
 
+    // temp tx data to show in gui while waiting for real data from server
+    final List<InputV2> tempInputs = [];
+    final List<OutputV2> tempOutputs = [];
+
     for (int i = 0; i < (txData.recipients?.length ?? 0); i++) {
       if (txData.recipients![i].amount.raw == BigInt.zero) {
         continue;
@@ -354,7 +361,61 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         scriptPubKey,
         recipientsWithFeeSubtracted[i].amount.raw.toInt(),
       );
+
+      tempOutputs.add(
+        OutputV2.isarCantDoRequiredInDefaultConstructor(
+          scriptPubKeyHex: scriptPubKey.toHex,
+          valueStringSats: recipientsWithFeeSubtracted[i].amount.raw.toString(),
+          addresses: [
+            recipientsWithFeeSubtracted[i].address.toString(),
+          ],
+          walletOwns: (await mainDB.isar.addresses
+                  .where()
+                  .walletIdEqualTo(walletId)
+                  .filter()
+                  .valueEqualTo(recipientsWithFeeSubtracted[i].address)
+                  .valueProperty()
+                  .findFirst()) !=
+              null,
+        ),
+      );
     }
+
+    if (sparkRecipientsWithFeeSubtracted != null) {
+      for (final recip in sparkRecipientsWithFeeSubtracted) {
+        tempOutputs.add(
+          OutputV2.isarCantDoRequiredInDefaultConstructor(
+            scriptPubKeyHex: Uint8List.fromList([OP_SPARKSMINT]).toHex,
+            valueStringSats: recip.amount.raw.toString(),
+            addresses: [
+              recip.address.toString(),
+            ],
+            walletOwns: (await mainDB.isar.addresses
+                    .where()
+                    .walletIdEqualTo(walletId)
+                    .filter()
+                    .valueEqualTo(recip.address)
+                    .valueProperty()
+                    .findFirst()) !=
+                null,
+          ),
+        );
+      }
+    }
+
+    tempInputs.add(
+      InputV2.isarCantDoRequiredInDefaultConstructor(
+        scriptSigHex: "d3",
+        sequence: 0xffffffff,
+        outpoint: null,
+        addresses: [],
+        valueStringSats: "0",
+        witness: null,
+        innerRedeemScriptAsm: null,
+        coinbase: null,
+        walletOwns: true,
+      ),
+    );
 
     final extractedTx = txb.buildIncomplete();
     extractedTx.addInput(
@@ -412,12 +473,33 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       );
     }
 
+    final fee = Amount(
+      rawValue: BigInt.from(spend.fee),
+      fractionDigits: cryptoCurrency.fractionDigits,
+    );
     return txData.copyWith(
       raw: rawTxHex,
       vSize: extractedTx.virtualSize(),
-      fee: Amount(
-        rawValue: BigInt.from(spend.fee),
-        fractionDigits: cryptoCurrency.fractionDigits,
+      fee: fee,
+      tempTx: TransactionV2(
+        walletId: walletId,
+        blockHash: null,
+        hash: extractedTx.getId(),
+        txid: extractedTx.getId(),
+        timestamp: DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
+        inputs: List.unmodifiable(tempInputs),
+        outputs: List.unmodifiable(tempOutputs),
+        type: tempOutputs.map((e) => e.walletOwns).fold(true, (p, e) => p &= e)
+            ? TransactionType.sentToSelf
+            : TransactionType.outgoing,
+        subType: TransactionSubType.sparkSpend,
+        otherData: jsonEncode(
+          {
+            "anonFees": fee.toJsonString(),
+          },
+        ),
+        height: null,
+        version: 3,
       ),
       // TODO used coins
     );
@@ -448,7 +530,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       // // mark utxos as used
       // await mainDB.putUTXOs(txData.usedUTXOs!);
 
-      return txData;
+      return await updateSentCachedTxData(txData: txData);
     } catch (e, s) {
       Logging.instance.log("Exception rethrown from confirmSend(): $e\n$s",
           level: LogLevel.Error);
@@ -702,7 +784,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
           : currentHeight;
       const txVersion = 1;
       final List<SigningData> vin = [];
-      final List<(dynamic, int)> vout = [];
+      final List<(dynamic, int, String?)> vout = [];
 
       BigInt nFeeRet = BigInt.zero;
 
@@ -821,13 +903,15 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         final dummyTxb = btc.TransactionBuilder(network: _bitcoinDartNetwork);
         dummyTxb.setVersion(txVersion);
         dummyTxb.setLockTime(lockTime);
-        for (final recipient in dummyRecipients) {
+        for (int i = 0; i < dummyRecipients.length; i++) {
+          final recipient = dummyRecipients[i];
           if (recipient.amount < cryptoCurrency.dustLimit.raw.toInt()) {
             throw Exception("Output amount too small");
           }
           vout.add((
             recipient.scriptPubKey,
             recipient.amount,
+            singleTxOutputs[i].address,
           ));
         }
 
@@ -860,7 +944,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
             final changeAddress = await getCurrentChangeAddress();
             vout.insert(
               nChangePosInOut,
-              (changeAddress!.value, nChange.toInt()),
+              (changeAddress!.value, nChange.toInt(), null),
             );
           }
         }
@@ -942,8 +1026,13 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
           );
 
           int i = 0;
-          for (final recipient in recipients) {
-            final out = (recipient.scriptPubKey, recipient.amount);
+          for (int i = 0; i < recipients.length; i++) {
+            final recipient = recipients[i];
+            final out = (
+              recipient.scriptPubKey,
+              recipient.amount,
+              singleTxOutputs[i].address,
+            );
             while (i < vout.length) {
               if (vout[i].$1 is Uint8List &&
                   (vout[i].$1 as Uint8List).isNotEmpty &&
@@ -973,6 +1062,10 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         continue;
       }
 
+      // temp tx data to show in gui while waiting for real data from server
+      final List<InputV2> tempInputs = [];
+      final List<OutputV2> tempOutputs = [];
+
       // sign
       final txb = btc.TransactionBuilder(network: _bitcoinDartNetwork);
       txb.setVersion(txVersion);
@@ -985,10 +1078,50 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
               1, // minus 1 is important. 0xffffffff on its own will burn funds
           input.output,
         );
+
+        tempInputs.add(
+          InputV2.isarCantDoRequiredInDefaultConstructor(
+            scriptSigHex: txb.inputs.first.script?.toHex,
+            sequence: 0xffffffff - 1,
+            outpoint: OutpointV2.isarCantDoRequiredInDefaultConstructor(
+              txid: input.utxo.txid,
+              vout: input.utxo.vout,
+            ),
+            addresses: input.utxo.address == null ? [] : [input.utxo.address!],
+            valueStringSats: input.utxo.value.toString(),
+            witness: null,
+            innerRedeemScriptAsm: null,
+            coinbase: null,
+            walletOwns: true,
+          ),
+        );
       }
 
       for (final output in vout) {
-        txb.addOutput(output.$1, output.$2);
+        final addressOrScript = output.$1;
+        final value = output.$2;
+        txb.addOutput(addressOrScript, value);
+
+        tempOutputs.add(
+          OutputV2.isarCantDoRequiredInDefaultConstructor(
+            scriptPubKeyHex:
+                addressOrScript is Uint8List ? addressOrScript.toHex : "000000",
+            valueStringSats: value.toString(),
+            addresses: [
+              if (addressOrScript is String) addressOrScript.toString(),
+            ],
+            walletOwns: (await mainDB.isar.addresses
+                    .where()
+                    .walletIdEqualTo(walletId)
+                    .filter()
+                    .valueEqualTo(addressOrScript is Uint8List
+                        ? output.$3!
+                        : addressOrScript as String)
+                    .valueProperty()
+                    .findFirst()) !=
+                null,
+          ),
+        );
       }
 
       try {
@@ -1035,6 +1168,23 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
           fractionDigits: cryptoCurrency.fractionDigits,
         ),
         usedUTXOs: vin.map((e) => e.utxo).toList(),
+        tempTx: TransactionV2(
+          walletId: walletId,
+          blockHash: null,
+          hash: builtTx.getId(),
+          txid: builtTx.getId(),
+          timestamp: DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
+          inputs: List.unmodifiable(tempInputs),
+          outputs: List.unmodifiable(tempOutputs),
+          type:
+              tempOutputs.map((e) => e.walletOwns).fold(true, (p, e) => p &= e)
+                  ? TransactionType.sentToSelf
+                  : TransactionType.outgoing,
+          subType: TransactionSubType.sparkMint,
+          otherData: null,
+          height: null,
+          version: 3,
+        ),
       );
 
       if (nFeeRet.toInt() < data.vSize!) {

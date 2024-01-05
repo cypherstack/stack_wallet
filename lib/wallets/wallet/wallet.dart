@@ -368,7 +368,7 @@ abstract class Wallet<T extends CryptoCurrency> {
   Future<void> updateTransactions();
   Future<void> updateBalance();
 
-  // returns true if new utxos were added to local db
+  /// returns true if new utxos were added to local db
   Future<bool> updateUTXOs();
 
   /// updates the wallet info's cachedChainHeight
@@ -381,6 +381,14 @@ abstract class Wallet<T extends CryptoCurrency> {
   Future<bool> pingCheck();
 
   //===========================================
+  /// add transaction to local db temporarily. Used for quickly updating ui
+  /// before refresh can fetch data from server
+  Future<TxData> updateSentCachedTxData({required TxData txData}) async {
+    if (txData.tempTx != null) {
+      await mainDB.updateOrPutTransactionV2s([txData.tempTx!]);
+    }
+    return txData;
+  }
 
   NodeModel getCurrentNode() {
     final node = nodeService.getPrimaryNodeFor(coin: cryptoCurrency.coin) ??

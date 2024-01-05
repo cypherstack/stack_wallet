@@ -8,6 +8,9 @@ import 'package:decimal/decimal.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/signing_data.dart';
@@ -172,7 +175,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
         );
       }
 
-      final int vSizeForOneOutput = buildTransaction(
+      final int vSizeForOneOutput = (await buildTransaction(
         utxoSigningData: utxoSigningData,
         txData: txData.copyWith(
           recipients: _helperRecipientsConvert(
@@ -180,7 +183,8 @@ mixin ElectrumXInterface on Bip39HDWallet {
             [satoshisBeingUsed - 1],
           ),
         ),
-      ).vSize!;
+      ))
+          .vSize!;
       int feeForOneOutput = satsPerVByte != null
           ? (satsPerVByte * vSizeForOneOutput)
           : estimateTxFee(
@@ -200,7 +204,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
       }
 
       final int amount = satoshiAmountToSend - feeForOneOutput;
-      final data = buildTransaction(
+      final data = await buildTransaction(
         txData: txData.copyWith(
           recipients: _helperRecipientsConvert(
             [recipientAddress],
@@ -221,7 +225,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
 
     final int vSizeForOneOutput;
     try {
-      vSizeForOneOutput = buildTransaction(
+      vSizeForOneOutput = (await buildTransaction(
         utxoSigningData: utxoSigningData,
         txData: txData.copyWith(
           recipients: _helperRecipientsConvert(
@@ -229,7 +233,8 @@ mixin ElectrumXInterface on Bip39HDWallet {
             [satoshisBeingUsed - 1],
           ),
         ),
-      ).vSize!;
+      ))
+          .vSize!;
     } catch (e) {
       Logging.instance.log("vSizeForOneOutput: $e", level: LogLevel.Error);
       rethrow;
@@ -237,7 +242,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
 
     final int vSizeForTwoOutPuts;
     try {
-      vSizeForTwoOutPuts = buildTransaction(
+      vSizeForTwoOutPuts = (await buildTransaction(
         utxoSigningData: utxoSigningData,
         txData: txData.copyWith(
           recipients: _helperRecipientsConvert(
@@ -248,7 +253,8 @@ mixin ElectrumXInterface on Bip39HDWallet {
             ],
           ),
         ),
-      ).vSize!;
+      ))
+          .vSize!;
     } catch (e) {
       Logging.instance.log("vSizeForTwoOutPuts: $e", level: LogLevel.Error);
       rethrow;
@@ -312,7 +318,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
           Logging.instance
               .log('Estimated fee: $feeForTwoOutputs', level: LogLevel.Info);
 
-          var txn = buildTransaction(
+          var txn = await buildTransaction(
             utxoSigningData: utxoSigningData,
             txData: txData.copyWith(
               recipients: _helperRecipientsConvert(
@@ -343,7 +349,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
                 level: LogLevel.Info);
             Logging.instance.log('Adjusted Estimated fee: $feeForTwoOutputs',
                 level: LogLevel.Info);
-            txn = buildTransaction(
+            txn = await buildTransaction(
               utxoSigningData: utxoSigningData,
               txData: txData.copyWith(
                 recipients: _helperRecipientsConvert(
@@ -374,7 +380,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
               level: LogLevel.Info);
           Logging.instance
               .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
-          final txn = buildTransaction(
+          final txn = await buildTransaction(
             utxoSigningData: utxoSigningData,
             txData: txData.copyWith(
               recipients: _helperRecipientsConvert(
@@ -406,7 +412,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
             level: LogLevel.Info);
         Logging.instance
             .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
-        final txn = buildTransaction(
+        final txn = await buildTransaction(
           utxoSigningData: utxoSigningData,
           txData: txData.copyWith(
             recipients: _helperRecipientsConvert(
@@ -438,7 +444,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
           level: LogLevel.Info);
       Logging.instance
           .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
-      final txn = buildTransaction(
+      final txn = await buildTransaction(
         utxoSigningData: utxoSigningData,
         txData: txData.copyWith(
           recipients: _helperRecipientsConvert(
@@ -615,10 +621,10 @@ mixin ElectrumXInterface on Bip39HDWallet {
   }
 
   /// Builds and signs a transaction
-  TxData buildTransaction({
+  Future<TxData> buildTransaction({
     required TxData txData,
     required List<SigningData> utxoSigningData,
-  }) {
+  }) async {
     Logging.instance
         .log("Starting buildTransaction ----------", level: LogLevel.Info);
 
@@ -637,7 +643,12 @@ mixin ElectrumXInterface on Bip39HDWallet {
         wif: cryptoCurrency.networkParams.wifPrefix,
       ),
     );
-    txb.setVersion(1); // TODO possibly override this for certain coins?
+    const version = 1; // TODO possibly override this for certain coins?
+    txb.setVersion(version);
+
+    // temp tx data to show in gui while waiting for real data from server
+    final List<InputV2> tempInputs = [];
+    final List<OutputV2> tempOutputs = [];
 
     // Add transaction inputs
     for (var i = 0; i < utxoSigningData.length; i++) {
@@ -649,6 +660,25 @@ mixin ElectrumXInterface on Bip39HDWallet {
         utxoSigningData[i].output!,
         cryptoCurrency.networkParams.bech32Hrp,
       );
+
+      tempInputs.add(
+        InputV2.isarCantDoRequiredInDefaultConstructor(
+          scriptSigHex: txb.inputs.first.script?.toHex,
+          sequence: 0xffffffff - 1,
+          outpoint: OutpointV2.isarCantDoRequiredInDefaultConstructor(
+            txid: utxoSigningData[i].utxo.txid,
+            vout: utxoSigningData[i].utxo.vout,
+          ),
+          addresses: utxoSigningData[i].utxo.address == null
+              ? []
+              : [utxoSigningData[i].utxo.address!],
+          valueStringSats: utxoSigningData[i].utxo.value.toString(),
+          witness: null,
+          innerRedeemScriptAsm: null,
+          coinbase: null,
+          walletOwns: true,
+        ),
+      );
     }
 
     // Add transaction output
@@ -657,6 +687,24 @@ mixin ElectrumXInterface on Bip39HDWallet {
         txData.recipients![i].address,
         txData.recipients![i].amount.raw.toInt(),
         cryptoCurrency.networkParams.bech32Hrp,
+      );
+
+      tempOutputs.add(
+        OutputV2.isarCantDoRequiredInDefaultConstructor(
+          scriptPubKeyHex: "000000",
+          valueStringSats: txData.recipients![i].amount.raw.toString(),
+          addresses: [
+            txData.recipients![i].address.toString(),
+          ],
+          walletOwns: (await mainDB.isar.addresses
+                  .where()
+                  .walletIdEqualTo(walletId)
+                  .filter()
+                  .valueEqualTo(txData.recipients![i].address)
+                  .valueProperty()
+                  .findFirst()) !=
+              null,
+        ),
       );
     }
 
@@ -683,6 +731,22 @@ mixin ElectrumXInterface on Bip39HDWallet {
     return txData.copyWith(
       raw: builtTx.toHex(),
       vSize: vSize,
+      tempTx: TransactionV2(
+        walletId: walletId,
+        blockHash: null,
+        hash: builtTx.getId(),
+        txid: builtTx.getId(),
+        height: null,
+        timestamp: DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
+        inputs: List.unmodifiable(tempInputs),
+        outputs: List.unmodifiable(tempOutputs),
+        version: version,
+        type: tempOutputs.map((e) => e.walletOwns).fold(true, (p, e) => p &= e)
+            ? TransactionType.sentToSelf
+            : TransactionType.outgoing,
+        subType: TransactionSubType.none,
+        otherData: null,
+      ),
     );
   }
 
@@ -1749,7 +1813,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
       // mark utxos as used
       await mainDB.putUTXOs(txData.usedUTXOs!);
 
-      return txData;
+      return await updateSentCachedTxData(txData: txData);
     } catch (e, s) {
       Logging.instance.log("Exception rethrown from confirmSend(): $e\n$s",
           level: LogLevel.Error);

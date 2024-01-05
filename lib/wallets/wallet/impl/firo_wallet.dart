@@ -16,6 +16,7 @@ import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/spark_coin.dart';
+import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
@@ -41,7 +42,22 @@ class FiroWallet extends Bip39HDWallet
   FilterOperation? get receivingAddressFilterOperation =>
       FilterGroup.and(standardReceivingAddressFilters);
 
+  final Set<String> _unconfirmedTxids = {};
+
   // ===========================================================================
+
+  @override
+  Future<TxData> updateSentCachedTxData({required TxData txData}) async {
+    if (txData.tempTx != null) {
+      await mainDB.updateOrPutTransactionV2s([txData.tempTx!]);
+      _unconfirmedTxids.add(txData.tempTx!.txid);
+      Logging.instance.log(
+        "Added firo unconfirmed: ${txData.tempTx!.txid}",
+        level: LogLevel.Info,
+      );
+    }
+    return txData;
+  }
 
   @override
   Future<void> updateTransactions() async {
@@ -487,7 +503,16 @@ class FiroWallet extends Bip39HDWallet
         otherData: otherData,
       );
 
-      txns.add(tx);
+      if (_unconfirmedTxids.contains(tx.txid)) {
+        if (tx.isConfirmed(await chainHeight, cryptoCurrency.minConfirms)) {
+          txns.add(tx);
+          _unconfirmedTxids.removeWhere((e) => e == tx.txid);
+        } else {
+          // don't update in db until confirmed
+        }
+      } else {
+        txns.add(tx);
+      }
     }
 
     await mainDB.updateOrPutTransactionV2s(txns);
