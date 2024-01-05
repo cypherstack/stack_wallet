@@ -140,6 +140,14 @@ class _SparkCoinsViewState extends ConsumerState<SparkCoinsView> {
                       ),
                     ),
                     Expanded(
+                      flex: 9,
+                      child: Text(
+                        "Address",
+                        style: STextStyles.itemSubtitle(context),
+                        textAlign: TextAlign.left,
+                      ),
+                    ),
+                    Expanded(
                       flex: 3,
                       child: Text(
                         "Value (sats)",
@@ -210,6 +218,13 @@ class _SparkCoinsViewState extends ConsumerState<SparkCoinsView> {
                           flex: 9,
                           child: SelectableText(
                             _coins[index].lTagHash,
+                            style: STextStyles.itemSubtitle12(context),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 9,
+                          child: SelectableText(
+                            _coins[index].address,
                             style: STextStyles.itemSubtitle12(context),
                           ),
                         ),

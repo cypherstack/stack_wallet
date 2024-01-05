@@ -68,6 +68,12 @@ class TransactionV2 {
   }
 
   Amount getFee({required Coin coin}) {
+    // try anon fee first
+    final fee = _getAnonFee();
+    if (fee != null) {
+      return fee;
+    }
+
     final inSum =
         inputs.map((e) => e.value).reduce((value, element) => value += element);
     final outSum = outputs
@@ -99,7 +105,7 @@ class TransactionV2 {
         .where((e) => e.walletOwns)
         .fold(BigInt.zero, (p, e) => p + e.value);
 
-    return Amount(
+    final amount = Amount(
           rawValue: inSum,
           fractionDigits: coin.decimals,
         ) -
@@ -107,6 +113,8 @@ class TransactionV2 {
           coin: coin,
         ) -
         getFee(coin: coin);
+
+    return amount;
   }
 
   Set<String> associatedAddresses() => {
@@ -114,7 +122,7 @@ class TransactionV2 {
         ...outputs.map((e) => e.addresses).expand((e) => e),
       };
 
-  Amount? getAnonFee() {
+  Amount? _getAnonFee() {
     try {
       final map = jsonDecode(otherData!) as Map;
       return Amount.fromSerializedJsonString(map["anonFees"] as String);

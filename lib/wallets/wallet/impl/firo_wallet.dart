@@ -435,6 +435,16 @@ class FiroWallet extends Bip39HDWallet
         inputs.add(input);
       }
 
+      final totalSpentFromWallet = inputs
+          .where((e) => e.walletOwns)
+          .map((e) => e.value)
+          .fold(BigInt.zero, (value, element) => value + element);
+
+      final totalReceivedInWallet = outputs
+          .where((e) => e.walletOwns)
+          .map((e) => e.value)
+          .fold(BigInt.zero, (value, element) => value + element);
+
       final totalOut = outputs
           .map((e) => e.value)
           .fold(BigInt.zero, (value, element) => value + element);
@@ -458,7 +468,15 @@ class FiroWallet extends Bip39HDWallet
         type = TransactionType.outgoing;
 
         if (wasReceivedInThisWallet) {
-          if (changeAmountReceivedInThisWallet + amountReceivedInThisWallet ==
+          if (isSparkSpend) {
+            if (totalSpentFromWallet -
+                    (totalReceivedInWallet + anonFees!.raw) ==
+                BigInt.zero) {
+              // definitely sent all to self
+              type = TransactionType.sentToSelf;
+            }
+          } else if (changeAmountReceivedInThisWallet +
+                  amountReceivedInThisWallet ==
               totalOut) {
             // definitely sent all to self
             type = TransactionType.sentToSelf;
