@@ -29,6 +29,7 @@ import 'package:stackwallet/wallets/wallet/impl/dogecoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/ecash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/litecoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/nano_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/tezos_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
@@ -273,6 +274,11 @@ abstract class Wallet<T extends CryptoCurrency> {
       case Coin.firoTestNet:
         return FiroWallet(CryptoCurrencyNetwork.test);
 
+      case Coin.litecoin:
+        return LitecoinWallet(CryptoCurrencyNetwork.main);
+      case Coin.litecoinTestNet:
+        return LitecoinWallet(CryptoCurrencyNetwork.test);
+
       case Coin.nano:
         return NanoWallet(CryptoCurrencyNetwork.main);
 
@@ -360,8 +366,10 @@ abstract class Wallet<T extends CryptoCurrency> {
   Future<void> updateNode();
 
   Future<void> updateTransactions();
-  Future<void> updateUTXOs();
   Future<void> updateBalance();
+
+  // returns true if new utxos were added to local db
+  Future<bool> updateUTXOs();
 
   /// updates the wallet info's cachedChainHeight
   Future<void> updateChainHeight();

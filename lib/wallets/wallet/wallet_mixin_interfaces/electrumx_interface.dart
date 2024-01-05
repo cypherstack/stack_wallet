@@ -647,6 +647,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
         utxoSigningData[i].utxo.vout,
         null,
         utxoSigningData[i].output!,
+        cryptoCurrency.networkParams.bech32Hrp,
       );
     }
 
@@ -655,6 +656,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
       txb.addOutput(
         txData.recipients![i].address,
         txData.recipients![i].amount.raw.toInt(),
+        cryptoCurrency.networkParams.bech32Hrp,
       );
     }
 
@@ -666,6 +668,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
           keyPair: utxoSigningData[i].keyPair!,
           witnessValue: utxoSigningData[i].utxo.value,
           redeemScript: utxoSigningData[i].redeemScript,
+          overridePrefix: cryptoCurrency.networkParams.bech32Hrp,
         );
       }
     } catch (e, s) {
@@ -674,7 +677,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
       rethrow;
     }
 
-    final builtTx = txb.build();
+    final builtTx = txb.build(cryptoCurrency.networkParams.bech32Hrp);
     final vSize = builtTx.virtualSize();
 
     return txData.copyWith(
@@ -1051,14 +1054,19 @@ mixin ElectrumXInterface on Bip39HDWallet {
       }
     }
 
-    final checkBlockResult = checkBlockUTXO(jsonUTXO, scriptPubKey, txn);
+    final checkBlockResult = await checkBlockUTXO(
+      jsonUTXO,
+      scriptPubKey,
+      txn,
+      utxoOwnerAddress,
+    );
 
     final utxo = UTXO(
       walletId: walletId,
       txid: txn["txid"] as String,
       vout: vout,
       value: jsonUTXO["value"] as int,
-      name: "",
+      name: checkBlockResult.utxoLabel ?? "",
       isBlocked: checkBlockResult.blocked,
       blockedReason: checkBlockResult.blockedReason,
       isCoinbase: txn["is_coinbase"] as bool? ?? false,
@@ -1650,7 +1658,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
   }
 
   @override
-  Future<void> updateUTXOs() async {
+  Future<bool> updateUTXOs() async {
     final allAddresses = await fetchAddressesForElectrumXScan();
 
     try {
@@ -1710,12 +1718,13 @@ mixin ElectrumXInterface on Bip39HDWallet {
         }
       }
 
-      await mainDB.updateUTXOs(walletId, outputArray);
+      return await mainDB.updateUTXOs(walletId, outputArray);
     } catch (e, s) {
       Logging.instance.log(
         "Output fetch unsuccessful: $e\n$s",
         level: LogLevel.Error,
       );
+      return false;
     }
   }
 
@@ -1870,10 +1879,12 @@ mixin ElectrumXInterface on Bip39HDWallet {
 
   /// Certain coins need to check if the utxo should be marked
   /// as blocked as well as give a reason.
-  ({String? blockedReason, bool blocked}) checkBlockUTXO(
+  Future<({String? blockedReason, bool blocked, String? utxoLabel})>
+      checkBlockUTXO(
     Map<String, dynamic> jsonUTXO,
     String? scriptPubKeyHex,
     Map<String, dynamic> jsonTX,
+    String? utxoOwnerAddress,
   );
 
   // ===========================================================================

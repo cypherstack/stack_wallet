@@ -1,0 +1,109 @@
+import 'package:isar/isar.dart';
+import 'package:stackwallet/dto/ordinals/inscription_data.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
+import 'package:stackwallet/models/isar/ordinal.dart';
+import 'package:stackwallet/services/litescribe_api.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
+
+mixin OrdinalsInterface on ElectrumXInterface {
+  final LitescribeAPI litescribeAPI =
+      LitescribeAPI(baseUrl: 'https://litescribe.io/api');
+
+  // check if an inscription is in a given <UTXO> output
+  Future<bool> _inscriptionInAddress(String address) async {
+    var inscriptions = await litescribeAPI.getInscriptionsByAddress(address);
+    if (inscriptions.isNotEmpty) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  Future<void> refreshInscriptions() async {
+    final uniqueAddresses = await mainDB
+        .getUTXOs(walletId)
+        .filter()
+        .addressIsNotNull()
+        .distinctByAddress()
+        .addressProperty()
+        .findAll();
+    final inscriptions =
+        await _getInscriptionDataFromAddresses(uniqueAddresses.cast<String>());
+
+    final ords = inscriptions
+        .map((e) => Ordinal.fromInscriptionData(e, walletId))
+        .toList();
+
+    await mainDB.isar.writeTxn(() async {
+      await mainDB.isar.ordinals
+          .where()
+          .filter()
+          .walletIdEqualTo(walletId)
+          .deleteAll();
+      await mainDB.isar.ordinals.putAll(ords);
+    });
+  }
+  // =================== Overrides =============================================
+
+  @override
+  Future<({bool blocked, String? blockedReason, String? utxoLabel})>
+      checkBlockUTXO(
+    Map<String, dynamic> jsonUTXO,
+    String? scriptPubKeyHex,
+    Map<String, dynamic> jsonTX,
+    String? utxoOwnerAddress,
+  ) async {
+    bool shouldBlock = false;
+    String? blockReason;
+    String? label;
+
+    final utxoAmount = jsonUTXO["value"] as int;
+
+    // TODO: [prio=med] check following 3 todos
+
+    // TODO check the specific output, not just the address in general
+    // TODO optimize by freezing output in OrdinalsInterface, so one ordinal API calls is made (or at least many less)
+    if (utxoOwnerAddress != null) {
+      if (await _inscriptionInAddress(utxoOwnerAddress)) {
+        shouldBlock = true;
+        blockReason = "Ordinal";
+        label = "Ordinal detected at address";
+      }
+    } else {
+      // TODO implement inscriptionInOutput
+      if (utxoAmount <= 10000) {
+        shouldBlock = true;
+        blockReason = "May contain ordinal";
+        label = "Possible ordinal";
+      }
+    }
+
+    return (blockedReason: blockReason, blocked: shouldBlock, utxoLabel: label);
+  }
+
+  @override
+  Future<bool> updateUTXOs() async {
+    final newUtxosAdded = await super.updateUTXOs();
+    if (newUtxosAdded) {
+      await refreshInscriptions();
+    }
+
+    return newUtxosAdded;
+  }
+
+  // ===================== Private =============================================
+  Future<List<InscriptionData>> _getInscriptionDataFromAddresses(
+      List<String> addresses) async {
+    List<InscriptionData> allInscriptions = [];
+    for (String address in addresses) {
+      try {
+        var inscriptions =
+            await litescribeAPI.getInscriptionsByAddress(address);
+        allInscriptions.addAll(inscriptions);
+      } catch (e) {
+        throw Exception("Error fetching inscriptions for address $address: $e");
+      }
+    }
+    return allInscriptions;
+  }
+}

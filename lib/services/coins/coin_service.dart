@@ -16,7 +16,6 @@ import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
-import 'package:stackwallet/services/coins/litecoin/litecoin_wallet.dart';
 import 'package:stackwallet/services/coins/monero/monero_wallet.dart';
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
 import 'package:stackwallet/services/coins/particl/particl_wallet.dart';
@@ -85,26 +84,10 @@ abstract class CoinServiceAPI {
         throw UnimplementedError("moved");
 
       case Coin.litecoin:
-        return LitecoinWallet(
-          walletId: walletId,
-          walletName: walletName,
-          coin: coin,
-          secureStore: secureStorageInterface,
-          client: client,
-          cachedClient: cachedClient,
-          tracker: tracker,
-        );
+        throw UnimplementedError("moved");
 
       case Coin.litecoinTestNet:
-        return LitecoinWallet(
-          walletId: walletId,
-          walletName: walletName,
-          coin: coin,
-          secureStore: secureStorageInterface,
-          client: client,
-          cachedClient: cachedClient,
-          tracker: tracker,
-        );
+        throw UnimplementedError("moved");
 
       case Coin.bitcoinTestNet:
         throw UnimplementedError("moved");

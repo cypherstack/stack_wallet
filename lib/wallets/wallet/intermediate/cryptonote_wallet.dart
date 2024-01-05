@@ -1,7 +1,7 @@
 import 'package:stackwallet/wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 
 abstract class CryptonoteWallet<T extends CryptonoteCurrency> extends Wallet<T>
     with MnemonicInterface<T> {
@@ -28,7 +28,8 @@ abstract class CryptonoteWallet<T extends CryptonoteCurrency> extends Wallet<T>
   }
 
   @override
-  Future<void> updateUTXOs() async {
+  Future<bool> updateUTXOs() async {
     // do nothing for now
+    return false;
   }
 }

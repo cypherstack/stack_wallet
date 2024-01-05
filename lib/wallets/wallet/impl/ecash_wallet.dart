@@ -298,11 +298,13 @@ class EcashWallet extends Bip39HDWallet
   }
 
   @override
-  ({String? blockedReason, bool blocked}) checkBlockUTXO(
+  Future<({String? blockedReason, bool blocked, String? utxoLabel})>
+      checkBlockUTXO(
     Map<String, dynamic> jsonUTXO,
     String? scriptPubKeyHex,
     Map<String, dynamic> jsonTX,
-  ) {
+    String? utxoOwnerAddress,
+  ) async {
     bool blocked = false;
     String? blockedReason;
 
@@ -332,7 +334,7 @@ class EcashWallet extends Bip39HDWallet
       }
     }
 
-    return (blockedReason: blockedReason, blocked: blocked);
+    return (blockedReason: blockedReason, blocked: blocked, utxoLabel: null);
   }
 
   // TODO: correct formula for ecash?

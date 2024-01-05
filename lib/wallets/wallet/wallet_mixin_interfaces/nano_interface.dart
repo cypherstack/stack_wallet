@@ -651,8 +651,9 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
       FilterGroup.and(standardReceivingAddressFilters);
 
   @override
-  Future<void> updateUTXOs() async {
+  Future<bool> updateUTXOs() async {
     // do nothing for nano based coins
+    return false;
   }
 
   @override

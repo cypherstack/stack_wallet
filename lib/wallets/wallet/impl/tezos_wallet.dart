@@ -599,7 +599,8 @@ class TezosWallet extends Bip39Wallet<Tezos> {
   }
 
   @override
-  Future<void> updateUTXOs() async {
+  Future<bool> updateUTXOs() async {
     // do nothing. Not used in tezos
+    return false;
   }
 }

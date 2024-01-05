@@ -57,13 +57,13 @@ class EpiccashWallet extends Bip39Wallet {
   }
 
   @override
-  Future<void> updateUTXOs() {
+  Future<bool> updateUTXOs() {
     // TODO: implement updateUTXOs
     throw UnimplementedError();
   }
 
   @override
-  Future<void> updateNode() {
+  Future<bool> updateNode() {
     // TODO: implement updateNode
     throw UnimplementedError();
   }
