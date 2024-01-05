@@ -357,7 +357,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
                 (estimatedFee ~/ BigInt.from(totalRecipientCount)),
             fractionDigits: cryptoCurrency.fractionDigits,
           ),
-        isChange: txData.recipients![i].isChange,
+          isChange: txData.recipients![i].isChange,
         ),
       );
 
@@ -410,20 +410,6 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         );
       }
     }
-
-    tempInputs.add(
-      InputV2.isarCantDoRequiredInDefaultConstructor(
-        scriptSigHex: "d3",
-        sequence: 0xffffffff,
-        outpoint: null,
-        addresses: [],
-        valueStringSats: "0",
-        witness: null,
-        innerRedeemScriptAsm: null,
-        coinbase: null,
-        walletOwns: true,
-      ),
-    );
 
     final extractedTx = txb.buildIncomplete();
     extractedTx.addInput(
@@ -485,6 +471,24 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       rawValue: BigInt.from(spend.fee),
       fractionDigits: cryptoCurrency.fractionDigits,
     );
+
+    tempInputs.add(
+      InputV2.isarCantDoRequiredInDefaultConstructor(
+        scriptSigHex: "d3",
+        sequence: 0xffffffff,
+        outpoint: null,
+        addresses: [],
+        valueStringSats: tempOutputs
+            .map((e) => e.value)
+            .fold(fee.raw, (p, e) => p + e)
+            .toString(),
+        witness: null,
+        innerRedeemScriptAsm: null,
+        coinbase: null,
+        walletOwns: true,
+      ),
+    );
+
     return txData.copyWith(
       raw: rawTxHex,
       vSize: extractedTx.virtualSize(),
@@ -1165,7 +1169,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
                   rawValue: BigInt.from(e.$2),
                   fractionDigits: cryptoCurrency.fractionDigits,
                 ),
-              isChange: false, // ok?
+                isChange: false, // ok?
               ),
             )
             .toList(),
