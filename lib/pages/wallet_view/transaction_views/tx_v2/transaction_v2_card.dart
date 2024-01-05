@@ -19,6 +19,7 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 
 class TransactionCardV2 extends ConsumerStatefulWidget {
@@ -103,6 +104,17 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
         case TransactionType.sentToSelf:
           if (_transaction.subType == TransactionSubType.sparkMint) {
             amount = _transaction.getAmountSparkSelfMinted(coin: coin);
+          } else if (_transaction.subType == TransactionSubType.sparkSpend) {
+            final changeAddress =
+                (ref.watch(pWallets).getWallet(walletId) as SparkInterface)
+                    .sparkChangeAddress;
+            amount = Amount(
+              rawValue: _transaction.outputs
+                  .where((e) =>
+                      e.walletOwns && !e.addresses.contains(changeAddress))
+                  .fold(BigInt.zero, (p, e) => p + e.value),
+              fractionDigits: coin.decimals,
+            );
           } else {
             amount = _transaction.getAmountReceivedInThisWallet(coin: coin);
           }

@@ -426,7 +426,7 @@ class FiroWallet extends Bip39HDWallet
       TransactionType type;
       TransactionSubType subType = TransactionSubType.none;
 
-      // TODO integrate the following with the next bit
+      // TODO integrate the following with the next bit (maybe)
       if (isSparkSpend) {
         subType = TransactionSubType.sparkSpend;
       } else if (isSparkMint) {
