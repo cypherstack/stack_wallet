@@ -109,7 +109,9 @@ class JsonRPC {
             "JsonRPC request: opening socket $host:$port",
             level: LogLevel.Info,
           );
-          await connect();
+          await connect().timeout(requestTimeout, onTimeout: () {
+            throw Exception("Request timeout: $jsonRpcRequest");
+          });
         }
       } else {
         if (_socksSocket == null) {
@@ -117,7 +119,9 @@ class JsonRPC {
             "JsonRPC request: opening SOCKS socket to $host:$port",
             level: LogLevel.Info,
           );
-          await connect();
+          await connect().timeout(requestTimeout, onTimeout: () {
+            throw Exception("Request timeout: $jsonRpcRequest");
+          });
         }
       }
     });

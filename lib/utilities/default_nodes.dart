@@ -286,8 +286,8 @@ abstract class DefaultNodes {
       );
 
   static NodeModel get eCash => NodeModel(
-        host: "electrum.bitcoinabc.org",
-        port: 50002,
+        host: "ecash.stackwallet.com",
+        port: 59002,
         name: DefaultNodes.defaultName,
         id: DefaultNodes.buildId(Coin.eCash),
         useSSL: true,
