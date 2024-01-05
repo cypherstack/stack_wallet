@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -119,17 +120,22 @@ class DesktopPrivateBalanceToggleButton extends ConsumerWidget {
           ),
         ),
         child: Center(
-          child: Image(
-            image: AssetImage(
-              currentType == FiroType.public
-                  ? Assets.png.glasses
-                  : Assets.png.glassesHidden,
-            ),
-            width: 16,
-            color: currentType == FiroType.spark
-                ? Theme.of(context).extension<StackColors>()!.accentColorYellow
-                : null,
-          ),
+          child: currentType == FiroType.spark
+              ? SvgPicture.asset(
+                  Assets.svg.spark,
+                  width: 16,
+                  // color: Theme.of(context)
+                  //     .extension<StackColors>()!
+                  //     .accentColorYellow,
+                )
+              : Image(
+                  image: AssetImage(
+                    currentType == FiroType.public
+                        ? Assets.png.glasses
+                        : Assets.png.glassesHidden,
+                  ),
+                  width: 16,
+                ),
         ),
       ),
     );
