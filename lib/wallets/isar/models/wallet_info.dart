@@ -5,6 +5,7 @@ import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/wallets/isar/isar_id_interface.dart';
+import 'package:stackwallet/wallets/isar/models/wallet_info_meta.dart';
 import 'package:uuid/uuid.dart';
 
 part 'wallet_info.g.dart';
@@ -54,11 +55,6 @@ class WalletInfo implements IsarId {
   /// denotes a favourite. Any number less than 0 means it is not a favourite.
   int get favouriteOrderIndex => _favouriteOrderIndex;
   int _favouriteOrderIndex;
-
-  /// Wallets without this flag set to true should be deleted on next app run
-  /// and should not be displayed in the ui.
-  bool get isMnemonicVerified => _isMnemonicVerified;
-  bool _isMnemonicVerified;
 
   /// The highest block height the wallet has scanned.
   int get cachedChainHeight => _cachedChainHeight;
@@ -128,6 +124,11 @@ class WalletInfo implements IsarId {
   Map<String, dynamic> get otherData => otherDataJsonString == null
       ? {}
       : Map<String, dynamic>.from(jsonDecode(otherDataJsonString!) as Map);
+
+  Future<bool> isMnemonicVerified(Isar isar) async =>
+      (await isar.walletInfoMeta.where().walletIdEqualTo(walletId).findFirst())
+          ?.isMnemonicVerified ==
+      true;
 
   //============================================================================
   //=============    Updaters   ================================================
@@ -289,12 +290,26 @@ class WalletInfo implements IsarId {
   Future<void> setMnemonicVerified({
     required Isar isar,
   }) async {
-    // only update if there were changes to the name
-    if (!isMnemonicVerified) {
-      _isMnemonicVerified = true;
+    final meta =
+        await isar.walletInfoMeta.where().walletIdEqualTo(walletId).findFirst();
+    if (meta == null) {
       await isar.writeTxn(() async {
-        await isar.walletInfo.deleteByWalletId(walletId);
-        await isar.walletInfo.put(this);
+        await isar.walletInfoMeta.deleteByWalletId(walletId);
+        await isar.walletInfoMeta.put(
+          WalletInfoMeta(
+            walletId: walletId,
+            isMnemonicVerified: true,
+          ),
+        );
+      });
+    } else if (meta.isMnemonicVerified == false) {
+      await isar.writeTxn(() async {
+        await isar.walletInfoMeta.put(
+          WalletInfoMeta(
+            walletId: walletId,
+            isMnemonicVerified: true,
+          ),
+        );
       });
     } else {
       throw Exception(
@@ -332,7 +347,6 @@ class WalletInfo implements IsarId {
         _favouriteOrderIndex = favouriteOrderIndex,
         _cachedChainHeight = cachedChainHeight,
         _restoreHeight = restoreHeight,
-        _isMnemonicVerified = isMnemonicVerified,
         _cachedBalanceString = cachedBalanceString,
         _cachedBalanceSecondaryString = cachedBalanceSecondaryString,
         _cachedBalanceTertiaryString = cachedBalanceTertiaryString,

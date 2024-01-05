@@ -168,13 +168,14 @@ class Wallets {
 
     for (final walletInfo in walletInfoList) {
       try {
+        final isVerified = await walletInfo.isMnemonicVerified(mainDB.isar);
         Logging.instance.log(
           "LOADING WALLET: ${walletInfo.name}:${walletInfo.walletId} "
-          "IS VERIFIED: ${walletInfo.isMnemonicVerified}",
+          "IS VERIFIED: $isVerified",
           level: LogLevel.Info,
         );
 
-        if (walletInfo.isMnemonicVerified) {
+        if (isVerified) {
           // TODO: integrate this into the new wallets somehow?
           // requires some thinking
           final txTracker =
@@ -248,12 +249,13 @@ class Wallets {
     }
 
     for (final wallet in wallets) {
+      final isVerified = await wallet.info.isMnemonicVerified(mainDB.isar);
       Logging.instance.log(
-        "LOADING WALLET: ${wallet.info.name}:${wallet.walletId} IS VERIFIED: ${wallet.info.isMnemonicVerified}",
+        "LOADING WALLET: ${wallet.info.name}:${wallet.walletId} IS VERIFIED: $isVerified",
         level: LogLevel.Info,
       );
 
-      if (wallet.info.isMnemonicVerified) {
+      if (isVerified) {
         final shouldSetAutoSync = shouldAutoSyncAll ||
             walletIdsToEnableAutoSync.contains(wallet.walletId);
 

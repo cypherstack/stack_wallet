@@ -57,39 +57,34 @@ const WalletInfoSchema = CollectionSchema(
       name: r'isFavourite',
       type: IsarType.bool,
     ),
-    r'isMnemonicVerified': PropertySchema(
-      id: 8,
-      name: r'isMnemonicVerified',
-      type: IsarType.bool,
-    ),
     r'mainAddressType': PropertySchema(
-      id: 9,
+      id: 8,
       name: r'mainAddressType',
       type: IsarType.byte,
       enumMap: _WalletInfomainAddressTypeEnumValueMap,
     ),
     r'name': PropertySchema(
-      id: 10,
+      id: 9,
       name: r'name',
       type: IsarType.string,
     ),
     r'otherDataJsonString': PropertySchema(
-      id: 11,
+      id: 10,
       name: r'otherDataJsonString',
       type: IsarType.string,
     ),
     r'restoreHeight': PropertySchema(
-      id: 12,
+      id: 11,
       name: r'restoreHeight',
       type: IsarType.long,
     ),
     r'tokenContractAddresses': PropertySchema(
-      id: 13,
+      id: 12,
       name: r'tokenContractAddresses',
       type: IsarType.stringList,
     ),
     r'walletId': PropertySchema(
-      id: 14,
+      id: 13,
       name: r'walletId',
       type: IsarType.string,
     )
@@ -180,13 +175,12 @@ void _walletInfoSerialize(
   writer.writeString(offsets[5], object.coinName);
   writer.writeLong(offsets[6], object.favouriteOrderIndex);
   writer.writeBool(offsets[7], object.isFavourite);
-  writer.writeBool(offsets[8], object.isMnemonicVerified);
-  writer.writeByte(offsets[9], object.mainAddressType.index);
-  writer.writeString(offsets[10], object.name);
-  writer.writeString(offsets[11], object.otherDataJsonString);
-  writer.writeLong(offsets[12], object.restoreHeight);
-  writer.writeStringList(offsets[13], object.tokenContractAddresses);
-  writer.writeString(offsets[14], object.walletId);
+  writer.writeByte(offsets[8], object.mainAddressType.index);
+  writer.writeString(offsets[9], object.name);
+  writer.writeString(offsets[10], object.otherDataJsonString);
+  writer.writeLong(offsets[11], object.restoreHeight);
+  writer.writeStringList(offsets[12], object.tokenContractAddresses);
+  writer.writeString(offsets[13], object.walletId);
 }
 
 WalletInfo _walletInfoDeserialize(
@@ -203,14 +197,13 @@ WalletInfo _walletInfoDeserialize(
     cachedReceivingAddress: reader.readStringOrNull(offsets[4]) ?? "",
     coinName: reader.readString(offsets[5]),
     favouriteOrderIndex: reader.readLongOrNull(offsets[6]) ?? -1,
-    isMnemonicVerified: reader.readBoolOrNull(offsets[8]) ?? false,
     mainAddressType: _WalletInfomainAddressTypeValueEnumMap[
-            reader.readByteOrNull(offsets[9])] ??
+            reader.readByteOrNull(offsets[8])] ??
         AddressType.p2pkh,
-    name: reader.readString(offsets[10]),
-    otherDataJsonString: reader.readStringOrNull(offsets[11]),
-    restoreHeight: reader.readLongOrNull(offsets[12]) ?? 0,
-    walletId: reader.readString(offsets[14]),
+    name: reader.readString(offsets[9]),
+    otherDataJsonString: reader.readStringOrNull(offsets[10]),
+    restoreHeight: reader.readLongOrNull(offsets[11]) ?? 0,
+    walletId: reader.readString(offsets[13]),
   );
   object.id = id;
   return object;
@@ -240,20 +233,18 @@ P _walletInfoDeserializeProp<P>(
     case 7:
       return (reader.readBool(offset)) as P;
     case 8:
-      return (reader.readBoolOrNull(offset) ?? false) as P;
-    case 9:
       return (_WalletInfomainAddressTypeValueEnumMap[
               reader.readByteOrNull(offset)] ??
           AddressType.p2pkh) as P;
-    case 10:
+    case 9:
       return (reader.readString(offset)) as P;
-    case 11:
+    case 10:
       return (reader.readStringOrNull(offset)) as P;
-    case 12:
+    case 11:
       return (reader.readLongOrNull(offset) ?? 0) as P;
-    case 13:
+    case 12:
       return (reader.readStringList(offset) ?? []) as P;
-    case 14:
+    case 13:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1392,16 +1383,6 @@ extension WalletInfoQueryFilter
   }
 
   QueryBuilder<WalletInfo, WalletInfo, QAfterFilterCondition>
-      isMnemonicVerifiedEqualTo(bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'isMnemonicVerified',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<WalletInfo, WalletInfo, QAfterFilterCondition>
       mainAddressTypeEqualTo(AddressType value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -2274,20 +2255,6 @@ extension WalletInfoQuerySortBy
     });
   }
 
-  QueryBuilder<WalletInfo, WalletInfo, QAfterSortBy>
-      sortByIsMnemonicVerified() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isMnemonicVerified', Sort.asc);
-    });
-  }
-
-  QueryBuilder<WalletInfo, WalletInfo, QAfterSortBy>
-      sortByIsMnemonicVerifiedDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isMnemonicVerified', Sort.desc);
-    });
-  }
-
   QueryBuilder<WalletInfo, WalletInfo, QAfterSortBy> sortByMainAddressType() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'mainAddressType', Sort.asc);
@@ -2473,20 +2440,6 @@ extension WalletInfoQuerySortThenBy
     });
   }
 
-  QueryBuilder<WalletInfo, WalletInfo, QAfterSortBy>
-      thenByIsMnemonicVerified() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isMnemonicVerified', Sort.asc);
-    });
-  }
-
-  QueryBuilder<WalletInfo, WalletInfo, QAfterSortBy>
-      thenByIsMnemonicVerifiedDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isMnemonicVerified', Sort.desc);
-    });
-  }
-
   QueryBuilder<WalletInfo, WalletInfo, QAfterSortBy> thenByMainAddressType() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'mainAddressType', Sort.asc);
@@ -2612,13 +2565,6 @@ extension WalletInfoQueryWhereDistinct
     });
   }
 
-  QueryBuilder<WalletInfo, WalletInfo, QDistinct>
-      distinctByIsMnemonicVerified() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'isMnemonicVerified');
-    });
-  }
-
   QueryBuilder<WalletInfo, WalletInfo, QDistinct> distinctByMainAddressType() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'mainAddressType');
@@ -2719,13 +2665,6 @@ extension WalletInfoQueryProperty
   QueryBuilder<WalletInfo, bool, QQueryOperations> isFavouriteProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isFavourite');
-    });
-  }
-
-  QueryBuilder<WalletInfo, bool, QQueryOperations>
-      isMnemonicVerifiedProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'isMnemonicVerified');
     });
   }
 

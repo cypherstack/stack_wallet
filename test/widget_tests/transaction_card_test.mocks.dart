@@ -217,11 +217,6 @@ class MockWallets extends _i1.Mock implements _i13.Wallets {
         returnValueForMissingStub: null,
       );
   @override
-  bool get hasWallets => (super.noSuchMethod(
-        Invocation.getter(#hasWallets),
-        returnValue: false,
-      ) as bool);
-  @override
   List<_i5.Wallet<_i4.CryptoCurrency>> get wallets => (super.noSuchMethod(
         Invocation.getter(#wallets),
         returnValue: <_i5.Wallet<_i4.CryptoCurrency>>[],
