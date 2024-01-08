@@ -34,7 +34,6 @@ import 'package:stackwallet/services/event_bus/events/global/refresh_percent_cha
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/services/mixins/coin_control_interface.dart';
 import 'package:stackwallet/services/mixins/electrum_x_parsing.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
@@ -103,8 +102,13 @@ String constructDerivePath({
 }
 
 class NamecoinWallet extends CoinServiceAPI
-    with WalletCache, WalletDB, ElectrumXParsing, CoinControlInterface
-    implements XPubAble {
+    with
+        WalletCache,
+        WalletDB,
+        ElectrumXParsing
+    // , CoinControlInterface
+    implements
+        XPubAble {
   NamecoinWallet({
     required String walletId,
     required String walletName,
@@ -124,17 +128,17 @@ class NamecoinWallet extends CoinServiceAPI
     _secureStore = secureStore;
     initCache(walletId, coin);
     initWalletDB(mockableOverride: mockableOverride);
-    initCoinControlInterface(
-      walletId: walletId,
-      walletName: walletName,
-      coin: coin,
-      db: db,
-      getChainHeight: () => chainHeight,
-      refreshedBalanceCallback: (balance) async {
-        _balance = balance;
-        await updateCachedBalance(_balance!);
-      },
-    );
+    // initCoinControlInterface(
+    //   walletId: walletId,
+    //   walletName: walletName,
+    //   coin: coin,
+    //   db: db,
+    //   getChainHeight: () => chainHeight,
+    //   refreshedBalanceCallback: (balance) async {
+    //     _balance = balance;
+    //     await updateCachedBalance(_balance!);
+    //   },
+    // );
   }
 
   static const integrationTestFlag =
@@ -1903,7 +1907,7 @@ class NamecoinWallet extends CoinServiceAPI
   }
 
   Future<void> _updateBalance() async {
-    await refreshBalance();
+    // await refreshBalance();
   }
 
   @override

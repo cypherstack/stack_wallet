@@ -34,7 +34,6 @@ import 'package:stackwallet/services/event_bus/events/global/refresh_percent_cha
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/services/mixins/coin_control_interface.dart';
 import 'package:stackwallet/services/mixins/wallet_cache.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/mixins/xpubable.dart';
@@ -98,8 +97,12 @@ String constructDerivePath({
 }
 
 class ParticlWallet extends CoinServiceAPI
-    with WalletCache, WalletDB, CoinControlInterface
-    implements XPubAble {
+    with
+        WalletCache,
+        WalletDB
+    // , CoinControlInterface
+    implements
+        XPubAble {
   ParticlWallet({
     required String walletId,
     required String walletName,
@@ -119,17 +122,17 @@ class ParticlWallet extends CoinServiceAPI
     _secureStore = secureStore;
     initCache(walletId, coin);
     initWalletDB(mockableOverride: mockableOverride);
-    initCoinControlInterface(
-      walletId: walletId,
-      walletName: walletName,
-      coin: coin,
-      db: db,
-      getChainHeight: () => chainHeight,
-      refreshedBalanceCallback: (balance) async {
-        _balance = balance;
-        await updateCachedBalance(_balance!);
-      },
-    );
+    // initCoinControlInterface(
+    //   walletId: walletId,
+    //   walletName: walletName,
+    //   coin: coin,
+    //   db: db,
+    //   getChainHeight: () => chainHeight,
+    //   refreshedBalanceCallback: (balance) async {
+    //     _balance = balance;
+    //     await updateCachedBalance(_balance!);
+    //   },
+    // );
   }
 
   static const integrationTestFlag =
@@ -1790,7 +1793,7 @@ class ParticlWallet extends CoinServiceAPI
   }
 
   Future<void> _updateBalance() async {
-    await refreshBalance();
+    // await refreshBalance();
   }
 
   @override
