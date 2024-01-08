@@ -30,11 +30,13 @@ import 'package:stackwallet/wallets/wallet/impl/ecash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/litecoin_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/monero_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/namecoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/nano_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/particl_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/tezos_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
+import 'package:stackwallet/wallets/wallet/intermediate/cryptonote_wallet.dart';
 import 'package:stackwallet/wallets/wallet/private_key_based_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
@@ -139,14 +141,19 @@ abstract class Wallet<T extends CryptoCurrency> {
     );
 
     if (wallet is MnemonicInterface) {
-      await secureStorageInterface.write(
-        key: mnemonicKey(walletId: walletInfo.walletId),
-        value: mnemonic!,
-      );
-      await secureStorageInterface.write(
-        key: mnemonicPassphraseKey(walletId: walletInfo.walletId),
-        value: mnemonicPassphrase!,
-      );
+      if (wallet is CryptonoteWallet) {
+        // currently a special case due to the xmr/wow libraries handling their
+        // own mnemonic generation
+      } else {
+        await secureStorageInterface.write(
+          key: mnemonicKey(walletId: walletInfo.walletId),
+          value: mnemonic!,
+        );
+        await secureStorageInterface.write(
+          key: mnemonicPassphraseKey(walletId: walletInfo.walletId),
+          value: mnemonicPassphrase!,
+        );
+      }
     }
 
     if (wallet is PrivateKeyBasedWallet) {
@@ -280,6 +287,9 @@ abstract class Wallet<T extends CryptoCurrency> {
         return LitecoinWallet(CryptoCurrencyNetwork.main);
       case Coin.litecoinTestNet:
         return LitecoinWallet(CryptoCurrencyNetwork.test);
+
+      case Coin.monero:
+        return MoneroWallet(CryptoCurrencyNetwork.main);
 
       case Coin.namecoin:
         return NamecoinWallet(CryptoCurrencyNetwork.main);

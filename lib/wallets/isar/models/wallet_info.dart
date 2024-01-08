@@ -286,7 +286,7 @@ class WalletInfo implements IsarId {
     }
   }
 
-  /// copies this with a new name and updates the db
+  /// Can be dangerous. Don't use unless you know the consequences
   Future<void> setMnemonicVerified({
     required Isar isar,
   }) async {
@@ -294,7 +294,6 @@ class WalletInfo implements IsarId {
         await isar.walletInfoMeta.where().walletIdEqualTo(walletId).findFirst();
     if (meta == null) {
       await isar.writeTxn(() async {
-        await isar.walletInfoMeta.deleteByWalletId(walletId);
         await isar.walletInfoMeta.put(
           WalletInfoMeta(
             walletId: walletId,
@@ -304,6 +303,7 @@ class WalletInfo implements IsarId {
       });
     } else if (meta.isMnemonicVerified == false) {
       await isar.writeTxn(() async {
+        await isar.walletInfoMeta.deleteByWalletId(walletId);
         await isar.walletInfoMeta.put(
           WalletInfoMeta(
             walletId: walletId,
@@ -316,6 +316,26 @@ class WalletInfo implements IsarId {
         "setMnemonicVerified() called on already"
         " verified wallet: $name, $walletId",
       );
+    }
+  }
+
+  /// copies this with a new name and updates the db
+  Future<void> updateRestoreHeight({
+    required int newRestoreHeight,
+    required Isar isar,
+  }) async {
+    // don't allow empty names
+    if (newRestoreHeight < 0) {
+      throw Exception("Negative restore height not allowed!");
+    }
+
+    // only update if there were changes to the name
+    if (restoreHeight != newRestoreHeight) {
+      _restoreHeight = newRestoreHeight;
+      await isar.writeTxn(() async {
+        await isar.walletInfo.deleteByWalletId(walletId);
+        await isar.walletInfo.put(this);
+      });
     }
   }
 

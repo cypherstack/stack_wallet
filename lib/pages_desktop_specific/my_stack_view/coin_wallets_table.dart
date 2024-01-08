@@ -8,6 +8,8 @@
  *
  */
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
@@ -79,8 +81,8 @@ class CoinWalletsTable extends ConsumerWidget {
                                 ref.read(pWallets).getWallet(walletIds[i]);
                             if (wallet.info.coin == Coin.monero ||
                                 wallet.info.coin == Coin.wownero) {
-                              // TODO: this can cause ui lag
-                              await wallet.init();
+                              // TODO: this can cause ui lag if awaited
+                              unawaited(wallet.init());
                             }
 
                             await Navigator.of(context).pushNamed(

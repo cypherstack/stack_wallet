@@ -1,3 +1,4 @@
+import 'package:cw_monero/pending_monero_transaction.dart';
 import 'package:cw_wownero/pending_wownero_transaction.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
@@ -45,6 +46,9 @@ class TxData {
   // wownero specific
   final PendingWowneroTransaction? pendingWowneroTransaction;
 
+  // monero specific
+  final PendingMoneroTransaction? pendingMoneroTransaction;
+
   // firo lelantus specific
   final int? jMintValue;
   final List<int>? spendCoinIndexes;
@@ -91,6 +95,7 @@ class TxData {
     this.chainId,
     this.feeInWei,
     this.pendingWowneroTransaction,
+    this.pendingMoneroTransaction,
     this.jMintValue,
     this.spendCoinIndexes,
     this.height,
@@ -165,6 +170,7 @@ class TxData {
     BigInt? chainId,
     BigInt? feeInWei,
     PendingWowneroTransaction? pendingWowneroTransaction,
+    PendingMoneroTransaction? pendingMoneroTransaction,
     int? jMintValue,
     List<int>? spendCoinIndexes,
     int? height,
@@ -207,6 +213,8 @@ class TxData {
       feeInWei: feeInWei ?? this.feeInWei,
       pendingWowneroTransaction:
           pendingWowneroTransaction ?? this.pendingWowneroTransaction,
+      pendingMoneroTransaction:
+          pendingMoneroTransaction ?? this.pendingMoneroTransaction,
       jMintValue: jMintValue ?? this.jMintValue,
       spendCoinIndexes: spendCoinIndexes ?? this.spendCoinIndexes,
       height: height ?? this.height,
@@ -244,6 +252,7 @@ class TxData {
       'chainId: $chainId, '
       'feeInWei: $feeInWei, '
       'pendingWowneroTransaction: $pendingWowneroTransaction, '
+      'pendingMoneroTransaction: $pendingMoneroTransaction, '
       'jMintValue: $jMintValue, '
       'spendCoinIndexes: $spendCoinIndexes, '
       'height: $height, '

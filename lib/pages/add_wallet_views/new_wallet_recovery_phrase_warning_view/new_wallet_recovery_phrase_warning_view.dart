@@ -500,7 +500,13 @@ class _NewWalletRecoveryPhraseWarningViewState
                                         Constants.defaultSeedPhraseLengthFor(
                                       coin: info.coin,
                                     );
-                                    if (wordCount > 0) {
+
+                                    if (coin == Coin.monero ||
+                                        coin == Coin.wownero) {
+                                      // currently a special case due to the
+                                      // xmr/wow libraries handling their
+                                      // own mnemonic generation
+                                    } else if (wordCount > 0) {
                                       if (ref
                                               .read(pNewWalletOptions.state)
                                               .state !=

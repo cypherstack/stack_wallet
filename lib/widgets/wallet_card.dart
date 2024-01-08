@@ -97,7 +97,8 @@ class SimpleWalletCard extends ConsumerWidget {
 
     final wallet = ref.read(pWallets).getWallet(walletId);
     if (wallet.info.coin == Coin.monero || wallet.info.coin == Coin.wownero) {
-      await wallet.init();
+      // TODO: this can cause ui lag if awaited
+      unawaited(wallet.init());
     }
     if (context.mounted) {
       if (popPrevious) nav.pop();

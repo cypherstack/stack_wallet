@@ -13,15 +13,13 @@ import 'package:cw_core/wallet_info.dart';
 import 'package:cw_core/wallet_service.dart';
 import 'package:cw_core/wallet_type.dart';
 import 'package:cw_monero/api/exceptions/creation_transaction_exception.dart';
-import 'package:cw_wownero/api/wallet.dart';
-import 'package:cw_wownero/pending_wownero_transaction.dart';
-import 'package:cw_wownero/wownero_wallet.dart';
+import 'package:cw_monero/monero_wallet.dart';
+import 'package:cw_monero/pending_monero_transaction.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter_libmonero/core/key_service.dart';
 import 'package:flutter_libmonero/core/wallet_creation_service.dart';
-import 'package:flutter_libmonero/view_model/send/output.dart'
-    as wownero_output;
-import 'package:flutter_libmonero/wownero/wownero.dart' as wow_dart;
+import 'package:flutter_libmonero/monero/monero.dart' as xmr_dart;
+import 'package:flutter_libmonero/view_model/send/output.dart' as monero_output;
 import 'package:isar/isar.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stackwallet/db/hive/db.dart';
@@ -38,7 +36,7 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/monero.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/cryptonote_wallet.dart';
@@ -46,8 +44,8 @@ import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
 import 'package:tuple/tuple.dart';
 
-class WowneroWallet extends CryptonoteWallet with MultiAddressInterface {
-  WowneroWallet(CryptoCurrencyNetwork network) : super(Wownero(network));
+class MoneroWallet extends CryptonoteWallet with MultiAddressInterface {
+  MoneroWallet(CryptoCurrencyNetwork network) : super(Monero(network));
 
   @override
   FilterOperation? get changeAddressFilterOperation => null;
@@ -62,7 +60,7 @@ class WowneroWallet extends CryptonoteWallet with MultiAddressInterface {
 
   WalletService? cwWalletService;
   KeyService? cwKeysStorage;
-  WowneroWalletBase? cwWalletBase;
+  MoneroWalletBase? cwWalletBase;
   WalletCreationService? cwWalletCreationService;
   Timer? _autoSaveTimer;
 
@@ -190,7 +188,7 @@ class WowneroWallet extends CryptonoteWallet with MultiAddressInterface {
     await cwWalletBase?.connectToNode(
       node: Node(
         uri: "$host:${node.port}",
-        type: WalletType.wownero,
+        type: WalletType.monero,
         trusted: node.trusted ?? false,
       ),
     );
@@ -300,8 +298,8 @@ class WowneroWallet extends CryptonoteWallet with MultiAddressInterface {
 
   @override
   Future<void> init() async {
-    cwWalletService = wow_dart.wownero
-        .createWowneroWalletService(DB.instance.moneroWalletInfoBox);
+    cwWalletService = xmr_dart.monero
+        .createMoneroWalletService(DB.instance.moneroWalletInfoBox);
     cwKeysStorage = KeyService(secureStorageInterface);
 
     if (await cwWalletService!.isWalletExit(walletId)) {
@@ -312,7 +310,8 @@ class WowneroWallet extends CryptonoteWallet with MultiAddressInterface {
         throw Exception("Password not found $e, $s");
       }
       cwWalletBase = (await cwWalletService!.openWallet(walletId, password))
-          as WowneroWalletBase;
+          as MoneroWalletBase;
+
       unawaited(_start());
     } else {
       WalletInfo walletInfo;
@@ -320,18 +319,17 @@ class WowneroWallet extends CryptonoteWallet with MultiAddressInterface {
       try {
         String name = walletId;
         final dirPath =
-            await _pathForWalletDir(name: name, type: WalletType.wownero);
-        final path = await _pathForWallet(name: name, type: WalletType.wownero);
-        credentials = wow_dart.wownero.createWowneroNewWalletCredentials(
+            await _pathForWalletDir(name: name, type: WalletType.monero);
+        final path = await _pathForWallet(name: name, type: WalletType.monero);
+        credentials = xmr_dart.monero.createMoneroNewWalletCredentials(
           name: name,
           language: "English",
-          seedWordsLength: 14,
         );
 
         walletInfo = WalletInfo.external(
-          id: WalletBase.idFor(name, WalletType.wownero),
+          id: WalletBase.idFor(name, WalletType.monero),
           name: name,
-          type: WalletType.wownero,
+          type: WalletType.monero,
           isRecovery: false,
           restoreHeight: credentials.height ?? 0,
           date: DateTime.now(),
@@ -347,18 +345,13 @@ class WowneroWallet extends CryptonoteWallet with MultiAddressInterface {
           walletService: cwWalletService,
           keyService: cwKeysStorage,
         );
-        // _walletCreationService.changeWalletType();
-        _walletCreationService.type = WalletType.wownero;
+        _walletCreationService.type = WalletType.monero;
         // To restore from a seed
         final wallet = await _walletCreationService.create(credentials);
-        //
-        // final bufferedCreateHeight = (seedWordsLength == 14)
-        //     ? getSeedHeightSync(wallet?.seed.trim() as String)
-        //     : wownero.getHeightByDate(
-        //     date: DateTime.now().subtract(const Duration(
-        //         days:
-        //         2))); // subtract a couple days to ensure we have a buffer for SWB
-        final bufferedCreateHeight = getSeedHeightSync(wallet!.seed.trim());
+
+        // subtract a couple days to ensure we have a buffer for SWB
+        final bufferedCreateHeight = xmr_dart.monero.getHeigthByDate(
+            date: DateTime.now().subtract(const Duration(days: 2)));
 
         await info.updateRestoreHeight(
           newRestoreHeight: bufferedCreateHeight,
@@ -383,7 +376,7 @@ class WowneroWallet extends CryptonoteWallet with MultiAddressInterface {
             .add<WalletInfo>(boxName: WalletInfo.boxName, value: walletInfo);
 
         cwWalletBase?.close();
-        cwWalletBase = wallet as WowneroWalletBase;
+        cwWalletBase = wallet as MoneroWalletBase;
         unawaited(_start());
       } catch (e, s) {
         Logging.instance.log("$e\n$s", level: LogLevel.Fatal);
@@ -396,6 +389,31 @@ class WowneroWallet extends CryptonoteWallet with MultiAddressInterface {
     }
 
     return super.init();
+  }
+
+  Future<void> _start() async {
+    cwWalletBase?.onNewBlock = onNewBlock;
+    cwWalletBase?.onNewTransaction = onNewTransaction;
+    cwWalletBase?.syncStatusChanged = syncStatusChanged;
+
+    if (cwWalletBase != null && !(await cwWalletBase!.isConnected())) {
+      final node = getCurrentNode();
+      final host = Uri.parse(node.host).host;
+      await cwWalletBase?.connectToNode(
+        node: Node(
+          uri: "$host:${node.port}",
+          type: WalletType.monero,
+          trusted: node.trusted ?? false,
+        ),
+      );
+    }
+    await cwWalletBase?.startSync();
+    unawaited(refresh());
+    _autoSaveTimer?.cancel();
+    _autoSaveTimer = Timer.periodic(
+      const Duration(seconds: 193),
+      (_) async => await cwWalletBase?.save(),
+    );
   }
 
   @override
@@ -545,54 +563,49 @@ class WowneroWallet extends CryptonoteWallet with MultiAddressInterface {
       final mnemonic = await getMnemonic();
       final seedLength = mnemonic.trim().split(" ").length;
 
-      if (!(seedLength == 14 || seedLength == 25)) {
-        throw Exception("Invalid wownero mnemonic length found: $seedLength");
+      if (seedLength != 25) {
+        throw Exception("Invalid monero mnemonic length found: $seedLength");
       }
 
       try {
         int height = info.restoreHeight;
 
-        // extract seed height from 14 word seed
-        if (seedLength == 14) {
-          height = getSeedHeightSync(mnemonic.trim());
-        } else {
-          // 25 word seed. TODO validate
-          if (height == 0) {
-            height = wow_dart.wownero.getHeightByDate(
-              date: DateTime.now().subtract(
-                const Duration(
-                  // subtract a couple days to ensure we have a buffer for SWB
-                  days: 2,
-                ),
+        // 25 word seed. TODO validate
+        if (height == 0) {
+          height = xmr_dart.monero.getHeigthByDate(
+            date: DateTime.now().subtract(
+              const Duration(
+                // subtract a couple days to ensure we have a buffer for SWB
+                days: 2,
               ),
-            );
-          }
+            ),
+          );
         }
 
         // TODO: info.updateRestoreHeight
         // await DB.instance
         //     .put<dynamic>(boxName: walletId, key: "restoreHeight", value: height);
 
-        cwWalletService = wow_dart.wownero
-            .createWowneroWalletService(DB.instance.moneroWalletInfoBox);
+        cwWalletService = xmr_dart.monero
+            .createMoneroWalletService(DB.instance.moneroWalletInfoBox);
         cwKeysStorage = KeyService(secureStorageInterface);
         WalletInfo walletInfo;
         WalletCredentials credentials;
         String name = walletId;
         final dirPath =
-            await _pathForWalletDir(name: name, type: WalletType.wownero);
-        final path = await _pathForWallet(name: name, type: WalletType.wownero);
+            await _pathForWalletDir(name: name, type: WalletType.monero);
+        final path = await _pathForWallet(name: name, type: WalletType.monero);
         credentials =
-            wow_dart.wownero.createWowneroRestoreWalletFromSeedCredentials(
+            xmr_dart.monero.createMoneroRestoreWalletFromSeedCredentials(
           name: name,
           height: height,
           mnemonic: mnemonic.trim(),
         );
         try {
           walletInfo = WalletInfo.external(
-              id: WalletBase.idFor(name, WalletType.wownero),
+              id: WalletBase.idFor(name, WalletType.monero),
               name: name,
-              type: WalletType.wownero,
+              type: WalletType.monero,
               isRecovery: false,
               restoreHeight: credentials.height ?? 0,
               date: DateTime.now(),
@@ -615,7 +628,7 @@ class WowneroWallet extends CryptonoteWallet with MultiAddressInterface {
           await DB.instance
               .add<WalletInfo>(boxName: WalletInfo.boxName, value: walletInfo);
           cwWalletBase?.close();
-          cwWalletBase = wallet as WowneroWalletBase;
+          cwWalletBase = wallet as MoneroWalletBase;
         } catch (e, s) {
           Logging.instance.log("$e\n$s", level: LogLevel.Fatal);
         }
@@ -662,9 +675,9 @@ class WowneroWallet extends CryptonoteWallet with MultiAddressInterface {
             isSendAll = true;
           }
 
-          List<wownero_output.Output> outputs = [];
+          List<monero_output.Output> outputs = [];
           for (final recipient in txData.recipients!) {
-            final output = wownero_output.Output(cwWalletBase!);
+            final output = monero_output.Output(cwWalletBase!);
             output.address = recipient.address;
             output.sendAll = isSendAll;
             String amountToSend = recipient.amount.decimal.toString();
@@ -672,7 +685,7 @@ class WowneroWallet extends CryptonoteWallet with MultiAddressInterface {
           }
 
           final tmp =
-              wow_dart.wownero.createWowneroTransactionCreationCredentials(
+              xmr_dart.monero.createMoneroTransactionCreationCredentials(
             outputs: outputs,
             priority: feePriority,
           );
@@ -685,16 +698,16 @@ class WowneroWallet extends CryptonoteWallet with MultiAddressInterface {
               level: LogLevel.Warning);
         }
 
-        PendingWowneroTransaction pendingWowneroTransaction =
-            await (awaitPendingTransaction!) as PendingWowneroTransaction;
+        PendingMoneroTransaction pendingMoneroTransaction =
+            await (awaitPendingTransaction!) as PendingMoneroTransaction;
         final realFee = Amount.fromDecimal(
-          Decimal.parse(pendingWowneroTransaction.feeFormatted),
+          Decimal.parse(pendingMoneroTransaction.feeFormatted),
           fractionDigits: cryptoCurrency.fractionDigits,
         );
 
         return txData.copyWith(
           fee: realFee,
-          pendingWowneroTransaction: pendingWowneroTransaction,
+          pendingMoneroTransaction: pendingMoneroTransaction,
         );
       } else {
         throw ArgumentError("Invalid fee rate argument provided!");
@@ -717,13 +730,13 @@ class WowneroWallet extends CryptonoteWallet with MultiAddressInterface {
   Future<TxData> confirmSend({required TxData txData}) async {
     try {
       try {
-        await txData.pendingWowneroTransaction!.commit();
+        await txData.pendingMoneroTransaction!.commit();
         Logging.instance.log(
-            "transaction ${txData.pendingWowneroTransaction!.id} has been sent",
+            "transaction ${txData.pendingMoneroTransaction!.id} has been sent",
             level: LogLevel.Info);
-        return txData.copyWith(txid: txData.pendingWowneroTransaction!.id);
+        return txData.copyWith(txid: txData.pendingMoneroTransaction!.id);
       } catch (e, s) {
-        Logging.instance.log("${info.name} wownero confirmSend: $e\n$s",
+        Logging.instance.log("${info.name} monero confirmSend: $e\n$s",
             level: LogLevel.Error);
         rethrow;
       }
@@ -735,31 +748,6 @@ class WowneroWallet extends CryptonoteWallet with MultiAddressInterface {
   }
 
   // ====== private ============================================================
-
-  Future<void> _start() async {
-    cwWalletBase?.onNewBlock = onNewBlock;
-    cwWalletBase?.onNewTransaction = onNewTransaction;
-    cwWalletBase?.syncStatusChanged = syncStatusChanged;
-
-    if (cwWalletBase != null && !(await cwWalletBase!.isConnected())) {
-      final node = getCurrentNode();
-      final host = Uri.parse(node.host).host;
-      await cwWalletBase?.connectToNode(
-        node: Node(
-          uri: "$host:${node.port}",
-          type: WalletType.monero,
-          trusted: node.trusted ?? false,
-        ),
-      );
-    }
-    await cwWalletBase?.startSync();
-    unawaited(refresh());
-    _autoSaveTimer?.cancel();
-    _autoSaveTimer = Timer.periodic(
-      const Duration(seconds: 193),
-      (_) async => await cwWalletBase?.save(),
-    );
-  }
 
   void onNewBlock({required int height, required int blocksLeft}) {
     _currentKnownChainHeight = height;
@@ -1002,51 +990,51 @@ class WowneroWallet extends CryptonoteWallet with MultiAddressInterface {
     // do nothing
   }
 
-  // TODO: [prio=med/low] is this required?
-  // bool _isActive = false;
-  // @override
-  // void Function(bool)? get onIsActiveWalletChanged => (isActive) async {
-  //   if (_isActive == isActive) {
-  //     return;
-  //   }
-  //   _isActive = isActive;
-  //
-  //   if (isActive) {
-  //     _hasCalledExit = false;
-  //     String? password;
-  //     try {
-  //       password =
-  //       await keysStorage?.getWalletPassword(walletName: _walletId);
-  //     } catch (e, s) {
-  //       throw Exception("Password not found $e, $s");
-  //     }
-  //     walletBase = (await walletService?.openWallet(_walletId, password!))
-  //     as WowneroWalletBase?;
-  //
-  //     walletBase!.onNewBlock = onNewBlock;
-  //     walletBase!.onNewTransaction = onNewTransaction;
-  //     walletBase!.syncStatusChanged = syncStatusChanged;
-  //
-  //     if (!(await walletBase!.isConnected())) {
-  //       final node = await _getCurrentNode();
-  //       final host = Uri.parse(node.host).host;
-  //       await walletBase?.connectToNode(
-  //         node: Node(
-  //           uri: "$host:${node.port}",
-  //           type: WalletType.wownero,
-  //           trusted: node.trusted ?? false,
-  //         ),
-  //       );
-  //     }
-  //     await walletBase?.startSync();
-  //     await refresh();
-  //     _autoSaveTimer?.cancel();
-  //     _autoSaveTimer = Timer.periodic(
-  //       const Duration(seconds: 193),
-  //           (_) async => await walletBase?.save(),
-  //     );
-  //   } else {
-  //     await exit();
-  //   }
-  // };
+// TODO: [prio=med/low] is this required?
+// bool _isActive = false;
+// @override
+// void Function(bool)? get onIsActiveWalletChanged => (isActive) async {
+//   if (_isActive == isActive) {
+//     return;
+//   }
+//   _isActive = isActive;
+//
+//   if (isActive) {
+//     _hasCalledExit = false;
+//     String? password;
+//     try {
+//       password =
+//       await keysStorage?.getWalletPassword(walletName: _walletId);
+//     } catch (e, s) {
+//       throw Exception("Password not found $e, $s");
+//     }
+//     walletBase = (await walletService?.openWallet(_walletId, password!))
+//     as MoneroWalletBase?;
+//
+//     walletBase!.onNewBlock = onNewBlock;
+//     walletBase!.onNewTransaction = onNewTransaction;
+//     walletBase!.syncStatusChanged = syncStatusChanged;
+//
+//     if (!(await walletBase!.isConnected())) {
+//       final node = await _getCurrentNode();
+//       final host = Uri.parse(node.host).host;
+//       await walletBase?.connectToNode(
+//         node: Node(
+//           uri: "$host:${node.port}",
+//           type: WalletType.Monero,
+//           trusted: node.trusted ?? false,
+//         ),
+//       );
+//     }
+//     await walletBase?.startSync();
+//     await refresh();
+//     _autoSaveTimer?.cancel();
+//     _autoSaveTimer = Timer.periodic(
+//       const Duration(seconds: 193),
+//           (_) async => await walletBase?.save(),
+//     );
+//   } else {
+//     await exit();
+//   }
+// };
 }
