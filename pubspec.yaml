@@ -168,6 +168,11 @@ dependencies:
   convert: ^3.1.1
   flutter_hooks: ^0.20.3
   meta: ^1.9.1
+  coinlib_flutter:
+    git:
+      url: https://github.com/cypherstack/coinlib.git
+      path: coinlib_flutter
+      ref: 4f549b8b511a63fdc1f44796ab43b10f586635cd
 
 dev_dependencies:
   flutter_test:
@@ -186,11 +191,6 @@ dev_dependencies:
   import_sorter: ^4.6.0
   flutter_lints: ^2.0.1
   isar_generator: 3.0.5
-  coinlib_flutter:
-    git:
-      url: https://github.com/cypherstack/coinlib.git
-      path: coinlib_flutter
-      ref: 4f549b8b511a63fdc1f44796ab43b10f586635cd
 
 flutter_launcher_icons:
   android: true
