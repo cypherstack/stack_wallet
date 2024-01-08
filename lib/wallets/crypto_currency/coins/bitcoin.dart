@@ -27,7 +27,7 @@ class Bitcoin extends Bip39HDCurrency {
   @override
   List<DerivePathType> get supportedDerivationPathTypes => [
         DerivePathType.bip44,
-        DerivePathType.bip49,
+        // DerivePathType.bip49,
         DerivePathType.bip84,
       ];
 
@@ -107,9 +107,9 @@ class Bitcoin extends Bip39HDCurrency {
       case DerivePathType.bip44:
         purpose = 44;
         break;
-      case DerivePathType.bip49:
-        purpose = 49;
-        break;
+      // case DerivePathType.bip49:
+      //   purpose = 49;
+      //   break;
       case DerivePathType.bip84:
         purpose = 84;
         break;
@@ -134,26 +134,26 @@ class Bitcoin extends Bip39HDCurrency {
 
         return (address: addr, addressType: AddressType.p2pkh);
 
-      case DerivePathType.bip49:
-        // addressString = P2SH(
-        //         data: PaymentData(
-        //             redeem: P2WPKH(data: data, network: _network).data),
-        //         network: _network)
-        //     .data
-        //     .address!;
-
-        // todo ?????????????????? Does not match with current BTC
-        final adr = coinlib.P2WPKHAddress.fromPublicKey(
-          publicKey,
-          hrp: networkParams.bech32Hrp,
-        );
-        final addr = coinlib.P2SHAddress.fromHash(
-          adr.program.pkHash,
-          version: networkParams.p2shPrefix,
-        );
-
-        // TODO ??????????????
-        return (address: addr, addressType: AddressType.p2sh);
+      // case DerivePathType.bip49:
+      //   // addressString = P2SH(
+      //   //         data: PaymentData(
+      //   //             redeem: P2WPKH(data: data, network: _network).data),
+      //   //         network: _network)
+      //   //     .data
+      //   //     .address!;
+      //
+      //   // todo ?????????????????? Does not match with current BTC
+      //   final adr = coinlib.P2WPKHAddress.fromPublicKey(
+      //     publicKey,
+      //     hrp: networkParams.bech32Hrp,
+      //   );
+      //   final addr = coinlib.P2SHAddress.fromHash(
+      //     adr.program.pkHash,
+      //     version: networkParams.p2shPrefix,
+      //   );
+      //
+      //   // TODO ??????????????
+      //   return (address: addr, addressType: AddressType.p2sh);
 
       case DerivePathType.bip84:
         final addr = coinlib.P2WPKHAddress.fromPublicKey(
