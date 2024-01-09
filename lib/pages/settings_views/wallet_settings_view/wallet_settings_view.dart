@@ -30,7 +30,6 @@ import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_set
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
@@ -40,6 +39,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -470,11 +470,11 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
   final hostController = TextEditingController();
   final portController = TextEditingController();
 
-  late EpicCashWallet wallet;
+  late EpiccashWallet wallet;
 
   @override
   void initState() {
-    wallet = ref.read(pWallets).getWallet(widget.walletId) as EpicCashWallet;
+    wallet = ref.read(pWallets).getWallet(widget.walletId) as EpiccashWallet;
 
     wallet.getEpicBoxConfig().then((EpicBoxConfigModel epicBoxConfig) {
       hostController.text = epicBoxConfig.host;

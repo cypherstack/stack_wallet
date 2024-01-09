@@ -26,7 +26,6 @@ import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
@@ -39,6 +38,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -1592,7 +1592,7 @@ class _TransactionDetailsViewState
                     onPressed: () async {
                       final wallet = ref.read(pWallets).getWallet(walletId);
 
-                      if (wallet is EpicCashWallet) {
+                      if (wallet is EpiccashWallet) {
                         final String? id = _transaction.slateId;
                         if (id == null) {
                           unawaited(showFloatingFlushBar(
@@ -1610,8 +1610,8 @@ class _TransactionDetailsViewState
                               const CancellingTransactionProgressDialog(),
                         ));
 
-                        final result = await (wallet as EpicCashWallet)
-                            .cancelPendingTransactionAndPost(id);
+                        final result =
+                            await wallet.cancelPendingTransactionAndPost(id);
                         if (mounted) {
                           // pop progress dialog
                           Navigator.of(context).pop();

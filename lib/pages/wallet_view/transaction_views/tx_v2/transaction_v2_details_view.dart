@@ -19,7 +19,9 @@ import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart'
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/dialogs/cancelling_transaction_progress_dialog.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/edit_note_view.dart';
+import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -34,6 +36,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -1448,7 +1451,68 @@ class _TransactionV2DetailsViewState
                             //       ],
                             //     ),
                             //   ),
-
+                            if (coin == Coin.epicCash)
+                              isDesktop
+                                  ? const _Divider()
+                                  : const SizedBox(
+                                      height: 12,
+                                    ),
+                            if (coin == Coin.epicCash)
+                              RoundedWhiteContainer(
+                                padding: isDesktop
+                                    ? const EdgeInsets.all(16)
+                                    : const EdgeInsets.all(12),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Slate ID",
+                                          style: isDesktop
+                                              ? STextStyles
+                                                  .desktopTextExtraExtraSmall(
+                                                      context)
+                                              : STextStyles.itemSubtitle(
+                                                  context),
+                                        ),
+                                        // Flexible(
+                                        //   child: FittedBox(
+                                        //     fit: BoxFit.scaleDown,
+                                        //     child:
+                                        SelectableText(
+                                          _transaction.slateId ?? "Unknown",
+                                          style: isDesktop
+                                              ? STextStyles
+                                                      .desktopTextExtraExtraSmall(
+                                                          context)
+                                                  .copyWith(
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .textDark,
+                                                )
+                                              : STextStyles.itemSubtitle12(
+                                                  context),
+                                        ),
+                                        //   ),
+                                        // ),
+                                      ],
+                                    ),
+                                    if (isDesktop)
+                                      const SizedBox(
+                                        width: 12,
+                                      ),
+                                    if (isDesktop)
+                                      IconCopyButton(
+                                        data: _transaction.slateId ?? "Unknown",
+                                      ),
+                                  ],
+                                ),
+                              ),
                             if (!isDesktop)
                               const SizedBox(
                                 height: 12,
@@ -1463,6 +1527,98 @@ class _TransactionV2DetailsViewState
             ],
           ),
         ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        floatingActionButton: (coin == Coin.epicCash &&
+                _transaction.getConfirmations(currentHeight) < 1 &&
+                _transaction.isCancelled == false)
+            ? ConditionalParent(
+                condition: isDesktop,
+                builder: (child) => Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
+                  child: child,
+                ),
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width - 32,
+                  child: TextButton(
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all<Color>(
+                        Theme.of(context).extension<StackColors>()!.textError,
+                      ),
+                    ),
+                    onPressed: () async {
+                      final wallet = ref.read(pWallets).getWallet(walletId);
+
+                      if (wallet is EpiccashWallet) {
+                        final String? id = _transaction.slateId;
+                        if (id == null) {
+                          unawaited(showFloatingFlushBar(
+                            type: FlushBarType.warning,
+                            message: "Could not find Epic transaction ID",
+                            context: context,
+                          ));
+                          return;
+                        }
+
+                        unawaited(
+                          showDialog<void>(
+                            barrierDismissible: false,
+                            context: context,
+                            builder: (_) =>
+                                const CancellingTransactionProgressDialog(),
+                          ),
+                        );
+
+                        final result =
+                            await wallet.cancelPendingTransactionAndPost(id);
+                        if (mounted) {
+                          // pop progress dialog
+                          Navigator.of(context).pop();
+
+                          if (result.isEmpty) {
+                            await showDialog<dynamic>(
+                              context: context,
+                              builder: (_) => StackOkDialog(
+                                title: "Transaction cancelled",
+                                onOkPressed: (_) {
+                                  wallet.refresh();
+                                  Navigator.of(context).popUntil(
+                                    ModalRoute.withName(
+                                      WalletView.routeName,
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          } else {
+                            await showDialog<dynamic>(
+                              context: context,
+                              builder: (_) => StackOkDialog(
+                                title: "Failed to cancel transaction",
+                                message: result,
+                              ),
+                            );
+                          }
+                        }
+                      } else {
+                        unawaited(showFloatingFlushBar(
+                          type: FlushBarType.warning,
+                          message: "ERROR: Wallet type is not Epic Cash",
+                          context: context,
+                        ));
+                        return;
+                      }
+                    },
+                    child: Text(
+                      "Cancel Transaction",
+                      style: STextStyles.button(context),
+                    ),
+                  ),
+                ),
+              )
+            : null,
       ),
     );
   }
