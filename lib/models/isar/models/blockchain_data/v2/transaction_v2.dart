@@ -57,6 +57,14 @@ class TransactionV2 {
     required this.otherData,
   });
 
+  bool get isEpiccashTransaction =>
+      _getFromOtherData(key: "isEpiccashTransaction") == true;
+  int? get numberOfMessages =>
+      _getFromOtherData(key: "numberOfMessages") as int?;
+  String? get slateId => _getFromOtherData(key: "slateId") as String?;
+  String? get onChainNote => _getFromOtherData(key: "onChainNote") as String?;
+  bool get isCancelled => _getFromOtherData(key: "isCancelled") == true;
+
   int getConfirmations(int currentChainHeight) {
     if (height == null || height! <= 0) return 0;
     return max(0, currentChainHeight - (height! - 1));
@@ -146,35 +154,39 @@ class TransactionV2 {
       }
     }
 
-    // if (coin == Coin.epicCash) {
-    //   if (_transaction.isCancelled) {
-    //     return "Cancelled";
-    //   } else if (type == TransactionType.incoming) {
-    //     if (isConfirmed(height, minConfirms)) {
-    //       return "Received";
-    //     } else {
-    //       if (_transaction.numberOfMessages == 1) {
-    //         return "Receiving (waiting for sender)";
-    //       } else if ((_transaction.numberOfMessages ?? 0) > 1) {
-    //         return "Receiving (waiting for confirmations)"; // TODO test if the sender still has to open again after the receiver has 2 messages present, ie. sender->receiver->sender->node (yes) vs. sender->receiver->node (no)
-    //       } else {
-    //         return "Receiving";
-    //       }
-    //     }
-    //   } else if (type == TransactionType.outgoing) {
-    //     if (isConfirmed(height, minConfirms)) {
-    //       return "Sent (confirmed)";
-    //     } else {
-    //       if (_transaction.numberOfMessages == 1) {
-    //         return "Sending (waiting for receiver)";
-    //       } else if ((_transaction.numberOfMessages ?? 0) > 1) {
-    //         return "Sending (waiting for confirmations)";
-    //       } else {
-    //         return "Sending";
-    //       }
-    //     }
-    //   }
-    // }
+    if (isEpiccashTransaction) {
+      if (slateId == null) {
+        return "Restored Funds";
+      }
+
+      if (isCancelled) {
+        return "Cancelled";
+      } else if (type == TransactionType.incoming) {
+        if (isConfirmed(currentChainHeight, minConfirms)) {
+          return "Received";
+        } else {
+          if (numberOfMessages == 1) {
+            return "Receiving (waiting for sender)";
+          } else if ((numberOfMessages ?? 0) > 1) {
+            return "Receiving (waiting for confirmations)"; // TODO test if the sender still has to open again after the receiver has 2 messages present, ie. sender->receiver->sender->node (yes) vs. sender->receiver->node (no)
+          } else {
+            return "Receiving";
+          }
+        }
+      } else if (type == TransactionType.outgoing) {
+        if (isConfirmed(currentChainHeight, minConfirms)) {
+          return "Sent (confirmed)";
+        } else {
+          if (numberOfMessages == 1) {
+            return "Sending (waiting for receiver)";
+          } else if ((numberOfMessages ?? 0) > 1) {
+            return "Sending (waiting for confirmations)";
+          } else {
+            return "Sending";
+          }
+        }
+      }
+    }
 
     if (type == TransactionType.incoming) {
       // if (_transaction.isMinting) {
@@ -196,6 +208,14 @@ class TransactionV2 {
     } else {
       return type.name;
     }
+  }
+
+  dynamic _getFromOtherData({required dynamic key}) {
+    if (otherData == null) {
+      return null;
+    }
+    final map = jsonDecode(otherData!);
+    return map[key];
   }
 
   @override

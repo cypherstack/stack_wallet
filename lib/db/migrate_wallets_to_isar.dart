@@ -8,6 +8,7 @@ import 'package:stackwallet/models/isar/models/transaction_note.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
+import 'package:stackwallet/wallets/isar/models/wallet_info_meta.dart';
 import 'package:stackwallet/wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
 
 Future<void> migrateWalletsToIsar({
@@ -47,7 +48,7 @@ Future<void> migrateWalletsToIsar({
   final List<String> favourites =
       (await Hive.openBox<String>(DB.boxNameFavoriteWallets)).values.toList();
 
-  final List<WalletInfo> newInfo = [];
+  final List<(WalletInfo, WalletInfoMeta)> newInfo = [];
   final List<TransactionNote> migratedNotes = [];
 
   //
@@ -113,15 +114,19 @@ Future<void> migrateWalletsToIsar({
     //
     otherData.removeWhere((key, value) => value == null);
 
+    final infoMeta = WalletInfoMeta(
+      walletId: old.walletId,
+      isMnemonicVerified: allWalletsBox
+              .get("${old.walletId}_mnemonicHasBeenVerified") as bool? ??
+          false,
+    );
+
     final info = WalletInfo(
       coinName: old.coin.name,
       walletId: old.walletId,
       name: old.name,
       mainAddressType: old.coin.primaryAddressType,
       favouriteOrderIndex: favourites.indexOf(old.walletId),
-      isMnemonicVerified: allWalletsBox
-              .get("${old.walletId}_mnemonicHasBeenVerified") as bool? ??
-          false,
       cachedChainHeight: walletBox.get(
             DBKeys.storedChainHeight,
           ) as int? ??
@@ -135,7 +140,7 @@ Future<void> migrateWalletsToIsar({
       otherDataJsonString: jsonEncode(otherData),
     );
 
-    newInfo.add(info);
+    newInfo.add((info, infoMeta));
   }
 
   if (migratedNotes.isNotEmpty) {
@@ -145,10 +150,14 @@ Future<void> migrateWalletsToIsar({
   }
 
   await MainDB.instance.isar.writeTxn(() async {
-    await MainDB.instance.isar.walletInfo.putAll(newInfo);
+    await MainDB.instance.isar.walletInfo
+        .putAll(newInfo.map((e) => e.$1).toList());
+    await MainDB.instance.isar.walletInfoMeta
+        .putAll(newInfo.map((e) => e.$2).toList());
   });
 
-  await _cleanupOnSuccess(walletIds: newInfo.map((e) => e.walletId).toList());
+  await _cleanupOnSuccess(
+      walletIds: newInfo.map((e) => e.$1.walletId).toList());
 }
 
 Future<void> _cleanupOnSuccess({required List<String> walletIds}) async {

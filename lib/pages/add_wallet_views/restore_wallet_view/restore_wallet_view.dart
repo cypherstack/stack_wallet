@@ -10,6 +10,7 @@
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -50,6 +51,8 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
+import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
+import 'package:stackwallet/wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -202,6 +205,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       mnemonic = mnemonic.trim();
 
       int height = 0;
+      String? otherDataJsonString;
 
       if (widget.coin == Coin.monero) {
         height = monero.getHeigthByDate(date: widget.restoreFromDate);
@@ -228,6 +232,22 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         if (height < 0) {
           height = 0;
         }
+
+        otherDataJsonString = jsonEncode(
+          {
+            WalletInfoKeys.epiccashData: jsonEncode(
+              ExtraEpiccashWalletInfo(
+                receivingIndex: 0,
+                changeIndex: 0,
+                slatesToAddresses: {},
+                slatesToCommits: {},
+                lastScannedBlock: height,
+                restoreHeight: height,
+                creationHeight: height,
+              ).toMap(),
+            ),
+          },
+        );
       }
 
       // TODO: do actual check to make sure it is a valid mnemonic for monero
@@ -244,6 +264,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         final info = WalletInfo.createNew(
           coin: widget.coin,
           name: widget.walletName,
+          restoreHeight: height,
+          otherDataJsonString: otherDataJsonString,
         );
 
         bool isRestoring = true;
@@ -292,7 +314,12 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             mnemonic: mnemonic,
           );
 
-          await wallet.init();
+          if (wallet is EpiccashWallet) {
+            await wallet.init(isRestore: true);
+          } else {
+            await wallet.init();
+          }
+
           await wallet.recover(isRescan: false);
 
           // check if state is still active before continuing
