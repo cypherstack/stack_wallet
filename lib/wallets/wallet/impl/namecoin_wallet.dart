@@ -6,6 +6,7 @@ import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
+import 'package:tuple/tuple.dart';
 
 class NamecoinWallet extends Bip39HDWallet
     with ElectrumXInterface, CoinControlInterface {
@@ -46,26 +47,45 @@ class NamecoinWallet extends Bip39HDWallet
   @override
   Future<({bool blocked, String? blockedReason, String? utxoLabel})>
       checkBlockUTXO(Map<String, dynamic> jsonUTXO, String? scriptPubKeyHex,
-          Map<String, dynamic> jsonTX, String? utxoOwnerAddress) {
-    // TODO: implement checkBlockUTXO
-    throw UnimplementedError();
+          Map<String, dynamic> jsonTX, String? utxoOwnerAddress) async {
+    // Namecoin doesn't have special outputs like tokens, ordinals, etc.
+    return (blocked: false, blockedReason: null, utxoLabel: null);
   }
 
   @override
   int estimateTxFee({required int vSize, required int feeRatePerKB}) {
-    // TODO: implement estimateTxFee
-    throw UnimplementedError();
+    return vSize * (feeRatePerKB / 1000).ceil();
   }
 
+  // TODO: Check if this is the correct formula for namecoin.
   @override
   Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
-    // TODO: implement roughFeeEstimate
-    throw UnimplementedError();
+    return Amount(
+      rawValue: BigInt.from(
+          ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
+              (feeRatePerKB / 1000).ceil()),
+      fractionDigits: cryptoCurrency.fractionDigits,
+    );
   }
 
   @override
-  Future<void> updateTransactions() {
-    // TODO: implement updateTransactions
-    throw UnimplementedError();
+  Future<void> updateTransactions() async {
+    final currentChainHeight = await fetchChainHeight();
+
+    // TODO: [prio=low] switch to V2 transactions.
+    final data = await fetchTransactionsV1(
+      addresses: await fetchAddressesForElectrumXScan(),
+      currentChainHeight: currentChainHeight,
+    );
+
+    await mainDB.addNewTransactionData(
+      data
+          .map((e) => Tuple2(
+                e.transaction,
+                e.address,
+              ))
+          .toList(),
+      walletId,
+    );
   }
 }
