@@ -2495,9 +2495,9 @@ class ParticlWallet extends CoinServiceAPI
     }
   }
 
-  // int estimateTxFee({required int vSize, required int feeRatePerKB}) {
-  //   return vSize * (feeRatePerKB / 1000).ceil();
-  // }
+  int estimateTxFee({required int vSize, required int feeRatePerKB}) {
+    return vSize * (feeRatePerKB / 1000).ceil();
+  }
 
   /// The coinselection algorithm decides whether or not the user is eligible to make the transaction
   /// with [satoshiAmountToSend] and [selectedTxFeeRate]. If so, it will call buildTrasaction() and return
@@ -3463,14 +3463,14 @@ class ParticlWallet extends CoinServiceAPI
     }
   }
 
-  // Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
-  //   return Amount(
-  //     rawValue: BigInt.from(
-  //         ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
-  //             (feeRatePerKB / 1000).ceil()),
-  //     fractionDigits: coin.decimals,
-  //   );
-  // }
+  Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
+    return Amount(
+      rawValue: BigInt.from(
+          ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
+              (feeRatePerKB / 1000).ceil()),
+      fractionDigits: coin.decimals,
+    );
+  }
 
   Future<Amount> sweepAllEstimate(int feeRate) async {
     int available = 0;

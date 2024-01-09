@@ -19,17 +19,39 @@ class Particl extends Bip39HDCurrency {
   }
 
   @override
-  // TODO: implement minConfirms
-  int get minConfirms => throw UnimplementedError();
+  // See https://github.com/cypherstack/stack_wallet/blob/d08b5c9b22b58db800ad07b2ceeb44c6d05f9cf3/lib/services/coins/particl/particl_wallet.dart#L57
+  int get minConfirms => 1;
 
   @override
+  // See https://github.com/cypherstack/stack_wallet/blob/d08b5c9b22b58db800ad07b2ceeb44c6d05f9cf3/lib/services/coins/particl/particl_wallet.dart#L68
   String constructDerivePath(
       {required DerivePathType derivePathType,
       int account = 0,
       required int chain,
       required int index}) {
-    // TODO: implement constructDerivePath
-    throw UnimplementedError();
+    String coinType;
+    switch (networkParams.wifPrefix) {
+      case 0x6c: // PART mainnet wif.
+        coinType = "44"; // PART mainnet.
+        break;
+      // TODO: [prio=low] Add testnet.
+      default:
+        throw Exception("Invalid Particl network wif used!");
+    }
+
+    int purpose;
+    switch (derivePathType) {
+      case DerivePathType.bip44:
+        purpose = 44;
+        break;
+      case DerivePathType.bip84:
+        purpose = 84;
+        break;
+      default:
+        throw Exception("DerivePathType $derivePathType not supported");
+    }
+
+    return "m/$purpose'/$coinType'/$account'/$chain/$index";
   }
 
   @override
@@ -47,40 +69,97 @@ class Particl extends Bip39HDCurrency {
           isFailover: true,
           isDown: false,
         );
-
+      // case CryptoCurrencyNetwork.test:
+      // TODO: [prio=low] Add testnet.
       default:
         throw UnimplementedError();
     }
   }
 
   @override
-  // TODO: implement dustLimit
-  Amount get dustLimit => throw UnimplementedError();
+  // See https://github.com/cypherstack/stack_wallet/blob/d08b5c9b22b58db800ad07b2ceeb44c6d05f9cf3/lib/services/coins/particl/particl_wallet.dart#L58
+  Amount get dustLimit => Amount(
+        rawValue: BigInt.from(294),
+        fractionDigits: Coin.particl.decimals,
+      );
 
   @override
-  // TODO: implement genesisHash
-  String get genesisHash => throw UnimplementedError();
+  // See https://github.com/cypherstack/stack_wallet/blob/d08b5c9b22b58db800ad07b2ceeb44c6d05f9cf3/lib/services/coins/particl/particl_wallet.dart#L63
+  String get genesisHash {
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        return "0000ee0784c195317ac95623e22fddb8c7b8825dc3998e0bb924d66866eccf4c";
+      case CryptoCurrencyNetwork.test:
+        return "0000594ada5310b367443ee0afd4fa3d0bbd5850ea4e33cdc7d6a904a7ec7c90";
+      default:
+        throw Exception("Unsupported network: $network");
+    }
+  }
 
   @override
   ({coinlib.Address address, AddressType addressType}) getAddressForPublicKey(
       {required coinlib.ECPublicKey publicKey,
       required DerivePathType derivePathType}) {
-    // TODO: implement getAddressForPublicKey
-    throw UnimplementedError();
+    switch (derivePathType) {
+      case DerivePathType.bip44:
+        final addr = coinlib.P2PKHAddress.fromPublicKey(
+          publicKey,
+          version: networkParams.p2pkhPrefix,
+        );
+
+        return (address: addr, addressType: AddressType.p2pkh);
+
+      // case DerivePathType.bip49:
+
+      case DerivePathType.bip84:
+        final addr = coinlib.P2WPKHAddress.fromPublicKey(
+          publicKey,
+          hrp: networkParams.bech32Hrp,
+        );
+
+        return (address: addr, addressType: AddressType.p2wpkh);
+
+      default:
+        throw Exception("DerivePathType $derivePathType not supported");
+    }
   }
 
   @override
-  // TODO: implement networkParams
-  coinlib.NetworkParams get networkParams => throw UnimplementedError();
+  // See https://github.com/cypherstack/stack_wallet/blob/d08b5c9b22b58db800ad07b2ceeb44c6d05f9cf3/lib/services/coins/particl/particl_wallet.dart#L3532
+  coinlib.NetworkParams get networkParams {
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        return const coinlib.NetworkParams(
+          wifPrefix: 0x6c,
+          p2pkhPrefix: 0x38,
+          p2shPrefix: 0x3c,
+          privHDPrefix: 0x8f1daeb8,
+          pubHDPrefix: 0x696e82d1,
+          bech32Hrp: "pw",
+          messagePrefix: '\x18Bitcoin Signed Message:\n',
+        );
+      // case CryptoCurrencyNetwork.test:
+      // TODO: [prio=low] Add testnet.
+      default:
+        throw Exception("Unsupported network: $network");
+    }
+  }
 
   @override
   // TODO: implement supportedDerivationPathTypes
-  List<DerivePathType> get supportedDerivationPathTypes =>
-      throw UnimplementedError();
+  List<DerivePathType> get supportedDerivationPathTypes => [
+        DerivePathType.bip44,
+        // DerivePathType.bip49,
+        DerivePathType.bip84,
+      ];
 
   @override
   bool validateAddress(String address) {
-    // TODO: implement validateAddress
-    throw UnimplementedError();
+    try {
+      coinlib.Address.fromString(address, networkParams);
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 }
