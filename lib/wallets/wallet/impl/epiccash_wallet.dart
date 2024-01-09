@@ -501,79 +501,87 @@ class EpiccashWallet extends Bip39Wallet {
       FilterGroup.and(standardReceivingAddressFilters);
 
   @override
-  Future<void> init() async {
-    String? encodedWallet =
-        await secureStorageInterface.read(key: "${walletId}_wallet");
+  Future<void> init({bool? isRestore}) async {
+    if (isRestore != true) {
+      String? encodedWallet =
+          await secureStorageInterface.read(key: "${walletId}_wallet");
 
-    // check if should create a new wallet
-    if (encodedWallet == null) {
-      await updateNode();
-      final mnemonicString = await getMnemonic();
+      // check if should create a new wallet
+      if (encodedWallet == null) {
+        await updateNode();
+        final mnemonicString = await getMnemonic();
 
-      final String password = generatePassword();
-      final String stringConfig = await _getConfig();
-      final EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
+        final String password = generatePassword();
+        final String stringConfig = await _getConfig();
+        final EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
 
-      await secureStorageInterface.write(
-          key: '${walletId}_config', value: stringConfig);
-      await secureStorageInterface.write(
-          key: '${walletId}_password', value: password);
-      await secureStorageInterface.write(
-          key: '${walletId}_epicboxConfig', value: epicboxConfig.toString());
+        await secureStorageInterface.write(
+            key: '${walletId}_config', value: stringConfig);
+        await secureStorageInterface.write(
+            key: '${walletId}_password', value: password);
+        await secureStorageInterface.write(
+            key: '${walletId}_epicboxConfig', value: epicboxConfig.toString());
 
-      String name = walletId;
+        String name = walletId;
 
-      await epiccash.LibEpiccash.initializeNewWallet(
-        config: stringConfig,
-        mnemonic: mnemonicString,
-        password: password,
-        name: name,
-      );
+        await epiccash.LibEpiccash.initializeNewWallet(
+          config: stringConfig,
+          mnemonic: mnemonicString,
+          password: password,
+          name: name,
+        );
 
-      //Open wallet
-      encodedWallet = await epiccash.LibEpiccash.openWallet(
-          config: stringConfig, password: password);
-      await secureStorageInterface.write(
-          key: '${walletId}_wallet', value: encodedWallet);
+        //Open wallet
+        encodedWallet = await epiccash.LibEpiccash.openWallet(
+          config: stringConfig,
+          password: password,
+        );
+        await secureStorageInterface.write(
+          key: '${walletId}_wallet',
+          value: encodedWallet,
+        );
 
-      //Store Epic box address info
-      await _generateAndStoreReceivingAddressForIndex(0);
+        //Store Epic box address info
+        await _generateAndStoreReceivingAddressForIndex(0);
 
-      // subtract a couple days to ensure we have a buffer for SWB
-      final bufferedCreateHeight = _calculateRestoreHeightFrom(
-          date: DateTime.now().subtract(const Duration(days: 2)));
+        // subtract a couple days to ensure we have a buffer for SWB
+        final bufferedCreateHeight = _calculateRestoreHeightFrom(
+            date: DateTime.now().subtract(const Duration(days: 2)));
 
-      final epicData = ExtraEpiccashWalletInfo(
-        receivingIndex: 0,
-        changeIndex: 0,
-        slatesToAddresses: {},
-        slatesToCommits: {},
-        lastScannedBlock: bufferedCreateHeight,
-        restoreHeight: bufferedCreateHeight,
-        creationHeight: bufferedCreateHeight,
-      );
+        final epicData = ExtraEpiccashWalletInfo(
+          receivingIndex: 0,
+          changeIndex: 0,
+          slatesToAddresses: {},
+          slatesToCommits: {},
+          lastScannedBlock: bufferedCreateHeight,
+          restoreHeight: bufferedCreateHeight,
+          creationHeight: bufferedCreateHeight,
+        );
 
-      await info.updateExtraEpiccashWalletInfo(
-        epicData: epicData,
-        isar: mainDB.isar,
-      );
-    } else {
-      Logging.instance.log(
-          "initializeExisting() ${cryptoCurrency.coin.prettyName} wallet",
-          level: LogLevel.Info);
+        await info.updateExtraEpiccashWalletInfo(
+          epicData: epicData,
+          isar: mainDB.isar,
+        );
+      } else {
+        Logging.instance.log(
+            "initializeExisting() ${cryptoCurrency.coin.prettyName} wallet",
+            level: LogLevel.Info);
 
-      final config = await _getRealConfig();
-      final password =
-          await secureStorageInterface.read(key: '${walletId}_password');
+        final config = await _getRealConfig();
+        final password =
+            await secureStorageInterface.read(key: '${walletId}_password');
 
-      final walletOpen = await epiccash.LibEpiccash.openWallet(
-          config: config, password: password!);
-      await secureStorageInterface.write(
-          key: '${walletId}_wallet', value: walletOpen);
+        final walletOpen = await epiccash.LibEpiccash.openWallet(
+          config: config,
+          password: password!,
+        );
+        await secureStorageInterface.write(
+            key: '${walletId}_wallet', value: walletOpen);
 
-      await updateNode();
-      await updateBalance();
-      // TODO: is there anything else that should be set up here whenever this wallet is first loaded again?
+        await updateNode();
+        await updateBalance();
+        // TODO: is there anything else that should be set up here whenever this wallet is first loaded again?
+      }
     }
 
     return await super.init();
@@ -695,7 +703,7 @@ class EpiccashWallet extends Bip39Wallet {
             isar: mainDB.isar,
           );
 
-          await _startScans();
+          unawaited(_startScans());
         } else {
           await updateNode();
           final String password = generatePassword();
@@ -754,7 +762,7 @@ class EpiccashWallet extends Bip39Wallet {
         }
       });
 
-      await refresh();
+      unawaited(refresh());
     } catch (e, s) {
       Logging.instance.log(
           "Exception rethrown from electrumx_mixin recover(): $e\n$s",
@@ -945,10 +953,9 @@ class EpiccashWallet extends Bip39Wallet {
       for (final tx in transactions) {
         // Logging.instance.log("tx: $tx", level: LogLevel.Info);
 
-        // unsure if needed
-        // final isIncoming =
-        //     tx.txType == epic_models.TransactionType.TxReceived ||
-        //         tx.txType == epic_models.TransactionType.TxReceivedCancelled;
+        final isIncoming =
+            tx.txType == epic_models.TransactionType.TxReceived ||
+                tx.txType == epic_models.TransactionType.TxReceivedCancelled;
         final slateId = tx.txSlateId;
         final commitId = slatesToCommits[slateId]?['commitId'] as String?;
         final numberOfMessages = tx.messages?.messages.length;
@@ -956,42 +963,56 @@ class EpiccashWallet extends Bip39Wallet {
         final addressFrom = slatesToCommits[slateId]?["from"] as String?;
         final addressTo = slatesToCommits[slateId]?["to"] as String?;
 
+        final credit = int.parse(tx.amountCredited);
+        final debit = int.parse(tx.amountDebited);
+        final fee = int.tryParse(tx.fee ?? "0") ?? 0;
+
         // hack epic tx data into inputs and outputs
         final List<OutputV2> outputs = [];
         final List<InputV2> inputs = [];
-        // TODO: [prio=high] should addressFrom and addressTo be swapped??
         final addressFromIsMine = myAddressesSet.contains(addressFrom);
         final addressToIsMine = myAddressesSet.contains(addressTo);
-        outputs.add(
-          OutputV2.isarCantDoRequiredInDefaultConstructor(
-            scriptPubKeyHex: "00",
-            valueStringSats: tx.amountCredited,
-            addresses: [if (addressFrom != null) addressFrom],
-            walletOwns: addressFromIsMine,
-          ),
+
+        OutputV2 output = OutputV2.isarCantDoRequiredInDefaultConstructor(
+          scriptPubKeyHex: "00",
+          valueStringSats: credit.toString(),
+          addresses: [
+            if (addressFrom != null) addressFrom,
+          ],
+          walletOwns: true,
         );
-        inputs.add(
-          InputV2.isarCantDoRequiredInDefaultConstructor(
-            scriptSigHex: null,
-            sequence: null,
-            outpoint: null,
-            addresses: [if (addressTo != null) addressTo],
-            valueStringSats: tx.amountDebited,
-            witness: null,
-            innerRedeemScriptAsm: null,
-            coinbase: null,
-            walletOwns: addressToIsMine,
-          ),
+        InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
+          scriptSigHex: null,
+          sequence: null,
+          outpoint: null,
+          addresses: [if (addressTo != null) addressTo],
+          valueStringSats: debit.toString(),
+          witness: null,
+          innerRedeemScriptAsm: null,
+          coinbase: null,
+          walletOwns: true,
         );
 
         final TransactionType txType;
-        if (addressFromIsMine && addressToIsMine) {
-          txType = TransactionType.sentToSelf;
-        } else if (addressFromIsMine) {
-          txType = TransactionType.incoming;
+        if (isIncoming) {
+          if (addressToIsMine && addressFromIsMine) {
+            txType = TransactionType.sentToSelf;
+          } else {
+            txType = TransactionType.incoming;
+          }
+          output = output.copyWith(
+            addresses: [
+              myAddressesSet
+                  .first, // Must be changed if we ever do more than a single wallet address!!!
+            ],
+            walletOwns: true,
+          );
         } else {
           txType = TransactionType.outgoing;
         }
+
+        outputs.add(output);
+        inputs.add(input);
 
         final otherData = {
           "isEpiccashTransaction": true,
@@ -1001,6 +1022,10 @@ class EpiccashWallet extends Bip39Wallet {
           "isCancelled":
               tx.txType == epic_models.TransactionType.TxSentCancelled ||
                   tx.txType == epic_models.TransactionType.TxReceivedCancelled,
+          "anonFees": Amount(
+            rawValue: BigInt.from(fee),
+            fractionDigits: cryptoCurrency.fractionDigits,
+          ).toJsonString(),
         };
 
         final txn = TransactionV2(

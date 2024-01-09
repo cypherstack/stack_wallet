@@ -259,7 +259,6 @@ abstract class Constants {
       case Coin.litecoinTestNet:
       case Coin.firo:
       case Coin.firoTestNet:
-      case Coin.epicCash:
       case Coin.namecoin:
       case Coin.particl:
       case Coin.ethereum:
@@ -270,6 +269,7 @@ abstract class Constants {
 
       case Coin.nano:
       case Coin.banano:
+      case Coin.epicCash:
       case Coin.stellar:
       case Coin.stellarTestnet:
       case Coin.tezos:

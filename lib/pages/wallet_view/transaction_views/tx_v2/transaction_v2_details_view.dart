@@ -110,7 +110,25 @@ class _TransactionV2DetailsViewState
 
     unit = coin.ticker;
 
-    if (_transaction.subType == TransactionSubType.cashFusion) {
+    if (_transaction.isEpiccashTransaction) {
+      switch (_transaction.type) {
+        case TransactionType.outgoing:
+        case TransactionType.unknown:
+          amount = _transaction.getAmountSentFromThisWallet(coin: coin);
+          break;
+
+        case TransactionType.incoming:
+        case TransactionType.sentToSelf:
+          amount = _transaction.getAmountReceivedInThisWallet(coin: coin);
+          break;
+      }
+      data = _transaction.outputs
+          .map((e) => (
+                addresses: e.addresses,
+                amount: Amount(rawValue: e.value, fractionDigits: coin.decimals)
+              ))
+          .toList();
+    } else if (_transaction.subType == TransactionSubType.cashFusion) {
       amount = _transaction.getAmountReceivedInThisWallet(coin: coin);
       data = _transaction.outputs
           .where((e) => e.walletOwns)

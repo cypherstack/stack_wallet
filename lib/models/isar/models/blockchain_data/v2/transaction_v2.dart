@@ -155,6 +155,10 @@ class TransactionV2 {
     }
 
     if (isEpiccashTransaction) {
+      if (slateId == null) {
+        return "Restored Funds";
+      }
+
       if (isCancelled) {
         return "Cancelled";
       } else if (type == TransactionType.incoming) {
