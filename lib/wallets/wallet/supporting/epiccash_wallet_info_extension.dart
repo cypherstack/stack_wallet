@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:isar/isar.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 
@@ -22,6 +23,18 @@ extension EpiccashWalletInfoExtension on WalletInfo {
       );
       return null;
     }
+  }
+
+  Future<void> updateExtraEpiccashWalletInfo({
+    required ExtraEpiccashWalletInfo epicData,
+    required Isar isar,
+  }) async {
+    await updateOtherData(
+      newEntries: {
+        WalletInfoKeys.epiccashData: jsonEncode(epicData.toMap()),
+      },
+      isar: isar,
+    );
   }
 }
 

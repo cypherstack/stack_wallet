@@ -353,7 +353,6 @@ class WalletInfo implements IsarId {
     int favouriteOrderIndex = -1,
     int cachedChainHeight = 0,
     int restoreHeight = 0,
-    bool isMnemonicVerified = false,
     String? cachedBalanceString,
     String? cachedBalanceSecondaryString,
     String? cachedBalanceTertiaryString,
