@@ -53,14 +53,18 @@ class NamecoinWallet extends Bip39HDWallet
 
   @override
   int estimateTxFee({required int vSize, required int feeRatePerKB}) {
-    // TODO: implement estimateTxFee
-    throw UnimplementedError();
+    return vSize * (feeRatePerKB / 1000).ceil();
   }
 
+  // TODO: [prio=low] Check if this is the correct formula for namecoin. ECF
   @override
   Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
-    // TODO: implement roughFeeEstimate
-    throw UnimplementedError();
+    return Amount(
+      rawValue: BigInt.from(
+          ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
+              (feeRatePerKB / 1000).ceil()),
+      fractionDigits: cryptoCurrency.fractionDigits,
+    );
   }
 
   @override
