@@ -72,7 +72,7 @@ class NamecoinWallet extends Bip39HDWallet
   Future<void> updateTransactions() async {
     final currentChainHeight = await fetchChainHeight();
 
-    // TODO: [prio=a] switch to V2 transactions
+    // TODO: [prio=low] switch to V2 transactions.
     final data = await fetchTransactionsV1(
       addresses: await fetchAddressesForElectrumXScan(),
       currentChainHeight: currentChainHeight,
