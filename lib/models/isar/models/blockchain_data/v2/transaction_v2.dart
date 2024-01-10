@@ -65,6 +65,10 @@ class TransactionV2 {
   String? get onChainNote => _getFromOtherData(key: "onChainNote") as String?;
   bool get isCancelled => _getFromOtherData(key: "isCancelled") == true;
 
+  String? get contractAddress =>
+      _getFromOtherData(key: "contractAddress") as String?;
+  int? get nonce => _getFromOtherData(key: "nonce") as int?;
+
   int getConfirmations(int currentChainHeight) {
     if (height == null || height! <= 0) return 0;
     return max(0, currentChainHeight - (height! - 1));

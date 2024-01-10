@@ -1300,18 +1300,6 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case AllTransactionsView.routeName:
-        if (args is ({String walletId, bool isTokens})) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => AllTransactionsView(
-              walletId: args.walletId,
-              isTokens: args.isTokens,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
         if (args is String) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,

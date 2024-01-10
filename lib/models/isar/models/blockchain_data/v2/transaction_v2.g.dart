@@ -22,87 +22,97 @@ const TransactionV2Schema = CollectionSchema(
       name: r'blockHash',
       type: IsarType.string,
     ),
-    r'hash': PropertySchema(
+    r'contractAddress': PropertySchema(
       id: 1,
+      name: r'contractAddress',
+      type: IsarType.string,
+    ),
+    r'hash': PropertySchema(
+      id: 2,
       name: r'hash',
       type: IsarType.string,
     ),
     r'height': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'height',
       type: IsarType.long,
     ),
     r'inputs': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'inputs',
       type: IsarType.objectList,
       target: r'InputV2',
     ),
     r'isCancelled': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'isCancelled',
       type: IsarType.bool,
     ),
     r'isEpiccashTransaction': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'isEpiccashTransaction',
       type: IsarType.bool,
     ),
+    r'nonce': PropertySchema(
+      id: 7,
+      name: r'nonce',
+      type: IsarType.long,
+    ),
     r'numberOfMessages': PropertySchema(
-      id: 6,
+      id: 8,
       name: r'numberOfMessages',
       type: IsarType.long,
     ),
     r'onChainNote': PropertySchema(
-      id: 7,
+      id: 9,
       name: r'onChainNote',
       type: IsarType.string,
     ),
     r'otherData': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'otherData',
       type: IsarType.string,
     ),
     r'outputs': PropertySchema(
-      id: 9,
+      id: 11,
       name: r'outputs',
       type: IsarType.objectList,
       target: r'OutputV2',
     ),
     r'slateId': PropertySchema(
-      id: 10,
+      id: 12,
       name: r'slateId',
       type: IsarType.string,
     ),
     r'subType': PropertySchema(
-      id: 11,
+      id: 13,
       name: r'subType',
       type: IsarType.byte,
       enumMap: _TransactionV2subTypeEnumValueMap,
     ),
     r'timestamp': PropertySchema(
-      id: 12,
+      id: 14,
       name: r'timestamp',
       type: IsarType.long,
     ),
     r'txid': PropertySchema(
-      id: 13,
+      id: 15,
       name: r'txid',
       type: IsarType.string,
     ),
     r'type': PropertySchema(
-      id: 14,
+      id: 16,
       name: r'type',
       type: IsarType.byte,
       enumMap: _TransactionV2typeEnumValueMap,
     ),
     r'version': PropertySchema(
-      id: 15,
+      id: 17,
       name: r'version',
       type: IsarType.long,
     ),
     r'walletId': PropertySchema(
-      id: 16,
+      id: 18,
       name: r'walletId',
       type: IsarType.string,
     )
@@ -182,6 +192,12 @@ int _transactionV2EstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
+  {
+    final value = object.contractAddress;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.hash.length * 3;
   bytesCount += 3 + object.inputs.length * 3;
   {
@@ -229,32 +245,34 @@ void _transactionV2Serialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.blockHash);
-  writer.writeString(offsets[1], object.hash);
-  writer.writeLong(offsets[2], object.height);
+  writer.writeString(offsets[1], object.contractAddress);
+  writer.writeString(offsets[2], object.hash);
+  writer.writeLong(offsets[3], object.height);
   writer.writeObjectList<InputV2>(
-    offsets[3],
+    offsets[4],
     allOffsets,
     InputV2Schema.serialize,
     object.inputs,
   );
-  writer.writeBool(offsets[4], object.isCancelled);
-  writer.writeBool(offsets[5], object.isEpiccashTransaction);
-  writer.writeLong(offsets[6], object.numberOfMessages);
-  writer.writeString(offsets[7], object.onChainNote);
-  writer.writeString(offsets[8], object.otherData);
+  writer.writeBool(offsets[5], object.isCancelled);
+  writer.writeBool(offsets[6], object.isEpiccashTransaction);
+  writer.writeLong(offsets[7], object.nonce);
+  writer.writeLong(offsets[8], object.numberOfMessages);
+  writer.writeString(offsets[9], object.onChainNote);
+  writer.writeString(offsets[10], object.otherData);
   writer.writeObjectList<OutputV2>(
-    offsets[9],
+    offsets[11],
     allOffsets,
     OutputV2Schema.serialize,
     object.outputs,
   );
-  writer.writeString(offsets[10], object.slateId);
-  writer.writeByte(offsets[11], object.subType.index);
-  writer.writeLong(offsets[12], object.timestamp);
-  writer.writeString(offsets[13], object.txid);
-  writer.writeByte(offsets[14], object.type.index);
-  writer.writeLong(offsets[15], object.version);
-  writer.writeString(offsets[16], object.walletId);
+  writer.writeString(offsets[12], object.slateId);
+  writer.writeByte(offsets[13], object.subType.index);
+  writer.writeLong(offsets[14], object.timestamp);
+  writer.writeString(offsets[15], object.txid);
+  writer.writeByte(offsets[16], object.type.index);
+  writer.writeLong(offsets[17], object.version);
+  writer.writeString(offsets[18], object.walletId);
 }
 
 TransactionV2 _transactionV2Deserialize(
@@ -265,32 +283,32 @@ TransactionV2 _transactionV2Deserialize(
 ) {
   final object = TransactionV2(
     blockHash: reader.readStringOrNull(offsets[0]),
-    hash: reader.readString(offsets[1]),
-    height: reader.readLongOrNull(offsets[2]),
+    hash: reader.readString(offsets[2]),
+    height: reader.readLongOrNull(offsets[3]),
     inputs: reader.readObjectList<InputV2>(
-          offsets[3],
+          offsets[4],
           InputV2Schema.deserialize,
           allOffsets,
           InputV2(),
         ) ??
         [],
-    otherData: reader.readStringOrNull(offsets[8]),
+    otherData: reader.readStringOrNull(offsets[10]),
     outputs: reader.readObjectList<OutputV2>(
-          offsets[9],
+          offsets[11],
           OutputV2Schema.deserialize,
           allOffsets,
           OutputV2(),
         ) ??
         [],
     subType:
-        _TransactionV2subTypeValueEnumMap[reader.readByteOrNull(offsets[11])] ??
+        _TransactionV2subTypeValueEnumMap[reader.readByteOrNull(offsets[13])] ??
             TransactionSubType.none,
-    timestamp: reader.readLong(offsets[12]),
-    txid: reader.readString(offsets[13]),
-    type: _TransactionV2typeValueEnumMap[reader.readByteOrNull(offsets[14])] ??
+    timestamp: reader.readLong(offsets[14]),
+    txid: reader.readString(offsets[15]),
+    type: _TransactionV2typeValueEnumMap[reader.readByteOrNull(offsets[16])] ??
         TransactionType.outgoing,
-    version: reader.readLong(offsets[15]),
-    walletId: reader.readString(offsets[16]),
+    version: reader.readLong(offsets[17]),
+    walletId: reader.readString(offsets[18]),
   );
   object.id = id;
   return object;
@@ -306,10 +324,12 @@ P _transactionV2DeserializeProp<P>(
     case 0:
       return (reader.readStringOrNull(offset)) as P;
     case 1:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 2:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 3:
+      return (reader.readLongOrNull(offset)) as P;
+    case 4:
       return (reader.readObjectList<InputV2>(
             offset,
             InputV2Schema.deserialize,
@@ -317,17 +337,19 @@ P _transactionV2DeserializeProp<P>(
             InputV2(),
           ) ??
           []) as P;
-    case 4:
-      return (reader.readBool(offset)) as P;
     case 5:
       return (reader.readBool(offset)) as P;
     case 6:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 7:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 8:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 9:
+      return (reader.readStringOrNull(offset)) as P;
+    case 10:
+      return (reader.readStringOrNull(offset)) as P;
+    case 11:
       return (reader.readObjectList<OutputV2>(
             offset,
             OutputV2Schema.deserialize,
@@ -335,22 +357,22 @@ P _transactionV2DeserializeProp<P>(
             OutputV2(),
           ) ??
           []) as P;
-    case 10:
+    case 12:
       return (reader.readStringOrNull(offset)) as P;
-    case 11:
+    case 13:
       return (_TransactionV2subTypeValueEnumMap[
               reader.readByteOrNull(offset)] ??
           TransactionSubType.none) as P;
-    case 12:
-      return (reader.readLong(offset)) as P;
-    case 13:
-      return (reader.readString(offset)) as P;
     case 14:
+      return (reader.readLong(offset)) as P;
+    case 15:
+      return (reader.readString(offset)) as P;
+    case 16:
       return (_TransactionV2typeValueEnumMap[reader.readByteOrNull(offset)] ??
           TransactionType.outgoing) as P;
-    case 15:
+    case 17:
       return (reader.readLong(offset)) as P;
-    case 16:
+    case 18:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -963,6 +985,160 @@ extension TransactionV2QueryFilter
     });
   }
 
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      contractAddressIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'contractAddress',
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      contractAddressIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'contractAddress',
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      contractAddressEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'contractAddress',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      contractAddressGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'contractAddress',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      contractAddressLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'contractAddress',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      contractAddressBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'contractAddress',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      contractAddressStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'contractAddress',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      contractAddressEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'contractAddress',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      contractAddressContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'contractAddress',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      contractAddressMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'contractAddress',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      contractAddressIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'contractAddress',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      contractAddressIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'contractAddress',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition> hashEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1331,6 +1507,80 @@ extension TransactionV2QueryFilter
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'isEpiccashTransaction',
         value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      nonceIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'nonce',
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      nonceIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'nonce',
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      nonceEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'nonce',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      nonceGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'nonce',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      nonceLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'nonce',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterFilterCondition>
+      nonceBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'nonce',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -2490,6 +2740,20 @@ extension TransactionV2QuerySortBy
     });
   }
 
+  QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy>
+      sortByContractAddress() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'contractAddress', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy>
+      sortByContractAddressDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'contractAddress', Sort.desc);
+    });
+  }
+
   QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> sortByHash() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'hash', Sort.asc);
@@ -2538,6 +2802,18 @@ extension TransactionV2QuerySortBy
       sortByIsEpiccashTransactionDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isEpiccashTransaction', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> sortByNonce() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'nonce', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> sortByNonceDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'nonce', Sort.desc);
     });
   }
 
@@ -2683,6 +2959,20 @@ extension TransactionV2QuerySortThenBy
     });
   }
 
+  QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy>
+      thenByContractAddress() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'contractAddress', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy>
+      thenByContractAddressDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'contractAddress', Sort.desc);
+    });
+  }
+
   QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> thenByHash() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'hash', Sort.asc);
@@ -2743,6 +3033,18 @@ extension TransactionV2QuerySortThenBy
       thenByIsEpiccashTransactionDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isEpiccashTransaction', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> thenByNonce() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'nonce', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> thenByNonceDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'nonce', Sort.desc);
     });
   }
 
@@ -2882,6 +3184,14 @@ extension TransactionV2QueryWhereDistinct
     });
   }
 
+  QueryBuilder<TransactionV2, TransactionV2, QDistinct>
+      distinctByContractAddress({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'contractAddress',
+          caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<TransactionV2, TransactionV2, QDistinct> distinctByHash(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2906,6 +3216,12 @@ extension TransactionV2QueryWhereDistinct
       distinctByIsEpiccashTransaction() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isEpiccashTransaction');
+    });
+  }
+
+  QueryBuilder<TransactionV2, TransactionV2, QDistinct> distinctByNonce() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'nonce');
     });
   }
 
@@ -2990,6 +3306,13 @@ extension TransactionV2QueryProperty
     });
   }
 
+  QueryBuilder<TransactionV2, String?, QQueryOperations>
+      contractAddressProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'contractAddress');
+    });
+  }
+
   QueryBuilder<TransactionV2, String, QQueryOperations> hashProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'hash');
@@ -3019,6 +3342,12 @@ extension TransactionV2QueryProperty
       isEpiccashTransactionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isEpiccashTransaction');
+    });
+  }
+
+  QueryBuilder<TransactionV2, int?, QQueryOperations> nonceProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'nonce');
     });
   }
 

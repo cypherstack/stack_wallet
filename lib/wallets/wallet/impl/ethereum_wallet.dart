@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:decimal/decimal.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
 import 'package:http/http.dart';
 import 'package:isar/isar.dart';
@@ -54,6 +55,24 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     final client = Client();
 
     return web3.Web3Client(node.host, client);
+  }
+
+  Amount estimateEthFee(int feeRate, int gasLimit, int decimals) {
+    final gweiAmount = feeRate.toDecimal() / (Decimal.ten.pow(9).toDecimal());
+    final fee = gasLimit.toDecimal() *
+        gweiAmount.toDecimal(
+          scaleOnInfinitePrecision: cryptoCurrency.fractionDigits,
+        );
+
+    //Convert gwei to ETH
+    final feeInWei = fee * Decimal.ten.pow(9).toDecimal();
+    final ethAmount = feeInWei / Decimal.ten.pow(decimals).toDecimal();
+    return Amount.fromDecimal(
+      ethAmount.toDecimal(
+        scaleOnInfinitePrecision: cryptoCurrency.fractionDigits,
+      ),
+      fractionDigits: decimals,
+    );
   }
 
   // ==================== Private ==============================================
@@ -118,7 +137,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
-    return estimateFee(
+    return estimateEthFee(
       feeRate,
       (cryptoCurrency as Ethereum).gasLimit,
       cryptoCurrency.fractionDigits,
@@ -249,7 +268,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
         //Calculate fees (GasLimit * gasPrice)
         // int txFee = element.gasPrice * element.gasUsed;
-        Amount txFee = element.gasCost;
+        final Amount txFee = element.gasCost;
         final transactionAmount = element.value;
         final addressFrom = checksumEthereumAddress(element.from);
         final addressTo = checksumEthereumAddress(element.to);
@@ -267,7 +286,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
           continue;
         }
 
-        // hack epic tx data into inputs and outputs
+        // hack eth tx data into inputs and outputs
         final List<OutputV2> outputs = [];
         final List<InputV2> inputs = [];
 

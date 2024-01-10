@@ -11,7 +11,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_balance_toggle_button.dart';
 import 'package:stackwallet/providers/providers.dart';
@@ -24,6 +23,8 @@ import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
+import 'package:stackwallet/wallets/isar/providers/eth/token_balance_provider.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 
 class DesktopWalletSummary extends ConsumerStatefulWidget {
@@ -70,8 +71,7 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
         .watch(prefsChangeNotifierProvider.select((value) => value.currency));
 
     final tokenContract = widget.isToken
-        ? ref
-            .watch(tokenServiceProvider.select((value) => value!.tokenContract))
+        ? ref.watch(pCurrentTokenWallet.select((value) => value!.tokenContract))
         : null;
 
     final priceTuple = widget.isToken
@@ -104,7 +104,8 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
       }
     } else {
       Balance balance = widget.isToken
-          ? ref.watch(tokenServiceProvider.select((value) => value!.balance))
+          ? ref.watch(pTokenBalance(
+              (walletId: walletId, contractAddress: tokenContract!.address)))
           : ref.watch(pWalletBalance(walletId));
 
       balanceToShow = _showAvailable ? balance.spendable : balance.total;

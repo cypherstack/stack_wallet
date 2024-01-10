@@ -20,7 +20,6 @@ import 'package:stackwallet/models/isar/models/transaction_note.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/sending_transaction_dialog.dart';
-import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages_desktop_specific/coin_control/desktop_coin_control_use_dialog.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
@@ -36,6 +35,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
@@ -202,7 +202,7 @@ class _ConfirmTransactionViewState
       }
 
       if (widget.isTokenTx) {
-        unawaited(ref.read(tokenServiceProvider)!.refresh());
+        unawaited(ref.read(pCurrentTokenWallet)!.refresh());
       } else {
         unawaited(wallet.refresh());
       }
@@ -345,7 +345,7 @@ class _ConfirmTransactionViewState
     final String unit;
     if (widget.isTokenTx) {
       unit = ref.watch(
-          tokenServiceProvider.select((value) => value!.tokenContract.symbol));
+          pCurrentTokenWallet.select((value) => value!.tokenContract.symbol));
     } else {
       unit = coin.ticker;
     }
@@ -518,7 +518,7 @@ class _ConfirmTransactionViewState
                           ref.watch(pAmountFormatter(coin)).format(
                                 amountWithoutChange,
                                 ethContract: ref
-                                    .watch(tokenServiceProvider)
+                                    .watch(pCurrentTokenWallet)
                                     ?.tokenContract,
                               ),
                           style: STextStyles.itemSubtitle12(context),
@@ -708,7 +708,7 @@ class _ConfirmTransactionViewState
                                               priceAnd24hChangeNotifierProvider)
                                           .getTokenPrice(
                                             ref
-                                                .read(tokenServiceProvider)!
+                                                .read(pCurrentTokenWallet)!
                                                 .tokenContract
                                                 .address,
                                           )
@@ -737,7 +737,7 @@ class _ConfirmTransactionViewState
                                       ref.watch(pAmountFormatter(coin)).format(
                                           amountWithoutChange,
                                           ethContract: ref
-                                              .read(tokenServiceProvider)
+                                              .read(pCurrentTokenWallet)
                                               ?.tokenContract),
                                       style: STextStyles
                                               .desktopTextExtraExtraSmall(

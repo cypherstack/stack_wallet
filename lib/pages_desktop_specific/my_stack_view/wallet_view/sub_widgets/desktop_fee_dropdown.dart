@@ -15,7 +15,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/models.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
-import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
@@ -27,6 +26,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
@@ -103,8 +103,8 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
                   await wallet.estimateFeeFor(amount, feeRate);
             }
           } else {
-            final tokenWallet = ref.read(tokenServiceProvider)!;
-            final fee = tokenWallet.estimateFeeFor(feeRate);
+            final tokenWallet = ref.read(pCurrentTokenWallet)!;
+            final fee = await tokenWallet.estimateFeeFor(amount, feeRate);
             ref.read(tokenFeeSessionCacheProvider).fast[amount] = fee;
           }
         }
@@ -147,8 +147,8 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
                   await wallet.estimateFeeFor(amount, feeRate);
             }
           } else {
-            final tokenWallet = ref.read(tokenServiceProvider)!;
-            final fee = tokenWallet.estimateFeeFor(feeRate);
+            final tokenWallet = ref.read(pCurrentTokenWallet)!;
+            final fee = await tokenWallet.estimateFeeFor(amount, feeRate);
             ref.read(tokenFeeSessionCacheProvider).average[amount] = fee;
           }
         }
@@ -191,8 +191,8 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
                   await wallet.estimateFeeFor(amount, feeRate);
             }
           } else {
-            final tokenWallet = ref.read(tokenServiceProvider)!;
-            final fee = tokenWallet.estimateFeeFor(feeRate);
+            final tokenWallet = ref.read(pCurrentTokenWallet)!;
+            final fee = await tokenWallet.estimateFeeFor(amount, feeRate);
             ref.read(tokenFeeSessionCacheProvider).slow[amount] = fee;
           }
         }
