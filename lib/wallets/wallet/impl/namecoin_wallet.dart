@@ -15,7 +15,6 @@ class NamecoinWallet extends Bip39HDWallet
 
   NamecoinWallet(CryptoCurrencyNetwork network) : super(Namecoin(network));
 
-  // TODO: double check these filter operations are correct and do not require additional parameters
   @override
   FilterOperation? get changeAddressFilterOperation =>
       FilterGroup.and(standardChangeAddressFilters);
@@ -45,9 +44,17 @@ class NamecoinWallet extends Bip39HDWallet
 // ===========================================================================
 
   @override
-  Future<({bool blocked, String? blockedReason, String? utxoLabel})>
-      checkBlockUTXO(Map<String, dynamic> jsonUTXO, String? scriptPubKeyHex,
-          Map<String, dynamic> jsonTX, String? utxoOwnerAddress) async {
+  Future<
+      ({
+        bool blocked,
+        String? blockedReason,
+        String? utxoLabel,
+      })> checkBlockUTXO(
+    Map<String, dynamic> jsonUTXO,
+    String? scriptPubKeyHex,
+    Map<String, dynamic> jsonTX,
+    String? utxoOwnerAddress,
+  ) async {
     // Namecoin doesn't have special outputs like tokens, ordinals, etc.
     return (blocked: false, blockedReason: null, utxoLabel: null);
   }
@@ -72,7 +79,7 @@ class NamecoinWallet extends Bip39HDWallet
   Future<void> updateTransactions() async {
     final currentChainHeight = await fetchChainHeight();
 
-    // TODO: [prio=low] switch to V2 transactions.
+    // TODO: [prio=high] switch to V2 transactions.
     final data = await fetchTransactionsV1(
       addresses: await fetchAddressesForElectrumXScan(),
       currentChainHeight: currentChainHeight,

@@ -45,9 +45,12 @@ class Namecoin extends Bip39HDCurrency {
       case DerivePathType.bip44:
         purpose = 44;
         break;
-      case DerivePathType.bip49:
-        purpose = 49;
-        break;
+
+      // TODO: [prio=low] Add P2SH support. Disable for now as our p2sh was actually p2sh-p2wpkh (wrapped segwit)
+      // case DerivePathType.bip49:
+      //   purpose = 49;
+      //   break;
+
       case DerivePathType.bip84:
         purpose = 84;
         break;
@@ -103,7 +106,7 @@ class Namecoin extends Bip39HDCurrency {
       {required coinlib.ECPublicKey publicKey,
       required DerivePathType derivePathType}) {
     switch (derivePathType) {
-      // case DerivePathType.bip16: // TODO: [prio=low] Add P2SH support.
+      // case DerivePathType.bip16:
 
       case DerivePathType.bip44:
         final addr = coinlib.P2PKHAddress.fromPublicKey(
@@ -113,6 +116,7 @@ class Namecoin extends Bip39HDCurrency {
 
         return (address: addr, addressType: AddressType.p2pkh);
 
+      // TODO: [prio=low] Add P2SH support. Disable for now as our p2sh was actually p2sh-p2wpkh (wrapped segwit)
       // case DerivePathType.bip49:
 
       case DerivePathType.bip84:
@@ -151,8 +155,9 @@ class Namecoin extends Bip39HDCurrency {
 
   @override
   List<DerivePathType> get supportedDerivationPathTypes => [
-        // DerivePathType.bip16, // TODO: [prio=low] Add P2SH support.
+        // DerivePathType.bip16,
         DerivePathType.bip44,
+        // TODO: [prio=low] Add P2SH support. Disable for now as our p2sh was actually p2sh-p2wpkh (wrapped segwit)
         // DerivePathType.bip49,
         DerivePathType.bip84,
       ];
