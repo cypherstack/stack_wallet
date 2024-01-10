@@ -10,7 +10,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/coin_entity.dart';
 import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
@@ -20,6 +19,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/providers/all_wallets_info_provider.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -85,13 +85,8 @@ class _SelectWalletForTokenViewState
 
     final List<String> ethWalletIds = [];
 
-    // TODO: proper wallet data class instead of this Hive silliness
     for (final walletId in ethWalletInfos.map((e) => e.walletId).toList()) {
-      final walletContracts = DB.instance.get<dynamic>(
-            boxName: walletId,
-            key: DBKeys.ethTokenContracts,
-          ) as List<String>? ??
-          [];
+      final walletContracts = ref.read(pWalletTokenAddresses(walletId));
       if (!walletContracts.contains(widget.entity.token.address)) {
         ethWalletIds.add(walletId);
       }

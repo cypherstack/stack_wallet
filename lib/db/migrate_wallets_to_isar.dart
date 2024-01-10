@@ -4,9 +4,10 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/models/transaction_note.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
+import 'package:stackwallet/wallets/isar/models/token_wallet_info.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info_meta.dart';
 import 'package:stackwallet/wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
@@ -49,6 +50,7 @@ Future<void> migrateWalletsToIsar({
       (await Hive.openBox<String>(DB.boxNameFavoriteWallets)).values.toList();
 
   final List<(WalletInfo, WalletInfoMeta)> newInfo = [];
+  final List<TokenWalletInfo> tokenInfo = [];
   final List<TransactionNote> migratedNotes = [];
 
   //
@@ -89,9 +91,29 @@ Future<void> migrateWalletsToIsar({
     //
     Map<String, dynamic> otherData = {};
 
-    otherData[WalletInfoKeys.tokenContractAddresses] = walletBox.get(
-      DBKeys.ethTokenContracts,
+    final List<String>? tokenContractAddresses = walletBox.get(
+      "ethTokenContracts",
     ) as List<String>?;
+
+    if (tokenContractAddresses?.isNotEmpty == true) {
+      otherData[WalletInfoKeys.tokenContractAddresses] = tokenContractAddresses;
+
+      for (final address in tokenContractAddresses!) {
+        final contract = await MainDB.instance.isar.ethContracts
+            .where()
+            .addressEqualTo(address)
+            .findFirst();
+        if (contract != null) {
+          tokenInfo.add(
+            TokenWalletInfo(
+              walletId: old.walletId,
+              tokenAddress: address,
+              tokenFractionDigits: contract.decimals,
+            ),
+          );
+        }
+      }
+    }
 
     // epiccash specifics
     if (old.coin == Coin.epicCash) {
@@ -149,12 +171,18 @@ Future<void> migrateWalletsToIsar({
     });
   }
 
-  await MainDB.instance.isar.writeTxn(() async {
-    await MainDB.instance.isar.walletInfo
-        .putAll(newInfo.map((e) => e.$1).toList());
-    await MainDB.instance.isar.walletInfoMeta
-        .putAll(newInfo.map((e) => e.$2).toList());
-  });
+  if (newInfo.isNotEmpty) {
+    await MainDB.instance.isar.writeTxn(() async {
+      await MainDB.instance.isar.walletInfo
+          .putAll(newInfo.map((e) => e.$1).toList());
+      await MainDB.instance.isar.walletInfoMeta
+          .putAll(newInfo.map((e) => e.$2).toList());
+
+      if (tokenInfo.isNotEmpty) {
+        await MainDB.instance.isar.tokenWalletInfo.putAll(tokenInfo);
+      }
+    });
+  }
 
   await _cleanupOnSuccess(
       walletIds: newInfo.map((e) => e.$1.walletId).toList());

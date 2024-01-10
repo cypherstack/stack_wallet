@@ -67,7 +67,7 @@ class TokenWalletInfo implements IsarId {
     // // ensure we are updating using the latest entry of this in the db
     final thisEntry = await isar.tokenWalletInfo
         .where()
-        .walletIdEqualToTokenAddressNotEqualTo(walletId, tokenAddress)
+        .walletIdTokenAddressEqualTo(walletId, tokenAddress)
         .findFirst();
     if (thisEntry == null) {
       throw Exception(
