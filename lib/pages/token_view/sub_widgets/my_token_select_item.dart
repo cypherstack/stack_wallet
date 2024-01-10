@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_token_view.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/ethereum/cached_eth_token_balance.dart';
@@ -25,6 +26,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/eth/token_balance_provider.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/impl/ethereum_wallet.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -116,10 +118,13 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
     cachedBalance = CachedEthTokenBalance(widget.walletId, widget.token);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final address = ref.read(pWalletReceivingAddress(widget.walletId));
-      await cachedBalance.fetchAndUpdateCachedBalance(address);
       if (mounted) {
-        setState(() {});
+        final address = ref.read(pWalletReceivingAddress(widget.walletId));
+        await cachedBalance.fetchAndUpdateCachedBalance(
+            address, ref.read(mainDBProvider));
+        if (mounted) {
+          setState(() {});
+        }
       }
     });
 
@@ -172,7 +177,14 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
                           const Spacer(),
                           Text(
                             ref.watch(pAmountFormatter(Coin.ethereum)).format(
-                                  cachedBalance.getCachedBalance().total,
+                                  ref
+                                      .watch(pTokenBalance(
+                                        (
+                                          walletId: widget.walletId,
+                                          contractAddress: widget.token.address
+                                        ),
+                                      ))
+                                      .total,
                                   ethContract: widget.token,
                                 ),
                             style: isDesktop

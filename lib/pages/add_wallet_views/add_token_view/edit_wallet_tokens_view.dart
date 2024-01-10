@@ -180,10 +180,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
 
     tokenEntities.addAll(contracts.map((e) => AddTokenListElementData(e)));
 
-    final walletContracts =
-        (ref.read(pWallets).getWallet(widget.walletId) as EthereumWallet)
-            .info
-            .tokenContractAddresses;
+    final walletContracts = ref.read(pWalletTokenAddresses(widget.walletId));
 
     final shouldMarkAsSelectedContracts = [
       ...walletContracts,
