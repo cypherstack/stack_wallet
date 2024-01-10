@@ -1022,7 +1022,7 @@ class EpiccashWallet extends Bip39Wallet {
           "isCancelled":
               tx.txType == epic_models.TransactionType.TxSentCancelled ||
                   tx.txType == epic_models.TransactionType.TxReceivedCancelled,
-          "anonFees": Amount(
+          "overrideFee": Amount(
             rawValue: BigInt.from(fee),
             fractionDigits: cryptoCurrency.fractionDigits,
           ).toJsonString(),

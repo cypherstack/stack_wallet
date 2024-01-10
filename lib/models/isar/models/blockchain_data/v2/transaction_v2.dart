@@ -76,8 +76,8 @@ class TransactionV2 {
   }
 
   Amount getFee({required Coin coin}) {
-    // try anon fee first
-    final fee = _getAnonFee();
+    // check for override fee
+    final fee = _getOverrideFee();
     if (fee != null) {
       return fee;
     }
@@ -136,10 +136,11 @@ class TransactionV2 {
         ...outputs.map((e) => e.addresses).expand((e) => e),
       };
 
-  Amount? _getAnonFee() {
+  Amount? _getOverrideFee() {
     try {
-      final map = jsonDecode(otherData!) as Map;
-      return Amount.fromSerializedJsonString(map["anonFees"] as String);
+      return Amount.fromSerializedJsonString(
+        _getFromOtherData(key: "overrideFee") as String,
+      );
     } catch (_) {
       return null;
     }

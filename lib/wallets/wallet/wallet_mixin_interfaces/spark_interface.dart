@@ -507,7 +507,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         subType: TransactionSubType.sparkSpend,
         otherData: jsonEncode(
           {
-            "anonFees": fee.toJsonString(),
+            "overrideFee": fee.toJsonString(),
           },
         ),
         height: null,

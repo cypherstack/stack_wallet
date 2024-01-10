@@ -308,7 +308,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
         final otherData = {
           "nonce": tuple.item2,
           "isCancelled": txFailed,
-          "anonFees": txFee.toJsonString(),
+          "overrideFee": txFee.toJsonString(),
         };
 
         final txn = TransactionV2(
