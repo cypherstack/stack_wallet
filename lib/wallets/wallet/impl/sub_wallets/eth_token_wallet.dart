@@ -79,119 +79,126 @@ class EthTokenWallet extends Wallet {
 
   @override
   Future<void> init() async {
-    await super.init();
-
-    final contractAddress =
-        web3dart.EthereumAddress.fromHex(tokenContract.address);
-
-    if (tokenContract.abi == null) {
-      _tokenContract = await _updateTokenABI(
-        forContract: tokenContract,
-        usingContractAddress: contractAddress.hex,
-      );
-    }
-
-    // String? mnemonicString = await ethWallet.getMnemonic();
-    //
-    // //Get private key for given mnemonic
-    // String privateKey = getPrivateKey(
-    //   mnemonicString,
-    //   (await ethWallet.getMnemonicPassphrase()),
-    // );
-    // _credentials = web3dart.EthPrivateKey.fromHex(privateKey);
-
     try {
-      _deployedContract = web3dart.DeployedContract(
-        ContractAbiExtensions.fromJsonList(
-          jsonList: tokenContract.abi!,
-          name: tokenContract.name,
-        ),
-        contractAddress,
-      );
-    } catch (_) {
-      rethrow;
-    }
+      await super.init();
 
-    try {
-      _sendFunction = _deployedContract.function('transfer');
-    } catch (_) {
-      //====================================================================
-      // final list = List<Map<String, dynamic>>.from(
-      //     jsonDecode(tokenContract.abi!) as List);
-      // final functionNames = list.map((e) => e["name"] as String);
-      //
-      // if (!functionNames.contains("balanceOf")) {
-      //   list.add(
-      //     {
-      //       "encoding": "0x70a08231",
-      //       "inputs": [
-      //         {"name": "account", "type": "address"}
-      //       ],
-      //       "name": "balanceOf",
-      //       "outputs": [
-      //         {"name": "val_0", "type": "uint256"}
-      //       ],
-      //       "signature": "balanceOf(address)",
-      //       "type": "function"
-      //     },
-      //   );
-      // }
-      //
-      // if (!functionNames.contains("transfer")) {
-      //   list.add(
-      //     {
-      //       "encoding": "0xa9059cbb",
-      //       "inputs": [
-      //         {"name": "dst", "type": "address"},
-      //         {"name": "rawAmount", "type": "uint256"}
-      //       ],
-      //       "name": "transfer",
-      //       "outputs": [
-      //         {"name": "val_0", "type": "bool"}
-      //       ],
-      //       "signature": "transfer(address,uint256)",
-      //       "type": "function"
-      //     },
-      //   );
-      // }
-      //--------------------------------------------------------------------
-      //====================================================================
+      final contractAddress =
+          web3dart.EthereumAddress.fromHex(tokenContract.address);
 
-      // function not found so likely a proxy so we need to fetch the impl
-      //====================================================================
-      // final updatedToken = tokenContract.copyWith(abi: jsonEncode(list));
-      // // Store updated contract
-      // final id = await MainDB.instance.putEthContract(updatedToken);
-      // _tokenContract = updatedToken..id = id;
-      //--------------------------------------------------------------------
-      final contractAddressResponse =
-          await EthereumAPI.getProxyTokenImplementationAddress(
-              contractAddress.hex);
-
-      if (contractAddressResponse.value != null) {
+      if (tokenContract.abi == null) {
         _tokenContract = await _updateTokenABI(
           forContract: tokenContract,
-          usingContractAddress: contractAddressResponse.value!,
+          usingContractAddress: contractAddress.hex,
         );
-      } else {
-        throw contractAddressResponse.exception!;
       }
-      //====================================================================
-    }
 
-    try {
-      _deployedContract = web3dart.DeployedContract(
-        ContractAbiExtensions.fromJsonList(
-          jsonList: tokenContract.abi!,
-          name: tokenContract.name,
-        ),
-        contractAddress,
+      // String? mnemonicString = await ethWallet.getMnemonic();
+      //
+      // //Get private key for given mnemonic
+      // String privateKey = getPrivateKey(
+      //   mnemonicString,
+      //   (await ethWallet.getMnemonicPassphrase()),
+      // );
+      // _credentials = web3dart.EthPrivateKey.fromHex(privateKey);
+
+      try {
+        _deployedContract = web3dart.DeployedContract(
+          ContractAbiExtensions.fromJsonList(
+            jsonList: tokenContract.abi!,
+            name: tokenContract.name,
+          ),
+          contractAddress,
+        );
+      } catch (_) {
+        rethrow;
+      }
+
+      try {
+        _sendFunction = _deployedContract.function('transfer');
+      } catch (_) {
+        //====================================================================
+        // final list = List<Map<String, dynamic>>.from(
+        //     jsonDecode(tokenContract.abi!) as List);
+        // final functionNames = list.map((e) => e["name"] as String);
+        //
+        // if (!functionNames.contains("balanceOf")) {
+        //   list.add(
+        //     {
+        //       "encoding": "0x70a08231",
+        //       "inputs": [
+        //         {"name": "account", "type": "address"}
+        //       ],
+        //       "name": "balanceOf",
+        //       "outputs": [
+        //         {"name": "val_0", "type": "uint256"}
+        //       ],
+        //       "signature": "balanceOf(address)",
+        //       "type": "function"
+        //     },
+        //   );
+        // }
+        //
+        // if (!functionNames.contains("transfer")) {
+        //   list.add(
+        //     {
+        //       "encoding": "0xa9059cbb",
+        //       "inputs": [
+        //         {"name": "dst", "type": "address"},
+        //         {"name": "rawAmount", "type": "uint256"}
+        //       ],
+        //       "name": "transfer",
+        //       "outputs": [
+        //         {"name": "val_0", "type": "bool"}
+        //       ],
+        //       "signature": "transfer(address,uint256)",
+        //       "type": "function"
+        //     },
+        //   );
+        // }
+        //--------------------------------------------------------------------
+        //====================================================================
+
+        // function not found so likely a proxy so we need to fetch the impl
+        //====================================================================
+        // final updatedToken = tokenContract.copyWith(abi: jsonEncode(list));
+        // // Store updated contract
+        // final id = await MainDB.instance.putEthContract(updatedToken);
+        // _tokenContract = updatedToken..id = id;
+        //--------------------------------------------------------------------
+        final contractAddressResponse =
+            await EthereumAPI.getProxyTokenImplementationAddress(
+                contractAddress.hex);
+
+        if (contractAddressResponse.value != null) {
+          _tokenContract = await _updateTokenABI(
+            forContract: tokenContract,
+            usingContractAddress: contractAddressResponse.value!,
+          );
+        } else {
+          throw contractAddressResponse.exception!;
+        }
+        //====================================================================
+      }
+
+      try {
+        _deployedContract = web3dart.DeployedContract(
+          ContractAbiExtensions.fromJsonList(
+            jsonList: tokenContract.abi!,
+            name: tokenContract.name,
+          ),
+          contractAddress,
+        );
+      } catch (_) {
+        rethrow;
+      }
+
+      _sendFunction = _deployedContract.function('transfer');
+    } catch (e, s) {
+      Logging.instance.log(
+        "$runtimeType wallet failed init(): $e\n$s",
+        level: LogLevel.Warning,
       );
-    } catch (_) {
-      rethrow;
     }
-
-    _sendFunction = _deployedContract.function('transfer');
   }
 
   @override

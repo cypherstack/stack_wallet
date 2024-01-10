@@ -5,6 +5,7 @@ import 'package:meta/meta.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
+import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
@@ -35,6 +36,7 @@ import 'package:stackwallet/wallets/wallet/impl/monero_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/namecoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/nano_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/particl_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/sub_wallets/eth_token_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/tezos_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/cryptonote_wallet.dart';
@@ -201,6 +203,26 @@ abstract class Wallet<T extends CryptoCurrency> {
       nodeService: nodeService,
       prefs: prefs,
     );
+  }
+
+  // TODO: [prio=med] refactor to more generalized token rather than eth specific
+  static Wallet loadTokenWallet({
+    required EthereumWallet ethWallet,
+    required EthContract contract,
+  })  {
+    final Wallet wallet = EthTokenWallet(
+      ethWallet,
+      contract,
+    );
+
+    wallet.prefs = ethWallet.prefs;
+    wallet.nodeService = ethWallet.nodeService;
+    wallet.secureStorageInterface = ethWallet.secureStorageInterface;
+    wallet.mainDB = ethWallet.mainDB;
+
+    return wallet
+      .._walletInfo = ethWallet.info
+      .._watchWalletInfo();
   }
 
   //============================================================================

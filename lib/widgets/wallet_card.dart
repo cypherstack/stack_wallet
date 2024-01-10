@@ -57,10 +57,10 @@ class SimpleWalletCard extends ConsumerWidget {
     final old = ref.read(tokenServiceStateProvider);
     // exit previous if there is one
     unawaited(old?.exit());
-    ref.read(tokenServiceStateProvider.state).state = EthTokenWallet(
-      wallet as EthereumWallet,
-      contract,
-    );
+    ref.read(tokenServiceStateProvider.state).state = Wallet.loadTokenWallet(
+      ethWallet: wallet as EthereumWallet,
+      contract: contract,
+    ) as EthTokenWallet;
 
     try {
       await ref.read(pCurrentTokenWallet)!.init();

@@ -30,6 +30,7 @@ import 'package:stackwallet/wallets/isar/providers/eth/token_balance_provider.da
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/impl/ethereum_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/sub_wallets/eth_token_wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/dialogs/basic_dialog.dart';
 import 'package:stackwallet/widgets/icon_widgets/eth_token_icon.dart';
@@ -88,10 +89,11 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
     final old = ref.read(tokenServiceStateProvider);
     // exit previous if there is one
     unawaited(old?.exit());
-    ref.read(tokenServiceStateProvider.state).state = EthTokenWallet(
-      ref.read(pWallets).getWallet(widget.walletId) as EthereumWallet,
-      widget.token,
-    );
+    ref.read(tokenServiceStateProvider.state).state = Wallet.loadTokenWallet(
+      ethWallet:
+          ref.read(pWallets).getWallet(widget.walletId) as EthereumWallet,
+      contract: widget.token,
+    ) as EthTokenWallet;
 
     final success = await showLoading<bool>(
       whileFuture: _loadTokenWallet(context, ref),
