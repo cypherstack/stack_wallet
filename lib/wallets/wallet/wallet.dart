@@ -28,6 +28,7 @@ import 'package:stackwallet/wallets/wallet/impl/bitcoincash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/dogecoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/ecash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/ethereum_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/litecoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/monero_wallet.dart';
@@ -37,11 +38,11 @@ import 'package:stackwallet/wallets/wallet/impl/particl_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/tezos_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/cryptonote_wallet.dart';
-import 'package:stackwallet/wallets/wallet/private_key_based_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/private_key_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 
 abstract class Wallet<T extends CryptoCurrency> {
@@ -156,7 +157,10 @@ abstract class Wallet<T extends CryptoCurrency> {
       }
     }
 
-    if (wallet is PrivateKeyBasedWallet) {
+    // TODO [prio=low] handle eth differently?
+    // This would need to be changed if we actually end up allowing eth wallets
+    // to be created with a private key instead of mnemonic only
+    if (wallet is PrivateKeyInterface && wallet is! EthereumWallet) {
       await secureStorageInterface.write(
         key: privateKeyKey(walletId: walletInfo.walletId),
         value: privateKey!,
@@ -277,6 +281,9 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       case Coin.epicCash:
         return EpiccashWallet(CryptoCurrencyNetwork.main);
+
+      case Coin.ethereum:
+        return EthereumWallet(CryptoCurrencyNetwork.main);
 
       case Coin.firo:
         return FiroWallet(CryptoCurrencyNetwork.main);

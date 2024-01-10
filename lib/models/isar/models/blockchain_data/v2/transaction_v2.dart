@@ -122,6 +122,12 @@ class TransactionV2 {
         ) -
         getFee(coin: coin);
 
+    // negative amounts are likely an error or can happen with coins such as eth
+    // that don't use the btc style inputs/outputs
+    if (amount.raw < BigInt.zero) {
+      return Amount.zeroWith(fractionDigits: coin.decimals);
+    }
+
     return amount;
   }
 

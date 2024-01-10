@@ -339,6 +339,25 @@ class WalletInfo implements IsarId {
     }
   }
 
+  /// copies this with a new name and updates the db
+  Future<void> updateContractAddresses({
+    required Set<String> newContractAddresses,
+    required Isar isar,
+  }) async {
+    // only update if there were changes to the name
+    if (tokenContractAddresses
+        .toSet()
+        .difference(newContractAddresses)
+        .isNotEmpty) {
+      await updateOtherData(
+        newEntries: {
+          WalletInfoKeys.tokenContractAddresses: newContractAddresses.toList(),
+        },
+        isar: isar,
+      );
+    }
+  }
+
   //============================================================================
 
   WalletInfo({

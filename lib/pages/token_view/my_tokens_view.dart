@@ -16,13 +16,13 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/my_tokens_list.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/impl/ethereum_wallet.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -236,7 +236,8 @@ class _MyTokensViewState extends ConsumerState<MyTokensView> {
               tokenContracts: ref
                   .watch(pWallets.select((value) =>
                       value.getWallet(widget.walletId) as EthereumWallet))
-                  .getWalletTokenContractAddresses(),
+                  .info
+                  .tokenContractAddresses,
             ),
           ),
         ],

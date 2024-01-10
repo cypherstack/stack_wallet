@@ -42,9 +42,9 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
-import 'package:stackwallet/wallets/wallet/private_key_based_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/private_key_interface.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 import 'package:wakelock/wakelock.dart';
@@ -298,7 +298,7 @@ abstract class SWB {
           backupWallet['mnemonic'] = await wallet.getMnemonic();
           backupWallet['mnemonicPassphrase'] =
               await wallet.getMnemonicPassphrase();
-        } else if (wallet is PrivateKeyBasedWallet) {
+        } else if (wallet is PrivateKeyInterface) {
           backupWallet['privateKey'] = await wallet.getPrivateKey();
         }
         backupWallet['coinName'] = wallet.info.coin.name;

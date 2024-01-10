@@ -10,7 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/transactions_list.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_list.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_receive.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_send.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_token_send.dart';
@@ -90,7 +90,7 @@ class _MyWalletState extends ConsumerState<MyWallet> {
                     constraints: BoxConstraints(
                       maxHeight: MediaQuery.of(context).size.height - 362,
                     ),
-                    child: TransactionsList(
+                    child: TransactionsV2List(
                       walletId: widget.walletId,
                     ),
                   ),

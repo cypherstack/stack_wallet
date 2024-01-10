@@ -14,7 +14,6 @@ import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
 import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart';
 import 'package:stackwallet/services/coins/particl/particl_wallet.dart';
 import 'package:stackwallet/services/coins/stellar/stellar_wallet.dart';
@@ -103,13 +102,7 @@ abstract class CoinServiceAPI {
         throw UnimplementedError("moved");
 
       case Coin.ethereum:
-        return EthereumWallet(
-          walletId: walletId,
-          walletName: walletName,
-          coin: coin,
-          secureStore: secureStorageInterface,
-          tracker: tracker,
-        );
+        throw UnimplementedError("moved");
 
       case Coin.monero:
         throw UnimplementedError("moved");

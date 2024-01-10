@@ -18,7 +18,6 @@ import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/dialogs/desktop_expanding_wallet_card.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -26,6 +25,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
+import 'package:stackwallet/wallets/wallet/impl/ethereum_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -121,7 +121,7 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
         final List<EthContract> contracts = [];
         final wallet = ref.read(pWallets).getWallet(data.walletId);
         final contractAddresses =
-            (wallet as EthereumWallet).getWalletTokenContractAddresses();
+            (wallet as EthereumWallet).info.tokenContractAddresses;
 
         // fetch each contract
         for (final contractAddress in contractAddresses) {

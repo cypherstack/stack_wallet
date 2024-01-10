@@ -21,7 +21,6 @@ import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
 import 'package:stackwallet/services/ethereum/ethereum_api.dart';
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -39,6 +38,7 @@ import 'package:stackwallet/utilities/extensions/impl/contract_abi.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
+import 'package:stackwallet/wallets/wallet/impl/ethereum_wallet.dart';
 import 'package:tuple/tuple.dart';
 import 'package:web3dart/web3dart.dart' as web3dart;
 
@@ -182,7 +182,7 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
       numberOfMessages: null,
     );
 
-    Address? address = await ethWallet.db.getAddress(
+    Address? address = await ethWallet.mainDB.getAddress(
       ethWallet.walletId,
       addressString,
     );
@@ -197,7 +197,7 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
       subType: AddressSubType.nonWallet,
     );
 
-    await ethWallet.db.addNewTransactionData(
+    await ethWallet.mainDB.addNewTransactionData(
       [
         Tuple2(transaction, address),
       ],
@@ -211,7 +211,7 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
         address?.value ?? _credentials.address.toString());
   }
 
-  Future<Address?> get _currentReceivingAddress => ethWallet.db
+  Future<Address?> get _currentReceivingAddress => ethWallet.mainDB
       .getAddresses(ethWallet.walletId)
       .filter()
       .typeEqualTo(AddressType.ethereum)
@@ -255,12 +255,12 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
       );
     }
 
-    String? mnemonicString = await ethWallet.mnemonicString;
+    String? mnemonicString = await ethWallet.getMnemonic();
 
     //Get private key for given mnemonic
     String privateKey = getPrivateKey(
       mnemonicString!,
-      (await ethWallet.mnemonicPassphrase) ?? "",
+      (await ethWallet.getMnemonicPassphrase()) ?? "",
     );
     _credentials = web3dart.EthPrivateKey.fromHex(privateKey);
 
@@ -382,7 +382,7 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
         await _refreshTransactions();
       } catch (e, s) {
         Logging.instance.log(
-          "Caught exception in ${tokenContract.name} ${ethWallet.walletName} ${ethWallet.walletId} refresh(): $e\n$s",
+          "Caught exception in ${tokenContract.name} ${ethWallet.info.name} ${ethWallet.walletId} refresh(): $e\n$s",
           level: LogLevel.Warning,
         );
       } finally {
@@ -429,7 +429,7 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
     }
   }
 
-  Future<List<Transaction>> get transactions => ethWallet.db
+  Future<List<Transaction>> get transactions => ethWallet.mainDB
       .getTransactions(ethWallet.walletId)
       .filter()
       .otherDataEqualTo(tokenContract.address)
@@ -557,7 +557,7 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
           numberOfMessages: null,
         );
 
-        Address? transactionAddress = await ethWallet.db
+        Address? transactionAddress = await ethWallet.mainDB
             .getAddresses(ethWallet.walletId)
             .filter()
             .valueEqualTo(toAddress)
@@ -580,14 +580,14 @@ class EthTokenWallet extends ChangeNotifier with EthTokenCache {
         txnsData.add(Tuple2(txn, transactionAddress));
       }
     }
-    await ethWallet.db.addNewTransactionData(txnsData, ethWallet.walletId);
+    await ethWallet.mainDB.addNewTransactionData(txnsData, ethWallet.walletId);
 
     // quick hack to notify manager to call notifyListeners if
     // transactions changed
     if (txnsData.isNotEmpty) {
       GlobalEventBus.instance.fire(
         UpdatedInBackgroundEvent(
-          "${tokenContract.name} transactions updated/added for: ${ethWallet.walletId} ${ethWallet.walletName}",
+          "${tokenContract.name} transactions updated/added for: ${ethWallet.walletId} ${ethWallet.info.name}",
           ethWallet.walletId,
         ),
       );
