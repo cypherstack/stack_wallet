@@ -106,14 +106,7 @@ abstract class CoinServiceAPI {
         throw UnimplementedError("moved");
 
       case Coin.particl:
-        return ParticlWallet(
-            walletId: walletId,
-            walletName: walletName,
-            coin: coin,
-            secureStore: secureStorageInterface,
-            client: client,
-            cachedClient: cachedClient,
-            tracker: tracker);
+        throw UnimplementedError("moved");
 
       case Coin.stellar:
         return StellarWallet(

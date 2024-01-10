@@ -97,9 +97,10 @@ class Particl extends Bip39HDCurrency {
   }
 
   @override
-  ({coinlib.Address address, AddressType addressType}) getAddressForPublicKey(
-      {required coinlib.ECPublicKey publicKey,
-      required DerivePathType derivePathType}) {
+  ({coinlib.Address address, AddressType addressType}) getAddressForPublicKey({
+    required coinlib.ECPublicKey publicKey,
+    required DerivePathType derivePathType,
+  }) {
     switch (derivePathType) {
       case DerivePathType.bip44:
         final addr = coinlib.P2PKHAddress.fromPublicKey(
@@ -108,8 +109,6 @@ class Particl extends Bip39HDCurrency {
         );
 
         return (address: addr, addressType: AddressType.p2pkh);
-
-      // case DerivePathType.bip49:
 
       case DerivePathType.bip84:
         final addr = coinlib.P2WPKHAddress.fromPublicKey(
@@ -146,10 +145,8 @@ class Particl extends Bip39HDCurrency {
   }
 
   @override
-  // TODO: implement supportedDerivationPathTypes
   List<DerivePathType> get supportedDerivationPathTypes => [
         DerivePathType.bip44,
-        // DerivePathType.bip49,
         DerivePathType.bip84,
       ];
 
