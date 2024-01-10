@@ -579,7 +579,7 @@ class EpiccashWallet extends Bip39Wallet {
             key: '${walletId}_wallet', value: walletOpen);
 
         await updateNode();
-        await updateBalance();
+        // unawaited(updateBalance());
         // TODO: is there anything else that should be set up here whenever this wallet is first loaded again?
       }
     }
@@ -1074,7 +1074,7 @@ class EpiccashWallet extends Bip39Wallet {
       value: stringConfig,
     );
 
-    await refresh();
+    unawaited(refresh());
   }
 
   @override
