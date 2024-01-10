@@ -82,3 +82,10 @@ final pWalletReceivingAddress = Provider.family<String, String>(
         .select((value) => (value.value as WalletInfo).cachedReceivingAddress));
   },
 );
+
+final pWalletTokenAddresses = Provider.family<List<String>, String>(
+  (ref, walletId) {
+    return ref.watch(_wiProvider(walletId)
+        .select((value) => (value.value as WalletInfo).tokenContractAddresses));
+  },
+);
