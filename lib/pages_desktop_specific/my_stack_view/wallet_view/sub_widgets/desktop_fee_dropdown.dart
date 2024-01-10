@@ -15,7 +15,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/models.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
-import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
@@ -27,7 +26,9 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 
 final tokenFeeSessionCacheProvider =
@@ -83,21 +84,27 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
               final fee = await wallet.estimateFeeFor(
                   amount, MoneroTransactionPriority.fast.raw!);
               ref.read(feeSheetSessionCacheProvider).fast[amount] = fee;
-            } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-                ref.read(publicPrivateBalanceStateProvider.state).state !=
-                    "Private") {
-              // TODO: [prio=high] firo fees
-              throw UnimplementedError("Firo public fees");
-              // ref.read(feeSheetSessionCacheProvider).fast[amount] =
-              //     await (manager.wallet as FiroWallet)
-              //         .estimateFeeForPublic(amount, feeRate);
+            } else if (coin == Coin.firo || coin == Coin.firoTestNet) {
+              final Amount fee;
+              switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
+                case FiroType.spark:
+                  fee =
+                      await (wallet as FiroWallet).estimateFeeForSpark(amount);
+                case FiroType.lelantus:
+                  fee = await (wallet as FiroWallet)
+                      .estimateFeeForLelantus(amount);
+                case FiroType.public:
+                  fee = await (wallet as FiroWallet)
+                      .estimateFeeFor(amount, feeRate);
+              }
+              ref.read(feeSheetSessionCacheProvider).fast[amount] = fee;
             } else {
               ref.read(feeSheetSessionCacheProvider).fast[amount] =
                   await wallet.estimateFeeFor(amount, feeRate);
             }
           } else {
-            final tokenWallet = ref.read(tokenServiceProvider)!;
-            final fee = tokenWallet.estimateFeeFor(feeRate);
+            final tokenWallet = ref.read(pCurrentTokenWallet)!;
+            final fee = await tokenWallet.estimateFeeFor(amount, feeRate);
             ref.read(tokenFeeSessionCacheProvider).fast[amount] = fee;
           }
         }
@@ -121,21 +128,27 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
               final fee = await wallet.estimateFeeFor(
                   amount, MoneroTransactionPriority.regular.raw!);
               ref.read(feeSheetSessionCacheProvider).average[amount] = fee;
-            } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-                ref.read(publicPrivateBalanceStateProvider.state).state !=
-                    "Private") {
-              // TODO: [prio=high] firo fees
-              throw UnimplementedError("Firo public fees");
-              // ref.read(feeSheetSessionCacheProvider).average[amount] =
-              //     await (manager.wallet as FiroWallet)
-              //         .estimateFeeForPublic(amount, feeRate);
+            } else if (coin == Coin.firo || coin == Coin.firoTestNet) {
+              final Amount fee;
+              switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
+                case FiroType.spark:
+                  fee =
+                      await (wallet as FiroWallet).estimateFeeForSpark(amount);
+                case FiroType.lelantus:
+                  fee = await (wallet as FiroWallet)
+                      .estimateFeeForLelantus(amount);
+                case FiroType.public:
+                  fee = await (wallet as FiroWallet)
+                      .estimateFeeFor(amount, feeRate);
+              }
+              ref.read(feeSheetSessionCacheProvider).average[amount] = fee;
             } else {
               ref.read(feeSheetSessionCacheProvider).average[amount] =
                   await wallet.estimateFeeFor(amount, feeRate);
             }
           } else {
-            final tokenWallet = ref.read(tokenServiceProvider)!;
-            final fee = tokenWallet.estimateFeeFor(feeRate);
+            final tokenWallet = ref.read(pCurrentTokenWallet)!;
+            final fee = await tokenWallet.estimateFeeFor(amount, feeRate);
             ref.read(tokenFeeSessionCacheProvider).average[amount] = fee;
           }
         }
@@ -159,21 +172,27 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
               final fee = await wallet.estimateFeeFor(
                   amount, MoneroTransactionPriority.slow.raw!);
               ref.read(feeSheetSessionCacheProvider).slow[amount] = fee;
-            } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-                ref.read(publicPrivateBalanceStateProvider.state).state !=
-                    "Private") {
-              // TODO: [prio=high] firo fees
-              throw UnimplementedError("Firo public fees");
-              // ref.read(feeSheetSessionCacheProvider).slow[amount] =
-              //     await (manager.wallet as FiroWallet)
-              //         .estimateFeeForPublic(amount, feeRate);
+            } else if (coin == Coin.firo || coin == Coin.firoTestNet) {
+              final Amount fee;
+              switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
+                case FiroType.spark:
+                  fee =
+                      await (wallet as FiroWallet).estimateFeeForSpark(amount);
+                case FiroType.lelantus:
+                  fee = await (wallet as FiroWallet)
+                      .estimateFeeForLelantus(amount);
+                case FiroType.public:
+                  fee = await (wallet as FiroWallet)
+                      .estimateFeeFor(amount, feeRate);
+              }
+              ref.read(feeSheetSessionCacheProvider).slow[amount] = fee;
             } else {
               ref.read(feeSheetSessionCacheProvider).slow[amount] =
                   await wallet.estimateFeeFor(amount, feeRate);
             }
           } else {
-            final tokenWallet = ref.read(tokenServiceProvider)!;
-            final fee = tokenWallet.estimateFeeFor(feeRate);
+            final tokenWallet = ref.read(pCurrentTokenWallet)!;
+            final fee = await tokenWallet.estimateFeeFor(amount, feeRate);
             ref.read(tokenFeeSessionCacheProvider).slow[amount] = fee;
           }
         }

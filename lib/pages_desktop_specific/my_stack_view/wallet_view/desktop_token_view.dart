@@ -15,7 +15,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/token_summary.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/token_transaction_list_widget.dart';
-import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_wallet_features.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_wallet_summary.dart';
@@ -25,6 +24,7 @@ import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -57,7 +57,7 @@ class _DesktopTokenViewState extends ConsumerState<DesktopTokenView> {
 
   @override
   void initState() {
-    initialSyncStatus = ref.read(tokenServiceProvider)!.isRefreshing
+    initialSyncStatus = ref.read(pCurrentTokenWallet)!.refreshMutex.isLocked
         ? WalletSyncStatus.syncing
         : WalletSyncStatus.synced;
     super.initState();
@@ -114,7 +114,7 @@ class _DesktopTokenViewState extends ConsumerState<DesktopTokenView> {
             children: [
               EthTokenIcon(
                 contractAddress: ref.watch(
-                  tokenServiceProvider.select(
+                  pCurrentTokenWallet.select(
                     (value) => value!.tokenContract.address,
                   ),
                 ),
@@ -125,7 +125,7 @@ class _DesktopTokenViewState extends ConsumerState<DesktopTokenView> {
               ),
               Text(
                 ref.watch(
-                  tokenServiceProvider.select(
+                  pCurrentTokenWallet.select(
                     (value) => value!.tokenContract.name,
                   ),
                 ),
@@ -153,7 +153,7 @@ class _DesktopTokenViewState extends ConsumerState<DesktopTokenView> {
                 children: [
                   EthTokenIcon(
                     contractAddress: ref.watch(
-                      tokenServiceProvider.select(
+                      pCurrentTokenWallet.select(
                         (value) => value!.tokenContract.address,
                       ),
                     ),
@@ -241,7 +241,7 @@ class _DesktopTokenViewState extends ConsumerState<DesktopTokenView> {
                     child: MyWallet(
                       walletId: widget.walletId,
                       contractAddress: ref.watch(
-                        tokenServiceProvider.select(
+                        pCurrentTokenWallet.select(
                           (value) => value!.tokenContract.address,
                         ),
                       ),

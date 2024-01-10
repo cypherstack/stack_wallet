@@ -500,7 +500,7 @@ class FiroWallet extends Bip39HDWallet
       if (anonFees != null) {
         otherData = jsonEncode(
           {
-            "anonFees": anonFees.toJsonString(),
+            "overrideFee": anonFees.toJsonString(),
           },
         );
       }

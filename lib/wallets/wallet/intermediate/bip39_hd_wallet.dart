@@ -36,7 +36,7 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
       derivePathType: DerivePathTypeExt.primaryFor(info.coin),
     );
 
-    await mainDB.putAddress(address);
+    await mainDB.updateOrPutAddresses([address]);
     await info.updateReceivingAddress(
       newAddress: address.value,
       isar: mainDB.isar,
@@ -58,9 +58,7 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
       derivePathType: DerivePathTypeExt.primaryFor(info.coin),
     );
 
-    await mainDB.isar.writeTxn(() async {
-      await mainDB.isar.addresses.put(address);
-    });
+    await mainDB.updateOrPutAddresses([address]);
   }
 
   // ========== Subclasses may override ========================================

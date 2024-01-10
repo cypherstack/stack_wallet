@@ -20,7 +20,6 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/receive_view/generate_receiving_uri_qr_code_view.dart';
-import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
@@ -32,6 +31,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
@@ -307,7 +307,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                               children: [
                                 Text(
                                   "Your ${widget.contractAddress == null ? coin.ticker : ref.watch(
-                                      tokenServiceProvider.select(
+                                      pCurrentTokenWallet.select(
                                         (value) => value!.tokenContract.symbol,
                                       ),
                                     )} SPARK address",
@@ -398,7 +398,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                         children: [
                           Text(
                             "Your ${widget.contractAddress == null ? coin.ticker : ref.watch(
-                                tokenServiceProvider.select(
+                                pCurrentTokenWallet.select(
                                   (value) => value!.tokenContract.symbol,
                                 ),
                               )} address",

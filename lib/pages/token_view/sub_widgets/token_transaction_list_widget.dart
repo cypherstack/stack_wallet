@@ -12,25 +12,18 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
-import 'package:stackwallet/pages/token_view/token_view.dart';
+import 'package:isar/isar.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/no_transactions_found.dart';
-import 'package:stackwallet/providers/global/trades_service_provider.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_list_item.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
+import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
-import 'package:stackwallet/widgets/trade_card.dart';
-import 'package:stackwallet/widgets/transaction_card.dart';
-import 'package:tuple/tuple.dart';
 
 class TokenTransactionsList extends ConsumerStatefulWidget {
   const TokenTransactionsList({
@@ -49,7 +42,10 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
   late final int minConfirms;
 
   bool _hasLoaded = false;
-  List<Transaction> _transactions2 = [];
+  List<TransactionV2> _transactions = [];
+
+  late final StreamSubscription<List<TransactionV2>> _subscription;
+  late final QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> _query;
 
   BorderRadius get _borderRadiusFirst {
     return BorderRadius.only(
@@ -73,139 +69,6 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
     );
   }
 
-  Widget itemBuilder(
-    BuildContext context,
-    Transaction tx,
-    BorderRadius? radius,
-    Coin coin,
-  ) {
-    final matchingTrades = ref
-        .read(tradesServiceProvider)
-        .trades
-        .where((e) => e.payInTxid == tx.txid || e.payOutTxid == tx.txid);
-
-    if (tx.type == TransactionType.outgoing && matchingTrades.isNotEmpty) {
-      final trade = matchingTrades.first;
-      return Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).extension<StackColors>()!.popupBG,
-          borderRadius: radius,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TransactionCard(
-              // this may mess with combined firo transactions
-              key: tx.isConfirmed(
-                      ref.watch(pWalletChainHeight(widget.walletId)),
-                      minConfirms)
-                  ? Key(tx.txid + tx.type.name + tx.address.value.toString())
-                  : UniqueKey(), //
-              transaction: tx,
-              walletId: widget.walletId,
-            ),
-            TradeCard(
-              // this may mess with combined firo transactions
-              key: Key(tx.txid +
-                  tx.type.name +
-                  tx.address.value.toString() +
-                  trade.uuid), //
-              trade: trade,
-              onTap: () async {
-                final walletName = ref.read(pWalletName(widget.walletId));
-                if (Util.isDesktop) {
-                  await showDialog<void>(
-                    context: context,
-                    builder: (context) => Navigator(
-                      initialRoute: TradeDetailsView.routeName,
-                      onGenerateRoute: RouteGenerator.generateRoute,
-                      onGenerateInitialRoutes: (_, __) {
-                        return [
-                          FadePageRoute(
-                            DesktopDialog(
-                              maxHeight: null,
-                              maxWidth: 580,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                      left: 32,
-                                      bottom: 16,
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          "Trade details",
-                                          style: STextStyles.desktopH3(context),
-                                        ),
-                                        DesktopDialogCloseButton(
-                                          onPressedOverride: Navigator.of(
-                                            context,
-                                            rootNavigator: true,
-                                          ).pop,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Flexible(
-                                    child: TradeDetailsView(
-                                      tradeId: trade.tradeId,
-                                      transactionIfSentFromStack: tx,
-                                      walletName: walletName,
-                                      walletId: widget.walletId,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const RouteSettings(
-                              name: TradeDetailsView.routeName,
-                            ),
-                          ),
-                        ];
-                      },
-                    ),
-                  );
-                } else {
-                  unawaited(
-                    Navigator.of(context).pushNamed(
-                      TradeDetailsView.routeName,
-                      arguments: Tuple4(
-                        trade.tradeId,
-                        tx,
-                        widget.walletId,
-                        walletName,
-                      ),
-                    ),
-                  );
-                }
-              },
-            )
-          ],
-        ),
-      );
-    } else {
-      return Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).extension<StackColors>()!.popupBG,
-          borderRadius: radius,
-        ),
-        child: TransactionCard(
-          // this may mess with combined firo transactions
-          key: tx.isConfirmed(
-                  ref.watch(pWalletChainHeight(widget.walletId)), minConfirms)
-              ? Key(tx.txid + tx.type.name + tx.address.value.toString())
-              : UniqueKey(),
-          transaction: tx,
-          walletId: widget.walletId,
-        ),
-      );
-    }
-  }
-
   @override
   void initState() {
     minConfirms = ref
@@ -213,7 +76,31 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
         .getWallet(widget.walletId)
         .cryptoCurrency
         .minConfirms;
+
+    _query = ref
+        .read(mainDBProvider)
+        .isar
+        .transactionV2s
+        .where()
+        .walletIdEqualTo(widget.walletId)
+        .filter()
+        .subTypeEqualTo(TransactionSubType.ethToken)
+        .sortByTimestampDesc();
+
+    _subscription = _query.watch().listen((event) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _transactions = event;
+        });
+      });
+    });
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
   }
 
   @override
@@ -222,12 +109,11 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
         ref.watch(pWallets.select((value) => value.getWallet(widget.walletId)));
 
     return FutureBuilder(
-      future: ref
-          .watch(tokenServiceProvider.select((value) => value!.transactions)),
-      builder: (fbContext, AsyncSnapshot<List<Transaction>> snapshot) {
+      future: _query.findAll(),
+      builder: (fbContext, AsyncSnapshot<List<TransactionV2>> snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             snapshot.hasData) {
-          _transactions2 = snapshot.data!;
+          _transactions = snapshot.data!;
           _hasLoaded = true;
         }
         if (!_hasLoaded) {
@@ -246,35 +132,34 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
             ],
           );
         }
-        if (_transactions2.isEmpty) {
+        if (_transactions.isEmpty) {
           return const NoTransActionsFound();
         } else {
-          _transactions2.sort((a, b) => b.timestamp - a.timestamp);
+          _transactions.sort((a, b) => b.timestamp - a.timestamp);
           return RefreshIndicator(
             onRefresh: () async {
-              if (!ref.read(tokenServiceProvider)!.isRefreshing) {
-                unawaited(ref.read(tokenServiceProvider)!.refresh());
+              if (!ref.read(pCurrentTokenWallet)!.refreshMutex.isLocked) {
+                unawaited(ref.read(pCurrentTokenWallet)!.refresh());
               }
             },
             child: Util.isDesktop
                 ? ListView.separated(
                     itemBuilder: (context, index) {
                       BorderRadius? radius;
-                      if (_transactions2.length == 1) {
+                      if (_transactions.length == 1) {
                         radius = BorderRadius.circular(
                           Constants.size.circularBorderRadius,
                         );
-                      } else if (index == _transactions2.length - 1) {
+                      } else if (index == _transactions.length - 1) {
                         radius = _borderRadiusLast;
                       } else if (index == 0) {
                         radius = _borderRadiusFirst;
                       }
-                      final tx = _transactions2[index];
-                      return itemBuilder(
-                        context,
-                        tx,
-                        radius,
-                        wallet.info.coin,
+                      final tx = _transactions[index];
+                      return TxListItem(
+                        tx: tx,
+                        coin: wallet.info.coin,
+                        radius: radius,
                       );
                     },
                     separatorBuilder: (context, index) {
@@ -286,27 +171,26 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
                             .background,
                       );
                     },
-                    itemCount: _transactions2.length,
+                    itemCount: _transactions.length,
                   )
                 : ListView.builder(
-                    itemCount: _transactions2.length,
+                    itemCount: _transactions.length,
                     itemBuilder: (context, index) {
                       BorderRadius? radius;
-                      if (_transactions2.length == 1) {
+                      if (_transactions.length == 1) {
                         radius = BorderRadius.circular(
                           Constants.size.circularBorderRadius,
                         );
-                      } else if (index == _transactions2.length - 1) {
+                      } else if (index == _transactions.length - 1) {
                         radius = _borderRadiusLast;
                       } else if (index == 0) {
                         radius = _borderRadiusFirst;
                       }
-                      final tx = _transactions2[index];
-                      return itemBuilder(
-                        context,
-                        tx,
-                        radius,
-                        wallet.info.coin,
+                      final tx = _transactions[index];
+                      return TxListItem(
+                        tx: tx,
+                        coin: wallet.info.coin,
+                        radius: radius,
                       );
                     },
                   ),

@@ -19,7 +19,6 @@ import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/models/isar/models/transaction_note.dart';
 import 'package:stackwallet/models/transaction_filter.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_search_filter_view.dart';
@@ -61,13 +60,11 @@ class AllTransactionsView extends ConsumerStatefulWidget {
   const AllTransactionsView({
     Key? key,
     required this.walletId,
-    this.isTokens = false,
   }) : super(key: key);
 
   static const String routeName = "/allTransactions";
 
   final String walletId;
-  final bool isTokens;
 
   @override
   ConsumerState<AllTransactionsView> createState() =>
@@ -487,41 +484,25 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                   final criteria =
                       ref.watch(transactionFilterProvider.state).state;
 
-                  //todo: check if print needed
-                  // debugPrint("Consumer build called");
-
-                  final WhereClause ww;
-
                   return FutureBuilder(
-                    future: widget.isTokens
-                        ? ref
-                            .watch(mainDBProvider)
-                            .getTransactions(walletId)
-                            .filter()
-                            .otherDataEqualTo(ref
-                                .watch(tokenServiceProvider)!
-                                .tokenContract
-                                .address)
-                            .sortByTimestampDesc()
-                            .findAll()
-                        : ref.watch(mainDBProvider).isar.transactions.buildQuery<
-                                Transaction>(
-                            whereClauses: [
-                                IndexWhereClause.equalTo(
-                                  indexName: 'walletId',
-                                  value: [widget.walletId],
-                                )
-                              ],
-                            // TODO: [prio=high] add filters to wallet or cryptocurrency class
-                            //   filter: [
-                            //     // todo
-                            //   ],
-                            sortBy: [
-                                const SortProperty(
-                                  property: "timestamp",
-                                  sort: Sort.desc,
-                                ),
-                              ]).findAll(),
+                    future: ref.watch(mainDBProvider).isar.transactions.buildQuery<
+                            Transaction>(
+                        whereClauses: [
+                          IndexWhereClause.equalTo(
+                            indexName: 'walletId',
+                            value: [widget.walletId],
+                          )
+                        ],
+                        // TODO: [prio=high] add filters to wallet or cryptocurrency class
+                        //   filter: [
+                        //     // todo
+                        //   ],
+                        sortBy: [
+                          const SortProperty(
+                            property: "timestamp",
+                            sort: Sort.desc,
+                          ),
+                        ]).findAll(),
                     builder: (_, AsyncSnapshot<List<Transaction>> snapshot) {
                       if (snapshot.connectionState == ConnectionState.done &&
                           snapshot.hasData) {

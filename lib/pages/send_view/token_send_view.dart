@@ -21,7 +21,6 @@ import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
-import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
 import 'package:stackwallet/providers/ui/preview_tx_button_state_provider.dart';
@@ -41,6 +40,8 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
+import 'package:stackwallet/wallets/isar/providers/eth/token_balance_provider.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
@@ -353,7 +354,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
   }
 
   Future<String> calculateFees() async {
-    final wallet = ref.read(tokenServiceProvider)!;
+    final wallet = ref.read(pCurrentTokenWallet)!;
     final feeObject = await wallet.fees;
 
     late final int feeRate;
@@ -372,7 +373,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
         feeRate = -1;
     }
 
-    final Amount fee = wallet.estimateFeeFor(feeRate);
+    final Amount fee = await wallet.estimateFeeFor(Amount.zero, feeRate);
     cachedFees = ref.read(pAmountFormatter(coin)).format(
           fee,
           withUnitName: true,
@@ -389,7 +390,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
       const Duration(milliseconds: 100),
     );
     final wallet = ref.read(pWallets).getWallet(walletId);
-    final tokenWallet = ref.read(tokenServiceProvider)!;
+    final tokenWallet = ref.read(pCurrentTokenWallet)!;
 
     final Amount amount = _amountToSend!;
 
@@ -711,8 +712,11 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                           .watch(pAmountFormatter(coin))
                                           .format(
                                             ref
-                                                .read(tokenServiceProvider)!
-                                                .balance
+                                                .read(pTokenBalance((
+                                                  walletId: widget.walletId,
+                                                  contractAddress:
+                                                      tokenContract.address,
+                                                )))
                                                 .spendable,
                                             ethContract: tokenContract,
                                             withUnitName: false,
@@ -729,18 +733,16 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                             ref
                                                 .watch(pAmountFormatter(coin))
                                                 .format(
-                                                  ref.watch(
-                                                    tokenServiceProvider.select(
-                                                      (value) => value!
-                                                          .balance.spendable,
-                                                    ),
-                                                  ),
-                                                  ethContract: ref.watch(
-                                                    tokenServiceProvider.select(
-                                                      (value) =>
-                                                          value!.tokenContract,
-                                                    ),
-                                                  ),
+                                                  ref
+                                                      .watch(pTokenBalance((
+                                                        walletId:
+                                                            widget.walletId,
+                                                        contractAddress:
+                                                            tokenContract
+                                                                .address,
+                                                      )))
+                                                      .spendable,
+                                                  ethContract: tokenContract,
                                                 ),
                                             style:
                                                 STextStyles.titleBold12(context)
@@ -750,7 +752,13 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                             textAlign: TextAlign.right,
                                           ),
                                           Text(
-                                            "${(ref.watch(tokenServiceProvider.select((value) => value!.balance.spendable.decimal)) * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getTokenPrice(tokenContract.address).item1))).toAmount(
+                                            "${(ref.watch(pTokenBalance((
+                                                          walletId:
+                                                              widget.walletId,
+                                                          contractAddress:
+                                                              tokenContract
+                                                                  .address,
+                                                        ))).spendable.decimal * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getTokenPrice(tokenContract.address).item1))).toAmount(
                                                   fractionDigits: 2,
                                                 ).fiatString(
                                                   locale: locale,

@@ -18,16 +18,15 @@ import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_token_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/ethereum/ethereum_token_service.dart';
-import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import 'package:stackwallet/wallets/wallet/impl/ethereum_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/sub_wallets/eth_token_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -55,17 +54,16 @@ class SimpleWalletCard extends ConsumerWidget {
     Wallet wallet,
     EthContract contract,
   ) async {
+    final old = ref.read(tokenServiceStateProvider);
+    // exit previous if there is one
+    unawaited(old?.exit());
     ref.read(tokenServiceStateProvider.state).state = EthTokenWallet(
-      token: contract,
-      secureStore: ref.read(secureStoreProvider),
-      ethWallet: wallet as EthereumWallet,
-      tracker: TransactionNotificationTracker(
-        walletId: walletId,
-      ),
+      wallet as EthereumWallet,
+      contract,
     );
 
     try {
-      await ref.read(tokenServiceProvider)!.initialize();
+      await ref.read(pCurrentTokenWallet)!.init();
       return true;
     } catch (_) {
       await showDialog<void>(

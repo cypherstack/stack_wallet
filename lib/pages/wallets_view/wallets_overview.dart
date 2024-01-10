@@ -25,7 +25,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
-import 'package:stackwallet/wallets/wallet/impl/ethereum_wallet.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -119,9 +119,8 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
     if (widget.coin == Coin.ethereum) {
       for (final data in walletsData) {
         final List<EthContract> contracts = [];
-        final wallet = ref.read(pWallets).getWallet(data.walletId);
         final contractAddresses =
-            (wallet as EthereumWallet).info.tokenContractAddresses;
+            ref.read(pWalletTokenAddresses(data.walletId));
 
         // fetch each contract
         for (final contractAddress in contractAddresses) {
