@@ -75,6 +75,9 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
         .transactionV2s
         .where()
         .walletIdEqualTo(widget.walletId)
+        .filter()
+        .not()
+        .subTypeEqualTo(TransactionSubType.ethToken)
         .sortByTimestampDesc();
 
     _subscription = _query.watch().listen((event) {
