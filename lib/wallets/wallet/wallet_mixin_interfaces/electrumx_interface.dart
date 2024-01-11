@@ -578,23 +578,24 @@ mixin ElectrumXInterface on Bip39HDWallet {
                 )
                 .data;
             break;
-          //
-          // case DerivePathType.bip49:
-          //
-          //   input = P2s
-          //
-          //   final p2wpkh = P2WPKH(
-          //     data: PaymentData(
-          //       pubkey: Format.stringToUint8List(pubKey),
-          //     ),
-          //     network: _network,
-          //   ).data;
-          //   redeemScript = p2wpkh.output;
-          //   data = P2SH(
-          //     data: PaymentData(redeem: p2wpkh),
-          //     network: _network,
-          //   ).data;
-          //   break;
+
+          case DerivePathType.bip49:
+            final p2wpkh = bitcoindart
+                .P2WPKH(
+                  data: bitcoindart.PaymentData(
+                    pubkey: pubKey,
+                  ),
+                  network: convertedNetwork,
+                )
+                .data;
+            sd.redeemScript = p2wpkh.output;
+            data = bitcoindart
+                .P2SH(
+                  data: bitcoindart.PaymentData(redeem: p2wpkh),
+                  network: convertedNetwork,
+                )
+                .data;
+            break;
 
           case DerivePathType.bip84:
             // input = coinlib.P2WPKHInput(
