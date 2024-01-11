@@ -3,6 +3,7 @@ import 'package:stackwallet/dto/ordinals/inscription_data.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/models/isar/ordinal.dart';
 import 'package:stackwallet/services/litescribe_api.dart';
+import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 
 mixin OrdinalsInterface on ElectrumXInterface {
@@ -11,10 +12,11 @@ mixin OrdinalsInterface on ElectrumXInterface {
 
   // check if an inscription is in a given <UTXO> output
   Future<bool> _inscriptionInAddress(String address) async {
-    var inscriptions = await litescribeAPI.getInscriptionsByAddress(address);
-    if (inscriptions.isNotEmpty) {
-      return true;
-    } else {
+    try {
+      return (await litescribeAPI.getInscriptionsByAddress(address)).isNotEmpty;
+    } catch (_) {
+      Logging.instance.log("Litescribe api failure!", level: LogLevel.Error);
+
       return false;
     }
   }
@@ -63,12 +65,11 @@ mixin OrdinalsInterface on ElectrumXInterface {
 
     // TODO check the specific output, not just the address in general
     // TODO optimize by freezing output in OrdinalsInterface, so one ordinal API calls is made (or at least many less)
-    if (utxoOwnerAddress != null) {
-      if (await _inscriptionInAddress(utxoOwnerAddress)) {
-        shouldBlock = true;
-        blockReason = "Ordinal";
-        label = "Ordinal detected at address";
-      }
+    if (utxoOwnerAddress != null &&
+        await _inscriptionInAddress(utxoOwnerAddress)) {
+      shouldBlock = true;
+      blockReason = "Ordinal";
+      label = "Ordinal detected at address";
     } else {
       // TODO implement inscriptionInOutput
       if (utxoAmount <= 10000) {
@@ -85,7 +86,11 @@ mixin OrdinalsInterface on ElectrumXInterface {
   Future<bool> updateUTXOs() async {
     final newUtxosAdded = await super.updateUTXOs();
     if (newUtxosAdded) {
-      await refreshInscriptions();
+      try {
+        await refreshInscriptions();
+      } catch (_) {
+        // do nothing but do not block/fail this updateUTXOs call based on litescribe call failures
+      }
     }
 
     return newUtxosAdded;
