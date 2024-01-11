@@ -161,6 +161,7 @@ enum AddressType {
   nano,
   banano,
   spark,
+  stellar,
   ;
 
   String get readableName {
@@ -187,6 +188,8 @@ enum AddressType {
         return "Banano";
       case AddressType.spark:
         return "Spark";
+      case AddressType.stellar:
+        return "Stellar";
     }
   }
 }

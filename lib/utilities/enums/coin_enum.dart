@@ -399,9 +399,7 @@ extension CoinExt on Coin {
 
       case Coin.stellar:
       case Coin.stellarTestnet:
-        // should not be unknown but since already used in prod changing
-        // this requires a migrate
-        return AddressType.unknown;
+        return AddressType.stellar;
     }
   }
 }

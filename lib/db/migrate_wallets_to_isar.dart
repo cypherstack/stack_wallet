@@ -86,6 +86,11 @@ Future<void> migrateWalletsToIsar({
       }
     }
 
+    // reset stellar address type
+    if (old.coin == Coin.stellar || old.coin == Coin.stellarTestnet) {
+      await MainDB.instance.deleteWalletBlockchainData(old.walletId);
+    }
+
     //
     // Set other data values
     //

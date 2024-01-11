@@ -36,6 +36,7 @@ import 'package:stackwallet/wallets/wallet/impl/monero_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/namecoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/nano_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/particl_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/stellar_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/sub_wallets/eth_token_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/tezos_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
@@ -209,7 +210,7 @@ abstract class Wallet<T extends CryptoCurrency> {
   static Wallet loadTokenWallet({
     required EthereumWallet ethWallet,
     required EthContract contract,
-  })  {
+  }) {
     final Wallet wallet = EthTokenWallet(
       ethWallet,
       contract,
@@ -328,6 +329,11 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       case Coin.particl:
         return ParticlWallet(CryptoCurrencyNetwork.main);
+
+      case Coin.stellar:
+        return StellarWallet(CryptoCurrencyNetwork.main);
+      case Coin.stellarTestnet:
+        return StellarWallet(CryptoCurrencyNetwork.test);
 
       case Coin.tezos:
         return TezosWallet(CryptoCurrencyNetwork.main);
