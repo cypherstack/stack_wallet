@@ -112,18 +112,23 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
 
     final Amount amount;
 
+    final fractionDigits = tokenContract?.decimals ?? coin.decimals;
+
     if (_transaction.subType == TransactionSubType.cashFusion) {
-      amount = _transaction.getAmountReceivedInThisWallet(coin: coin);
+      amount = _transaction.getAmountReceivedInThisWallet(
+          fractionDigits: fractionDigits);
     } else {
       switch (_transaction.type) {
         case TransactionType.outgoing:
-          amount = _transaction.getAmountSentFromThisWallet(coin: coin);
+          amount = _transaction.getAmountSentFromThisWallet(
+              fractionDigits: fractionDigits);
           break;
 
         case TransactionType.incoming:
         case TransactionType.sentToSelf:
           if (_transaction.subType == TransactionSubType.sparkMint) {
-            amount = _transaction.getAmountSparkSelfMinted(coin: coin);
+            amount = _transaction.getAmountSparkSelfMinted(
+                fractionDigits: fractionDigits);
           } else if (_transaction.subType == TransactionSubType.sparkSpend) {
             final changeAddress =
                 (ref.watch(pWallets).getWallet(walletId) as SparkInterface)
@@ -136,12 +141,14 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
               fractionDigits: coin.decimals,
             );
           } else {
-            amount = _transaction.getAmountReceivedInThisWallet(coin: coin);
+            amount = _transaction.getAmountReceivedInThisWallet(
+                fractionDigits: fractionDigits);
           }
           break;
 
         case TransactionType.unknown:
-          amount = _transaction.getAmountSentFromThisWallet(coin: coin);
+          amount = _transaction.getAmountSentFromThisWallet(
+              fractionDigits: fractionDigits);
           break;
       }
     }

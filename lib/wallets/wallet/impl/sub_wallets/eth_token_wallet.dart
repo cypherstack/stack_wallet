@@ -407,13 +407,17 @@ class EthTokenWallet extends Wallet {
       for (final tuple in data) {
         // ignore all non Transfer events (for now)
         if (tuple.tx.topics[0] == kTransferEventSignature) {
-          final Amount txFee = tuple.extra.gasUsed * tuple.extra.gasPrice;
-
           final amount = Amount(
             rawValue: tuple.tx.data.toBigIntFromHex,
             fractionDigits: tokenContract.decimals,
           );
 
+          if (amount.raw == BigInt.zero) {
+            // probably don't need to show this
+            continue;
+          }
+
+          final Amount txFee = tuple.extra.gasUsed * tuple.extra.gasPrice;
           final addressFrom = _addressFromTopic(
             tuple.tx.topics[1],
           );
@@ -451,7 +455,28 @@ class EthTokenWallet extends Wallet {
           final List<OutputV2> outputs = [];
           final List<InputV2> inputs = [];
 
-          // TODO: ins outs
+          OutputV2 output = OutputV2.isarCantDoRequiredInDefaultConstructor(
+            scriptPubKeyHex: "00",
+            valueStringSats: amount.raw.toString(),
+            addresses: [
+              addressTo,
+            ],
+            walletOwns: addressTo == addressString,
+          );
+          InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
+            scriptSigHex: null,
+            sequence: null,
+            outpoint: null,
+            addresses: [addressFrom],
+            valueStringSats: amount.raw.toString(),
+            witness: null,
+            innerRedeemScriptAsm: null,
+            coinbase: null,
+            walletOwns: addressFrom == addressString,
+          );
+
+          outputs.add(output);
+          inputs.add(input);
 
           final txn = TransactionV2(
             walletId: walletId,

@@ -843,6 +843,9 @@ class _DesktopTransactionCardRowState
   late final TransactionV2 _transaction;
   late final String walletId;
   late final int minConfirms;
+  late final EthContract? ethContract;
+
+  bool get isTokenTx => ethContract != null;
 
   String whatIsIt(TransactionV2 tx, int height) => tx.statusLabel(
         currentChainHeight: height,
@@ -858,6 +861,15 @@ class _DesktopTransactionCardRowState
         .cryptoCurrency
         .minConfirms;
     _transaction = widget.transaction;
+
+    if (_transaction.subType == TransactionSubType.ethToken) {
+      ethContract = ref
+          .read(mainDBProvider)
+          .getEthContractSync(_transaction.contractAddress!);
+    } else {
+      ethContract == null;
+    }
+
     super.initState();
   }
 
@@ -892,19 +904,22 @@ class _DesktopTransactionCardRowState
     final currentHeight = ref.watch(pWalletChainHeight(walletId));
 
     final Amount amount;
-
+    final fractionDigits = ethContract?.decimals ?? coin.decimals;
     if (_transaction.subType == TransactionSubType.cashFusion) {
-      amount = _transaction.getAmountReceivedInThisWallet(coin: coin);
+      amount = _transaction.getAmountReceivedInThisWallet(
+          fractionDigits: fractionDigits);
     } else {
       switch (_transaction.type) {
         case TransactionType.outgoing:
-          amount = _transaction.getAmountSentFromThisWallet(coin: coin);
+          amount = _transaction.getAmountSentFromThisWallet(
+              fractionDigits: fractionDigits);
           break;
 
         case TransactionType.incoming:
         case TransactionType.sentToSelf:
           if (_transaction.subType == TransactionSubType.sparkMint) {
-            amount = _transaction.getAmountSparkSelfMinted(coin: coin);
+            amount = _transaction.getAmountSparkSelfMinted(
+                fractionDigits: fractionDigits);
           } else if (_transaction.subType == TransactionSubType.sparkSpend) {
             final changeAddress =
                 (ref.watch(pWallets).getWallet(walletId) as SparkInterface)
@@ -917,12 +932,14 @@ class _DesktopTransactionCardRowState
               fractionDigits: coin.decimals,
             );
           } else {
-            amount = _transaction.getAmountReceivedInThisWallet(coin: coin);
+            amount = _transaction.getAmountReceivedInThisWallet(
+                fractionDigits: fractionDigits);
           }
           break;
 
         case TransactionType.unknown:
-          amount = _transaction.getAmountSentFromThisWallet(coin: coin);
+          amount = _transaction.getAmountSentFromThisWallet(
+              fractionDigits: fractionDigits);
           break;
       }
     }
@@ -1005,7 +1022,7 @@ class _DesktopTransactionCardRowState
               Expanded(
                 flex: 6,
                 child: Text(
-                  "$prefix${ref.watch(pAmountFormatter(coin)).format(amount)}",
+                  "$prefix${ref.watch(pAmountFormatter(coin)).format(amount, ethContract: ethContract)}",
                   style:
                       STextStyles.desktopTextExtraExtraSmall(context).copyWith(
                     color: Theme.of(context).extension<StackColors>()!.textDark,

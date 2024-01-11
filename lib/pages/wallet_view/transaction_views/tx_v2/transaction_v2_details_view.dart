@@ -17,11 +17,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/dialogs/cancelling_transaction_progress_dialog.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/edit_note_view.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -84,6 +86,9 @@ class _TransactionV2DetailsViewState
   late final String amountPrefix;
   late final String unit;
   late final int minConfirms;
+  late final EthContract? ethContract;
+
+  bool get isTokenTx => ethContract != null;
 
   late final List<({List<String> addresses, Amount amount})> data;
 
@@ -96,10 +101,24 @@ class _TransactionV2DetailsViewState
     walletId = widget.walletId;
 
     coin = widget.coin;
+
+    if (_transaction.subType == TransactionSubType.ethToken) {
+      ethContract = ref
+          .read(mainDBProvider)
+          .getEthContractSync(_transaction.contractAddress!);
+
+      unit = ethContract!.symbol;
+    } else {
+      ethContract == null;
+      unit = coin.ticker;
+    }
+
     minConfirms =
         ref.read(pWallets).getWallet(walletId).cryptoCurrency.minConfirms;
 
-    fee = _transaction.getFee(coin: coin);
+    final fractionDigits = ethContract?.decimals ?? coin.decimals;
+
+    fee = _transaction.getFee(fractionDigits: fractionDigits);
 
     if (_transaction.subType == TransactionSubType.cashFusion ||
         _transaction.type == TransactionType.sentToSelf) {
@@ -108,18 +127,18 @@ class _TransactionV2DetailsViewState
       amountPrefix = _transaction.type == TransactionType.outgoing ? "-" : "+";
     }
 
-    unit = coin.ticker;
-
     if (_transaction.isEpiccashTransaction) {
       switch (_transaction.type) {
         case TransactionType.outgoing:
         case TransactionType.unknown:
-          amount = _transaction.getAmountSentFromThisWallet(coin: coin);
+          amount = _transaction.getAmountSentFromThisWallet(
+              fractionDigits: fractionDigits);
           break;
 
         case TransactionType.incoming:
         case TransactionType.sentToSelf:
-          amount = _transaction.getAmountReceivedInThisWallet(coin: coin);
+          amount = _transaction.getAmountReceivedInThisWallet(
+              fractionDigits: fractionDigits);
           break;
       }
       data = _transaction.outputs
@@ -129,7 +148,8 @@ class _TransactionV2DetailsViewState
               ))
           .toList();
     } else if (_transaction.subType == TransactionSubType.cashFusion) {
-      amount = _transaction.getAmountReceivedInThisWallet(coin: coin);
+      amount = _transaction.getAmountReceivedInThisWallet(
+          fractionDigits: fractionDigits);
       data = _transaction.outputs
           .where((e) => e.walletOwns)
           .map((e) => (
@@ -140,7 +160,8 @@ class _TransactionV2DetailsViewState
     } else {
       switch (_transaction.type) {
         case TransactionType.outgoing:
-          amount = _transaction.getAmountSentFromThisWallet(coin: coin);
+          amount = _transaction.getAmountSentFromThisWallet(
+              fractionDigits: fractionDigits);
           data = _transaction.outputs
               .where((e) => !e.walletOwns)
               .map((e) => (
@@ -154,7 +175,8 @@ class _TransactionV2DetailsViewState
         case TransactionType.incoming:
         case TransactionType.sentToSelf:
           if (_transaction.subType == TransactionSubType.sparkMint) {
-            amount = _transaction.getAmountSparkSelfMinted(coin: coin);
+            amount = _transaction.getAmountSparkSelfMinted(
+                fractionDigits: fractionDigits);
           } else if (_transaction.subType == TransactionSubType.sparkSpend) {
             final changeAddress =
                 (ref.read(pWallets).getWallet(walletId) as SparkInterface)
@@ -167,7 +189,8 @@ class _TransactionV2DetailsViewState
               fractionDigits: coin.decimals,
             );
           } else {
-            amount = _transaction.getAmountReceivedInThisWallet(coin: coin);
+            amount = _transaction.getAmountReceivedInThisWallet(
+                fractionDigits: fractionDigits);
           }
           data = _transaction.outputs
               .where((e) => e.walletOwns)
@@ -180,7 +203,8 @@ class _TransactionV2DetailsViewState
           break;
 
         case TransactionType.unknown:
-          amount = _transaction.getAmountSentFromThisWallet(coin: coin);
+          amount = _transaction.getAmountSentFromThisWallet(
+              fractionDigits: fractionDigits);
           data = _transaction.inputs
               .where((e) => e.walletOwns)
               .map((e) => (
@@ -515,7 +539,7 @@ class _TransactionV2DetailsViewState
                                             : CrossAxisAlignment.start,
                                         children: [
                                           SelectableText(
-                                            "$amountPrefix${ref.watch(pAmountFormatter(coin)).format(amount)}",
+                                            "$amountPrefix${ref.watch(pAmountFormatter(coin)).format(amount, ethContract: ethContract)}",
                                             style: isDesktop
                                                 ? STextStyles
                                                         .desktopTextExtraExtraSmall(

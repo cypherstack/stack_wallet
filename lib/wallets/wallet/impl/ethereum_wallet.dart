@@ -105,21 +105,6 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     await mainDB.updateOrPutAddresses([address]);
   }
 
-  // delete
-  @override
-  Future<Address> getCurrentReceivingAddress() async {
-    return Address(
-      walletId: walletId,
-      value:
-          checksumEthereumAddress("0x6Cc3006944070B32D80107D51d843a66EaC00686"),
-      publicKey: [], // maybe store address bytes here? seems a waste of space though
-      derivationIndex: 0,
-      derivationPath: DerivationPath()..value = "$hdPathEthereum/0",
-      type: AddressType.ethereum,
-      subType: AddressSubType.receiving,
-    );
-  }
-
   // ==================== Overrides ============================================
 
   @override

@@ -6,7 +6,6 @@ import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart'
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 
@@ -79,7 +78,7 @@ class TransactionV2 {
     return confirmations >= minimumConfirms;
   }
 
-  Amount getFee({required Coin coin}) {
+  Amount getFee({required int fractionDigits}) {
     // check for override fee
     final fee = _getOverrideFee();
     if (fee != null) {
@@ -92,44 +91,47 @@ class TransactionV2 {
         .map((e) => e.value)
         .reduce((value, element) => value += element);
 
-    return Amount(rawValue: inSum - outSum, fractionDigits: coin.decimals);
+    return Amount(rawValue: inSum - outSum, fractionDigits: fractionDigits);
   }
 
-  Amount getAmountReceivedInThisWallet({required Coin coin}) {
+  Amount getAmountReceivedInThisWallet({required int fractionDigits}) {
     final outSum = outputs
         .where((e) => e.walletOwns)
         .fold(BigInt.zero, (p, e) => p + e.value);
 
-    return Amount(rawValue: outSum, fractionDigits: coin.decimals);
+    return Amount(rawValue: outSum, fractionDigits: fractionDigits);
   }
 
-  Amount getAmountSparkSelfMinted({required Coin coin}) {
+  Amount getAmountSparkSelfMinted({required int fractionDigits}) {
     final outSum = outputs.where((e) {
       final op = e.scriptPubKeyHex.substring(0, 2).toUint8ListFromHex.first;
       return e.walletOwns && (op == OP_SPARKMINT);
     }).fold(BigInt.zero, (p, e) => p + e.value);
 
-    return Amount(rawValue: outSum, fractionDigits: coin.decimals);
+    return Amount(rawValue: outSum, fractionDigits: fractionDigits);
   }
 
-  Amount getAmountSentFromThisWallet({required Coin coin}) {
+  Amount getAmountSentFromThisWallet({required int fractionDigits}) {
     final inSum = inputs
         .where((e) => e.walletOwns)
         .fold(BigInt.zero, (p, e) => p + e.value);
 
-    final amount = Amount(
+    Amount amount = Amount(
           rawValue: inSum,
-          fractionDigits: coin.decimals,
+          fractionDigits: fractionDigits,
         ) -
         getAmountReceivedInThisWallet(
-          coin: coin,
-        ) -
-        getFee(coin: coin);
+          fractionDigits: fractionDigits,
+        );
+
+    if (subType != TransactionSubType.ethToken) {
+      amount = amount - getFee(fractionDigits: fractionDigits);
+    }
 
     // negative amounts are likely an error or can happen with coins such as eth
     // that don't use the btc style inputs/outputs
     if (amount.raw < BigInt.zero) {
-      return Amount.zeroWith(fractionDigits: coin.decimals);
+      return Amount.zeroWith(fractionDigits: fractionDigits);
     }
 
     return amount;
