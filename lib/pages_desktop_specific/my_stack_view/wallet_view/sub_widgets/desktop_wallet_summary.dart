@@ -150,6 +150,9 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
             WalletRefreshButton(
               walletId: walletId,
               initialSyncStatus: widget.initialSyncStatus,
+              tokenContractAddress: widget.isToken
+                  ? ref.watch(pCurrentTokenWallet)!.tokenContract.address
+                  : null,
             ),
             if (coin == Coin.firo || coin == Coin.firoTestNet)
               const SizedBox(

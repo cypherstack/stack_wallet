@@ -344,18 +344,12 @@ class WalletInfo implements IsarId {
     required Set<String> newContractAddresses,
     required Isar isar,
   }) async {
-    // only update if there were changes to the name
-    if (tokenContractAddresses
-        .toSet()
-        .difference(newContractAddresses)
-        .isNotEmpty) {
-      await updateOtherData(
-        newEntries: {
-          WalletInfoKeys.tokenContractAddresses: newContractAddresses.toList(),
-        },
-        isar: isar,
-      );
-    }
+    await updateOtherData(
+      newEntries: {
+        WalletInfoKeys.tokenContractAddresses: newContractAddresses.toList(),
+      },
+      isar: isar,
+    );
   }
 
   //============================================================================

@@ -85,6 +85,9 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
         .walletIdEqualTo(widget.walletId)
         .filter()
         .subTypeEqualTo(TransactionSubType.ethToken)
+        .and()
+        .contractAddressEqualTo(
+            ref.read(pCurrentTokenWallet)!.tokenContract.address)
         .sortByTimestampDesc();
 
     _subscription = _query.watch().listen((event) {

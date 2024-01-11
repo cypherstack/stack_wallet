@@ -283,9 +283,15 @@ class EthTokenWallet extends Wallet {
   }
 
   @override
-  Future<void> recover({required bool isRescan}) {
-    // TODO: implement recover
-    throw UnimplementedError();
+  Future<void> recover({required bool isRescan}) async {
+    try {
+      throw Exception();
+    } catch (_, s) {
+      Logging.instance.log(
+        "Eth token wallet recover called. This should not happen. Stacktrace: $s",
+        level: LogLevel.Warning,
+      );
+    }
   }
 
   @override
@@ -401,30 +407,29 @@ class EthTokenWallet extends Wallet {
       for (final tuple in data) {
         // ignore all non Transfer events (for now)
         if (tuple.tx.topics[0] == kTransferEventSignature) {
-          final Amount amount;
           final Amount txFee = tuple.extra.gasUsed * tuple.extra.gasPrice;
-          String fromAddress, toAddress;
-          amount = Amount(
+
+          final amount = Amount(
             rawValue: tuple.tx.data.toBigIntFromHex,
             fractionDigits: tokenContract.decimals,
           );
 
-          fromAddress = _addressFromTopic(
+          final addressFrom = _addressFromTopic(
             tuple.tx.topics[1],
           );
-          toAddress = _addressFromTopic(
+          final addressTo = _addressFromTopic(
             tuple.tx.topics[2],
           );
 
-          bool isIncoming;
-          bool isSentToSelf = false;
-          if (fromAddress == addressString) {
-            isIncoming = false;
-            if (toAddress == addressString) {
-              isSentToSelf = true;
+          final TransactionType txType;
+          if (addressTo == addressString) {
+            if (addressFrom == addressTo) {
+              txType = TransactionType.sentToSelf;
+            } else {
+              txType = TransactionType.incoming;
             }
-          } else if (toAddress == addressString) {
-            isIncoming = true;
+          } else if (addressFrom == addressString) {
+            txType = TransactionType.outgoing;
           } else {
             // ignore for now I guess since anything here is not reflected in
             // balance anyways
@@ -433,17 +438,6 @@ class EthTokenWallet extends Wallet {
             // throw Exception("Unknown token transaction found for "
             //     "${ethWallet.walletName} ${ethWallet.walletId}: "
             //     "${tuple.item1.toString()}");
-          }
-
-          final TransactionType txType;
-          if (isIncoming) {
-            if (fromAddress == toAddress) {
-              txType = TransactionType.sentToSelf;
-            } else {
-              txType = TransactionType.incoming;
-            }
-          } else {
-            txType = TransactionType.outgoing;
           }
 
           final otherData = {

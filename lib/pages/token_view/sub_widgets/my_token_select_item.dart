@@ -107,6 +107,7 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
     }
 
     if (mounted) {
+      unawaited(ref.read(pCurrentTokenWallet)!.refresh());
       await Navigator.of(context).pushNamed(
         isDesktop ? DesktopTokenView.routeName : TokenView.routeName,
         arguments: widget.walletId,
