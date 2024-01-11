@@ -1080,8 +1080,9 @@ mixin ElectrumXInterface on Bip39HDWallet {
         }
       } else {
         for (int i = 0; i < allAddresses.length; i++) {
+          final addressString = allAddresses.elementAt(i);
           final scriptHash = cryptoCurrency.addressToScriptHash(
-            address: allAddresses.elementAt(1),
+            address: addressString,
           );
 
           final response = await electrumXClient.getHistory(
@@ -1089,7 +1090,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
           );
 
           for (int j = 0; j < response.length; j++) {
-            response[j]["address"] = allAddresses.elementAt(1);
+            response[j]["address"] = addressString;
             if (!allTxHashes.contains(response[j])) {
               allTxHashes.add(response[j]);
             }
