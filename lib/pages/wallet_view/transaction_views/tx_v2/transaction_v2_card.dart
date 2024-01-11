@@ -6,6 +6,7 @@ import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/price_provider.dart';
@@ -41,21 +42,41 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
   late final String unit;
   late final Coin coin;
   late final TransactionType txType;
+  late final EthContract? tokenContract;
+
+  bool get isTokenTx => tokenContract != null;
 
   String whatIsIt(
     Coin coin,
     int currentHeight,
   ) =>
-      _transaction.statusLabel(
-        currentChainHeight: currentHeight,
-        minConfirms:
-            ref.read(pWallets).getWallet(walletId).cryptoCurrency.minConfirms,
-      );
+      _transaction.isCancelled && coin == Coin.ethereum
+          ? "Failed"
+          : _transaction.statusLabel(
+              currentChainHeight: currentHeight,
+              minConfirms: ref
+                  .read(pWallets)
+                  .getWallet(walletId)
+                  .cryptoCurrency
+                  .minConfirms,
+            );
 
   @override
   void initState() {
     _transaction = widget.transaction;
     walletId = _transaction.walletId;
+    coin = ref.read(pWalletCoin(walletId));
+
+    if (_transaction.subType == TransactionSubType.ethToken) {
+      tokenContract = ref
+          .read(mainDBProvider)
+          .getEthContractSync(_transaction.contractAddress!);
+
+      unit = tokenContract!.symbol;
+    } else {
+      tokenContract == null;
+      unit = coin.ticker;
+    }
 
     if (Util.isDesktop) {
       if (_transaction.type == TransactionType.outgoing &&
@@ -69,9 +90,7 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
     } else {
       prefix = "";
     }
-    coin = ref.read(pWalletCoin(walletId));
 
-    unit = coin.ticker;
     super.initState();
   }
 
@@ -84,8 +103,9 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
         .watch(prefsChangeNotifierProvider.select((value) => value.currency));
 
     final price = ref
-        .watch(priceAnd24hChangeNotifierProvider
-            .select((value) => value.getPrice(coin)))
+        .watch(priceAnd24hChangeNotifierProvider.select((value) => isTokenTx
+            ? value.getTokenPrice(_transaction.otherData!)
+            : value.getPrice(coin)))
         .item1;
 
     final currentHeight = ref.watch(pWalletChainHeight(walletId));
@@ -209,7 +229,7 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
                               child: Builder(
                                 builder: (_) {
                                   return Text(
-                                    "$prefix${ref.watch(pAmountFormatter(coin)).format(amount)}",
+                                    "$prefix${ref.watch(pAmountFormatter(coin)).format(amount, ethContract: tokenContract)}",
                                     style: STextStyles.itemSubtitle12(context),
                                   );
                                 },
