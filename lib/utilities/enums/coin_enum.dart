@@ -356,14 +356,16 @@ extension CoinExt on Coin {
 
   int get decimals => Constants.decimalPlacesForCoin(this);
 
+  // Note: this must relate to DerivePathType for certain coins!
   AddressType get primaryAddressType {
     switch (this) {
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
       case Coin.litecoin:
       case Coin.litecoinTestNet:
+      case Coin.namecoin:
+      case Coin.particl:
         return AddressType.p2wpkh;
-        break;
 
       case Coin.eCash:
       case Coin.bitcoincash:
@@ -371,8 +373,6 @@ extension CoinExt on Coin {
       case Coin.dogecoin:
       case Coin.firo:
       case Coin.firoTestNet:
-      case Coin.namecoin:
-      case Coin.particl:
       case Coin.dogecoinTestNet:
         return AddressType.p2pkh;
 
