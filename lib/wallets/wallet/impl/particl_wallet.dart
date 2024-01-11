@@ -164,7 +164,7 @@ class ParticlWallet extends Bip39HDWallet
               (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout)
                   as Map);
 
-          final prevOut = OutputV2.fromElectrumXJson(
+          final prevOut = fromElectrumXJsonParticl(
             prevOutJson,
             decimalPlaces: cryptoCurrency.fractionDigits,
             isFullAmountNotSats: true,
@@ -204,7 +204,7 @@ class ParticlWallet extends Bip39HDWallet
       // Parse outputs.
       final List<OutputV2> outputs = [];
       for (final outputJson in txData["vout"] as List) {
-        OutputV2 output = OutputV2.fromElectrumXJson(
+        OutputV2 output = fromElectrumXJsonParticl(
           Map<String, dynamic>.from(outputJson as Map),
           decimalPlaces: cryptoCurrency.fractionDigits,
           isFullAmountNotSats: true,
@@ -438,5 +438,53 @@ class ParticlWallet extends Bip39HDWallet
         otherData: null,
       ),
     );
+  }
+
+  /// OutputV2.fromElectrumXJson wrapper for Particl-specific outputs.
+  static OutputV2 fromElectrumXJsonParticl(
+    Map<String, dynamic> json, {
+    // Other params just passed thru to fromElectrumXJson for transparent outs.
+    required bool walletOwns,
+    required bool isFullAmountNotSats,
+    required int decimalPlaces,
+  }) {
+    // TODO: [prio=med] Confirm that all the tx types below are handled well.
+    // Right now we essentially ignore txs with ct_fee, rangeproof, or data_hex
+    // keys.  We may also want to set walletOwns to true (if we know the owner).
+    if (json.containsKey('ct_fee')) {
+      // Blind output, ignore for now.
+      return OutputV2.isarCantDoRequiredInDefaultConstructor(
+        scriptPubKeyHex: '',
+        valueStringSats: '0',
+        addresses: [],
+        walletOwns: false,
+      );
+    } else if (json.containsKey('rangeproof')) {
+      // Private RingCT output, ignore for now.
+      return OutputV2.isarCantDoRequiredInDefaultConstructor(
+        scriptPubKeyHex: '',
+        valueStringSats: '0',
+        addresses: [],
+        walletOwns: false,
+      );
+    } else if (json.containsKey('data_hex')) {
+      // Data output, ignore for now.
+      return OutputV2.isarCantDoRequiredInDefaultConstructor(
+        scriptPubKeyHex: '',
+        valueStringSats: '0',
+        addresses: [],
+        walletOwns: false,
+      );
+    } else if (json.containsKey('scriptPubKey')) {
+      // Transparent output.
+      return OutputV2.fromElectrumXJson(
+        json,
+        walletOwns: walletOwns,
+        isFullAmountNotSats: isFullAmountNotSats,
+        decimalPlaces: decimalPlaces,
+      );
+    } else {
+      throw Exception("Unknown output type: $json");
+    }
   }
 }
