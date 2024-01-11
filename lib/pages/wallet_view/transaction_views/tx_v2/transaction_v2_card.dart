@@ -74,7 +74,7 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
 
       unit = tokenContract!.symbol;
     } else {
-      tokenContract == null;
+      tokenContract = null;
       unit = coin.ticker;
     }
 

@@ -867,7 +867,7 @@ class _DesktopTransactionCardRowState
           .read(mainDBProvider)
           .getEthContractSync(_transaction.contractAddress!);
     } else {
-      ethContract == null;
+      ethContract = null;
     }
 
     super.initState();

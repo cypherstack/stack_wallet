@@ -109,7 +109,7 @@ class _TransactionV2DetailsViewState
 
       unit = ethContract!.symbol;
     } else {
-      ethContract == null;
+      ethContract = null;
       unit = coin.ticker;
     }
 
