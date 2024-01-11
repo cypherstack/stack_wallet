@@ -76,7 +76,7 @@ abstract class Bip39HDCurrency extends Bip39Currency {
       throw ArgumentError('Invalid version or Network mismatch');
     } else {
       try {
-        decodeBech32 = segwit.decode(address);
+        decodeBech32 = segwit.decode(address, networkParams.bech32Hrp);
       } catch (err) {
         // Bech32 decode fail
       }
