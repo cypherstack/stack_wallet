@@ -264,6 +264,7 @@ const _WalletInfomainAddressTypeEnumValueMap = {
   'banano': 9,
   'spark': 10,
   'stellar': 11,
+  'tezos': 12,
 };
 const _WalletInfomainAddressTypeValueEnumMap = {
   0: AddressType.p2pkh,
@@ -278,6 +279,7 @@ const _WalletInfomainAddressTypeValueEnumMap = {
   9: AddressType.banano,
   10: AddressType.spark,
   11: AddressType.stellar,
+  12: AddressType.tezos,
 };
 
 Id _walletInfoGetId(WalletInfo object) {

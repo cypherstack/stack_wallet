@@ -387,9 +387,7 @@ extension CoinExt on Coin {
         return AddressType.ethereum;
 
       case Coin.tezos:
-        // should not be unknown but since already used in prod changing
-        // this requires a migrate
-        return AddressType.unknown;
+        return AddressType.tezos;
 
       case Coin.nano:
         return AddressType.nano;

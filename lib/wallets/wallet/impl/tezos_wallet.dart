@@ -146,11 +146,14 @@ class TezosWallet extends Bip39Wallet<Tezos> {
 
   @override
   Future<void> init() async {
-    final _address = await getCurrentReceivingAddress();
-    if (_address == null) {
-      final address = await _getAddressFromMnemonic();
-
-      await mainDB.updateOrPutAddresses([address]);
+    try {
+      final _address = await getCurrentReceivingAddress();
+      if (_address == null) {
+        final address = await _getAddressFromMnemonic();
+        await mainDB.updateOrPutAddresses([address]);
+      }
+    } catch (_) {
+      // do nothing, still allow user into wallet
     }
 
     await super.init();
@@ -527,7 +530,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
 
   @override
   Future<void> updateTransactions() async {
-    // TODO: optimize updateTransactions
+    // TODO: optimize updateTransactions and use V2
 
     final myAddress = (await getCurrentReceivingAddress())!;
     final txs = await TezosAPI.getTransactions(myAddress.value);
@@ -589,7 +592,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
             publicKey: [],
             derivationIndex: 0,
             derivationPath: null,
-            type: AddressType.unknown,
+            type: AddressType.tezos,
             subType: AddressSubType.unknown,
           );
           break;
