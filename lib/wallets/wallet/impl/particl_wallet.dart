@@ -56,10 +56,33 @@ class ParticlWallet extends Bip39HDWallet
   Future<({bool blocked, String? blockedReason, String? utxoLabel})>
       checkBlockUTXO(Map<String, dynamic> jsonUTXO, String? scriptPubKeyHex,
           Map<String, dynamic> jsonTX, String? utxoOwnerAddress) async {
-    // Particl doesn't have special outputs like tokens, ordinals, etc.
-    // But it may have special types of outputs which we shouldn't or can't spend.
-    // TODO: [prio=low] Check for special Particl outputs.
-    return (blocked: false, blockedReason: null, utxoLabel: null);
+    bool blocked = false;
+    String? blockedReason;
+    String? utxoLabel;
+    if (jsonUTXO.containsKey('ct_fee')) {
+      // Blind output, ignore for now.
+      blocked = true;
+      blockedReason = "Blind output.";
+      utxoLabel = "Unsupported output type.";
+    } else if (jsonUTXO.containsKey('rangeproof')) {
+      // Private RingCT output, ignore for now.
+      blocked = true;
+      blockedReason = "Confidential output.";
+      utxoLabel = "Unsupported output type.";
+    } else if (jsonUTXO.containsKey('data_hex')) {
+      // Data output, ignore for now.
+      blocked = true;
+      blockedReason = "Data output.";
+      utxoLabel = "Unsupported output type.";
+    } else if (jsonUTXO.containsKey('scriptPubKey')) {
+      // Transparent output.  Do nothing.
+    }
+
+    return (
+      blocked: blocked,
+      blockedReason: blockedReason,
+      utxoLabel: utxoLabel
+    );
   }
 
   @override
@@ -250,9 +273,8 @@ class ParticlWallet extends Bip39HDWallet
             // Most likely just a typical send, do nothing here yet.
           }
 
-          // Particl has special outputs like confidential amounts.
-          // This is where we should check for them.
-          // TODO: [prio=high] Check for special Particl outputs.
+          // Particl has special outputs like confidential amounts. We can check
+          // for them here.  They're also checked in checkBlockUTXO.
         }
       } else if (wasReceivedInThisWallet) {
         // Only found outputs owned by this wallet.
