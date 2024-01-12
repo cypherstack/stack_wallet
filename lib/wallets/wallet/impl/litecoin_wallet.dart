@@ -16,7 +16,7 @@ import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/ordinals_inte
 class LitecoinWallet extends Bip39HDWallet
     with ElectrumXInterface, CoinControlInterface, OrdinalsInterface {
   @override
-  int get isarTransactionVersion => 1; // TODO actually set this to 2
+  int get isarTransactionVersion => 2;
 
   LitecoinWallet(CryptoCurrencyNetwork network) : super(Litecoin(network));
 
