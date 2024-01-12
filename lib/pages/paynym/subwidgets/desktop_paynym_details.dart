@@ -120,7 +120,7 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
               showDialog(
                 context: context,
                 builder: (context) => DesktopDialog(
-                  maxHeight: double.infinity,
+                  maxHeight: MediaQuery.of(context).size.height - 64,
                   maxWidth: 580,
                   child: ConfirmTransactionView(
                     walletId: widget.walletId,

@@ -457,7 +457,11 @@ class _ConfirmTransactionViewState
                 ),
               ],
             ),
-            child,
+            Flexible(
+              child: SingleChildScrollView(
+                child: child,
+              ),
+            ),
           ],
         ),
         child: Column(
