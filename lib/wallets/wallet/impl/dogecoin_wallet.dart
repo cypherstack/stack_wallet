@@ -18,6 +18,9 @@ class DogecoinWallet extends Bip39HDWallet
   DogecoinWallet(CryptoCurrencyNetwork network) : super(Dogecoin(network));
 
   @override
+  int get isarTransactionVersion => 2;
+
+  @override
   FilterOperation? get changeAddressFilterOperation =>
       FilterGroup.and(standardChangeAddressFilters);
 
