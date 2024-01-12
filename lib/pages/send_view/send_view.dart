@@ -1397,6 +1397,10 @@ class _SendViewState extends ConsumerState<SendView> {
                               ),
                               child: TextField(
                                 key: const Key("sendViewMemoFieldKey"),
+                                maxLength: (coin == Coin.firo ||
+                                        coin == Coin.firoTestNet)
+                                    ? 31
+                                    : null,
                                 controller: memoController,
                                 readOnly: false,
                                 autocorrect: false,
@@ -1411,6 +1415,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                   _memoFocus,
                                   context,
                                 ).copyWith(
+                                  counterText: '',
                                   contentPadding: const EdgeInsets.only(
                                     left: 16,
                                     top: 6,

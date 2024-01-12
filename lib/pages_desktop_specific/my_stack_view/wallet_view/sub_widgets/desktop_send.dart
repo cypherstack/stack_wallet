@@ -1503,6 +1503,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               Constants.size.circularBorderRadius,
             ),
             child: TextField(
+              maxLength:
+                  (coin == Coin.firo || coin == Coin.firoTestNet) ? 31 : null,
               minLines: 1,
               maxLines: 5,
               key: const Key("sendViewMemoFieldKey"),
@@ -1526,6 +1528,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 context,
                 desktopMed: true,
               ).copyWith(
+                counterText: '',
                 contentPadding: const EdgeInsets.only(
                   left: 16,
                   top: 11,
