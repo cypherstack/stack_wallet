@@ -22,6 +22,7 @@ import 'package:stackwallet/pages/wallet_view/sub_widgets/no_transactions_found.
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_card.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -263,8 +264,11 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                           borderColor: Theme.of(context)
                               .extension<StackColors>()!
                               .backgroundAppBar,
-                          child: coin == Coin.bitcoincash ||
-                                  coin == Coin.bitcoincashTestnet
+                          child: ref
+                                      .watch(pWallets)
+                                      .getWallet(widget.walletId)
+                                      .isarTransactionVersion ==
+                                  2
                               ? _AddressDetailsTxV2List(
                                   walletId: widget.walletId,
                                   address: address,
