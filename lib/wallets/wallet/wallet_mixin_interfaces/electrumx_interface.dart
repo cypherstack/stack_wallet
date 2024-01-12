@@ -697,7 +697,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
     // Add transaction output
     for (var i = 0; i < txData.recipients!.length; i++) {
       txb.addOutput(
-        txData.recipients![i].address,
+        normalizeAddress(txData.recipients![i].address),
         txData.recipients![i].amount.raw.toInt(),
         cryptoCurrency.networkParams.bech32Hrp,
       );
@@ -2019,6 +2019,11 @@ mixin ElectrumXInterface on Bip39HDWallet {
       level: LogLevel.Info,
     );
     return result;
+  }
+
+  // lolcashaddrs
+  String normalizeAddress(String address) {
+    return address;
   }
 
   // ===========================================================================

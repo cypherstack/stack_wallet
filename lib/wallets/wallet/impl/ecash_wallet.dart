@@ -351,4 +351,18 @@ class EcashWallet extends Bip39HDWallet
   int estimateTxFee({required int vSize, required int feeRatePerKB}) {
     return vSize * (feeRatePerKB / 1000).ceil();
   }
+
+  @override
+  String normalizeAddress(String address) {
+    try {
+      if (bitbox.Address.detectFormat(address) ==
+          bitbox.Address.formatCashAddr) {
+        return bitbox.Address.toLegacyAddress(address);
+      } else {
+        return address;
+      }
+    } catch (_) {
+      return address;
+    }
+  }
 }
