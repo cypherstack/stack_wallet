@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
@@ -37,6 +38,7 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/models/spark_coin.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
@@ -93,6 +95,8 @@ class _TransactionV2DetailsViewState
   late final List<({List<String> addresses, Amount amount})> data;
 
   bool showFeePending = false;
+
+  String? _sparkMemo;
 
   @override
   void initState() {
@@ -174,6 +178,31 @@ class _TransactionV2DetailsViewState
 
         case TransactionType.incoming:
         case TransactionType.sentToSelf:
+          if (_transaction.subType == TransactionSubType.sparkMint ||
+              _transaction.subType == TransactionSubType.sparkSpend) {
+            _sparkMemo = ref
+                .read(mainDBProvider)
+                .isar
+                .sparkCoins
+                .where()
+                .walletIdEqualToAnyLTagHash(walletId)
+                .filter()
+                .memoIsNotEmpty()
+                .and()
+                .heightEqualTo(_transaction.height)
+                .anyOf(
+                    _transaction.outputs
+                        .where((e) =>
+                            e.walletOwns &&
+                            e.addresses.isEmpty &&
+                            e.scriptPubKeyHex.length >= 488)
+                        .map((e) => e.scriptPubKeyHex.substring(2, 488))
+                        .toList(),
+                    (q, element) => q.serializedCoinB64StartsWith(element))
+                .memoProperty()
+                .findFirstSync();
+          }
+
           if (_transaction.subType == TransactionSubType.sparkMint) {
             amount = _transaction.getAmountSparkSelfMinted(
                 fractionDigits: fractionDigits);
@@ -988,6 +1017,52 @@ class _TransactionV2DetailsViewState
                                 ],
                               ),
                             ),
+                            if (_sparkMemo != null)
+                              isDesktop
+                                  ? const _Divider()
+                                  : const SizedBox(
+                                      height: 12,
+                                    ),
+                            if (_sparkMemo != null)
+                              RoundedWhiteContainer(
+                                padding: isDesktop
+                                    ? const EdgeInsets.all(16)
+                                    : const EdgeInsets.all(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          "Memo",
+                                          style: isDesktop
+                                              ? STextStyles
+                                                  .desktopTextExtraExtraSmall(
+                                                      context)
+                                              : STextStyles.itemSubtitle(
+                                                  context),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(
+                                      height: 8,
+                                    ),
+                                    SelectableText(
+                                      _sparkMemo!,
+                                      style: isDesktop
+                                          ? STextStyles
+                                                  .desktopTextExtraExtraSmall(
+                                                      context)
+                                              .copyWith(
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textDark,
+                                            )
+                                          : STextStyles.itemSubtitle12(context),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             isDesktop
                                 ? const _Divider()
                                 : const SizedBox(
