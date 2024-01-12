@@ -152,8 +152,12 @@ class TezosWallet extends Bip39Wallet<Tezos> {
         final address = await _getAddressFromMnemonic();
         await mainDB.updateOrPutAddresses([address]);
       }
-    } catch (_) {
+    } catch (e, s) {
       // do nothing, still allow user into wallet
+      Logging.instance.log(
+        "$runtimeType init() failed: $e\n$s",
+        level: LogLevel.Error,
+      );
     }
 
     await super.init();

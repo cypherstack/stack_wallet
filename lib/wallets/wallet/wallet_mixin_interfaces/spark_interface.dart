@@ -52,27 +52,36 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
 
   @override
   Future<void> init() async {
-    Address? address = await getCurrentReceivingSparkAddress();
-    if (address == null) {
-      address = await generateNextSparkAddress();
-      await mainDB.putAddress(address);
-    } // TODO add other address types to wallet info?
+    try {
+      Address? address = await getCurrentReceivingSparkAddress();
+      if (address == null) {
+        address = await generateNextSparkAddress();
+        await mainDB.putAddress(address);
+      } // TODO add other address types to wallet info?
 
-    if (_sparkChangeAddressCached == null) {
-      final root = await getRootHDNode();
-      final String derivationPath;
-      if (cryptoCurrency.network == CryptoCurrencyNetwork.test) {
-        derivationPath = "$kSparkBaseDerivationPathTestnet$kDefaultSparkIndex";
-      } else {
-        derivationPath = "$kSparkBaseDerivationPath$kDefaultSparkIndex";
+      if (_sparkChangeAddressCached == null) {
+        final root = await getRootHDNode();
+        final String derivationPath;
+        if (cryptoCurrency.network == CryptoCurrencyNetwork.test) {
+          derivationPath =
+              "$kSparkBaseDerivationPathTestnet$kDefaultSparkIndex";
+        } else {
+          derivationPath = "$kSparkBaseDerivationPath$kDefaultSparkIndex";
+        }
+        final keys = root.derivePath(derivationPath);
+
+        _sparkChangeAddressCached = await LibSpark.getAddress(
+          privateKey: keys.privateKey.data,
+          index: kDefaultSparkIndex,
+          diversifier: kSparkChange,
+          isTestNet: cryptoCurrency.network == CryptoCurrencyNetwork.test,
+        );
       }
-      final keys = root.derivePath(derivationPath);
-
-      _sparkChangeAddressCached = await LibSpark.getAddress(
-        privateKey: keys.privateKey.data,
-        index: kDefaultSparkIndex,
-        diversifier: kSparkChange,
-        isTestNet: cryptoCurrency.network == CryptoCurrencyNetwork.test,
+    } catch (e, s) {
+      // do nothing, still allow user into wallet
+      Logging.instance.log(
+        "$runtimeType init() failed: $e\n$s",
+        level: LogLevel.Error,
       );
     }
 

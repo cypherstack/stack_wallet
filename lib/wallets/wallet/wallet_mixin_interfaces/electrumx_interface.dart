@@ -1930,7 +1930,7 @@ mixin ElectrumXInterface on Bip39HDWallet {
     try {
       final features = await electrumXClient
           .getServerFeatures()
-          .timeout(const Duration(seconds: 3));
+          .timeout(const Duration(seconds: 2));
 
       Logging.instance.log("features: $features", level: LogLevel.Info);
 
@@ -1941,7 +1941,11 @@ mixin ElectrumXInterface on Bip39HDWallet {
         throw Exception("genesis hash does not match!");
       }
     } catch (e, s) {
-      Logging.instance.log("$e/n$s", level: LogLevel.Info);
+      // do nothing, still allow user into wallet
+      Logging.instance.log(
+        "$runtimeType init() failed: $e\n$s",
+        level: LogLevel.Error,
+      );
     }
 
     await super.init();

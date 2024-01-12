@@ -118,8 +118,12 @@ class StellarWallet extends Bip39Wallet<Stellar> {
         await mainDB
             .updateOrPutAddresses([await _fetchStellarAddress(index: 0)]);
       }
-    } catch (_) {
+    } catch (e, s) {
       // do nothing, still allow user into wallet
+      Logging.instance.log(
+        "$runtimeType init() failed: $e\n$s",
+        level: LogLevel.Error,
+      );
     }
     return super.init();
   }

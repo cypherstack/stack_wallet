@@ -563,24 +563,30 @@ class EpiccashWallet extends Bip39Wallet {
           isar: mainDB.isar,
         );
       } else {
-        Logging.instance.log(
-            "initializeExisting() ${cryptoCurrency.coin.prettyName} wallet",
-            level: LogLevel.Info);
+        try {
+          Logging.instance.log(
+              "initializeExisting() ${cryptoCurrency.coin.prettyName} wallet",
+              level: LogLevel.Info);
 
-        final config = await _getRealConfig();
-        final password =
-            await secureStorageInterface.read(key: '${walletId}_password');
+          final config = await _getRealConfig();
+          final password =
+              await secureStorageInterface.read(key: '${walletId}_password');
 
-        final walletOpen = await epiccash.LibEpiccash.openWallet(
-          config: config,
-          password: password!,
-        );
-        await secureStorageInterface.write(
-            key: '${walletId}_wallet', value: walletOpen);
+          final walletOpen = await epiccash.LibEpiccash.openWallet(
+            config: config,
+            password: password!,
+          );
+          await secureStorageInterface.write(
+              key: '${walletId}_wallet', value: walletOpen);
 
-        await updateNode();
-        // unawaited(updateBalance());
-        // TODO: is there anything else that should be set up here whenever this wallet is first loaded again?
+          await updateNode();
+        } catch (e, s) {
+          // do nothing, still allow user into wallet
+          Logging.instance.log(
+            "$runtimeType init() failed: $e\n$s",
+            level: LogLevel.Error,
+          );
+        }
       }
     }
 
@@ -1074,7 +1080,7 @@ class EpiccashWallet extends Bip39Wallet {
       value: stringConfig,
     );
 
-    unawaited(refresh());
+    // unawaited(refresh());
   }
 
   @override
