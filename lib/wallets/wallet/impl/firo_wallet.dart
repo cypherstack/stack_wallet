@@ -135,11 +135,20 @@ class FiroWallet extends Bip39HDWallet
 
       // if (storedTx == null ||
       //     !storedTx.isConfirmed(currentHeight, MINIMUM_CONFIRMATIONS)) {
-      final tx = await electrumXCachedClient.getTransaction(
-        txHash: txHash["tx_hash"] as String,
-        verbose: true,
-        coin: info.coin,
-      );
+
+      // firod/electrumx seem to take forever to process spark txns so we'll
+      // just ignore null errors and check again on next refresh.
+      // This could also be a bug in the custom electrumx rpc code
+      final Map<String, dynamic> tx;
+      try {
+        tx = await electrumXCachedClient.getTransaction(
+          txHash: txHash["tx_hash"] as String,
+          verbose: true,
+          coin: info.coin,
+        );
+      } catch (_) {
+        continue;
+      }
 
       // check for duplicates before adding to list
       if (allTransactions
