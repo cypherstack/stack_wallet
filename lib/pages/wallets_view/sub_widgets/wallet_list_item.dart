@@ -22,7 +22,10 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class WalletListItem extends ConsumerWidget {
@@ -60,8 +63,16 @@ class WalletListItem extends ConsumerWidget {
                 .read(pWallets)
                 .wallets
                 .firstWhere((e) => e.info.coin == coin);
-            if (coin == Coin.monero || coin == Coin.wownero) {
-              await wallet.init();
+            await wallet.init();
+            if (wallet is CwBasedInterface) {
+              if (context.mounted) {
+                await showLoading(
+                  whileFuture: wallet.open(),
+                  context: context,
+                  message: 'Opening ${wallet.info.name}',
+                  isDesktop: Util.isDesktop,
+                );
+              }
             }
             if (context.mounted) {
               unawaited(

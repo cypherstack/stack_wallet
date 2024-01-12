@@ -20,7 +20,6 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/des
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -28,6 +27,7 @@ import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_prov
 import 'package:stackwallet/wallets/wallet/impl/ethereum_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/sub_wallets/eth_token_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/dialogs/basic_dialog.dart';
@@ -93,11 +93,17 @@ class SimpleWalletCard extends ConsumerWidget {
     final nav = Navigator.of(context);
 
     final wallet = ref.read(pWallets).getWallet(walletId);
-    if (wallet.info.coin == Coin.monero || wallet.info.coin == Coin.wownero) {
-      // TODO: this can cause ui lag if awaited
-      unawaited(wallet.init());
-    }
+    await wallet.init();
+
     if (context.mounted) {
+      if (wallet is CwBasedInterface) {
+        await showLoading(
+          whileFuture: wallet.open(),
+          context: context,
+          message: 'Opening ${wallet.info.name}',
+          isDesktop: Util.isDesktop,
+        );
+      }
       if (popPrevious) nav.pop();
 
       if (desktopNavigatorState != null) {

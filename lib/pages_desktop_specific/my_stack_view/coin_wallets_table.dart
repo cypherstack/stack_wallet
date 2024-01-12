@@ -8,8 +8,6 @@
  *
  */
 
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
@@ -18,6 +16,9 @@ import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/show_loading.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/wallet_info_row/wallet_info_row.dart';
 
@@ -79,16 +80,24 @@ class CoinWalletsTable extends ConsumerWidget {
 
                             final wallet =
                                 ref.read(pWallets).getWallet(walletIds[i]);
-                            if (wallet.info.coin == Coin.monero ||
-                                wallet.info.coin == Coin.wownero) {
-                              // TODO: this can cause ui lag if awaited
-                              unawaited(wallet.init());
+                            await wallet.init();
+                            if (wallet is CwBasedInterface) {
+                              if (context.mounted) {
+                                await showLoading(
+                                  whileFuture: wallet.open(),
+                                  context: context,
+                                  message: 'Opening ${wallet.info.name}',
+                                  isDesktop: Util.isDesktop,
+                                );
+                              }
                             }
 
-                            await Navigator.of(context).pushNamed(
-                              DesktopWalletView.routeName,
-                              arguments: walletIds[i],
-                            );
+                            if (context.mounted) {
+                              await Navigator.of(context).pushNamed(
+                                DesktopWalletView.routeName,
+                                arguments: walletIds[i],
+                              );
+                            }
                           },
                         ),
                       ),

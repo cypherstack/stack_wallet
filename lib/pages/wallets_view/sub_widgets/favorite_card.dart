@@ -22,9 +22,11 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import 'package:stackwallet/widgets/coin_card.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 
@@ -112,8 +114,17 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
       ),
       child: GestureDetector(
         onTap: () async {
-          if (coin == Coin.monero || coin == Coin.wownero) {
-            await ref.read(pWallets).getWallet(walletId).init();
+          final wallet = ref.read(pWallets).getWallet(walletId);
+          await wallet.init();
+          if (wallet is CwBasedInterface) {
+            if (mounted) {
+              await showLoading(
+                whileFuture: wallet.open(),
+                context: context,
+                message: 'Opening ${wallet.info.name}',
+                isDesktop: Util.isDesktop,
+              );
+            }
           }
           if (mounted) {
             if (Util.isDesktop) {
