@@ -1,6 +1,5 @@
 import 'package:decimal/decimal.dart';
 import 'package:mockito/annotations.dart';
-import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets.dart';
@@ -24,7 +23,6 @@ Amount _a(int i) => Amount.fromDecimal(
   LocaleService
 ], customMocks: [
   MockSpec<NodeService>(returnNullOnMissingStub: true),
-  MockSpec<CoinServiceAPI>(returnNullOnMissingStub: true),
 ])
 void main() {
   // testWidgets("Test wallet info row displays correctly", (widgetTester) async {

@@ -254,5 +254,6 @@ enum TransactionSubType {
   ethToken, // eth token
   cashFusion,
   sparkMint, // firo specific
-  sparkSpend; // firo specific
+  sparkSpend, // firo specific
+  ordinal;
 }

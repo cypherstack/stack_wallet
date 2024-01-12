@@ -1,5 +1,4 @@
 import 'package:mockito/annotations.dart';
-import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/services/wallets_service.dart';
 import 'package:stackwallet/themes/theme_service.dart';
@@ -8,9 +7,7 @@ import 'package:stackwallet/themes/theme_service.dart';
   Wallets,
   WalletsService,
   ThemeService,
-], customMocks: [
-  MockSpec<CoinServiceAPI>(returnNullOnMissingStub: true)
-])
+], customMocks: [])
 void main() {
   // testWidgets('Test table view row', (widgetTester) async {
   //   widgetTester.binding.window.physicalSizeTestValue = const Size(2500, 1800);

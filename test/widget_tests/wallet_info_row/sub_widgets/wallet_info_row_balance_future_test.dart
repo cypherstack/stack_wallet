@@ -1,5 +1,4 @@
 import 'package:mockito/annotations.dart';
-import 'package:stackwallet/services/coins/coin_service.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/services/wallets_service.dart';
@@ -9,7 +8,6 @@ import 'package:stackwallet/services/wallets_service.dart';
   WalletsService,
 ], customMocks: [
   MockSpec<NodeService>(returnNullOnMissingStub: true),
-  MockSpec<CoinServiceAPI>(returnNullOnMissingStub: true),
   // MockSpec<WalletsService>(returnNullOnMissingStub: true),
 ])
 void main() {
