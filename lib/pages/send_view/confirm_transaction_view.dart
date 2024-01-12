@@ -39,7 +39,7 @@ import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_prov
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
-// import 'package:stackwallet/wallets/example/libepiccash.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -129,16 +129,11 @@ class _ConfirmTransactionViewState
 
     try {
       if (widget.isTokenTx) {
-        // TODO: [prio=high] fixme
-        throw UnimplementedError("fixme");
-        // txidFuture = ref
-        //     .read(tokenServiceProvider)!
-        //     .confirmSend(txData: transactionInfo);
+        txDataFuture =
+            ref.read(pCurrentTokenWallet)!.confirmSend(txData: widget.txData);
       } else if (widget.isPaynymNotificationTransaction) {
-        // TODO: [prio=high] fixme
-        throw UnimplementedError("fixme");
-        // txidFuture = (wallet as PaynymWalletInterface)
-        //     .broadcastNotificationTx(preparedTx: transactionInfo);
+        txDataFuture = (wallet as PaynymInterface)
+            .broadcastNotificationTx(txData: widget.txData);
       } else if (widget.isPaynymTransaction) {
         txDataFuture = wallet.confirmSend(txData: widget.txData);
       } else {

@@ -787,19 +787,18 @@ mixin PaynymInterface on Bip39HDWallet, ElectrumXInterface {
     }
   }
 
-  Future<String> broadcastNotificationTx({
-    required Map<String, dynamic> preparedTx,
+  Future<TxData> broadcastNotificationTx({
+    required TxData txData,
   }) async {
     try {
-      Logging.instance.log("confirmNotificationTx txData: $preparedTx",
-          level: LogLevel.Info);
-      final txHash = await electrumXClient.broadcastTransaction(
-          rawTx: preparedTx["hex"] as String);
+      Logging.instance
+          .log("confirmNotificationTx txData: $txData", level: LogLevel.Info);
+      final txHash =
+          await electrumXClient.broadcastTransaction(rawTx: txData.raw!);
       Logging.instance.log("Sent txHash: $txHash", level: LogLevel.Info);
 
-      // TODO: only refresh transaction data
       try {
-        await refresh();
+        await updateTransactions();
       } catch (e) {
         Logging.instance.log(
           "refresh() failed in confirmNotificationTx (${info.name}::$walletId): $e",
@@ -807,7 +806,10 @@ mixin PaynymInterface on Bip39HDWallet, ElectrumXInterface {
         );
       }
 
-      return txHash;
+      return txData.copyWith(
+        txid: txHash,
+        txHash: txHash,
+      );
     } catch (e, s) {
       Logging.instance.log("Exception rethrown from confirmSend(): $e\n$s",
           level: LogLevel.Error);
