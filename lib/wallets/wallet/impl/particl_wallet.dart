@@ -260,6 +260,9 @@ class ParticlWallet extends Bip39HDWallet
       TransactionType type;
       TransactionSubType subType = TransactionSubType.none;
 
+      // Particl has special outputs like confidential amounts. We can check
+      // for them here.  They're also checked in checkBlockUTXO.
+
       // At least one input was owned by this wallet.
       if (wasSentFromThisWallet) {
         type = TransactionType.outgoing;
@@ -272,9 +275,6 @@ class ParticlWallet extends Bip39HDWallet
           } else if (amountReceivedInThisWallet == BigInt.zero) {
             // Most likely just a typical send, do nothing here yet.
           }
-
-          // Particl has special outputs like confidential amounts. We can check
-          // for them here.  They're also checked in checkBlockUTXO.
         }
       } else if (wasReceivedInThisWallet) {
         // Only found outputs owned by this wallet.
