@@ -408,12 +408,11 @@ class ParticlWallet extends Bip39HDWallet
           level: LogLevel.Error);
       throw Exception("Invalid hex string length.");
     }
-    int numStrips = 0;
     int maxStrips = 3; // Strip up to 3 0x00s (match previous particl_wallet).
     while (hexString.endsWith('00') && hexString.length > 2) {
       hexString = hexString.substring(0, hexString.length - 2);
-      numStrips++;
-      if (numStrips >= maxStrips) {
+      maxStrips--;
+      if (maxStrips <= 0) {
         break;
       }
     }
