@@ -252,7 +252,6 @@ class LitecoinWallet extends Bip39HDWallet
             }
           }
         }
-        // type = TransactionType.ordinal;
       } else {
         Logging.instance.log(
           "Unexpected tx found (ignoring it): $txData",
