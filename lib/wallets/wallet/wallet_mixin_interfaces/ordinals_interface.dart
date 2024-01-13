@@ -7,13 +7,14 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 
 mixin OrdinalsInterface on ElectrumXInterface {
-  final LitescribeAPI litescribeAPI =
+  final LitescribeAPI _litescribeAPI =
       LitescribeAPI(baseUrl: 'https://litescribe.io/api');
 
   // check if an inscription is in a given <UTXO> output
   Future<bool> _inscriptionInAddress(String address) async {
     try {
-      return (await litescribeAPI.getInscriptionsByAddress(address)).isNotEmpty;
+      return (await _litescribeAPI.getInscriptionsByAddress(address))
+          .isNotEmpty;
     } catch (_) {
       Logging.instance.log("Litescribe api failure!", level: LogLevel.Error);
 
@@ -21,29 +22,39 @@ mixin OrdinalsInterface on ElectrumXInterface {
     }
   }
 
-  Future<void> refreshInscriptions() async {
-    final uniqueAddresses = await mainDB
-        .getUTXOs(walletId)
-        .filter()
-        .addressIsNotNull()
-        .distinctByAddress()
-        .addressProperty()
-        .findAll();
-    final inscriptions =
-        await _getInscriptionDataFromAddresses(uniqueAddresses.cast<String>());
+  Future<void> refreshInscriptions({
+    List<String>? overrideAddressesToCheck,
+  }) async {
+    try {
+      final uniqueAddresses = overrideAddressesToCheck ??
+          await mainDB
+              .getUTXOs(walletId)
+              .filter()
+              .addressIsNotNull()
+              .distinctByAddress()
+              .addressProperty()
+              .findAll();
+      final inscriptions = await _getInscriptionDataFromAddresses(
+          uniqueAddresses.cast<String>());
 
-    final ords = inscriptions
-        .map((e) => Ordinal.fromInscriptionData(e, walletId))
-        .toList();
+      final ords = inscriptions
+          .map((e) => Ordinal.fromInscriptionData(e, walletId))
+          .toList();
 
-    await mainDB.isar.writeTxn(() async {
-      await mainDB.isar.ordinals
-          .where()
-          .filter()
-          .walletIdEqualTo(walletId)
-          .deleteAll();
-      await mainDB.isar.ordinals.putAll(ords);
-    });
+      await mainDB.isar.writeTxn(() async {
+        await mainDB.isar.ordinals
+            .where()
+            .filter()
+            .walletIdEqualTo(walletId)
+            .deleteAll();
+        await mainDB.isar.ordinals.putAll(ords);
+      });
+    } catch (e, s) {
+      Logging.instance.log(
+        "$runtimeType failed refreshInscriptions(): $e\n$s",
+        level: LogLevel.Warning,
+      );
+    }
   }
   // =================== Overrides =============================================
 
@@ -103,7 +114,7 @@ mixin OrdinalsInterface on ElectrumXInterface {
     for (String address in addresses) {
       try {
         var inscriptions =
-            await litescribeAPI.getInscriptionsByAddress(address);
+            await _litescribeAPI.getInscriptionsByAddress(address);
         allInscriptions.addAll(inscriptions);
       } catch (e) {
         throw Exception("Error fetching inscriptions for address $address: $e");

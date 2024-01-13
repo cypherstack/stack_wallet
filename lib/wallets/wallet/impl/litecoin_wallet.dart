@@ -4,6 +4,7 @@ import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart'
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import 'package:stackwallet/models/isar/ordinal.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/litecoin.dart';
@@ -66,6 +67,10 @@ class LitecoinWallet extends Bip39HDWallet
     // Remove duplicates.
     final allAddressesSet = {...receivingAddresses, ...changeAddresses};
 
+    final updateInscriptionsFuture = refreshInscriptions(
+      overrideAddressesToCheck: allAddressesSet.toList(),
+    );
+
     // Fetch history from ElectrumX.
     final List<Map<String, dynamic>> allTxHashes =
         await fetchHistory(allAddressesSet);
@@ -98,6 +103,8 @@ class LitecoinWallet extends Bip39HDWallet
         }
       }
     }
+
+    await updateInscriptionsFuture;
 
     // Parse all new txs.
     final List<TransactionV2> txns = [];
@@ -227,30 +234,44 @@ class LitecoinWallet extends Bip39HDWallet
 
         // Check for special Litecoin outputs like ordinals.
         if (outputs.isNotEmpty) {
-          // Iterate through outputs to check for ordinals.
-          for (final output in outputs) {
-            for (final String address in output.addresses) {
-              final inscriptionData = await litescribeAPI
-                  .getInscriptionsByAddress(address)
-                  .catchError((e) {
-                Logging.instance.log(
-                  "Failed to get inscription data for address $address",
-                  level: LogLevel.Error,
-                );
-              });
-
-              // Check if any inscription data matches this output.
-              for (final inscription in inscriptionData) {
-                final txid = inscription.location.split(":").first;
-                if (inscription.address == address &&
-                    txid == txData["txid"] as String) {
-                  // Found an ordinal.
-                  subType = TransactionSubType.ordinal;
-                  break;
-                }
-              }
-            }
+          // may not catch every case but it is much quicker
+          final hasOrdinal = await mainDB.isar.ordinals
+              .where()
+              .filter()
+              .walletIdEqualTo(walletId)
+              .utxoTXIDEqualTo(txData["txid"] as String)
+              .isNotEmpty();
+          if (hasOrdinal) {
+            subType = TransactionSubType.ordinal;
           }
+
+          // making API calls for every output in every transaction is too expensive
+          // and if not checked can cause refresh to fail if errors aren't handled properly
+
+          // // Iterate through outputs to check for ordinals.
+          // for (final output in outputs) {
+          //   for (final String address in output.addresses) {
+          //     final inscriptionData = await litescribeAPI
+          //         .getInscriptionsByAddress(address)
+          //         .catchError((e) {
+          //       Logging.instance.log(
+          //         "Failed to get inscription data for address $address",
+          //         level: LogLevel.Error,
+          //       );
+          //     });
+          //
+          //     // Check if any inscription data matches this output.
+          //     for (final inscription in inscriptionData) {
+          //       final txid = inscription.location.split(":").first;
+          //       if (inscription.address == address &&
+          //           txid == txData["txid"] as String) {
+          //         // Found an ordinal.
+          //         subType = TransactionSubType.ordinal;
+          //         break;
+          //       }
+          //     }
+          //   }
+          // }
         }
       } else {
         Logging.instance.log(
