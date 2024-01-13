@@ -484,9 +484,6 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                   final criteria =
                       ref.watch(transactionFilterProvider.state).state;
 
-                  //todo: check if print needed
-                  // debugPrint("Consumer build called");
-
                   return FutureBuilder(
                     future: ref
                         .watch(mainDBProvider)
@@ -499,7 +496,8 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                             value: [widget.walletId],
                           )
                         ],
-                            // TODO: [prio=high] add filters to wallet or cryptocurrency class
+                            // TODO: [prio=med] add filters to wallet or cryptocurrency class
+                            // Might not be needed (yet)?
                             //   filter: [
                             //     // todo
                             //   ],

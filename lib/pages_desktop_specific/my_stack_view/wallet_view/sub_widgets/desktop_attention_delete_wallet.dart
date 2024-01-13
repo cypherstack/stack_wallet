@@ -113,7 +113,8 @@ class _DesktopAttentionDeleteWallet
                       onPressed: () async {
                         final wallet =
                             ref.read(pWallets).getWallet(widget.walletId);
-                        // TODO: [prio=high] handle other types wallet deletion
+                        // TODO: [prio=med] handle other types wallet deletion
+                        // All wallets currently are mnemonic based
                         if (wallet is MnemonicInterface) {
                           final words = await wallet.getMnemonicAsWords();
 

@@ -81,7 +81,8 @@ class _UnlockWalletKeysDesktopState
 
       final wallet = ref.read(pWallets).getWallet(widget.walletId);
 
-      // TODO: [prio=high] handle wallets that don't have a mnemonic
+      // TODO: [prio=med] handle wallets that don't have a mnemonic
+      // All wallets currently are mnemonic based
       if (wallet is! MnemonicInterface) {
         throw Exception("FIXME ~= see todo in code");
       }
@@ -303,7 +304,8 @@ class _UnlockWalletKeysDesktopState
                               final wallet =
                                   ref.read(pWallets).getWallet(widget.walletId);
 
-                              // TODO: [prio=high] handle wallets that don't have a mnemonic
+                              // TODO: [prio=low] handle wallets that don't have a mnemonic
+                              // All wallets currently are mnemonic based
                               if (wallet is! MnemonicInterface) {
                                 throw Exception("FIXME ~= see todo in code");
                               }

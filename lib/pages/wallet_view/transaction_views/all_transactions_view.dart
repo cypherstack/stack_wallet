@@ -493,7 +493,8 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                             value: [widget.walletId],
                           )
                         ],
-                        // TODO: [prio=high] add filters to wallet or cryptocurrency class
+                        // TODO: [prio=med] add filters to wallet or cryptocurrency class
+                        // Might not be needed (yet)?
                         //   filter: [
                         //     // todo
                         //   ],

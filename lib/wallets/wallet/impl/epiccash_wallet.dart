@@ -296,7 +296,7 @@ class EpiccashWallet extends Bip39Wallet {
     Map<String, String> txAddressInfo,
   ) async {
     try {
-      var slatesToCommits = await _getSlatesToCommits();
+      final slatesToCommits = info.epicData?.slatesToCommits ?? {};
       final from = txAddressInfo['from'];
       final to = txAddressInfo['to'];
       slatesToCommits[slateData.slateId] = {
@@ -315,22 +315,6 @@ class EpiccashWallet extends Bip39Wallet {
       Logging.instance
           .log("ERROR STORING ADDRESS $e $s", level: LogLevel.Error);
       return false;
-    }
-  }
-
-  // TODO: [prio=high] this isn't needed. Condense to `info.epicData?.slatesToCommits ?? {}` where needed
-  Future<Map<dynamic, dynamic>> _getSlatesToCommits() async {
-    try {
-      var slatesToCommits = info.epicData?.slatesToCommits;
-      if (slatesToCommits == null) {
-        slatesToCommits = <dynamic, dynamic>{};
-      } else {
-        slatesToCommits = slatesToCommits;
-      }
-      return slatesToCommits;
-    } catch (e, s) {
-      Logging.instance.log("$e $s", level: LogLevel.Error);
-      return {};
     }
   }
 
@@ -455,7 +439,7 @@ class EpiccashWallet extends Bip39Wallet {
     );
   }
 
-// TODO: [prio=high] what is the point of this???
+  // As opposed to fake config?
   Future<String> _getRealConfig() async {
     String? config = await secureStorageInterface.read(
       key: '${walletId}_config',
@@ -954,7 +938,7 @@ class EpiccashWallet extends Bip39Wallet {
 
       final List<TransactionV2> txns = [];
 
-      final slatesToCommits = await _getSlatesToCommits();
+      final slatesToCommits = info.epicData?.slatesToCommits ?? {};
 
       for (final tx in transactions) {
         // Logging.instance.log("tx: $tx", level: LogLevel.Info);

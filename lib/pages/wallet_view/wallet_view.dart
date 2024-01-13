@@ -182,7 +182,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
       _lelantusRescanRecovery = true;
       _firoRescanRecovery();
       // } else if (ref.read(managerProvider).rescanOnOpenVersion ==
-      // TODO: [prio=high]
+      // TODO: [prio=med]
       //     Constants.rescanV1) {
       //   _rescanningOnOpen = true;
       //   ref.read(managerProvider).fullRescan(20, 1000).then(

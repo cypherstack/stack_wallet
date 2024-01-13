@@ -36,6 +36,9 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/monero_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -316,33 +319,28 @@ class _WalletNetworkSettingsViewState
 
     final coin = ref.watch(pWalletCoin(widget.walletId));
 
-    // TODO: [prio=high] sync percent for certain wallets
-    // if (coin == Coin.monero) {
-    //   double highestPercent =
-    //       (ref.read(pWallets).getWallet(widget.walletId).wallet as MoneroWallet)
-    //           .highestPercentCached;
-    //   if (_percent < highestPercent) {
-    //     _percent = highestPercent.clamp(0.0, 1.0);
-    //   }
-    // } else if (coin == Coin.wownero) {
-    //   double highestPercent = (ref
-    //           .watch(pWallets)
-    //           .getWallet(widget.walletId)
-    //           .wallet as WowneroWallet)
-    //       .highestPercentCached;
-    //   if (_percent < highestPercent) {
-    //     _percent = highestPercent.clamp(0.0, 1.0);
-    //   }
-    // } else if (coin == Coin.epicCash) {
-    //   double highestPercent = (ref
-    //           .watch(pWallets)
-    //           .getWallet(widget.walletId)
-    //           .wallet as EpicCashWallet)
-    //       .highestPercent;
-    //   if (_percent < highestPercent) {
-    //     _percent = highestPercent.clamp(0.0, 1.0);
-    //   }
-    // }
+    if (coin == Coin.monero) {
+      double highestPercent =
+          (ref.read(pWallets).getWallet(widget.walletId) as MoneroWallet)
+              .highestPercentCached;
+      if (_percent < highestPercent) {
+        _percent = highestPercent.clamp(0.0, 1.0);
+      }
+    } else if (coin == Coin.wownero) {
+      double highestPercent =
+          (ref.watch(pWallets).getWallet(widget.walletId) as WowneroWallet)
+              .highestPercentCached;
+      if (_percent < highestPercent) {
+        _percent = highestPercent.clamp(0.0, 1.0);
+      }
+    } else if (coin == Coin.epicCash) {
+      double highestPercent =
+          (ref.watch(pWallets).getWallet(widget.walletId) as EpiccashWallet)
+              .highestPercent;
+      if (_percent < highestPercent) {
+        _percent = highestPercent.clamp(0.0, 1.0);
+      }
+    }
 
     return ConditionalParent(
       condition: !isDesktop,

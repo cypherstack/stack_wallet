@@ -793,7 +793,7 @@ class _ConfirmTransactionViewState
                               height: 2,
                             ),
                             SelectableText(
-                              // TODO: [prio=high] spark transaction specifics - better handling
+                              // TODO: [prio=med] spark transaction specifics - better handling
                               widget.isPaynymTransaction
                                   ? widget.txData.paynymAccountLite!.nymName
                                   : widget.txData.recipients?.first.address ??

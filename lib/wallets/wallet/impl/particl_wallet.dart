@@ -187,7 +187,7 @@ class ParticlWallet extends Bip39HDWallet
               (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout)
                   as Map);
 
-          final prevOut = fromElectrumXJsonParticl(
+          final prevOut = _parseOutput(
             prevOutJson,
             decimalPlaces: cryptoCurrency.fractionDigits,
             isFullAmountNotSats: true,
@@ -227,7 +227,7 @@ class ParticlWallet extends Bip39HDWallet
       // Parse outputs.
       final List<OutputV2> outputs = [];
       for (final outputJson in txData["vout"] as List) {
-        OutputV2 output = fromElectrumXJsonParticl(
+        OutputV2 output = _parseOutput(
           Map<String, dynamic>.from(outputJson as Map),
           decimalPlaces: cryptoCurrency.fractionDigits,
           isFullAmountNotSats: true,
@@ -462,7 +462,7 @@ class ParticlWallet extends Bip39HDWallet
   }
 
   /// OutputV2.fromElectrumXJson wrapper for Particl-specific outputs.
-  static OutputV2 fromElectrumXJsonParticl(
+  OutputV2 _parseOutput(
     Map<String, dynamic> json, {
     // Other params just passed thru to fromElectrumXJson for transparent outs.
     required bool walletOwns,

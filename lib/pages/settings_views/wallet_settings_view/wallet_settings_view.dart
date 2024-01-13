@@ -235,7 +235,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                         final wallet = ref
                                             .read(pWallets)
                                             .getWallet(widget.walletId);
-                                        // TODO: [prio=high] take wallets that don't have amnemonic into account
+                                        // TODO: [prio=frost] take wallets that don't have a mnemonic into account
                                         if (wallet is MnemonicInterface) {
                                           final mnemonic =
                                               await wallet.getMnemonicAsWords();

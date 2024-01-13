@@ -112,31 +112,6 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                         restoringStatus: StackRestoringStatus.restoring);
 
                     try {
-                      // TODO: [prio=high] handle non mnemonic based wallets
-                      // final mnemonicList = await (wallet as MnemonicBasedWallet)
-                      //     .getMnemonicAsWords();
-                      // int maxUnusedAddressGap = 20;
-                      // if (coin == Coin.firo) {
-                      //   maxUnusedAddressGap = 50;
-                      // }
-                      // const maxNumberOfIndexesToCheck = 1000;
-                      //
-                      // if (mnemonicList.isEmpty) {
-                      //   await manager.recoverFromMnemonic(
-                      //     mnemonic: ref.read(provider).mnemonic!,
-                      //     mnemonicPassphrase:
-                      //         ref.read(provider).mnemonicPassphrase!,
-                      //     maxUnusedAddressGap: maxUnusedAddressGap,
-                      //     maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
-                      //     height: ref.read(provider).height ?? 0,
-                      //   );
-                      // } else {
-                      //   await manager.fullRescan(
-                      //     maxUnusedAddressGap,
-                      //     maxNumberOfIndexesToCheck,
-                      //   );
-                      // }
-
                       await wallet.recover(isRescan: true);
 
                       if (mounted) {

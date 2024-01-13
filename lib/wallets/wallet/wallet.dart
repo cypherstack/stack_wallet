@@ -206,7 +206,7 @@ abstract class Wallet<T extends CryptoCurrency> {
     );
   }
 
-  // TODO: [prio=med] refactor to more generalized token rather than eth specific
+  // TODO: [prio=low] refactor to more generalized token rather than eth specific
   static Wallet loadTokenWallet({
     required EthereumWallet ethWallet,
     required EthContract contract,
