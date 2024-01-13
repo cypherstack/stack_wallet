@@ -914,10 +914,10 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                     children: [
                                       Expanded(
                                         child: ref
-                                            .read(pWallets)
-                                            .getWallet(widget.walletId)
-                                            .isarTransactionVersion ==
-                                            2
+                                                    .read(pWallets)
+                                                    .getWallet(widget.walletId)
+                                                    .isarTransactionVersion ==
+                                                2
                                             ? TransactionsV2List(
                                                 walletId: widget.walletId,
                                               )
