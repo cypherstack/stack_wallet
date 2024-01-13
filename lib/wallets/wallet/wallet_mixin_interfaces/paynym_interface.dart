@@ -12,6 +12,8 @@ import 'package:isar/isar.dart';
 import 'package:pointycastle/digests/sha256.dart';
 import 'package:stackwallet/exceptions/wallet/insufficient_balance_exception.dart';
 import 'package:stackwallet/exceptions/wallet/paynym_send_exception.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/signing_data.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -20,6 +22,7 @@ import 'package:stackwallet/utilities/bip47_utils.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/wallets/crypto_currency/interfaces/paynym_currency_interface.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
@@ -43,12 +46,8 @@ String _sendPaynymAddressDerivationPath(
 }) =>
     "${_basePaynymDerivePath(testnet: testnet)}/0/$index";
 
-mixin PaynymInterface on Bip39HDWallet, ElectrumXInterface {
-  Amount get _dustLimitP2PKH => Amount(
-        rawValue: BigInt.from(546),
-        fractionDigits: cryptoCurrency.fractionDigits,
-      );
-
+mixin PaynymInterface<T extends PaynymCurrencyInterface>
+    on Bip39HDWallet<T>, ElectrumXInterface<T> {
   btc_dart.NetworkType get networkType => btc_dart.NetworkType(
         messagePrefix: cryptoCurrency.networkParams.messagePrefix,
         bech32: cryptoCurrency.networkParams.bech32Hrp,
@@ -447,9 +446,7 @@ mixin PaynymInterface on Bip39HDWallet, ElectrumXInterface {
     List<UTXO>? utxos,
   }) async {
     try {
-      // final amountToSend = cryptoCurrency.dustLimitP2PKH;
-
-      final amountToSend = _dustLimitP2PKH;
+      final amountToSend = cryptoCurrency.dustLimitP2PKH;
       final List<UTXO> availableOutputs =
           utxos ?? await mainDB.getUTXOs(walletId).findAll();
       final List<UTXO> spendableOutputs = [];
@@ -550,14 +547,14 @@ mixin PaynymInterface on Bip39HDWallet, ElectrumXInterface {
       }
 
       if (satoshisBeingUsed - amountToSend.raw >
-          feeForNoChange + _dustLimitP2PKH.raw) {
+          feeForNoChange + cryptoCurrency.dustLimitP2PKH.raw) {
         // try to add change output due to "left over" amount being greater than
         // the estimated fee + the dust limit
         BigInt changeAmount =
             satoshisBeingUsed - amountToSend.raw - feeForWithChange;
 
         // check estimates are correct and build notification tx
-        if (changeAmount >= _dustLimitP2PKH.raw &&
+        if (changeAmount >= cryptoCurrency.dustLimitP2PKH.raw &&
             satoshisBeingUsed - amountToSend.raw - changeAmount ==
                 feeForWithChange) {
           var txn = await _createNotificationTx(
@@ -746,7 +743,7 @@ mixin PaynymInterface on Bip39HDWallet, ElectrumXInterface {
 
       txb.addOutput(
         notificationAddress,
-        (overrideAmountForTesting ?? _dustLimitP2PKH.raw).toInt(),
+        (overrideAmountForTesting ?? cryptoCurrency.dustLimitP2PKH.raw).toInt(),
       );
       txb.addOutput(opReturnScript, 0);
 
@@ -854,44 +851,67 @@ mixin PaynymInterface on Bip39HDWallet, ElectrumXInterface {
 
     final myNotificationAddress = await getMyNotificationAddress();
 
-    final txns = await mainDB
-        .getTransactions(walletId)
+    final txns = await mainDB.isar.transactionV2s
+        .where()
+        .walletIdEqualTo(walletId)
         .filter()
         .subTypeEqualTo(TransactionSubType.bip47Notification)
         .findAll();
 
     for (final tx in txns) {
-      if (tx.type == TransactionType.incoming &&
-          tx.address.value?.value == myNotificationAddress.value) {
-        final unBlindedPaymentCode = await unBlindedPaymentCodeFromTransaction(
-          transaction: tx,
-        );
+      switch (tx.type) {
+        case TransactionType.incoming:
+          for (final output in tx.outputs) {
+            for (final outputAddress in output.addresses) {
+              if (outputAddress == myNotificationAddress.value) {
+                final unBlindedPaymentCode =
+                    await unBlindedPaymentCodeFromTransaction(
+                  transaction: tx,
+                );
 
-        if (unBlindedPaymentCode != null &&
-            paymentCodeString == unBlindedPaymentCode.toString()) {
-          // await _setConnectedCache(paymentCodeString, true);
-          return true;
-        }
+                if (unBlindedPaymentCode != null &&
+                    paymentCodeString == unBlindedPaymentCode.toString()) {
+                  // await _setConnectedCache(paymentCodeString, true);
+                  return true;
+                }
 
-        final unBlindedPaymentCodeBad =
-            await unBlindedPaymentCodeFromTransactionBad(
-          transaction: tx,
-        );
+                final unBlindedPaymentCodeBad =
+                    await unBlindedPaymentCodeFromTransactionBad(
+                  transaction: tx,
+                );
 
-        if (unBlindedPaymentCodeBad != null &&
-            paymentCodeString == unBlindedPaymentCodeBad.toString()) {
-          // await _setConnectedCache(paymentCodeString, true);
-          return true;
-        }
-      } else if (tx.type == TransactionType.outgoing) {
-        if (tx.address.value?.otherData != null) {
-          final code =
-              await paymentCodeStringByKey(tx.address.value!.otherData!);
-          if (code == paymentCodeString) {
-            // await _setConnectedCache(paymentCodeString, true);
-            return true;
+                if (unBlindedPaymentCodeBad != null &&
+                    paymentCodeString == unBlindedPaymentCodeBad.toString()) {
+                  // await _setConnectedCache(paymentCodeString, true);
+                  return true;
+                }
+              }
+            }
           }
-        }
+
+        case TransactionType.outgoing:
+          for (final output in tx.outputs) {
+            for (final outputAddress in output.addresses) {
+              final address = await mainDB.isar.addresses
+                  .where()
+                  .walletIdEqualTo(walletId)
+                  .filter()
+                  .subTypeEqualTo(AddressSubType.paynymNotification)
+                  .and()
+                  .valueEqualTo(outputAddress)
+                  .findFirst();
+
+              if (address?.otherData != null) {
+                final code = await paymentCodeStringByKey(address!.otherData!);
+                if (code == paymentCodeString) {
+                  // await _setConnectedCache(paymentCodeString, true);
+                  return true;
+                }
+              }
+            }
+          }
+        default:
+          break;
       }
     }
 
@@ -900,7 +920,7 @@ mixin PaynymInterface on Bip39HDWallet, ElectrumXInterface {
     return false;
   }
 
-  Uint8List? _pubKeyFromInput(Input input) {
+  Uint8List? _pubKeyFromInput(InputV2 input) {
     final scriptSigComponents = input.scriptSigAsm?.split(" ") ?? [];
     if (scriptSigComponents.length > 1) {
       return scriptSigComponents[1].fromHex;
@@ -919,7 +939,7 @@ mixin PaynymInterface on Bip39HDWallet, ElectrumXInterface {
   }
 
   Future<PaymentCode?> unBlindedPaymentCodeFromTransaction({
-    required Transaction transaction,
+    required TransactionV2 transaction,
   }) async {
     try {
       final blindedCodeBytes =
@@ -932,8 +952,8 @@ mixin PaynymInterface on Bip39HDWallet, ElectrumXInterface {
 
       final designatedInput = transaction.inputs.first;
 
-      final txPoint = designatedInput.txid.fromHex.reversed.toList();
-      final txPointIndex = designatedInput.vout;
+      final txPoint = designatedInput.outpoint!.txid.fromHex.reversed.toList();
+      final txPointIndex = designatedInput.outpoint!.vout;
 
       final rev = Uint8List(txPoint.length + 4);
       Util.copyBytes(Uint8List.fromList(txPoint), 0, rev, 0, txPoint.length);
@@ -970,7 +990,7 @@ mixin PaynymInterface on Bip39HDWallet, ElectrumXInterface {
   }
 
   Future<PaymentCode?> unBlindedPaymentCodeFromTransactionBad({
-    required Transaction transaction,
+    required TransactionV2 transaction,
   }) async {
     try {
       final blindedCodeBytes =
@@ -983,8 +1003,8 @@ mixin PaynymInterface on Bip39HDWallet, ElectrumXInterface {
 
       final designatedInput = transaction.inputs.first;
 
-      final txPoint = designatedInput.txid.fromHex.toList();
-      final txPointIndex = designatedInput.vout;
+      final txPoint = designatedInput.outpoint!.txid.fromHex.toList();
+      final txPointIndex = designatedInput.outpoint!.vout;
 
       final rev = Uint8List(txPoint.length + 4);
       Util.copyBytes(Uint8List.fromList(txPoint), 0, rev, 0, txPoint.length);
@@ -1022,8 +1042,9 @@ mixin PaynymInterface on Bip39HDWallet, ElectrumXInterface {
 
   Future<List<PaymentCode>>
       getAllPaymentCodesFromNotificationTransactions() async {
-    final txns = await mainDB
-        .getTransactions(walletId)
+    final txns = await mainDB.isar.transactionV2s
+        .where()
+        .walletIdEqualTo(walletId)
         .filter()
         .subTypeEqualTo(TransactionSubType.bip47Notification)
         .findAll();
@@ -1032,18 +1053,33 @@ mixin PaynymInterface on Bip39HDWallet, ElectrumXInterface {
 
     for (final tx in txns) {
       // tx is sent so we can check the address's otherData for the code String
-      if (tx.type == TransactionType.outgoing &&
-          tx.address.value?.otherData != null) {
-        final codeString =
-            await paymentCodeStringByKey(tx.address.value!.otherData!);
-        if (codeString != null &&
-            codes.where((e) => e.toString() == codeString).isEmpty) {
-          codes.add(
-            PaymentCode.fromPaymentCode(
-              codeString,
-              networkType: networkType,
-            ),
-          );
+      if (tx.type == TransactionType.outgoing) {
+        for (final output in tx.outputs) {
+          for (final outputAddress
+              in output.addresses.where((e) => e.isNotEmpty)) {
+            final address = await mainDB.isar.addresses
+                .where()
+                .walletIdEqualTo(walletId)
+                .filter()
+                .subTypeEqualTo(AddressSubType.paynymNotification)
+                .and()
+                .valueEqualTo(outputAddress)
+                .findFirst();
+
+            if (address?.otherData != null) {
+              final codeString =
+                  await paymentCodeStringByKey(address!.otherData!);
+              if (codeString != null &&
+                  codes.where((e) => e.toString() == codeString).isEmpty) {
+                codes.add(
+                  PaymentCode.fromPaymentCode(
+                    codeString,
+                    networkType: networkType,
+                  ),
+                );
+              }
+            }
+          }
         }
       } else {
         // otherwise we need to un blind the code
@@ -1072,8 +1108,9 @@ mixin PaynymInterface on Bip39HDWallet, ElectrumXInterface {
 
   Future<void> checkForNotificationTransactionsTo(
       Set<String> otherCodeStrings) async {
-    final sentNotificationTransactions = await mainDB
-        .getTransactions(walletId)
+    final sentNotificationTransactions = await mainDB.isar.transactionV2s
+        .where()
+        .walletIdEqualTo(walletId)
         .filter()
         .subTypeEqualTo(TransactionSubType.bip47Notification)
         .and()
@@ -1087,23 +1124,37 @@ mixin PaynymInterface on Bip39HDWallet, ElectrumXInterface {
     }
 
     for (final tx in sentNotificationTransactions) {
-      if (tx.address.value != null && tx.address.value!.otherData == null) {
-        final oldAddress =
-            await mainDB.getAddress(walletId, tx.address.value!.value);
-        for (final code in codes) {
-          final notificationAddress = code.notificationAddressP2PKH();
-          if (notificationAddress == oldAddress!.value) {
-            final address = Address(
-              walletId: walletId,
-              value: notificationAddress,
-              publicKey: [],
-              derivationIndex: 0,
-              derivationPath: oldAddress.derivationPath,
-              type: oldAddress.type,
-              subType: AddressSubType.paynymNotification,
-              otherData: await storeCode(code.toString()),
-            );
-            await mainDB.updateAddress(oldAddress, address);
+      for (final output in tx.outputs) {
+        for (final outputAddress in output.addresses) {
+          if (outputAddress.isNotEmpty) {
+            for (final code in codes) {
+              final notificationAddress = code.notificationAddressP2PKH();
+
+              if (outputAddress == notificationAddress) {
+                Address? storedAddress =
+                    await mainDB.getAddress(walletId, outputAddress);
+                if (storedAddress == null) {
+                  // most likely not mine
+                  storedAddress = Address(
+                    walletId: walletId,
+                    value: notificationAddress,
+                    publicKey: [],
+                    derivationIndex: 0,
+                    derivationPath: null,
+                    type: AddressType.unknown,
+                    subType: AddressSubType.paynymNotification,
+                    otherData: await storeCode(code.toString()),
+                  );
+                } else {
+                  storedAddress = storedAddress.copyWith(
+                    subType: AddressSubType.paynymNotification,
+                    otherData: await storeCode(code.toString()),
+                  );
+                }
+
+                await mainDB.updateOrPutAddresses([storedAddress]);
+              }
+            }
           }
         }
       }

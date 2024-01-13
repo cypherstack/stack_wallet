@@ -20,12 +20,13 @@ import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
+import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import 'package:uuid/uuid.dart';
 
-mixin ElectrumXInterface on Bip39HDWallet {
+mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   late ElectrumXClient electrumXClient;
   late CachedElectrumXClient electrumXCachedClient;
 
@@ -533,20 +534,29 @@ mixin ElectrumXInterface on Bip39HDWallet {
         final address = await mainDB.getAddress(walletId, sd.utxo.address!);
         if (address?.derivationPath != null) {
           if (address!.subType == AddressSubType.paynymReceive) {
-            // TODO paynym
-            // final code = await paymentCodeStringByKey(address.otherData!);
-            //
-            // final bip47base = await getBip47BaseNode();
-            //
-            // final privateKey = await getPrivateKeyForPaynymReceivingAddress(
-            //   paymentCodeString: code!,
-            //   index: address.derivationIndex,
-            // );
-            //
-            // keys = coinlib.HDPrivateKey.fromKeyAndChainCode(
-            //   privateKey,
-            //   bip47base.chainCode,
-            // );
+            if (this is PaynymInterface) {
+              final code = await (this as PaynymInterface)
+                  .paymentCodeStringByKey(address.otherData!);
+
+              final bip47base =
+                  await (this as PaynymInterface).getBip47BaseNode();
+
+              final privateKey = await (this as PaynymInterface)
+                  .getPrivateKeyForPaynymReceivingAddress(
+                paymentCodeString: code!,
+                index: address.derivationIndex,
+              );
+
+              keys = coinlib.HDPrivateKey.fromKeyAndChainCode(
+                coinlib.ECPrivateKey.fromHex(privateKey.toHex),
+                bip47base.chainCode,
+              );
+            } else {
+              throw Exception(
+                "$runtimeType tried to fetchBuildTxData for a paynym address"
+                " in a non PaynymInterface wallet",
+              );
+            }
           } else {
             keys = root.derivePath(address.derivationPath!.value);
           }

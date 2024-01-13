@@ -6,6 +6,7 @@ part 'output_v2.g.dart';
 @Embedded()
 class OutputV2 {
   late final String scriptPubKeyHex;
+  late final String? scriptPubKeyAsm;
   late final String valueStringSats;
   late final List<String> addresses;
 
@@ -18,24 +19,28 @@ class OutputV2 {
 
   static OutputV2 isarCantDoRequiredInDefaultConstructor({
     required String scriptPubKeyHex,
+    String? scriptPubKeyAsm,
     required String valueStringSats,
     required List<String> addresses,
     required bool walletOwns,
   }) =>
       OutputV2()
         ..scriptPubKeyHex = scriptPubKeyHex
+        ..scriptPubKeyAsm = scriptPubKeyAsm
         ..valueStringSats = valueStringSats
         ..walletOwns = walletOwns
         ..addresses = List.unmodifiable(addresses);
 
   OutputV2 copyWith({
     String? scriptPubKeyHex,
+    String? scriptPubKeyAsm,
     String? valueStringSats,
     List<String>? addresses,
     bool? walletOwns,
   }) {
     return OutputV2.isarCantDoRequiredInDefaultConstructor(
       scriptPubKeyHex: scriptPubKeyHex ?? this.scriptPubKeyHex,
+      scriptPubKeyAsm: scriptPubKeyAsm ?? this.scriptPubKeyAsm,
       valueStringSats: valueStringSats ?? this.valueStringSats,
       addresses: addresses ?? this.addresses,
       walletOwns: walletOwns ?? this.walletOwns,
@@ -61,6 +66,7 @@ class OutputV2 {
 
       return OutputV2.isarCantDoRequiredInDefaultConstructor(
         scriptPubKeyHex: json["scriptPubKey"]["hex"] as String,
+        scriptPubKeyAsm: json["scriptPubKey"]["asm"] as String?,
         valueStringSats: parseOutputAmountString(
           json["value"].toString(),
           decimalPlaces: decimalPlaces,
@@ -100,27 +106,10 @@ class OutputV2 {
   String toString() {
     return 'OutputV2(\n'
         '  scriptPubKeyHex: $scriptPubKeyHex,\n'
+        '  scriptPubKeyAsm: $scriptPubKeyAsm,\n'
         '  value: $value,\n'
         '  walletOwns: $walletOwns,\n'
         '  addresses: $addresses,\n'
         ')';
   }
-}
-
-bool _listEquals<T, U>(List<T> a, List<U> b) {
-  if (T != U) {
-    return false;
-  }
-
-  if (a.length != b.length) {
-    return false;
-  }
-
-  for (int i = 0; i < a.length; i++) {
-    if (a[i] != b[i]) {
-      return false;
-    }
-  }
-
-  return true;
 }

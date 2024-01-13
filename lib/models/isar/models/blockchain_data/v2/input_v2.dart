@@ -44,6 +44,7 @@ class OutpointV2 {
 @Embedded()
 class InputV2 {
   late final String? scriptSigHex;
+  late final String? scriptSigAsm;
   late final int? sequence;
   late final OutpointV2? outpoint;
   late final List<String> addresses;
@@ -63,6 +64,7 @@ class InputV2 {
 
   static InputV2 isarCantDoRequiredInDefaultConstructor({
     required String? scriptSigHex,
+    String? scriptSigAsm,
     required int? sequence,
     required OutpointV2? outpoint,
     required List<String> addresses,
@@ -74,6 +76,7 @@ class InputV2 {
   }) =>
       InputV2()
         ..scriptSigHex = scriptSigHex
+        ..scriptSigAsm = scriptSigAsm
         ..sequence = sequence
         ..outpoint = outpoint
         ..addresses = List.unmodifiable(addresses)
@@ -85,6 +88,7 @@ class InputV2 {
 
   InputV2 copyWith({
     String? scriptSigHex,
+    String? scriptSigAsm,
     int? sequence,
     OutpointV2? outpoint,
     List<String>? addresses,
@@ -96,6 +100,7 @@ class InputV2 {
   }) {
     return InputV2.isarCantDoRequiredInDefaultConstructor(
       scriptSigHex: scriptSigHex ?? this.scriptSigHex,
+      scriptSigAsm: scriptSigAsm ?? this.scriptSigAsm,
       sequence: sequence ?? this.sequence,
       outpoint: outpoint ?? this.outpoint,
       addresses: addresses ?? this.addresses,
@@ -111,6 +116,7 @@ class InputV2 {
   String toString() {
     return 'InputV2(\n'
         '  scriptSigHex: $scriptSigHex,\n'
+        '  scriptSigAsm: $scriptSigAsm,\n'
         '  sequence: $sequence,\n'
         '  outpoint: $outpoint,\n'
         '  addresses: $addresses,\n'

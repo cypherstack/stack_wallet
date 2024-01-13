@@ -6,9 +6,10 @@ import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:stackwallet/wallets/crypto_currency/interfaces/paynym_currency_interface.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 
-class Bitcoin extends Bip39HDCurrency {
+class Bitcoin extends Bip39HDCurrency with PaynymCurrencyInterface {
   Bitcoin(super.network) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
@@ -46,11 +47,6 @@ class Bitcoin extends Bip39HDCurrency {
   @override
   Amount get dustLimit => Amount(
         rawValue: BigInt.from(294),
-        fractionDigits: fractionDigits,
-      );
-
-  Amount get dustLimitP2PKH => Amount(
-        rawValue: BigInt.from(546),
         fractionDigits: fractionDigits,
       );
 

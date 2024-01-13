@@ -19,6 +19,7 @@ import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/paynym_is_api.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
@@ -45,6 +46,7 @@ import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_int
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/private_key_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 
@@ -471,6 +473,24 @@ abstract class Wallet<T extends CryptoCurrency> {
         ),
       );
 
+      // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
+      final Set<String> codesToCheck = {};
+      if (this is PaynymInterface) {
+        // isSegwit does not matter here at all
+        final myCode =
+            await (this as PaynymInterface).getPaymentCode(isSegwit: false);
+
+        final nym = await PaynymIsApi().nym(myCode.toString());
+        if (nym.value != null) {
+          for (final follower in nym.value!.followers) {
+            codesToCheck.add(follower.code);
+          }
+          for (final following in nym.value!.following) {
+            codesToCheck.add(following.code);
+          }
+        }
+      }
+
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.0, walletId));
       await updateChainHeight();
 
@@ -505,6 +525,14 @@ abstract class Wallet<T extends CryptoCurrency> {
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.70, walletId));
 
       await fetchFuture;
+
+      // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
+      if (this is PaynymInterface && codesToCheck.isNotEmpty) {
+        await (this as PaynymInterface)
+            .checkForNotificationTransactionsTo(codesToCheck);
+        // check utxos again for notification outputs
+        await updateUTXOs();
+      }
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.80, walletId));
 
       // await getAllTxsToWatch();
