@@ -105,7 +105,8 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
     eventBus =
         widget.eventBus != null ? widget.eventBus! : GlobalEventBus.instance;
 
-    ref.read(currentWalletIdProvider.notifier).state = wallet.walletId;
+    WidgetsBinding.instance.addPostFrameCallback((_) =>
+        ref.read(currentWalletIdProvider.notifier).state = wallet.walletId);
 
     if (!wallet.shouldAutoSync) {
       // enable auto sync if it wasn't enabled when loading wallet
