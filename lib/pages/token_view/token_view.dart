@@ -189,7 +189,11 @@ class _TokenViewState extends ConsumerState<TokenView> {
                             AllTransactionsV2View.routeName,
                             arguments: (
                               walletId: widget.walletId,
-                              isTokens: true,
+                              contractAddress: ref.watch(
+                                pCurrentTokenWallet.select(
+                                  (value) => value!.tokenContract.address,
+                                ),
+                              ),
                             ),
                           );
                         },

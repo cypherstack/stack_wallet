@@ -1325,6 +1325,18 @@ class RouteGenerator {
             ),
           );
         }
+        if (args is ({String walletId, String contractAddress})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => AllTransactionsV2View(
+              walletId: args.walletId,
+              contractAddress: args.contractAddress,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case TransactionSearchFilterView.routeName:

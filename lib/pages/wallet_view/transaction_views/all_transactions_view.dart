@@ -494,10 +494,19 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                           )
                         ],
                         // TODO: [prio=med] add filters to wallet or cryptocurrency class
-                        // Might not be needed (yet)?
-                        //   filter: [
-                        //     // todo
-                        //   ],
+                        // eth tokens should all be on v2 txn now so this should not be needed here
+                        // filter: widget.contractAddress != null
+                        //     ? FilterGroup.and([
+                        //         FilterCondition.equalTo(
+                        //           property: r"contractAddress",
+                        //           value: widget.contractAddress!,
+                        //         ),
+                        //         const FilterCondition.equalTo(
+                        //           property: r"subType",
+                        //           value: TransactionSubType.ethToken,
+                        //         ),
+                        //       ])
+                        //     : null,
                         sortBy: [
                           const SortProperty(
                             property: "timestamp",

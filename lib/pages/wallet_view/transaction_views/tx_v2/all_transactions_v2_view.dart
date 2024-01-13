@@ -59,11 +59,13 @@ class AllTransactionsV2View extends ConsumerStatefulWidget {
   const AllTransactionsV2View({
     Key? key,
     required this.walletId,
+    this.contractAddress,
   }) : super(key: key);
 
   static const String routeName = "/allTransactionsV2";
 
   final String walletId;
+  final String? contractAddress;
 
   @override
   ConsumerState<AllTransactionsV2View> createState() =>
@@ -491,22 +493,31 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                         .transactionV2s
                         .buildQuery<TransactionV2>(
                             whereClauses: [
-                          IndexWhereClause.equalTo(
-                            indexName: 'walletId',
-                            value: [widget.walletId],
-                          )
-                        ],
+                              IndexWhereClause.equalTo(
+                                indexName: 'walletId',
+                                value: [widget.walletId],
+                              )
+                            ],
                             // TODO: [prio=med] add filters to wallet or cryptocurrency class
-                            // Might not be needed (yet)?
-                            //   filter: [
-                            //     // todo
-                            //   ],
+                            filter: widget.contractAddress != null
+                                ? FilterGroup.and([
+                                    FilterCondition.equalTo(
+                                      property: r"contractAddress",
+                                      value: widget.contractAddress!,
+                                    ),
+                                    const FilterCondition.equalTo(
+                                      property: r"subType",
+                                      value: TransactionSubType.ethToken,
+                                    ),
+                                  ])
+                                : null,
                             sortBy: [
-                          const SortProperty(
-                            property: "timestamp",
-                            sort: Sort.desc,
-                          ),
-                        ]).findAll(),
+                              const SortProperty(
+                                property: "timestamp",
+                                sort: Sort.desc,
+                              ),
+                            ])
+                        .findAll(),
                     builder: (_, AsyncSnapshot<List<TransactionV2>> snapshot) {
                       if (snapshot.connectionState == ConnectionState.done &&
                           snapshot.hasData) {

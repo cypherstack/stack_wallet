@@ -15,7 +15,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/token_summary.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/token_transaction_list_widget.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/all_transactions_v2_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_wallet_features.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_wallet_summary.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/my_wallet.dart';
@@ -216,10 +216,14 @@ class _DesktopTokenViewState extends ConsumerState<DesktopTokenView> {
                         text: "See all",
                         onTap: () {
                           Navigator.of(context).pushNamed(
-                            AllTransactionsView.routeName,
+                            AllTransactionsV2View.routeName,
                             arguments: (
                               walletId: widget.walletId,
-                              isTokens: true,
+                              contractAddress: ref.watch(
+                                pCurrentTokenWallet.select(
+                                  (value) => value!.tokenContract.address,
+                                ),
+                              ),
                             ),
                           );
                         },
