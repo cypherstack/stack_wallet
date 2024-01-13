@@ -86,7 +86,10 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
 
   bool isStackCoin(String ticker) {
     try {
-      coinFromTickerCaseInsensitive(ticker);
+      try {
+        coinFromTickerCaseInsensitive(ticker);
+      } catch (_) {}
+      coinFromPrettyName(ticker);
       return true;
     } on ArgumentError catch (_) {
       return false;
@@ -270,10 +273,17 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       label: "Send from Stack",
                       buttonHeight: ButtonHeight.l,
                       onPressed: () {
-                        final coin =
-                            coinFromTickerCaseInsensitive(trade.payInCurrency);
-                        final amount =
-                            sendAmount.toAmount(fractionDigits: coin.decimals);
+                        Coin coin;
+                        try {
+                          coin = coinFromTickerCaseInsensitive(
+                              trade.payInCurrency);
+                        } catch (_) {
+                          coin = coinFromPrettyName(trade.payInCurrency);
+                        }
+                        final amount = Amount.fromDecimal(
+                          sendAmount,
+                          fractionDigits: coin.decimals,
+                        );
                         final address = trade.payInAddress;
 
                         Navigator.of(context).pushNamed(
@@ -1342,11 +1352,17 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
               SecondaryButton(
                 label: "Send from Stack",
                 onPressed: () {
-                  final amount = sendAmount;
+                  Coin coin;
+                  try {
+                    coin = coinFromTickerCaseInsensitive(trade.payInCurrency);
+                  } catch (_) {
+                    coin = coinFromPrettyName(trade.payInCurrency);
+                  }
+                  final amount = Amount.fromDecimal(
+                    sendAmount,
+                    fractionDigits: coin.decimals,
+                  );
                   final address = trade.payInAddress;
-
-                  final coin =
-                      coinFromTickerCaseInsensitive(trade.payInCurrency);
 
                   Navigator.of(context).pushNamed(
                     SendFromView.routeName,

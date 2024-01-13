@@ -913,8 +913,11 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                         CrossAxisAlignment.stretch,
                                     children: [
                                       Expanded(
-                                        child: coin == Coin.bitcoincash ||
-                                                coin == Coin.bitcoincashTestnet
+                                        child: ref
+                                            .read(pWallets)
+                                            .getWallet(widget.walletId)
+                                            .isarTransactionVersion ==
+                                            2
                                             ? TransactionsV2List(
                                                 walletId: widget.walletId,
                                               )
