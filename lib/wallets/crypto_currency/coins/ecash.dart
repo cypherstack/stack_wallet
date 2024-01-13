@@ -163,7 +163,6 @@ class Ecash extends Bip39HDCurrency {
     }
   }
 
-  // TODO: [prio=med] ecash p2sh addresses (complaints regarding sending to)
   @override
   bool validateAddress(String address) {
     try {
@@ -186,10 +185,9 @@ class Ecash extends Bip39HDCurrency {
       addr = cashAddr.split(":").last;
     }
 
-    return addr.startsWith("q");
+    return addr.startsWith("q") || addr.startsWith("p");
   }
 
-  // TODO: [prio=med] bch p2sh addresses?
   @override
   DerivePathType addressType({required String address}) {
     Uint8List? decodeBase58;
