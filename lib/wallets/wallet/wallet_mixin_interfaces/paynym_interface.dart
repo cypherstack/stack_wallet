@@ -1144,7 +1144,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
                     publicKey: [],
                     derivationIndex: 0,
                     derivationPath: null,
-                    type: AddressType.unknown,
+                    type: AddressType.nonWallet,
                     subType: AddressSubType.paynymNotification,
                     otherData: await storeCode(code.toString()),
                   );
@@ -1711,11 +1711,13 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
   ) async {
     bool blocked = false;
     String? blockedReason;
+    String? utxoLabel;
 
+    // check for bip47 notification
     if (jsonTX != null) {
-      // check for bip47 notification
       final outputs = jsonTX["vout"] as List;
-      for (final output in outputs) {
+      for (int i = 0; i < outputs.length; i++) {
+        final output = outputs[i];
         List<String>? scriptChunks =
             (output['scriptPubKey']?['asm'] as String?)?.split(" ");
         if (scriptChunks?.length == 2 && scriptChunks?[0] == "OP_RETURN") {
@@ -1724,16 +1726,27 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
           // https://en.bitcoin.it/wiki/BIP_0047#Sending
           if (bytes.length == 80 && bytes.first == 1) {
-            blocked = true;
-            blockedReason = "Paynym notification output. Incautious "
-                "handling of outputs from notification transactions "
-                "may cause unintended loss of privacy.";
+            final myNotificationAddress = await getMyNotificationAddress();
+            if (utxoOwnerAddress == myNotificationAddress.value) {
+              blocked = true;
+              blockedReason = "Incoming paynym notification transaction.";
+            } else {
+              blockedReason = "Paynym notification change output. Incautious "
+                  "handling of change outputs from notification transactions "
+                  "may cause unintended loss of privacy.";
+              utxoLabel = blockedReason;
+            }
+
             break;
           }
         }
       }
     }
 
-    return (blockedReason: blockedReason, blocked: blocked, utxoLabel: null);
+    return (
+      blockedReason: blockedReason,
+      blocked: blocked,
+      utxoLabel: utxoLabel
+    );
   }
 }
