@@ -4,7 +4,6 @@ import 'dart:typed_data';
 
 import 'package:bip32/bip32.dart' as bip32;
 import 'package:bip47/bip47.dart';
-import 'package:bip47/src/util.dart';
 import 'package:bitcoindart/bitcoindart.dart' as btc_dart;
 import 'package:bitcoindart/src/utils/constants/op.dart' as op;
 import 'package:bitcoindart/src/utils/script.dart' as bscript;
@@ -13,6 +12,7 @@ import 'package:pointycastle/digests/sha256.dart';
 import 'package:stackwallet/exceptions/wallet/insufficient_balance_exception.dart';
 import 'package:stackwallet/exceptions/wallet/paynym_send_exception.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/signing_data.dart';
@@ -20,6 +20,7 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/bip47_utils.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/crypto_currency/interfaces/paynym_currency_interface.dart';
@@ -689,11 +690,11 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       final myCode = await getPaymentCode(isSegwit: false);
 
       final utxo = utxoSigningData.first.utxo;
-      final txPoint = utxo.txid.fromHex.reversed.toList();
+      final txPoint = utxo.txid.toUint8ListFromHex.reversed.toList();
       final txPointIndex = utxo.vout;
 
       final rev = Uint8List(txPoint.length + 4);
-      Util.copyBytes(Uint8List.fromList(txPoint), 0, rev, 0, txPoint.length);
+      _copyBytes(Uint8List.fromList(txPoint), 0, rev, 0, txPoint.length);
       final buffer = rev.buffer.asByteData();
       buffer.setUint32(txPoint.length, txPointIndex, Endian.little);
 
@@ -923,16 +924,16 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
   Uint8List? _pubKeyFromInput(InputV2 input) {
     final scriptSigComponents = input.scriptSigAsm?.split(" ") ?? [];
     if (scriptSigComponents.length > 1) {
-      return scriptSigComponents[1].fromHex;
+      return scriptSigComponents[1].toUint8ListFromHex;
     }
     if (input.witness != null) {
       try {
         final witnessComponents = jsonDecode(input.witness!) as List;
         if (witnessComponents.length == 2) {
-          return (witnessComponents[1] as String).fromHex;
+          return (witnessComponents[1] as String).toUint8ListFromHex;
         }
-      } catch (_) {
-        //
+      } catch (e, s) {
+        Logging.instance.log("_pubKeyFromInput: $e\n$s", level: LogLevel.Info);
       }
     }
     return null;
@@ -952,11 +953,12 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
       final designatedInput = transaction.inputs.first;
 
-      final txPoint = designatedInput.outpoint!.txid.fromHex.reversed.toList();
+      final txPoint =
+          designatedInput.outpoint!.txid.toUint8ListFromHex.reversed.toList();
       final txPointIndex = designatedInput.outpoint!.vout;
 
       final rev = Uint8List(txPoint.length + 4);
-      Util.copyBytes(Uint8List.fromList(txPoint), 0, rev, 0, txPoint.length);
+      _copyBytes(Uint8List.fromList(txPoint), 0, rev, 0, txPoint.length);
       final buffer = rev.buffer.asByteData();
       buffer.setUint32(txPoint.length, txPointIndex, Endian.little);
 
@@ -980,9 +982,9 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       );
 
       return unBlindedPaymentCode;
-    } catch (e) {
+    } catch (e, s) {
       Logging.instance.log(
-        "unBlindedPaymentCodeFromTransaction() failed: $e\nFor tx: $transaction",
+        "unBlindedPaymentCodeFromTransaction() failed: $e\n$s\nFor tx: $transaction",
         level: LogLevel.Warning,
       );
       return null;
@@ -1003,11 +1005,12 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
       final designatedInput = transaction.inputs.first;
 
-      final txPoint = designatedInput.outpoint!.txid.fromHex.toList();
+      final txPoint =
+          designatedInput.outpoint!.txid.toUint8ListFromHex.toList();
       final txPointIndex = designatedInput.outpoint!.vout;
 
       final rev = Uint8List(txPoint.length + 4);
-      Util.copyBytes(Uint8List.fromList(txPoint), 0, rev, 0, txPoint.length);
+      _copyBytes(Uint8List.fromList(txPoint), 0, rev, 0, txPoint.length);
       final buffer = rev.buffer.asByteData();
       buffer.setUint32(txPoint.length, txPointIndex, Endian.little);
 
@@ -1185,7 +1188,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
     final List<Future<void>> futures = [];
     for (final code in codes) {
       futures.add(
-        restoreHistoryWith(
+        _restoreHistoryWith(
           other: code,
           maxUnusedAddressGap: maxUnusedAddressGap,
           maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
@@ -1197,7 +1200,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
     await Future.wait(futures);
   }
 
-  Future<void> restoreHistoryWith({
+  Future<void> _restoreHistoryWith({
     required PaymentCode other,
     required bool checkSegwitAsWell,
     required int maxUnusedAddressGap,
@@ -1441,6 +1444,19 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
     return key;
   }
 
+  void _copyBytes(
+    Uint8List source,
+    int sourceStartingIndex,
+    Uint8List destination,
+    int destinationStartingIndex,
+    int numberOfBytes,
+  ) {
+    for (int i = 0; i < numberOfBytes; i++) {
+      destination[i + destinationStartingIndex] =
+          source[i + sourceStartingIndex];
+    }
+  }
+
   /// generate a new payment code string storage key
   String _generateKey() {
     final bytes = _randomBytes(24);
@@ -1453,5 +1469,271 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
     final Random rng = Random.secure();
     return Uint8List.fromList(
         List<int>.generate(n, (_) => rng.nextInt(0xFF + 1)));
+  }
+
+  // ================== Overrides ==============================================
+
+  @override
+  Future<void> updateTransactions({List<Address>? overrideAddresses}) async {
+    // Get all addresses.
+    List<Address> allAddressesOld =
+        overrideAddresses ?? await fetchAddressesForElectrumXScan();
+
+    // Separate receiving and change addresses.
+    Set<String> receivingAddresses = allAddressesOld
+        .where((e) =>
+            e.subType == AddressSubType.receiving ||
+            e.subType == AddressSubType.paynymNotification ||
+            e.subType == AddressSubType.paynymReceive)
+        .map((e) => e.value)
+        .toSet();
+    Set<String> changeAddresses = allAddressesOld
+        .where((e) => e.subType == AddressSubType.change)
+        .map((e) => e.value)
+        .toSet();
+
+    // Remove duplicates.
+    final allAddressesSet = {...receivingAddresses, ...changeAddresses};
+
+    // Fetch history from ElectrumX.
+    final List<Map<String, dynamic>> allTxHashes =
+        await fetchHistory(allAddressesSet);
+
+    // Only parse new txs (not in db yet).
+    List<Map<String, dynamic>> allTransactions = [];
+    for (final txHash in allTxHashes) {
+      // Check for duplicates by searching for tx by tx_hash in db.
+      // final storedTx = await mainDB.isar.transactionV2s
+      //     .where()
+      //     .txidWalletIdEqualTo(txHash["tx_hash"] as String, walletId)
+      //     .findFirst();
+      //
+      // if (storedTx == null ||
+      //     storedTx.height == null ||
+      //     (storedTx.height != null && storedTx.height! <= 0)) {
+      // Tx not in db yet.
+      final tx = await electrumXCachedClient.getTransaction(
+        txHash: txHash["tx_hash"] as String,
+        verbose: true,
+        coin: cryptoCurrency.coin,
+      );
+
+      // Only tx to list once.
+      if (allTransactions
+              .indexWhere((e) => e["txid"] == tx["txid"] as String) ==
+          -1) {
+        tx["height"] = txHash["height"];
+        allTransactions.add(tx);
+      }
+      // }
+    }
+
+    // Parse all new txs.
+    final List<TransactionV2> txns = [];
+    for (final txData in allTransactions) {
+      bool wasSentFromThisWallet = false;
+      // Set to true if any inputs were detected as owned by this wallet.
+
+      bool wasReceivedInThisWallet = false;
+      // Set to true if any outputs were detected as owned by this wallet.
+
+      // Parse inputs.
+      BigInt amountReceivedInThisWallet = BigInt.zero;
+      BigInt changeAmountReceivedInThisWallet = BigInt.zero;
+      final List<InputV2> inputs = [];
+      for (final jsonInput in txData["vin"] as List) {
+        final map = Map<String, dynamic>.from(jsonInput as Map);
+
+        final List<String> addresses = [];
+        String valueStringSats = "0";
+        OutpointV2? outpoint;
+
+        final coinbase = map["coinbase"] as String?;
+
+        if (coinbase == null) {
+          // Not a coinbase (ie a typical input).
+          final txid = map["txid"] as String;
+          final vout = map["vout"] as int;
+
+          final inputTx = await electrumXCachedClient.getTransaction(
+            txHash: txid,
+            coin: cryptoCurrency.coin,
+          );
+
+          final prevOutJson = Map<String, dynamic>.from(
+              (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout)
+                  as Map);
+
+          final prevOut = OutputV2.fromElectrumXJson(
+            prevOutJson,
+            decimalPlaces: cryptoCurrency.fractionDigits,
+            isFullAmountNotSats: true,
+            walletOwns: false, // Doesn't matter here as this is not saved.
+          );
+
+          outpoint = OutpointV2.isarCantDoRequiredInDefaultConstructor(
+            txid: txid,
+            vout: vout,
+          );
+          valueStringSats = prevOut.valueStringSats;
+          addresses.addAll(prevOut.addresses);
+        }
+
+        InputV2 input = InputV2.fromElectrumxJson(
+          json: map,
+          outpoint: outpoint,
+          valueStringSats: valueStringSats,
+          addresses: addresses,
+          coinbase: coinbase,
+          // Need addresses before we can know if the wallet owns this input.
+          walletOwns: false,
+        );
+
+        // Check if input was from this wallet.
+        if (allAddressesSet.intersection(input.addresses.toSet()).isNotEmpty) {
+          wasSentFromThisWallet = true;
+          input = input.copyWith(walletOwns: true);
+        }
+
+        inputs.add(input);
+      }
+
+      // Parse outputs.
+      final List<OutputV2> outputs = [];
+      for (final outputJson in txData["vout"] as List) {
+        OutputV2 output = OutputV2.fromElectrumXJson(
+          Map<String, dynamic>.from(outputJson as Map),
+          decimalPlaces: cryptoCurrency.fractionDigits,
+          isFullAmountNotSats: true,
+          // Need addresses before we can know if the wallet owns this input.
+          walletOwns: false,
+        );
+
+        // If output was to my wallet, add value to amount received.
+        if (receivingAddresses
+            .intersection(output.addresses.toSet())
+            .isNotEmpty) {
+          wasReceivedInThisWallet = true;
+          amountReceivedInThisWallet += output.value;
+          output = output.copyWith(walletOwns: true);
+        } else if (changeAddresses
+            .intersection(output.addresses.toSet())
+            .isNotEmpty) {
+          wasReceivedInThisWallet = true;
+          changeAmountReceivedInThisWallet += output.value;
+          output = output.copyWith(walletOwns: true);
+        }
+
+        outputs.add(output);
+      }
+
+      final totalOut = outputs
+          .map((e) => e.value)
+          .fold(BigInt.zero, (value, element) => value + element);
+
+      TransactionType type;
+      TransactionSubType subType = TransactionSubType.none;
+      if (outputs.length > 1 && inputs.isNotEmpty) {
+        for (int i = 0; i < outputs.length; i++) {
+          List<String>? scriptChunks = outputs[i].scriptPubKeyAsm?.split(" ");
+          if (scriptChunks?.length == 2 && scriptChunks?[0] == "OP_RETURN") {
+            final blindedPaymentCode = scriptChunks![1];
+            final bytes = blindedPaymentCode.toUint8ListFromHex;
+
+            // https://en.bitcoin.it/wiki/BIP_0047#Sending
+            if (bytes.length == 80 && bytes.first == 1) {
+              subType = TransactionSubType.bip47Notification;
+              break;
+            }
+          }
+        }
+      }
+
+      // At least one input was owned by this wallet.
+      if (wasSentFromThisWallet) {
+        type = TransactionType.outgoing;
+
+        if (wasReceivedInThisWallet) {
+          if (changeAmountReceivedInThisWallet + amountReceivedInThisWallet ==
+              totalOut) {
+            // Definitely sent all to self.
+            type = TransactionType.sentToSelf;
+          } else if (amountReceivedInThisWallet == BigInt.zero) {
+            // Most likely just a typical send, do nothing here yet.
+          }
+        }
+      } else if (wasReceivedInThisWallet) {
+        // Only found outputs owned by this wallet.
+        type = TransactionType.incoming;
+
+        // TODO: [prio=none] Check for special Bitcoin outputs like ordinals.
+      } else {
+        Logging.instance.log(
+          "Unexpected tx found (ignoring it): $txData",
+          level: LogLevel.Error,
+        );
+        continue;
+      }
+
+      final tx = TransactionV2(
+        walletId: walletId,
+        blockHash: txData["blockhash"] as String?,
+        hash: txData["hash"] as String,
+        txid: txData["txid"] as String,
+        height: txData["height"] as int?,
+        version: txData["version"] as int,
+        timestamp: txData["blocktime"] as int? ??
+            DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
+        inputs: List.unmodifiable(inputs),
+        outputs: List.unmodifiable(outputs),
+        type: type,
+        subType: subType,
+        otherData: null,
+      );
+
+      txns.add(tx);
+    }
+
+    await mainDB.updateOrPutTransactionV2s(txns);
+  }
+
+  @override
+  Future<
+      ({
+        String? blockedReason,
+        bool blocked,
+        String? utxoLabel,
+      })> checkBlockUTXO(
+    Map<String, dynamic> jsonUTXO,
+    String? scriptPubKeyHex,
+    Map<String, dynamic>? jsonTX,
+    String? utxoOwnerAddress,
+  ) async {
+    bool blocked = false;
+    String? blockedReason;
+
+    if (jsonTX != null) {
+      // check for bip47 notification
+      final outputs = jsonTX["vout"] as List;
+      for (final output in outputs) {
+        List<String>? scriptChunks =
+            (output['scriptPubKey']?['asm'] as String?)?.split(" ");
+        if (scriptChunks?.length == 2 && scriptChunks?[0] == "OP_RETURN") {
+          final blindedPaymentCode = scriptChunks![1];
+          final bytes = blindedPaymentCode.toUint8ListFromHex;
+
+          // https://en.bitcoin.it/wiki/BIP_0047#Sending
+          if (bytes.length == 80 && bytes.first == 1) {
+            blocked = true;
+            blockedReason = "Paynym notification output. Incautious "
+                "handling of outputs from notification transactions "
+                "may cause unintended loss of privacy.";
+            break;
+          }
+        }
+      }
+    }
+
+    return (blockedReason: blockedReason, blocked: blocked, utxoLabel: null);
   }
 }

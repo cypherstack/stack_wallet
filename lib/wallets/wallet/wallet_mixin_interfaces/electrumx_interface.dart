@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -19,9 +20,11 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/paynym_is_api.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
+import 'package:stackwallet/wallets/wallet/impl/bitcoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import 'package:uuid/uuid.dart';
@@ -1748,9 +1751,49 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
             e.derivationIndex > highestReceivingIndexWithHistory);
 
         await mainDB.updateOrPutAddresses(addressesToStore);
+
+        if (this is PaynymInterface) {
+          final notificationAddress =
+              await (this as PaynymInterface).getMyNotificationAddress();
+
+          await (this as BitcoinWallet)
+              .updateTransactions(overrideAddresses: [notificationAddress]);
+
+          // get own payment code
+          // isSegwit does not matter here at all
+          final myCode =
+              await (this as PaynymInterface).getPaymentCode(isSegwit: false);
+
+          try {
+            final Set<String> codesToCheck = {};
+            final nym = await PaynymIsApi().nym(myCode.toString());
+            if (nym.value != null) {
+              for (final follower in nym.value!.followers) {
+                codesToCheck.add(follower.code);
+              }
+              for (final following in nym.value!.following) {
+                codesToCheck.add(following.code);
+              }
+            }
+
+            // restore paynym transactions
+            await (this as PaynymInterface).restoreAllHistory(
+              maxUnusedAddressGap: 20,
+              maxNumberOfIndexesToCheck: 10000,
+              paymentCodeStrings: codesToCheck,
+            );
+          } catch (e, s) {
+            Logging.instance.log(
+              "Failed to check paynym.is followers/following for history during "
+              "bitcoin wallet ($walletId ${info.name}) "
+              "_recoverWalletFromBIP32SeedPhrase: $e/n$s",
+              level: LogLevel.Error,
+            );
+          }
+        }
       });
 
-      await refresh();
+      unawaited(refresh());
     } catch (e, s) {
       Logging.instance.log(
           "Exception rethrown from electrumx_mixin recover(): $e\n$s",

@@ -782,6 +782,7 @@ class FiroWallet extends Bip39HDWallet
   static const String _lelantusCoinIsarRescanRequired =
       "lelantusCoinIsarRescanRequired";
 
+  // TODO: [prio=high]
   Future<void> setLelantusCoinIsarRescanRequiredDone() async {
     await DB.instance.put<dynamic>(
       boxName: walletId,

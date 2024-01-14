@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
@@ -16,6 +17,11 @@ Future<void> migrateWalletsToIsar({
   required SecureStorageInterface secureStore,
 }) async {
   await MainDB.instance.initMainDB();
+
+  // ensure fresh
+  await MainDB.instance.isar
+      .writeTxn(() async => await MainDB.instance.isar.transactionV2s.clear());
+
   final allWalletsBox = await Hive.openBox<dynamic>(DB.boxNameAllWalletsData);
 
   final names = DB.instance
