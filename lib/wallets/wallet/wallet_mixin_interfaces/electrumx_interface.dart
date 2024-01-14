@@ -687,6 +687,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       tempInputs.add(
         InputV2.isarCantDoRequiredInDefaultConstructor(
           scriptSigHex: txb.inputs.first.script?.toHex,
+          scriptSigAsm: null,
           sequence: 0xffffffff - 1,
           outpoint: OutpointV2.isarCantDoRequiredInDefaultConstructor(
             txid: utxoSigningData[i].utxo.txid,
@@ -764,9 +765,11 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         inputs: List.unmodifiable(tempInputs),
         outputs: List.unmodifiable(tempOutputs),
         version: version,
-        type: tempOutputs.map((e) => e.walletOwns).fold(true, (p, e) => p &= e)
-            ? TransactionType.sentToSelf
-            : TransactionType.outgoing,
+        type:
+            tempOutputs.map((e) => e.walletOwns).fold(true, (p, e) => p &= e) &&
+                    txData.paynymAccountLite == null
+                ? TransactionType.sentToSelf
+                : TransactionType.outgoing,
         subType: TransactionSubType.none,
         otherData: null,
       ),

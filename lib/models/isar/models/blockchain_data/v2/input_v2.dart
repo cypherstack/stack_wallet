@@ -64,7 +64,7 @@ class InputV2 {
 
   static InputV2 isarCantDoRequiredInDefaultConstructor({
     required String? scriptSigHex,
-    String? scriptSigAsm,
+    required String? scriptSigAsm,
     required int? sequence,
     required OutpointV2? outpoint,
     required List<String> addresses,

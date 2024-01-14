@@ -973,6 +973,7 @@ class EpiccashWallet extends Bip39Wallet {
         );
         InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
           scriptSigHex: null,
+          scriptSigAsm: null,
           sequence: null,
           outpoint: null,
           addresses: [if (addressTo != null) addressTo],

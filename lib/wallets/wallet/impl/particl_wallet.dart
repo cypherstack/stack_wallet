@@ -204,6 +204,7 @@ class ParticlWallet extends Bip39HDWallet
 
         InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
           scriptSigHex: map["scriptSig"]?["hex"] as String?,
+          scriptSigAsm: map["scriptSig"]?["asm"] as String?,
           sequence: map["sequence"] as int?,
           outpoint: outpoint,
           valueStringSats: valueStringSats,
@@ -355,6 +356,7 @@ class ParticlWallet extends Bip39HDWallet
       tempInputs.add(
         InputV2.isarCantDoRequiredInDefaultConstructor(
           scriptSigHex: txb.inputs.first.script?.toHex,
+          scriptSigAsm: null,
           sequence: 0xffffffff - 1,
           outpoint: OutpointV2.isarCantDoRequiredInDefaultConstructor(
             txid: utxoSigningData[i].utxo.txid,

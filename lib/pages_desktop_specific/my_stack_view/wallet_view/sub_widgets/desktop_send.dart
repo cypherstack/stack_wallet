@@ -863,6 +863,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
     if (isPaynymSend) {
       sendToController.text = widget.accountLite!.nymName;
+      WidgetsBinding.instance.addPostFrameCallback(
+          (_) => _setValidAddressProviders(sendToController.text));
     }
 
     _cryptoFocus.addListener(() {

@@ -484,6 +484,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     tempInputs.add(
       InputV2.isarCantDoRequiredInDefaultConstructor(
         scriptSigHex: "d3",
+        scriptSigAsm: null,
         sequence: 0xffffffff,
         outpoint: null,
         addresses: [],
@@ -1103,6 +1104,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         tempInputs.add(
           InputV2.isarCantDoRequiredInDefaultConstructor(
             scriptSigHex: txb.inputs.first.script?.toHex,
+            scriptSigAsm: null,
             sequence: 0xffffffff - 1,
             outpoint: OutpointV2.isarCantDoRequiredInDefaultConstructor(
               txid: input.utxo.txid,

@@ -1,3 +1,4 @@
+import 'package:bip47/src/util.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
@@ -210,6 +211,21 @@ class BitcoinWallet<T extends PaynymCurrencyInterface> extends Bip39HDWallet<T>
 
       TransactionType type;
       TransactionSubType subType = TransactionSubType.none;
+      if (outputs.length > 1 && inputs.isNotEmpty) {
+        for (int i = 0; i < outputs.length; i++) {
+          List<String>? scriptChunks = outputs[i].scriptPubKeyAsm?.split(" ");
+          if (scriptChunks?.length == 2 && scriptChunks?[0] == "OP_RETURN") {
+            final blindedPaymentCode = scriptChunks![1];
+            final bytes = blindedPaymentCode.fromHex;
+
+            // https://en.bitcoin.it/wiki/BIP_0047#Sending
+            if (bytes.length == 80 && bytes.first == 1) {
+              subType = TransactionSubType.bip47Notification;
+              break;
+            }
+          }
+        }
+      }
 
       // At least one input was owned by this wallet.
       if (wasSentFromThisWallet) {

@@ -416,6 +416,7 @@ class StellarWallet extends Bip39Wallet<Stellar> {
           );
           InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
             scriptSigHex: null,
+            scriptSigAsm: null,
             sequence: null,
             outpoint: null,
             addresses: [addressFrom],
@@ -496,6 +497,7 @@ class StellarWallet extends Bip39Wallet<Stellar> {
           );
           InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
             scriptSigHex: null,
+            scriptSigAsm: null,
             sequence: null,
             outpoint: null,
             addresses: [

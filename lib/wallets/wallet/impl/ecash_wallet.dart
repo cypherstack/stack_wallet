@@ -183,6 +183,7 @@ class EcashWallet extends Bip39HDWallet
 
         InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
           scriptSigHex: map["scriptSig"]?["hex"] as String?,
+          scriptSigAsm: map["scriptSig"]?["asm"] as String?,
           sequence: map["sequence"] as int?,
           outpoint: outpoint,
           valueStringSats: valueStringSats,

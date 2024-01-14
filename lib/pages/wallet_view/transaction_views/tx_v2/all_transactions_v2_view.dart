@@ -10,6 +10,7 @@
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -1021,6 +1022,14 @@ class _DesktopTransactionCardRowState
                   ),
                 ),
               ),
+              if (kDebugMode)
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    _transaction.subType.name,
+                    style: STextStyles.label(context),
+                  ),
+                ),
               Expanded(
                 flex: 4,
                 child: Text(

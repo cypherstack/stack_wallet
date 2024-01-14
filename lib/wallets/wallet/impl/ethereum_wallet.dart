@@ -286,6 +286,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
         );
         InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
           scriptSigHex: null,
+          scriptSigAsm: null,
           sequence: null,
           outpoint: null,
           addresses: [addressFrom],
