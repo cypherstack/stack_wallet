@@ -480,7 +480,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
         }
         _cachedAddress = await _getAddressFromMnemonic();
 
-        await mainDB.putAddress(_cachedAddress!);
+        await mainDB.updateOrPutAddresses([_cachedAddress!]);
       });
 
       await refresh();
