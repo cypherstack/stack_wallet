@@ -357,28 +357,33 @@ const InputV2Schema = Schema(
       type: IsarType.object,
       target: r'OutpointV2',
     ),
-    r'scriptSigHex': PropertySchema(
+    r'scriptSigAsm': PropertySchema(
       id: 4,
+      name: r'scriptSigAsm',
+      type: IsarType.string,
+    ),
+    r'scriptSigHex': PropertySchema(
+      id: 5,
       name: r'scriptSigHex',
       type: IsarType.string,
     ),
     r'sequence': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'sequence',
       type: IsarType.long,
     ),
     r'valueStringSats': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'valueStringSats',
       type: IsarType.string,
     ),
     r'walletOwns': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'walletOwns',
       type: IsarType.bool,
     ),
     r'witness': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'witness',
       type: IsarType.string,
     )
@@ -423,6 +428,12 @@ int _inputV2EstimateSize(
     }
   }
   {
+    final value = object.scriptSigAsm;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.scriptSigHex;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -453,11 +464,12 @@ void _inputV2Serialize(
     OutpointV2Schema.serialize,
     object.outpoint,
   );
-  writer.writeString(offsets[4], object.scriptSigHex);
-  writer.writeLong(offsets[5], object.sequence);
-  writer.writeString(offsets[6], object.valueStringSats);
-  writer.writeBool(offsets[7], object.walletOwns);
-  writer.writeString(offsets[8], object.witness);
+  writer.writeString(offsets[4], object.scriptSigAsm);
+  writer.writeString(offsets[5], object.scriptSigHex);
+  writer.writeLong(offsets[6], object.sequence);
+  writer.writeString(offsets[7], object.valueStringSats);
+  writer.writeBool(offsets[8], object.walletOwns);
+  writer.writeString(offsets[9], object.witness);
 }
 
 InputV2 _inputV2Deserialize(
@@ -475,11 +487,12 @@ InputV2 _inputV2Deserialize(
     OutpointV2Schema.deserialize,
     allOffsets,
   );
-  object.scriptSigHex = reader.readStringOrNull(offsets[4]);
-  object.sequence = reader.readLongOrNull(offsets[5]);
-  object.valueStringSats = reader.readString(offsets[6]);
-  object.walletOwns = reader.readBool(offsets[7]);
-  object.witness = reader.readStringOrNull(offsets[8]);
+  object.scriptSigAsm = reader.readStringOrNull(offsets[4]);
+  object.scriptSigHex = reader.readStringOrNull(offsets[5]);
+  object.sequence = reader.readLongOrNull(offsets[6]);
+  object.valueStringSats = reader.readString(offsets[7]);
+  object.walletOwns = reader.readBool(offsets[8]);
+  object.witness = reader.readStringOrNull(offsets[9]);
   return object;
 }
 
@@ -505,12 +518,14 @@ P _inputV2DeserializeProp<P>(
     case 4:
       return (reader.readStringOrNull(offset)) as P;
     case 5:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 6:
-      return (reader.readString(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 7:
-      return (reader.readBool(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 8:
+      return (reader.readBool(offset)) as P;
+    case 9:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1051,6 +1066,154 @@ extension InputV2QueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'outpoint',
+      ));
+    });
+  }
+
+  QueryBuilder<InputV2, InputV2, QAfterFilterCondition> scriptSigAsmIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'scriptSigAsm',
+      ));
+    });
+  }
+
+  QueryBuilder<InputV2, InputV2, QAfterFilterCondition>
+      scriptSigAsmIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'scriptSigAsm',
+      ));
+    });
+  }
+
+  QueryBuilder<InputV2, InputV2, QAfterFilterCondition> scriptSigAsmEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'scriptSigAsm',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<InputV2, InputV2, QAfterFilterCondition> scriptSigAsmGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'scriptSigAsm',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<InputV2, InputV2, QAfterFilterCondition> scriptSigAsmLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'scriptSigAsm',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<InputV2, InputV2, QAfterFilterCondition> scriptSigAsmBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'scriptSigAsm',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<InputV2, InputV2, QAfterFilterCondition> scriptSigAsmStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'scriptSigAsm',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<InputV2, InputV2, QAfterFilterCondition> scriptSigAsmEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'scriptSigAsm',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<InputV2, InputV2, QAfterFilterCondition> scriptSigAsmContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'scriptSigAsm',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<InputV2, InputV2, QAfterFilterCondition> scriptSigAsmMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'scriptSigAsm',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<InputV2, InputV2, QAfterFilterCondition> scriptSigAsmIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'scriptSigAsm',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<InputV2, InputV2, QAfterFilterCondition>
+      scriptSigAsmIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'scriptSigAsm',
+        value: '',
       ));
     });
   }
