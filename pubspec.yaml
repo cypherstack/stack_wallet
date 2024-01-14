@@ -60,7 +60,7 @@ dependencies:
   bip47:
     git:
       url: https://github.com/cypherstack/bip47.git
-      ref: 081ca1863c2feba00c35bb5b297902f12f499941
+      ref: 4cb772149b84aedd21c437d17c72b1c2d4f2c962
 
   tor_ffi_plugin:
     git:
@@ -213,6 +213,11 @@ flutter_native_splash:
   android_disable_fullscreen: true
 
 dependency_overrides:
+
+  bip47:
+    git:
+      url: https://github.com/cypherstack/bip47.git
+      ref: 4cb772149b84aedd21c437d17c72b1c2d4f2c962
 
   coinlib_flutter:
     git:
