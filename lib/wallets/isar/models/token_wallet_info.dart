@@ -75,9 +75,8 @@ class TokenWalletInfo implements IsarId {
       );
     } else {
       await isar.writeTxn(() async {
-        await isar.tokenWalletInfo.deleteByWalletIdTokenAddress(
-          walletId,
-          tokenAddress,
+        await isar.tokenWalletInfo.delete(
+          thisEntry.id,
         );
         await isar.tokenWalletInfo.put(
           TokenWalletInfo(
@@ -85,7 +84,7 @@ class TokenWalletInfo implements IsarId {
             tokenAddress: tokenAddress,
             tokenFractionDigits: tokenFractionDigits,
             cachedBalanceJsonString: balance.toJsonIgnoreCoin(),
-          ),
+          )..id = thisEntry.id,
         );
       });
     }

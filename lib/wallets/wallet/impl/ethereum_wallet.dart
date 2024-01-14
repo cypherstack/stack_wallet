@@ -116,8 +116,14 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       FilterGroup.and(standardReceivingAddressFilters);
 
   @override
-  Future<void> init({bool? isRestore}) {
-    // TODO: implement init
+  Future<void> init({bool? isRestore}) async {
+    final address = await getCurrentReceivingAddress();
+    if (address == null) {
+      await _generateAndSaveAddress(
+        await getMnemonic(),
+        await getMnemonicPassphrase(),
+      );
+    }
     return super.init();
   }
 
@@ -205,7 +211,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
   @override
   Future<void> updateTransactions({bool isRescan = false}) async {
-    String thisAddress = (await getCurrentReceivingAddress())!.value;
+    final thisAddress = (await getCurrentReceivingAddress())!.value;
 
     int firstBlock = 0;
 
