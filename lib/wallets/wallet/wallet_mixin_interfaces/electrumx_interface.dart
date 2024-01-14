@@ -30,11 +30,23 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   late ElectrumXClient electrumXClient;
   late CachedElectrumXClient electrumXCachedClient;
 
-  double? _serverVersion;
-  // Firo server added batching without incrementing version number...
-  bool get serverCanBatch =>
-      (_serverVersion != null && _serverVersion! >= 1.6) ||
-      cryptoCurrency is Firo;
+  static const _kServerBatchCutoffVersion = [1, 6];
+  List<int>? _serverVersion;
+  bool get serverCanBatch {
+    // Firo server added batching without incrementing version number...
+    if (cryptoCurrency is Firo) {
+      return true;
+    }
+    if (_serverVersion != null && _serverVersion!.length > 2) {
+      if (_serverVersion![0] > _kServerBatchCutoffVersion[0]) {
+        return true;
+      }
+      if (_serverVersion![1] > _kServerBatchCutoffVersion[1]) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   Future<List<({String address, Amount amount, bool isChange})>>
       _helperRecipientsConvert(List<String> addrs, List<int> satValues) async {
@@ -2015,15 +2027,14 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   }
 
   // stupid + fragile
-  double? _parseServerVersion(String version) {
-    double? result;
+  List<int>? _parseServerVersion(String version) {
+    List<int>? result;
     try {
       final list = version.split(" ");
       if (list.isNotEmpty) {
         final numberStrings = list.last.split(".");
-        final major = numberStrings.removeAt(0);
 
-        result = double.tryParse("$major.${numberStrings.join("")}");
+        result = numberStrings.map((e) => int.parse(e)).toList();
       }
     } catch (_) {}
 
