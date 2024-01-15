@@ -1930,7 +1930,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         Logging.instance
             .log("PREPARE SEND RESULT: $result", level: LogLevel.Info);
 
-        if (txData.fee!.raw.toInt() < txData.vSize!) {
+        if (result.fee!.raw.toInt() < result.vSize!) {
           throw Exception(
               "Error in fee calculation: Transaction fee cannot be less than vSize");
         }
