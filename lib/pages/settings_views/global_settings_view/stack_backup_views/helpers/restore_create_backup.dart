@@ -475,7 +475,7 @@ abstract class SWB {
         walletId: info.walletId,
         restoringStatus: StackRestoringStatus.success,
         wallet: wallet,
-        address: currentAddress!.value,
+        address: currentAddress?.value,
         height: restoreHeight,
         mnemonic: mnemonic,
         mnemonicPassphrase: mnemonicPassphrase,
