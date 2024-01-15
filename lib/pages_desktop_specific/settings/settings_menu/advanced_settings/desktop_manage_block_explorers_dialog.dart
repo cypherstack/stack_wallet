@@ -40,7 +40,7 @@ class DesktopManageBlockExplorersDialog extends ConsumerWidget {
 
     final List<Coin> coins = showTestNet
         ? Coin.values
-        : Coin.values.sublist(0, Coin.values.length - kTestNetCoinCount);
+        : Coin.values.where((e) => !e.isTestNet).toList();
 
     return DesktopDialog(
       maxHeight: 850,

@@ -85,7 +85,7 @@ class CoinSelectSheet extends StatelessWidget {
                       shrinkWrap: true,
                       itemCount: showTestNet
                           ? coins_.length
-                          : coins_.length - kTestNetCoinCount,
+                          : coins_.where((e) => !e.isTestNet).length,
                       itemBuilder: (builderContext, index) {
                         final coin = coins_[index];
                         return Padding(
