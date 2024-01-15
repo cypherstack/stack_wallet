@@ -60,7 +60,7 @@ dependencies:
   bip47:
     git:
       url: https://github.com/cypherstack/bip47.git
-      ref: 4cb772149b84aedd21c437d17c72b1c2d4f2c962
+      ref: a6e7941b98a43a613708b1a12564bc17e712cfc7
 
   tor_ffi_plugin:
     git:
@@ -217,7 +217,7 @@ dependency_overrides:
   bip47:
     git:
       url: https://github.com/cypherstack/bip47.git
-      ref: 4cb772149b84aedd21c437d17c72b1c2d4f2c962
+      ref: a6e7941b98a43a613708b1a12564bc17e712cfc7
 
   coinlib_flutter:
     git:
