@@ -6,6 +6,7 @@ import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/price_provider.dart';
@@ -18,6 +19,8 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 
 class TransactionCardV2 extends ConsumerStatefulWidget {
@@ -39,50 +42,41 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
   late final String unit;
   late final Coin coin;
   late final TransactionType txType;
+  late final EthContract? tokenContract;
+
+  bool get isTokenTx => tokenContract != null;
 
   String whatIsIt(
     Coin coin,
     int currentHeight,
-  ) {
-    final confirmedStatus = _transaction.isConfirmed(
-      currentHeight,
-      coin.requiredConfirmations,
-    );
-
-    if (_transaction.subType == TransactionSubType.cashFusion) {
-      if (confirmedStatus) {
-        return "Anonymized";
-      } else {
-        return "Anonymizing";
-      }
-    }
-
-    if (_transaction.type == TransactionType.incoming) {
-      // if (_transaction.isMinting) {
-      //   return "Minting";
-      // } else
-      if (confirmedStatus) {
-        return "Received";
-      } else {
-        return "Receiving";
-      }
-    } else if (_transaction.type == TransactionType.outgoing) {
-      if (confirmedStatus) {
-        return "Sent";
-      } else {
-        return "Sending";
-      }
-    } else if (_transaction.type == TransactionType.sentToSelf) {
-      return "Sent to self";
-    } else {
-      return _transaction.type.name;
-    }
-  }
+  ) =>
+      _transaction.isCancelled && coin == Coin.ethereum
+          ? "Failed"
+          : _transaction.statusLabel(
+              currentChainHeight: currentHeight,
+              minConfirms: ref
+                  .read(pWallets)
+                  .getWallet(walletId)
+                  .cryptoCurrency
+                  .minConfirms,
+            );
 
   @override
   void initState() {
     _transaction = widget.transaction;
     walletId = _transaction.walletId;
+    coin = ref.read(pWalletCoin(walletId));
+
+    if (_transaction.subType == TransactionSubType.ethToken) {
+      tokenContract = ref
+          .read(mainDBProvider)
+          .getEthContractSync(_transaction.contractAddress!);
+
+      unit = tokenContract!.symbol;
+    } else {
+      tokenContract = null;
+      unit = coin.ticker;
+    }
 
     if (Util.isDesktop) {
       if (_transaction.type == TransactionType.outgoing &&
@@ -96,9 +90,7 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
     } else {
       prefix = "";
     }
-    coin = ref.read(walletsChangeNotifierProvider).getManager(walletId).coin;
 
-    unit = coin.ticker;
     super.initState();
   }
 
@@ -111,30 +103,52 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
         .watch(prefsChangeNotifierProvider.select((value) => value.currency));
 
     final price = ref
-        .watch(priceAnd24hChangeNotifierProvider
-            .select((value) => value.getPrice(coin)))
+        .watch(priceAnd24hChangeNotifierProvider.select((value) => isTokenTx
+            ? value.getTokenPrice(_transaction.otherData!)
+            : value.getPrice(coin)))
         .item1;
 
-    final currentHeight = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId).currentHeight));
+    final currentHeight = ref.watch(pWalletChainHeight(walletId));
 
     final Amount amount;
 
+    final fractionDigits = tokenContract?.decimals ?? coin.decimals;
+
     if (_transaction.subType == TransactionSubType.cashFusion) {
-      amount = _transaction.getAmountReceivedThisWallet(coin: coin);
+      amount = _transaction.getAmountReceivedInThisWallet(
+          fractionDigits: fractionDigits);
     } else {
       switch (_transaction.type) {
         case TransactionType.outgoing:
-          amount = _transaction.getAmountSentFromThisWallet(coin: coin);
+          amount = _transaction.getAmountSentFromThisWallet(
+              fractionDigits: fractionDigits);
           break;
 
         case TransactionType.incoming:
         case TransactionType.sentToSelf:
-          amount = _transaction.getAmountReceivedThisWallet(coin: coin);
+          if (_transaction.subType == TransactionSubType.sparkMint) {
+            amount = _transaction.getAmountSparkSelfMinted(
+                fractionDigits: fractionDigits);
+          } else if (_transaction.subType == TransactionSubType.sparkSpend) {
+            final changeAddress =
+                (ref.watch(pWallets).getWallet(walletId) as SparkInterface)
+                    .sparkChangeAddress;
+            amount = Amount(
+              rawValue: _transaction.outputs
+                  .where((e) =>
+                      e.walletOwns && !e.addresses.contains(changeAddress))
+                  .fold(BigInt.zero, (p, e) => p + e.value),
+              fractionDigits: coin.decimals,
+            );
+          } else {
+            amount = _transaction.getAmountReceivedInThisWallet(
+                fractionDigits: fractionDigits);
+          }
           break;
 
         case TransactionType.unknown:
-          amount = _transaction.getAmountSentFromThisWallet(coin: coin);
+          amount = _transaction.getAmountSentFromThisWallet(
+              fractionDigits: fractionDigits);
           break;
       }
     }
@@ -222,7 +236,7 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
                               child: Builder(
                                 builder: (_) {
                                   return Text(
-                                    "$prefix${ref.watch(pAmountFormatter(coin)).format(amount)}",
+                                    "$prefix${ref.watch(pAmountFormatter(coin)).format(amount, ethContract: tokenContract)}",
                                     style: STextStyles.itemSubtitle12(context),
                                   );
                                 },

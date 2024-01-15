@@ -10,9 +10,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class RestoreFailedDialog extends ConsumerStatefulWidget {
@@ -63,14 +65,11 @@ class _RestoreFailedDialogState extends ConsumerState<RestoreFailedDialog> {
             style: STextStyles.itemSubtitle12(context),
           ),
           onPressed: () async {
-            ref
-                .read(walletsChangeNotifierProvider.notifier)
-                .removeWallet(walletId: walletId);
-
-            await ref.read(walletsServiceChangeNotifierProvider).deleteWallet(
-                  walletName,
-                  false,
+            await ref.read(pWallets).deleteWallet(
+                  ref.read(pWalletInfo(walletId)),
+                  ref.read(secureStoreProvider),
                 );
+
             if (mounted) {
               Navigator.of(context).pop();
             }

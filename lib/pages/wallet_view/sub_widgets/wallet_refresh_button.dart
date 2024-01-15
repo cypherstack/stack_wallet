@@ -13,13 +13,13 @@ import 'dart:async';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import 'package:stackwallet/widgets/animated_widgets/rotating_arrows.dart';
 
 /// [eventBus] should only be set during testing
@@ -133,20 +133,15 @@ class _RefreshButtonState extends ConsumerState<WalletRefreshButton> {
             splashColor: Theme.of(context).extension<StackColors>()!.highlight,
             onPressed: () {
               if (widget.tokenContractAddress == null) {
-                final managerProvider = ref
-                    .read(walletsChangeNotifierProvider)
-                    .getManagerProvider(widget.walletId);
-                final isRefreshing = ref.read(managerProvider).isRefreshing;
+                final wallet = ref.read(pWallets).getWallet(widget.walletId);
+                final isRefreshing = wallet.refreshMutex.isLocked;
                 if (!isRefreshing) {
                   _spinController.repeat?.call();
-                  ref
-                      .read(managerProvider)
-                      .refresh()
-                      .then((_) => _spinController.stop?.call());
+                  wallet.refresh().then((_) => _spinController.stop?.call());
                 }
               } else {
-                if (!ref.read(tokenServiceProvider)!.isRefreshing) {
-                  ref.read(tokenServiceProvider)!.refresh();
+                if (!ref.read(pCurrentTokenWallet)!.refreshMutex.isLocked) {
+                  ref.read(pCurrentTokenWallet)!.refresh();
                 }
               }
             },

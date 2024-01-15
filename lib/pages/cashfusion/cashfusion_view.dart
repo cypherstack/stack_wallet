@@ -20,11 +20,13 @@ import 'package:stackwallet/pages/cashfusion/fusion_rounds_selection_sheet.dart'
 import 'package:stackwallet/providers/cash_fusion/fusion_progress_ui_state_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -54,6 +56,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
   late final FocusNode portFocusNode;
   late final TextEditingController fusionRoundController;
   late final FocusNode fusionRoundFocusNode;
+  late final Coin coin;
 
   bool _enableSSLCheckbox = false;
   bool _enableStartButton = false;
@@ -61,11 +64,8 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
   FusionOption _option = FusionOption.continuous;
 
   Future<void> _startFusion() async {
-    final wallet = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .wallet;
-    final fusionWallet = wallet as FusionWalletInterface;
+    final fusionWallet =
+        ref.read(pWallets).getWallet(widget.walletId) as CashFusionInterface;
 
     try {
       fusionWallet.uiState = ref.read(
@@ -90,9 +90,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
     );
 
     // update user prefs (persistent)
-    ref
-        .read(prefsChangeNotifierProvider)
-        .setFusionServerInfo(wallet.coin, newInfo);
+    ref.read(prefsChangeNotifierProvider).setFusionServerInfo(coin, newInfo);
 
     unawaited(
       fusionWallet.fuse(
@@ -116,11 +114,11 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
     portFocusNode = FocusNode();
     fusionRoundFocusNode = FocusNode();
 
-    final info = ref.read(prefsChangeNotifierProvider).getFusionServerInfo(ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .wallet
-        .coin);
+    coin = ref.read(pWalletCoin(widget.walletId));
+
+    final info =
+        ref.read(prefsChangeNotifierProvider).getFusionServerInfo(coin);
+
     serverController.text = info.host;
     portController.text = info.port.toString();
     _enableSSLCheckbox = info.ssl;
@@ -221,11 +219,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                               CustomTextButton(
                                 text: "Default",
                                 onTap: () {
-                                  final def = kFusionServerInfoDefaults[ref
-                                      .read(walletsChangeNotifierProvider)
-                                      .getManager(widget.walletId)
-                                      .wallet
-                                      .coin]!;
+                                  final def = kFusionServerInfoDefaults[coin]!;
                                   serverController.text = def.host;
                                   portController.text = def.port.toString();
                                   fusionRoundController.text =

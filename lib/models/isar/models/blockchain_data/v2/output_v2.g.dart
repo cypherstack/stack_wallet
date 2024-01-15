@@ -18,18 +18,23 @@ const OutputV2Schema = Schema(
       name: r'addresses',
       type: IsarType.stringList,
     ),
-    r'scriptPubKeyHex': PropertySchema(
+    r'scriptPubKeyAsm': PropertySchema(
       id: 1,
+      name: r'scriptPubKeyAsm',
+      type: IsarType.string,
+    ),
+    r'scriptPubKeyHex': PropertySchema(
+      id: 2,
       name: r'scriptPubKeyHex',
       type: IsarType.string,
     ),
     r'valueStringSats': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'valueStringSats',
       type: IsarType.string,
     ),
     r'walletOwns': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'walletOwns',
       type: IsarType.bool,
     )
@@ -53,6 +58,12 @@ int _outputV2EstimateSize(
       bytesCount += value.length * 3;
     }
   }
+  {
+    final value = object.scriptPubKeyAsm;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.scriptPubKeyHex.length * 3;
   bytesCount += 3 + object.valueStringSats.length * 3;
   return bytesCount;
@@ -65,9 +76,10 @@ void _outputV2Serialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeStringList(offsets[0], object.addresses);
-  writer.writeString(offsets[1], object.scriptPubKeyHex);
-  writer.writeString(offsets[2], object.valueStringSats);
-  writer.writeBool(offsets[3], object.walletOwns);
+  writer.writeString(offsets[1], object.scriptPubKeyAsm);
+  writer.writeString(offsets[2], object.scriptPubKeyHex);
+  writer.writeString(offsets[3], object.valueStringSats);
+  writer.writeBool(offsets[4], object.walletOwns);
 }
 
 OutputV2 _outputV2Deserialize(
@@ -78,9 +90,10 @@ OutputV2 _outputV2Deserialize(
 ) {
   final object = OutputV2();
   object.addresses = reader.readStringList(offsets[0]) ?? [];
-  object.scriptPubKeyHex = reader.readString(offsets[1]);
-  object.valueStringSats = reader.readString(offsets[2]);
-  object.walletOwns = reader.readBool(offsets[3]);
+  object.scriptPubKeyAsm = reader.readStringOrNull(offsets[1]);
+  object.scriptPubKeyHex = reader.readString(offsets[2]);
+  object.valueStringSats = reader.readString(offsets[3]);
+  object.walletOwns = reader.readBool(offsets[4]);
   return object;
 }
 
@@ -94,10 +107,12 @@ P _outputV2DeserializeProp<P>(
     case 0:
       return (reader.readStringList(offset) ?? []) as P;
     case 1:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 2:
       return (reader.readString(offset)) as P;
     case 3:
+      return (reader.readString(offset)) as P;
+    case 4:
       return (reader.readBool(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -327,6 +342,160 @@ extension OutputV2QueryFilter
         upper,
         includeUpper,
       );
+    });
+  }
+
+  QueryBuilder<OutputV2, OutputV2, QAfterFilterCondition>
+      scriptPubKeyAsmIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'scriptPubKeyAsm',
+      ));
+    });
+  }
+
+  QueryBuilder<OutputV2, OutputV2, QAfterFilterCondition>
+      scriptPubKeyAsmIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'scriptPubKeyAsm',
+      ));
+    });
+  }
+
+  QueryBuilder<OutputV2, OutputV2, QAfterFilterCondition>
+      scriptPubKeyAsmEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'scriptPubKeyAsm',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OutputV2, OutputV2, QAfterFilterCondition>
+      scriptPubKeyAsmGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'scriptPubKeyAsm',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OutputV2, OutputV2, QAfterFilterCondition>
+      scriptPubKeyAsmLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'scriptPubKeyAsm',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OutputV2, OutputV2, QAfterFilterCondition>
+      scriptPubKeyAsmBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'scriptPubKeyAsm',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OutputV2, OutputV2, QAfterFilterCondition>
+      scriptPubKeyAsmStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'scriptPubKeyAsm',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OutputV2, OutputV2, QAfterFilterCondition>
+      scriptPubKeyAsmEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'scriptPubKeyAsm',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OutputV2, OutputV2, QAfterFilterCondition>
+      scriptPubKeyAsmContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'scriptPubKeyAsm',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OutputV2, OutputV2, QAfterFilterCondition>
+      scriptPubKeyAsmMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'scriptPubKeyAsm',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OutputV2, OutputV2, QAfterFilterCondition>
+      scriptPubKeyAsmIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'scriptPubKeyAsm',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<OutputV2, OutputV2, QAfterFilterCondition>
+      scriptPubKeyAsmIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'scriptPubKeyAsm',
+        value: '',
+      ));
     });
   }
 

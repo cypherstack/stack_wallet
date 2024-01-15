@@ -16,9 +16,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/hidden_settings.dart';
 import 'package:stackwallet/pages/wallets_view/sub_widgets/empty_wallets.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/my_wallets.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/all_wallets_info_provider.dart';
 import 'package:stackwallet/widgets/animated_widgets/rotate_icon.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -36,7 +36,7 @@ class _MyStackViewState extends ConsumerState<MyStackView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final hasWallets = ref.watch(walletsChangeNotifierProvider).hasWallets;
+    final hasWallets = ref.watch(pAllWalletsInfo).isNotEmpty;
 
     return Background(
       child: Column(

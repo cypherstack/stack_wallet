@@ -105,49 +105,29 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
             ),
             onRightTapped: restoringStatus == StackRestoringStatus.failed
                 ? () async {
-                    final manager = ref.read(provider).manager!;
+                    final wallet = ref.read(provider).wallet!;
 
                     ref.read(stackRestoringUIStateProvider).update(
-                        walletId: manager.walletId,
+                        walletId: wallet.walletId,
                         restoringStatus: StackRestoringStatus.restoring);
 
                     try {
-                      final mnemonicList = await manager.mnemonic;
-                      int maxUnusedAddressGap = 20;
-                      if (coin == Coin.firo) {
-                        maxUnusedAddressGap = 50;
-                      }
-                      const maxNumberOfIndexesToCheck = 1000;
-
-                      if (mnemonicList.isEmpty) {
-                        await manager.recoverFromMnemonic(
-                          mnemonic: ref.read(provider).mnemonic!,
-                          mnemonicPassphrase:
-                              ref.read(provider).mnemonicPassphrase!,
-                          maxUnusedAddressGap: maxUnusedAddressGap,
-                          maxNumberOfIndexesToCheck: maxNumberOfIndexesToCheck,
-                          height: ref.read(provider).height ?? 0,
-                        );
-                      } else {
-                        await manager.fullRescan(
-                          maxUnusedAddressGap,
-                          maxNumberOfIndexesToCheck,
-                        );
-                      }
+                      await wallet.recover(isRescan: true);
 
                       if (mounted) {
-                        final address = await manager.currentReceivingAddress;
+                        final address =
+                            await wallet.getCurrentReceivingAddress();
 
                         ref.read(stackRestoringUIStateProvider).update(
-                              walletId: manager.walletId,
+                              walletId: wallet.walletId,
                               restoringStatus: StackRestoringStatus.success,
-                              address: address,
+                              address: address!.value,
                             );
                       }
                     } catch (_) {
                       if (mounted) {
                         ref.read(stackRestoringUIStateProvider).update(
-                              walletId: manager.walletId,
+                              walletId: wallet.walletId,
                               restoringStatus: StackRestoringStatus.failed,
                             );
                       }
@@ -223,7 +203,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                 : null,
           )
         : RoundedContainer(
-            padding: EdgeInsets.all(0),
+            padding: const EdgeInsets.all(0),
             color: Theme.of(context).extension<StackColors>()!.popupBG,
             borderColor: Theme.of(context).extension<StackColors>()!.background,
             child: RestoringItemCard(
@@ -250,50 +230,53 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
               ),
               onRightTapped: restoringStatus == StackRestoringStatus.failed
                   ? () async {
-                      final manager = ref.read(provider).manager!;
+                      final wallet = ref.read(provider).wallet!;
 
                       ref.read(stackRestoringUIStateProvider).update(
-                          walletId: manager.walletId,
+                          walletId: wallet.walletId,
                           restoringStatus: StackRestoringStatus.restoring);
 
                       try {
-                        final mnemonicList = await manager.mnemonic;
-                        int maxUnusedAddressGap = 20;
-                        if (coin == Coin.firo) {
-                          maxUnusedAddressGap = 50;
-                        }
-                        const maxNumberOfIndexesToCheck = 1000;
+                        // final mnemonicList = await manager.mnemonic;
+                        // int maxUnusedAddressGap = 20;
+                        // if (coin == Coin.firo) {
+                        //   maxUnusedAddressGap = 50;
+                        // }
+                        // const maxNumberOfIndexesToCheck = 1000;
+                        //
+                        // if (mnemonicList.isEmpty) {
+                        //   await manager.recoverFromMnemonic(
+                        //     mnemonic: ref.read(provider).mnemonic!,
+                        //     mnemonicPassphrase:
+                        //         ref.read(provider).mnemonicPassphrase!,
+                        //     maxUnusedAddressGap: maxUnusedAddressGap,
+                        //     maxNumberOfIndexesToCheck:
+                        //         maxNumberOfIndexesToCheck,
+                        //     height: ref.read(provider).height ?? 0,
+                        //   );
+                        // } else {
+                        //   await manager.fullRescan(
+                        //     maxUnusedAddressGap,
+                        //     maxNumberOfIndexesToCheck,
+                        //   );
+                        // }
 
-                        if (mnemonicList.isEmpty) {
-                          await manager.recoverFromMnemonic(
-                            mnemonic: ref.read(provider).mnemonic!,
-                            mnemonicPassphrase:
-                                ref.read(provider).mnemonicPassphrase!,
-                            maxUnusedAddressGap: maxUnusedAddressGap,
-                            maxNumberOfIndexesToCheck:
-                                maxNumberOfIndexesToCheck,
-                            height: ref.read(provider).height ?? 0,
-                          );
-                        } else {
-                          await manager.fullRescan(
-                            maxUnusedAddressGap,
-                            maxNumberOfIndexesToCheck,
-                          );
-                        }
+                        await wallet.recover(isRescan: true);
 
                         if (mounted) {
-                          final address = await manager.currentReceivingAddress;
+                          final address =
+                              await wallet.getCurrentReceivingAddress();
 
                           ref.read(stackRestoringUIStateProvider).update(
-                                walletId: manager.walletId,
+                                walletId: wallet.walletId,
                                 restoringStatus: StackRestoringStatus.success,
-                                address: address,
+                                address: address!.value,
                               );
                         }
                       } catch (_) {
                         if (mounted) {
                           ref.read(stackRestoringUIStateProvider).update(
-                                walletId: manager.walletId,
+                                walletId: wallet.walletId,
                                 restoringStatus: StackRestoringStatus.failed,
                               );
                         }

@@ -15,11 +15,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/dialogs/cancelling_transaction_progress_dialog.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/edit_note_view.dart';
+import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -33,6 +38,10 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/models/spark_coin.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -78,10 +87,16 @@ class _TransactionV2DetailsViewState
   late final Amount fee;
   late final String amountPrefix;
   late final String unit;
+  late final int minConfirms;
+  late final EthContract? ethContract;
+
+  bool get isTokenTx => ethContract != null;
 
   late final List<({List<String> addresses, Amount amount})> data;
 
   bool showFeePending = false;
+
+  String? _sparkMemo;
 
   @override
   void initState() {
@@ -91,7 +106,23 @@ class _TransactionV2DetailsViewState
 
     coin = widget.coin;
 
-    fee = _transaction.getFee(coin: coin);
+    if (_transaction.subType == TransactionSubType.ethToken) {
+      ethContract = ref
+          .read(mainDBProvider)
+          .getEthContractSync(_transaction.contractAddress!);
+
+      unit = ethContract!.symbol;
+    } else {
+      ethContract = null;
+      unit = coin.ticker;
+    }
+
+    minConfirms =
+        ref.read(pWallets).getWallet(walletId).cryptoCurrency.minConfirms;
+
+    final fractionDigits = ethContract?.decimals ?? coin.decimals;
+
+    fee = _transaction.getFee(fractionDigits: fractionDigits);
 
     if (_transaction.subType == TransactionSubType.cashFusion ||
         _transaction.type == TransactionType.sentToSelf) {
@@ -100,10 +131,29 @@ class _TransactionV2DetailsViewState
       amountPrefix = _transaction.type == TransactionType.outgoing ? "-" : "+";
     }
 
-    unit = coin.ticker;
+    if (_transaction.isEpiccashTransaction) {
+      switch (_transaction.type) {
+        case TransactionType.outgoing:
+        case TransactionType.unknown:
+          amount = _transaction.getAmountSentFromThisWallet(
+              fractionDigits: fractionDigits);
+          break;
 
-    if (_transaction.subType == TransactionSubType.cashFusion) {
-      amount = _transaction.getAmountReceivedThisWallet(coin: coin);
+        case TransactionType.incoming:
+        case TransactionType.sentToSelf:
+          amount = _transaction.getAmountReceivedInThisWallet(
+              fractionDigits: fractionDigits);
+          break;
+      }
+      data = _transaction.outputs
+          .map((e) => (
+                addresses: e.addresses,
+                amount: Amount(rawValue: e.value, fractionDigits: coin.decimals)
+              ))
+          .toList();
+    } else if (_transaction.subType == TransactionSubType.cashFusion) {
+      amount = _transaction.getAmountReceivedInThisWallet(
+          fractionDigits: fractionDigits);
       data = _transaction.outputs
           .where((e) => e.walletOwns)
           .map((e) => (
@@ -114,7 +164,8 @@ class _TransactionV2DetailsViewState
     } else {
       switch (_transaction.type) {
         case TransactionType.outgoing:
-          amount = _transaction.getAmountSentFromThisWallet(coin: coin);
+          amount = _transaction.getAmountSentFromThisWallet(
+              fractionDigits: fractionDigits);
           data = _transaction.outputs
               .where((e) => !e.walletOwns)
               .map((e) => (
@@ -127,7 +178,49 @@ class _TransactionV2DetailsViewState
 
         case TransactionType.incoming:
         case TransactionType.sentToSelf:
-          amount = _transaction.getAmountReceivedThisWallet(coin: coin);
+          if (_transaction.subType == TransactionSubType.sparkMint ||
+              _transaction.subType == TransactionSubType.sparkSpend) {
+            _sparkMemo = ref
+                .read(mainDBProvider)
+                .isar
+                .sparkCoins
+                .where()
+                .walletIdEqualToAnyLTagHash(walletId)
+                .filter()
+                .memoIsNotEmpty()
+                .and()
+                .heightEqualTo(_transaction.height)
+                .anyOf(
+                    _transaction.outputs
+                        .where((e) =>
+                            e.walletOwns &&
+                            e.addresses.isEmpty &&
+                            e.scriptPubKeyHex.length >= 488)
+                        .map((e) => e.scriptPubKeyHex.substring(2, 488))
+                        .toList(),
+                    (q, element) => q.serializedCoinB64StartsWith(element))
+                .memoProperty()
+                .findFirstSync();
+          }
+
+          if (_transaction.subType == TransactionSubType.sparkMint) {
+            amount = _transaction.getAmountSparkSelfMinted(
+                fractionDigits: fractionDigits);
+          } else if (_transaction.subType == TransactionSubType.sparkSpend) {
+            final changeAddress =
+                (ref.read(pWallets).getWallet(walletId) as SparkInterface)
+                    .sparkChangeAddress;
+            amount = Amount(
+              rawValue: _transaction.outputs
+                  .where((e) =>
+                      e.walletOwns && !e.addresses.contains(changeAddress))
+                  .fold(BigInt.zero, (p, e) => p + e.value),
+              fractionDigits: coin.decimals,
+            );
+          } else {
+            amount = _transaction.getAmountReceivedInThisWallet(
+                fractionDigits: fractionDigits);
+          }
           data = _transaction.outputs
               .where((e) => e.walletOwns)
               .map((e) => (
@@ -139,7 +232,8 @@ class _TransactionV2DetailsViewState
           break;
 
         case TransactionType.unknown:
-          amount = _transaction.getAmountSentFromThisWallet(coin: coin);
+          amount = _transaction.getAmountSentFromThisWallet(
+              fractionDigits: fractionDigits);
           data = _transaction.inputs
               .where((e) => e.walletOwns)
               .map((e) => (
@@ -160,77 +254,10 @@ class _TransactionV2DetailsViewState
     super.dispose();
   }
 
-  String whatIsIt(TransactionV2 tx, int height) {
-    final type = tx.type;
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      if (tx.subType == TransactionSubType.mint) {
-        if (tx.isConfirmed(height, coin.requiredConfirmations)) {
-          return "Minted";
-        } else {
-          return "Minting";
-        }
-      }
-    }
-
-    // if (coin == Coin.epicCash) {
-    //   if (_transaction.isCancelled) {
-    //     return "Cancelled";
-    //   } else if (type == TransactionType.incoming) {
-    //     if (tx.isConfirmed(height, coin.requiredConfirmations)) {
-    //       return "Received";
-    //     } else {
-    //       if (_transaction.numberOfMessages == 1) {
-    //         return "Receiving (waiting for sender)";
-    //       } else if ((_transaction.numberOfMessages ?? 0) > 1) {
-    //         return "Receiving (waiting for confirmations)"; // TODO test if the sender still has to open again after the receiver has 2 messages present, ie. sender->receiver->sender->node (yes) vs. sender->receiver->node (no)
-    //       } else {
-    //         return "Receiving";
-    //       }
-    //     }
-    //   } else if (type == TransactionType.outgoing) {
-    //     if (tx.isConfirmed(height, coin.requiredConfirmations)) {
-    //       return "Sent (confirmed)";
-    //     } else {
-    //       if (_transaction.numberOfMessages == 1) {
-    //         return "Sending (waiting for receiver)";
-    //       } else if ((_transaction.numberOfMessages ?? 0) > 1) {
-    //         return "Sending (waiting for confirmations)";
-    //       } else {
-    //         return "Sending";
-    //       }
-    //     }
-    //   }
-    // }
-
-    if (tx.subType == TransactionSubType.cashFusion) {
-      if (tx.isConfirmed(height, coin.requiredConfirmations)) {
-        return "Anonymized";
-      } else {
-        return "Anonymizing";
-      }
-    }
-
-    if (type == TransactionType.incoming) {
-      // if (_transaction.isMinting) {
-      //   return "Minting";
-      // } else
-      if (tx.isConfirmed(height, coin.requiredConfirmations)) {
-        return "Received";
-      } else {
-        return "Receiving";
-      }
-    } else if (type == TransactionType.outgoing) {
-      if (tx.isConfirmed(height, coin.requiredConfirmations)) {
-        return "Sent";
-      } else {
-        return "Sending";
-      }
-    } else if (type == TransactionType.sentToSelf) {
-      return "Sent to self";
-    } else {
-      return type.name;
-    }
-  }
+  String whatIsIt(TransactionV2 tx, int height) => tx.statusLabel(
+        currentChainHeight: height,
+        minConfirms: minConfirms,
+      );
 
   Future<String> fetchContactNameFor(String address) async {
     if (address.isEmpty) {
@@ -251,8 +278,6 @@ class _TransactionV2DetailsViewState
       return address;
     }
   }
-
-  String _note = "";
 
   Future<bool> showExplorerWarning(String explorer) async {
     final bool? shouldContinue = await showDialog<bool>(
@@ -397,8 +422,7 @@ class _TransactionV2DetailsViewState
 
   @override
   Widget build(BuildContext context) {
-    final currentHeight = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId).currentHeight));
+    final currentHeight = ref.watch(pWalletChainHeight(walletId));
 
     final String outputLabel;
 
@@ -544,7 +568,7 @@ class _TransactionV2DetailsViewState
                                             : CrossAxisAlignment.start,
                                         children: [
                                           SelectableText(
-                                            "$amountPrefix${ref.watch(pAmountFormatter(coin)).format(amount)}",
+                                            "$amountPrefix${ref.watch(pAmountFormatter(coin)).format(amount, ethContract: ethContract)}",
                                             style: isDesktop
                                                 ? STextStyles
                                                         .desktopTextExtraExtraSmall(
@@ -924,7 +948,6 @@ class _TransactionV2DetailsViewState
                                                       child: EditNoteView(
                                                         txid: _transaction.txid,
                                                         walletId: walletId,
-                                                        note: _note,
                                                       ),
                                                     );
                                                   },
@@ -935,10 +958,9 @@ class _TransactionV2DetailsViewState
                                               onTap: () {
                                                 Navigator.of(context).pushNamed(
                                                   EditNoteView.routeName,
-                                                  arguments: Tuple3(
+                                                  arguments: Tuple2(
                                                     _transaction.txid,
                                                     walletId,
-                                                    _note,
                                                   ),
                                                 );
                                               },
@@ -969,38 +991,78 @@ class _TransactionV2DetailsViewState
                                   const SizedBox(
                                     height: 8,
                                   ),
-                                  FutureBuilder(
-                                    future: ref.watch(
-                                        notesServiceChangeNotifierProvider(
-                                                walletId)
-                                            .select((value) => value.getNoteFor(
-                                                txid: _transaction.txid))),
-                                    builder: (builderContext,
-                                        AsyncSnapshot<String> snapshot) {
-                                      if (snapshot.connectionState ==
-                                              ConnectionState.done &&
-                                          snapshot.hasData) {
-                                        _note = snapshot.data ?? "";
-                                      }
-                                      return SelectableText(
-                                        _note,
-                                        style: isDesktop
-                                            ? STextStyles
-                                                    .desktopTextExtraExtraSmall(
-                                                        context)
-                                                .copyWith(
-                                                color: Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .textDark,
-                                              )
-                                            : STextStyles.itemSubtitle12(
-                                                context),
-                                      );
-                                    },
+                                  SelectableText(
+                                    ref
+                                            .watch(
+                                              pTransactionNote(
+                                                (
+                                                  txid: _transaction.txid,
+                                                  walletId: walletId
+                                                ),
+                                              ),
+                                            )
+                                            ?.value ??
+                                        "",
+                                    style: isDesktop
+                                        ? STextStyles
+                                                .desktopTextExtraExtraSmall(
+                                                    context)
+                                            .copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textDark,
+                                          )
+                                        : STextStyles.itemSubtitle12(context),
                                   ),
                                 ],
                               ),
                             ),
+                            if (_sparkMemo != null)
+                              isDesktop
+                                  ? const _Divider()
+                                  : const SizedBox(
+                                      height: 12,
+                                    ),
+                            if (_sparkMemo != null)
+                              RoundedWhiteContainer(
+                                padding: isDesktop
+                                    ? const EdgeInsets.all(16)
+                                    : const EdgeInsets.all(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          "Memo",
+                                          style: isDesktop
+                                              ? STextStyles
+                                                  .desktopTextExtraExtraSmall(
+                                                      context)
+                                              : STextStyles.itemSubtitle(
+                                                  context),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(
+                                      height: 8,
+                                    ),
+                                    SelectableText(
+                                      _sparkMemo!,
+                                      style: isDesktop
+                                          ? STextStyles
+                                                  .desktopTextExtraExtraSmall(
+                                                      context)
+                                              .copyWith(
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textDark,
+                                            )
+                                          : STextStyles.itemSubtitle12(context),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             isDesktop
                                 ? const _Divider()
                                 : const SizedBox(
@@ -1090,7 +1152,7 @@ class _TransactionV2DetailsViewState
                                   String feeString = showFeePending
                                       ? _transaction.isConfirmed(
                                           currentHeight,
-                                          coin.requiredConfirmations,
+                                          minConfirms,
                                         )
                                           ? ref
                                               .watch(pAmountFormatter(coin))
@@ -1187,7 +1249,7 @@ class _TransactionV2DetailsViewState
                                   height = widget.coin != Coin.epicCash &&
                                           _transaction.isConfirmed(
                                             currentHeight,
-                                            coin.requiredConfirmations,
+                                            minConfirms,
                                           )
                                       ? "${_transaction.height == 0 ? "Unknown" : _transaction.height}"
                                       : _transaction.getConfirmations(
@@ -1506,7 +1568,68 @@ class _TransactionV2DetailsViewState
                             //       ],
                             //     ),
                             //   ),
-
+                            if (coin == Coin.epicCash)
+                              isDesktop
+                                  ? const _Divider()
+                                  : const SizedBox(
+                                      height: 12,
+                                    ),
+                            if (coin == Coin.epicCash)
+                              RoundedWhiteContainer(
+                                padding: isDesktop
+                                    ? const EdgeInsets.all(16)
+                                    : const EdgeInsets.all(12),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Slate ID",
+                                          style: isDesktop
+                                              ? STextStyles
+                                                  .desktopTextExtraExtraSmall(
+                                                      context)
+                                              : STextStyles.itemSubtitle(
+                                                  context),
+                                        ),
+                                        // Flexible(
+                                        //   child: FittedBox(
+                                        //     fit: BoxFit.scaleDown,
+                                        //     child:
+                                        SelectableText(
+                                          _transaction.slateId ?? "Unknown",
+                                          style: isDesktop
+                                              ? STextStyles
+                                                      .desktopTextExtraExtraSmall(
+                                                          context)
+                                                  .copyWith(
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .textDark,
+                                                )
+                                              : STextStyles.itemSubtitle12(
+                                                  context),
+                                        ),
+                                        //   ),
+                                        // ),
+                                      ],
+                                    ),
+                                    if (isDesktop)
+                                      const SizedBox(
+                                        width: 12,
+                                      ),
+                                    if (isDesktop)
+                                      IconCopyButton(
+                                        data: _transaction.slateId ?? "Unknown",
+                                      ),
+                                  ],
+                                ),
+                              ),
                             if (!isDesktop)
                               const SizedBox(
                                 height: 12,
@@ -1521,6 +1644,98 @@ class _TransactionV2DetailsViewState
             ],
           ),
         ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        floatingActionButton: (coin == Coin.epicCash &&
+                _transaction.getConfirmations(currentHeight) < 1 &&
+                _transaction.isCancelled == false)
+            ? ConditionalParent(
+                condition: isDesktop,
+                builder: (child) => Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
+                  child: child,
+                ),
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width - 32,
+                  child: TextButton(
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all<Color>(
+                        Theme.of(context).extension<StackColors>()!.textError,
+                      ),
+                    ),
+                    onPressed: () async {
+                      final wallet = ref.read(pWallets).getWallet(walletId);
+
+                      if (wallet is EpiccashWallet) {
+                        final String? id = _transaction.slateId;
+                        if (id == null) {
+                          unawaited(showFloatingFlushBar(
+                            type: FlushBarType.warning,
+                            message: "Could not find Epic transaction ID",
+                            context: context,
+                          ));
+                          return;
+                        }
+
+                        unawaited(
+                          showDialog<void>(
+                            barrierDismissible: false,
+                            context: context,
+                            builder: (_) =>
+                                const CancellingTransactionProgressDialog(),
+                          ),
+                        );
+
+                        final result =
+                            await wallet.cancelPendingTransactionAndPost(id);
+                        if (mounted) {
+                          // pop progress dialog
+                          Navigator.of(context).pop();
+
+                          if (result.isEmpty) {
+                            await showDialog<dynamic>(
+                              context: context,
+                              builder: (_) => StackOkDialog(
+                                title: "Transaction cancelled",
+                                onOkPressed: (_) {
+                                  wallet.refresh();
+                                  Navigator.of(context).popUntil(
+                                    ModalRoute.withName(
+                                      WalletView.routeName,
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          } else {
+                            await showDialog<dynamic>(
+                              context: context,
+                              builder: (_) => StackOkDialog(
+                                title: "Failed to cancel transaction",
+                                message: result,
+                              ),
+                            );
+                          }
+                        }
+                      } else {
+                        unawaited(showFloatingFlushBar(
+                          type: FlushBarType.warning,
+                          message: "ERROR: Wallet type is not Epic Cash",
+                          context: context,
+                        ));
+                        return;
+                      }
+                    },
+                    child: Text(
+                      "Cancel Transaction",
+                      style: STextStyles.button(context),
+                    ),
+                  ),
+                ),
+              )
+            : null,
       ),
     );
   }

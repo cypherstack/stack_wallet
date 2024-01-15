@@ -4,7 +4,7 @@
 import 'package:mockito/annotations.dart';
 // import 'package:mockito/mockito.dart';
 // import 'package:stackwallet/pages/onboarding_view/backup_key_warning_view.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+
 import 'package:stackwallet/services/wallets_service.dart';
 // import 'package:stackwallet/widgets/custom_buttons/gradient_button.dart';
 // import 'package:provider/provider.dart';
@@ -13,7 +13,6 @@ import 'package:stackwallet/services/wallets_service.dart';
 
 @GenerateMocks([], customMocks: [
   MockSpec<WalletsService>(returnNullOnMissingStub: true),
-  MockSpec<Manager>(returnNullOnMissingStub: true),
 ])
 void main() {
 //   testWidgets("BackupKeyWarningView builds correctly", (tester) async {
@@ -64,7 +63,7 @@ void main() {
 //   testWidgets("back button test A", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
 //     final walletsService = MockWalletsService();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     mockingjay
 //         .when(() =>
@@ -108,7 +107,7 @@ void main() {
 //   testWidgets("back button test B", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
 //     final walletsService = MockWalletsService();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     mockingjay.when(() => navigator.pop()).thenAnswer((_) async => {});
 //

@@ -14,6 +14,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/db/db_version_migration.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
@@ -24,7 +25,6 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/db_version_migration.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -79,11 +79,18 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
     }
   }
 
+  bool _loginLock = false;
   Future<void> login() async {
+    if (_loginLock) {
+      return;
+    }
+    _loginLock = true;
+
     try {
       unawaited(
         showDialog(
           context: context,
+          barrierDismissible: false,
           builder: (context) => const Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -138,6 +145,8 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
           context: context,
         );
       }
+    } finally {
+      _loginLock = false;
     }
   }
 

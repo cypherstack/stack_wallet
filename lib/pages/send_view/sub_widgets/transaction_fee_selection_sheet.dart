@@ -12,11 +12,9 @@ import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
@@ -25,6 +23,9 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 
 final feeSheetSessionCacheProvider =
@@ -83,26 +84,34 @@ class _TransactionFeeSelectionSheetState
       case FeeRateType.fast:
         if (ref.read(feeSheetSessionCacheProvider).fast[amount] == null) {
           if (widget.isToken == false) {
-            final manager =
-                ref.read(walletsChangeNotifierProvider).getManager(walletId);
+            final wallet = ref.read(pWallets).getWallet(walletId);
 
             if (coin == Coin.monero || coin == Coin.wownero) {
-              final fee = await manager.estimateFeeFor(
+              final fee = await wallet.estimateFeeFor(
                   amount, MoneroTransactionPriority.fast.raw!);
               ref.read(feeSheetSessionCacheProvider).fast[amount] = fee;
-            } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-                ref.read(publicPrivateBalanceStateProvider.state).state !=
-                    "Private") {
-              ref.read(feeSheetSessionCacheProvider).fast[amount] =
-                  await (manager.wallet as FiroWallet)
-                      .estimateFeeForPublic(amount, feeRate);
+            } else if (coin == Coin.firo || coin == Coin.firoTestNet) {
+              final Amount fee;
+              switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
+                case FiroType.spark:
+                  fee =
+                      await (wallet as FiroWallet).estimateFeeForSpark(amount);
+                case FiroType.lelantus:
+                  fee = await (wallet as FiroWallet)
+                      .estimateFeeForLelantus(amount);
+                case FiroType.public:
+                  fee = await (wallet as FiroWallet)
+                      .estimateFeeFor(amount, feeRate);
+              }
+
+              ref.read(feeSheetSessionCacheProvider).fast[amount] = fee;
             } else {
               ref.read(feeSheetSessionCacheProvider).fast[amount] =
-                  await manager.estimateFeeFor(amount, feeRate);
+                  await wallet.estimateFeeFor(amount, feeRate);
             }
           } else {
-            final tokenWallet = ref.read(tokenServiceProvider)!;
-            final fee = tokenWallet.estimateFeeFor(feeRate);
+            final tokenWallet = ref.read(pCurrentTokenWallet)!;
+            final fee = await tokenWallet.estimateFeeFor(amount, feeRate);
             ref.read(feeSheetSessionCacheProvider).fast[amount] = fee;
           }
         }
@@ -111,25 +120,32 @@ class _TransactionFeeSelectionSheetState
       case FeeRateType.average:
         if (ref.read(feeSheetSessionCacheProvider).average[amount] == null) {
           if (widget.isToken == false) {
-            final manager =
-                ref.read(walletsChangeNotifierProvider).getManager(walletId);
+            final wallet = ref.read(pWallets).getWallet(walletId);
             if (coin == Coin.monero || coin == Coin.wownero) {
-              final fee = await manager.estimateFeeFor(
+              final fee = await wallet.estimateFeeFor(
                   amount, MoneroTransactionPriority.regular.raw!);
               ref.read(feeSheetSessionCacheProvider).average[amount] = fee;
-            } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-                ref.read(publicPrivateBalanceStateProvider.state).state !=
-                    "Private") {
-              ref.read(feeSheetSessionCacheProvider).average[amount] =
-                  await (manager.wallet as FiroWallet)
-                      .estimateFeeForPublic(amount, feeRate);
+            } else if (coin == Coin.firo || coin == Coin.firoTestNet) {
+              final Amount fee;
+              switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
+                case FiroType.spark:
+                  fee =
+                      await (wallet as FiroWallet).estimateFeeForSpark(amount);
+                case FiroType.lelantus:
+                  fee = await (wallet as FiroWallet)
+                      .estimateFeeForLelantus(amount);
+                case FiroType.public:
+                  fee = await (wallet as FiroWallet)
+                      .estimateFeeFor(amount, feeRate);
+              }
+              ref.read(feeSheetSessionCacheProvider).average[amount] = fee;
             } else {
               ref.read(feeSheetSessionCacheProvider).average[amount] =
-                  await manager.estimateFeeFor(amount, feeRate);
+                  await wallet.estimateFeeFor(amount, feeRate);
             }
           } else {
-            final tokenWallet = ref.read(tokenServiceProvider)!;
-            final fee = tokenWallet.estimateFeeFor(feeRate);
+            final tokenWallet = ref.read(pCurrentTokenWallet)!;
+            final fee = await tokenWallet.estimateFeeFor(amount, feeRate);
             ref.read(feeSheetSessionCacheProvider).average[amount] = fee;
           }
         }
@@ -138,25 +154,32 @@ class _TransactionFeeSelectionSheetState
       case FeeRateType.slow:
         if (ref.read(feeSheetSessionCacheProvider).slow[amount] == null) {
           if (widget.isToken == false) {
-            final manager =
-                ref.read(walletsChangeNotifierProvider).getManager(walletId);
+            final wallet = ref.read(pWallets).getWallet(walletId);
             if (coin == Coin.monero || coin == Coin.wownero) {
-              final fee = await manager.estimateFeeFor(
+              final fee = await wallet.estimateFeeFor(
                   amount, MoneroTransactionPriority.slow.raw!);
               ref.read(feeSheetSessionCacheProvider).slow[amount] = fee;
-            } else if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
-                ref.read(publicPrivateBalanceStateProvider.state).state !=
-                    "Private") {
-              ref.read(feeSheetSessionCacheProvider).slow[amount] =
-                  await (manager.wallet as FiroWallet)
-                      .estimateFeeForPublic(amount, feeRate);
+            } else if (coin == Coin.firo || coin == Coin.firoTestNet) {
+              final Amount fee;
+              switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
+                case FiroType.spark:
+                  fee =
+                      await (wallet as FiroWallet).estimateFeeForSpark(amount);
+                case FiroType.lelantus:
+                  fee = await (wallet as FiroWallet)
+                      .estimateFeeForLelantus(amount);
+                case FiroType.public:
+                  fee = await (wallet as FiroWallet)
+                      .estimateFeeFor(amount, feeRate);
+              }
+              ref.read(feeSheetSessionCacheProvider).slow[amount] = fee;
             } else {
               ref.read(feeSheetSessionCacheProvider).slow[amount] =
-                  await manager.estimateFeeFor(amount, feeRate);
+                  await wallet.estimateFeeFor(amount, feeRate);
             }
           } else {
-            final tokenWallet = ref.read(tokenServiceProvider)!;
-            final fee = tokenWallet.estimateFeeFor(feeRate);
+            final tokenWallet = ref.read(pCurrentTokenWallet)!;
+            final fee = await tokenWallet.estimateFeeFor(amount, feeRate);
             ref.read(feeSheetSessionCacheProvider).slow[amount] = fee;
           }
         }
@@ -203,8 +226,9 @@ class _TransactionFeeSelectionSheetState
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId)));
+    final wallet = ref.watch(pWallets).getWallet(walletId);
+
+    final coin = ref.watch(pWalletCoin(walletId));
 
     return Container(
       decoration: BoxDecoration(
@@ -243,8 +267,8 @@ class _TransactionFeeSelectionSheetState
             ),
             FutureBuilder(
               future: widget.isToken
-                  ? ref.read(tokenServiceProvider)!.fees
-                  : manager.fees,
+                  ? ref.read(pCurrentTokenWallet)!.fees
+                  : wallet.fees,
               builder: (context, AsyncSnapshot<FeeObject> snapshot) {
                 if (snapshot.connectionState == ConnectionState.done &&
                     snapshot.hasData) {
@@ -270,7 +294,8 @@ class _TransactionFeeSelectionSheetState
                           ref.read(feeRateTypeStateProvider.state).state =
                               FeeRateType.fast;
                         }
-                        String? fee = getAmount(FeeRateType.fast, manager.coin);
+                        String? fee =
+                            getAmount(FeeRateType.fast, wallet.info.coin);
                         if (fee != null) {
                           widget.updateChosen(fee);
                         }
@@ -333,7 +358,7 @@ class _TransactionFeeSelectionSheetState
                                       if (feeObject != null)
                                         FutureBuilder(
                                           future: feeFor(
-                                            coin: manager.coin,
+                                            coin: coin,
                                             feeRateType: FeeRateType.fast,
                                             feeRate: feeObject!.fast,
                                             amount: amount,
@@ -346,7 +371,7 @@ class _TransactionFeeSelectionSheetState
                                               return Text(
                                                 "(~${ref.watch(
                                                       pAmountFormatter(
-                                                        manager.coin,
+                                                        coin,
                                                       ),
                                                     ).format(
                                                       snapshot.data!,
@@ -373,18 +398,18 @@ class _TransactionFeeSelectionSheetState
                                     height: 2,
                                   ),
                                   if (feeObject == null &&
-                                      manager.coin != Coin.ethereum)
+                                      coin != Coin.ethereum)
                                     AnimatedText(
                                       stringsToLoopThrough:
                                           stringsToLoopThrough,
                                       style: STextStyles.itemSubtitle(context),
                                     ),
                                   if (feeObject != null &&
-                                      manager.coin != Coin.ethereum)
+                                      coin != Coin.ethereum)
                                     Text(
                                       estimatedTimeToBeIncludedInNextBlock(
                                         Constants.targetBlockTimeInSeconds(
-                                            manager.coin),
+                                            coin),
                                         feeObject!.numberOfBlocksFast,
                                       ),
                                       style: STextStyles.itemSubtitle(context),
@@ -408,8 +433,7 @@ class _TransactionFeeSelectionSheetState
                           ref.read(feeRateTypeStateProvider.state).state =
                               FeeRateType.average;
                         }
-                        String? fee =
-                            getAmount(FeeRateType.average, manager.coin);
+                        String? fee = getAmount(FeeRateType.average, coin);
                         if (fee != null) {
                           widget.updateChosen(fee);
                         }
@@ -470,7 +494,7 @@ class _TransactionFeeSelectionSheetState
                                       if (feeObject != null)
                                         FutureBuilder(
                                           future: feeFor(
-                                            coin: manager.coin,
+                                            coin: coin,
                                             feeRateType: FeeRateType.average,
                                             feeRate: feeObject!.medium,
                                             amount: amount,
@@ -483,7 +507,7 @@ class _TransactionFeeSelectionSheetState
                                               return Text(
                                                 "(~${ref.watch(
                                                       pAmountFormatter(
-                                                        manager.coin,
+                                                        coin,
                                                       ),
                                                     ).format(
                                                       snapshot.data!,
@@ -510,18 +534,18 @@ class _TransactionFeeSelectionSheetState
                                     height: 2,
                                   ),
                                   if (feeObject == null &&
-                                      manager.coin != Coin.ethereum)
+                                      coin != Coin.ethereum)
                                     AnimatedText(
                                       stringsToLoopThrough:
                                           stringsToLoopThrough,
                                       style: STextStyles.itemSubtitle(context),
                                     ),
                                   if (feeObject != null &&
-                                      manager.coin != Coin.ethereum)
+                                      coin != Coin.ethereum)
                                     Text(
                                       estimatedTimeToBeIncludedInNextBlock(
                                         Constants.targetBlockTimeInSeconds(
-                                            manager.coin),
+                                            coin),
                                         feeObject!.numberOfBlocksAverage,
                                       ),
                                       style: STextStyles.itemSubtitle(context),
@@ -545,7 +569,7 @@ class _TransactionFeeSelectionSheetState
                           ref.read(feeRateTypeStateProvider.state).state =
                               FeeRateType.slow;
                         }
-                        String? fee = getAmount(FeeRateType.slow, manager.coin);
+                        String? fee = getAmount(FeeRateType.slow, coin);
                         if (fee != null) {
                           widget.updateChosen(fee);
                         }
@@ -606,7 +630,7 @@ class _TransactionFeeSelectionSheetState
                                       if (feeObject != null)
                                         FutureBuilder(
                                           future: feeFor(
-                                            coin: manager.coin,
+                                            coin: coin,
                                             feeRateType: FeeRateType.slow,
                                             feeRate: feeObject!.slow,
                                             amount: amount,
@@ -619,7 +643,7 @@ class _TransactionFeeSelectionSheetState
                                               return Text(
                                                 "(~${ref.watch(
                                                       pAmountFormatter(
-                                                        manager.coin,
+                                                        coin,
                                                       ),
                                                     ).format(
                                                       snapshot.data!,
@@ -646,18 +670,18 @@ class _TransactionFeeSelectionSheetState
                                     height: 2,
                                   ),
                                   if (feeObject == null &&
-                                      manager.coin != Coin.ethereum)
+                                      coin != Coin.ethereum)
                                     AnimatedText(
                                       stringsToLoopThrough:
                                           stringsToLoopThrough,
                                       style: STextStyles.itemSubtitle(context),
                                     ),
                                   if (feeObject != null &&
-                                      manager.coin != Coin.ethereum)
+                                      coin != Coin.ethereum)
                                     Text(
                                       estimatedTimeToBeIncludedInNextBlock(
                                         Constants.targetBlockTimeInSeconds(
-                                            manager.coin),
+                                            coin),
                                         feeObject!.numberOfBlocksSlow,
                                       ),
                                       style: STextStyles.itemSubtitle(context),
@@ -673,7 +697,7 @@ class _TransactionFeeSelectionSheetState
                     const SizedBox(
                       height: 24,
                     ),
-                    if (manager.coin.isElectrumXCoin)
+                    if (coin.isElectrumXCoin)
                       GestureDetector(
                         onTap: () {
                           final state =
@@ -742,7 +766,7 @@ class _TransactionFeeSelectionSheetState
                           ),
                         ),
                       ),
-                    if (manager.coin.isElectrumXCoin)
+                    if (coin.isElectrumXCoin)
                       const SizedBox(
                         height: 24,
                       ),

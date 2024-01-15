@@ -42,6 +42,9 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
   bool _hasLoaded = false;
   List<TransactionV2> _transactions = [];
 
+  late final StreamSubscription<List<TransactionV2>> _subscription;
+  late final QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> _query;
+
   BorderRadius get _borderRadiusFirst {
     return BorderRadius.only(
       topLeft: Radius.circular(
@@ -65,19 +68,41 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
   }
 
   @override
+  void initState() {
+    _query = ref
+        .read(mainDBProvider)
+        .isar
+        .transactionV2s
+        .where()
+        .walletIdEqualTo(widget.walletId)
+        .filter()
+        .not()
+        .subTypeEqualTo(TransactionSubType.ethToken)
+        .sortByTimestampDesc();
+
+    _subscription = _query.watch().listen((event) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _transactions = event;
+        });
+      });
+    });
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(widget.walletId)));
+    final coin = ref.watch(pWallets).getWallet(widget.walletId).info.coin;
 
     return FutureBuilder(
-      future: ref
-          .watch(mainDBProvider)
-          .isar
-          .transactionV2s
-          .where()
-          .walletIdEqualTo(widget.walletId)
-          .sortByTimestampDesc()
-          .findAll(),
+      future: _query.findAll(),
       builder: (fbContext, AsyncSnapshot<List<TransactionV2>> snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             snapshot.hasData) {
@@ -103,7 +128,13 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
         if (_transactions.isEmpty) {
           return const NoTransActionsFound();
         } else {
-          _transactions.sort((a, b) => b.timestamp - a.timestamp);
+          _transactions.sort((a, b) {
+            final compare = b.timestamp.compareTo(a.timestamp);
+            if (compare == 0) {
+              return b.id.compareTo(a.id);
+            }
+            return compare;
+          });
 
           final List<Object> _txns = [];
 
@@ -145,12 +176,7 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
 
           return RefreshIndicator(
             onRefresh: () async {
-              final managerProvider = ref
-                  .read(walletsChangeNotifierProvider)
-                  .getManagerProvider(widget.walletId);
-              if (!ref.read(managerProvider).isRefreshing) {
-                unawaited(ref.read(managerProvider).refresh());
-              }
+              await ref.read(pWallets).getWallet(widget.walletId).refresh();
             },
             child: Util.isDesktop
                 ? ListView.separated(
@@ -169,7 +195,7 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
                       final tx = _txns[index];
                       return TxListItem(
                         tx: tx,
-                        coin: manager.coin,
+                        coin: coin,
                         radius: radius,
                       );
                     },
@@ -205,7 +231,7 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
                           children: [
                             TxListItem(
                               tx: tx,
-                              coin: manager.coin,
+                              coin: coin,
                               radius: radius,
                             ),
                             const SizedBox(
@@ -216,7 +242,7 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
                       } else {
                         return TxListItem(
                           tx: tx,
-                          coin: manager.coin,
+                          coin: coin,
                           radius: radius,
                         );
                       }

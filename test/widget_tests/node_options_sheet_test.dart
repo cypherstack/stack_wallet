@@ -54,7 +54,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          walletsChangeNotifierProvider.overrideWithValue(mockWallets),
+          pWallets.overrideWithValue(mockWallets),
           prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
           nodeServiceChangeNotifierProvider.overrideWithValue(mockNodeService)
         ],
@@ -126,7 +126,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          walletsChangeNotifierProvider.overrideWithValue(mockWallets),
+          pWallets.overrideWithValue(mockWallets),
           prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
           nodeServiceChangeNotifierProvider.overrideWithValue(mockNodeService)
         ],
@@ -193,7 +193,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          walletsChangeNotifierProvider.overrideWithValue(mockWallets),
+          pWallets.overrideWithValue(mockWallets),
           prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
           nodeServiceChangeNotifierProvider.overrideWithValue(mockNodeService),
           pTorService.overrideWithValue(mockTorService),

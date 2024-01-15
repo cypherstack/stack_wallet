@@ -26,8 +26,6 @@ import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
-import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
@@ -39,6 +37,8 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -86,6 +86,7 @@ class _TransactionDetailsViewState
   late final String unit;
   late final bool isTokenTx;
   late final EthContract? ethContract;
+  late final int minConfirms;
 
   bool showFeePending = false;
 
@@ -96,6 +97,11 @@ class _TransactionDetailsViewState
     isTokenTx = _transaction.subType == TransactionSubType.ethToken;
     walletId = widget.walletId;
 
+    minConfirms = ref
+        .read(pWallets)
+        .getWallet(widget.walletId)
+        .cryptoCurrency
+        .minConfirms;
     coin = widget.coin;
     amount = _transaction.realAmount;
     fee = _transaction.fee.toAmountAsRaw(fractionDigits: coin.decimals);
@@ -130,7 +136,7 @@ class _TransactionDetailsViewState
     final type = tx.type;
     if (coin == Coin.firo || coin == Coin.firoTestNet) {
       if (tx.subType == TransactionSubType.mint) {
-        if (tx.isConfirmed(height, coin.requiredConfirmations)) {
+        if (tx.isConfirmed(height, minConfirms)) {
           return "Minted";
         } else {
           return "Minting";
@@ -142,7 +148,7 @@ class _TransactionDetailsViewState
       if (_transaction.isCancelled) {
         return "Cancelled";
       } else if (type == TransactionType.incoming) {
-        if (tx.isConfirmed(height, coin.requiredConfirmations)) {
+        if (tx.isConfirmed(height, minConfirms)) {
           return "Received";
         } else {
           if (_transaction.numberOfMessages == 1) {
@@ -154,7 +160,7 @@ class _TransactionDetailsViewState
           }
         }
       } else if (type == TransactionType.outgoing) {
-        if (tx.isConfirmed(height, coin.requiredConfirmations)) {
+        if (tx.isConfirmed(height, minConfirms)) {
           return "Sent (confirmed)";
         } else {
           if (_transaction.numberOfMessages == 1) {
@@ -172,13 +178,13 @@ class _TransactionDetailsViewState
       // if (_transaction.isMinting) {
       //   return "Minting";
       // } else
-      if (tx.isConfirmed(height, coin.requiredConfirmations)) {
+      if (tx.isConfirmed(height, minConfirms)) {
         return "Received";
       } else {
         return "Receiving";
       }
     } else if (type == TransactionType.outgoing) {
-      if (tx.isConfirmed(height, coin.requiredConfirmations)) {
+      if (tx.isConfirmed(height, minConfirms)) {
         return "Sent";
       } else {
         return "Sending";
@@ -209,8 +215,6 @@ class _TransactionDetailsViewState
       return address;
     }
   }
-
-  String _note = "";
 
   Future<bool> showExplorerWarning(String explorer) async {
     final bool? shouldContinue = await showDialog<bool>(
@@ -355,8 +359,7 @@ class _TransactionDetailsViewState
 
   @override
   Widget build(BuildContext context) {
-    final currentHeight = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId).currentHeight));
+    final currentHeight = ref.watch(pWalletChainHeight(walletId));
 
     return ConditionalParent(
       condition: !isDesktop,
@@ -874,7 +877,6 @@ class _TransactionDetailsViewState
                                                       child: EditNoteView(
                                                         txid: _transaction.txid,
                                                         walletId: walletId,
-                                                        note: _note,
                                                       ),
                                                     );
                                                   },
@@ -885,10 +887,9 @@ class _TransactionDetailsViewState
                                               onTap: () {
                                                 Navigator.of(context).pushNamed(
                                                   EditNoteView.routeName,
-                                                  arguments: Tuple3(
+                                                  arguments: Tuple2(
                                                     _transaction.txid,
                                                     walletId,
-                                                    _note,
                                                   ),
                                                 );
                                               },
@@ -919,36 +920,28 @@ class _TransactionDetailsViewState
                                   const SizedBox(
                                     height: 8,
                                   ),
-                                  FutureBuilder(
-                                    future: ref.watch(
-                                        notesServiceChangeNotifierProvider(
-                                                walletId)
-                                            .select((value) => value.getNoteFor(
-                                                txid: (coin == Coin.epicCash)
-                                                    ? _transaction.slateId!
-                                                    : _transaction.txid))),
-                                    builder: (builderContext,
-                                        AsyncSnapshot<String> snapshot) {
-                                      if (snapshot.connectionState ==
-                                              ConnectionState.done &&
-                                          snapshot.hasData) {
-                                        _note = snapshot.data ?? "";
-                                      }
-                                      return SelectableText(
-                                        _note,
-                                        style: isDesktop
-                                            ? STextStyles
-                                                    .desktopTextExtraExtraSmall(
-                                                        context)
-                                                .copyWith(
-                                                color: Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .textDark,
-                                              )
-                                            : STextStyles.itemSubtitle12(
-                                                context),
-                                      );
-                                    },
+                                  SelectableText(
+                                    ref
+                                            .watch(
+                                              pTransactionNote(
+                                                (
+                                                  txid: _transaction.txid,
+                                                  walletId: walletId
+                                                ),
+                                              ),
+                                            )
+                                            ?.value ??
+                                        "",
+                                    style: isDesktop
+                                        ? STextStyles
+                                                .desktopTextExtraExtraSmall(
+                                                    context)
+                                            .copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textDark,
+                                          )
+                                        : STextStyles.itemSubtitle12(context),
                                   ),
                                 ],
                               ),
@@ -1042,7 +1035,7 @@ class _TransactionDetailsViewState
                                   String feeString = showFeePending
                                       ? _transaction.isConfirmed(
                                           currentHeight,
-                                          coin.requiredConfirmations,
+                                          minConfirms,
                                         )
                                           ? ref
                                               .watch(pAmountFormatter(coin))
@@ -1141,7 +1134,7 @@ class _TransactionDetailsViewState
                                   height = widget.coin != Coin.epicCash &&
                                           _transaction.isConfirmed(
                                             currentHeight,
-                                            coin.requiredConfirmations,
+                                            minConfirms,
                                           )
                                       ? "${_transaction.height == 0 ? "Unknown" : _transaction.height}"
                                       : _transaction.getConfirmations(
@@ -1597,11 +1590,9 @@ class _TransactionDetailsViewState
                       ),
                     ),
                     onPressed: () async {
-                      final Manager manager = ref
-                          .read(walletsChangeNotifierProvider)
-                          .getManager(walletId);
+                      final wallet = ref.read(pWallets).getWallet(walletId);
 
-                      if (manager.wallet is EpicCashWallet) {
+                      if (wallet is EpiccashWallet) {
                         final String? id = _transaction.slateId;
                         if (id == null) {
                           unawaited(showFloatingFlushBar(
@@ -1619,8 +1610,8 @@ class _TransactionDetailsViewState
                               const CancellingTransactionProgressDialog(),
                         ));
 
-                        final result = await (manager.wallet as EpicCashWallet)
-                            .cancelPendingTransactionAndPost(id);
+                        final result =
+                            await wallet.cancelPendingTransactionAndPost(id);
                         if (mounted) {
                           // pop progress dialog
                           Navigator.of(context).pop();
@@ -1631,7 +1622,7 @@ class _TransactionDetailsViewState
                               builder: (_) => StackOkDialog(
                                 title: "Transaction cancelled",
                                 onOkPressed: (_) {
-                                  manager.refresh();
+                                  wallet.refresh();
                                   Navigator.of(context).popUntil(
                                       ModalRoute.withName(
                                           WalletView.routeName));

@@ -62,7 +62,7 @@ abstract class Constants {
   // Enable Logger.print statements
   static const bool disableLogger = false;
 
-  static const int currentDataVersion = 11;
+  static const int currentDataVersion = 12;
 
   static const int rescanV1 = 1;
 
@@ -259,7 +259,6 @@ abstract class Constants {
       case Coin.litecoinTestNet:
       case Coin.firo:
       case Coin.firoTestNet:
-      case Coin.epicCash:
       case Coin.namecoin:
       case Coin.particl:
       case Coin.ethereum:
@@ -270,6 +269,7 @@ abstract class Constants {
 
       case Coin.nano:
       case Coin.banano:
+      case Coin.epicCash:
       case Coin.stellar:
       case Coin.stellarTestnet:
       case Coin.tezos:
@@ -277,6 +277,9 @@ abstract class Constants {
 
       case Coin.monero:
         return 25;
+      //
+      // default:
+      //   -1;
     }
   }
 

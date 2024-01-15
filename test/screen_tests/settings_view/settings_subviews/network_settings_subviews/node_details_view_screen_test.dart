@@ -7,7 +7,7 @@ import 'package:mockito/annotations.dart';
 // import 'package:stackwallet/notifications/campfire_alert.dart';
 // import 'package:stackwallet/notifications/modal_popup_dialog.dart';
 // import 'package:stackwallet/pages/settings_view/settings_subviews/network_settings_subviews/node_details_view.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+
 import 'package:stackwallet/services/node_service.dart';
 // import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 // import 'package:stackwallet/widgets/custom_buttons/gradient_button.dart';
@@ -18,7 +18,6 @@ import 'package:stackwallet/services/node_service.dart';
 
 @GenerateMocks([], customMocks: [
   MockSpec<NodeService>(returnNullOnMissingStub: true),
-  MockSpec<Manager>(returnNullOnMissingStub: true),
 ])
 void main() {
 //   testWidgets("NodeDetailsView non-editing builds correctly", (tester) async {
@@ -363,7 +362,7 @@ void main() {
 //
 //   testWidgets("tap test connection fails", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.testNetworkConnection(any)).thenAnswer((_) async => false);
 //
@@ -430,7 +429,7 @@ void main() {
 //
 //   testWidgets("tap test connection succeeds", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.testNetworkConnection(any)).thenAnswer((_) async => true);
 //

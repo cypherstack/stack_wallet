@@ -10,7 +10,6 @@
 
 import 'dart:convert';
 
-import 'package:flutter/cupertino.dart';
 import 'package:stackwallet/models/paynym/created_paynym.dart';
 import 'package:stackwallet/models/paynym/paynym_account.dart';
 import 'package:stackwallet/models/paynym/paynym_claim.dart';
@@ -57,11 +56,11 @@ class PaynymIsApi {
           : null,
     );
 
-    debugPrint("Paynym request uri: $uri");
-    debugPrint("Paynym request body: $body");
-    debugPrint("Paynym request headers: $headers");
-    debugPrint("Paynym response code: ${response.code}");
-    debugPrint("Paynym response body: ${response.body}");
+    // debugPrint("Paynym request uri: $uri");
+    // debugPrint("Paynym request body: $body");
+    // debugPrint("Paynym request headers: $headers");
+    // debugPrint("Paynym response code: ${response.code}");
+    // debugPrint("Paynym response body: ${response.body}");
 
     return Tuple2(
       jsonDecode(response.body) as Map<String, dynamic>,

@@ -8,14 +8,17 @@
  *
  */
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
@@ -47,8 +50,7 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
   void initState() {
     _controller = TextEditingController();
     walletId = widget.walletId;
-    originalName =
-        ref.read(walletsChangeNotifierProvider).getManager(walletId).walletName;
+    originalName = ref.read(pWalletName(walletId));
     _controller.text = originalName;
     super.initState();
   }
@@ -126,31 +128,42 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
                     .getPrimaryEnabledButtonStyle(context),
                 onPressed: () async {
                   final newName = _controller.text;
-                  final success = await ref
-                      .read(walletsServiceChangeNotifierProvider)
-                      .renameWallet(
-                        from: originalName,
-                        to: newName,
-                        shouldNotifyListeners: true,
-                      );
 
-                  if (success) {
-                    ref
-                        .read(walletsChangeNotifierProvider)
-                        .getManager(walletId)
-                        .walletName = newName;
-                    Navigator.of(context).pop();
-                    showFloatingFlushBar(
-                      type: FlushBarType.success,
-                      message: "Wallet renamed",
-                      context: context,
-                    );
-                  } else {
-                    showFloatingFlushBar(
-                      type: FlushBarType.warning,
-                      message: "Wallet named \"$newName\" already exists",
-                      context: context,
-                    );
+                  String? errMessage;
+                  try {
+                    await ref.read(pWalletInfo(walletId)).updateName(
+                          newName: newName,
+                          isar: ref.read(mainDBProvider).isar,
+                        );
+                  } catch (e) {
+                    if (e
+                        .toString()
+                        .contains("Empty wallet name not allowed!")) {
+                      errMessage = "Empty wallet name not allowed.";
+                    } else {
+                      errMessage = e.toString();
+                    }
+                  }
+
+                  if (mounted) {
+                    if (errMessage == null) {
+                      Navigator.of(context).pop();
+                      unawaited(
+                        showFloatingFlushBar(
+                          type: FlushBarType.success,
+                          message: "Wallet renamed",
+                          context: context,
+                        ),
+                      );
+                    } else {
+                      unawaited(
+                        showFloatingFlushBar(
+                          type: FlushBarType.warning,
+                          message: "Wallet named \"$newName\" already exists",
+                          context: context,
+                        ),
+                      );
+                    }
                   }
                 },
                 child: Text(

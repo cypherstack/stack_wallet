@@ -8,12 +8,12 @@ import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/fusion_tx_group_card.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_card.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/trade_card.dart';
@@ -103,16 +103,11 @@ class TxListItem extends ConsumerWidget {
                                     Flexible(
                                       child: TradeDetailsView(
                                         tradeId: trade.tradeId,
-                                        // TODO
+                                        // TODO: [prio:med]
                                         // transactionIfSentFromStack: tx,
                                         transactionIfSentFromStack: null,
-                                        walletName: ref.watch(
-                                          walletsChangeNotifierProvider.select(
-                                            (value) => value
-                                                .getManager(_tx.walletId)
-                                                .walletName,
-                                          ),
-                                        ),
+                                        walletName: ref
+                                            .watch(pWalletName(_tx.walletId)),
                                         walletId: _tx.walletId,
                                       ),
                                     ),
@@ -135,10 +130,7 @@ class TxListItem extends ConsumerWidget {
                           trade.tradeId,
                           _tx,
                           _tx.walletId,
-                          ref
-                              .read(walletsChangeNotifierProvider)
-                              .getManager(_tx.walletId)
-                              .walletName,
+                          ref.read(pWalletName(_tx.walletId)),
                         ),
                       ),
                     );

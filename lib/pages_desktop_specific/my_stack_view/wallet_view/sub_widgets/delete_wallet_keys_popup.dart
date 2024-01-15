@@ -15,13 +15,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
+import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/providers/global/wallets_service_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -125,14 +126,16 @@ class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
                 await _clipboardInterface.setData(
                   ClipboardData(text: _words.join(" ")),
                 );
-                unawaited(
-                  showFloatingFlushBar(
-                    type: FlushBarType.info,
-                    message: "Copied to clipboard",
-                    iconAsset: Assets.svg.copy,
-                    context: context,
-                  ),
-                );
+                if (mounted) {
+                  unawaited(
+                    showFloatingFlushBar(
+                      type: FlushBarType.info,
+                      message: "Copied to clipboard",
+                      iconAsset: Assets.svg.copy,
+                      context: context,
+                    ),
+                  );
+                }
               },
               child: MnemonicTable(
                 words: widget.words,
@@ -202,9 +205,9 @@ class _ConfirmDeleteState extends ConsumerState<ConfirmDelete> {
       maxHeight: 350,
       child: Column(
         children: [
-          Row(
+          const Row(
             mainAxisAlignment: MainAxisAlignment.end,
-            children: const [
+            children: [
               DesktopDialogCloseButton(),
             ],
           ),
@@ -235,25 +238,14 @@ class _ConfirmDeleteState extends ConsumerState<ConfirmDelete> {
                     buttonHeight: ButtonHeight.xl,
                     label: "Continue",
                     onPressed: () async {
-                      final walletsInstance =
-                          ref.read(walletsChangeNotifierProvider);
-                      final manager = ref
-                          .read(walletsChangeNotifierProvider)
-                          .getManager(widget.walletId);
-
-                      final _managerWalletId = manager.walletId;
-                      //
-                      await ref
-                          .read(walletsServiceChangeNotifierProvider)
-                          .deleteWallet(manager.walletName, true);
+                      await ref.read(pWallets).deleteWallet(
+                            ref.read(pWalletInfo(widget.walletId)),
+                            ref.read(secureStoreProvider),
+                          );
 
                       if (mounted) {
                         Navigator.of(context, rootNavigator: true).pop(true);
                       }
-
-                      // wait for widget tree to dispose of any widgets watching the manager
-                      await Future<void>.delayed(const Duration(seconds: 1));
-                      walletsInstance.removeWallet(walletId: _managerWalletId);
                     },
                   ),
                 ],

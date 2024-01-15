@@ -15,22 +15,18 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/token_summary.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/token_transaction_list_widget.dart';
 import 'package:stackwallet/pages/token_view/token_contract_details_view.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
-import 'package:stackwallet/services/ethereum/ethereum_token_service.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/all_transactions_v2_view.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/eth_token_icon.dart';
 import 'package:tuple/tuple.dart';
-
-final tokenServiceStateProvider = StateProvider<EthTokenWallet?>((ref) => null);
-final tokenServiceProvider = ChangeNotifierProvider<EthTokenWallet?>(
-    (ref) => ref.watch(tokenServiceStateProvider));
 
 /// [eventBus] should only be set during testing
 class TokenView extends ConsumerStatefulWidget {
@@ -56,7 +52,7 @@ class _TokenViewState extends ConsumerState<TokenView> {
 
   @override
   void initState() {
-    initialSyncStatus = ref.read(tokenServiceProvider)!.isRefreshing
+    initialSyncStatus = ref.read(pCurrentTokenWallet)!.refreshMutex.isLocked
         ? WalletSyncStatus.syncing
         : WalletSyncStatus.synced;
     super.initState();
@@ -105,7 +101,7 @@ class _TokenViewState extends ConsumerState<TokenView> {
                     children: [
                       EthTokenIcon(
                         contractAddress: ref.watch(
-                          tokenServiceProvider.select(
+                          pCurrentTokenWallet.select(
                             (value) => value!.tokenContract.address,
                           ),
                         ),
@@ -116,7 +112,7 @@ class _TokenViewState extends ConsumerState<TokenView> {
                       ),
                       Flexible(
                         child: Text(
-                          ref.watch(tokenServiceProvider
+                          ref.watch(pCurrentTokenWallet
                               .select((value) => value!.tokenContract.name)),
                           style: STextStyles.navBarTitle(context),
                           overflow: TextOverflow.ellipsis,
@@ -145,7 +141,7 @@ class _TokenViewState extends ConsumerState<TokenView> {
                       Navigator.of(context).pushNamed(
                         TokenContractDetailsView.routeName,
                         arguments: Tuple2(
-                          ref.watch(tokenServiceProvider
+                          ref.watch(pCurrentTokenWallet
                               .select((value) => value!.tokenContract.address)),
                           widget.walletId,
                         ),
@@ -190,10 +186,14 @@ class _TokenViewState extends ConsumerState<TokenView> {
                         text: "See all",
                         onTap: () {
                           Navigator.of(context).pushNamed(
-                            AllTransactionsView.routeName,
+                            AllTransactionsV2View.routeName,
                             arguments: (
                               walletId: widget.walletId,
-                              isTokens: true,
+                              contractAddress: ref.watch(
+                                pCurrentTokenWallet.select(
+                                  (value) => value!.tokenContract.address,
+                                ),
+                              ),
                             ),
                           );
                         },

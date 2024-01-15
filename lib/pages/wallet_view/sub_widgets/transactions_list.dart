@@ -12,19 +12,21 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/no_transactions_found.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
@@ -36,11 +38,9 @@ class TransactionsList extends ConsumerStatefulWidget {
   const TransactionsList({
     Key? key,
     required this.walletId,
-    required this.managerProvider,
   }) : super(key: key);
 
   final String walletId;
-  final ChangeNotifierProvider<Manager> managerProvider;
 
   @override
   ConsumerState<TransactionsList> createState() => _TransactionsListState();
@@ -51,7 +51,8 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
   bool _hasLoaded = false;
   List<Transaction> _transactions2 = [];
 
-  late final ChangeNotifierProvider<Manager> managerProvider;
+  late final StreamSubscription<List<Transaction>> _subscription;
+  late final QueryBuilder<Transaction, Transaction, QAfterSortBy> _query;
 
   BorderRadius get _borderRadiusFirst {
     return BorderRadius.only(
@@ -80,16 +81,12 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
     Transaction tx,
     BorderRadius? radius,
     Coin coin,
+    int chainHeight,
   ) {
     final matchingTrades = ref
         .read(tradesServiceProvider)
         .trades
         .where((e) => e.payInTxid == tx.txid || e.payOutTxid == tx.txid);
-
-    final isConfirmed = tx.isConfirmed(
-        ref.watch(
-            widget.managerProvider.select((value) => value.currentHeight)),
-        coin.requiredConfirmations);
 
     if (tx.type == TransactionType.outgoing && matchingTrades.isNotEmpty) {
       final trade = matchingTrades.first;
@@ -115,6 +112,8 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
                   trade.uuid), //
               trade: trade,
               onTap: () async {
+                final walletName = ref.read(pWalletName(widget.walletId));
+
                 if (Util.isDesktop) {
                   await showDialog<void>(
                     context: context,
@@ -156,8 +155,7 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
                                     child: TradeDetailsView(
                                       tradeId: trade.tradeId,
                                       transactionIfSentFromStack: tx,
-                                      walletName:
-                                          ref.read(managerProvider).walletName,
+                                      walletName: walletName,
                                       walletId: widget.walletId,
                                     ),
                                   ),
@@ -180,7 +178,7 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
                         trade.tradeId,
                         tx,
                         widget.walletId,
-                        ref.read(managerProvider).walletName,
+                        walletName,
                       ),
                     ),
                   );
@@ -208,17 +206,39 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
 
   @override
   void initState() {
-    managerProvider = widget.managerProvider;
+    _query = ref
+        .read(mainDBProvider)
+        .isar
+        .transactions
+        .where()
+        .walletIdEqualTo(widget.walletId)
+        .sortByTimestampDesc();
+
+    _subscription = _query.watch().listen((event) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _transactions2 = event;
+        });
+      });
+    });
+
     super.initState();
   }
 
   @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(widget.walletId)));
+    final walletInfo = ref.watch(pWallets).getWallet(widget.walletId).info;
+    final height = walletInfo.cachedChainHeight;
+    final coin = walletInfo.coin;
 
     return FutureBuilder(
-      future: manager.transactions,
+      future: _query.findAll(),
       builder: (fbContext, AsyncSnapshot<List<Transaction>> snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             snapshot.hasData) {
@@ -226,8 +246,8 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
           _hasLoaded = true;
         }
         if (!_hasLoaded) {
-          return Column(
-            children: const [
+          return const Column(
+            children: [
               Spacer(),
               Center(
                 child: LoadingIndicator(
@@ -244,17 +264,16 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
         if (_transactions2.isEmpty) {
           return const NoTransActionsFound();
         } else {
-          _transactions2.sort((a, b) => b.timestamp - a.timestamp);
+          _transactions2.sort((a, b) {
+            final compare = b.timestamp.compareTo(a.timestamp);
+            if (compare == 0) {
+              return b.id.compareTo(a.id);
+            }
+            return compare;
+          });
           return RefreshIndicator(
             onRefresh: () async {
-              //todo: check if print needed
-              // debugPrint("pulled down to refresh on transaction list");
-              final managerProvider = ref
-                  .read(walletsChangeNotifierProvider)
-                  .getManagerProvider(widget.walletId);
-              if (!ref.read(managerProvider).isRefreshing) {
-                unawaited(ref.read(managerProvider).refresh());
-              }
+              await ref.read(pWallets).getWallet(widget.walletId).refresh();
             },
             child: Util.isDesktop
                 ? ListView.separated(
@@ -271,7 +290,7 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
                         radius = _borderRadiusFirst;
                       }
                       final tx = _transactions2[index];
-                      return itemBuilder(context, tx, radius, manager.coin);
+                      return itemBuilder(context, tx, radius, coin, height);
                     },
                     separatorBuilder: (context, index) {
                       return Container(
@@ -303,14 +322,14 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
                       if (shouldWrap) {
                         return Column(
                           children: [
-                            itemBuilder(context, tx, radius, manager.coin),
+                            itemBuilder(context, tx, radius, coin, height),
                             const SizedBox(
                               height: WalletView.navBarHeight + 14,
                             ),
                           ],
                         );
                       } else {
-                        return itemBuilder(context, tx, radius, manager.coin);
+                        return itemBuilder(context, tx, radius, coin, height);
                       }
                     },
                   ),

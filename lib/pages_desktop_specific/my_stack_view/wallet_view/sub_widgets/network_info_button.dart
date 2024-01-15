@@ -55,18 +55,17 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
   @override
   void initState() {
     walletId = widget.walletId;
-    final managerProvider =
-        ref.read(walletsChangeNotifierProvider).getManagerProvider(walletId);
+    final wallet = ref.read(pWallets).getWallet(walletId);
 
     eventBus =
         widget.eventBus != null ? widget.eventBus! : GlobalEventBus.instance;
 
-    if (ref.read(managerProvider).isRefreshing) {
+    if (wallet.refreshMutex.isLocked) {
       _currentSyncStatus = WalletSyncStatus.syncing;
       _currentNodeStatus = NodeConnectionStatus.connected;
     } else {
       _currentSyncStatus = WalletSyncStatus.synced;
-      if (ref.read(managerProvider).isConnected) {
+      if (wallet.isConnected) {
         _currentNodeStatus = NodeConnectionStatus.connected;
       } else {
         _currentNodeStatus = NodeConnectionStatus.disconnected;

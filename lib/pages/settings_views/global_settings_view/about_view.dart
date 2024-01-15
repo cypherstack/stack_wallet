@@ -525,6 +525,32 @@ class AboutView extends ConsumerWidget {
                         const SizedBox(
                           height: 12,
                         ),
+                        RoundedWhiteContainer(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Tezos functionality",
+                                style: STextStyles.titleBold12(context),
+                              ),
+                              const SizedBox(
+                                height: 4,
+                              ),
+                              CustomTextButton(
+                                text: "Powered by TzKT API",
+                                onTap: () {
+                                  launchUrl(
+                                    Uri.parse("https://tzkt.io"),
+                                    mode: LaunchMode.externalApplication,
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 12,
+                        ),
                         const Spacer(),
                         RichText(
                           textAlign: TextAlign.center,

@@ -21,6 +21,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -56,10 +57,10 @@ class _UnlockWalletKeysDesktopState
     unawaited(
       showDialog(
         context: context,
-        builder: (context) => Column(
+        builder: (context) => const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: const [
+          children: [
             LoadingIndicator(
               width: 200,
               height: 200,
@@ -78,10 +79,15 @@ class _UnlockWalletKeysDesktopState
     if (verified) {
       Navigator.of(context, rootNavigator: true).pop();
 
-      final words = await ref
-          .read(walletsChangeNotifierProvider)
-          .getManager(widget.walletId)
-          .mnemonic;
+      final wallet = ref.read(pWallets).getWallet(widget.walletId);
+
+      // TODO: [prio=med] handle wallets that don't have a mnemonic
+      // All wallets currently are mnemonic based
+      if (wallet is! MnemonicInterface) {
+        throw Exception("FIXME ~= see todo in code");
+      }
+
+      final words = await wallet.getMnemonicAsWords();
 
       if (mounted) {
         await Navigator.of(context).pushReplacementNamed(
@@ -272,10 +278,10 @@ class _UnlockWalletKeysDesktopState
                             unawaited(
                               showDialog(
                                 context: context,
-                                builder: (context) => Column(
+                                builder: (context) => const Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: const [
+                                  children: [
                                     LoadingIndicator(
                                       width: 200,
                                       height: 200,
@@ -295,11 +301,16 @@ class _UnlockWalletKeysDesktopState
                             if (verified) {
                               Navigator.of(context, rootNavigator: true).pop();
 
-                              final words = await ref
-                                  .read(walletsChangeNotifierProvider)
-                                  .getManager(widget.walletId)
-                                  .mnemonic;
+                              final wallet =
+                                  ref.read(pWallets).getWallet(widget.walletId);
 
+                              // TODO: [prio=low] handle wallets that don't have a mnemonic
+                              // All wallets currently are mnemonic based
+                              if (wallet is! MnemonicInterface) {
+                                throw Exception("FIXME ~= see todo in code");
+                              }
+
+                              final words = await wallet.getMnemonicAsWords();
                               if (mounted) {
                                 await Navigator.of(context)
                                     .pushReplacementNamed(

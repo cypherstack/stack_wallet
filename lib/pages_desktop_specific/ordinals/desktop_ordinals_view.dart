@@ -13,11 +13,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/ordinals/widgets/ordinals_list.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/mixins/ordinals_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
@@ -213,10 +213,8 @@ class _DesktopOrdinals extends ConsumerState<DesktopOrdinalsView> {
                         isDesktop: true,
                         whileFuture: Future.wait<void>([
                           Future.delayed(const Duration(seconds: 2)),
-                          (ref
-                                  .read(walletsChangeNotifierProvider)
-                                  .getManager(widget.walletId)
-                                  .wallet as OrdinalsInterface)
+                          (ref.read(pWallets).getWallet(widget.walletId)
+                                  as OrdinalsInterface)
                               .refreshInscriptions()
                         ]),
                         context: context,

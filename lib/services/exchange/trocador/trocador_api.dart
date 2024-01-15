@@ -59,8 +59,8 @@ abstract class TrocadorAPI {
 
       code = response.code;
 
-      debugPrint("CODE: $code");
-      debugPrint("BODY: ${response.body}");
+      // debugPrint("CODE: $code");
+      // debugPrint("BODY: ${response.body}");
 
       final json = jsonDecode(response.body);
 

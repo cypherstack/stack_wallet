@@ -21,6 +21,10 @@ import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
+import 'package:stackwallet/wallets/isar/models/spark_coin.dart';
+import 'package:stackwallet/wallets/isar/models/token_wallet_info.dart';
+import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
+import 'package:stackwallet/wallets/isar/models/wallet_info_meta.dart';
 import 'package:tuple/tuple.dart';
 
 part '../queries/queries.dart';
@@ -58,7 +62,11 @@ class MainDB {
         ContactEntrySchema,
         OrdinalSchema,
         LelantusCoinSchema,
+        WalletInfoSchema,
         TransactionV2Schema,
+        SparkCoinSchema,
+        WalletInfoMetaSchema,
+        TokenWalletInfoSchema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
       // inspector: kDebugMode,
@@ -67,6 +75,36 @@ class MainDB {
       maxSizeMiB: 512,
     );
     return true;
+  }
+
+  Future<void> putWalletInfo(WalletInfo walletInfo) async {
+    try {
+      await isar.writeTxn(() async {
+        await isar.walletInfo.put(walletInfo);
+      });
+    } catch (e) {
+      throw MainDBException("failed putWalletInfo()", e);
+    }
+  }
+
+  Future<void> updateWalletInfo(WalletInfo walletInfo) async {
+    try {
+      await isar.writeTxn(() async {
+        final info = await isar.walletInfo
+            .where()
+            .walletIdEqualTo(walletInfo.walletId)
+            .findFirst();
+        if (info == null) {
+          throw Exception("updateWalletInfo() called with new WalletInfo."
+              " Use putWalletInfo()");
+        }
+
+        await isar.walletInfo.deleteByWalletId(walletInfo.walletId);
+        await isar.walletInfo.put(walletInfo);
+      });
+    } catch (e) {
+      throw MainDBException("failed updateWalletInfo()", e);
+    }
   }
 
   // contact entries
@@ -390,8 +428,8 @@ class MainDB {
         await isar.transactionV2s.where().walletIdEqualTo(walletId).count();
     final addressCount = await getAddresses(walletId).count();
     final utxoCount = await getUTXOs(walletId).count();
-    final lelantusCoinCount =
-        await isar.lelantusCoins.where().walletIdEqualTo(walletId).count();
+    // final lelantusCoinCount =
+    //     await isar.lelantusCoins.where().walletIdEqualTo(walletId).count();
 
     await isar.writeTxn(() async {
       const paginateLimit = 50;
@@ -439,16 +477,23 @@ class MainDB {
       }
 
       // lelantusCoins
-      for (int i = 0; i < lelantusCoinCount; i += paginateLimit) {
-        final lelantusCoinIds = await isar.lelantusCoins
-            .where()
-            .walletIdEqualTo(walletId)
-            .offset(i)
-            .limit(paginateLimit)
-            .idProperty()
-            .findAll();
-        await isar.lelantusCoins.deleteAll(lelantusCoinIds);
-      }
+      await isar.lelantusCoins.where().walletIdEqualTo(walletId).deleteAll();
+      //   for (int i = 0; i < lelantusCoinCount; i += paginateLimit) {
+      //     final lelantusCoinIds = await isar.lelantusCoins
+      //         .where()
+      //         .walletIdEqualTo(walletId)
+      //         .offset(i)
+      //         .limit(paginateLimit)
+      //         .idProperty()
+      //         .findAll();
+      //     await isar.lelantusCoins.deleteAll(lelantusCoinIds);
+      //   }
+
+      // spark coins
+      await isar.sparkCoins
+          .where()
+          .walletIdEqualToAnyLTagHash(walletId)
+          .deleteAll();
     });
   }
 

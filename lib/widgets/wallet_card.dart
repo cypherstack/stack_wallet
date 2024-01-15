@@ -18,23 +18,21 @@ import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_token_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
-import 'package:stackwallet/services/coins/manager.dart';
-import 'package:stackwallet/services/ethereum/ethereum_token_service.dart';
-import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
+import 'package:stackwallet/wallets/wallet/impl/ethereum_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/sub_wallets/eth_token_wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/dialogs/basic_dialog.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/wallet_info_row/wallet_info_row.dart';
-import 'package:tuple/tuple.dart';
 
 class SimpleWalletCard extends ConsumerWidget {
   const SimpleWalletCard({
@@ -53,20 +51,19 @@ class SimpleWalletCard extends ConsumerWidget {
   Future<bool> _loadTokenWallet(
     BuildContext context,
     WidgetRef ref,
-    Manager manager,
+    Wallet wallet,
     EthContract contract,
   ) async {
-    ref.read(tokenServiceStateProvider.state).state = EthTokenWallet(
-      token: contract,
-      secureStore: ref.read(secureStoreProvider),
-      ethWallet: manager.wallet as EthereumWallet,
-      tracker: TransactionNotificationTracker(
-        walletId: walletId,
-      ),
-    );
+    final old = ref.read(tokenServiceStateProvider);
+    // exit previous if there is one
+    unawaited(old?.exit());
+    ref.read(tokenServiceStateProvider.state).state = Wallet.loadTokenWallet(
+      ethWallet: wallet as EthereumWallet,
+      contract: contract,
+    ) as EthTokenWallet;
 
     try {
-      await ref.read(tokenServiceProvider)!.initialize();
+      await ref.read(pCurrentTokenWallet)!.init();
       return true;
     } catch (_) {
       await showDialog<void>(
@@ -95,12 +92,18 @@ class SimpleWalletCard extends ConsumerWidget {
   void _openWallet(BuildContext context, WidgetRef ref) async {
     final nav = Navigator.of(context);
 
-    final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(walletId);
-    if (manager.coin == Coin.monero || manager.coin == Coin.wownero) {
-      await manager.initializeExisting();
-    }
+    final wallet = ref.read(pWallets).getWallet(walletId);
+    await wallet.init();
+
     if (context.mounted) {
+      if (wallet is CwBasedInterface) {
+        await showLoading(
+          whileFuture: wallet.open(),
+          context: context,
+          message: 'Opening ${wallet.info.name}',
+          isDesktop: Util.isDesktop,
+        );
+      }
       if (popPrevious) nav.pop();
 
       if (desktopNavigatorState != null) {
@@ -114,12 +117,7 @@ class SimpleWalletCard extends ConsumerWidget {
         unawaited(
           nav.pushNamed(
             WalletView.routeName,
-            arguments: Tuple2(
-              walletId,
-              ref
-                  .read(walletsChangeNotifierProvider)
-                  .getManagerProvider(walletId),
-            ),
+            arguments: walletId,
           ),
         );
       }
@@ -130,10 +128,7 @@ class SimpleWalletCard extends ConsumerWidget {
 
         final success = await showLoading<bool>(
           whileFuture: _loadTokenWallet(
-              desktopNavigatorState?.context ?? context,
-              ref,
-              manager,
-              contract),
+              desktopNavigatorState?.context ?? context, ref, wallet, contract),
           context: desktopNavigatorState?.context ?? context,
           opaqueBG: true,
           message: "Loading ${contract.name}",

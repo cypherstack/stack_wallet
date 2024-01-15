@@ -10,11 +10,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/favourite_wallets_provider.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
@@ -61,8 +62,8 @@ class ManageFavoritesView extends StatelessWidget {
       body: isDesktop
           ? Consumer(
               builder: (_, ref, __) {
-                final favorites = ref.watch(favoritesProvider);
-                final nonFavorites = ref.watch(nonFavoritesProvider);
+                final favorites = ref.watch(pFavouriteWalletInfos(true));
+                final nonFavorites = ref.watch(pFavouriteWalletInfos(false));
 
                 return Column(
                   children: [
@@ -108,8 +109,7 @@ class ManageFavoritesView extends StatelessWidget {
                             key: key,
                             itemCount: favorites.length,
                             itemBuilder: (builderContext, index) {
-                              final walletId =
-                                  ref.read(favorites[index]).walletId;
+                              final walletId = favorites[index].walletId;
                               return Padding(
                                 key: Key(
                                   "manageFavoriteWalletsItem_$walletId",
@@ -127,14 +127,43 @@ class ManageFavoritesView extends StatelessWidget {
                               );
                             },
                             onReorder: (oldIndex, newIndex) {
-                              ref
-                                  .read(walletsServiceChangeNotifierProvider)
-                                  .moveFavorite(
-                                      fromIndex: oldIndex, toIndex: newIndex);
+                              final isar = ref.read(mainDBProvider).isar;
 
-                              ref
-                                  .read(favoritesProvider)
-                                  .reorder(oldIndex, newIndex, true);
+                              final actualIndex =
+                                  favorites[oldIndex].favouriteOrderIndex;
+                              if (oldIndex > newIndex) {
+                                for (int i = oldIndex - 1; i >= newIndex; i--) {
+                                  final next = favorites[i];
+                                  next.updateIsFavourite(
+                                    true,
+                                    isar: isar,
+                                    customIndexOverride:
+                                        next.favouriteOrderIndex + 1,
+                                  );
+                                }
+                                favorites[oldIndex].updateIsFavourite(
+                                  true,
+                                  isar: isar,
+                                  customIndexOverride:
+                                      actualIndex - (oldIndex - newIndex),
+                                );
+                              } else {
+                                for (int i = oldIndex + 1; i < newIndex; i++) {
+                                  final next = favorites[i];
+                                  next.updateIsFavourite(
+                                    true,
+                                    isar: isar,
+                                    customIndexOverride:
+                                        next.favouriteOrderIndex - 1,
+                                  );
+                                }
+                                favorites[oldIndex].updateIsFavourite(
+                                  true,
+                                  isar: isar,
+                                  customIndexOverride:
+                                      actualIndex + (newIndex - oldIndex),
+                                );
+                              }
                             },
                             proxyDecorator: (child, index, animation) {
                               return Material(
@@ -176,8 +205,7 @@ class ManageFavoritesView extends StatelessWidget {
                             itemBuilder: (buildContext, index) {
                               // final walletId = ref.watch(
                               //     nonFavorites[index].select((value) => value.walletId));
-                              final walletId =
-                                  ref.read(nonFavorites[index]).walletId;
+                              final walletId = nonFavorites[index].walletId;
                               return Padding(
                                 key: Key(
                                   "manageNonFavoriteWalletsItem_$walletId",
@@ -236,13 +264,13 @@ class ManageFavoritesView extends StatelessWidget {
                     Expanded(
                       child: Consumer(
                         builder: (_, ref, __) {
-                          final favorites = ref.watch(favoritesProvider);
+                          final favorites =
+                              ref.watch(pFavouriteWalletInfos(true));
                           return ReorderableListView.builder(
                             key: key,
                             itemCount: favorites.length,
                             itemBuilder: (builderContext, index) {
-                              final walletId =
-                                  ref.read(favorites[index]).walletId;
+                              final walletId = favorites[index].walletId;
                               return Padding(
                                 key: Key(
                                   "manageFavoriteWalletsItem_$walletId",
@@ -254,14 +282,43 @@ class ManageFavoritesView extends StatelessWidget {
                               );
                             },
                             onReorder: (oldIndex, newIndex) {
-                              ref
-                                  .read(walletsServiceChangeNotifierProvider)
-                                  .moveFavorite(
-                                      fromIndex: oldIndex, toIndex: newIndex);
+                              final isar = ref.read(mainDBProvider).isar;
 
-                              ref
-                                  .read(favoritesProvider)
-                                  .reorder(oldIndex, newIndex, true);
+                              final actualIndex =
+                                  favorites[oldIndex].favouriteOrderIndex;
+                              if (oldIndex > newIndex) {
+                                for (int i = oldIndex - 1; i >= newIndex; i--) {
+                                  final next = favorites[i];
+                                  next.updateIsFavourite(
+                                    true,
+                                    isar: isar,
+                                    customIndexOverride:
+                                        next.favouriteOrderIndex + 1,
+                                  );
+                                }
+                                favorites[oldIndex].updateIsFavourite(
+                                  true,
+                                  isar: isar,
+                                  customIndexOverride:
+                                      actualIndex - (oldIndex - newIndex),
+                                );
+                              } else {
+                                for (int i = oldIndex + 1; i < newIndex; i++) {
+                                  final next = favorites[i];
+                                  next.updateIsFavourite(
+                                    true,
+                                    isar: isar,
+                                    customIndexOverride:
+                                        next.favouriteOrderIndex - 1,
+                                  );
+                                }
+                                favorites[oldIndex].updateIsFavourite(
+                                  true,
+                                  isar: isar,
+                                  customIndexOverride:
+                                      actualIndex + (newIndex - oldIndex),
+                                );
+                              }
                             },
                             proxyDecorator: (child, index, animation) {
                               return Material(
@@ -301,15 +358,15 @@ class ManageFavoritesView extends StatelessWidget {
                     Expanded(
                       child: Consumer(
                         builder: (_, ref, __) {
-                          final nonFavorites = ref.watch(nonFavoritesProvider);
+                          final nonFavorites =
+                              ref.watch(pFavouriteWalletInfos(false));
 
                           return ListView.builder(
                             itemCount: nonFavorites.length,
                             itemBuilder: (buildContext, index) {
                               // final walletId = ref.watch(
                               //     nonFavorites[index].select((value) => value.walletId));
-                              final walletId =
-                                  ref.read(nonFavorites[index]).walletId;
+                              final walletId = nonFavorites[index].walletId;
                               return Padding(
                                 key: Key(
                                   "manageNonFavoriteWalletsItem_$walletId",

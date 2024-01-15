@@ -6,10 +6,12 @@ import 'package:stackwallet/pages_desktop_specific/cashfusion/sub_widgets/fusion
 import 'package:stackwallet/providers/cash_fusion/fusion_progress_ui_state_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -39,6 +41,8 @@ class FusionDialogView extends ConsumerStatefulWidget {
 }
 
 class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
+  late final Coin coin;
+
   Future<bool> _requestAndProcessCancel() async {
     if (!ref.read(fusionProgressUIStateProvider(widget.walletId)).running) {
       return true;
@@ -119,10 +123,8 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
       );
 
       if (shouldCancel == true && mounted) {
-        final fusionWallet = ref
-            .read(walletsChangeNotifierProvider)
-            .getManager(widget.walletId)
-            .wallet as FusionWalletInterface;
+        final fusionWallet = ref.read(pWallets).getWallet(widget.walletId)
+            as CashFusionInterface;
 
         await showLoading(
           whileFuture: Future.wait([
@@ -139,6 +141,12 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
         return false;
       }
     }
+  }
+
+  @override
+  void initState() {
+    coin = ref.read(pWalletCoin(widget.walletId));
+    super.initState();
   }
 
   @override
@@ -283,14 +291,11 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
 
   /// Fuse again.
   void _fuseAgain() async {
-    final wallet = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .wallet;
-    final fusionWallet = wallet as FusionWalletInterface;
+    final fusionWallet =
+        ref.read(pWallets).getWallet(widget.walletId) as CashFusionInterface;
 
     final fusionInfo =
-        ref.read(prefsChangeNotifierProvider).getFusionServerInfo(wallet.coin);
+        ref.read(prefsChangeNotifierProvider).getFusionServerInfo(coin);
 
     try {
       fusionWallet.uiState = ref.read(

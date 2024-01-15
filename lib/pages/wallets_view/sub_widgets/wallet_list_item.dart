@@ -22,9 +22,11 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:tuple/tuple.dart';
 
 class WalletListItem extends ConsumerWidget {
   const WalletListItem({
@@ -57,25 +59,26 @@ class WalletListItem extends ConsumerWidget {
         ),
         onPressed: () async {
           if (walletCount == 1 && coin != Coin.ethereum) {
-            final providersByCoin = ref
-                .watch(walletsChangeNotifierProvider
-                    .select((value) => value.getManagerProvidersByCoin()))
-                .where((e) => e.item1 == coin)
-                .map((e) => e.item2)
-                .expand((e) => e)
-                .toList();
-            final manager = ref.read(providersByCoin.first);
-            if (coin == Coin.monero || coin == Coin.wownero) {
-              await manager.initializeExisting();
+            final wallet = ref
+                .read(pWallets)
+                .wallets
+                .firstWhere((e) => e.info.coin == coin);
+            await wallet.init();
+            if (wallet is CwBasedInterface) {
+              if (context.mounted) {
+                await showLoading(
+                  whileFuture: wallet.open(),
+                  context: context,
+                  message: 'Opening ${wallet.info.name}',
+                  isDesktop: Util.isDesktop,
+                );
+              }
             }
             if (context.mounted) {
               unawaited(
                 Navigator.of(context).pushNamed(
                   WalletView.routeName,
-                  arguments: Tuple2(
-                    manager.walletId,
-                    providersByCoin.first,
-                  ),
+                  arguments: wallet.walletId,
                 ),
               );
             }

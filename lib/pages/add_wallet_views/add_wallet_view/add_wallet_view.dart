@@ -126,7 +126,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
   void initState() {
     _searchFieldController = TextEditingController();
     _searchFocusNode = FocusNode();
-    _coinsTestnet.remove(Coin.firoTestNet);
+    // _coinsTestnet.remove(Coin.firoTestNet);
     if (Platform.isWindows) {
       _coins.remove(Coin.monero);
       _coins.remove(Coin.wownero);

@@ -246,6 +246,8 @@ class _SVG {
   String get particl => "assets/svg/coin_icons/Particl.svg";
 
   String get bnbIcon => "assets/svg/coin_icons/bnb_icon.svg";
+
+  String get spark => "assets/svg/spark.svg";
 }
 
 class _PNG {

@@ -28,6 +28,7 @@ import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -95,9 +96,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                       key: _qrKey,
                       child: QrImageView(
                         data: AddressUtils.buildUriString(
-                          ref.watch(walletsChangeNotifierProvider.select(
-                              (value) =>
-                                  value.getManager(widget.walletId).coin)),
+                          ref.watch(pWalletCoin(widget.walletId)),
                           address.value,
                           {},
                         ),
@@ -151,8 +150,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
 
   @override
   Widget build(BuildContext context) {
-    final coin = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(widget.walletId).coin));
+    final coin = ref.watch(pWalletCoin(widget.walletId));
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
@@ -266,8 +264,11 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                           borderColor: Theme.of(context)
                               .extension<StackColors>()!
                               .backgroundAppBar,
-                          child: coin == Coin.bitcoincash ||
-                                  coin == Coin.bitcoincashTestnet
+                          child: ref
+                                      .watch(pWallets)
+                                      .getWallet(widget.walletId)
+                                      .isarTransactionVersion ==
+                                  2
                               ? _AddressDetailsTxV2List(
                                   walletId: widget.walletId,
                                   address: address,
@@ -292,9 +293,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                       key: _qrKey,
                       child: QrImageView(
                         data: AddressUtils.buildUriString(
-                          ref.watch(walletsChangeNotifierProvider.select(
-                              (value) =>
-                                  value.getManager(widget.walletId).coin)),
+                          coin,
                           address.value,
                           {},
                         ),
@@ -355,6 +354,16 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                   _Item(
                     title: "Derivation path",
                     data: address.derivationPath!.value,
+                    button: Container(),
+                  ),
+                if (address.type == AddressType.spark)
+                  const _Div(
+                    height: 12,
+                  ),
+                if (address.type == AddressType.spark)
+                  _Item(
+                    title: "Diversifier",
+                    data: address.derivationIndex.toString(),
                     button: Container(),
                   ),
                 const _Div(

@@ -119,8 +119,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "081ca1863c2feba00c35bb5b297902f12f499941"
-      resolved-ref: "081ca1863c2feba00c35bb5b297902f12f499941"
+      ref: "4cb772149b84aedd21c437d17c72b1c2d4f2c962"
+      resolved-ref: "4cb772149b84aedd21c437d17c72b1c2d4f2c962"
       url: "https://github.com/cypherstack/bip47.git"
     source: git
     version: "2.0.0"
@@ -271,21 +271,23 @@ packages:
     source: hosted
     version: "4.6.0"
   coinlib:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: coinlib
-      sha256: "410993f49aef30e48b76bbad8a33fef33f6b90e103b15b6be0277683ffe15399"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.0"
+      path: coinlib
+      ref: "4f549b8b511a63fdc1f44796ab43b10f586635cd"
+      resolved-ref: "4f549b8b511a63fdc1f44796ab43b10f586635cd"
+      url: "https://github.com/cypherstack/coinlib.git"
+    source: git
+    version: "1.1.0"
   coinlib_flutter:
     dependency: "direct main"
     description:
-      name: coinlib_flutter
-      sha256: d0a6a3694fc8c851f6b912bb1c552e33998e3f453efab3d62f75c0b1773d1ab9
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.0"
+      path: coinlib_flutter
+      ref: "4f549b8b511a63fdc1f44796ab43b10f586635cd"
+      resolved-ref: "4f549b8b511a63fdc1f44796ab43b10f586635cd"
+      url: "https://github.com/cypherstack/coinlib.git"
+    source: git
+    version: "1.1.0"
   collection:
     dependency: transitive
     description:
@@ -658,6 +660,15 @@ packages:
       path: "crypto_plugins/flutter_libmonero"
       relative: true
     source: path
+    version: "0.0.1"
+  flutter_libsparkmobile:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: "8735d2b17bad054eaac082fcd66d6ab37ed9f8c5"
+      resolved-ref: "8735d2b17bad054eaac082fcd66d6ab37ed9f8c5"
+      url: "https://github.com/cypherstack/flutter_libsparkmobile.git"
+    source: git
     version: "0.0.1"
   flutter_lints:
     dependency: "direct dev"
@@ -1080,7 +1091,7 @@ packages:
     source: hosted
     version: "3.0.0"
   meta:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: meta
       sha256: "3c74dbf8763d36539f114c799d8a2d87343b5067e9d796ca22b5eb8437090ee3"
@@ -1658,7 +1669,7 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: main
+      ref: "8a7070f533e63dd150edae99476f6853bfb25913"
       resolved-ref: "8a7070f533e63dd150edae99476f6853bfb25913"
       url: "https://github.com/cypherstack/tezart.git"
     source: git

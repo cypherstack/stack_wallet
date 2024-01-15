@@ -215,9 +215,9 @@ class _StackRestoreProgressViewState
   }
 
   void _addWalletsToHomeView() {
-    ref.read(walletsChangeNotifierProvider).loadAfterStackRestore(
+    ref.read(pWallets).loadAfterStackRestore(
           ref.read(prefsChangeNotifierProvider),
-          ref.read(stackRestoringUIStateProvider).managers,
+          ref.read(stackRestoringUIStateProvider).wallets,
         );
   }
 

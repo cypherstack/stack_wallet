@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/syncing_preferences_views/wallet_syncing_options_view.dart';
+import 'package:stackwallet/providers/global/active_wallet_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -95,11 +96,8 @@ class SyncingOptionsView extends ConsumerWidget {
                             SyncingType.currentWalletOnly;
 
                         // disable auto sync on all wallets that aren't active/current
-                        ref
-                            .read(walletsChangeNotifierProvider)
-                            .managers
-                            .forEach((e) {
-                          if (!e.isActiveWallet) {
+                        ref.read(pWallets).wallets.forEach((e) {
+                          if (e.walletId != ref.read(currentWalletIdProvider)) {
                             e.shouldAutoSync = false;
                           }
                         });
@@ -178,8 +176,8 @@ class SyncingOptionsView extends ConsumerWidget {
 
                         // enable auto sync on all wallets
                         ref
-                            .read(walletsChangeNotifierProvider)
-                            .managers
+                            .read(pWallets)
+                            .wallets
                             .forEach((e) => e.shouldAutoSync = true);
                       }
                     },
@@ -259,11 +257,8 @@ class SyncingOptionsView extends ConsumerWidget {
                             .walletIdsSyncOnStartup;
 
                         // enable auto sync on selected wallets only
-                        ref
-                            .read(walletsChangeNotifierProvider)
-                            .managers
-                            .forEach((e) =>
-                                e.shouldAutoSync = ids.contains(e.walletId));
+                        ref.read(pWallets).wallets.forEach(
+                            (e) => e.shouldAutoSync = ids.contains(e.walletId));
                       }
                     },
                     child: Container(

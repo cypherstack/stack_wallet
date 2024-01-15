@@ -13,11 +13,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/manage_favorites_view/manage_favorites_view.dart';
 import 'package:stackwallet/pages/wallets_view/sub_widgets/favorite_card.dart';
-import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/favourite_wallets_provider.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 
 class DesktopFavoriteWallets extends ConsumerWidget {
@@ -30,10 +30,9 @@ class DesktopFavoriteWallets extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: $runtimeType");
+    final favourites = ref.watch(pFavouriteWalletInfos(true));
 
-    final favorites = ref.watch(favoritesProvider);
-    bool hasFavorites = favorites.length > 0;
-
+    final bool hasFavorites = favourites.isNotEmpty;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,16 +71,10 @@ class DesktopFavoriteWallets extends ConsumerWidget {
                     spacing: 16,
                     runSpacing: 16,
                     children: [
-                      ...favorites.map((p0) {
-                        final walletId = ref.read(p0).walletId;
-                        final walletName = ref.read(p0).walletName;
-                        final managerProvider = ref
-                            .read(walletsChangeNotifierProvider)
-                            .getManagerProvider(walletId);
-
+                      ...favourites.map((e) {
                         return FavoriteCard(
-                          walletId: walletId,
-                          key: Key(walletName),
+                          walletId: e.walletId,
+                          key: Key(e.name),
                           width: cardWidth,
                           height: cardHeight,
                         );

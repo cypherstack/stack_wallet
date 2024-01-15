@@ -17,11 +17,11 @@ import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart'
 import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
 import 'package:stackwallet/providers/exchange/trade_sent_from_stack_lookup_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -117,10 +117,6 @@ class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
                       if (txid != null &&
                           walletIds != null &&
                           walletIds.isNotEmpty) {
-                        final manager = ref
-                            .read(walletsChangeNotifierProvider)
-                            .getManager(walletIds.first);
-
                         //todo: check if print needed
                         // debugPrint("name: ${manager.walletName}");
 
@@ -176,7 +172,9 @@ class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
                                               child: TradeDetailsView(
                                                 tradeId: tradeId,
                                                 transactionIfSentFromStack: tx,
-                                                walletName: manager.walletName,
+                                                walletName: ref.read(
+                                                    pWalletName(
+                                                        walletIds.first)),
                                                 walletId: walletIds.first,
                                               ),
                                             ),

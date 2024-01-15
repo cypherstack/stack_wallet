@@ -8,14 +8,14 @@ import 'dart:ui' as _i11;
 
 import 'package:decimal/decimal.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:stackwallet/electrumx_rpc/electrumx.dart' as _i4;
-import 'package:stackwallet/services/mixins/fusion_wallet_interface.dart'
-    as _i3;
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart' as _i4;
 import 'package:stackwallet/utilities/amount/amount_unit.dart' as _i9;
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i8;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i10;
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i7;
 import 'package:stackwallet/utilities/prefs.dart' as _i6;
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart'
+    as _i3;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -58,11 +58,11 @@ class _FakeFusionInfo_2 extends _i1.SmartFake implements _i3.FusionInfo {
         );
 }
 
-/// A class which mocks [ElectrumX].
+/// A class which mocks [ElectrumXClient].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockElectrumX extends _i1.Mock implements _i4.ElectrumX {
-  MockElectrumX() {
+class MockElectrumXClient extends _i1.Mock implements _i4.ElectrumXClient {
+  MockElectrumXClient() {
     _i1.throwOnMissingStub(this);
   }
 
@@ -303,14 +303,14 @@ class MockElectrumX extends _i1.Mock implements _i4.ElectrumX {
             _i5.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i5.Future<Map<String, dynamic>>);
   @override
-  _i5.Future<Map<String, dynamic>> getAnonymitySet({
+  _i5.Future<Map<String, dynamic>> getLelantusAnonymitySet({
     String? groupId = r'1',
     String? blockhash = r'',
     String? requestID,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
-          #getAnonymitySet,
+          #getLelantusAnonymitySet,
           [],
           {
             #groupId: groupId,
@@ -322,13 +322,13 @@ class MockElectrumX extends _i1.Mock implements _i4.ElectrumX {
             _i5.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i5.Future<Map<String, dynamic>>);
   @override
-  _i5.Future<dynamic> getMintData({
+  _i5.Future<dynamic> getLelantusMintData({
     dynamic mints,
     String? requestID,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
-          #getMintData,
+          #getLelantusMintData,
           [],
           {
             #mints: mints,
@@ -338,13 +338,13 @@ class MockElectrumX extends _i1.Mock implements _i4.ElectrumX {
         returnValue: _i5.Future<dynamic>.value(),
       ) as _i5.Future<dynamic>);
   @override
-  _i5.Future<Map<String, dynamic>> getUsedCoinSerials({
+  _i5.Future<Map<String, dynamic>> getLelantusUsedCoinSerials({
     String? requestID,
     required int? startNumber,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
-          #getUsedCoinSerials,
+          #getLelantusUsedCoinSerials,
           [],
           {
             #requestID: requestID,
@@ -355,9 +355,72 @@ class MockElectrumX extends _i1.Mock implements _i4.ElectrumX {
             _i5.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i5.Future<Map<String, dynamic>>);
   @override
-  _i5.Future<int> getLatestCoinId({String? requestID}) => (super.noSuchMethod(
+  _i5.Future<int> getLelantusLatestCoinId({String? requestID}) =>
+      (super.noSuchMethod(
         Invocation.method(
-          #getLatestCoinId,
+          #getLelantusLatestCoinId,
+          [],
+          {#requestID: requestID},
+        ),
+        returnValue: _i5.Future<int>.value(0),
+      ) as _i5.Future<int>);
+  @override
+  _i5.Future<Map<String, dynamic>> getSparkAnonymitySet({
+    String? coinGroupId = r'1',
+    String? startBlockHash = r'',
+    String? requestID,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getSparkAnonymitySet,
+          [],
+          {
+            #coinGroupId: coinGroupId,
+            #startBlockHash: startBlockHash,
+            #requestID: requestID,
+          },
+        ),
+        returnValue:
+            _i5.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+      ) as _i5.Future<Map<String, dynamic>>);
+  @override
+  _i5.Future<Set<String>> getSparkUsedCoinsTags({
+    String? requestID,
+    required int? startNumber,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getSparkUsedCoinsTags,
+          [],
+          {
+            #requestID: requestID,
+            #startNumber: startNumber,
+          },
+        ),
+        returnValue: _i5.Future<Set<String>>.value(<String>{}),
+      ) as _i5.Future<Set<String>>);
+  @override
+  _i5.Future<List<Map<String, dynamic>>> getSparkMintMetaData({
+    String? requestID,
+    required List<String>? sparkCoinHashes,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getSparkMintMetaData,
+          [],
+          {
+            #requestID: requestID,
+            #sparkCoinHashes: sparkCoinHashes,
+          },
+        ),
+        returnValue: _i5.Future<List<Map<String, dynamic>>>.value(
+            <Map<String, dynamic>>[]),
+      ) as _i5.Future<List<Map<String, dynamic>>>);
+  @override
+  _i5.Future<int> getSparkLatestCoinId({String? requestID}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getSparkLatestCoinId,
           [],
           {#requestID: requestID},
         ),
@@ -792,22 +855,6 @@ class MockPrefs extends _i1.Mock implements _i6.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i3.FusionInfo get fusionServerInfo => (super.noSuchMethod(
-        Invocation.getter(#fusionServerInfo),
-        returnValue: _FakeFusionInfo_2(
-          this,
-          Invocation.getter(#fusionServerInfo),
-        ),
-      ) as _i3.FusionInfo);
-  @override
-  set fusionServerInfo(_i3.FusionInfo? fusionServerInfo) => super.noSuchMethod(
-        Invocation.setter(
-          #fusionServerInfo,
-          fusionServerInfo,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
@@ -901,6 +948,35 @@ class MockPrefs extends _i1.Mock implements _i6.Prefs {
             #coin: coin,
             #maxDecimals: maxDecimals,
           },
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i3.FusionInfo getFusionServerInfo(_i10.Coin? coin) => (super.noSuchMethod(
+        Invocation.method(
+          #getFusionServerInfo,
+          [coin],
+        ),
+        returnValue: _FakeFusionInfo_2(
+          this,
+          Invocation.method(
+            #getFusionServerInfo,
+            [coin],
+          ),
+        ),
+      ) as _i3.FusionInfo);
+  @override
+  void setFusionServerInfo(
+    _i10.Coin? coin,
+    _i3.FusionInfo? fusionServerInfo,
+  ) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #setFusionServerInfo,
+          [
+            coin,
+            fusionServerInfo,
+          ],
         ),
         returnValueForMissingStub: null,
       );

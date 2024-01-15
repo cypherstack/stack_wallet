@@ -11,7 +11,7 @@ description: Stack Wallet
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.8.2+193
+version: 1.9.0+194
 
 environment:
   sdk: ">=3.0.2 <4.0.0"
@@ -26,6 +26,11 @@ dependencies:
 
   lelantus:
     path: ./crypto_plugins/flutter_liblelantus
+
+  flutter_libsparkmobile:
+    git:
+      url: https://github.com/cypherstack/flutter_libsparkmobile.git
+      ref: 8735d2b17bad054eaac082fcd66d6ab37ed9f8c5
 
   flutter_libmonero:
     path: ./crypto_plugins/flutter_libmonero
@@ -55,7 +60,7 @@ dependencies:
   bip47:
     git:
       url: https://github.com/cypherstack/bip47.git
-      ref: 081ca1863c2feba00c35bb5b297902f12f499941
+      ref: 4cb772149b84aedd21c437d17c72b1c2d4f2c962
 
   tor_ffi_plugin:
     git:
@@ -154,14 +159,20 @@ dependencies:
       url: https://github.com/cypherstack/socks_socket.git
       ref: master
   bip340: ^0.2.0
+#  tezart: ^2.0.5
   tezart:
     git:
       url: https://github.com/cypherstack/tezart.git
-      ref: main
+      ref: 8a7070f533e63dd150edae99476f6853bfb25913
   socks5_proxy: ^1.0.3+dev.3
-  coinlib_flutter: ^1.0.0
   convert: ^3.1.1
   flutter_hooks: ^0.20.3
+  meta: ^1.9.1
+  coinlib_flutter:
+    git:
+      url: https://github.com/cypherstack/coinlib.git
+      path: coinlib_flutter
+      ref: 4f549b8b511a63fdc1f44796ab43b10f586635cd
 
 dev_dependencies:
   flutter_test:
@@ -202,6 +213,22 @@ flutter_native_splash:
   android_disable_fullscreen: true
 
 dependency_overrides:
+
+  bip47:
+    git:
+      url: https://github.com/cypherstack/bip47.git
+      ref: 4cb772149b84aedd21c437d17c72b1c2d4f2c962
+
+  coinlib_flutter:
+    git:
+      url: https://github.com/cypherstack/coinlib.git
+      path: coinlib_flutter
+      ref: 4f549b8b511a63fdc1f44796ab43b10f586635cd
+  coinlib:
+    git:
+      url: https://github.com/cypherstack/coinlib.git
+      path: coinlib
+      ref: 4f549b8b511a63fdc1f44796ab43b10f586635cd
 
   # required for dart 3, at least until a fix is merged upstream
   wakelock_windows:
@@ -246,8 +273,8 @@ flutter:
   #  - images/a_dot_burr.jpeg
   #  - images/a_dot_ham.jpeg
   assets:
-    - assets/images/splash.png
-    - assets/icon/icon.png
+    - assets/images/
+    - assets/icon/
     - google_fonts/
     - assets/svg/
 

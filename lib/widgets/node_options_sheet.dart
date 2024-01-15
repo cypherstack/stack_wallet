@@ -13,11 +13,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
+import 'package:stackwallet/providers/global/active_wallet_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -47,35 +48,33 @@ class NodeOptionsSheet extends ConsumerWidget {
   final String popBackToRoute;
 
   Future<void> _notifyWalletsOfUpdatedNode(WidgetRef ref) async {
-    final managers = ref
-        .read(walletsChangeNotifierProvider)
-        .managers
-        .where((e) => e.coin == coin);
+    final wallets =
+        ref.read(pWallets).wallets.where((e) => e.info.coin == coin);
     final prefs = ref.read(prefsChangeNotifierProvider);
 
     switch (prefs.syncType) {
       case SyncingType.currentWalletOnly:
-        for (final manager in managers) {
-          if (manager.isActiveWallet) {
-            manager.updateNode(true);
+        for (final wallet in wallets) {
+          if (ref.read(currentWalletIdProvider) == wallet.walletId) {
+            unawaited(wallet.updateNode().then((value) => wallet.refresh()));
           } else {
-            manager.updateNode(false);
+            unawaited(wallet.updateNode());
           }
         }
         break;
       case SyncingType.selectedWalletsAtStartup:
         final List<String> walletIdsToSync = prefs.walletIdsSyncOnStartup;
-        for (final manager in managers) {
-          if (walletIdsToSync.contains(manager.walletId)) {
-            manager.updateNode(true);
+        for (final wallet in wallets) {
+          if (walletIdsToSync.contains(wallet.walletId)) {
+            unawaited(wallet.updateNode().then((value) => wallet.refresh()));
           } else {
-            manager.updateNode(false);
+            unawaited(wallet.updateNode());
           }
         }
         break;
       case SyncingType.allWalletsOnStartup:
-        for (final manager in managers) {
-          manager.updateNode(true);
+        for (final wallet in wallets) {
+          unawaited(wallet.updateNode().then((value) => wallet.refresh()));
         }
         break;
     }
@@ -152,7 +151,7 @@ class NodeOptionsSheet extends ConsumerWidget {
       case Coin.namecoin:
       case Coin.bitcoincashTestnet:
       case Coin.eCash:
-        final client = ElectrumX(
+        final client = ElectrumXClient(
           host: node.host,
           port: node.port,
           useSSL: node.useSSL,

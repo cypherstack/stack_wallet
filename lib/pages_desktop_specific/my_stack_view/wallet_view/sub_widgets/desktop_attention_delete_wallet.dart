@@ -14,6 +14,7 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -110,19 +111,22 @@ class _DesktopAttentionDeleteWallet
                       buttonHeight: ButtonHeight.xl,
                       label: "View Backup Key",
                       onPressed: () async {
-                        final words = await ref
-                            .read(walletsChangeNotifierProvider)
-                            .getManager(widget.walletId)
-                            .mnemonic;
+                        final wallet =
+                            ref.read(pWallets).getWallet(widget.walletId);
+                        // TODO: [prio=med] handle other types wallet deletion
+                        // All wallets currently are mnemonic based
+                        if (wallet is MnemonicInterface) {
+                          final words = await wallet.getMnemonicAsWords();
 
-                        if (mounted) {
-                          await Navigator.of(context).pushNamed(
-                            DeleteWalletKeysPopup.routeName,
-                            arguments: Tuple2(
-                              widget.walletId,
-                              words,
-                            ),
-                          );
+                          if (mounted) {
+                            await Navigator.of(context).pushNamed(
+                              DeleteWalletKeysPopup.routeName,
+                              arguments: Tuple2(
+                                widget.walletId,
+                                words,
+                              ),
+                            );
+                          }
                         }
                       },
                     ),

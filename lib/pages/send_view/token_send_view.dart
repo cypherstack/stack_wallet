@@ -21,12 +21,10 @@ import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
-import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
 import 'package:stackwallet/providers/ui/preview_tx_button_state_provider.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -42,6 +40,10 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
+import 'package:stackwallet/wallets/isar/providers/eth/token_balance_provider.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -193,8 +195,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
         // now check for non standard encoded basic address
       } else if (ref
-          .read(walletsChangeNotifierProvider)
-          .getManager(walletId)
+          .read(pWallets)
+          .getWallet(walletId)
+          .cryptoCurrency
           .validateAddress(qrResult.rawContent)) {
         _address = qrResult.rawContent.trim();
         sendToController.text = _address ?? "";
@@ -325,11 +328,16 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
     });
   }
 
-  String? _updateInvalidAddressText(String address, Manager manager) {
+  String? _updateInvalidAddressText(String address) {
     if (_data != null && _data!.contactLabel == address) {
       return null;
     }
-    if (address.isNotEmpty && !manager.validateAddress(address)) {
+    if (address.isNotEmpty &&
+        !ref
+            .read(pWallets)
+            .getWallet(walletId)
+            .cryptoCurrency
+            .validateAddress(address)) {
       return "Invalid address";
     }
     return null;
@@ -337,15 +345,16 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
   void _updatePreviewButtonState(String? address, Amount? amount) {
     final isValidAddress = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(walletId)
+        .read(pWallets)
+        .getWallet(walletId)
+        .cryptoCurrency
         .validateAddress(address ?? "");
-    ref.read(previewTxButtonStateProvider.state).state =
+    ref.read(previewTokenTxButtonStateProvider.state).state =
         (isValidAddress && amount != null && amount > Amount.zero);
   }
 
   Future<String> calculateFees() async {
-    final wallet = ref.read(tokenServiceProvider)!;
+    final wallet = ref.read(pCurrentTokenWallet)!;
     final feeObject = await wallet.fees;
 
     late final int feeRate;
@@ -364,7 +373,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
         feeRate = -1;
     }
 
-    final Amount fee = wallet.estimateFeeFor(feeRate);
+    final Amount fee = await wallet.estimateFeeFor(Amount.zero, feeRate);
     cachedFees = ref.read(pAmountFormatter(coin)).format(
           fee,
           withUnitName: true,
@@ -380,9 +389,8 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
     await Future<void>.delayed(
       const Duration(milliseconds: 100),
     );
-    final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(walletId);
-    final tokenWallet = ref.read(tokenServiceProvider)!;
+    final wallet = ref.read(pWallets).getWallet(walletId);
+    final tokenWallet = ref.read(pCurrentTokenWallet)!;
 
     final Amount amount = _amountToSend!;
 
@@ -448,7 +456,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
             barrierDismissible: false,
             builder: (context) {
               return BuildingTransactionDialog(
-                coin: manager.coin,
+                coin: wallet.info.coin,
                 onCancel: () {
                   wasCancelled = true;
 
@@ -466,15 +474,21 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
         ),
       );
 
-      Map<String, dynamic> txData;
-      Future<Map<String, dynamic>> txDataFuture;
+      TxData txData;
+      Future<TxData> txDataFuture;
 
       txDataFuture = tokenWallet.prepareSend(
-        address: _address!,
-        amount: amount,
-        args: {
-          "feeRate": ref.read(feeRateTypeStateProvider),
-        },
+        txData: TxData(
+          recipients: [
+            (
+              address: _address!,
+              amount: amount,
+              isChange: false,
+            )
+          ],
+          feeRateType: ref.read(feeRateTypeStateProvider),
+          note: noteController.text,
+        ),
       );
 
       final results = await Future.wait([
@@ -482,22 +496,20 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
         time,
       ]);
 
-      txData = results.first as Map<String, dynamic>;
+      txData = results.first as TxData;
 
       if (!wasCancelled && mounted) {
         // pop building dialog
         Navigator.of(context).pop();
-        txData["note"] = noteController.text;
-
-        txData["address"] = _address;
 
         unawaited(Navigator.of(context).push(
           RouteGenerator.getRoute(
             shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
             builder: (_) => ConfirmTransactionView(
-              transactionInfo: txData,
+              txData: txData,
               walletId: walletId,
               isTokenTx: true,
+              onSuccess: clearSendForm,
             ),
             settings: const RouteSettings(
               name: ConfirmTransactionView.routeName,
@@ -510,33 +522,48 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
         // pop building dialog
         Navigator.of(context).pop();
 
-        unawaited(showDialog<dynamic>(
-          context: context,
-          useSafeArea: false,
-          barrierDismissible: true,
-          builder: (context) {
-            return StackDialog(
-              title: "Transaction failed",
-              message: e.toString(),
-              rightButton: TextButton(
-                style: Theme.of(context)
-                    .extension<StackColors>()!
-                    .getSecondaryEnabledButtonStyle(context),
-                child: Text(
-                  "Ok",
-                  style: STextStyles.button(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark),
+        unawaited(
+          showDialog<dynamic>(
+            context: context,
+            useSafeArea: false,
+            barrierDismissible: true,
+            builder: (context) {
+              return StackDialog(
+                title: "Transaction failed",
+                message: e.toString(),
+                rightButton: TextButton(
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getSecondaryEnabledButtonStyle(context),
+                  child: Text(
+                    "Ok",
+                    style: STextStyles.button(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
                 ),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            );
-          },
-        ));
+              );
+            },
+          ),
+        );
       }
+    }
+  }
+
+  void clearSendForm() {
+    sendToController.text = "";
+    cryptoAmountController.text = "";
+    baseAmountController.text = "";
+    noteController.text = "";
+    feeController.text = "";
+    _address = "";
+    _addressToggleFlag = false;
+    if (mounted) {
+      setState(() {});
     }
   }
 
@@ -598,8 +625,6 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final provider = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManagerProvider(walletId)));
     final String locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
 
@@ -667,8 +692,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        ref.watch(provider.select(
-                                            (value) => value.walletName)),
+                                        ref.watch(pWalletName(walletId)),
                                         style: STextStyles.titleBold12(context)
                                             .copyWith(fontSize: 14),
                                         overflow: TextOverflow.ellipsis,
@@ -688,8 +712,11 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                           .watch(pAmountFormatter(coin))
                                           .format(
                                             ref
-                                                .read(tokenServiceProvider)!
-                                                .balance
+                                                .read(pTokenBalance((
+                                                  walletId: widget.walletId,
+                                                  contractAddress:
+                                                      tokenContract.address,
+                                                )))
                                                 .spendable,
                                             ethContract: tokenContract,
                                             withUnitName: false,
@@ -706,18 +733,16 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                             ref
                                                 .watch(pAmountFormatter(coin))
                                                 .format(
-                                                  ref.watch(
-                                                    tokenServiceProvider.select(
-                                                      (value) => value!
-                                                          .balance.spendable,
-                                                    ),
-                                                  ),
-                                                  ethContract: ref.watch(
-                                                    tokenServiceProvider.select(
-                                                      (value) =>
-                                                          value!.tokenContract,
-                                                    ),
-                                                  ),
+                                                  ref
+                                                      .watch(pTokenBalance((
+                                                        walletId:
+                                                            widget.walletId,
+                                                        contractAddress:
+                                                            tokenContract
+                                                                .address,
+                                                      )))
+                                                      .spendable,
+                                                  ethContract: tokenContract,
                                                 ),
                                             style:
                                                 STextStyles.titleBold12(context)
@@ -727,7 +752,13 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                             textAlign: TextAlign.right,
                                           ),
                                           Text(
-                                            "${(ref.watch(tokenServiceProvider.select((value) => value!.balance.spendable.decimal)) * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getTokenPrice(tokenContract.address).item1))).toAmount(
+                                            "${(ref.watch(pTokenBalance((
+                                                          walletId:
+                                                              widget.walletId,
+                                                          contractAddress:
+                                                              tokenContract
+                                                                  .address,
+                                                        ))).spendable.decimal * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getTokenPrice(tokenContract.address).item1))).toAmount(
                                                   fractionDigits: 2,
                                                 ).fiatString(
                                                   locale: locale,
@@ -860,9 +891,6 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                             builder: (_) {
                               final error = _updateInvalidAddressText(
                                 _address ?? "",
-                                ref
-                                    .read(walletsChangeNotifierProvider)
-                                    .getManager(walletId),
                               );
 
                               if (error == null || error.isEmpty) {
@@ -1224,12 +1252,14 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                           ),
                           TextButton(
                             onPressed: ref
-                                    .watch(previewTxButtonStateProvider.state)
+                                    .watch(
+                                        previewTokenTxButtonStateProvider.state)
                                     .state
                                 ? _previewTransaction
                                 : null,
                             style: ref
-                                    .watch(previewTxButtonStateProvider.state)
+                                    .watch(
+                                        previewTokenTxButtonStateProvider.state)
                                     .state
                                 ? Theme.of(context)
                                     .extension<StackColors>()!

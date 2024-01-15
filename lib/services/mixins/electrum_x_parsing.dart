@@ -12,27 +12,23 @@ import 'dart:convert';
 
 import 'package:bip47/src/util.dart';
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
+import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/util.dart' as util;
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import 'package:tuple/tuple.dart';
-
-class TT with ElectrumXParsing {
-  //
-}
 
 mixin ElectrumXParsing {
   Future<TransactionV2> getTransaction(
     String txHash,
     Coin coin,
     String walletId,
-    CachedElectrumX cachedElectrumX, [
+    CachedElectrumXClient cachedElectrumX, [
     String? debugTitle,
   ]) async {
     final jsonTx = await cachedElectrumX.getTransaction(
@@ -80,6 +76,7 @@ mixin ElectrumXParsing {
 
       final input = InputV2.isarCantDoRequiredInDefaultConstructor(
         scriptSigHex: map["scriptSig"]?["hex"] as String?,
+        scriptSigAsm: map["scriptSig"]?["asm"] as String?,
         sequence: map["sequence"] as int?,
         outpoint: outpoint,
         valueStringSats: valueStringSats,
@@ -117,6 +114,7 @@ mixin ElectrumXParsing {
       outputs: List.unmodifiable(outputs),
       subType: TransactionSubType.none,
       type: TransactionType.unknown,
+      otherData: null,
     );
   }
 
@@ -335,7 +333,7 @@ mixin ElectrumXParsing {
     }
 
     TransactionSubType txSubType = TransactionSubType.none;
-    if (this is PaynymWalletInterface && outs.length > 1 && ins.isNotEmpty) {
+    if (this is PaynymInterface && outs.length > 1 && ins.isNotEmpty) {
       for (int i = 0; i < outs.length; i++) {
         List<String>? scriptChunks = outs[i].scriptPubKeyAsm?.split(" ");
         if (scriptChunks?.length == 2 && scriptChunks?[0] == "OP_RETURN") {

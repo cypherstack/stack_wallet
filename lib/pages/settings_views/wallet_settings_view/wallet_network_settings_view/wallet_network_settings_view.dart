@@ -22,9 +22,6 @@ import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_net
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/sub_widgets/rescanning_dialog.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
-import 'package:stackwallet/services/coins/monero/monero_wallet.dart';
-import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/blocks_remaining_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
@@ -38,11 +35,16 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/monero_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/expandable.dart';
 import 'package:stackwallet/widgets/progress_bar.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
@@ -122,94 +124,93 @@ class _WalletNetworkSettingsViewState
   Future<void> _attemptRescan() async {
     if (!Platform.isLinux) await Wakelock.enable();
 
-    int maxUnusedAddressGap = 20;
-
-    const int maxNumberOfIndexesToCheck = 1000;
-
-    unawaited(
-      showDialog<dynamic>(
-        context: context,
-        useSafeArea: false,
-        barrierDismissible: false,
-        builder: (context) => const RescanningDialog(),
-      ),
-    );
-
     try {
-      if (ref
-              .read(walletsChangeNotifierProvider)
-              .getManager(widget.walletId)
-              .coin ==
-          Coin.firo) {
-        maxUnusedAddressGap = 50;
-      }
-      await ref
-          .read(walletsChangeNotifierProvider)
-          .getManager(widget.walletId)
-          .fullRescan(
-            maxUnusedAddressGap,
-            maxNumberOfIndexesToCheck,
+      if (mounted) {
+        unawaited(
+          showDialog<dynamic>(
+            context: context,
+            useSafeArea: false,
+            barrierDismissible: false,
+            builder: (context) => const RescanningDialog(),
+          ),
+        );
+
+        try {
+          final wallet = ref.read(pWallets).getWallet(widget.walletId);
+
+          await wallet.recover(
+            isRescan: true,
           );
 
-      if (mounted) {
-        // pop rescanning dialog
-        Navigator.of(context, rootNavigator: isDesktop).pop();
+          if (mounted) {
+            // pop rescanning dialog
+            Navigator.of(context, rootNavigator: isDesktop).pop();
 
-        // show success
-        await showDialog<dynamic>(
-          context: context,
-          useSafeArea: false,
-          barrierDismissible: true,
-          builder: (context) => StackDialog(
-            title: "Rescan completed",
-            rightButton: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getSecondaryEnabledButtonStyle(context),
-              child: Text(
-                "Ok",
-                style: STextStyles.itemSubtitle12(context),
+            // show success
+            await showDialog<dynamic>(
+              context: context,
+              useSafeArea: false,
+              barrierDismissible: true,
+              builder: (context) => ConditionalParent(
+                condition: isDesktop,
+                builder: (child) => DesktopDialog(
+                  maxHeight: 150,
+                  maxWidth: 500,
+                  child: child,
+                ),
+                child: StackDialog(
+                  title: "Rescan completed",
+                  rightButton: TextButton(
+                    style: Theme.of(context)
+                        .extension<StackColors>()!
+                        .getSecondaryEnabledButtonStyle(context),
+                    child: Text(
+                      "Ok",
+                      style: STextStyles.itemSubtitle12(context),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context, rootNavigator: isDesktop).pop();
+                    },
+                  ),
+                ),
               ),
-              onPressed: () {
-                Navigator.of(context, rootNavigator: isDesktop).pop();
-              },
-            ),
-          ),
-        );
+            );
+          }
+        } catch (e) {
+          if (!Platform.isLinux) await Wakelock.disable();
+
+          if (mounted) {
+            // pop rescanning dialog
+            Navigator.of(context, rootNavigator: isDesktop).pop();
+
+            // show error
+            await showDialog<dynamic>(
+              context: context,
+              useSafeArea: false,
+              barrierDismissible: true,
+              builder: (context) => StackDialog(
+                title: "Rescan failed",
+                message: e.toString(),
+                rightButton: TextButton(
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getSecondaryEnabledButtonStyle(context),
+                  child: Text(
+                    "Ok",
+                    style: STextStyles.itemSubtitle12(context),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context, rootNavigator: isDesktop).pop();
+                  },
+                ),
+              ),
+            );
+          }
+        }
       }
-    } catch (e) {
+    } finally {
       if (!Platform.isLinux) await Wakelock.disable();
-
-      if (mounted) {
-        // pop rescanning dialog
-        Navigator.of(context, rootNavigator: isDesktop).pop();
-
-        // show error
-        await showDialog<dynamic>(
-          context: context,
-          useSafeArea: false,
-          barrierDismissible: true,
-          builder: (context) => StackDialog(
-            title: "Rescan failed",
-            message: e.toString(),
-            rightButton: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getSecondaryEnabledButtonStyle(context),
-              child: Text(
-                "Ok",
-                style: STextStyles.itemSubtitle12(context),
-              ),
-              onPressed: () {
-                Navigator.of(context, rootNavigator: isDesktop).pop();
-              },
-            ),
-          ),
-        );
-      }
     }
-
-    if (!Platform.isLinux) await Wakelock.disable();
   }
 
   String _percentString(double value) {
@@ -257,10 +258,7 @@ class _WalletNetworkSettingsViewState
       },
     );
 
-    final coin = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .coin;
+    final coin = ref.read(pWalletCoin(widget.walletId));
 
     if (coin == Coin.monero || coin == Coin.wownero || coin == Coin.epicCash) {
       _blocksRemainingSubscription = eventBus.on<BlocksRemainingEvent>().listen(
@@ -319,35 +317,26 @@ class _WalletNetworkSettingsViewState
         ? 430.0
         : screenWidth - (_padding * 2) - (_boxPadding * 3) - _iconSize;
 
-    final coin = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .coin;
+    final coin = ref.watch(pWalletCoin(widget.walletId));
 
     if (coin == Coin.monero) {
-      double highestPercent = (ref
-              .read(walletsChangeNotifierProvider)
-              .getManager(widget.walletId)
-              .wallet as MoneroWallet)
-          .highestPercentCached;
+      double highestPercent =
+          (ref.read(pWallets).getWallet(widget.walletId) as MoneroWallet)
+              .highestPercentCached;
       if (_percent < highestPercent) {
         _percent = highestPercent.clamp(0.0, 1.0);
       }
     } else if (coin == Coin.wownero) {
-      double highestPercent = (ref
-              .read(walletsChangeNotifierProvider)
-              .getManager(widget.walletId)
-              .wallet as WowneroWallet)
-          .highestPercentCached;
+      double highestPercent =
+          (ref.watch(pWallets).getWallet(widget.walletId) as WowneroWallet)
+              .highestPercentCached;
       if (_percent < highestPercent) {
         _percent = highestPercent.clamp(0.0, 1.0);
       }
     } else if (coin == Coin.epicCash) {
-      double highestPercent = (ref
-              .read(walletsChangeNotifierProvider)
-              .getManager(widget.walletId)
-              .wallet as EpicCashWallet)
-          .highestPercent;
+      double highestPercent =
+          (ref.watch(pWallets).getWallet(widget.walletId) as EpiccashWallet)
+              .highestPercent;
       if (_percent < highestPercent) {
         _percent = highestPercent.clamp(0.0, 1.0);
       }
@@ -371,11 +360,7 @@ class _WalletNetworkSettingsViewState
                 style: STextStyles.navBarTitle(context),
               ),
               actions: [
-                if (ref
-                        .read(walletsChangeNotifierProvider)
-                        .getManager(widget.walletId)
-                        .coin !=
-                    Coin.epicCash)
+                if (ref.watch(pWalletCoin(widget.walletId)) != Coin.epicCash)
                   Padding(
                     padding: const EdgeInsets.only(
                       top: 10,
@@ -499,10 +484,7 @@ class _WalletNetworkSettingsViewState
               CustomTextButton(
                 text: "Resync",
                 onTap: () {
-                  ref
-                      .read(walletsChangeNotifierProvider)
-                      .getManager(widget.walletId)
-                      .refresh();
+                  ref.read(pWallets).getWallet(widget.walletId).refresh();
                 },
               ),
             ],
@@ -905,7 +887,7 @@ class _WalletNetworkSettingsViewState
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "${ref.watch(walletsChangeNotifierProvider.select((value) => value.getManager(widget.walletId).coin)).prettyName} nodes",
+                "${ref.watch(pWalletCoin(widget.walletId)).prettyName} nodes",
                 textAlign: TextAlign.left,
                 style: isDesktop
                     ? STextStyles.desktopTextExtraExtraSmall(context)
@@ -918,10 +900,7 @@ class _WalletNetworkSettingsViewState
                     AddEditNodeView.routeName,
                     arguments: Tuple4(
                       AddEditNodeViewType.add,
-                      ref
-                          .read(walletsChangeNotifierProvider)
-                          .getManager(widget.walletId)
-                          .coin,
+                      ref.read(pWalletCoin(widget.walletId)),
                       null,
                       WalletNetworkSettingsView.routeName,
                     ),
@@ -934,25 +913,16 @@ class _WalletNetworkSettingsViewState
             height: isDesktop ? 12 : 8,
           ),
           NodesList(
-            coin: ref.watch(walletsChangeNotifierProvider
-                .select((value) => value.getManager(widget.walletId).coin)),
+            coin: ref.watch(pWalletCoin(widget.walletId)),
             popBackToRoute: WalletNetworkSettingsView.routeName,
           ),
           if (isDesktop &&
-              ref
-                      .read(walletsChangeNotifierProvider)
-                      .getManager(widget.walletId)
-                      .coin !=
-                  Coin.epicCash)
+              ref.watch(pWalletCoin(widget.walletId)) != Coin.epicCash)
             const SizedBox(
               height: 32,
             ),
           if (isDesktop &&
-              ref
-                      .read(walletsChangeNotifierProvider)
-                      .getManager(widget.walletId)
-                      .coin !=
-                  Coin.epicCash)
+              ref.watch(pWalletCoin(widget.walletId)) != Coin.epicCash)
             Padding(
               padding: const EdgeInsets.only(
                 bottom: 12,
@@ -969,11 +939,7 @@ class _WalletNetworkSettingsViewState
               ),
             ),
           if (isDesktop &&
-              ref
-                      .read(walletsChangeNotifierProvider)
-                      .getManager(widget.walletId)
-                      .coin !=
-                  Coin.epicCash)
+              ref.watch(pWalletCoin(widget.walletId)) != Coin.epicCash)
             RoundedWhiteContainer(
               borderColor: isDesktop
                   ? Theme.of(context).extension<StackColors>()!.background

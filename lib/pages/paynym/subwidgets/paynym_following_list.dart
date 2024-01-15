@@ -16,12 +16,12 @@ import 'package:stackwallet/pages/paynym/subwidgets/paynym_card_button.dart';
 import 'package:stackwallet/providers/global/paynym_api_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
-import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
@@ -75,12 +75,8 @@ class _PaynymFollowingListState extends ConsumerState<PaynymFollowingList> {
         child: child,
         onRefresh: () async {
           try {
-            final manager = ref
-                .read(walletsChangeNotifierProvider)
-                .getManager(widget.walletId);
-
-            // get wallet to access paynym calls
-            final wallet = manager.wallet as PaynymWalletInterface;
+            final wallet = ref.read(pWallets).getWallet(widget.walletId)
+                as PaynymInterface;
 
             // get payment code
             final pCode = await wallet.getPaymentCode(

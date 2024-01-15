@@ -10,13 +10,14 @@
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/contact_entry.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/transaction_filter.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_search_filter_view.dart';
@@ -35,6 +36,8 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -57,11 +60,13 @@ class AllTransactionsV2View extends ConsumerStatefulWidget {
   const AllTransactionsV2View({
     Key? key,
     required this.walletId,
+    this.contractAddress,
   }) : super(key: key);
 
   static const String routeName = "/allTransactionsV2";
 
   final String walletId;
+  final String? contractAddress;
 
   @override
   ConsumerState<AllTransactionsV2View> createState() =>
@@ -100,8 +105,13 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
     // debugPrint("FILTER: $filter");
 
     final contacts = ref.read(addressBookServiceProvider).contacts;
-    final notes =
-        ref.read(notesServiceChangeNotifierProvider(walletId)).notesSync;
+    final notes = ref
+        .read(mainDBProvider)
+        .isar
+        .transactionNotes
+        .where()
+        .walletIdEqualTo(walletId)
+        .findAllSync();
 
     return transactions.where((tx) {
       if (!filter.sent && !filter.received) {
@@ -138,7 +148,7 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
     TransactionV2 tx,
     String keyword,
     List<ContactEntry> contacts,
-    Map<String, String> notes,
+    List<TransactionNote> notes,
   ) {
     if (keyword.isEmpty) {
       return true;
@@ -163,9 +173,14 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
         .where((e) => e.toLowerCase().contains(keyword))
         .isNotEmpty;
 
+    TransactionNote? note;
+    final matchingNotes = notes.where((e) => e.txid == tx.txid);
+    if (matchingNotes.isNotEmpty) {
+      note = matchingNotes.first;
+    }
+
     // check if note contains
-    contains |= notes[tx.txid] != null &&
-        notes[tx.txid]!.toLowerCase().contains(keyword);
+    contains |= note != null && note.value.toLowerCase().contains(keyword);
 
     // check if txid contains
     contains |= tx.txid.toLowerCase().contains(keyword);
@@ -192,8 +207,13 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
     }
     text = text.toLowerCase();
     final contacts = ref.read(addressBookServiceProvider).contacts;
-    final notes =
-        ref.read(notesServiceChangeNotifierProvider(walletId)).notesSync;
+    final notes = ref
+        .read(mainDBProvider)
+        .isar
+        .transactionNotes
+        .where()
+        .walletIdEqualTo(walletId)
+        .findAllSync();
 
     return transactions
         .where((tx) => _isKeywordMatch(tx, text, contacts, notes))
@@ -308,10 +328,7 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                       onPressed: () {
                         Navigator.of(context).pushNamed(
                           TransactionSearchFilterView.routeName,
-                          arguments: ref
-                              .read(walletsChangeNotifierProvider)
-                              .getManager(walletId)
-                              .coin,
+                          arguments: ref.read(pWalletCoin(walletId)),
                         );
                       },
                     ),
@@ -425,23 +442,19 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                         height: 20,
                       ),
                       onPressed: () {
-                        final coin = ref
-                            .read(walletsChangeNotifierProvider)
-                            .getManager(walletId)
-                            .coin;
                         if (isDesktop) {
                           showDialog<void>(
                             context: context,
                             builder: (context) {
                               return TransactionSearchFilterView(
-                                coin: coin,
+                                coin: ref.read(pWalletCoin(walletId)),
                               );
                             },
                           );
                         } else {
                           Navigator.of(context).pushNamed(
                             TransactionSearchFilterView.routeName,
-                            arguments: coin,
+                            arguments: ref.read(pWalletCoin(walletId)),
                           );
                         }
                       },
@@ -471,24 +484,40 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
             Expanded(
               child: Consumer(
                 builder: (_, ref, __) {
-                  final managerProvider = ref.watch(
-                      walletsChangeNotifierProvider.select(
-                          (value) => value.getManagerProvider(walletId)));
-
                   final criteria =
                       ref.watch(transactionFilterProvider.state).state;
-
-                  //todo: check if print needed
-                  // debugPrint("Consumer build called");
 
                   return FutureBuilder(
                     future: ref
                         .watch(mainDBProvider)
                         .isar
                         .transactionV2s
-                        .where()
-                        .walletIdEqualTo(walletId)
-                        .sortByTimestampDesc()
+                        .buildQuery<TransactionV2>(
+                            whereClauses: [
+                              IndexWhereClause.equalTo(
+                                indexName: 'walletId',
+                                value: [widget.walletId],
+                              )
+                            ],
+                            // TODO: [prio=med] add filters to wallet or cryptocurrency class
+                            filter: widget.contractAddress != null
+                                ? FilterGroup.and([
+                                    FilterCondition.equalTo(
+                                      property: r"contractAddress",
+                                      value: widget.contractAddress!,
+                                    ),
+                                    const FilterCondition.equalTo(
+                                      property: r"subType",
+                                      value: TransactionSubType.ethToken,
+                                    ),
+                                  ])
+                                : null,
+                            sortBy: [
+                              const SortProperty(
+                                property: "timestamp",
+                                sort: Sort.desc,
+                              ),
+                            ])
                         .findAll(),
                     builder: (_, AsyncSnapshot<List<TransactionV2>> snapshot) {
                       if (snapshot.connectionState == ConnectionState.done &&
@@ -497,6 +526,13 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                             transactions: snapshot.data!, filter: criteria);
 
                         final searched = search(_searchString, filtered);
+                        searched.sort((a, b) {
+                          final compare = b.timestamp.compareTo(a.timestamp);
+                          if (compare == 0) {
+                            return b.id.compareTo(a.id);
+                          }
+                          return compare;
+                        });
 
                         final monthlyList = groupTransactionsByMonth(searched);
                         return ListView.builder(
@@ -816,40 +852,34 @@ class _DesktopTransactionCardRowState
     extends ConsumerState<DesktopTransactionCardRow> {
   late final TransactionV2 _transaction;
   late final String walletId;
+  late final int minConfirms;
+  late final EthContract? ethContract;
 
-  String whatIsIt(TransactionType type, Coin coin, int height) {
-    if (_transaction.subType == TransactionSubType.mint ||
-        _transaction.subType == TransactionSubType.cashFusion) {
-      if (_transaction.isConfirmed(height, coin.requiredConfirmations)) {
-        return "Anonymized";
-      } else {
-        return "Anonymizing";
-      }
-    }
+  bool get isTokenTx => ethContract != null;
 
-    if (type == TransactionType.incoming) {
-      if (_transaction.isConfirmed(height, coin.requiredConfirmations)) {
-        return "Received";
-      } else {
-        return "Receiving";
-      }
-    } else if (type == TransactionType.outgoing) {
-      if (_transaction.isConfirmed(height, coin.requiredConfirmations)) {
-        return "Sent";
-      } else {
-        return "Sending";
-      }
-    } else if (type == TransactionType.sentToSelf) {
-      return "Sent to self";
-    } else {
-      return type.name;
-    }
-  }
+  String whatIsIt(TransactionV2 tx, int height) => tx.statusLabel(
+        currentChainHeight: height,
+        minConfirms: minConfirms,
+      );
 
   @override
   void initState() {
     walletId = widget.walletId;
+    minConfirms = ref
+        .read(pWallets)
+        .getWallet(widget.walletId)
+        .cryptoCurrency
+        .minConfirms;
     _transaction = widget.transaction;
+
+    if (_transaction.subType == TransactionSubType.ethToken) {
+      ethContract = ref
+          .read(mainDBProvider)
+          .getEthContractSync(_transaction.contractAddress!);
+    } else {
+      ethContract = null;
+    }
+
     super.initState();
   }
 
@@ -857,13 +887,11 @@ class _DesktopTransactionCardRowState
   Widget build(BuildContext context) {
     final locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId)));
 
     final baseCurrency = ref
         .watch(prefsChangeNotifierProvider.select((value) => value.currency));
 
-    final coin = manager.coin;
+    final coin = ref.watch(pWalletCoin(walletId));
 
     final price = ref
         .watch(priceAnd24hChangeNotifierProvider
@@ -883,26 +911,45 @@ class _DesktopTransactionCardRowState
       prefix = "";
     }
 
-    final currentHeight = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId).currentHeight));
+    final currentHeight = ref.watch(pWalletChainHeight(walletId));
 
     final Amount amount;
-
+    final fractionDigits = ethContract?.decimals ?? coin.decimals;
     if (_transaction.subType == TransactionSubType.cashFusion) {
-      amount = _transaction.getAmountReceivedThisWallet(coin: coin);
+      amount = _transaction.getAmountReceivedInThisWallet(
+          fractionDigits: fractionDigits);
     } else {
       switch (_transaction.type) {
         case TransactionType.outgoing:
-          amount = _transaction.getAmountSentFromThisWallet(coin: coin);
+          amount = _transaction.getAmountSentFromThisWallet(
+              fractionDigits: fractionDigits);
           break;
 
         case TransactionType.incoming:
         case TransactionType.sentToSelf:
-          amount = _transaction.getAmountReceivedThisWallet(coin: coin);
+          if (_transaction.subType == TransactionSubType.sparkMint) {
+            amount = _transaction.getAmountSparkSelfMinted(
+                fractionDigits: fractionDigits);
+          } else if (_transaction.subType == TransactionSubType.sparkSpend) {
+            final changeAddress =
+                (ref.watch(pWallets).getWallet(walletId) as SparkInterface)
+                    .sparkChangeAddress;
+            amount = Amount(
+              rawValue: _transaction.outputs
+                  .where((e) =>
+                      e.walletOwns && !e.addresses.contains(changeAddress))
+                  .fold(BigInt.zero, (p, e) => p + e.value),
+              fractionDigits: coin.decimals,
+            );
+          } else {
+            amount = _transaction.getAmountReceivedInThisWallet(
+                fractionDigits: fractionDigits);
+          }
           break;
 
         case TransactionType.unknown:
-          amount = _transaction.getAmountSentFromThisWallet(coin: coin);
+          amount = _transaction.getAmountSentFromThisWallet(
+              fractionDigits: fractionDigits);
           break;
       }
     }
@@ -966,8 +1013,7 @@ class _DesktopTransactionCardRowState
                 flex: 3,
                 child: Text(
                   whatIsIt(
-                    _transaction.type,
-                    coin,
+                    _transaction,
                     currentHeight,
                   ),
                   style:
@@ -976,6 +1022,14 @@ class _DesktopTransactionCardRowState
                   ),
                 ),
               ),
+              if (kDebugMode)
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    _transaction.subType.name,
+                    style: STextStyles.label(context),
+                  ),
+                ),
               Expanded(
                 flex: 4,
                 child: Text(
@@ -986,7 +1040,7 @@ class _DesktopTransactionCardRowState
               Expanded(
                 flex: 6,
                 child: Text(
-                  "$prefix${ref.watch(pAmountFormatter(coin)).format(amount)}",
+                  "$prefix${ref.watch(pAmountFormatter(coin)).format(amount, ethContract: ethContract)}",
                   style:
                       STextStyles.desktopTextExtraExtraSmall(context).copyWith(
                     color: Theme.of(context).extension<StackColors>()!.textDark,

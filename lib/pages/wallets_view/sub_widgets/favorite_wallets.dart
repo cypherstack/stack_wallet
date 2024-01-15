@@ -15,12 +15,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/manage_favorites_view/manage_favorites_view.dart';
 import 'package:stackwallet/pages/wallets_view/sub_widgets/favorite_card.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/favourite_wallets_provider.dart';
 import 'package:stackwallet/widgets/custom_page_view/custom_page_view.dart'
     as cpv;
 
@@ -74,10 +73,10 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final favorites = ref.watch(favoritesProvider);
+    final favorites = ref.watch(pFavouriteWalletInfos(true));
     _favLength = favorites.length;
 
-    bool hasFavorites = favorites.length > 0;
+    bool hasFavorites = favorites.isNotEmpty;
 
     final remaining = ((screenWidth - cardWidth) / cardWidth).ceil();
 
@@ -192,13 +191,9 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
                   }),
                   itemBuilder: (_, index) {
                     String? walletId;
-                    ChangeNotifierProvider<Manager>? managerProvider;
 
                     if (index < favorites.length) {
-                      walletId = ref.read(favorites[index]).walletId;
-                      managerProvider = ref
-                          .read(walletsChangeNotifierProvider)
-                          .getManagerProvider(walletId);
+                      walletId = favorites[index].walletId;
                     }
 
                     const double scaleDown = 0.95;

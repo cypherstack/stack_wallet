@@ -8,28 +8,7 @@
  *
  */
 
-import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart' as btc;
-import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart'
-    as bch;
-import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart'
-    as doge;
-import 'package:stackwallet/services/coins/ecash/ecash_wallet.dart' as ecash;
-import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart'
-    as epic;
-import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart'
-    as eth;
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart' as firo;
-import 'package:stackwallet/services/coins/litecoin/litecoin_wallet.dart'
-    as ltc;
-import 'package:stackwallet/services/coins/monero/monero_wallet.dart' as xmr;
-import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart'
-    as nmc;
-import 'package:stackwallet/services/coins/nano/nano_wallet.dart' as nano;
-import 'package:stackwallet/services/coins/particl/particl_wallet.dart'
-    as particl;
-import 'package:stackwallet/services/coins/stellar/stellar_wallet.dart' as xlm;
-import 'package:stackwallet/services/coins/tezos/tezos_wallet.dart' as tezos;
-import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart' as wow;
+import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/utilities/constants.dart';
 
 enum Coin {
@@ -63,7 +42,7 @@ enum Coin {
   stellarTestnet,
 }
 
-final int kTestNetCoinCount = 5; // Util.isDesktop ? 5 : 4;
+final int kTestNetCoinCount = 6; // Util.isDesktop ? 5 : 4;
 // remove firotestnet for now
 
 extension CoinExt on Coin {
@@ -375,63 +354,52 @@ extension CoinExt on Coin {
     }
   }
 
-  int get requiredConfirmations {
+  int get decimals => Constants.decimalPlacesForCoin(this);
+
+  // Note: this must relate to DerivePathType for certain coins!
+  AddressType get primaryAddressType {
     switch (this) {
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
-        return btc.MINIMUM_CONFIRMATIONS;
-
       case Coin.litecoin:
       case Coin.litecoinTestNet:
-        return ltc.MINIMUM_CONFIRMATIONS;
-
-      case Coin.bitcoincash:
-      case Coin.bitcoincashTestnet:
-        return bch.MINIMUM_CONFIRMATIONS;
-
-      case Coin.firo:
-      case Coin.firoTestNet:
-        return firo.MINIMUM_CONFIRMATIONS;
-
-      case Coin.dogecoin:
-      case Coin.dogecoinTestNet:
-        return doge.MINIMUM_CONFIRMATIONS;
-
-      case Coin.epicCash:
-        return epic.MINIMUM_CONFIRMATIONS;
+      case Coin.namecoin:
+      case Coin.particl:
+        return AddressType.p2wpkh;
 
       case Coin.eCash:
-        return ecash.MINIMUM_CONFIRMATIONS;
-
-      case Coin.ethereum:
-        return eth.MINIMUM_CONFIRMATIONS;
+      case Coin.bitcoincash:
+      case Coin.bitcoincashTestnet:
+      case Coin.dogecoin:
+      case Coin.firo:
+      case Coin.firoTestNet:
+      case Coin.dogecoinTestNet:
+        return AddressType.p2pkh;
 
       case Coin.monero:
-        return xmr.MINIMUM_CONFIRMATIONS;
+      case Coin.wownero:
+        return AddressType.cryptonote;
 
-      case Coin.particl:
-        return particl.MINIMUM_CONFIRMATIONS;
+      case Coin.epicCash:
+        return AddressType.mimbleWimble;
+
+      case Coin.ethereum:
+        return AddressType.ethereum;
+
+      case Coin.tezos:
+        return AddressType.tezos;
+
+      case Coin.nano:
+        return AddressType.nano;
+
+      case Coin.banano:
+        return AddressType.banano;
 
       case Coin.stellar:
       case Coin.stellarTestnet:
-        return xlm.MINIMUM_CONFIRMATIONS;
-
-      case Coin.tezos:
-        return tezos.MINIMUM_CONFIRMATIONS;
-
-      case Coin.wownero:
-        return wow.MINIMUM_CONFIRMATIONS;
-
-      case Coin.namecoin:
-        return nmc.MINIMUM_CONFIRMATIONS;
-
-      case Coin.nano:
-      case Coin.banano:
-        return nano.MINIMUM_CONFIRMATIONS;
+        return AddressType.stellar;
     }
   }
-
-  int get decimals => Constants.decimalPlacesForCoin(this);
 }
 
 Coin coinFromPrettyName(String name) {

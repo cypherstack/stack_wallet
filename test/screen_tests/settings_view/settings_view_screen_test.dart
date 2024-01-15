@@ -6,7 +6,7 @@ import 'package:mockito/annotations.dart';
 // import 'package:mockito/mockito.dart';
 // import 'package:stackwallet/notifications/modal_popup_dialog.dart';
 // import 'package:stackwallet/pages/settings_view/settings_view.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+
 import 'package:stackwallet/services/wallets_service.dart';
 // import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 // import 'package:stackwallet/widgets/custom_buttons/gradient_button.dart';
@@ -17,7 +17,6 @@ import 'package:stackwallet/services/wallets_service.dart';
 
 @GenerateMocks([], customMocks: [
   MockSpec<WalletsService>(returnNullOnMissingStub: true),
-  MockSpec<Manager>(returnNullOnMissingStub: true),
 ])
 void main() {
 //   testWidgets("SettingsView builds correctly", (tester) async {
@@ -88,7 +87,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap log out and confirm log out", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -154,7 +153,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap log out and cancel log out", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -338,7 +337,7 @@ void main() {
 //
 //   testWidgets("tap wallet settings", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     mockingjay
 //         .when(() => navigator.push(mockingjay.any()))

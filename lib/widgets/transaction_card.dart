@@ -51,6 +51,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
   late final String unit;
   late final Coin coin;
   late final EthContract? tokenContract;
+  late final int minConfirms;
 
   String whatIsIt(
     TransactionType type,
@@ -63,7 +64,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
 
     final confirmedStatus = _transaction.isConfirmed(
       currentHeight,
-      coin.requiredConfirmations,
+      minConfirms,
     );
 
     if (type != TransactionType.incoming &&
@@ -110,6 +111,8 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
   @override
   void initState() {
     walletId = widget.walletId;
+    minConfirms =
+        ref.read(pWallets).getWallet(walletId).cryptoCurrency.minConfirms;
     _transaction = widget.transaction;
     isTokenTx = _transaction.subType == TransactionSubType.ethToken;
     if (Util.isDesktop) {
@@ -123,10 +126,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
     } else {
       prefix = "";
     }
-    coin = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .coin;
+    coin = ref.read(pWallets).getWallet(widget.walletId).info.coin;
 
     tokenContract = ref
         .read(mainDBProvider)
@@ -150,8 +150,8 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
             : value.getPrice(coin)))
         .item1;
 
-    final currentHeight = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId).currentHeight));
+    final currentHeight = ref.watch(pWallets
+        .select((value) => value.getWallet(walletId).info.cachedChainHeight));
 
     return Material(
       color: Theme.of(context).extension<StackColors>()!.popupBG,

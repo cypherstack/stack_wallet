@@ -24,13 +24,14 @@ import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/ad
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_eth_tokens.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/impl/ethereum_wallet.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -98,10 +99,8 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
         .map((e) => e.token.address)
         .toList();
 
-    final ethWallet = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .wallet as EthereumWallet;
+    final ethWallet =
+        ref.read(pWallets).getWallet(widget.walletId) as EthereumWallet;
 
     await ethWallet.updateTokenContracts(selectedTokens);
     if (mounted) {
@@ -122,7 +121,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
           unawaited(
             showFloatingFlushBar(
               type: FlushBarType.success,
-              message: "${ethWallet.walletName} tokens saved",
+              message: "${ethWallet.info.name} tokens saved",
               context: context,
             ),
           );
@@ -181,11 +180,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
 
     tokenEntities.addAll(contracts.map((e) => AddTokenListElementData(e)));
 
-    final walletContracts = (ref
-            .read(walletsChangeNotifierProvider)
-            .getManager(widget.walletId)
-            .wallet as EthereumWallet)
-        .getWalletTokenContractAddresses();
+    final walletContracts = ref.read(pWalletTokenAddresses(widget.walletId));
 
     final shouldMarkAsSelectedContracts = [
       ...walletContracts,
@@ -209,8 +204,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final walletName = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(widget.walletId).walletName));
+    final walletName = ref.watch(pWalletName(widget.walletId));
 
     if (isDesktop) {
       return ConditionalParent(

@@ -195,9 +195,9 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                 if (txid != null &&
                                     walletIds != null &&
                                     walletIds.isNotEmpty) {
-                                  final manager = ref
-                                      .read(walletsChangeNotifierProvider)
-                                      .getManager(walletIds.first);
+                                  final wallet = ref
+                                      .read(pWallets)
+                                      .getWallet(walletIds.first);
 
                                   //todo: check if print needed
                                   // debugPrint("name: ${manager.walletName}");
@@ -212,7 +212,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                                     unawaited(Navigator.of(context).pushNamed(
                                       TradeDetailsView.routeName,
                                       arguments: Tuple4(tradeId, tx,
-                                          walletIds.first, manager.walletName),
+                                          walletIds.first, wallet.info.name),
                                     ));
                                   }
                                 } else {

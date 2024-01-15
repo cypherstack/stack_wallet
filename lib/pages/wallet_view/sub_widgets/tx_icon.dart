@@ -16,6 +16,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -39,13 +40,16 @@ class TxIcon extends ConsumerWidget {
     bool isReceived,
     bool isPending,
     TransactionSubType subType,
+    TransactionType type,
     IThemeAssets assets,
   ) {
     if (subType == TransactionSubType.cashFusion) {
       return Assets.svg.txCashFusion;
     }
 
-    if (!isReceived && subType == TransactionSubType.mint) {
+    if ((!isReceived && subType == TransactionSubType.mint) ||
+        (subType == TransactionSubType.sparkMint &&
+            type == TransactionType.sentToSelf)) {
       if (isCancelled) {
         return Assets.svg.anonymizeFailed;
       }
@@ -87,9 +91,10 @@ class TxIcon extends ConsumerWidget {
         txIsReceived,
         !tx.isConfirmed(
           currentHeight,
-          coin.requiredConfirmations,
+          ref.watch(pWallets).getWallet(tx.walletId).cryptoCurrency.minConfirms,
         ),
         tx.subType,
+        tx.type,
         ref.watch(themeAssetsProvider),
       );
     } else if (transaction is TransactionV2) {
@@ -100,9 +105,10 @@ class TxIcon extends ConsumerWidget {
         txIsReceived,
         !tx.isConfirmed(
           currentHeight,
-          coin.requiredConfirmations,
+          ref.watch(pWallets).getWallet(tx.walletId).cryptoCurrency.minConfirms,
         ),
         tx.subType,
+        tx.type,
         ref.watch(themeAssetsProvider),
       );
     } else {

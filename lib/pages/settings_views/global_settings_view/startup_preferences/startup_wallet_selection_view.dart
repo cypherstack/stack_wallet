@@ -18,6 +18,7 @@ import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
@@ -38,11 +39,10 @@ class _StartupWalletSelectionViewState
 
   @override
   Widget build(BuildContext context) {
-    final managers = ref
-        .watch(walletsChangeNotifierProvider.select((value) => value.managers));
+    final wallets = ref.watch(pWallets).wallets;
 
     _controllers.clear();
-    for (final manager in managers) {
+    for (final manager in wallets) {
       _controllers[manager.walletId] = DSBController();
     }
 
@@ -95,18 +95,21 @@ class _StartupWalletSelectionViewState
                           padding: const EdgeInsets.all(0),
                           child: Column(
                             children: [
-                              ...managers.map(
-                                (manager) => Padding(
+                              ...wallets.map(
+                                (wallet) => Padding(
                                   padding: const EdgeInsets.all(12),
                                   child: Row(
                                     key: Key(
-                                        "startupWalletSelectionGroupKey_${manager.walletId}"),
+                                        "startupWalletSelectionGroupKey_${wallet.walletId}"),
                                     children: [
                                       Container(
                                         decoration: BoxDecoration(
                                           color: Theme.of(context)
                                               .extension<StackColors>()!
-                                              .colorForCoin(manager.coin)
+                                              .colorForCoin(
+                                                ref.watch(pWalletCoin(
+                                                    wallet.walletId)),
+                                              )
                                               .withOpacity(0.5),
                                           borderRadius: BorderRadius.circular(
                                             Constants.size.circularBorderRadius,
@@ -117,7 +120,10 @@ class _StartupWalletSelectionViewState
                                           child: SvgPicture.file(
                                             File(
                                               ref.watch(
-                                                coinIconProvider(manager.coin),
+                                                coinIconProvider(
+                                                  ref.watch(pWalletCoin(
+                                                      wallet.walletId)),
+                                                ),
                                               ),
                                             ),
                                             width: 20,
@@ -136,7 +142,8 @@ class _StartupWalletSelectionViewState
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              manager.walletName,
+                                              ref.watch(
+                                                  pWalletName(wallet.walletId)),
                                               style: STextStyles.titleBold12(
                                                   context),
                                             ),
@@ -184,7 +191,7 @@ class _StartupWalletSelectionViewState
                                           activeColor: Theme.of(context)
                                               .extension<StackColors>()!
                                               .radioButtonIconEnabled,
-                                          value: manager.walletId,
+                                          value: wallet.walletId,
                                           groupValue: ref.watch(
                                             prefsChangeNotifierProvider.select(
                                                 (value) =>

@@ -33,7 +33,6 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/animated_widgets/rotate_icon.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/onetime_popups/tor_has_been_add_dialog.dart';
 import 'package:stackwallet/widgets/small_tor_icon.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
@@ -130,9 +129,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
     ref.read(notificationsProvider).startCheckingWatchedNotifications();
 
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      showOneTimeTorHasBeenAddedDialogIfRequired(context);
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+    //   showOneTimeTorHasBeenAddedDialogIfRequired(context);
+    // });
 
     super.initState();
   }

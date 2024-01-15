@@ -56,7 +56,7 @@ const TransactionNoteSchema = CollectionSchema(
       id: -2771771174176035985,
       name: r'txid_walletId',
       unique: true,
-      replace: false,
+      replace: true,
       properties: [
         IndexPropertySchema(
           name: r'txid',

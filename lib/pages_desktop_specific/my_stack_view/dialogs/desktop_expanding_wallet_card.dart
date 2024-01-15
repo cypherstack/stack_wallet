@@ -12,11 +12,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
-import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/widgets/animated_widgets/rotate_icon.dart';
 import 'package:stackwallet/widgets/expandable.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -32,7 +32,7 @@ class DesktopExpandingWalletCard extends StatefulWidget {
     required this.navigatorState,
   }) : super(key: key);
 
-  final Tuple2<Manager, List<EthContract>> data;
+  final Tuple2<Wallet, List<EthContract>> data;
   final NavigatorState navigatorState;
 
   @override
@@ -48,7 +48,7 @@ class _DesktopExpandingWalletCardState
 
   @override
   void initState() {
-    if (widget.data.item1.hasTokenSupport) {
+    if (widget.data.item1.cryptoCurrency.hasTokenSupport) {
       tokenContractAddresses.addAll(
         widget.data.item2.map((e) => e.address),
       );
@@ -63,7 +63,7 @@ class _DesktopExpandingWalletCardState
       padding: EdgeInsets.zero,
       borderColor: Theme.of(context).extension<StackColors>()!.backgroundAppBar,
       child: Expandable(
-        initialState: widget.data.item1.hasTokenSupport
+        initialState: widget.data.item1.cryptoCurrency.hasTokenSupport
             ? ExpandableState.expanded
             : ExpandableState.collapsed,
         controller: expandableController,
@@ -89,13 +89,13 @@ class _DesktopExpandingWalletCardState
                       child: Row(
                         children: [
                           WalletInfoCoinIcon(
-                            coin: widget.data.item1.coin,
+                            coin: widget.data.item1.info.coin,
                           ),
                           const SizedBox(
                             width: 12,
                           ),
                           Text(
-                            widget.data.item1.walletName,
+                            widget.data.item1.info.name,
                             style: STextStyles.desktopTextExtraSmall(context)
                                 .copyWith(
                               color: Theme.of(context)

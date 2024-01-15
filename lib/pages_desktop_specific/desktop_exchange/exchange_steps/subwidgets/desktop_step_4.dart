@@ -39,9 +39,9 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
     try {
       final coin = coinFromTickerCaseInsensitive(ticker);
       return ref
-          .read(walletsChangeNotifierProvider)
-          .managers
-          .where((element) => element.coin == coin)
+          .read(pWallets)
+          .wallets
+          .where((e) => e.info.coin == coin)
           .isNotEmpty;
     } catch (_) {
       return false;

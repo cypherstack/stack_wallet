@@ -26,12 +26,13 @@ class DB {
   @Deprecated("Left over for migration from old versions of Stack Wallet")
   static const String boxNameAddressBook = "addressBook";
   static const String boxNameTrades = "exchangeTransactionsBox";
+  static const String boxNameAllWalletsData = "wallets";
+  static const String boxNameFavoriteWallets = "favoriteWallets";
 
   // in use
   // TODO: migrate
   static const String boxNameNodeModels = "nodeModels";
   static const String boxNamePrimaryNodes = "primaryNodes";
-  static const String boxNameAllWalletsData = "wallets";
   static const String boxNameNotifications = "notificationModels";
   static const String boxNameWatchedTransactions =
       "watchedTxNotificationModels";
@@ -39,7 +40,6 @@ class DB {
   static const String boxNameTradesV2 = "exchangeTradesBox";
   static const String boxNameTradeNotes = "tradeNotesBox";
   static const String boxNameTradeLookup = "tradeToTxidLookUpBox";
-  static const String boxNameFavoriteWallets = "favoriteWallets";
   static const String boxNameWalletsToDeleteOnStart = "walletsToDeleteOnStart";
   static const String boxNamePriceCache = "priceAPIPrice24hCache";
 
@@ -53,8 +53,12 @@ class DB {
   // firo only
   String _boxNameSetCache({required Coin coin}) =>
       "${coin.name}_anonymitySetCache";
+  String _boxNameSetSparkCache({required Coin coin}) =>
+      "${coin.name}_anonymitySetSparkCache";
   String _boxNameUsedSerialsCache({required Coin coin}) =>
       "${coin.name}_usedSerialsCache";
+  String _boxNameSparkUsedCoinsTagsCache({required Coin coin}) =>
+      "${coin.name}_sparkUsedCoinsTagsCache";
 
   Box<NodeModel>? _boxNodeModels;
   Box<NodeModel>? _boxPrimaryNodes;
@@ -75,7 +79,9 @@ class DB {
 
   final Map<Coin, Box<dynamic>> _txCacheBoxes = {};
   final Map<Coin, Box<dynamic>> _setCacheBoxes = {};
+  final Map<Coin, Box<dynamic>> _setSparkCacheBoxes = {};
   final Map<Coin, Box<dynamic>> _usedSerialsCacheBoxes = {};
+  final Map<Coin, Box<dynamic>> _getSparkUsedCoinsTagsCacheBoxes = {};
 
   // exposed for monero
   Box<xmr.WalletInfo> get moneroWalletInfoBox => _walletInfoSource!;
@@ -197,6 +203,15 @@ class DB {
         await Hive.openBox<dynamic>(_boxNameSetCache(coin: coin));
   }
 
+  Future<Box<dynamic>> getSparkAnonymitySetCacheBox(
+      {required Coin coin}) async {
+    if (_setSparkCacheBoxes[coin]?.isOpen != true) {
+      _setSparkCacheBoxes.remove(coin);
+    }
+    return _setSparkCacheBoxes[coin] ??=
+        await Hive.openBox<dynamic>(_boxNameSetSparkCache(coin: coin));
+  }
+
   Future<void> closeAnonymitySetCacheBox({required Coin coin}) async {
     await _setCacheBoxes[coin]?.close();
   }
@@ -209,6 +224,16 @@ class DB {
         await Hive.openBox<dynamic>(_boxNameUsedSerialsCache(coin: coin));
   }
 
+  Future<Box<dynamic>> getSparkUsedCoinsTagsCacheBox(
+      {required Coin coin}) async {
+    if (_getSparkUsedCoinsTagsCacheBoxes[coin]?.isOpen != true) {
+      _getSparkUsedCoinsTagsCacheBoxes.remove(coin);
+    }
+    return _getSparkUsedCoinsTagsCacheBoxes[coin] ??=
+        await Hive.openBox<dynamic>(
+            _boxNameSparkUsedCoinsTagsCache(coin: coin));
+  }
+
   Future<void> closeUsedSerialsCacheBox({required Coin coin}) async {
     await _usedSerialsCacheBoxes[coin]?.close();
   }
@@ -216,9 +241,12 @@ class DB {
   /// Clear all cached transactions for the specified coin
   Future<void> clearSharedTransactionCache({required Coin coin}) async {
     await deleteAll<dynamic>(boxName: _boxNameTxCache(coin: coin));
-    if (coin == Coin.firo) {
+    if (coin == Coin.firo || coin == Coin.firoTestNet) {
       await deleteAll<dynamic>(boxName: _boxNameSetCache(coin: coin));
+      await deleteAll<dynamic>(boxName: _boxNameSetSparkCache(coin: coin));
       await deleteAll<dynamic>(boxName: _boxNameUsedSerialsCache(coin: coin));
+      await deleteAll<dynamic>(
+          boxName: _boxNameSparkUsedCoinsTagsCache(coin: coin));
     }
   }
 
@@ -322,5 +350,4 @@ abstract class DBKeys {
   static const String isFavorite = "isFavorite";
   static const String id = "id";
   static const String storedChainHeight = "storedChainHeight";
-  static const String ethTokenContracts = "ethTokenContracts";
 }

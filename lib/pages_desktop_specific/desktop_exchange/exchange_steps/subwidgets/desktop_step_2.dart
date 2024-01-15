@@ -238,27 +238,24 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
     if (tuple != null) {
       if (ref.read(desktopExchangeModelProvider)!.receiveTicker.toLowerCase() ==
           tuple.item2.ticker.toLowerCase()) {
-        ref
-            .read(walletsChangeNotifierProvider)
-            .getManager(tuple.item1)
-            .currentReceivingAddress
-            .then((value) {
-          _toController.text = value;
-          ref.read(desktopExchangeModelProvider)!.recipientAddress =
-              _toController.text;
-        });
+        _toController.text = ref
+            .read(pWallets)
+            .getWallet(tuple.item1)
+            .info
+            .cachedReceivingAddress;
+
+        ref.read(desktopExchangeModelProvider)!.recipientAddress =
+            _toController.text;
       } else {
         if (ref.read(desktopExchangeModelProvider)!.sendTicker.toUpperCase() ==
             tuple.item2.ticker.toUpperCase()) {
-          ref
-              .read(walletsChangeNotifierProvider)
-              .getManager(tuple.item1)
-              .currentReceivingAddress
-              .then((value) {
-            _refundController.text = value;
-            ref.read(desktopExchangeModelProvider)!.refundAddress =
-                _refundController.text;
-          });
+          _refundController.text = ref
+              .read(pWallets)
+              .getWallet(tuple.item1)
+              .info
+              .cachedReceivingAddress;
+          ref.read(desktopExchangeModelProvider)!.refundAddress =
+              _refundController.text;
         }
       }
     }

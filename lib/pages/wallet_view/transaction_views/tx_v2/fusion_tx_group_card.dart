@@ -5,12 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/fusion_group_details_view.dart';
-import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 
 class FusionTxGroup {
@@ -27,11 +27,9 @@ class FusionTxGroupCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final walletId = group.transactions.first.walletId;
 
-    final coin = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId).coin));
+    final coin = ref.watch(pWalletCoin(walletId));
 
-    final currentHeight = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId).currentHeight));
+    final currentHeight = ref.watch(pWalletChainHeight(walletId));
 
     return Material(
       color: Theme.of(context).extension<StackColors>()!.popupBG,

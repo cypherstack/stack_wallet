@@ -30,7 +30,6 @@ import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_set
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
@@ -40,6 +39,8 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
@@ -88,8 +89,9 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
   void initState() {
     walletId = widget.walletId;
     coin = widget.coin;
-    xPubEnabled =
-        ref.read(walletsChangeNotifierProvider).getManager(walletId).hasXPub;
+    // TODO: [prio=low] xpubs
+    // xPubEnabled = ref.read(pWallets).getWallet(walletId).hasXPub;
+    xPubEnabled = false;
     xpub = "";
 
     _currentSyncStatus = widget.initialSyncStatus;
@@ -230,36 +232,42 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                       iconSize: 16,
                                       title: "Wallet backup",
                                       onPressed: () async {
-                                        final mnemonic = await ref
-                                            .read(walletsChangeNotifierProvider)
-                                            .getManager(walletId)
-                                            .mnemonic;
+                                        final wallet = ref
+                                            .read(pWallets)
+                                            .getWallet(widget.walletId);
+                                        // TODO: [prio=frost] take wallets that don't have a mnemonic into account
+                                        if (wallet is MnemonicInterface) {
+                                          final mnemonic =
+                                              await wallet.getMnemonicAsWords();
 
-                                        if (mounted) {
-                                          await Navigator.push(
-                                            context,
-                                            RouteGenerator.getRoute(
-                                              shouldUseMaterialRoute:
-                                                  RouteGenerator
-                                                      .useMaterialPageRoute,
-                                              builder: (_) => LockscreenView(
-                                                routeOnSuccessArguments:
-                                                    Tuple2(walletId, mnemonic),
-                                                showBackButton: true,
-                                                routeOnSuccess:
-                                                    WalletBackupView.routeName,
-                                                biometricsCancelButtonString:
-                                                    "CANCEL",
-                                                biometricsLocalizedReason:
-                                                    "Authenticate to view recovery phrase",
-                                                biometricsAuthenticationTitle:
-                                                    "View recovery phrase",
+                                          if (mounted) {
+                                            await Navigator.push(
+                                              context,
+                                              RouteGenerator.getRoute(
+                                                shouldUseMaterialRoute:
+                                                    RouteGenerator
+                                                        .useMaterialPageRoute,
+                                                builder: (_) => LockscreenView(
+                                                  routeOnSuccessArguments:
+                                                      Tuple2(
+                                                          walletId, mnemonic),
+                                                  showBackButton: true,
+                                                  routeOnSuccess:
+                                                      WalletBackupView
+                                                          .routeName,
+                                                  biometricsCancelButtonString:
+                                                      "CANCEL",
+                                                  biometricsLocalizedReason:
+                                                      "Authenticate to view recovery phrase",
+                                                  biometricsAuthenticationTitle:
+                                                      "View recovery phrase",
+                                                ),
+                                                settings: const RouteSettings(
+                                                    name:
+                                                        "/viewRecoverPhraseLockscreen"),
                                               ),
-                                              settings: const RouteSettings(
-                                                  name:
-                                                      "/viewRecoverPhraseLockscreen"),
-                                            ),
-                                          );
+                                            );
+                                          }
                                         }
                                       },
                                     );
@@ -406,10 +414,11 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                             builder: (_, ref, __) {
                               return TextButton(
                                 onPressed: () {
-                                  ref
-                                      .read(walletsChangeNotifierProvider)
-                                      .getManager(walletId)
-                                      .isActiveWallet = false;
+                                  // TODO: [prio=med] needs more thought if this is still required
+                                  // ref
+                                  //     .read(pWallets)
+                                  //     .getWallet(walletId)
+                                  //     .isActiveWallet = false;
                                   ref
                                       .read(transactionFilterProvider.state)
                                       .state = null;
@@ -461,14 +470,11 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
   final hostController = TextEditingController();
   final portController = TextEditingController();
 
-  late EpicCashWallet wallet;
+  late EpiccashWallet wallet;
 
   @override
   void initState() {
-    wallet = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .wallet as EpicCashWallet;
+    wallet = ref.read(pWallets).getWallet(widget.walletId) as EpiccashWallet;
 
     wallet.getEpicBoxConfig().then((EpicBoxConfigModel epicBoxConfig) {
       hostController.text = epicBoxConfig.host;

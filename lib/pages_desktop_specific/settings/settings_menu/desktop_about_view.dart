@@ -155,7 +155,7 @@ class DesktopAboutView extends ConsumerWidget {
                 Expanded(
                   child: RoundedWhiteContainer(
                     width: 929,
-                    height: 411,
+                    height: 451,
                     child: Padding(
                       padding: const EdgeInsets.only(left: 10, top: 10),
                       child: Column(
@@ -669,41 +669,56 @@ class DesktopAboutView extends ConsumerWidget {
                                         const SizedBox(height: 35),
                                         Row(
                                           children: [
-                                            Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  "Website",
-                                                  style: STextStyles
-                                                          .desktopTextExtraExtraSmall(
-                                                              context)
-                                                      .copyWith(
-                                                          color: Theme.of(
-                                                                  context)
-                                                              .extension<
-                                                                  StackColors>()!
-                                                              .textDark),
-                                                ),
-                                                const SizedBox(
-                                                  height: 2,
-                                                ),
-                                                CustomTextButton(
-                                                  text:
-                                                      "https://stackwallet.com",
-                                                  onTap: () {
-                                                    launchUrl(
-                                                      Uri.parse(
-                                                          "https://stackwallet.com"),
-                                                      mode: LaunchMode
-                                                          .externalApplication,
-                                                    );
-                                                  },
-                                                ),
-                                              ],
-                                            )
+                                            Text(
+                                              "Website:",
+                                              style: STextStyles
+                                                      .desktopTextExtraExtraSmall(
+                                                          context)
+                                                  .copyWith(
+                                                      color: Theme.of(context)
+                                                          .extension<
+                                                              StackColors>()!
+                                                          .textDark),
+                                            ),
+                                            CustomTextButton(
+                                              text: "https://stackwallet.com",
+                                              onTap: () {
+                                                launchUrl(
+                                                  Uri.parse(
+                                                      "https://stackwallet.com"),
+                                                  mode: LaunchMode
+                                                      .externalApplication,
+                                                );
+                                              },
+                                            ),
                                           ],
-                                        )
+                                        ),
+                                        const SizedBox(height: 25),
+                                        Row(
+                                          children: [
+                                            Text(
+                                              "Tezos functionality:",
+                                              style: STextStyles
+                                                      .desktopTextExtraExtraSmall(
+                                                          context)
+                                                  .copyWith(
+                                                      color: Theme.of(context)
+                                                          .extension<
+                                                              StackColors>()!
+                                                          .textDark),
+                                            ),
+                                            CustomTextButton(
+                                              text: "Powered by TzKT API",
+                                              onTap: () {
+                                                launchUrl(
+                                                  Uri.parse("https://tzkt.io"),
+                                                  mode: LaunchMode
+                                                      .externalApplication,
+                                                );
+                                              },
+                                            ),
+                                          ],
+                                        ),
                                       ],
                                     );
                                   },

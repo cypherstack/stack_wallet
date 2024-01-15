@@ -32,7 +32,6 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_pin_put/custom_pin_put.dart';
 import 'package:stackwallet/widgets/shake/shake.dart';
-import 'package:tuple/tuple.dart';
 
 class LockscreenView extends ConsumerStatefulWidget {
   const LockscreenView({
@@ -98,14 +97,13 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
       if (loadIntoWallet) {
         final walletId = widget.routeOnSuccessArguments as String;
 
-        final manager =
-            ref.read(walletsChangeNotifierProvider).getManager(walletId);
-        if (manager.coin == Coin.monero) {
+        final wallet = ref.read(pWallets).getWallet(walletId);
+        if (wallet.info.coin == Coin.monero) {
           await showLoading(
             opaqueBG: true,
-            whileFuture: manager.initializeExisting(),
+            whileFuture: wallet.init(),
             context: context,
-            message: "Loading ${manager.coin.prettyName} wallet...",
+            message: "Loading ${wallet.info.coin.prettyName} wallet...",
           );
         }
       }
@@ -124,12 +122,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
           unawaited(
             Navigator.of(context).pushNamed(
               WalletView.routeName,
-              arguments: Tuple2(
-                walletId,
-                ref
-                    .read(walletsChangeNotifierProvider)
-                    .getManagerProvider(walletId),
-              ),
+              arguments: walletId,
             ),
           );
         }

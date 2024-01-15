@@ -19,6 +19,7 @@ import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -45,7 +46,7 @@ class _StartupPreferencesViewState
     // check if wallet exists (hasn't been deleted or otherwise missing)
     if (possibleWalletId != null) {
       try {
-        ref.read(walletsChangeNotifierProvider).getManager(possibleWalletId);
+        ref.read(pWallets).getWallet(possibleWalletId);
       } catch (_) {
         safe = false;
         WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -252,19 +253,14 @@ class _StartupPreferencesViewState
                                                               File(
                                                                 ref.watch(
                                                                   coinIconProvider(
-                                                                    ref
-                                                                        .watch(
-                                                                          walletsChangeNotifierProvider
-                                                                              .select(
-                                                                            (value) =>
-                                                                                value.getManager(
-                                                                              ref.watch(
-                                                                                prefsChangeNotifierProvider.select((value) => value.startupWalletId!),
-                                                                              ),
-                                                                            ),
-                                                                          ),
-                                                                        )
-                                                                        .coin,
+                                                                    ref.watch(
+                                                                      pWalletCoin(
+                                                                        ref.watch(
+                                                                          prefsChangeNotifierProvider.select((value) =>
+                                                                              value.startupWalletId!),
+                                                                        ),
+                                                                      ),
+                                                                    ),
                                                                   ),
                                                                 ),
                                                               ),
@@ -273,21 +269,15 @@ class _StartupPreferencesViewState
                                                               width: 10,
                                                             ),
                                                             Text(
-                                                              ref
-                                                                  .watch(
-                                                                    walletsChangeNotifierProvider
-                                                                        .select(
-                                                                      (value) =>
-                                                                          value
-                                                                              .getManager(
-                                                                        ref.watch(
-                                                                          prefsChangeNotifierProvider.select((value) =>
-                                                                              value.startupWalletId!),
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                  )
-                                                                  .walletName,
+                                                              ref.watch(
+                                                                pWalletName(
+                                                                  ref.watch(
+                                                                    prefsChangeNotifierProvider.select(
+                                                                        (value) =>
+                                                                            value.startupWalletId!),
+                                                                  ),
+                                                                ),
+                                                              ),
                                                               style: STextStyles
                                                                   .itemSubtitle(
                                                                       context),

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:isar/isar.dart';
 
 part 'input_v2.g.dart';
@@ -44,6 +46,7 @@ class OutpointV2 {
 @Embedded()
 class InputV2 {
   late final String? scriptSigHex;
+  late final String? scriptSigAsm;
   late final int? sequence;
   late final OutpointV2? outpoint;
   late final List<String> addresses;
@@ -63,6 +66,7 @@ class InputV2 {
 
   static InputV2 isarCantDoRequiredInDefaultConstructor({
     required String? scriptSigHex,
+    required String? scriptSigAsm,
     required int? sequence,
     required OutpointV2? outpoint,
     required List<String> addresses,
@@ -74,6 +78,7 @@ class InputV2 {
   }) =>
       InputV2()
         ..scriptSigHex = scriptSigHex
+        ..scriptSigAsm = scriptSigAsm
         ..sequence = sequence
         ..outpoint = outpoint
         ..addresses = List.unmodifiable(addresses)
@@ -83,8 +88,41 @@ class InputV2 {
         ..coinbase = coinbase
         ..walletOwns = walletOwns;
 
+  static InputV2 fromElectrumxJson({
+    required Map<String, dynamic> json,
+    required OutpointV2? outpoint,
+    required List<String> addresses,
+    required String valueStringSats,
+    required String? coinbase,
+    required bool walletOwns,
+  }) {
+    final dynamicWitness = json["witness"] ?? json["txinwitness"];
+
+    final String? witness;
+    if (dynamicWitness is Map || dynamicWitness is List) {
+      witness = jsonEncode(dynamicWitness);
+    } else if (dynamicWitness is String) {
+      witness = dynamicWitness;
+    } else {
+      witness = null;
+    }
+
+    return InputV2()
+      ..scriptSigHex = json["scriptSig"]?["hex"] as String?
+      ..scriptSigAsm = json["scriptSig"]?["asm"] as String?
+      ..sequence = json["sequence"] as int?
+      ..outpoint = outpoint
+      ..addresses = List.unmodifiable(addresses)
+      ..valueStringSats = valueStringSats
+      ..witness = witness
+      ..innerRedeemScriptAsm = json["innerRedeemscriptAsm"] as String?
+      ..coinbase = coinbase
+      ..walletOwns = walletOwns;
+  }
+
   InputV2 copyWith({
     String? scriptSigHex,
+    String? scriptSigAsm,
     int? sequence,
     OutpointV2? outpoint,
     List<String>? addresses,
@@ -96,6 +134,7 @@ class InputV2 {
   }) {
     return InputV2.isarCantDoRequiredInDefaultConstructor(
       scriptSigHex: scriptSigHex ?? this.scriptSigHex,
+      scriptSigAsm: scriptSigAsm ?? this.scriptSigAsm,
       sequence: sequence ?? this.sequence,
       outpoint: outpoint ?? this.outpoint,
       addresses: addresses ?? this.addresses,
@@ -111,6 +150,7 @@ class InputV2 {
   String toString() {
     return 'InputV2(\n'
         '  scriptSigHex: $scriptSigHex,\n'
+        '  scriptSigAsm: $scriptSigAsm,\n'
         '  sequence: $sequence,\n'
         '  outpoint: $outpoint,\n'
         '  addresses: $addresses,\n'

@@ -8,6 +8,8 @@
  *
  */
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,13 +17,14 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/providers/global/secure_store_provider.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -29,14 +32,14 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 class DeleteWalletRecoveryPhraseView extends ConsumerStatefulWidget {
   const DeleteWalletRecoveryPhraseView({
     Key? key,
-    required this.manager,
+    required this.walletId,
     required this.mnemonic,
     this.clipboardInterface = const ClipboardWrapper(),
   }) : super(key: key);
 
   static const routeName = "/deleteWalletRecoveryPhrase";
 
-  final Manager manager;
+  final String walletId;
   final List<String> mnemonic;
 
   final ClipboardInterface clipboardInterface;
@@ -48,13 +51,11 @@ class DeleteWalletRecoveryPhraseView extends ConsumerStatefulWidget {
 
 class _DeleteWalletRecoveryPhraseViewState
     extends ConsumerState<DeleteWalletRecoveryPhraseView> {
-  late Manager _manager;
   late List<String> _mnemonic;
   late ClipboardInterface _clipboardInterface;
 
   @override
   void initState() {
-    _manager = widget.manager;
     _mnemonic = widget.mnemonic;
     _clipboardInterface = widget.clipboardInterface;
     super.initState();
@@ -90,15 +91,18 @@ class _DeleteWalletRecoveryPhraseViewState
                         .topNavIconPrimary,
                   ),
                   onPressed: () async {
-                    final words = await _manager.mnemonic;
                     await _clipboardInterface
-                        .setData(ClipboardData(text: words.join(" ")));
-                    showFloatingFlushBar(
-                      type: FlushBarType.info,
-                      message: "Copied to clipboard",
-                      iconAsset: Assets.svg.copy,
-                      context: context,
-                    );
+                        .setData(ClipboardData(text: _mnemonic.join(" ")));
+                    if (mounted) {
+                      unawaited(
+                        showFloatingFlushBar(
+                          type: FlushBarType.info,
+                          message: "Copied to clipboard",
+                          iconAsset: Assets.svg.copy,
+                          context: context,
+                        ),
+                      );
+                    }
                   },
                 ),
               ),
@@ -114,7 +118,7 @@ class _DeleteWalletRecoveryPhraseViewState
                 height: 4,
               ),
               Text(
-                _manager.walletName,
+                ref.watch(pWalletName(widget.walletId)),
                 textAlign: TextAlign.center,
                 style: STextStyles.label(context).copyWith(
                   fontSize: 12,
@@ -192,22 +196,15 @@ class _DeleteWalletRecoveryPhraseViewState
                             .extension<StackColors>()!
                             .getPrimaryEnabledButtonStyle(context),
                         onPressed: () async {
-                          final walletId = _manager.walletId;
-                          final walletsInstance =
-                              ref.read(walletsChangeNotifierProvider);
-                          await ref
-                              .read(walletsServiceChangeNotifierProvider)
-                              .deleteWallet(_manager.walletName, true);
+                          await ref.read(pWallets).deleteWallet(
+                                ref.read(pWalletInfo(widget.walletId)),
+                                ref.read(secureStoreProvider),
+                              );
 
                           if (mounted) {
                             Navigator.of(context).popUntil(
                                 ModalRoute.withName(HomeView.routeName));
                           }
-
-                          // wait for widget tree to dispose of any widgets watching the manager
-                          await Future<void>.delayed(
-                              const Duration(seconds: 1));
-                          walletsInstance.removeWallet(walletId: walletId);
                         },
                         child: Text(
                           "Ok",

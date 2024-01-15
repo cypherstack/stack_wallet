@@ -10,26 +10,31 @@
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/change_representative_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/xpub_view.dart';
 import 'package:stackwallet/pages_desktop_specific/addresses/desktop_wallet_addresses_view.dart';
+import 'package:stackwallet/pages_desktop_specific/lelantus_coins/lelantus_coins_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_delete_wallet_dialog.dart';
-import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/pages_desktop_specific/spark_coins/spark_coins_view.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 
 enum _WalletOptions {
   addressList,
   deleteWallet,
   changeRepresentative,
-  showXpub;
+  showXpub,
+  lelantusCoins,
+  sparkCoins;
 
   String get prettyName {
     switch (this) {
@@ -41,6 +46,10 @@ enum _WalletOptions {
         return "Change representative";
       case _WalletOptions.showXpub:
         return "Show xPub";
+      case _WalletOptions.lelantusCoins:
+        return "Lelantus Coins";
+      case _WalletOptions.sparkCoins:
+        return "Spark Coins";
     }
   }
 }
@@ -80,6 +89,12 @@ class WalletOptionsButton extends StatelessWidget {
               },
               onShowXpubPressed: () async {
                 Navigator.of(context).pop(_WalletOptions.showXpub);
+              },
+              onFiroShowLelantusCoins: () async {
+                Navigator.of(context).pop(_WalletOptions.lelantusCoins);
+              },
+              onFiroShowSparkCoins: () async {
+                Navigator.of(context).pop(_WalletOptions.sparkCoins);
               },
               walletId: walletId,
             );
@@ -174,6 +189,24 @@ class WalletOptionsButton extends StatelessWidget {
                 }
               }
               break;
+
+            case _WalletOptions.lelantusCoins:
+              unawaited(
+                Navigator.of(context).pushNamed(
+                  LelantusCoinsView.routeName,
+                  arguments: walletId,
+                ),
+              );
+              break;
+
+            case _WalletOptions.sparkCoins:
+              unawaited(
+                Navigator.of(context).pushNamed(
+                  SparkCoinsView.routeName,
+                  arguments: walletId,
+                ),
+              );
+              break;
           }
         }
       },
@@ -206,6 +239,8 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
     required this.onAddressListPressed,
     required this.onShowXpubPressed,
     required this.onChangeRepPressed,
+    required this.onFiroShowLelantusCoins,
+    required this.onFiroShowSparkCoins,
     required this.walletId,
   }) : super(key: key);
 
@@ -213,16 +248,22 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
   final VoidCallback onAddressListPressed;
   final VoidCallback onShowXpubPressed;
   final VoidCallback onChangeRepPressed;
+  final VoidCallback onFiroShowLelantusCoins;
+  final VoidCallback onFiroShowSparkCoins;
   final String walletId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(walletId)));
-    final bool xpubEnabled = manager.hasXPub;
+    final coin = ref.watch(pWalletCoin(walletId));
 
-    final bool canChangeRep =
-        manager.coin == Coin.nano || manager.coin == Coin.banano;
+    final firoDebug =
+        kDebugMode && (coin == Coin.firo || coin == Coin.firoTestNet);
+
+    // TODO: [prio=low]
+    // final bool xpubEnabled = manager.hasXPub;
+    final bool xpubEnabled = false;
+
+    final bool canChangeRep = coin == Coin.nano || coin == Coin.banano;
 
     return Stack(
       children: [
@@ -301,6 +342,80 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                             Expanded(
                               child: Text(
                                 _WalletOptions.changeRepresentative.prettyName,
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                        context)
+                                    .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  if (firoDebug)
+                    const SizedBox(
+                      height: 8,
+                    ),
+                  if (firoDebug)
+                    TransparentButton(
+                      onPressed: onFiroShowLelantusCoins,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            SvgPicture.asset(
+                              Assets.svg.eye,
+                              width: 20,
+                              height: 20,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldActiveSearchIconLeft,
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Text(
+                                _WalletOptions.lelantusCoins.prettyName,
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                        context)
+                                    .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  if (firoDebug)
+                    const SizedBox(
+                      height: 8,
+                    ),
+                  if (firoDebug)
+                    TransparentButton(
+                      onPressed: onFiroShowSparkCoins,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            SvgPicture.asset(
+                              Assets.svg.eye,
+                              width: 20,
+                              height: 20,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldActiveSearchIconLeft,
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Text(
+                                _WalletOptions.sparkCoins.prettyName,
                                 style: STextStyles.desktopTextExtraExtraSmall(
                                         context)
                                     .copyWith(

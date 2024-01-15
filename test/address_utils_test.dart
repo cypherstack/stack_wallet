@@ -1,16 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 void main() {
   const String firoAddress = "a6ESWKz7szru5syLtYAPRhHLdKvMq3Yt1j";
-
-  test("generate scripthash from a firo address", () {
-    final hash = AddressUtils.convertToScriptHash(firoAddress, firoNetwork);
-    expect(hash,
-        "77090cea08e2b5accb185fac3cdc799b2b1d109e18c19c723011f4af2c0e5f76");
-  });
 
   test("condense address", () {
     final condensedAddress = AddressUtils.condenseAddress(firoAddress);
