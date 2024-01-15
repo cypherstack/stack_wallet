@@ -13,8 +13,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/receive_view/addresses/address_tag.dart';
@@ -485,17 +483,42 @@ class _AddressDetailsTxV2List extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final query = ref
-        .watch(mainDBProvider)
-        .isar
-        .transactionV2s
-        .where()
-        .walletIdEqualTo(walletId)
-        .filter()
-        .inputsElement((q) => q.addressesElementContains(address.value))
-        .or()
-        .outputsElement((q) => q.addressesElementContains(address.value))
-        .sortByTimestampDesc();
+    final walletTxFilter =
+        ref.watch(pWallets).getWallet(walletId).transactionFilterOperation;
+
+    final query =
+        ref.watch(mainDBProvider).isar.transactionV2s.buildQuery<TransactionV2>(
+            whereClauses: [
+              IndexWhereClause.equalTo(
+                indexName: 'walletId',
+                value: [walletId],
+              )
+            ],
+            filter: FilterGroup.and([
+              if (walletTxFilter != null) walletTxFilter,
+              FilterGroup.or([
+                ObjectFilter(
+                  property: 'inputs',
+                  filter: FilterCondition.contains(
+                    property: "addresses",
+                    value: address.value,
+                  ),
+                ),
+                ObjectFilter(
+                  property: 'outputs',
+                  filter: FilterCondition.contains(
+                    property: "addresses",
+                    value: address.value,
+                  ),
+                )
+              ]),
+            ]),
+            sortBy: [
+              const SortProperty(
+                property: "timestamp",
+                sort: Sort.desc,
+              ),
+            ]);
 
     final count = query.countSync();
 

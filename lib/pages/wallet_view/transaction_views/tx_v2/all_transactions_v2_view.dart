@@ -36,6 +36,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -499,19 +500,14 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                                 value: [widget.walletId],
                               )
                             ],
-                            // TODO: [prio=med] add filters to wallet or cryptocurrency class
-                            filter: widget.contractAddress != null
-                                ? FilterGroup.and([
-                                    FilterCondition.equalTo(
-                                      property: r"contractAddress",
-                                      value: widget.contractAddress!,
-                                    ),
-                                    const FilterCondition.equalTo(
-                                      property: r"subType",
-                                      value: TransactionSubType.ethToken,
-                                    ),
-                                  ])
-                                : null,
+                            filter: widget.contractAddress == null
+                                ? ref
+                                    .watch(pWallets)
+                                    .getWallet(widget.walletId)
+                                    .transactionFilterOperation
+                                : ref
+                                    .read(pCurrentTokenWallet)!
+                                    .transactionFilterOperation,
                             sortBy: [
                               const SortProperty(
                                 property: "timestamp",

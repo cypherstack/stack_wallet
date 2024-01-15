@@ -13,7 +13,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/no_transactions_found.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_list_item.dart';
@@ -45,7 +44,7 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
   List<TransactionV2> _transactions = [];
 
   late final StreamSubscription<List<TransactionV2>> _subscription;
-  late final QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> _query;
+  late final Query<TransactionV2> _query;
 
   BorderRadius get _borderRadiusFirst {
     return BorderRadius.only(
@@ -76,19 +75,22 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
         .getWallet(widget.walletId)
         .cryptoCurrency
         .minConfirms;
-
-    _query = ref
-        .read(mainDBProvider)
-        .isar
-        .transactionV2s
-        .where()
-        .walletIdEqualTo(widget.walletId)
-        .filter()
-        .subTypeEqualTo(TransactionSubType.ethToken)
-        .and()
-        .contractAddressEqualTo(
-            ref.read(pCurrentTokenWallet)!.tokenContract.address)
-        .sortByTimestampDesc();
+    _query =
+        ref.read(mainDBProvider).isar.transactionV2s.buildQuery<TransactionV2>(
+              whereClauses: [
+                IndexWhereClause.equalTo(
+                  indexName: 'walletId',
+                  value: [widget.walletId],
+                )
+              ],
+              filter: ref.read(pCurrentTokenWallet)!.transactionFilterOperation,
+              sortBy: [
+                const SortProperty(
+                  property: "timestamp",
+                  sort: Sort.desc,
+                ),
+              ],
+            );
 
     _subscription = _query.watch().listen((event) {
       WidgetsBinding.instance.addPostFrameCallback((_) {

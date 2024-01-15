@@ -108,6 +108,14 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
   // ==================== Overrides ============================================
 
   @override
+  FilterOperation? get transactionFilterOperation => FilterGroup.not(
+        const FilterCondition.equalTo(
+          property: r"subType",
+          value: TransactionSubType.ethToken,
+        ),
+      );
+
+  @override
   FilterOperation? get changeAddressFilterOperation =>
       FilterGroup.and(standardChangeAddressFilters);
 
