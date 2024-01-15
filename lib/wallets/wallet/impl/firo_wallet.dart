@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:decimal/decimal.dart';
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
@@ -16,6 +15,7 @@ import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/spark_coin.dart';
+import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
@@ -779,29 +779,17 @@ class FiroWallet extends Bip39HDWallet
 
   // ===========================================================================
 
-  static const String _lelantusCoinIsarRescanRequired =
-      "lelantusCoinIsarRescanRequired";
-
-  // TODO: [prio=high]
-  Future<void> setLelantusCoinIsarRescanRequiredDone() async {
-    await DB.instance.put<dynamic>(
-      boxName: walletId,
-      key: _lelantusCoinIsarRescanRequired,
-      value: false,
-    );
-  }
-
   bool get lelantusCoinIsarRescanRequired =>
-      DB.instance.get(
-        boxName: walletId,
-        key: _lelantusCoinIsarRescanRequired,
-      ) as bool? ??
+      info.otherData[WalletInfoKeys.lelantusCoinIsarRescanRequired] as bool? ??
       true;
 
   Future<bool> firoRescanRecovery() async {
     try {
       await recover(isRescan: true);
-      await setLelantusCoinIsarRescanRequiredDone();
+      await info.updateOtherData(
+        newEntries: {WalletInfoKeys.lelantusCoinIsarRescanRequired: false},
+        isar: mainDB.isar,
+      );
       return true;
     } catch (_) {
       return false;

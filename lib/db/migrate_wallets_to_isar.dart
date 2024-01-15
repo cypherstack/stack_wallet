@@ -142,6 +142,10 @@ Future<void> migrateWalletsToIsar({
       otherData[WalletInfoKeys.epiccashData] = jsonEncode(
         epicWalletInfo.toMap(),
       );
+    } else if (old.coin == Coin.firo || old.coin == Coin.firoTestNet) {
+      otherData[WalletInfoKeys.lelantusCoinIsarRescanRequired] = walletBox
+              .get(WalletInfoKeys.lelantusCoinIsarRescanRequired) as bool? ??
+          true;
     }
 
     //
