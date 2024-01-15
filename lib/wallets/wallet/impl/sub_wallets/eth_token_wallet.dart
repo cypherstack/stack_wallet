@@ -515,4 +515,16 @@ class EthTokenWallet extends Wallet {
   Future<bool> updateUTXOs() async {
     return await ethWallet.updateUTXOs();
   }
+
+  @override
+  FilterOperation? get transactionFilterOperation => FilterGroup.and([
+        FilterCondition.equalTo(
+          property: r"contractAddress",
+          value: tokenContract.address,
+        ),
+        const FilterCondition.equalTo(
+          property: r"subType",
+          value: TransactionSubType.ethToken,
+        ),
+      ]);
 }

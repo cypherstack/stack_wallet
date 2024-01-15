@@ -97,9 +97,8 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
       prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
     );
 
-    List<Coin> coins = showTestNet
-        ? _coins
-        : _coins.sublist(0, _coins.length - kTestNetCoinCount);
+    List<Coin> coins =
+        showTestNet ? _coins : _coins.where((e) => !e.isTestNet).toList();
 
     coins = _search(filter, coins);
 

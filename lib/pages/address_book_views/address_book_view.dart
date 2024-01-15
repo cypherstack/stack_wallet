@@ -71,7 +71,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
       } else {
         ref
             .read(addressBookFilterProvider)
-            .addAll(coins.getRange(0, coins.length - kTestNetCoinCount), false);
+            .addAll(coins.where((e) => !e.isTestNet), false);
       }
     } else {
       ref.read(addressBookFilterProvider).add(widget.coin!, false);

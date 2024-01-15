@@ -614,6 +614,8 @@ abstract class Wallet<T extends CryptoCurrency> {
 
   // ===========================================================================
 
+  FilterOperation? get transactionFilterOperation => null;
+
   FilterOperation? get receivingAddressFilterOperation;
   FilterOperation? get changeAddressFilterOperation;
 

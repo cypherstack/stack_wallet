@@ -47,10 +47,7 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
     if (showTestNet) {
       _coins = coins.toList(growable: false);
     } else {
-      _coins = coins
-          .toList(growable: false)
-          .getRange(0, coins.length - kTestNetCoinCount)
-          .toList(growable: false);
+      _coins = coins.where((e) => !e.isTestNet).toList(growable: false);
     }
     super.initState();
   }

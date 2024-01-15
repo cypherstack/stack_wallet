@@ -119,8 +119,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "4cb772149b84aedd21c437d17c72b1c2d4f2c962"
-      resolved-ref: "4cb772149b84aedd21c437d17c72b1c2d4f2c962"
+      ref: a6e7941b98a43a613708b1a12564bc17e712cfc7
+      resolved-ref: a6e7941b98a43a613708b1a12564bc17e712cfc7
       url: "https://github.com/cypherstack/bip47.git"
     source: git
     version: "2.0.0"
@@ -665,8 +665,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "8735d2b17bad054eaac082fcd66d6ab37ed9f8c5"
-      resolved-ref: "8735d2b17bad054eaac082fcd66d6ab37ed9f8c5"
+      ref: be6cd82a1bedac3a8ace93a1d19defd94d4b4fba
+      resolved-ref: be6cd82a1bedac3a8ace93a1d19defd94d4b4fba
       url: "https://github.com/cypherstack/flutter_libsparkmobile.git"
     source: git
     version: "0.0.1"

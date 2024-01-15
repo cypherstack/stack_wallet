@@ -45,9 +45,8 @@ class ManageCoinUnitsView extends ConsumerWidget {
 
     final _coins = Coin.values.where((e) => e != Coin.firoTestNet).toList();
 
-    List<Coin> coins = showTestNet
-        ? _coins
-        : _coins.sublist(0, _coins.length - kTestNetCoinCount);
+    List<Coin> coins =
+        showTestNet ? _coins : _coins.where((e) => !e.isTestNet).toList();
 
     return ConditionalParent(
       condition: Util.isDesktop,

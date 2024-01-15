@@ -43,7 +43,7 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
   List<TransactionV2> _transactions = [];
 
   late final StreamSubscription<List<TransactionV2>> _subscription;
-  late final QueryBuilder<TransactionV2, TransactionV2, QAfterSortBy> _query;
+  late final Query<TransactionV2> _query;
 
   BorderRadius get _borderRadiusFirst {
     return BorderRadius.only(
@@ -73,12 +73,23 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
         .read(mainDBProvider)
         .isar
         .transactionV2s
-        .where()
-        .walletIdEqualTo(widget.walletId)
-        .filter()
-        .not()
-        .subTypeEqualTo(TransactionSubType.ethToken)
-        .sortByTimestampDesc();
+        .buildQuery<TransactionV2>(
+            whereClauses: [
+              IndexWhereClause.equalTo(
+                indexName: 'walletId',
+                value: [widget.walletId],
+              )
+            ],
+            filter: ref
+                .read(pWallets)
+                .getWallet(widget.walletId)
+                .transactionFilterOperation,
+            sortBy: [
+              const SortProperty(
+                property: "timestamp",
+                sort: Sort.desc,
+              ),
+            ]);
 
     _subscription = _query.watch().listen((event) {
       WidgetsBinding.instance.addPostFrameCallback((_) {

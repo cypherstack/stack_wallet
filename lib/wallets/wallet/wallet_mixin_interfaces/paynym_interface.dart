@@ -1749,4 +1749,20 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       utxoLabel: utxoLabel
     );
   }
+
+  @override
+  FilterOperation? get transactionFilterOperation => FilterGroup.not(
+        const FilterGroup.and(
+          [
+            FilterCondition.equalTo(
+              property: r"subType",
+              value: TransactionSubType.bip47Notification,
+            ),
+            FilterCondition.equalTo(
+              property: r"type",
+              value: TransactionType.incoming,
+            ),
+          ],
+        ),
+      );
 }
