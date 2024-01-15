@@ -274,8 +274,8 @@ packages:
     dependency: "direct overridden"
     description:
       path: coinlib
-      ref: "4f549b8b511a63fdc1f44796ab43b10f586635cd"
-      resolved-ref: "4f549b8b511a63fdc1f44796ab43b10f586635cd"
+      ref: f671c4fa93febf2ca155b44f182aa9cd55f5ee50
+      resolved-ref: f671c4fa93febf2ca155b44f182aa9cd55f5ee50
       url: "https://github.com/cypherstack/coinlib.git"
     source: git
     version: "1.1.0"
@@ -283,8 +283,8 @@ packages:
     dependency: "direct main"
     description:
       path: coinlib_flutter
-      ref: "4f549b8b511a63fdc1f44796ab43b10f586635cd"
-      resolved-ref: "4f549b8b511a63fdc1f44796ab43b10f586635cd"
+      ref: f671c4fa93febf2ca155b44f182aa9cd55f5ee50
+      resolved-ref: f671c4fa93febf2ca155b44f182aa9cd55f5ee50
       url: "https://github.com/cypherstack/coinlib.git"
     source: git
     version: "1.1.0"
@@ -665,8 +665,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: be6cd82a1bedac3a8ace93a1d19defd94d4b4fba
-      resolved-ref: be6cd82a1bedac3a8ace93a1d19defd94d4b4fba
+      ref: d99c34cbb39666c8dcb819b457b3314577aaad43
+      resolved-ref: d99c34cbb39666c8dcb819b457b3314577aaad43
       url: "https://github.com/cypherstack/flutter_libsparkmobile.git"
     source: git
     version: "0.0.1"
