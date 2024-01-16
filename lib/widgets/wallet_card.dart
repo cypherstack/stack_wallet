@@ -93,17 +93,20 @@ class SimpleWalletCard extends ConsumerWidget {
     final nav = Navigator.of(context);
 
     final wallet = ref.read(pWallets).getWallet(walletId);
-    await wallet.init();
 
     if (context.mounted) {
+      final Future<void> loadFuture;
       if (wallet is CwBasedInterface) {
-        await showLoading(
-          whileFuture: wallet.open(),
-          context: context,
-          message: 'Opening ${wallet.info.name}',
-          isDesktop: Util.isDesktop,
-        );
+        loadFuture = wallet.init().then((value) async => await (wallet).open());
+      } else {
+        loadFuture = wallet.init();
       }
+      await showLoading(
+        whileFuture: loadFuture,
+        context: context,
+        message: 'Opening ${wallet.info.name}',
+        isDesktop: Util.isDesktop,
+      );
       if (popPrevious) nav.pop();
 
       if (desktopNavigatorState != null) {

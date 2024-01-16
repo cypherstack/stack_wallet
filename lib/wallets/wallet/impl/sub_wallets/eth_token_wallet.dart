@@ -527,4 +527,9 @@ class EthTokenWallet extends Wallet {
           value: TransactionSubType.ethToken,
         ),
       ]);
+
+  @override
+  Future<void> checkSaveInitialReceivingAddress() async {
+    await ethWallet.checkSaveInitialReceivingAddress();
+  }
 }

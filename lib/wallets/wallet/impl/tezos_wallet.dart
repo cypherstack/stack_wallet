@@ -145,7 +145,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
   // ===========================================================================
 
   @override
-  Future<void> init() async {
+  Future<void> checkSaveInitialReceivingAddress() async {
     try {
       final _address = await getCurrentReceivingAddress();
       if (_address == null) {
@@ -155,12 +155,10 @@ class TezosWallet extends Bip39Wallet<Tezos> {
     } catch (e, s) {
       // do nothing, still allow user into wallet
       Logging.instance.log(
-        "$runtimeType init() failed: $e\n$s",
+        "$runtimeType  checkSaveInitialReceivingAddress() failed: $e\n$s",
         level: LogLevel.Error,
       );
     }
-
-    await super.init();
   }
 
   @override

@@ -80,17 +80,20 @@ class CoinWalletsTable extends ConsumerWidget {
 
                             final wallet =
                                 ref.read(pWallets).getWallet(walletIds[i]);
-                            await wallet.init();
+                            final Future<void> loadFuture;
                             if (wallet is CwBasedInterface) {
-                              if (context.mounted) {
-                                await showLoading(
-                                  whileFuture: wallet.open(),
-                                  context: context,
-                                  message: 'Opening ${wallet.info.name}',
-                                  isDesktop: Util.isDesktop,
-                                );
-                              }
+                              loadFuture = wallet
+                                  .init()
+                                  .then((value) async => await (wallet).open());
+                            } else {
+                              loadFuture = wallet.init();
                             }
+                            await showLoading(
+                              whileFuture: loadFuture,
+                              context: context,
+                              message: 'Opening ${wallet.info.name}',
+                              isDesktop: Util.isDesktop,
+                            );
 
                             if (context.mounted) {
                               await Navigator.of(context).pushNamed(

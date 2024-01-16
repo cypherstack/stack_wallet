@@ -1,11 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:bip47/src/util.dart';
 import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
-import 'package:decimal/decimal.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
@@ -831,55 +829,6 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     }
   }
 
-  Future<List<({Transaction transaction, Address address})>>
-      fetchTransactionsV1({
-    required List<Address> addresses,
-    required int currentChainHeight,
-  }) async {
-    final List<({String txHash, int height, String address})> allTxHashes =
-        (await fetchHistory(addresses.map((e) => e.value).toList()))
-            .map(
-              (e) => (
-                txHash: e["tx_hash"] as String,
-                height: e["height"] as int,
-                address: e["address"] as String,
-              ),
-            )
-            .toList();
-
-    List<Map<String, dynamic>> allTransactions = [];
-
-    for (final data in allTxHashes) {
-      final tx = await electrumXCachedClient.getTransaction(
-        txHash: data.txHash,
-        verbose: true,
-        coin: cryptoCurrency.coin,
-      );
-
-      // check for duplicates before adding to list
-      if (allTransactions
-              .indexWhere((e) => e["txid"] == tx["txid"] as String) ==
-          -1) {
-        tx["address"] = addresses.firstWhere((e) => e.value == data.address);
-        tx["height"] = data.height;
-        allTransactions.add(tx);
-      }
-    }
-
-    final List<({Transaction transaction, Address address})> txnsData = [];
-
-    for (final txObject in allTransactions) {
-      final data = await _parseTransactionV1(
-        txObject,
-        addresses,
-      );
-
-      txnsData.add(data);
-    }
-
-    return txnsData;
-  }
-
   Future<ElectrumXNode> getCurrentElectrumXNode() async {
     final node = getCurrentNode();
 
@@ -1183,257 +1132,6 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     );
 
     return utxo;
-  }
-
-  Future<({Transaction transaction, Address address})> _parseTransactionV1(
-    Map<String, dynamic> txData,
-    List<Address> myAddresses,
-  ) async {
-    Set<String> receivingAddresses = myAddresses
-        .where((e) =>
-            e.subType == AddressSubType.receiving ||
-            e.subType == AddressSubType.paynymReceive ||
-            e.subType == AddressSubType.paynymNotification)
-        .map((e) => e.value)
-        .toSet();
-    Set<String> changeAddresses = myAddresses
-        .where((e) => e.subType == AddressSubType.change)
-        .map((e) => e.value)
-        .toSet();
-
-    Set<String> inputAddresses = {};
-    Set<String> outputAddresses = {};
-
-    Amount totalInputValue = Amount(
-      rawValue: BigInt.zero,
-      fractionDigits: cryptoCurrency.coin.decimals,
-    );
-    Amount totalOutputValue = Amount(
-      rawValue: BigInt.zero,
-      fractionDigits: cryptoCurrency.coin.decimals,
-    );
-
-    Amount amountSentFromWallet = Amount(
-      rawValue: BigInt.zero,
-      fractionDigits: cryptoCurrency.coin.decimals,
-    );
-    Amount amountReceivedInWallet = Amount(
-      rawValue: BigInt.zero,
-      fractionDigits: cryptoCurrency.coin.decimals,
-    );
-    Amount changeAmount = Amount(
-      rawValue: BigInt.zero,
-      fractionDigits: cryptoCurrency.coin.decimals,
-    );
-
-    // parse inputs
-    for (final input in txData["vin"] as List) {
-      final prevTxid = input["txid"] as String;
-      final prevOut = input["vout"] as int;
-
-      // fetch input tx to get address
-      final inputTx = await electrumXCachedClient.getTransaction(
-        txHash: prevTxid,
-        coin: cryptoCurrency.coin,
-      );
-
-      for (final output in inputTx["vout"] as List) {
-        // check matching output
-        if (prevOut == output["n"]) {
-          // get value
-          final value = Amount.fromDecimal(
-            Decimal.parse(output["value"].toString()),
-            fractionDigits: cryptoCurrency.coin.decimals,
-          );
-
-          // add value to total
-          totalInputValue += value;
-
-          // get input(prevOut) address
-          final address = output["scriptPubKey"]?["addresses"]?[0] as String? ??
-              output["scriptPubKey"]?["address"] as String?;
-
-          if (address != null) {
-            inputAddresses.add(address);
-
-            // if input was from my wallet, add value to amount sent
-            if (receivingAddresses.contains(address) ||
-                changeAddresses.contains(address)) {
-              amountSentFromWallet += value;
-            }
-          }
-        }
-      }
-    }
-
-    // parse outputs
-    for (final output in txData["vout"] as List) {
-      // get value
-      final value = Amount.fromDecimal(
-        Decimal.parse(output["value"].toString()),
-        fractionDigits: cryptoCurrency.coin.decimals,
-      );
-
-      // add value to total
-      totalOutputValue += value;
-
-      // get output address
-      final address = output["scriptPubKey"]?["addresses"]?[0] as String? ??
-          output["scriptPubKey"]?["address"] as String?;
-      if (address != null) {
-        outputAddresses.add(address);
-
-        // if output was to my wallet, add value to amount received
-        if (receivingAddresses.contains(address)) {
-          amountReceivedInWallet += value;
-        } else if (changeAddresses.contains(address)) {
-          changeAmount += value;
-        }
-      }
-    }
-
-    final mySentFromAddresses = [
-      ...receivingAddresses.intersection(inputAddresses),
-      ...changeAddresses.intersection(inputAddresses)
-    ];
-    final myReceivedOnAddresses =
-        receivingAddresses.intersection(outputAddresses);
-    final myChangeReceivedOnAddresses =
-        changeAddresses.intersection(outputAddresses);
-
-    final fee = totalInputValue - totalOutputValue;
-
-    // this is the address initially used to fetch the txid
-    Address transactionAddress = txData["address"] as Address;
-
-    TransactionType type;
-    Amount amount;
-    if (mySentFromAddresses.isNotEmpty && myReceivedOnAddresses.isNotEmpty) {
-      // tx is sent to self
-      type = TransactionType.sentToSelf;
-
-      // should be 0
-      amount =
-          amountSentFromWallet - amountReceivedInWallet - fee - changeAmount;
-    } else if (mySentFromAddresses.isNotEmpty) {
-      // outgoing tx
-      type = TransactionType.outgoing;
-      amount = amountSentFromWallet - changeAmount - fee;
-
-      // non wallet addresses found in tx outputs
-      final nonWalletOutAddresses = outputAddresses.difference(
-        myChangeReceivedOnAddresses,
-      );
-
-      if (nonWalletOutAddresses.isNotEmpty) {
-        final possible = nonWalletOutAddresses.first;
-
-        if (transactionAddress.value != possible) {
-          transactionAddress = Address(
-            walletId: myAddresses.first.walletId,
-            value: possible,
-            derivationIndex: -1,
-            derivationPath: null,
-            subType: AddressSubType.nonWallet,
-            type: AddressType.nonWallet,
-            publicKey: [],
-          );
-        }
-      } else {
-        // some other type of tx where the receiving address is
-        // one of my change addresses
-
-        type = TransactionType.sentToSelf;
-        amount = changeAmount;
-      }
-    } else {
-      // incoming tx
-      type = TransactionType.incoming;
-      amount = amountReceivedInWallet;
-    }
-
-    List<Output> outs = [];
-    List<Input> ins = [];
-
-    for (final json in txData["vin"] as List) {
-      bool isCoinBase = json['coinbase'] != null;
-      String? witness;
-      if (json['witness'] != null && json['witness'] is String) {
-        witness = json['witness'] as String;
-      } else if (json['txinwitness'] != null) {
-        if (json['txinwitness'] is List) {
-          witness = jsonEncode(json['txinwitness']);
-        }
-      }
-      final input = Input(
-        txid: json['txid'] as String,
-        vout: json['vout'] as int? ?? -1,
-        scriptSig: json['scriptSig']?['hex'] as String?,
-        scriptSigAsm: json['scriptSig']?['asm'] as String?,
-        isCoinbase: isCoinBase ? isCoinBase : json['is_coinbase'] as bool?,
-        sequence: json['sequence'] as int?,
-        innerRedeemScriptAsm: json['innerRedeemscriptAsm'] as String?,
-        witness: witness,
-      );
-      ins.add(input);
-    }
-
-    for (final json in txData["vout"] as List) {
-      final output = Output(
-        scriptPubKey: json['scriptPubKey']?['hex'] as String?,
-        scriptPubKeyAsm: json['scriptPubKey']?['asm'] as String?,
-        scriptPubKeyType: json['scriptPubKey']?['type'] as String?,
-        scriptPubKeyAddress:
-            json["scriptPubKey"]?["addresses"]?[0] as String? ??
-                json['scriptPubKey']?['type'] as String? ??
-                "",
-        value: Amount.fromDecimal(
-          Decimal.parse(json["value"].toString()),
-          fractionDigits: cryptoCurrency.coin.decimals,
-        ).raw.toInt(),
-      );
-      outs.add(output);
-    }
-
-    TransactionSubType txSubType = TransactionSubType.none;
-    if (this is PaynymInterface && outs.length > 1 && ins.isNotEmpty) {
-      for (int i = 0; i < outs.length; i++) {
-        List<String>? scriptChunks = outs[i].scriptPubKeyAsm?.split(" ");
-        if (scriptChunks?.length == 2 && scriptChunks?[0] == "OP_RETURN") {
-          final blindedPaymentCode = scriptChunks![1];
-          final bytes = blindedPaymentCode.fromHex;
-
-          // https://en.bitcoin.it/wiki/BIP_0047#Sending
-          if (bytes.length == 80 && bytes.first == 1) {
-            txSubType = TransactionSubType.bip47Notification;
-          }
-        }
-      }
-    }
-
-    final tx = Transaction(
-      walletId: myAddresses.first.walletId,
-      txid: txData["txid"] as String,
-      timestamp: txData["blocktime"] as int? ??
-          (DateTime.now().millisecondsSinceEpoch ~/ 1000),
-      type: type,
-      subType: txSubType,
-      // amount may overflow. Deprecated. Use amountString
-      amount: amount.raw.toInt(),
-      amountString: amount.toJsonString(),
-      fee: fee.raw.toInt(),
-      height: txData["height"] as int?,
-      isCancelled: false,
-      isLelantus: false,
-      slateId: null,
-      otherData: null,
-      nonce: null,
-      inputs: ins,
-      outputs: outs,
-      numberOfMessages: null,
-    );
-
-    return (transaction: tx, address: transactionAddress);
   }
 
   //============================================================================
@@ -1994,11 +1692,14 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   }
 
   @override
+  Future<void> checkSaveInitialReceivingAddress() async {}
+
+  @override
   Future<void> init() async {
     try {
       final features = await electrumXClient
           .getServerFeatures()
-          .timeout(const Duration(seconds: 2));
+          .timeout(const Duration(seconds: 4));
 
       Logging.instance.log("features: $features", level: LogLevel.Info);
 

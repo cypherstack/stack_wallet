@@ -368,7 +368,7 @@ abstract class SWB {
     return backupJson;
   }
 
-  static Future<bool> asyncRestore(
+  static Future<bool> _asyncRestore(
     Tuple2<dynamic, WalletInfo> tuple,
     Prefs prefs,
     NodeService nodeService,
@@ -757,7 +757,7 @@ abstract class SWB {
       )) {
         return false;
       }
-      final bools = await asyncRestore(
+      final bools = await _asyncRestore(
         tuple,
         _prefs,
         nodeService,
@@ -796,10 +796,10 @@ abstract class SWB {
     }
 
     Logging.instance.log("done with SWB restore", level: LogLevel.Warning);
-    if (Util.isDesktop) {
-      await Wallets.sharedInstance
-          .loadAfterStackRestore(_prefs, uiState?.wallets ?? []);
-    }
+
+    await Wallets.sharedInstance
+        .loadAfterStackRestore(_prefs, uiState?.wallets ?? [], Util.isDesktop);
+
     return true;
   }
 

@@ -25,6 +25,7 @@ import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 
 class Wallets {
   Wallets._private();
@@ -192,8 +193,7 @@ class Wallets {
           final shouldSetAutoSync = shouldAutoSyncAll ||
               walletIdsToEnableAutoSync.contains(walletInfo.walletId);
 
-          if (walletInfo.coin == Coin.monero ||
-              walletInfo.coin == Coin.wownero) {
+          if (wallet is CwBasedInterface) {
             // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
           } else {
             walletInitFutures.add(wallet.init().then((_) {
@@ -230,6 +230,7 @@ class Wallets {
   Future<void> loadAfterStackRestore(
     Prefs prefs,
     List<Wallet> wallets,
+    bool isDesktop,
   ) async {
     List<Future<void>> walletInitFutures = [];
     List<({Wallet wallet, bool shouldAutoSync})> walletsToInitLinearly = [];
@@ -259,15 +260,16 @@ class Wallets {
         final shouldSetAutoSync = shouldAutoSyncAll ||
             walletIdsToEnableAutoSync.contains(wallet.walletId);
 
-        if (wallet.info.coin == Coin.monero ||
-            wallet.info.coin == Coin.wownero) {
-          // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
-        } else {
-          walletInitFutures.add(wallet.init().then((value) {
-            if (shouldSetAutoSync) {
-              wallet.shouldAutoSync = true;
-            }
-          }));
+        if (isDesktop) {
+          if (wallet is CwBasedInterface) {
+            // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
+          } else {
+            walletInitFutures.add(wallet.init().then((value) {
+              if (shouldSetAutoSync) {
+                wallet.shouldAutoSync = true;
+              }
+            }));
+          }
         }
 
         _wallets[wallet.walletId] = wallet;
@@ -278,15 +280,17 @@ class Wallets {
       }
     }
 
-    if (walletInitFutures.isNotEmpty && walletsToInitLinearly.isNotEmpty) {
-      await Future.wait([
-        _initLinearly(walletsToInitLinearly),
-        ...walletInitFutures,
-      ]);
-    } else if (walletInitFutures.isNotEmpty) {
-      await Future.wait(walletInitFutures);
-    } else if (walletsToInitLinearly.isNotEmpty) {
-      await _initLinearly(walletsToInitLinearly);
+    if (isDesktop) {
+      if (walletInitFutures.isNotEmpty && walletsToInitLinearly.isNotEmpty) {
+        await Future.wait([
+          _initLinearly(walletsToInitLinearly),
+          ...walletInitFutures,
+        ]);
+      } else if (walletInitFutures.isNotEmpty) {
+        await Future.wait(walletInitFutures);
+      } else if (walletsToInitLinearly.isNotEmpty) {
+        await _initLinearly(walletsToInitLinearly);
+      }
     }
   }
 

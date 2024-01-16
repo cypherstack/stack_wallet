@@ -111,7 +111,7 @@ class StellarWallet extends Bip39Wallet<Stellar> {
       FilterGroup.and(standardReceivingAddressFilters);
 
   @override
-  Future<void> init() async {
+  Future<void> checkSaveInitialReceivingAddress() async {
     try {
       final address = await getCurrentReceivingAddress();
       if (address == null) {
@@ -121,11 +121,10 @@ class StellarWallet extends Bip39Wallet<Stellar> {
     } catch (e, s) {
       // do nothing, still allow user into wallet
       Logging.instance.log(
-        "$runtimeType init() failed: $e\n$s",
+        "$runtimeType  checkSaveInitialReceivingAddress() failed: $e\n$s",
         level: LogLevel.Error,
       );
     }
-    return super.init();
   }
 
   @override

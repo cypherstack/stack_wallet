@@ -86,25 +86,6 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     _credentials = web3.EthPrivateKey.fromHex(privateKey);
   }
 
-  Future<void> _generateAndSaveAddress(
-    String mnemonic,
-    String mnemonicPassphrase,
-  ) async {
-    await _initCredentials(mnemonic, mnemonicPassphrase);
-
-    final address = Address(
-      walletId: walletId,
-      value: _credentials.address.hexEip55,
-      publicKey: [], // maybe store address bytes here? seems a waste of space though
-      derivationIndex: 0,
-      derivationPath: DerivationPath()..value = "$hdPathEthereum/0",
-      type: AddressType.ethereum,
-      subType: AddressSubType.receiving,
-    );
-
-    await mainDB.updateOrPutAddresses([address]);
-  }
-
   // ==================== Overrides ============================================
 
   @override
@@ -127,15 +108,27 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       FilterGroup.and(standardReceivingAddressFilters);
 
   @override
-  Future<void> init({bool? isRestore}) async {
+  Future<void> checkSaveInitialReceivingAddress() async {
     final address = await getCurrentReceivingAddress();
     if (address == null) {
-      await _generateAndSaveAddress(
+      await _initCredentials(
         await getMnemonic(),
         await getMnemonicPassphrase(),
       );
+
+      final address = Address(
+        walletId: walletId,
+        value: _credentials.address.hexEip55,
+        publicKey: [],
+        // maybe store address bytes here? seems a waste of space though
+        derivationIndex: 0,
+        derivationPath: DerivationPath()..value = "$hdPathEthereum/0",
+        type: AddressType.ethereum,
+        subType: AddressSubType.receiving,
+      );
+
+      await mainDB.updateOrPutAddresses([address]);
     }
-    return super.init();
   }
 
   @override
@@ -475,17 +468,11 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     await refreshMutex.protect(() async {
       if (isRescan) {
         await mainDB.deleteWalletBlockchainData(walletId);
-        await _generateAndSaveAddress(
-          await getMnemonic(),
-          await getMnemonicPassphrase(),
-        );
+        await checkSaveInitialReceivingAddress();
         await updateBalance();
         await updateTransactions(isRescan: true);
       } else {
-        await _generateAndSaveAddress(
-          await getMnemonic(),
-          await getMnemonicPassphrase(),
-        );
+        await checkSaveInitialReceivingAddress();
         unawaited(updateBalance());
         unawaited(updateTransactions());
       }

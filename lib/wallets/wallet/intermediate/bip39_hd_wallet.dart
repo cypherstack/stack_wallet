@@ -61,6 +61,20 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     await mainDB.updateOrPutAddresses([address]);
   }
 
+  @override
+  Future<void> checkSaveInitialReceivingAddress() async {
+    final current = await getCurrentChangeAddress();
+    if (current == null) {
+      final address = await _generateAddress(
+        chain: 0, // receiving
+        index: 0, // initial index
+        derivePathType: DerivePathTypeExt.primaryFor(info.coin),
+      );
+
+      await mainDB.updateOrPutAddresses([address]);
+    }
+  }
+
   // ========== Subclasses may override ========================================
 
   /// To be overridden by crypto currencies that do extra address conversions

@@ -179,6 +179,11 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
     }
   }
 
+  @override
+  Future<void> checkSaveInitialReceivingAddress() async {
+    // this doesn't work without opening the wallet first which takes a while
+  }
+
   // ============ Interface ====================================================
 
   Future<Amount> get availableBalance;

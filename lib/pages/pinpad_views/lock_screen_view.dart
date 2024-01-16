@@ -27,6 +27,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -98,14 +99,20 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
         final walletId = widget.routeOnSuccessArguments as String;
 
         final wallet = ref.read(pWallets).getWallet(walletId);
-        if (wallet.info.coin == Coin.monero) {
-          await showLoading(
-            opaqueBG: true,
-            whileFuture: wallet.init(),
-            context: context,
-            message: "Loading ${wallet.info.coin.prettyName} wallet...",
-          );
+        final Future<void> loadFuture;
+        if (wallet is CwBasedInterface) {
+          loadFuture =
+              wallet.init().then((value) async => await (wallet).open());
+        } else {
+          loadFuture = wallet.init();
         }
+
+        await showLoading(
+          opaqueBG: true,
+          whileFuture: loadFuture,
+          context: context,
+          message: "Loading ${wallet.info.coin.prettyName} wallet...",
+        );
       }
 
       if (mounted) {

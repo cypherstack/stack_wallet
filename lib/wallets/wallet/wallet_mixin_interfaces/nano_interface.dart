@@ -315,22 +315,20 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
   }
 
   @override
-  Future<void> init() async {
+  Future<void> checkSaveInitialReceivingAddress() async {
     try {
       _cachedAddress = await getCurrentReceivingAddress();
       if (_cachedAddress == null) {
         _cachedAddress = await _getAddressFromMnemonic();
-        await mainDB.putAddress(_cachedAddress!);
+        await mainDB.updateOrPutAddresses([_cachedAddress!]);
       }
     } catch (e, s) {
       // do nothing, still allow user into wallet
       Logging.instance.log(
-        "$runtimeType init() failed: $e\n$s",
+        "$runtimeType  checkSaveInitialReceivingAddress() failed: $e\n$s",
         level: LogLevel.Error,
       );
     }
-
-    return super.init();
   }
 
   @override
