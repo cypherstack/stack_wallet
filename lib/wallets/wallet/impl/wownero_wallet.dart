@@ -506,6 +506,7 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
             output.sendAll = isSendAll;
             String amountToSend = recipient.amount.decimal.toString();
             output.setCryptoAmount(amountToSend);
+            outputs.add(output);
           }
 
           final tmp =
