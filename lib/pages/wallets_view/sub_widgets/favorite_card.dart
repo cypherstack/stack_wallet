@@ -115,17 +115,21 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
       child: GestureDetector(
         onTap: () async {
           final wallet = ref.read(pWallets).getWallet(walletId);
-          await wallet.init();
+
+          final Future<void> loadFuture;
           if (wallet is CwBasedInterface) {
-            if (mounted) {
-              await showLoading(
-                whileFuture: wallet.open(),
-                context: context,
-                message: 'Opening ${wallet.info.name}',
-                isDesktop: Util.isDesktop,
-              );
-            }
+            loadFuture =
+                wallet.init().then((value) async => await (wallet).open());
+          } else {
+            loadFuture = wallet.init();
           }
+          await showLoading(
+            whileFuture: loadFuture,
+            context: context,
+            message: 'Opening ${wallet.info.name}',
+            isDesktop: Util.isDesktop,
+          );
+
           if (mounted) {
             if (Util.isDesktop) {
               await Navigator.of(context).pushNamed(

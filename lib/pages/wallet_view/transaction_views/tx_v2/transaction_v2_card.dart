@@ -104,7 +104,7 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
 
     final price = ref
         .watch(priceAnd24hChangeNotifierProvider.select((value) => isTokenTx
-            ? value.getTokenPrice(_transaction.otherData!)
+            ? value.getTokenPrice(tokenContract!.address)
             : value.getPrice(coin)))
         .item1;
 

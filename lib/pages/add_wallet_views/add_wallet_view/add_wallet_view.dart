@@ -8,6 +8,7 @@
  *
  */
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -107,6 +108,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
 
     if (contract != null) {
       await MainDB.instance.putEthContract(contract);
+      unawaited(ref.read(priceAnd24hChangeNotifierProvider).updatePrice());
       if (mounted) {
         setState(() {
           if (tokenEntities
@@ -143,7 +145,8 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
 
     if (contracts.isEmpty) {
       contracts.addAll(DefaultTokens.list);
-      MainDB.instance.putEthContracts(contracts);
+      MainDB.instance.putEthContracts(contracts).then(
+          (value) => ref.read(priceAnd24hChangeNotifierProvider).updatePrice());
     }
 
     tokenEntities.addAll(contracts.map((e) => EthTokenEntity(e)));

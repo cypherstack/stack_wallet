@@ -42,7 +42,9 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
+import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/private_key_interface.dart';
 import 'package:tuple/tuple.dart';
@@ -368,7 +370,7 @@ abstract class SWB {
     return backupJson;
   }
 
-  static Future<bool> asyncRestore(
+  static Future<bool> _asyncRestore(
     Tuple2<dynamic, WalletInfo> tuple,
     Prefs prefs,
     NodeService nodeService,
@@ -422,6 +424,12 @@ abstract class SWB {
         restoreHeight = walletbackup['storedChainHeight'] as int? ?? 0;
       }
 
+      Future<void>? restoringFuture;
+
+      if (!(wallet is CwBasedInterface || wallet is EpiccashWallet)) {
+        restoringFuture = wallet.recover(isRescan: false);
+      }
+
       uiState?.update(
         walletId: info.walletId,
         restoringStatus: StackRestoringStatus.restoring,
@@ -465,6 +473,8 @@ abstract class SWB {
       if (_shouldCancelRestore) {
         return false;
       }
+
+      await restoringFuture;
 
       Logging.instance.log(
           "SWB restored: ${info.walletId} ${info.name} ${info.coin.prettyName}",
@@ -690,13 +700,34 @@ abstract class SWB {
       // TODO: use these for monero and possibly other coins later on?
       // final List<String> txidList = List<String>.from(walletbackup['txidList'] as List? ?? []);
 
+      Map<String, dynamic>? otherData;
+      try {
+        if (walletbackup["otherDataJsonString"] is String) {
+          final data =
+              jsonDecode(walletbackup["otherDataJsonString"] as String);
+          otherData = Map<String, dynamic>.from(data as Map);
+        }
+      } catch (e, s) {
+        Logging.instance.log(
+          "SWB restore walletinfo otherdata error: $e\n$s",
+          level: LogLevel.Error,
+        );
+      }
+
+      if (coin == Coin.firo) {
+        otherData ??= {};
+        // swb will do a restore so this flag should be set to false so another
+        // rescan/restore isn't done when opening the wallet
+        otherData[WalletInfoKeys.lelantusCoinIsarRescanRequired] = false;
+      }
+
       final info = WalletInfo(
         coinName: coin.name,
         walletId: walletId,
         name: walletName,
         mainAddressType: coin.primaryAddressType,
         restoreHeight: walletbackup['restoreHeight'] as int? ?? 0,
-        otherDataJsonString: walletbackup["otherDataJsonString"] as String?,
+        otherDataJsonString: otherData == null ? null : jsonEncode(otherData),
         cachedChainHeight: walletbackup['storedChainHeight'] as int? ?? 0,
       );
 
@@ -757,7 +788,7 @@ abstract class SWB {
       )) {
         return false;
       }
-      final bools = await asyncRestore(
+      final bools = await _asyncRestore(
         tuple,
         _prefs,
         nodeService,
@@ -796,10 +827,10 @@ abstract class SWB {
     }
 
     Logging.instance.log("done with SWB restore", level: LogLevel.Warning);
-    if (Util.isDesktop) {
-      await Wallets.sharedInstance
-          .loadAfterStackRestore(_prefs, uiState?.wallets ?? []);
-    }
+
+    await Wallets.sharedInstance
+        .loadAfterStackRestore(_prefs, uiState?.wallets ?? [], Util.isDesktop);
+
     return true;
   }
 

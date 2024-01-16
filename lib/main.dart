@@ -317,13 +317,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       _desktopHasPassword =
           await ref.read(storageCryptoHandlerProvider).hasPassword();
     }
-
-    ref
-        .read(priceAnd24hChangeNotifierProvider)
-        .tokenContractAddressesToCheck
-        .addAll(
-          await MainDB.instance.getEthContracts().addressProperty().findAll(),
-        );
   }
 
   Future<void> load() async {

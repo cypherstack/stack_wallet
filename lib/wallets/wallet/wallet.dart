@@ -435,6 +435,8 @@ abstract class Wallet<T extends CryptoCurrency> {
 
   Future<bool> pingCheck();
 
+  Future<void> checkSaveInitialReceivingAddress();
+
   //===========================================
   /// add transaction to local db temporarily. Used for quickly updating ui
   /// before refresh can fetch data from server
@@ -600,6 +602,7 @@ abstract class Wallet<T extends CryptoCurrency> {
 
   @mustCallSuper
   Future<void> init() async {
+    await checkSaveInitialReceivingAddress();
     final address = await getCurrentReceivingAddress();
     if (address != null) {
       await info.updateReceivingAddress(
@@ -607,9 +610,6 @@ abstract class Wallet<T extends CryptoCurrency> {
         isar: mainDB.isar,
       );
     }
-
-    // TODO: make sure subclasses override this if they require some set up
-    // especially xmr/wow/epiccash
   }
 
   // ===========================================================================

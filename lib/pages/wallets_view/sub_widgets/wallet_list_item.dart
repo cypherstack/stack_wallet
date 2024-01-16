@@ -40,7 +40,7 @@ class WalletListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    debugPrint("BUILD: $runtimeType");
+    // debugPrint("BUILD: $runtimeType");
     final walletCountString =
         walletCount == 1 ? "$walletCount wallet" : "$walletCount wallets";
     final currency = ref
@@ -63,17 +63,19 @@ class WalletListItem extends ConsumerWidget {
                 .read(pWallets)
                 .wallets
                 .firstWhere((e) => e.info.coin == coin);
-            await wallet.init();
+            final Future<void> loadFuture;
             if (wallet is CwBasedInterface) {
-              if (context.mounted) {
-                await showLoading(
-                  whileFuture: wallet.open(),
-                  context: context,
-                  message: 'Opening ${wallet.info.name}',
-                  isDesktop: Util.isDesktop,
-                );
-              }
+              loadFuture =
+                  wallet.init().then((value) async => await (wallet).open());
+            } else {
+              loadFuture = wallet.init();
             }
+            await showLoading(
+              whileFuture: loadFuture,
+              context: context,
+              message: 'Opening ${wallet.info.name}',
+              isDesktop: Util.isDesktop,
+            );
             if (context.mounted) {
               unawaited(
                 Navigator.of(context).pushNamed(

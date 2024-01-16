@@ -485,6 +485,11 @@ class EpiccashWallet extends Bip39Wallet {
       FilterGroup.and(standardReceivingAddressFilters);
 
   @override
+  Future<void> checkSaveInitialReceivingAddress() async {
+     // epiccash seems ok with nothing here?
+  }
+
+  @override
   Future<void> init({bool? isRestore}) async {
     if (isRestore != true) {
       String? encodedWallet =

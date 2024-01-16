@@ -592,7 +592,8 @@ class MainDB {
       });
       return ids;
     } catch (e) {
-      throw MainDBException("failed updateOrPutAddresses: $transactions", e);
+      throw MainDBException(
+          "failed updateOrPutTransactionV2s: $transactions", e);
     }
   }
 
