@@ -1,11 +1,9 @@
 import 'package:mockito/annotations.dart';
 import 'package:stackwallet/services/wallets.dart';
-import 'package:stackwallet/services/wallets_service.dart';
 import 'package:stackwallet/themes/theme_service.dart';
 
 @GenerateMocks([
   Wallets,
-  WalletsService,
   ThemeService,
 ], customMocks: [])
 void main() {

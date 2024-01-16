@@ -8,10 +8,9 @@ import 'dart:ui' as _i13;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/db/isar/main_db.dart' as _i3;
-import 'package:stackwallet/models/node_model.dart' as _i14;
+import 'package:stackwallet/models/node_model.dart' as _i11;
 import 'package:stackwallet/services/node_service.dart' as _i2;
 import 'package:stackwallet/services/wallets.dart' as _i7;
-import 'package:stackwallet/services/wallets_service.dart' as _i11;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i12;
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart'
     as _i6;
@@ -178,6 +177,7 @@ class MockWallets extends _i1.Mock implements _i7.Wallets {
   _i8.Future<void> loadAfterStackRestore(
     _i10.Prefs? prefs,
     List<_i5.Wallet<_i4.CryptoCurrency>>? wallets,
+    bool? isDesktop,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -185,245 +185,12 @@ class MockWallets extends _i1.Mock implements _i7.Wallets {
           [
             prefs,
             wallets,
+            isDesktop,
           ],
         ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
-}
-
-/// A class which mocks [WalletsService].
-///
-/// See the documentation for Mockito's code generation for more information.
-class MockWalletsService extends _i1.Mock implements _i11.WalletsService {
-  MockWalletsService() {
-    _i1.throwOnMissingStub(this);
-  }
-
-  @override
-  _i8.Future<Map<String, _i11.WalletInfo>> get walletNames =>
-      (super.noSuchMethod(
-        Invocation.getter(#walletNames),
-        returnValue: _i8.Future<Map<String, _i11.WalletInfo>>.value(
-            <String, _i11.WalletInfo>{}),
-      ) as _i8.Future<Map<String, _i11.WalletInfo>>);
-  @override
-  bool get hasListeners => (super.noSuchMethod(
-        Invocation.getter(#hasListeners),
-        returnValue: false,
-      ) as bool);
-  @override
-  _i8.Future<bool> renameWallet({
-    required String? from,
-    required String? to,
-    required bool? shouldNotifyListeners,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #renameWallet,
-          [],
-          {
-            #from: from,
-            #to: to,
-            #shouldNotifyListeners: shouldNotifyListeners,
-          },
-        ),
-        returnValue: _i8.Future<bool>.value(false),
-      ) as _i8.Future<bool>);
-  @override
-  Map<String, _i11.WalletInfo> fetchWalletsData() => (super.noSuchMethod(
-        Invocation.method(
-          #fetchWalletsData,
-          [],
-        ),
-        returnValue: <String, _i11.WalletInfo>{},
-      ) as Map<String, _i11.WalletInfo>);
-  @override
-  _i8.Future<void> addExistingStackWallet({
-    required String? name,
-    required String? walletId,
-    required _i12.Coin? coin,
-    required bool? shouldNotifyListeners,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #addExistingStackWallet,
-          [],
-          {
-            #name: name,
-            #walletId: walletId,
-            #coin: coin,
-            #shouldNotifyListeners: shouldNotifyListeners,
-          },
-        ),
-        returnValue: _i8.Future<void>.value(),
-        returnValueForMissingStub: _i8.Future<void>.value(),
-      ) as _i8.Future<void>);
-  @override
-  _i8.Future<String?> addNewWallet({
-    required String? name,
-    required _i12.Coin? coin,
-    required bool? shouldNotifyListeners,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #addNewWallet,
-          [],
-          {
-            #name: name,
-            #coin: coin,
-            #shouldNotifyListeners: shouldNotifyListeners,
-          },
-        ),
-        returnValue: _i8.Future<String?>.value(),
-      ) as _i8.Future<String?>);
-  @override
-  _i8.Future<List<String>> getFavoriteWalletIds() => (super.noSuchMethod(
-        Invocation.method(
-          #getFavoriteWalletIds,
-          [],
-        ),
-        returnValue: _i8.Future<List<String>>.value(<String>[]),
-      ) as _i8.Future<List<String>>);
-  @override
-  _i8.Future<void> saveFavoriteWalletIds(List<String>? walletIds) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #saveFavoriteWalletIds,
-          [walletIds],
-        ),
-        returnValue: _i8.Future<void>.value(),
-        returnValueForMissingStub: _i8.Future<void>.value(),
-      ) as _i8.Future<void>);
-  @override
-  _i8.Future<void> addFavorite(String? walletId) => (super.noSuchMethod(
-        Invocation.method(
-          #addFavorite,
-          [walletId],
-        ),
-        returnValue: _i8.Future<void>.value(),
-        returnValueForMissingStub: _i8.Future<void>.value(),
-      ) as _i8.Future<void>);
-  @override
-  _i8.Future<void> removeFavorite(String? walletId) => (super.noSuchMethod(
-        Invocation.method(
-          #removeFavorite,
-          [walletId],
-        ),
-        returnValue: _i8.Future<void>.value(),
-        returnValueForMissingStub: _i8.Future<void>.value(),
-      ) as _i8.Future<void>);
-  @override
-  _i8.Future<void> moveFavorite({
-    required int? fromIndex,
-    required int? toIndex,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #moveFavorite,
-          [],
-          {
-            #fromIndex: fromIndex,
-            #toIndex: toIndex,
-          },
-        ),
-        returnValue: _i8.Future<void>.value(),
-        returnValueForMissingStub: _i8.Future<void>.value(),
-      ) as _i8.Future<void>);
-  @override
-  _i8.Future<bool> checkForDuplicate(String? name) => (super.noSuchMethod(
-        Invocation.method(
-          #checkForDuplicate,
-          [name],
-        ),
-        returnValue: _i8.Future<bool>.value(false),
-      ) as _i8.Future<bool>);
-  @override
-  _i8.Future<String?> getWalletId(String? walletName) => (super.noSuchMethod(
-        Invocation.method(
-          #getWalletId,
-          [walletName],
-        ),
-        returnValue: _i8.Future<String?>.value(),
-      ) as _i8.Future<String?>);
-  @override
-  _i8.Future<bool> isMnemonicVerified({required String? walletId}) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #isMnemonicVerified,
-          [],
-          {#walletId: walletId},
-        ),
-        returnValue: _i8.Future<bool>.value(false),
-      ) as _i8.Future<bool>);
-  @override
-  _i8.Future<void> setMnemonicVerified({required String? walletId}) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #setMnemonicVerified,
-          [],
-          {#walletId: walletId},
-        ),
-        returnValue: _i8.Future<void>.value(),
-        returnValueForMissingStub: _i8.Future<void>.value(),
-      ) as _i8.Future<void>);
-  @override
-  _i8.Future<int> deleteWallet(
-    String? name,
-    bool? shouldNotifyListeners,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #deleteWallet,
-          [
-            name,
-            shouldNotifyListeners,
-          ],
-        ),
-        returnValue: _i8.Future<int>.value(0),
-      ) as _i8.Future<int>);
-  @override
-  _i8.Future<void> refreshWallets(bool? shouldNotifyListeners) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #refreshWallets,
-          [shouldNotifyListeners],
-        ),
-        returnValue: _i8.Future<void>.value(),
-        returnValueForMissingStub: _i8.Future<void>.value(),
-      ) as _i8.Future<void>);
-  @override
-  void addListener(_i13.VoidCallback? listener) => super.noSuchMethod(
-        Invocation.method(
-          #addListener,
-          [listener],
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  void removeListener(_i13.VoidCallback? listener) => super.noSuchMethod(
-        Invocation.method(
-          #removeListener,
-          [listener],
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  void dispose() => super.noSuchMethod(
-        Invocation.method(
-          #dispose,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  void notifyListeners() => super.noSuchMethod(
-        Invocation.method(
-          #notifyListeners,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
 }
 
 /// A class which mocks [NodeService].
@@ -439,15 +206,15 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         ),
       ) as _i6.SecureStorageInterface);
   @override
-  List<_i14.NodeModel> get primaryNodes => (super.noSuchMethod(
+  List<_i11.NodeModel> get primaryNodes => (super.noSuchMethod(
         Invocation.getter(#primaryNodes),
-        returnValue: <_i14.NodeModel>[],
-      ) as List<_i14.NodeModel>);
+        returnValue: <_i11.NodeModel>[],
+      ) as List<_i11.NodeModel>);
   @override
-  List<_i14.NodeModel> get nodes => (super.noSuchMethod(
+  List<_i11.NodeModel> get nodes => (super.noSuchMethod(
         Invocation.getter(#nodes),
-        returnValue: <_i14.NodeModel>[],
-      ) as List<_i14.NodeModel>);
+        returnValue: <_i11.NodeModel>[],
+      ) as List<_i11.NodeModel>);
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
@@ -465,7 +232,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
   @override
   _i8.Future<void> setPrimaryNodeFor({
     required _i12.Coin? coin,
-    required _i14.NodeModel? node,
+    required _i11.NodeModel? node,
     bool? shouldNotifyListeners = false,
   }) =>
       (super.noSuchMethod(
@@ -482,40 +249,40 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
   @override
-  _i14.NodeModel? getPrimaryNodeFor({required _i12.Coin? coin}) =>
+  _i11.NodeModel? getPrimaryNodeFor({required _i12.Coin? coin}) =>
       (super.noSuchMethod(Invocation.method(
         #getPrimaryNodeFor,
         [],
         {#coin: coin},
-      )) as _i14.NodeModel?);
+      )) as _i11.NodeModel?);
   @override
-  List<_i14.NodeModel> getNodesFor(_i12.Coin? coin) => (super.noSuchMethod(
+  List<_i11.NodeModel> getNodesFor(_i12.Coin? coin) => (super.noSuchMethod(
         Invocation.method(
           #getNodesFor,
           [coin],
         ),
-        returnValue: <_i14.NodeModel>[],
-      ) as List<_i14.NodeModel>);
+        returnValue: <_i11.NodeModel>[],
+      ) as List<_i11.NodeModel>);
   @override
-  _i14.NodeModel? getNodeById({required String? id}) =>
+  _i11.NodeModel? getNodeById({required String? id}) =>
       (super.noSuchMethod(Invocation.method(
         #getNodeById,
         [],
         {#id: id},
-      )) as _i14.NodeModel?);
+      )) as _i11.NodeModel?);
   @override
-  List<_i14.NodeModel> failoverNodesFor({required _i12.Coin? coin}) =>
+  List<_i11.NodeModel> failoverNodesFor({required _i12.Coin? coin}) =>
       (super.noSuchMethod(
         Invocation.method(
           #failoverNodesFor,
           [],
           {#coin: coin},
         ),
-        returnValue: <_i14.NodeModel>[],
-      ) as List<_i14.NodeModel>);
+        returnValue: <_i11.NodeModel>[],
+      ) as List<_i11.NodeModel>);
   @override
   _i8.Future<void> add(
-    _i14.NodeModel? node,
+    _i11.NodeModel? node,
     String? password,
     bool? shouldNotifyListeners,
   ) =>
@@ -567,7 +334,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
       ) as _i8.Future<void>);
   @override
   _i8.Future<void> edit(
-    _i14.NodeModel? editedNode,
+    _i11.NodeModel? editedNode,
     String? password,
     bool? shouldNotifyListeners,
   ) =>
