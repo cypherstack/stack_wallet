@@ -40,7 +40,7 @@ class WalletListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    debugPrint("BUILD: $runtimeType");
+    // debugPrint("BUILD: $runtimeType");
     final walletCountString =
         walletCount == 1 ? "$walletCount wallet" : "$walletCount wallets";
     final currency = ref
