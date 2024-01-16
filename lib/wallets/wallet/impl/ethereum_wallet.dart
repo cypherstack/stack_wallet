@@ -266,6 +266,10 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       for (final tuple in allTxs) {
         final element = tuple.item1;
 
+        if (element.hasToken && !element.isError) {
+          continue;
+        }
+
         //Calculate fees (GasLimit * gasPrice)
         // int txFee = element.gasPrice * element.gasUsed;
         final Amount txFee = element.gasCost;
