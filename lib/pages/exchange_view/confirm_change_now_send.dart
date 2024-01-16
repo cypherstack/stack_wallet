@@ -111,7 +111,7 @@ class _ConfirmChangeNowSendViewState
 
     try {
       if (wallet is FiroWallet && widget.shouldSendPublicFiroFunds == false) {
-        txidFuture = wallet.confirmSendLelantus(txData: widget.txData);
+        txidFuture = wallet.confirmSendSpark(txData: widget.txData);
       } else {
         txidFuture = wallet.confirmSend(txData: widget.txData);
       }
