@@ -172,7 +172,7 @@ dependencies:
     git:
       url: https://github.com/cypherstack/coinlib.git
       path: coinlib_flutter
-      ref: f671c4fa93febf2ca155b44f182aa9cd55f5ee50
+      ref: 376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7
 
 dev_dependencies:
   flutter_test:
@@ -223,12 +223,12 @@ dependency_overrides:
     git:
       url: https://github.com/cypherstack/coinlib.git
       path: coinlib_flutter
-      ref: f671c4fa93febf2ca155b44f182aa9cd55f5ee50
+      ref: 376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7
   coinlib:
     git:
       url: https://github.com/cypherstack/coinlib.git
       path: coinlib
-      ref: f671c4fa93febf2ca155b44f182aa9cd55f5ee50
+      ref: 376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7
 
   # required for dart 3, at least until a fix is merged upstream
   wakelock_windows:
