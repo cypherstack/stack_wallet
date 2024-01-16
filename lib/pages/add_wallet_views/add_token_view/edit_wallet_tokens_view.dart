@@ -23,6 +23,7 @@ import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/ad
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_token_text.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
+import 'package:stackwallet/providers/global/price_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -151,6 +152,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
 
     if (contract != null) {
       await MainDB.instance.putEthContract(contract);
+      unawaited(ref.read(priceAnd24hChangeNotifierProvider).updatePrice());
       if (mounted) {
         setState(() {
           if (tokenEntities
@@ -175,7 +177,8 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
 
     if (contracts.isEmpty) {
       contracts.addAll(DefaultTokens.list);
-      MainDB.instance.putEthContracts(contracts);
+      MainDB.instance.putEthContracts(contracts).then(
+          (_) => ref.read(priceAnd24hChangeNotifierProvider).updatePrice());
     }
 
     tokenEntities.addAll(contracts.map((e) => AddTokenListElementData(e)));
