@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:cw_core/node.dart';
@@ -394,17 +395,7 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
         if (seedLength == 14) {
           height = getSeedHeightSync(mnemonic.trim());
         } else {
-          // 25 word seed. TODO validate
-          if (height == 0) {
-            height = wow_dart.wownero.getHeightByDate(
-              date: DateTime.now().subtract(
-                const Duration(
-                  // subtract a couple days to ensure we have a buffer for SWB
-                  days: 2,
-                ),
-              ),
-            );
-          }
+          height = max(height, 0);
         }
 
         // TODO: info.updateRestoreHeight

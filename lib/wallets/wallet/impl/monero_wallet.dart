@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:cw_core/node.dart';
@@ -347,19 +348,7 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
       }
 
       try {
-        int height = info.restoreHeight;
-
-        // 25 word seed. TODO validate
-        if (height == 0) {
-          height = xmr_dart.monero.getHeigthByDate(
-            date: DateTime.now().subtract(
-              const Duration(
-                // subtract a couple days to ensure we have a buffer for SWB
-                days: 2,
-              ),
-            ),
-          );
-        }
+        final height = max(info.restoreHeight, 0);
 
         await info.updateRestoreHeight(
           newRestoreHeight: height,
