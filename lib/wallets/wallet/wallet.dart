@@ -68,7 +68,9 @@ abstract class Wallet<T extends CryptoCurrency> {
 
   final refreshMutex = Mutex();
 
-  WalletInfo get info => _walletInfo;
+  late final String _walletId;
+  WalletInfo get info =>
+      mainDB.isar.walletInfo.where().walletIdEqualTo(walletId).findFirstSync()!;
   bool get isConnected => _isConnected;
 
   bool get shouldAutoSync => _shouldAutoSync;
@@ -88,9 +90,6 @@ abstract class Wallet<T extends CryptoCurrency> {
 
   // ===== private properties ===========================================
 
-  late WalletInfo _walletInfo;
-  late final Stream<WalletInfo?> _walletInfoStream;
-
   Timer? _periodicRefreshTimer;
   Timer? _networkAliveTimer;
 
@@ -106,7 +105,7 @@ abstract class Wallet<T extends CryptoCurrency> {
   //============================================================================
   // ========== Wallet Info Convenience Getters ================================
 
-  String get walletId => info.walletId;
+  String get walletId => _walletId;
 
   /// Attempt to fetch the most recent chain height.
   /// On failure return the last cached height.
@@ -223,9 +222,7 @@ abstract class Wallet<T extends CryptoCurrency> {
     wallet.secureStorageInterface = ethWallet.secureStorageInterface;
     wallet.mainDB = ethWallet.mainDB;
 
-    return wallet
-      .._walletInfo = ethWallet.info
-      .._watchWalletInfo();
+    return wallet.._walletId = ethWallet.info.walletId;
   }
 
   //============================================================================
@@ -275,8 +272,7 @@ abstract class Wallet<T extends CryptoCurrency> {
     return wallet
       ..secureStorageInterface = secureStorageInterface
       ..mainDB = mainDB
-      .._walletInfo = walletInfo
-      .._watchWalletInfo();
+      .._walletId = walletInfo.walletId;
   }
 
   static Wallet _loadWallet({
@@ -347,19 +343,6 @@ abstract class Wallet<T extends CryptoCurrency> {
         // should never hit in reality
         throw Exception("Unknown crypto currency: ${walletInfo.coin}");
     }
-  }
-
-  // listen to changes in db and updated wallet info property as required
-  void _watchWalletInfo() {
-    _walletInfoStream = mainDB.isar.walletInfo.watchObject(
-      _walletInfo.id,
-      fireImmediately: true,
-    );
-    _walletInfoStream.forEach((element) {
-      if (element != null) {
-        _walletInfo = element;
-      }
-    });
   }
 
   void _startNetworkAlivePinging() {
