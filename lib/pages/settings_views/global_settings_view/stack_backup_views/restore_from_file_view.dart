@@ -387,6 +387,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                   RouteGenerator.getRoute(
                                     builder: (_) => StackRestoreProgressView(
                                       jsonString: jsonString,
+                                      shouldPushToHome: true,
                                     ),
                                   ),
                                 );
