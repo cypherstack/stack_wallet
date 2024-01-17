@@ -16,12 +16,17 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/bitcoincash.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/bcash_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 
 class BitcoincashWallet extends Bip39HDWallet
-    with ElectrumXInterface, CoinControlInterface, CashFusionInterface {
+    with
+        ElectrumXInterface,
+        BCashInterface,
+        CoinControlInterface,
+        CashFusionInterface {
   @override
   int get isarTransactionVersion => 2;
 
