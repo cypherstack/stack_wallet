@@ -148,7 +148,31 @@ abstract class Wallet<T extends CryptoCurrency> {
     if (wallet is MnemonicInterface) {
       if (wallet is CryptonoteWallet) {
         // currently a special case due to the xmr/wow libraries handling their
-        // own mnemonic generation
+        // own mnemonic generation on new wallet creation
+        // if its a restore we must set them
+        if (mnemonic != null) {
+          if ((await secureStorageInterface.read(
+                key: mnemonicKey(walletId: walletInfo.walletId),
+              )) ==
+              null) {
+            await secureStorageInterface.write(
+              key: mnemonicKey(walletId: walletInfo.walletId),
+              value: mnemonic,
+            );
+          }
+
+          if (mnemonicPassphrase != null) {
+            if ((await secureStorageInterface.read(
+                  key: mnemonicPassphraseKey(walletId: walletInfo.walletId),
+                )) ==
+                null) {
+              await secureStorageInterface.write(
+                key: mnemonicPassphraseKey(walletId: walletInfo.walletId),
+                value: mnemonicPassphrase,
+              );
+            }
+          }
+        }
       } else {
         await secureStorageInterface.write(
           key: mnemonicKey(walletId: walletInfo.walletId),

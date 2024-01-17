@@ -247,26 +247,26 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
   }
 
   @override
-  Future<void> init() async {
+  Future<void> init({bool? isRestore}) async {
     cwWalletService = xmr_dart.monero
         .createMoneroWalletService(DB.instance.moneroWalletInfoBox);
 
-    if (!(await cwWalletService!.isWalletExit(walletId))) {
+    if (!(await cwWalletService!.isWalletExit(walletId)) && isRestore != true) {
       WalletInfo walletInfo;
       WalletCredentials credentials;
       try {
-        String name = walletId;
         final dirPath =
-            await pathForWalletDir(name: name, type: WalletType.monero);
-        final path = await pathForWallet(name: name, type: WalletType.monero);
+            await pathForWalletDir(name: walletId, type: WalletType.monero);
+        final path =
+            await pathForWallet(name: walletId, type: WalletType.monero);
         credentials = xmr_dart.monero.createMoneroNewWalletCredentials(
-          name: name,
+          name: walletId,
           language: "English",
         );
 
         walletInfo = WalletInfo.external(
-          id: WalletBase.idFor(name, WalletType.monero),
-          name: name,
+          id: WalletBase.idFor(walletId, WalletType.monero),
+          name: walletId,
           type: WalletType.monero,
           isRecovery: false,
           restoreHeight: credentials.height ?? 0,
@@ -332,7 +332,7 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
 
         var restoreHeight = cwWalletBase?.walletInfo.restoreHeight;
         highestPercentCached = 0;
-        await cwWalletBase?.rescan(height: restoreHeight);
+        await cwWalletBase?.rescan(height: restoreHeight ?? 0);
       });
       unawaited(refresh());
       return;
