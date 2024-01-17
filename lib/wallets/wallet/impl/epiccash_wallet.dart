@@ -486,7 +486,7 @@ class EpiccashWallet extends Bip39Wallet {
 
   @override
   Future<void> checkSaveInitialReceivingAddress() async {
-     // epiccash seems ok with nothing here?
+    // epiccash seems ok with nothing here?
   }
 
   @override
@@ -946,7 +946,7 @@ class EpiccashWallet extends Bip39Wallet {
       final slatesToCommits = info.epicData?.slatesToCommits ?? {};
 
       for (final tx in transactions) {
-        // Logging.instance.log("tx: $tx", level: LogLevel.Info);
+        Logging.instance.log("tx: $tx", level: LogLevel.Info);
 
         final isIncoming =
             tx.txType == epic_models.TransactionType.TxReceived ||
@@ -1043,7 +1043,13 @@ class EpiccashWallet extends Bip39Wallet {
         txns.add(txn);
       }
 
-      await mainDB.updateOrPutTransactionV2s(txns);
+      await mainDB.isar.writeTxn(() async {
+        await mainDB.isar.transactionV2s
+            .where()
+            .walletIdEqualTo(walletId)
+            .deleteAll();
+        await mainDB.isar.transactionV2s.putAll(txns);
+      });
     } catch (e, s) {
       Logging.instance.log(
         "${cryptoCurrency.runtimeType} ${cryptoCurrency.network} net wallet"
