@@ -48,8 +48,7 @@ class DbVersionMigrator with WalletDB {
       case 0:
         await Hive.openBox<dynamic>(DB.boxNameAllWalletsData);
         await Hive.openBox<dynamic>(DB.boxNamePrefs);
-        final walletsService =
-            WalletsService(secureStorageInterface: secureStore);
+        final walletsService = WalletsService();
         final nodeService = NodeService(secureStorageInterface: secureStore);
         final prefs = Prefs.instance;
         final walletInfoList = await walletsService.walletNames;
@@ -304,8 +303,7 @@ class DbVersionMigrator with WalletDB {
       case 8:
         // migrate
         await Hive.openBox<dynamic>(DB.boxNameAllWalletsData);
-        final walletsService =
-            WalletsService(secureStorageInterface: secureStore);
+        final walletsService = WalletsService();
         final walletInfoList = await walletsService.walletNames;
         await MainDB.instance.initMainDB();
         for (final walletId in walletInfoList.keys) {
@@ -374,7 +372,7 @@ class DbVersionMigrator with WalletDB {
   Future<void> _v4(SecureStorageInterface secureStore) async {
     await Hive.openBox<dynamic>(DB.boxNameAllWalletsData);
     await Hive.openBox<dynamic>(DB.boxNamePrefs);
-    final walletsService = WalletsService(secureStorageInterface: secureStore);
+    final walletsService = WalletsService();
     final prefs = Prefs.instance;
     final walletInfoList = await walletsService.walletNames;
     await prefs.init();
@@ -487,7 +485,7 @@ class DbVersionMigrator with WalletDB {
 
   Future<void> _v7(SecureStorageInterface secureStore) async {
     await Hive.openBox<dynamic>(DB.boxNameAllWalletsData);
-    final walletsService = WalletsService(secureStorageInterface: secureStore);
+    final walletsService = WalletsService();
     final walletInfoList = await walletsService.walletNames;
     await MainDB.instance.initMainDB();
 
@@ -573,7 +571,7 @@ class DbVersionMigrator with WalletDB {
   Future<void> _v10(SecureStorageInterface secureStore) async {
     await Hive.openBox<dynamic>(DB.boxNameAllWalletsData);
     await Hive.openBox<dynamic>(DB.boxNamePrefs);
-    final walletsService = WalletsService(secureStorageInterface: secureStore);
+    final walletsService = WalletsService();
     final prefs = Prefs.instance;
     final walletInfoList = await walletsService.walletNames;
     await prefs.init();
