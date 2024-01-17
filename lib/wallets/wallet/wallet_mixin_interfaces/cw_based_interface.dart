@@ -335,13 +335,15 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
   Future<void> checkReceivingAddressForTransactions() async {
     try {
       int highestIndex = -1;
-      for (var element
-          in cwWalletBase!.transactionHistory!.transactions!.entries) {
-        if (element.value.direction == TransactionDirection.incoming) {
-          int curAddressIndex =
-              element.value.additionalInfo!['addressIndex'] as int;
-          if (curAddressIndex > highestIndex) {
-            highestIndex = curAddressIndex;
+      final entries = cwWalletBase?.transactionHistory?.transactions?.entries;
+      if (entries != null) {
+        for (final element in entries) {
+          if (element.value.direction == TransactionDirection.incoming) {
+            int curAddressIndex =
+                element.value.additionalInfo!['addressIndex'] as int;
+            if (curAddressIndex > highestIndex) {
+              highestIndex = curAddressIndex;
+            }
           }
         }
       }
