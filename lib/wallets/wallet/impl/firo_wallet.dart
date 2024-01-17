@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -740,20 +741,32 @@ class FiroWallet extends Bip39HDWallet
         final sparkAnonymitySet = futureResults[2] as Map<String, dynamic>;
         final sparkSpentCoinTags = futureResults[3] as Set<String>;
 
-        await Future.wait([
-          recoverLelantusWallet(
+        if (Util.isDesktop) {
+          await Future.wait([
+            recoverLelantusWallet(
+              latestSetId: latestSetId,
+              usedSerialNumbers: usedSerialsSet,
+              setDataMap: setDataMap,
+            ),
+            recoverSparkWallet(
+              anonymitySet: sparkAnonymitySet,
+              spentCoinTags: sparkSpentCoinTags,
+            ),
+          ]);
+        } else {
+          await recoverLelantusWallet(
             latestSetId: latestSetId,
             usedSerialNumbers: usedSerialsSet,
             setDataMap: setDataMap,
-          ),
-          recoverSparkWallet(
+          );
+          await recoverSparkWallet(
             anonymitySet: sparkAnonymitySet,
             spentCoinTags: sparkSpentCoinTags,
-          ),
-        ]);
+          );
+        }
       });
 
-      await refresh();
+      unawaited(refresh());
     } catch (e, s) {
       Logging.instance.log(
           "Exception rethrown from electrumx_mixin recover(): $e\n$s",

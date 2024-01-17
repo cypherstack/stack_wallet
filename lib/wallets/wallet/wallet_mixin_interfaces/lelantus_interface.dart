@@ -596,6 +596,7 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
         .isLelantusEqualTo(false)
         .findAll();
 
+    // TODO: [prio=high] shouldn't these be v2? If it doesn't matter than we can get rid of this logic
     // Edit the receive transactions with the mint fees.
     List<Transaction> editedTransactions = [];
 
