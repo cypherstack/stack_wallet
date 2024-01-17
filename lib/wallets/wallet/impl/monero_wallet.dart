@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:cw_core/node.dart';
@@ -247,26 +248,26 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
   }
 
   @override
-  Future<void> init() async {
+  Future<void> init({bool? isRestore}) async {
     cwWalletService = xmr_dart.monero
         .createMoneroWalletService(DB.instance.moneroWalletInfoBox);
 
-    if (!(await cwWalletService!.isWalletExit(walletId))) {
+    if (!(await cwWalletService!.isWalletExit(walletId)) && isRestore != true) {
       WalletInfo walletInfo;
       WalletCredentials credentials;
       try {
-        String name = walletId;
         final dirPath =
-            await pathForWalletDir(name: name, type: WalletType.monero);
-        final path = await pathForWallet(name: name, type: WalletType.monero);
+            await pathForWalletDir(name: walletId, type: WalletType.monero);
+        final path =
+            await pathForWallet(name: walletId, type: WalletType.monero);
         credentials = xmr_dart.monero.createMoneroNewWalletCredentials(
-          name: name,
+          name: walletId,
           language: "English",
         );
 
         walletInfo = WalletInfo.external(
-          id: WalletBase.idFor(name, WalletType.monero),
-          name: name,
+          id: WalletBase.idFor(walletId, WalletType.monero),
+          name: walletId,
           type: WalletType.monero,
           isRecovery: false,
           restoreHeight: credentials.height ?? 0,
@@ -332,7 +333,7 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
 
         var restoreHeight = cwWalletBase?.walletInfo.restoreHeight;
         highestPercentCached = 0;
-        await cwWalletBase?.rescan(height: restoreHeight);
+        await cwWalletBase?.rescan(height: restoreHeight ?? 0);
       });
       unawaited(refresh());
       return;
@@ -347,19 +348,7 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
       }
 
       try {
-        int height = info.restoreHeight;
-
-        // 25 word seed. TODO validate
-        if (height == 0) {
-          height = xmr_dart.monero.getHeigthByDate(
-            date: DateTime.now().subtract(
-              const Duration(
-                // subtract a couple days to ensure we have a buffer for SWB
-                days: 2,
-              ),
-            ),
-          );
-        }
+        final height = max(info.restoreHeight, 0);
 
         await info.updateRestoreHeight(
           newRestoreHeight: height,

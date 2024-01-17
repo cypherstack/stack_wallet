@@ -31,6 +31,8 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   late ElectrumXClient electrumXClient;
   late CachedElectrumXClient electrumXCachedClient;
 
+  int? get maximumFeerate => null;
+
   static const _kServerBatchCutoffVersion = [1, 6];
   List<int>? _serverVersion;
   bool get serverCanBatch {
@@ -678,6 +680,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         scriptHash: cryptoCurrency.networkParams.p2shPrefix,
         wif: cryptoCurrency.networkParams.wifPrefix,
       ),
+      maximumFeeRate: maximumFeerate,
     );
     const version = 1; // TODO possibly override this for certain coins?
     txb.setVersion(version);

@@ -53,29 +53,50 @@ class ParticlWallet extends Bip39HDWallet
 // ===========================================================================
 
   @override
-  Future<({bool blocked, String? blockedReason, String? utxoLabel})>
-      checkBlockUTXO(Map<String, dynamic> jsonUTXO, String? scriptPubKeyHex,
-          Map<String, dynamic> jsonTX, String? utxoOwnerAddress) async {
+  Future<
+      ({
+        bool blocked,
+        String? blockedReason,
+        String? utxoLabel,
+      })> checkBlockUTXO(
+    Map<String, dynamic> jsonUTXO,
+    String? scriptPubKeyHex,
+    Map<String, dynamic> jsonTX,
+    String? utxoOwnerAddress,
+  ) async {
     bool blocked = false;
     String? blockedReason;
     String? utxoLabel;
-    if (jsonUTXO.containsKey('ct_fee')) {
-      // Blind output, ignore for now.
-      blocked = true;
-      blockedReason = "Blind output.";
-      utxoLabel = "Unsupported output type.";
-    } else if (jsonUTXO.containsKey('rangeproof')) {
-      // Private RingCT output, ignore for now.
-      blocked = true;
-      blockedReason = "Confidential output.";
-      utxoLabel = "Unsupported output type.";
-    } else if (jsonUTXO.containsKey('data_hex')) {
-      // Data output, ignore for now.
-      blocked = true;
-      blockedReason = "Data output.";
-      utxoLabel = "Unsupported output type.";
-    } else if (jsonUTXO.containsKey('scriptPubKey')) {
-      // Transparent output.  Do nothing.
+
+    final outputs = jsonTX["vout"] as List? ?? [];
+
+    for (final output in outputs) {
+      if (output is Map) {
+        if (output['ct_fee'] != null) {
+          // Blind output, ignore for now.
+          blocked = true;
+          blockedReason = "Blind output.";
+          utxoLabel = "Unsupported output type.";
+        } else if (output['rangeproof'] != null) {
+          // Private RingCT output, ignore for now.
+          blocked = true;
+          blockedReason = "Confidential output.";
+          utxoLabel = "Unsupported output type.";
+        } else if (output['data_hex'] != null) {
+          // Data output, ignore for now.
+          blocked = true;
+          blockedReason = "Data output.";
+          utxoLabel = "Unsupported output type.";
+        } else if (output['scriptPubKey'] != null) {
+          if (output['scriptPubKey']?['asm'] is String &&
+              (output['scriptPubKey']['asm'] as String)
+                  .contains("OP_ISCOINSTAKE")) {
+            blocked = true;
+            blockedReason = "Spending staking";
+            utxoLabel = "Unsupported output type.";
+          }
+        }
+      }
     }
 
     return (

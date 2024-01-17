@@ -18,6 +18,9 @@ class DogecoinWallet extends Bip39HDWallet
   DogecoinWallet(CryptoCurrencyNetwork network) : super(Dogecoin(network));
 
   @override
+  int get maximumFeerate => 2500000; // 1000x default value
+
+  @override
   int get isarTransactionVersion => 2;
 
   @override

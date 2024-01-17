@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:cw_core/node.dart';
@@ -246,27 +247,27 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
   }
 
   @override
-  Future<void> init() async {
+  Future<void> init({bool? isRestore}) async {
     cwWalletService = wow_dart.wownero
         .createWowneroWalletService(DB.instance.moneroWalletInfoBox);
 
-    if (!(await cwWalletService!.isWalletExit(walletId))) {
+    if (!(await cwWalletService!.isWalletExit(walletId)) && isRestore != true) {
       WalletInfo walletInfo;
       WalletCredentials credentials;
       try {
-        String name = walletId;
         final dirPath =
-            await pathForWalletDir(name: name, type: WalletType.wownero);
-        final path = await pathForWallet(name: name, type: WalletType.wownero);
+            await pathForWalletDir(name: walletId, type: WalletType.wownero);
+        final path =
+            await pathForWallet(name: walletId, type: WalletType.wownero);
         credentials = wow_dart.wownero.createWowneroNewWalletCredentials(
-          name: name,
+          name: walletId,
           language: "English",
           seedWordsLength: 14,
         );
 
         walletInfo = WalletInfo.external(
-          id: WalletBase.idFor(name, WalletType.wownero),
-          name: name,
+          id: WalletBase.idFor(walletId, WalletType.wownero),
+          name: walletId,
           type: WalletType.wownero,
           isRecovery: false,
           restoreHeight: credentials.height ?? 0,
@@ -373,7 +374,7 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
 
         var restoreHeight = cwWalletBase?.walletInfo.restoreHeight;
         highestPercentCached = 0;
-        await cwWalletBase?.rescan(height: restoreHeight);
+        await cwWalletBase?.rescan(height: restoreHeight ?? 0);
       });
       unawaited(refresh());
       return;
@@ -394,17 +395,7 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
         if (seedLength == 14) {
           height = getSeedHeightSync(mnemonic.trim());
         } else {
-          // 25 word seed. TODO validate
-          if (height == 0) {
-            height = wow_dart.wownero.getHeightByDate(
-              date: DateTime.now().subtract(
-                const Duration(
-                  // subtract a couple days to ensure we have a buffer for SWB
-                  days: 2,
-                ),
-              ),
-            );
-          }
+          height = max(height, 0);
         }
 
         // TODO: info.updateRestoreHeight

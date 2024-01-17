@@ -52,6 +52,8 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/monero_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
 import 'package:stackwallet/wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -314,10 +316,22 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             mnemonic: mnemonic,
           );
 
-          if (wallet is EpiccashWallet) {
-            await wallet.init(isRestore: true);
-          } else {
-            await wallet.init();
+          // TODO: extract interface with isRestore param
+          switch (wallet.runtimeType) {
+            case EpiccashWallet:
+              await (wallet as EpiccashWallet).init(isRestore: true);
+              break;
+
+            case MoneroWallet:
+              await (wallet as MoneroWallet).init(isRestore: true);
+              break;
+
+            case WowneroWallet:
+              await (wallet as WowneroWallet).init(isRestore: true);
+              break;
+
+            default:
+              await wallet.init();
           }
 
           await wallet.recover(isRescan: false);
