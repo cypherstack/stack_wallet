@@ -287,7 +287,8 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
             recipients: [
               (
                 address: address,
-                amount: amount, isChange: false,
+                amount: amount,
+                isChange: false,
               ),
             ],
             memo: memo,
@@ -303,19 +304,21 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
               recipients: [
                 (
                   address: address,
-                  amount: amount, isChange: false,
+                  amount: amount,
+                  isChange: false,
                 ),
               ],
               feeRateType: FeeRateType.average,
             ),
           );
         } else {
-          txDataFuture = firoWallet.prepareSendLelantus(
+          txDataFuture = firoWallet.prepareSendSpark(
             txData: TxData(
               recipients: [
                 (
                   address: address,
-                  amount: amount, isChange: false,
+                  amount: amount,
+                  isChange: false,
                 ),
               ],
               // feeRateType: FeeRateType.average,
@@ -481,7 +484,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                             ),
                             Text(
                               ref.watch(pAmountFormatter(coin)).format(ref
-                                  .watch(pWalletBalance(walletId))
+                                  .watch(pWalletBalanceTertiary(walletId))
                                   .spendable),
                               style: STextStyles.itemSubtitle(context),
                             ),
@@ -543,8 +546,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                             Text(
                               ref.watch(pAmountFormatter(coin)).format(
                                     ref
-                                        .watch(
-                                            pWalletBalanceSecondary(walletId))
+                                        .watch(pWalletBalance(walletId))
                                         .spendable,
                                   ),
                               style: STextStyles.itemSubtitle(context),

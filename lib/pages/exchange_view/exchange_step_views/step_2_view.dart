@@ -224,8 +224,10 @@ class _Step2ViewState extends ConsumerState<Step2View> {
 
                                           _toController.text = wallet.info.name;
                                           model.recipientAddress = (await wallet
-                                                  .getCurrentReceivingAddress())!
-                                              .value;
+                                                      .getCurrentReceivingAddress())
+                                                  ?.value ??
+                                              wallet
+                                                  .info.cachedReceivingAddress;
 
                                           setState(() {
                                             enableNext =

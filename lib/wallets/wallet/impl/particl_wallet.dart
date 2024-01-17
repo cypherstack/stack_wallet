@@ -444,22 +444,24 @@ class ParticlWallet extends Bip39HDWallet
     return txData.copyWith(
       raw: hexString,
       vSize: vSize,
-      tempTx: TransactionV2(
-        walletId: walletId,
-        blockHash: null,
-        hash: builtTx.getId(),
-        txid: builtTx.getId(),
-        height: null,
-        timestamp: DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
-        inputs: List.unmodifiable(tempInputs),
-        outputs: List.unmodifiable(tempOutputs),
-        version: version,
-        type: tempOutputs.map((e) => e.walletOwns).fold(true, (p, e) => p &= e)
-            ? TransactionType.sentToSelf
-            : TransactionType.outgoing,
-        subType: TransactionSubType.none,
-        otherData: null,
-      ),
+      tempTx: null,
+      //  builtTx.getId() requires an isParticl flag as well but the lib does not support that yet
+      // tempTx: TransactionV2(
+      //   walletId: walletId,
+      //   blockHash: null,
+      //   hash: builtTx.getId(),
+      //   txid: builtTx.getId(),
+      //   height: null,
+      //   timestamp: DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
+      //   inputs: List.unmodifiable(tempInputs),
+      //   outputs: List.unmodifiable(tempOutputs),
+      //   version: version,
+      //   type: tempOutputs.map((e) => e.walletOwns).fold(true, (p, e) => p &= e)
+      //       ? TransactionType.sentToSelf
+      //       : TransactionType.outgoing,
+      //   subType: TransactionSubType.none,
+      //   otherData: null,
+      // ),
     );
   }
 

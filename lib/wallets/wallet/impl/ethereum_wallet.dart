@@ -33,7 +33,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
   EthereumWallet(CryptoCurrencyNetwork network) : super(Ethereum(network));
 
   Timer? timer;
-  late web3.EthPrivateKey _credentials;
+  web3.EthPrivateKey? _credentials;
 
   Future<void> updateTokenContracts(List<String> contractAddresses) async {
     await info.updateContractAddresses(
@@ -78,11 +78,10 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
   // ==================== Private ==============================================
 
-  Future<void> _initCredentials(
-    String mnemonic,
-    String mnemonicPassphrase,
-  ) async {
-    String privateKey = getPrivateKey(mnemonic, mnemonicPassphrase);
+  Future<void> _initCredentials() async {
+    final mnemonic = await getMnemonic();
+    final mnemonicPassphrase = await getMnemonicPassphrase();
+    final privateKey = getPrivateKey(mnemonic, mnemonicPassphrase);
     _credentials = web3.EthPrivateKey.fromHex(privateKey);
   }
 
@@ -111,14 +110,13 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
   Future<void> checkSaveInitialReceivingAddress() async {
     final address = await getCurrentReceivingAddress();
     if (address == null) {
-      await _initCredentials(
-        await getMnemonic(),
-        await getMnemonicPassphrase(),
-      );
+      if (_credentials == null) {
+        await _initCredentials();
+      }
 
       final address = Address(
         walletId: walletId,
-        value: _credentials.address.hexEip55,
+        value: _credentials!.address.hexEip55,
         publicKey: [],
         // maybe store address bytes here? seems a waste of space though
         derivationIndex: 0,
@@ -450,9 +448,12 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
   @override
   Future<TxData> confirmSend({required TxData txData}) async {
     final client = getEthClient();
+    if (_credentials == null) {
+      await _initCredentials();
+    }
 
     final txid = await client.sendTransaction(
-      _credentials,
+      _credentials!,
       txData.web3dartTransaction!,
       chainId: txData.chainId!.toInt(),
     );

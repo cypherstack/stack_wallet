@@ -246,6 +246,7 @@ class MockWallets extends _i1.Mock implements _i10.Wallets {
   _i11.Future<void> loadAfterStackRestore(
     _i14.Prefs? prefs,
     List<_i5.Wallet<_i4.CryptoCurrency>>? wallets,
+    bool? isDesktop,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -253,6 +254,7 @@ class MockWallets extends _i1.Mock implements _i10.Wallets {
           [
             prefs,
             wallets,
+            isDesktop,
           ],
         ),
         returnValue: _i11.Future<void>.value(),
@@ -877,11 +879,6 @@ class MockPriceService extends _i1.Mock implements _i21.PriceService {
         returnValueForMissingStub: null,
       );
   @override
-  Set<String> get tokenContractAddressesToCheck => (super.noSuchMethod(
-        Invocation.getter(#tokenContractAddressesToCheck),
-        returnValue: <String>{},
-      ) as Set<String>);
-  @override
   Duration get updateInterval => (super.noSuchMethod(
         Invocation.getter(#updateInterval),
         returnValue: _FakeDuration_4(
@@ -889,6 +886,12 @@ class MockPriceService extends _i1.Mock implements _i21.PriceService {
           Invocation.getter(#updateInterval),
         ),
       ) as Duration);
+  @override
+  _i11.Future<Set<String>> get tokenContractAddressesToCheck =>
+      (super.noSuchMethod(
+        Invocation.getter(#tokenContractAddressesToCheck),
+        returnValue: _i11.Future<Set<String>>.value(<String>{}),
+      ) as _i11.Future<Set<String>>);
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),

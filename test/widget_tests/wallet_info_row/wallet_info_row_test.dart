@@ -6,7 +6,6 @@ import 'package:stackwallet/themes/theme_service.dart';
 
 @GenerateMocks([
   Wallets,
-  WalletsService,
   ThemeService,
 ], customMocks: [
   MockSpec<NodeService>(returnNullOnMissingStub: true),

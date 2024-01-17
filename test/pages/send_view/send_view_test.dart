@@ -2,13 +2,11 @@ import 'package:mockito/annotations.dart';
 import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets.dart';
-import 'package:stackwallet/services/wallets_service.dart';
 import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 
 @GenerateMocks([
   Wallets,
-  WalletsService,
   NodeService,
   LocaleService,
   ThemeService,

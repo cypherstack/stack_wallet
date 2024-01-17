@@ -241,10 +241,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
 
       Future<TxData> txDataFuture;
 
-      // TODO: [prio=high] Firo spark
-
       if (wallet is FiroWallet && !firoPublicSend) {
-        txDataFuture = wallet.prepareSendLelantus(
+        txDataFuture = wallet.prepareSendSpark(
           txData: TxData(
             recipients: [
               (

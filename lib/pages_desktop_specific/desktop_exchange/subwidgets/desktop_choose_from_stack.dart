@@ -234,7 +234,10 @@ class _DesktopChooseFromStackState
                         CustomTextButton(
                           text: "Select wallet",
                           onTap: () async {
-                            final address = wallet.info.cachedReceivingAddress;
+                            final address =
+                                (await wallet.getCurrentReceivingAddress())
+                                        ?.value ??
+                                    wallet.info.cachedReceivingAddress;
 
                             if (mounted) {
                               Navigator.of(context).pop(

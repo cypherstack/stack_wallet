@@ -3,7 +3,6 @@ import 'package:mockito/annotations.dart';
 import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets.dart';
-import 'package:stackwallet/services/wallets_service.dart';
 import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/prefs.dart';
@@ -17,7 +16,6 @@ Amount _a(int i) => Amount.fromDecimal(
 
 @GenerateMocks([
   Wallets,
-  WalletsService,
   ThemeService,
   Prefs,
   LocaleService

@@ -179,6 +179,7 @@ class MockWallets extends _i1.Mock implements _i7.Wallets {
   _i8.Future<void> loadAfterStackRestore(
     _i11.Prefs? prefs,
     List<_i5.Wallet<_i4.CryptoCurrency>>? wallets,
+    bool? isDesktop,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -186,6 +187,7 @@ class MockWallets extends _i1.Mock implements _i7.Wallets {
           [
             prefs,
             wallets,
+            isDesktop,
           ],
         ),
         returnValue: _i8.Future<void>.value(),

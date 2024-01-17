@@ -489,6 +489,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
 
   @override
   Future<void> updateTransactions() async {
+    await updateChainHeight();
     final receivingAddress =
         (_cachedAddress ?? await getCurrentReceivingAddress())!;
     final String publicAddress = receivingAddress.value;
