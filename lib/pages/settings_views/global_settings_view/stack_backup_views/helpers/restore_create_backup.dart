@@ -467,8 +467,12 @@ abstract class SWB {
         return false;
       }
 
-      // if mnemonic verified does not get set the wallet will be deleted on app restart
-      await wallet.info.setMnemonicVerified(isar: MainDB.instance.isar);
+      try {
+        // if mnemonic verified does not get set the wallet will be deleted on app restart
+        await wallet.info.setMnemonicVerified(isar: MainDB.instance.isar);
+      } catch (_) {
+        // Do not interrupt/cancel/fail restore from swb if setMnemonicVerified was already set
+      }
 
       if (_shouldCancelRestore) {
         return false;
