@@ -173,7 +173,7 @@ abstract class Wallet<T extends CryptoCurrency> {
 
     // Store in db after wallet creation
     await wallet.mainDB.isar.writeTxn(() async {
-      await wallet.mainDB.isar.walletInfo.put(wallet.info);
+      await wallet.mainDB.isar.walletInfo.put(walletInfo);
     });
 
     return wallet;
