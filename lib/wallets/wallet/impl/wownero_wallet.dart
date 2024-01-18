@@ -444,6 +444,24 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
               .add<WalletInfo>(boxName: WalletInfo.boxName, value: walletInfo);
           cwWalletBase?.close();
           cwWalletBase = wallet;
+          if (walletInfo.address != null) {
+            final newReceivingAddress = await getCurrentReceivingAddress() ??
+                Address(
+                  walletId: walletId,
+                  derivationIndex: 0,
+                  derivationPath: null,
+                  value: walletInfo.address!,
+                  publicKey: [],
+                  type: AddressType.cryptonote,
+                  subType: AddressSubType.receiving,
+                );
+
+            await mainDB.updateOrPutAddresses([newReceivingAddress]);
+            await info.updateReceivingAddress(
+              newAddress: newReceivingAddress.value,
+              isar: mainDB.isar,
+            );
+          }
         } catch (e, s) {
           Logging.instance.log("$e\n$s", level: LogLevel.Fatal);
         }
