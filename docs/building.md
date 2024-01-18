@@ -135,7 +135,7 @@ flutter run linux
 ### Dependencies
 XCode, Homebrew and several homebrew packages, Rust, and Flutter are required for Mac development with the Flutter SDK.  Multiple IDEs may work, but Android Studio is recommended.
 
-Download and install Xcode at https://developer.apple.com/xcode/, register your device (Mac or iPhone), and enable developer mode for your device as applicable.
+Download and install Xcode at https://developer.apple.com/xcode/, register your device (Mac or iPhone), and enable developer mode for your device as applicable.  After installing XCode, make sure commandline tools are installed with `xcode-select --install`.
 
 Download and install [Homebrew](https://brew.sh/).  The following command can install it via script:
 ```
