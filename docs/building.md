@@ -147,7 +147,7 @@ After installing Homebrew, install the following packages:
 brew install cocoapods git cmake autoconf fontconfig libpng lz4 pkg-config automake freetype libssh2 lzo procs berkeley-db gdbm libtool m4 rtmpdump brotli gettext libunistring make rustup-init ca-certificates git-gui libx11 openldap tcl-tk cairo glib libxau openssl@1.1 unbound cbindgen gmp libxcb openssl@3 unzip cmake libevent libxdmcp pcre2 xorgproto coreutils libidn2 libxext perl xz curl libnghttp2 libxrender pixman zstd
 ```
 
-Download and install [Rust](https://www.rust-lang.org/tools/install).  [Rustup](https://rustup.rs/) is recommended for Rust setup.  Use `rustc` to confirm successful installation.  Install toolchains 1.67.1 and 1.72.0 and `cbindgen` and `cargo-lipo` too.  You will also have to add the platform targets `aarch64-apple-ios` and/or `aarch64-apple-darwin`.  You can use the command(s):
+Download and install [Rust](https://www.rust-lang.org/tools/install).  [Rustup](https://rustup.rs/) is recommended for Rust setup.  Use `rustc` to confirm successful installation.  Install toolchains 1.67.1 and 1.72.0 and `cbindgen` and `cargo-lipo` too.  You will also have to add the platform target(s) `aarch64-apple-ios` and/or `aarch64-apple-darwin`.  You can use the command(s):
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source ~/.bashrc 
@@ -163,10 +163,10 @@ Download and install [Flutter](https://docs.flutter.dev/get-started/install).  V
 Download [Android Studio](https://developer.android.com/studio).  VS Code may work as an alternative, but this is not recommended.
 
 ### Building libraries
+TODO
 
 ### Install Flutter on Mac host
-Install Flutter 3.10.3 on your Mac host by following these instructions: https://docs.flutter.dev/get-started/install/macos.  Run `flutter doctor` in PowerShell to confirm its installation.
-
+Install Flutter 3.16.8 on your Mac host by following these instructions: https://docs.flutter.dev/get-started/install/macos.  Run `flutter doctor` in a terminal to confirm its installation.
 
 ## Windows host
 ### Visual Studio
