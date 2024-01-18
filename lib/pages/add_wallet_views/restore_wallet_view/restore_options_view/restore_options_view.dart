@@ -535,7 +535,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                             enableSuggestions: false,
                             autocorrect: false,
                             decoration: standardInputDecoration(
-                              "Recovery phrase password",
+                              "BIP39 passphrase",
                               passwordFocusNode,
                               context,
                             ).copyWith(
@@ -586,7 +586,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                         RoundedWhiteContainer(
                           child: Center(
                             child: Text(
-                              "If the recovery phrase you are about to restore was created with an optional passphrase you can enter it here.",
+                              "If the recovery phrase you are about to restore "
+                              "was created with an optional BIP39 passphrase "
+                              "you can enter it here.",
                               style: isDesktop
                                   ? STextStyles.desktopTextExtraSmall(context)
                                       .copyWith(

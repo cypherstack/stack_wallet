@@ -18,15 +18,22 @@ class StackDialogBase extends StatelessWidget {
     Key? key,
     this.child,
     this.padding = const EdgeInsets.all(24),
+    this.keyboardPaddingAmount = 0,
   }) : super(key: key);
 
   final EdgeInsets padding;
   final Widget? child;
+  final double keyboardPaddingAmount;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.only(
+        top: 16,
+        left: 16,
+        right: 16,
+        bottom: 16 + keyboardPaddingAmount,
+      ),
       child: Column(
         mainAxisAlignment:
             !Util.isDesktop ? MainAxisAlignment.end : MainAxisAlignment.center,

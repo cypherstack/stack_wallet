@@ -8,165 +8,126 @@
  *
  */
 
-import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_libmonero/monero/monero.dart';
+import 'package:flutter_libmonero/wownero/wownero.dart';
+import 'package:isar/isar.dart';
 import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/services/coins/coin_service.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/services/node_service.dart';
+import 'package:stackwallet/services/notifications_service.dart';
+import 'package:stackwallet/services/trade_sent_from_stack_service.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
-import 'package:stackwallet/services/wallets_service.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
-import 'package:stackwallet/utilities/listenable_list.dart';
-import 'package:stackwallet/utilities/listenable_map.dart';
+import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
-import 'package:tuple/tuple.dart';
+import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
+import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 
-final ListenableList<ChangeNotifierProvider<Manager>> _nonFavorites =
-    ListenableList();
-ListenableList<ChangeNotifierProvider<Manager>> get nonFavorites =>
-    _nonFavorites;
-
-final ListenableList<ChangeNotifierProvider<Manager>> _favorites =
-    ListenableList();
-ListenableList<ChangeNotifierProvider<Manager>> get favorites => _favorites;
-
-class Wallets extends ChangeNotifier {
+class Wallets {
   Wallets._private();
-
-  @override
-  dispose() {
-    //todo: check if print needed
-    // debugPrint("Wallets dispose was called!!");
-    super.dispose();
-  }
 
   static final Wallets _sharedInstance = Wallets._private();
   static Wallets get sharedInstance => _sharedInstance;
 
-  late WalletsService walletsService;
   late NodeService nodeService;
+  late MainDB mainDB;
 
-  // mirrored maps for access to reading managers without using riverpod ref
-  static final ListenableMap<String, ChangeNotifierProvider<Manager>>
-      _managerProviderMap = ListenableMap();
-  static final ListenableMap<String, Manager> _managerMap = ListenableMap();
-
-  bool get hasWallets => _managerProviderMap.isNotEmpty;
-
-  List<ChangeNotifierProvider<Manager>> get managerProviders =>
-      _managerProviderMap.values.toList(growable: false);
-  List<Manager> get managers => _managerMap.values.toList(growable: false);
-
-  List<String> getWalletIdsFor({required Coin coin}) {
-    final List<String> result = [];
-    for (final manager in _managerMap.values) {
-      if (manager.coin == coin) {
-        result.add(manager.walletId);
-      }
-    }
-    return result;
-  }
-
-  List<Tuple2<Coin, List<ChangeNotifierProvider<Manager>>>>
-      getManagerProvidersByCoin() {
-    Map<Coin, List<ChangeNotifierProvider<Manager>>> map = {};
-    for (final manager in _managerMap.values) {
-      if (map[manager.coin] == null) {
-        map[manager.coin] = [];
-      }
-      map[manager.coin]!.add(_managerProviderMap[manager.walletId]
-          as ChangeNotifierProvider<Manager>);
-    }
-    final List<Tuple2<Coin, List<ChangeNotifierProvider<Manager>>>> result = [];
-
-    for (final coin in Coin.values) {
-      if (map[coin] != null) {
-        result.add(Tuple2(coin, map[coin]!));
-      }
-    }
-
-    return result;
-  }
-
-  List<ChangeNotifierProvider<Manager>> getManagerProvidersForCoin(Coin coin) {
-    List<ChangeNotifierProvider<Manager>> result = [];
-    for (final manager in _managerMap.values) {
-      if (manager.coin == coin) {
-        result.add(_managerProviderMap[manager.walletId]
-            as ChangeNotifierProvider<Manager>);
-      }
-    }
-    return result;
-  }
-
-  ChangeNotifierProvider<Manager> getManagerProvider(String walletId) {
-    return _managerProviderMap[walletId] as ChangeNotifierProvider<Manager>;
-  }
-
-  Manager getManager(String walletId) {
-    return _managerMap[walletId] as Manager;
-  }
-
-  void addWallet({required String walletId, required Manager manager}) {
-    _managerMap.add(walletId, manager, true);
-    _managerProviderMap.add(
-        walletId, ChangeNotifierProvider<Manager>((_) => manager), true);
-
-    if (manager.isFavorite) {
-      _favorites.add(
-          _managerProviderMap[walletId] as ChangeNotifierProvider<Manager>,
-          false);
-    } else {
-      _nonFavorites.add(
-          _managerProviderMap[walletId] as ChangeNotifierProvider<Manager>,
-          false);
-    }
-
-    notifyListeners();
-  }
-
-  void removeWallet({required String walletId}) {
-    if (_managerProviderMap[walletId] == null) {
-      Logging.instance.log(
-          "Wallets.removeWallet($walletId) failed. ManagerProvider with $walletId not found!",
-          level: LogLevel.Warning);
-      return;
-    }
-
-    final provider = _managerProviderMap[walletId]!;
-
-    // in both non and favorites for removal
-    _favorites.remove(provider, true);
-    _nonFavorites.remove(provider, true);
-
-    _managerProviderMap.remove(walletId, true);
-    _managerMap.remove(walletId, true)!.exitCurrentWallet();
-
-    notifyListeners();
-  }
+  List<Wallet> get wallets => _wallets.values.toList();
 
   static bool hasLoaded = false;
 
-  Future<void> _initLinearly(
-    List<Tuple2<Manager, bool>> tuples,
-  ) async {
-    for (final tuple in tuples) {
-      await tuple.item1.initializeExisting();
-      if (tuple.item2 && !tuple.item1.shouldAutoSync) {
-        tuple.item1.shouldAutoSync = true;
-      }
+  final Map<String, Wallet> _wallets = {};
+
+  Wallet getWallet(String walletId) => _wallets[walletId]!;
+
+  void addWallet(Wallet wallet) {
+    if (_wallets[wallet.walletId] != null) {
+      throw Exception(
+        "Tried to add wallet that already exists, according to it's wallet Id!",
+      );
     }
+    _wallets[wallet.walletId] = wallet;
   }
 
-  static int _count = 0;
-  Future<void> load(Prefs prefs) async {
-    //todo: check if print needed
-    // debugPrint("++++++++++++++ Wallets().load() called: ${++_count} times");
+  Future<void> deleteWallet(
+    WalletInfo info,
+    SecureStorageInterface secureStorage,
+  ) async {
+    final walletId = info.walletId;
+    Logging.instance.log(
+      "deleteWallet called with walletId=$walletId",
+      level: LogLevel.Warning,
+    );
+
+    final wallet = _wallets[walletId];
+    _wallets.remove(walletId);
+    await wallet?.exit();
+
+    await secureStorage.delete(key: Wallet.mnemonicKey(walletId: walletId));
+    await secureStorage.delete(
+        key: Wallet.mnemonicPassphraseKey(walletId: walletId));
+    await secureStorage.delete(key: Wallet.privateKeyKey(walletId: walletId));
+
+    if (info.coin == Coin.wownero) {
+      final wowService =
+          wownero.createWowneroWalletService(DB.instance.moneroWalletInfoBox);
+      await wowService.remove(walletId);
+      Logging.instance
+          .log("monero wallet: $walletId deleted", level: LogLevel.Info);
+    } else if (info.coin == Coin.monero) {
+      final xmrService =
+          monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
+      await xmrService.remove(walletId);
+      Logging.instance
+          .log("monero wallet: $walletId deleted", level: LogLevel.Info);
+    } else if (info.coin == Coin.epicCash) {
+      final deleteResult = await deleteEpicWallet(
+          walletId: walletId, secureStore: secureStorage);
+      Logging.instance.log(
+          "epic wallet: $walletId deleted with result: $deleteResult",
+          level: LogLevel.Info);
+    }
+
+    // delete wallet data in main db
+    await MainDB.instance.deleteWalletBlockchainData(walletId);
+    await MainDB.instance.deleteAddressLabels(walletId);
+    await MainDB.instance.deleteTransactionNotes(walletId);
+
+    // box data may currently still be read/written to if wallet was refreshing
+    // when delete was requested so instead of deleting now we mark the wallet
+    // as needs delete by adding it's id to a list which gets checked on app start
+    await DB.instance.add<String>(
+        boxName: DB.boxNameWalletsToDeleteOnStart, value: walletId);
+
+    final lookupService = TradeSentFromStackService();
+    for (final lookup in lookupService.all) {
+      if (lookup.walletIds.contains(walletId)) {
+        // update lookup data to reflect deleted wallet
+        await lookupService.save(
+          tradeWalletLookup: lookup.copyWith(
+            walletIds: lookup.walletIds.where((id) => id != walletId).toList(),
+          ),
+        );
+      }
+    }
+
+    // delete notifications tied to deleted wallet
+    for (final notification in NotificationsService.instance.notifications) {
+      if (notification.walletId == walletId) {
+        await NotificationsService.instance.delete(notification, false);
+      }
+    }
+
+    await mainDB.isar.writeTxn(() async {
+      await mainDB.isar.walletInfo.deleteByWalletId(walletId);
+    });
+  }
+
+  Future<void> load(Prefs prefs, MainDB mainDB) async {
     if (hasLoaded) {
       return;
     }
@@ -175,18 +136,22 @@ class Wallets extends ChangeNotifier {
     // clear out any wallet hive boxes where the wallet was deleted in previous app run
     for (final walletId in DB.instance
         .values<String>(boxName: DB.boxNameWalletsToDeleteOnStart)) {
-      await DB.instance.deleteBoxFromDisk(boxName: walletId);
+      await mainDB.isar.writeTxn(() async => await mainDB.isar.walletInfo
+          .where()
+          .walletIdEqualTo(walletId)
+          .deleteAll());
     }
     // clear list
     await DB.instance
         .deleteAll<String>(boxName: DB.boxNameWalletsToDeleteOnStart);
 
-    final map = await walletsService.walletNames;
+    final walletInfoList = await mainDB.isar.walletInfo.where().findAll();
+    if (walletInfoList.isEmpty) {
+      return;
+    }
 
-    List<Future<dynamic>> walletInitFutures = [];
-    List<Tuple2<Manager, bool>> walletsToInitLinearly = [];
-
-    final favIdList = await walletsService.getFavoriteWalletIds();
+    List<Future<void>> walletInitFutures = [];
+    List<({Wallet wallet, bool shouldAutoSync})> walletsToInitLinearly = [];
 
     List<String> walletIdsToEnableAutoSync = [];
     bool shouldAutoSyncAll = false;
@@ -202,92 +167,47 @@ class Wallets extends ChangeNotifier {
         break;
     }
 
-    for (final entry in map.entries) {
+    for (final walletInfo in walletInfoList) {
       try {
-        final walletId = entry.value.walletId;
-
-        late final bool isVerified;
-        try {
-          isVerified =
-              await walletsService.isMnemonicVerified(walletId: walletId);
-        } catch (e, s) {
-          Logging.instance.log("$e $s", level: LogLevel.Warning);
-          isVerified = false;
-        }
-
+        final isVerified = await walletInfo.isMnemonicVerified(mainDB.isar);
         Logging.instance.log(
-            "LOADING WALLET: ${entry.value.toString()} IS VERIFIED: $isVerified",
-            level: LogLevel.Info);
+          "LOADING WALLET: ${walletInfo.name}:${walletInfo.walletId} "
+          "IS VERIFIED: $isVerified",
+          level: LogLevel.Info,
+        );
+
         if (isVerified) {
-          if (_managerMap[walletId] == null &&
-              _managerProviderMap[walletId] == null) {
-            final coin = entry.value.coin;
-            NodeModel node = nodeService.getPrimaryNodeFor(coin: coin) ??
-                DefaultNodes.getNodeFor(coin);
-            // ElectrumXNode? node = await nodeService.getCurrentNode(coin: coin);
+          // TODO: integrate this into the new wallets somehow?
+          // requires some thinking
+          final txTracker =
+              TransactionNotificationTracker(walletId: walletInfo.walletId);
 
-            // folowing shouldn't be needed as the defaults get saved on init
-            // if (node == null) {
-            //   node = DefaultNodes.getNodeFor(coin);
-            //
-            //   // save default node
-            //   nodeService.add(node, false);
-            // }
+          final wallet = await Wallet.load(
+            walletId: walletInfo.walletId,
+            mainDB: mainDB,
+            secureStorageInterface: nodeService.secureStorageInterface,
+            nodeService: nodeService,
+            prefs: prefs,
+          );
 
-            final txTracker =
-                TransactionNotificationTracker(walletId: walletId);
+          final shouldSetAutoSync = shouldAutoSyncAll ||
+              walletIdsToEnableAutoSync.contains(walletInfo.walletId);
 
-            final failovers = nodeService.failoverNodesFor(coin: coin);
-
-            // load wallet
-            final wallet = CoinServiceAPI.from(
-              coin,
-              walletId,
-              entry.value.name,
-              nodeService.secureStorageInterface,
-              node,
-              txTracker,
-              prefs,
-              failovers,
-            );
-
-            final manager = Manager(wallet);
-
-            final shouldSetAutoSync = shouldAutoSyncAll ||
-                walletIdsToEnableAutoSync.contains(manager.walletId);
-
-            if (manager.coin == Coin.monero || manager.coin == Coin.wownero) {
-              // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
-            } else {
-              walletInitFutures.add(manager.initializeExisting().then((value) {
-                if (shouldSetAutoSync) {
-                  manager.shouldAutoSync = true;
-                }
-              }));
-            }
-
-            _managerMap.add(walletId, manager, false);
-
-            final managerProvider =
-                ChangeNotifierProvider<Manager>((_) => manager);
-            _managerProviderMap.add(walletId, managerProvider, false);
-
-            final favIndex = favIdList.indexOf(walletId);
-
-            if (favIndex == -1) {
-              _nonFavorites.add(managerProvider, true);
-            } else {
-              // it is a favorite
-              if (favIndex >= _favorites.length) {
-                _favorites.add(managerProvider, true);
-              } else {
-                _favorites.insert(favIndex, managerProvider, true);
+          if (wallet is CwBasedInterface) {
+            // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
+          } else {
+            walletInitFutures.add(wallet.init().then((_) {
+              if (shouldSetAutoSync) {
+                wallet.shouldAutoSync = true;
               }
-            }
+            }));
           }
+
+          _wallets[wallet.walletId] = wallet;
         } else {
           // wallet creation was not completed by user so we remove it completely
-          await walletsService.deleteWallet(entry.value.name, false);
+          await _deleteWallet(walletInfo.walletId);
+          // await walletsService.deleteWallet(walletInfo.name, false);
         }
       } catch (e, s) {
         Logging.instance.log("$e $s", level: LogLevel.Fatal);
@@ -300,22 +220,20 @@ class Wallets extends ChangeNotifier {
         _initLinearly(walletsToInitLinearly),
         ...walletInitFutures,
       ]);
-      notifyListeners();
     } else if (walletInitFutures.isNotEmpty) {
       await Future.wait(walletInitFutures);
-      notifyListeners();
     } else if (walletsToInitLinearly.isNotEmpty) {
       await _initLinearly(walletsToInitLinearly);
-      notifyListeners();
     }
   }
 
   Future<void> loadAfterStackRestore(
-      Prefs prefs, List<Manager> managers) async {
-    List<Future<dynamic>> walletInitFutures = [];
-    List<Tuple2<Manager, bool>> walletsToInitLinearly = [];
-
-    final favIdList = await walletsService.getFavoriteWalletIds();
+    Prefs prefs,
+    List<Wallet> wallets,
+    bool isDesktop,
+  ) async {
+    List<Future<void>> walletInitFutures = [];
+    List<({Wallet wallet, bool shouldAutoSync})> walletsToInitLinearly = [];
 
     List<String> walletIdsToEnableAutoSync = [];
     bool shouldAutoSyncAll = false;
@@ -331,68 +249,65 @@ class Wallets extends ChangeNotifier {
         break;
     }
 
-    for (final manager in managers) {
-      final walletId = manager.walletId;
-
-      final isVerified =
-          await walletsService.isMnemonicVerified(walletId: walletId);
-      //todo: check if print needed
-      // debugPrint(
-      //     "LOADING RESTORED WALLET: ${manager.walletName} ${manager.walletId} IS VERIFIED: $isVerified");
+    for (final wallet in wallets) {
+      final isVerified = await wallet.info.isMnemonicVerified(mainDB.isar);
+      Logging.instance.log(
+        "LOADING WALLET: ${wallet.info.name}:${wallet.walletId} IS VERIFIED: $isVerified",
+        level: LogLevel.Info,
+      );
 
       if (isVerified) {
-        if (_managerMap[walletId] == null &&
-            _managerProviderMap[walletId] == null) {
-          final shouldSetAutoSync = shouldAutoSyncAll ||
-              walletIdsToEnableAutoSync.contains(manager.walletId);
+        final shouldSetAutoSync = shouldAutoSyncAll ||
+            walletIdsToEnableAutoSync.contains(wallet.walletId);
 
-          if (manager.coin == Coin.monero || manager.coin == Coin.wownero) {
+        if (isDesktop) {
+          if (wallet is CwBasedInterface) {
             // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
           } else {
-            walletInitFutures.add(manager.initializeExisting().then((value) {
+            walletInitFutures.add(wallet.init().then((value) {
               if (shouldSetAutoSync) {
-                manager.shouldAutoSync = true;
+                wallet.shouldAutoSync = true;
               }
             }));
           }
-
-          _managerMap.add(walletId, manager, false);
-
-          final managerProvider =
-              ChangeNotifierProvider<Manager>((_) => manager);
-          _managerProviderMap.add(walletId, managerProvider, false);
-
-          final favIndex = favIdList.indexOf(walletId);
-
-          if (favIndex == -1) {
-            _nonFavorites.add(managerProvider, true);
-          } else {
-            // it is a favorite
-            if (favIndex >= _favorites.length) {
-              _favorites.add(managerProvider, true);
-            } else {
-              _favorites.insert(favIndex, managerProvider, true);
-            }
-          }
         }
+
+        _wallets[wallet.walletId] = wallet;
       } else {
         // wallet creation was not completed by user so we remove it completely
-        await walletsService.deleteWallet(manager.walletName, false);
+        await _deleteWallet(wallet.walletId);
+        // await walletsService.deleteWallet(walletInfo.name, false);
       }
     }
 
-    if (walletInitFutures.isNotEmpty && walletsToInitLinearly.isNotEmpty) {
-      await Future.wait([
-        _initLinearly(walletsToInitLinearly),
-        ...walletInitFutures,
-      ]);
-      notifyListeners();
-    } else if (walletInitFutures.isNotEmpty) {
-      await Future.wait(walletInitFutures);
-      notifyListeners();
-    } else if (walletsToInitLinearly.isNotEmpty) {
-      await _initLinearly(walletsToInitLinearly);
-      notifyListeners();
+    if (isDesktop) {
+      if (walletInitFutures.isNotEmpty && walletsToInitLinearly.isNotEmpty) {
+        await Future.wait([
+          _initLinearly(walletsToInitLinearly),
+          ...walletInitFutures,
+        ]);
+      } else if (walletInitFutures.isNotEmpty) {
+        await Future.wait(walletInitFutures);
+      } else if (walletsToInitLinearly.isNotEmpty) {
+        await _initLinearly(walletsToInitLinearly);
+      }
     }
+  }
+
+  Future<void> _initLinearly(
+    List<({Wallet wallet, bool shouldAutoSync})> dataList,
+  ) async {
+    for (final data in dataList) {
+      await data.wallet.init();
+      if (data.shouldAutoSync && !data.wallet.shouldAutoSync) {
+        data.wallet.shouldAutoSync = true;
+      }
+    }
+  }
+
+  Future<void> _deleteWallet(String walletId) async {
+    // TODO proper clean up of other wallet data in addition to the following
+    await mainDB.isar.writeTxn(
+        () async => await mainDB.isar.walletInfo.deleteByWalletId(walletId));
   }
 }

@@ -18,12 +18,15 @@ import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
 import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
 import 'package:stackwallet/pages/buy_view/sub_widgets/crypto_selection_view.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
+import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
+import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -105,10 +108,14 @@ class _ExchangeCurrencySelectionViewState
     if (widget.pairedTicker == null) {
       return await _getCurrencies();
     }
+    await ExchangeDataLoadingService.instance.initDB();
     List<Currency> currencies = await ExchangeDataLoadingService
         .instance.isar.currencies
         .where()
+        .filter()
         .exchangeNameEqualTo(MajesticBankExchange.exchangeName)
+        .or()
+        .exchangeNameStartsWith(TrocadorExchange.exchangeName)
         .findAll();
 
     final cn = await ChangeNowExchange.instance.getPairedCurrencies(
@@ -118,14 +125,14 @@ class _ExchangeCurrencySelectionViewState
 
     if (cn.value == null) {
       if (cn.exception is UnsupportedCurrencyException) {
-        return currencies;
+        return _getDistinctCurrenciesFrom(currencies);
       }
 
       if (mounted) {
         await showDialog<void>(
           context: context,
           builder: (context) => StackDialog(
-            title: "ChangeNOW Error",
+            title: "Exchange Error",
             message: "Failed to load currency data: ${cn.exception}",
             leftButton: SecondaryButton(
               label: "Ok",
@@ -151,6 +158,7 @@ class _ExchangeCurrencySelectionViewState
   }
 
   Future<List<Currency>> _getCurrencies() async {
+    await ExchangeDataLoadingService.instance.initDB();
     final currencies = await ExchangeDataLoadingService.instance.isar.currencies
         .where()
         .filter()
@@ -169,13 +177,23 @@ class _ExchangeCurrencySelectionViewState
         .thenByName()
         .findAll();
 
+    // If using Tor, filter exchanges which do not support Tor.
+    if (Prefs.instance.useTor) {
+      if (Exchange.exchangeNamesWithTorSupport.isNotEmpty) {
+        currencies.removeWhere((element) => !Exchange
+            .exchangeNamesWithTorSupport
+            .contains(element.exchangeName));
+      }
+    }
+
     return _getDistinctCurrenciesFrom(currencies);
   }
 
   List<Currency> _getDistinctCurrenciesFrom(List<Currency> currencies) {
     final List<Currency> distinctCurrencies = [];
     for (final currency in currencies) {
-      if (!distinctCurrencies.any((e) => e.ticker == currency.ticker)) {
+      if (!distinctCurrencies.any(
+          (e) => e.ticker.toLowerCase() == currency.ticker.toLowerCase())) {
         distinctCurrencies.add(currency);
       }
     }

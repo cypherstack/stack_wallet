@@ -13,8 +13,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/providers/global/wallets_service_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -46,23 +46,26 @@ class _HoverTextFieldState extends ConsumerState<DesktopWalletNameField> {
   );
 
   Future<void> onDone() async {
-    final currentWalletName = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .walletName;
+    final info = ref.read(pWallets).getWallet(widget.walletId).info;
+    final currentWalletName = info.name;
     final newName = controller.text;
-    if (newName != currentWalletName) {
-      final success =
-          await ref.read(walletsServiceChangeNotifierProvider).renameWallet(
-                from: currentWalletName,
-                to: newName,
-                shouldNotifyListeners: true,
-              );
-      if (success) {
-        ref
-            .read(walletsChangeNotifierProvider)
-            .getManager(widget.walletId)
-            .walletName = newName;
+
+    String? errMessage;
+    try {
+      await info.updateName(
+        newName: newName,
+        isar: ref.read(mainDBProvider).isar,
+      );
+    } catch (e) {
+      if (e.toString().contains("Empty wallet name not allowed!")) {
+        errMessage = "Empty wallet name not allowed.";
+      } else {
+        errMessage = e.toString();
+      }
+    }
+
+    if (mounted) {
+      if (errMessage == null) {
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.success,
@@ -100,10 +103,7 @@ class _HoverTextFieldState extends ConsumerState<DesktopWalletNameField> {
     focusNode.addListener(listenerFunc);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      controller.text = ref
-          .read(walletsChangeNotifierProvider)
-          .getManager(widget.walletId)
-          .walletName;
+      controller.text = ref.read(pWallets).getWallet(widget.walletId).info.name;
     });
 
     super.initState();

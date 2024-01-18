@@ -39,9 +39,9 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
     try {
       final coin = coinFromTickerCaseInsensitive(ticker);
       return ref
-          .read(walletsChangeNotifierProvider)
-          .managers
-          .where((element) => element.coin == coin)
+          .read(pWallets)
+          .wallets
+          .where((e) => e.info.coin == coin)
           .isNotEmpty;
     } catch (_) {
       return false;
@@ -155,6 +155,23 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
                 height: 1,
                 color: Theme.of(context).extension<StackColors>()!.background,
               ),
+              if (ref.watch(desktopExchangeModelProvider
+                      .select((value) => value!.trade?.payInExtraId)) !=
+                  null)
+                DesktopStepItem(
+                  vertical: true,
+                  label: "Memo",
+                  value: ref.watch(desktopExchangeModelProvider
+                          .select((value) => value!.trade?.payInExtraId)) ??
+                      "Error",
+                ),
+              if (ref.watch(desktopExchangeModelProvider
+                      .select((value) => value!.trade?.payInExtraId)) !=
+                  null)
+                Container(
+                  height: 1,
+                  color: Theme.of(context).extension<StackColors>()!.background,
+                ),
               DesktopStepItem(
                 label: "Amount",
                 value:

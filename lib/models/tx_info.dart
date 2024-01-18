@@ -10,6 +10,7 @@
 
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/wallets/models/tx_recipient.dart';
 
 // TODO use something like this instead of Map<String, dynamic> transactionObject
 
@@ -42,14 +43,4 @@ class TxInfo {
         usedUTXOs: usedUTXOs ?? this.usedUTXOs,
         recipients: recipients ?? this.recipients,
       );
-}
-
-class TxRecipient {
-  final String address;
-  final Amount amount;
-
-  TxRecipient({
-    required this.address,
-    required this.amount,
-  });
 }

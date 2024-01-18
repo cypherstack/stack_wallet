@@ -12,13 +12,20 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/debug_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
+import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/onetime_popups/tor_has_been_add_dialog.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class HiddenSettings extends StatelessWidget {
@@ -32,9 +39,29 @@ class HiddenSettings extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
-          leading: Container(),
+          leading: Util.isDesktop
+              ? Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: AppBarIconButton(
+                    size: 32,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
+                    shadows: const [],
+                    icon: SvgPicture.asset(
+                      Assets.svg.arrowLeft,
+                      width: 18,
+                      height: 18,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .topNavIconPrimary,
+                    ),
+                    onPressed: Navigator.of(context).pop,
+                  ),
+                )
+              : Container(),
           title: Text(
-            "Not so secret anymore",
+            "Dev options",
             style: STextStyles.navBarTitle(context),
           ),
         ),
@@ -146,58 +173,19 @@ class HiddenSettings extends StatelessWidget {
                             ),
                           );
                         }),
-                        // const SizedBox(
-                        //   height: 12,
-                        // ),
-                        // Consumer(builder: (_, ref, __) {
-                        //   return GestureDetector(
-                        //     onTap: () async {
-                        //       final x =
-                        //           await MajesticBankAPI.instance.getRates();
-                        //       print(x);
-                        //     },
-                        //     child: RoundedWhiteContainer(
-                        //       child: Text(
-                        //         "Click me",
-                        //         style: STextStyles.button(context).copyWith(
-                        //             color: Theme.of(context)
-                        //                 .extension<StackColors>()!
-                        //                 .accentColorDark),
-                        //       ),
-                        //     ),
-                        //   );
-                        // }),
                         const SizedBox(
                           height: 12,
                         ),
                         Consumer(builder: (_, ref, __) {
                           return GestureDetector(
                             onTap: () async {
-                              ref
-                                  .read(priceAnd24hChangeNotifierProvider)
-                                  .tokenContractAddressesToCheck
-                                  .add(
-                                      "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48");
-                              ref
-                                  .read(priceAnd24hChangeNotifierProvider)
-                                  .tokenContractAddressesToCheck
-                                  .add(
-                                      "0xdAC17F958D2ee523a2206206994597C13D831ec7");
-                              await ref
-                                  .read(priceAnd24hChangeNotifierProvider)
-                                  .updatePrice();
-
-                              final x = ref
-                                  .read(priceAnd24hChangeNotifierProvider)
-                                  .getTokenPrice(
-                                      "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48");
-
-                              print(
-                                  "PRICE 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48: $x");
+                              await showOneTimeTorHasBeenAddedDialogIfRequired(
+                                context,
+                              );
                             },
                             child: RoundedWhiteContainer(
                               child: Text(
-                                "Click me",
+                                "Test tor stacy popup",
                                 style: STextStyles.button(context).copyWith(
                                     color: Theme.of(context)
                                         .extension<StackColors>()!
@@ -212,24 +200,13 @@ class HiddenSettings extends StatelessWidget {
                         Consumer(builder: (_, ref, __) {
                           return GestureDetector(
                             onTap: () async {
-                              // final erc20 = Erc20ContractInfo(
-                              //   contractAddress: 'some con',
-                              //   name: "loonamsn",
-                              //   symbol: "DD",
-                              //   decimals: 19,
-                              // );
-                              //
-                              // final json = erc20.toJson();
-                              //
-                              // print(json);
-                              //
-                              // final ee = EthContractInfo.fromJson(json);
-                              //
-                              // print(ee);
+                              final box = await Hive.openBox<bool>(
+                                  DB.boxNameOneTimeDialogsShown);
+                              await box.clear();
                             },
                             child: RoundedWhiteContainer(
                               child: Text(
-                                "Click me",
+                                "Reset tor stacy popup",
                                 style: STextStyles.button(context).copyWith(
                                     color: Theme.of(context)
                                         .extension<StackColors>()!
@@ -238,6 +215,7 @@ class HiddenSettings extends StatelessWidget {
                             ),
                           );
                         }),
+
                         const SizedBox(
                           height: 12,
                         ),
@@ -274,35 +252,24 @@ class HiddenSettings extends StatelessWidget {
                             }
                           },
                         ),
-                        // const SizedBox(
-                        //   height: 12,
-                        // ),
-                        // GestureDetector(
-                        //   onTap: () async {
-                        //     showDialog<void>(
-                        //       context: context,
-                        //       builder: (_) {
-                        //         return StackDialogBase(
-                        //           child: SizedBox(
-                        //             width: 300,
-                        //             child: Lottie.asset(
-                        //               Assets.lottie.plain(Coin.bitcoincash),
-                        //             ),
-                        //           ),
-                        //         );
-                        //       },
-                        //     );
-                        //   },
-                        //   child: RoundedWhiteContainer(
-                        //     child: Text(
-                        //       "Lottie test",
-                        //       style: STextStyles.button(context).copyWith(
-                        //           color: Theme.of(context)
-                        //               .extension<StackColors>()!
-                        //               .accentColorDark),
-                        //     ),
-                        //   ),
-                        // ),
+                        Consumer(
+                          builder: (_, ref, __) {
+                            return GestureDetector(
+                              onTap: () async {
+                                //
+                              },
+                              child: RoundedWhiteContainer(
+                                child: Text(
+                                  "Do nothing",
+                                  style: STextStyles.button(context).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                       ],
                     ),
                   ),

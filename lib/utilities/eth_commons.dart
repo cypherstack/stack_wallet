@@ -12,7 +12,6 @@ import 'package:bip32/bip32.dart' as bip32;
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:decimal/decimal.dart';
 import "package:hex/hex.dart";
-import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
@@ -70,22 +69,4 @@ String getPrivateKey(String mnemonic, String mnemonicPassphrase) {
   final addressAtIndex = root.derivePath("$hdPathEthereum/$index");
 
   return HEX.encode(addressAtIndex.privateKey as List<int>);
-}
-
-Amount estimateFee(int feeRate, int gasLimit, int decimals) {
-  final gweiAmount = feeRate.toDecimal() / (Decimal.ten.pow(9).toDecimal());
-  final fee = gasLimit.toDecimal() *
-      gweiAmount.toDecimal(
-        scaleOnInfinitePrecision: Coin.ethereum.decimals,
-      );
-
-  //Convert gwei to ETH
-  final feeInWei = fee * Decimal.ten.pow(9).toDecimal();
-  final ethAmount = feeInWei / Decimal.ten.pow(decimals).toDecimal();
-  return Amount.fromDecimal(
-    ethAmount.toDecimal(
-      scaleOnInfinitePrecision: Coin.ethereum.decimals,
-    ),
-    fractionDigits: decimals,
-  );
 }

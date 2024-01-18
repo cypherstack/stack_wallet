@@ -5,7 +5,7 @@ import 'package:mockito/annotations.dart';
 // import 'package:mockito/mockito.dart';
 // import 'package:stackwallet/pages/onboarding_view/create_pin_view.dart';
 // import 'package:stackwallet/pages/onboarding_view/helpers/create_wallet_type.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets_service.dart';
 // import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
@@ -20,7 +20,6 @@ import 'package:stackwallet/services/wallets_service.dart';
 @GenerateMocks([], customMocks: [
   MockSpec<WalletsService>(returnNullOnMissingStub: true),
   MockSpec<NodeService>(returnNullOnMissingStub: true),
-  MockSpec<Manager>(returnNullOnMissingStub: true),
 ])
 void main() {
 //   testWidgets("CreatePinView builds correctly", (tester) async {
@@ -126,7 +125,7 @@ void main() {
 //   testWidgets("Entering matched PINs on a new wallet", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
 //     final walletsService = MockWalletsService();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final nodeService = MockNodeService();
 //
 //     final store = FakeSecureStorage();
@@ -218,7 +217,7 @@ void main() {
 //   testWidgets("Wallet init fails on entering matched PINs", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
 //     final walletsService = MockWalletsService();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final nodeService = MockNodeService();
 //
 //     final store = FakeSecureStorage();

@@ -8,17 +8,17 @@
  *
  */
 
-import 'package:flutter/cupertino.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+import 'package:flutter/material.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/stack_restoring_status.dart';
+import 'package:stackwallet/wallets/wallet/wallet.dart';
 
 class WalletRestoreState extends ChangeNotifier {
   final String walletId;
   final String walletName;
   final Coin coin;
   late StackRestoringStatus _restoringStatus;
-  Manager? manager;
+  Wallet? wallet;
   String? address;
   String? mnemonic;
   String? mnemonicPassphrase;
@@ -35,7 +35,7 @@ class WalletRestoreState extends ChangeNotifier {
     required this.walletName,
     required this.coin,
     required StackRestoringStatus restoringStatus,
-    this.manager,
+    this.wallet,
     this.address,
     this.mnemonic,
     this.mnemonicPassphrase,
@@ -54,7 +54,7 @@ class WalletRestoreState extends ChangeNotifier {
       walletName: walletName,
       coin: coin,
       restoringStatus: restoringStatus ?? _restoringStatus,
-      manager: manager,
+      wallet: wallet,
       address: this.address,
       mnemonic: mnemonic,
       mnemonicPassphrase: mnemonicPassphrase,

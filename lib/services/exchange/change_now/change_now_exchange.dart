@@ -274,4 +274,15 @@ class ChangeNowExchange extends Exchange {
     // TODO: implement getTrades
     throw UnimplementedError();
   }
+
+  // ChangeNow does not support Tor.
+  //
+  // This code isn't required because the Exchange abstract class has a
+  // default implementation that returns false.  This serves as an example and
+  // reminder in case ChangeNow files are copied to create a new exchange (or
+  // if ChangeNow ever supports Tor).
+  /*
+  @override
+  bool get supportsTor => true;
+  */
 }

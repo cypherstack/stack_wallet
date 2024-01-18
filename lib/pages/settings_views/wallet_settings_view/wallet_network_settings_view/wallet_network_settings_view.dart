@@ -16,35 +16,41 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/tor_settings/tor_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/sub_widgets/nodes_list.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/sub_widgets/confirm_full_rescan.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/sub_widgets/rescanning_dialog.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart';
-import 'package:stackwallet/services/coins/monero/monero_wallet.dart';
-import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart';
 import 'package:stackwallet/services/event_bus/events/global/blocks_remaining_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
+import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/monero_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/expandable.dart';
 import 'package:stackwallet/widgets/progress_bar.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
+import 'package:stackwallet/widgets/tor_subscription.dart';
 import 'package:tuple/tuple.dart';
 import 'package:wakelock/wakelock.dart';
 
@@ -92,97 +98,119 @@ class _WalletNetworkSettingsViewState
   late int _blocksRemaining;
   bool _advancedIsExpanded = false;
 
+  /// The current status of the Tor connection.
+  late TorConnectionStatus _torConnectionStatus;
+
+  bool _buttonLockTor = false;
+  Future<void> onTorTapped() async {
+    if (_buttonLockTor) {
+      return;
+    }
+    _buttonLockTor = true;
+    try {
+      if (ref.read(prefsChangeNotifierProvider).useTor) {
+        await disconnectTor(ref, context);
+      } else {
+        await connectTor(ref, context);
+      }
+    } catch (_) {
+      // Nothing. Just using finally to ensure button lock is reset in case
+      // some unexpected error happens
+    } finally {
+      _buttonLockTor = false;
+    }
+  }
+
   Future<void> _attemptRescan() async {
     if (!Platform.isLinux) await Wakelock.enable();
 
-    int maxUnusedAddressGap = 20;
-
-    const int maxNumberOfIndexesToCheck = 1000;
-
-    unawaited(
-      showDialog<dynamic>(
-        context: context,
-        useSafeArea: false,
-        barrierDismissible: false,
-        builder: (context) => const RescanningDialog(),
-      ),
-    );
-
     try {
-      if (ref
-              .read(walletsChangeNotifierProvider)
-              .getManager(widget.walletId)
-              .coin ==
-          Coin.firo) {
-        maxUnusedAddressGap = 50;
-      }
-      await ref
-          .read(walletsChangeNotifierProvider)
-          .getManager(widget.walletId)
-          .fullRescan(
-            maxUnusedAddressGap,
-            maxNumberOfIndexesToCheck,
+      if (mounted) {
+        unawaited(
+          showDialog<dynamic>(
+            context: context,
+            useSafeArea: false,
+            barrierDismissible: false,
+            builder: (context) => const RescanningDialog(),
+          ),
+        );
+
+        try {
+          final wallet = ref.read(pWallets).getWallet(widget.walletId);
+
+          await wallet.recover(
+            isRescan: true,
           );
 
-      if (mounted) {
-        // pop rescanning dialog
-        Navigator.of(context, rootNavigator: isDesktop).pop();
+          if (mounted) {
+            // pop rescanning dialog
+            Navigator.of(context, rootNavigator: isDesktop).pop();
 
-        // show success
-        await showDialog<dynamic>(
-          context: context,
-          useSafeArea: false,
-          barrierDismissible: true,
-          builder: (context) => StackDialog(
-            title: "Rescan completed",
-            rightButton: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getSecondaryEnabledButtonStyle(context),
-              child: Text(
-                "Ok",
-                style: STextStyles.itemSubtitle12(context),
+            // show success
+            await showDialog<dynamic>(
+              context: context,
+              useSafeArea: false,
+              barrierDismissible: true,
+              builder: (context) => ConditionalParent(
+                condition: isDesktop,
+                builder: (child) => DesktopDialog(
+                  maxHeight: 150,
+                  maxWidth: 500,
+                  child: child,
+                ),
+                child: StackDialog(
+                  title: "Rescan completed",
+                  rightButton: TextButton(
+                    style: Theme.of(context)
+                        .extension<StackColors>()!
+                        .getSecondaryEnabledButtonStyle(context),
+                    child: Text(
+                      "Ok",
+                      style: STextStyles.itemSubtitle12(context),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context, rootNavigator: isDesktop).pop();
+                    },
+                  ),
+                ),
               ),
-              onPressed: () {
-                Navigator.of(context, rootNavigator: isDesktop).pop();
-              },
-            ),
-          ),
-        );
+            );
+          }
+        } catch (e) {
+          if (!Platform.isLinux) await Wakelock.disable();
+
+          if (mounted) {
+            // pop rescanning dialog
+            Navigator.of(context, rootNavigator: isDesktop).pop();
+
+            // show error
+            await showDialog<dynamic>(
+              context: context,
+              useSafeArea: false,
+              barrierDismissible: true,
+              builder: (context) => StackDialog(
+                title: "Rescan failed",
+                message: e.toString(),
+                rightButton: TextButton(
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getSecondaryEnabledButtonStyle(context),
+                  child: Text(
+                    "Ok",
+                    style: STextStyles.itemSubtitle12(context),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context, rootNavigator: isDesktop).pop();
+                  },
+                ),
+              ),
+            );
+          }
+        }
       }
-    } catch (e) {
+    } finally {
       if (!Platform.isLinux) await Wakelock.disable();
-
-      if (mounted) {
-        // pop rescanning dialog
-        Navigator.of(context, rootNavigator: isDesktop).pop();
-
-        // show error
-        await showDialog<dynamic>(
-          context: context,
-          useSafeArea: false,
-          barrierDismissible: true,
-          builder: (context) => StackDialog(
-            title: "Rescan failed",
-            message: e.toString(),
-            rightButton: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getSecondaryEnabledButtonStyle(context),
-              child: Text(
-                "Ok",
-                style: STextStyles.itemSubtitle12(context),
-              ),
-              onPressed: () {
-                Navigator.of(context, rootNavigator: isDesktop).pop();
-              },
-            ),
-          ),
-        );
-      }
     }
-
-    if (!Platform.isLinux) await Wakelock.disable();
   }
 
   String _percentString(double value) {
@@ -230,10 +258,7 @@ class _WalletNetworkSettingsViewState
       },
     );
 
-    final coin = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .coin;
+    final coin = ref.read(pWalletCoin(widget.walletId));
 
     if (coin == Coin.monero || coin == Coin.wownero || coin == Coin.epicCash) {
       _blocksRemainingSubscription = eventBus.on<BlocksRemainingEvent>().listen(
@@ -268,6 +293,10 @@ class _WalletNetworkSettingsViewState
     //     }
     //   },
     // );
+
+    // Initialize the TorConnectionStatus.
+    _torConnectionStatus = ref.read(pTorService).status;
+
     super.initState();
   }
 
@@ -288,35 +317,26 @@ class _WalletNetworkSettingsViewState
         ? 430.0
         : screenWidth - (_padding * 2) - (_boxPadding * 3) - _iconSize;
 
-    final coin = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .coin;
+    final coin = ref.watch(pWalletCoin(widget.walletId));
 
     if (coin == Coin.monero) {
-      double highestPercent = (ref
-              .read(walletsChangeNotifierProvider)
-              .getManager(widget.walletId)
-              .wallet as MoneroWallet)
-          .highestPercentCached;
+      double highestPercent =
+          (ref.read(pWallets).getWallet(widget.walletId) as MoneroWallet)
+              .highestPercentCached;
       if (_percent < highestPercent) {
         _percent = highestPercent.clamp(0.0, 1.0);
       }
     } else if (coin == Coin.wownero) {
-      double highestPercent = (ref
-              .read(walletsChangeNotifierProvider)
-              .getManager(widget.walletId)
-              .wallet as WowneroWallet)
-          .highestPercentCached;
+      double highestPercent =
+          (ref.watch(pWallets).getWallet(widget.walletId) as WowneroWallet)
+              .highestPercentCached;
       if (_percent < highestPercent) {
         _percent = highestPercent.clamp(0.0, 1.0);
       }
     } else if (coin == Coin.epicCash) {
-      double highestPercent = (ref
-              .read(walletsChangeNotifierProvider)
-              .getManager(widget.walletId)
-              .wallet as EpicCashWallet)
-          .highestPercent;
+      double highestPercent =
+          (ref.watch(pWallets).getWallet(widget.walletId) as EpiccashWallet)
+              .highestPercent;
       if (_percent < highestPercent) {
         _percent = highestPercent.clamp(0.0, 1.0);
       }
@@ -340,92 +360,94 @@ class _WalletNetworkSettingsViewState
                 style: STextStyles.navBarTitle(context),
               ),
               actions: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                    top: 10,
-                    bottom: 10,
-                    right: 10,
-                  ),
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: AppBarIconButton(
-                      key: const Key(
-                          "walletNetworkSettingsAddNewNodeViewButton"),
-                      size: 36,
-                      shadows: const [],
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .background,
-                      icon: SvgPicture.asset(
-                        Assets.svg.verticalEllipsis,
+                if (ref.watch(pWalletCoin(widget.walletId)) != Coin.epicCash)
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: 10,
+                      bottom: 10,
+                      right: 10,
+                    ),
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: AppBarIconButton(
+                        key: const Key(
+                            "walletNetworkSettingsAddNewNodeViewButton"),
+                        size: 36,
+                        shadows: const [],
                         color: Theme.of(context)
                             .extension<StackColors>()!
-                            .accentColorDark,
-                        width: 20,
-                        height: 20,
-                      ),
-                      onPressed: () {
-                        showDialog<dynamic>(
-                          barrierColor: Colors.transparent,
-                          barrierDismissible: true,
-                          context: context,
-                          builder: (_) {
-                            return Stack(
-                              children: [
-                                Positioned(
-                                  top: 9,
-                                  right: 10,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .popupBG,
-                                      borderRadius: BorderRadius.circular(
-                                          Constants.size.circularBorderRadius),
-                                      // boxShadow: [CFColors.standardBoxShadow],
-                                      boxShadow: const [],
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        GestureDetector(
-                                          onTap: () {
-                                            Navigator.of(context).pop();
-                                            showDialog<void>(
-                                              context: context,
-                                              useSafeArea: false,
-                                              barrierDismissible: true,
-                                              builder: (context) {
-                                                return ConfirmFullRescanDialog(
-                                                  onConfirm: _attemptRescan,
-                                                );
-                                              },
-                                            );
-                                          },
-                                          child: RoundedWhiteContainer(
-                                            child: Material(
-                                              color: Colors.transparent,
-                                              child: Text(
-                                                "Rescan blockchain",
-                                                style:
-                                                    STextStyles.baseXS(context),
+                            .background,
+                        icon: SvgPicture.asset(
+                          Assets.svg.verticalEllipsis,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorDark,
+                          width: 20,
+                          height: 20,
+                        ),
+                        onPressed: () {
+                          showDialog<dynamic>(
+                            barrierColor: Colors.transparent,
+                            barrierDismissible: true,
+                            context: context,
+                            builder: (_) {
+                              return Stack(
+                                children: [
+                                  Positioned(
+                                    top: 9,
+                                    right: 10,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .popupBG,
+                                        borderRadius: BorderRadius.circular(
+                                            Constants
+                                                .size.circularBorderRadius),
+                                        // boxShadow: [CFColors.standardBoxShadow],
+                                        boxShadow: const [],
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          GestureDetector(
+                                            onTap: () {
+                                              Navigator.of(context).pop();
+                                              showDialog<void>(
+                                                context: context,
+                                                useSafeArea: false,
+                                                barrierDismissible: true,
+                                                builder: (context) {
+                                                  return ConfirmFullRescanDialog(
+                                                    onConfirm: _attemptRescan,
+                                                  );
+                                                },
+                                              );
+                                            },
+                                            child: RoundedWhiteContainer(
+                                              child: Material(
+                                                color: Colors.transparent,
+                                                child: Text(
+                                                  "Rescan blockchain",
+                                                  style: STextStyles.baseXS(
+                                                      context),
+                                                ),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      },
+                                ],
+                              );
+                            },
+                          );
+                        },
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
             body: Padding(
@@ -459,17 +481,11 @@ class _WalletNetworkSettingsViewState
                     ? STextStyles.desktopTextExtraExtraSmall(context)
                     : STextStyles.smallMed12(context),
               ),
-              GestureDetector(
+              CustomTextButton(
+                text: "Resync",
                 onTap: () {
-                  ref
-                      .read(walletsChangeNotifierProvider)
-                      .getManager(widget.walletId)
-                      .refresh();
+                  ref.read(pWallets).getWallet(widget.walletId).refresh();
                 },
-                child: Text(
-                  "Resync",
-                  style: STextStyles.link2(context),
-                ),
               ),
             ],
           ),
@@ -520,14 +536,6 @@ class _WalletNetworkSettingsViewState
                             Text(
                               "Synchronized",
                               style: STextStyles.w600_12(context),
-                            ),
-                            Text(
-                              "100%",
-                              style: STextStyles.syncPercent(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorGreen,
-                              ),
                             ),
                           ],
                         ),
@@ -753,7 +761,133 @@ class _WalletNetworkSettingsViewState
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "${ref.watch(walletsChangeNotifierProvider.select((value) => value.getManager(widget.walletId).coin)).prettyName} nodes",
+                "Tor status",
+                textAlign: TextAlign.left,
+                style: isDesktop
+                    ? STextStyles.desktopTextExtraExtraSmall(context)
+                    : STextStyles.smallMed12(context),
+              ),
+              CustomTextButton(
+                text: ref.watch(prefsChangeNotifierProvider
+                        .select((value) => value.useTor))
+                    ? "Disconnect"
+                    : "Connect",
+                onTap: onTorTapped,
+              ),
+            ],
+          ),
+          SizedBox(
+            height: isDesktop ? 12 : 9,
+          ),
+          RoundedWhiteContainer(
+            borderColor: isDesktop
+                ? Theme.of(context).extension<StackColors>()!.background
+                : null,
+            padding:
+                isDesktop ? const EdgeInsets.all(16) : const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                if (ref.watch(prefsChangeNotifierProvider
+                    .select((value) => value.useTor)))
+                  Container(
+                    width: _iconSize,
+                    height: _iconSize,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorGreen
+                          .withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(_iconSize),
+                    ),
+                    child: Center(
+                      child: SvgPicture.asset(
+                        Assets.svg.tor,
+                        height: isDesktop ? 19 : 14,
+                        width: isDesktop ? 19 : 14,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorGreen,
+                      ),
+                    ),
+                  ),
+                if (!ref.watch(prefsChangeNotifierProvider
+                    .select((value) => value.useTor)))
+                  Container(
+                    width: _iconSize,
+                    height: _iconSize,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textDark
+                          .withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(_iconSize),
+                    ),
+                    child: Center(
+                      child: SvgPicture.asset(
+                        Assets.svg.tor,
+                        height: isDesktop ? 19 : 14,
+                        width: isDesktop ? 19 : 14,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark,
+                      ),
+                    ),
+                  ),
+                SizedBox(
+                  width: _boxPadding,
+                ),
+                TorSubscription(
+                  onTorStatusChanged: (status) {
+                    setState(() {
+                      _torConnectionStatus = status;
+                    });
+                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Tor status",
+                        style: STextStyles.desktopTextExtraExtraSmall(context)
+                            .copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textDark,
+                        ),
+                      ),
+                      if (_torConnectionStatus == TorConnectionStatus.connected)
+                        Text(
+                          "Connected",
+                          style:
+                              STextStyles.desktopTextExtraExtraSmall(context),
+                        ),
+                      if (_torConnectionStatus ==
+                          TorConnectionStatus.connecting)
+                        Text(
+                          "Connecting...",
+                          style:
+                              STextStyles.desktopTextExtraExtraSmall(context),
+                        ),
+                      if (_torConnectionStatus ==
+                          TorConnectionStatus.disconnected)
+                        Text(
+                          "Disconnected",
+                          style:
+                              STextStyles.desktopTextExtraExtraSmall(context),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: isDesktop ? 32 : 20,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "${ref.watch(pWalletCoin(widget.walletId)).prettyName} nodes",
                 textAlign: TextAlign.left,
                 style: isDesktop
                     ? STextStyles.desktopTextExtraExtraSmall(context)
@@ -766,10 +900,7 @@ class _WalletNetworkSettingsViewState
                     AddEditNodeView.routeName,
                     arguments: Tuple4(
                       AddEditNodeViewType.add,
-                      ref
-                          .read(walletsChangeNotifierProvider)
-                          .getManager(widget.walletId)
-                          .coin,
+                      ref.read(pWalletCoin(widget.walletId)),
                       null,
                       WalletNetworkSettingsView.routeName,
                     ),
@@ -782,15 +913,16 @@ class _WalletNetworkSettingsViewState
             height: isDesktop ? 12 : 8,
           ),
           NodesList(
-            coin: ref.watch(walletsChangeNotifierProvider
-                .select((value) => value.getManager(widget.walletId).coin)),
+            coin: ref.watch(pWalletCoin(widget.walletId)),
             popBackToRoute: WalletNetworkSettingsView.routeName,
           ),
-          if (isDesktop)
+          if (isDesktop &&
+              ref.watch(pWalletCoin(widget.walletId)) != Coin.epicCash)
             const SizedBox(
               height: 32,
             ),
-          if (isDesktop)
+          if (isDesktop &&
+              ref.watch(pWalletCoin(widget.walletId)) != Coin.epicCash)
             Padding(
               padding: const EdgeInsets.only(
                 bottom: 12,
@@ -806,7 +938,8 @@ class _WalletNetworkSettingsViewState
                 ],
               ),
             ),
-          if (isDesktop)
+          if (isDesktop &&
+              ref.watch(pWalletCoin(widget.walletId)) != Coin.epicCash)
             RoundedWhiteContainer(
               borderColor: isDesktop
                   ? Theme.of(context).extension<StackColors>()!.background

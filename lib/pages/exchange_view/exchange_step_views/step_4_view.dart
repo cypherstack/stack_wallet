@@ -25,7 +25,6 @@ import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dia
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
@@ -35,6 +34,9 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/models/tx_data.dart';
+import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
@@ -71,9 +73,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
     try {
       final coin = coinFromTickerCaseInsensitive(ticker);
       return ref
-          .read(walletsChangeNotifierProvider)
-          .managers
-          .where((element) => element.coin == coin)
+          .read(pWallets)
+          .wallets
+          .where((e) => e.info.coin == coin)
           .isNotEmpty;
     } catch (_) {
       return false;
@@ -134,11 +136,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
   }
 
   Future<bool?> _showSendFromFiroBalanceSelectSheet(String walletId) async {
-    final firoWallet = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(walletId)
-        .wallet as FiroWallet;
-    final locale = ref.read(localeServiceChangeNotifierProvider).locale;
+    final coin = ref.read(pWalletCoin(walletId));
+    final balancePublic = ref.read(pWalletBalance(walletId));
+    final balancePrivate = ref.read(pWalletBalanceSecondary(walletId));
 
     return await showModalBottomSheet<bool?>(
       context: context,
@@ -172,7 +172,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
               ),
               SecondaryButton(
                 label:
-                    "${ref.watch(pAmountFormatter(firoWallet.coin)).format(firoWallet.balancePrivate.spendable)} (private)",
+                    "${ref.watch(pAmountFormatter(coin)).format(balancePrivate.spendable)} (private)",
                 onPressed: () => Navigator.of(context).pop(false),
               ),
               const SizedBox(
@@ -180,7 +180,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
               ),
               SecondaryButton(
                 label:
-                    "${ref.watch(pAmountFormatter(firoWallet.coin)).format(firoWallet.balance.spendable)} (public)",
+                    "${ref.watch(pAmountFormatter(coin)).format(balancePublic.spendable)} (public)",
                 onPressed: () => Navigator.of(context).pop(true),
               ),
               const SizedBox(
@@ -206,11 +206,10 @@ class _Step4ViewState extends ConsumerState<Step4View> {
       firoPublicSend = false;
     }
 
-    final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(tuple.item1);
+    final wallet = ref.read(pWallets).getWallet(tuple.item1);
 
     final Amount amount = model.sendAmount.toAmount(
-      fractionDigits: manager.coin.decimals,
+      fractionDigits: wallet.info.coin.decimals,
     );
     final address = model.trade!.payInAddress;
 
@@ -225,7 +224,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
           barrierDismissible: false,
           builder: (context) {
             return BuildingTransactionDialog(
-              coin: manager.coin,
+              coin: wallet.info.coin,
               onCancel: () {
                 wasCancelled = true;
               },
@@ -240,25 +239,43 @@ class _Step4ViewState extends ConsumerState<Step4View> {
         ),
       );
 
-      Future<Map<String, dynamic>> txDataFuture;
+      Future<TxData> txDataFuture;
 
-      if (firoPublicSend) {
-        txDataFuture = (manager.wallet as FiroWallet).prepareSendPublic(
-          address: address,
-          amount: amount,
-          args: {
-            "feeRate": FeeRateType.average,
-            // ref.read(feeRateTypeStateProvider)
-          },
+      if (wallet is FiroWallet && !firoPublicSend) {
+        txDataFuture = wallet.prepareSendSpark(
+          txData: TxData(
+            recipients: [
+              (
+                address: address,
+                amount: amount,
+                isChange: false,
+              )
+            ],
+            note: "${model.trade!.payInCurrency.toUpperCase()}/"
+                "${model.trade!.payOutCurrency.toUpperCase()} exchange",
+          ),
         );
       } else {
-        txDataFuture = manager.prepareSend(
-          address: address,
-          amount: amount,
-          args: {
-            "feeRate": FeeRateType.average,
-            // ref.read(feeRateTypeStateProvider)
-          },
+        final memo = wallet.info.coin == Coin.stellar ||
+                wallet.info.coin == Coin.stellarTestnet
+            ? model.trade!.payInExtraId.isNotEmpty
+                ? model.trade!.payInExtraId
+                : null
+            : null;
+        txDataFuture = wallet.prepareSend(
+          txData: TxData(
+            recipients: [
+              (
+                address: address,
+                amount: amount,
+                isChange: false,
+              ),
+            ],
+            memo: memo,
+            feeRateType: FeeRateType.average,
+            note: "${model.trade!.payInCurrency.toUpperCase()}/"
+                "${model.trade!.payOutCurrency.toUpperCase()} exchange",
+          ),
         );
       }
 
@@ -267,7 +284,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
         time,
       ]);
 
-      final txData = results.first as Map<String, dynamic>;
+      final txData = results.first as TxData;
 
       if (!wasCancelled) {
         // pop building dialog
@@ -276,17 +293,13 @@ class _Step4ViewState extends ConsumerState<Step4View> {
           Navigator.of(context).pop();
         }
 
-        txData["note"] =
-            "${model.trade!.payInCurrency.toUpperCase()}/${model.trade!.payOutCurrency.toUpperCase()} exchange";
-        txData["address"] = address;
-
         if (mounted) {
           unawaited(
             Navigator.of(context).push(
               RouteGenerator.getRoute(
                 shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
                 builder: (_) => ConfirmChangeNowSendView(
-                  transactionInfo: txData,
+                  txData: txData,
                   walletId: tuple.item1,
                   routeOnSuccessName: HomeView.routeName,
                   trade: model.trade!,
@@ -568,6 +581,74 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                             const SizedBox(
                               height: 6,
                             ),
+                            if (model.trade!.payInExtraId.isNotEmpty)
+                              RoundedWhiteContainer(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Memo",
+                                          style:
+                                              STextStyles.itemSubtitle(context),
+                                        ),
+                                        GestureDetector(
+                                          onTap: () async {
+                                            final data = ClipboardData(
+                                                text:
+                                                    model.trade!.payInExtraId);
+                                            await clipboard.setData(data);
+                                            if (mounted) {
+                                              unawaited(
+                                                showFloatingFlushBar(
+                                                  type: FlushBarType.info,
+                                                  message:
+                                                      "Copied to clipboard",
+                                                  context: context,
+                                                ),
+                                              );
+                                            }
+                                          },
+                                          child: Row(
+                                            children: [
+                                              SvgPicture.asset(
+                                                Assets.svg.copy,
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .infoItemIcons,
+                                                width: 10,
+                                              ),
+                                              const SizedBox(
+                                                width: 4,
+                                              ),
+                                              Text(
+                                                "Copy",
+                                                style:
+                                                    STextStyles.link2(context),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(
+                                      height: 4,
+                                    ),
+                                    Text(
+                                      model.trade!.payInExtraId,
+                                      style:
+                                          STextStyles.itemSubtitle12(context),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            if (model.trade!.payInExtraId.isNotEmpty)
+                              const SizedBox(
+                                height: 6,
+                              ),
                             RoundedWhiteContainer(
                               child: Row(
                                 children: [
@@ -740,9 +821,10 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                       model.sendTicker.toLowerCase() ==
                                           tuple.item2.ticker.toLowerCase()) {
                                     final walletName = ref
-                                        .read(walletsChangeNotifierProvider)
-                                        .getManager(tuple.item1)
-                                        .walletName;
+                                        .read(pWallets)
+                                        .getWallet(tuple.item1)
+                                        .info
+                                        .name;
                                     buttonTitle = "Send from $walletName";
                                   }
 

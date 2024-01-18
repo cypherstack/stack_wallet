@@ -20,6 +20,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/all_wallets_info_provider.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
@@ -36,19 +37,14 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final providersByCoin = ref.watch(
-      walletsChangeNotifierProvider.select(
-        (value) => value.getManagerProvidersByCoin(),
-      ),
-    );
+    final walletsByCoin = ref.watch(pAllWalletsInfoByCoin);
 
     return ListView.separated(
       itemBuilder: (_, index) {
-        final providers = providersByCoin[index].item2;
-        final coin = providersByCoin[index].item1;
+        final coin = walletsByCoin[index].coin;
 
         return ConditionalParent(
-          condition: index + 1 == providersByCoin.length,
+          condition: index + 1 == walletsByCoin.length,
           builder: (child) => Padding(
             padding: const EdgeInsets.only(
               bottom: 16,
@@ -58,14 +54,14 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
           child: DesktopWalletSummaryRow(
             key: Key("DesktopWalletSummaryRow_key_${coin.name}"),
             coin: coin,
-            walletCount: providers.length,
+            walletCount: walletsByCoin[index].wallets.length,
           ),
         );
       },
       separatorBuilder: (_, __) => const SizedBox(
         height: 10,
       ),
-      itemCount: providersByCoin.length,
+      itemCount: walletsByCoin.length,
     );
   }
 }

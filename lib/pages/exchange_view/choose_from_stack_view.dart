@@ -15,6 +15,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -47,8 +48,12 @@ class _ChooseFromStackViewState extends ConsumerState<ChooseFromStackView> {
 
   @override
   Widget build(BuildContext context) {
-    final walletIds = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getWalletIdsFor(coin: coin)));
+    final walletIds = ref
+        .watch(pWallets)
+        .wallets
+        .where((e) => e.info.coin == coin)
+        .map((e) => e.walletId)
+        .toList();
 
     return Background(
       child: Scaffold(
@@ -78,8 +83,7 @@ class _ChooseFromStackViewState extends ConsumerState<ChooseFromStackView> {
               : ListView.builder(
                   itemCount: walletIds.length,
                   itemBuilder: (context, index) {
-                    final manager = ref.watch(walletsChangeNotifierProvider
-                        .select((value) => value.getManager(walletIds[index])));
+                    final walletId = walletIds[index];
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 5.0),
@@ -98,7 +102,7 @@ class _ChooseFromStackViewState extends ConsumerState<ChooseFromStackView> {
                         elevation: 0,
                         onPressed: () async {
                           if (mounted) {
-                            Navigator.of(context).pop(manager.walletId);
+                            Navigator.of(context).pop(walletId);
                           }
                         },
                         child: RoundedWhiteContainer(
@@ -115,7 +119,7 @@ class _ChooseFromStackViewState extends ConsumerState<ChooseFromStackView> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      manager.walletName,
+                                      ref.watch(pWalletName(walletId)),
                                       style: STextStyles.titleBold12(context),
                                       overflow: TextOverflow.ellipsis,
                                     ),

@@ -73,14 +73,21 @@ abstract class Util {
     return MaterialColor(color.value, swatch);
   }
 
-  static void printJson(dynamic json) {
+  static void printJson(dynamic json, [String? debugTitle]) {
+    final String result;
     if (json is Map || json is List) {
       final spaces = ' ' * 4;
       final encoder = JsonEncoder.withIndent(spaces);
       final pretty = encoder.convert(json);
-      log(pretty);
+      result = pretty;
     } else {
-      log(dynamic.toString());
+      result = dynamic.toString();
+    }
+
+    if (debugTitle != null) {
+      log("$debugTitle\n$result");
+    } else {
+      log(result);
     }
   }
 }

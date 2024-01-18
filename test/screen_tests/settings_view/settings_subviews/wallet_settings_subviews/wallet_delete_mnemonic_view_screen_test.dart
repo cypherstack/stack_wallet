@@ -8,7 +8,7 @@ import 'package:mockito/annotations.dart';
 // import 'package:mockito/mockito.dart';
 // import 'package:stackwallet/notifications/modal_popup_dialog.dart';
 // import 'package:stackwallet/pages/settings_view/settings_subviews/wallet_settings_subviews/wallet_delete_mnemonic_view.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+
 import 'package:stackwallet/services/wallets_service.dart';
 // import 'package:stackwallet/utilities/clipboard_interface.dart';
 // import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -21,7 +21,6 @@ import 'package:stackwallet/services/wallets_service.dart';
 
 @GenerateMocks([], customMocks: [
   MockSpec<WalletsService>(returnNullOnMissingStub: true),
-  MockSpec<Manager>(returnNullOnMissingStub: true),
 ])
 void main() {
 //   testWidgets("WalletDeleteMnemonicView builds correctly", (tester) async {
@@ -45,7 +44,7 @@ void main() {
 //   });
 //
 //   testWidgets("WalletDeleteMnemonicView loads correctly", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //
 //     when(manager.mnemonic).thenAnswer(
@@ -146,7 +145,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap back", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -218,7 +217,7 @@ void main() {
 //   });
 //
 //   testWidgets("show qr code", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //
 //     when(manager.mnemonic).thenAnswer(
@@ -301,7 +300,7 @@ void main() {
 //   });
 //
 //   testWidgets("copy backup key", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final clipboard = FakeClipboard();
 //
@@ -377,7 +376,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap continue then cancel", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //
 //     when(manager.mnemonic).thenAnswer(
@@ -458,7 +457,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap continue then delete last wallet", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -564,7 +563,7 @@ void main() {
 //
 //   testWidgets("tap continue then delete with more than one remaining wallet",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final walletsService = MockWalletsService();
 //     final navigator = mockingjay.MockNavigator();
 //

@@ -77,8 +77,10 @@ class NotificationApi {
     final id = prefs.currentNotificationId;
 
     String confirms = "";
-    if (txid != null) {
-      confirms = " (${confirmations!}/${requiredConfirmations!})";
+    if (txid != null &&
+        confirmations != null &&
+        requiredConfirmations != null) {
+      confirms = " ($confirmations/$requiredConfirmations)";
     }
 
     final NotificationModel model = NotificationModel(

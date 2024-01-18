@@ -8,29 +8,37 @@
  *
  */
 
+import 'package:isar/isar.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/services/ethereum/ethereum_api.dart';
-import 'package:stackwallet/services/mixins/eth_token_cache.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/wallets/isar/models/token_wallet_info.dart';
 
-class CachedEthTokenBalance with EthTokenCache {
+class CachedEthTokenBalance {
   final String walletId;
   final EthContract token;
 
-  CachedEthTokenBalance(this.walletId, this.token) {
-    initCache(walletId, token);
-  }
+  CachedEthTokenBalance(this.walletId, this.token);
 
-  Future<void> fetchAndUpdateCachedBalance(String address) async {
+  Future<void> fetchAndUpdateCachedBalance(
+    String address,
+    MainDB mainDB,
+  ) async {
     final response = await EthereumAPI.getWalletTokenBalance(
       address: address,
       contractAddress: token.address,
     );
 
-    if (response.value != null) {
-      await updateCachedBalance(
+    final info = await mainDB.isar.tokenWalletInfo
+        .where()
+        .walletIdTokenAddressEqualTo(walletId, token.address)
+        .findFirst();
+
+    if (response.value != null && info != null) {
+      await info.updateCachedBalance(
         Balance(
           total: response.value!,
           spendable: response.value!,
@@ -43,6 +51,7 @@ class CachedEthTokenBalance with EthTokenCache {
             fractionDigits: token.decimals,
           ),
         ),
+        isar: mainDB.isar,
       );
     } else {
       Logging.instance.log(

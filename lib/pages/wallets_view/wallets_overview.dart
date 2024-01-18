@@ -11,20 +11,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:isar/isar.dart';
 import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/coin_entity.dart';
 import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/dialogs/desktop_expanding_wallet_card.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
-import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -60,22 +62,22 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
 
   String _searchString = "";
 
-  final List<Tuple2<Manager, List<EthContract>>> wallets = [];
+  final List<Tuple2<Wallet, List<EthContract>>> wallets = [];
 
-  List<Tuple2<Manager, List<EthContract>>> _filter(String searchTerm) {
+  List<Tuple2<Wallet, List<EthContract>>> _filter(String searchTerm) {
     if (searchTerm.isEmpty) {
       return wallets;
     }
 
-    final List<Tuple2<Manager, List<EthContract>>> results = [];
+    final List<Tuple2<Wallet, List<EthContract>>> results = [];
     final term = searchTerm.toLowerCase();
 
     for (final tuple in wallets) {
       bool includeManager = false;
       // search wallet name and total balance
-      includeManager |= _elementContains(tuple.item1.walletName, term);
+      includeManager |= _elementContains(tuple.item1.info.name, term);
       includeManager |= _elementContains(
-        tuple.item1.balance.total.decimal.toString(),
+        tuple.item1.info.cachedBalance.total.decimal.toString(),
         term,
       );
 
@@ -111,16 +113,14 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
     searchFieldFocusNode = FocusNode();
 
     final walletsData =
-        ref.read(walletsServiceChangeNotifierProvider).fetchWalletsData();
-    walletsData.removeWhere((key, value) => value.coin != widget.coin);
+        ref.read(mainDBProvider).isar.walletInfo.where().findAllSync();
+    walletsData.removeWhere((e) => e.coin != widget.coin);
 
     if (widget.coin == Coin.ethereum) {
-      for (final data in walletsData.values) {
+      for (final data in walletsData) {
         final List<EthContract> contracts = [];
-        final manager =
-            ref.read(walletsChangeNotifierProvider).getManager(data.walletId);
-        final contractAddresses = (manager.wallet as EthereumWallet)
-            .getWalletTokenContractAddresses();
+        final contractAddresses =
+            ref.read(pWalletTokenAddresses(data.walletId));
 
         // fetch each contract
         for (final contractAddress in contractAddresses) {
@@ -141,7 +141,7 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
         // add tuple to list
         wallets.add(
           Tuple2(
-            ref.read(walletsChangeNotifierProvider).getManager(
+            ref.read(pWallets).getWallet(
                   data.walletId,
                 ),
             contracts,
@@ -150,10 +150,10 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
       }
     } else {
       // add non token wallet tuple to list
-      for (final data in walletsData.values) {
+      for (final data in walletsData) {
         wallets.add(
           Tuple2(
-            ref.read(walletsChangeNotifierProvider).getManager(
+            ref.read(pWallets).getWallet(
                   data.walletId,
                 ),
             [],
@@ -291,11 +291,11 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
                   itemBuilder: (_, index) {
                     final element = data[index];
 
-                    if (element.item1.hasTokenSupport) {
+                    if (element.item1.cryptoCurrency.hasTokenSupport) {
                       if (isDesktop) {
                         return DesktopExpandingWalletCard(
                           key: Key(
-                              "${element.item1.walletName}_${element.item2.map((e) => e.address).join()}"),
+                              "${element.item1.info.name}_${element.item2.map((e) => e.address).join()}"),
                           data: element,
                           navigatorState: widget.navigatorState!,
                         );

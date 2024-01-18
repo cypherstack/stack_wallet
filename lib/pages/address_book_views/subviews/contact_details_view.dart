@@ -15,16 +15,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/add_new_contact_address_view.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/edit_contact_address_view.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/edit_contact_name_emoji_view.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
-import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/address_book_providers/address_entry_data_provider.dart';
-import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -63,28 +61,32 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
 
   List<Tuple2<String, Transaction>> _cachedTransactions = [];
 
-  Future<List<Tuple2<String, Transaction>>> _filteredTransactionsByContact(
-    List<Manager> managers,
-  ) async {
+  Future<List<Tuple2<String, Transaction>>>
+      _filteredTransactionsByContact() async {
     final contact =
         ref.read(addressBookServiceProvider).getContactById(_contactId);
 
     // TODO: optimise
 
-    List<Tuple2<String, Transaction>> result = [];
-    for (final manager in managers) {
-      final transactions = await MainDB.instance
-          .getTransactions(manager.walletId)
-          .filter()
-          .anyOf(contact.addresses.map((e) => e.address),
-              (q, String e) => q.address((q) => q.valueEqualTo(e)))
-          .sortByTimestampDesc()
-          .findAll();
+    final transactions = await ref
+        .read(mainDBProvider)
+        .isar
+        .transactions
+        .where()
+        .filter()
+        .anyOf(contact.addresses.map((e) => e.address),
+            (q, String e) => q.address((q) => q.valueEqualTo(e)))
+        .sortByTimestampDesc()
+        .findAll();
 
-      for (final tx in transactions) {
-        result.add(Tuple2(manager.walletId, tx));
-      }
+    List<Tuple2<String, Transaction>> result = [];
+
+    for (final tx in transactions) {
+      result.add(Tuple2(tx.walletId, tx));
     }
+
+    // sort by date
+    result.sort((a, b) => b.item2.timestamp - a.item2.timestamp);
 
     return result;
   }
@@ -461,8 +463,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                     height: 12,
                   ),
                   FutureBuilder(
-                    future: _filteredTransactionsByContact(
-                        ref.watch(walletsChangeNotifierProvider).managers),
+                    future: _filteredTransactionsByContact(),
                     builder: (_,
                         AsyncSnapshot<List<Tuple2<String, Transaction>>>
                             snapshot) {

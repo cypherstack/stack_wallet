@@ -5,15 +5,13 @@ import 'package:mockito/annotations.dart';
 // import 'package:mockito/mockito.dart';
 // import 'package:stackwallet/pages/main_view.dart';
 // import 'package:stackwallet/pages/onboarding_view/verify_backup_key_view.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+
 // import 'package:stackwallet/widgets/custom_buttons/gradient_button.dart';
 // import 'package:provider/provider.dart';
 //
 // import 'verify_backup_key_view_screen_test.mocks.dart';
 
-@GenerateMocks([], customMocks: [
-  MockSpec<Manager>(returnNullOnMissingStub: true),
-])
+@GenerateMocks([], customMocks: [])
 void main() {
 //   testWidgets("onboarding view screen test", (tester) async {
 //     final screen = VerifyBackupKeyView();
@@ -72,7 +70,7 @@ void main() {
 //
 //   testWidgets("confirm button empty field", (tester) async {
 //     final screen = VerifyBackupKeyView();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.mnemonic).thenAnswer(
 //       (_) async => [
@@ -125,7 +123,7 @@ void main() {
 //
 //   testWidgets("confirm button invalid word", (tester) async {
 //     final screen = VerifyBackupKeyView();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.mnemonic).thenAnswer(
 //       (_) async => [
@@ -181,7 +179,7 @@ void main() {
 //
 //   testWidgets("confirm button matching word", (tester) async {
 //     final screen = VerifyBackupKeyView();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final navigator = mockingjay.MockNavigator();
 //
 //     when(manager.mnemonic).thenAnswer(

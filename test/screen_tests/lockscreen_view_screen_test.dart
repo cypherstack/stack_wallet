@@ -1,21 +1,20 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 // import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets_service.dart';
 
 @GenerateMocks([], customMocks: [
   MockSpec<WalletsService>(returnNullOnMissingStub: true),
   MockSpec<NodeService>(returnNullOnMissingStub: true),
-  MockSpec<Manager>(returnNullOnMissingStub: true),
 ])
 void main() {
   testWidgets("LockscreenView builds correctly", (tester) async {
     // final navigator = mockingjay.MockNavigator();
     // final walletsService = MockWalletsService();
     // final nodeService = MockNodeService();
-    // final manager = MockManager();
+    // final wallet =  MockManager();
     // final secureStore = FakeSecureStorage();
     //
     // secureStore.write(key: "walletID", value: "1234");
@@ -63,7 +62,7 @@ void main() {
     // final navigator = mockingjay.MockNavigator();
     // final walletsService = MockWalletsService();
     // final nodeService = MockNodeService();
-    // final manager = MockManager();
+    // final wallet =  MockManager();
     // final secureStore = FakeSecureStorage();
     //
     // secureStore.write(key: "walletID_pin", value: "1234");
@@ -128,7 +127,7 @@ void main() {
     // final navigator = mockingjay.MockNavigator();
     // final walletsService = MockWalletsService();
     // final nodeService = MockNodeService();
-    // final manager = MockManager();
+    // final wallet =  MockManager();
     // final secureStore = FakeSecureStorage();
     //
     // secureStore.write(key: "walletID_pin", value: "1234");
@@ -207,7 +206,7 @@ void main() {
     // final navigator = mockingjay.MockNavigator();
     // final walletsService = MockWalletsService();
     // final nodeService = MockNodeService();
-    // final manager = MockManager();
+    // final wallet =  MockManager();
     // final secureStore = FakeSecureStorage();
     //
     // secureStore.write(key: "walletID_pin", value: "1234");
@@ -270,7 +269,7 @@ void main() {
     // final navigator = mockingjay.MockNavigator();
     // final walletsService = MockWalletsService();
     // final nodeService = MockNodeService();
-    // final manager = MockManager();
+    // final wallet =  MockManager();
     // final secureStore = FakeSecureStorage();
     //
     // mockingjay.when(() => navigator.pop()).thenAnswer((_) async => {});

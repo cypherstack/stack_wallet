@@ -12,21 +12,22 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:isar/isar.dart';
 import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/coin_image.dart';
+import 'package:stackwallet/pages/add_wallet_views/new_wallet_options/new_wallet_options_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_warning_view/new_wallet_recovery_phrase_warning_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/restore_options_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
-import 'package:stackwallet/providers/global/wallets_service_provider.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/name_generator.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -80,10 +81,15 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
   void initState() {
     isDesktop = Util.isDesktop;
 
-    ref.read(walletsServiceChangeNotifierProvider).walletNames.then(
-          (value) => namesToExclude.addAll(
-            value.values.map((e) => e.name),
-          ),
+    ref
+        .read(mainDBProvider)
+        .isar
+        .walletInfo
+        .where()
+        .nameProperty()
+        .findAll()
+        .then(
+          (values) => namesToExclude.addAll(values),
         );
     generator = NameGenerator();
     addWalletType = widget.addWalletType;
@@ -332,18 +338,9 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
             child: TextButton(
               onPressed: _nextEnabled
                   ? () async {
-                      final walletsService =
-                          ref.read(walletsServiceChangeNotifierProvider);
                       final name = textEditingController.text;
 
-                      if (await walletsService.checkForDuplicate(name)) {
-                        unawaited(showFloatingFlushBar(
-                          type: FlushBarType.warning,
-                          message: "Wallet name already in use.",
-                          iconAsset: Assets.svg.circleAlert,
-                          context: context,
-                        ));
-                      } else {
+                      if (mounted) {
                         // hide keyboard if has focus
                         if (FocusScope.of(context).hasFocus) {
                           FocusScope.of(context).unfocus();
@@ -352,29 +349,36 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
                         }
 
                         if (mounted) {
+                          ref.read(mnemonicWordCountStateProvider.state).state =
+                              Constants.possibleLengthsForCoin(coin).last;
+                          ref.read(pNewWalletOptions.notifier).state = null;
+
                           switch (widget.addWalletType) {
                             case AddWalletType.New:
-                              unawaited(Navigator.of(context).pushNamed(
-                                NewWalletRecoveryPhraseWarningView.routeName,
-                                arguments: Tuple2(
-                                  name,
-                                  coin,
+                              unawaited(
+                                Navigator.of(context).pushNamed(
+                                  coin.hasMnemonicPassphraseSupport
+                                      ? NewWalletOptionsView.routeName
+                                      : NewWalletRecoveryPhraseWarningView
+                                          .routeName,
+                                  arguments: Tuple2(
+                                    name,
+                                    coin,
+                                  ),
                                 ),
-                              ));
+                              );
                               break;
+
                             case AddWalletType.Restore:
-                              ref
-                                  .read(mnemonicWordCountStateProvider.state)
-                                  .state = Constants.possibleLengthsForCoin(
-                                      coin)
-                                  .first;
-                              unawaited(Navigator.of(context).pushNamed(
-                                RestoreOptionsView.routeName,
-                                arguments: Tuple2(
-                                  name,
-                                  coin,
+                              unawaited(
+                                Navigator.of(context).pushNamed(
+                                  RestoreOptionsView.routeName,
+                                  arguments: Tuple2(
+                                    name,
+                                    coin,
+                                  ),
                                 ),
-                              ));
+                              );
                               break;
                           }
                         }

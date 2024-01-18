@@ -4,17 +4,15 @@
 import 'package:mockito/annotations.dart';
 // import 'package:mockito/mockito.dart';
 // import 'package:stackwallet/pages/settings_view/settings_subviews/currency_view.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+
 // import 'package:provider/provider.dart';
 //
 // import 'currency_view_screen_test.mocks.dart';
 
-@GenerateMocks([], customMocks: [
-  MockSpec<Manager>(returnNullOnMissingStub: true),
-])
+@GenerateMocks([], customMocks: [])
 void main() {
 //   testWidgets("CurrencyView builds correctly", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.fiatCurrency).thenAnswer((_) => "USD");
 //
@@ -70,7 +68,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap back", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final navigator = mockingjay.MockNavigator();
 //
 //     when(manager.fiatCurrency).thenAnswer((_) => "USD");
@@ -149,7 +147,7 @@ void main() {
 //
 //   testWidgets("tap a currency that is not the current currency",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.fiatCurrency).thenAnswer((_) => "USD");
 //     when(manager.changeFiatCurrency("CAD")).thenAnswer((_) {
@@ -212,7 +210,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap the currenct currency", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.fiatCurrency).thenAnswer((_) => "USD");
 //

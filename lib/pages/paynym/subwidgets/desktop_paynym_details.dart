@@ -24,12 +24,13 @@ import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/paynym/desktop_paynym_send_dialog.dart';
 import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/models/tx_data.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/paynym_follow_toggle_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -70,10 +71,8 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
       ),
     );
 
-    final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(widget.walletId);
-
-    final wallet = manager.wallet as PaynymWalletInterface;
+    final wallet =
+        ref.read(pWallets).getWallet(widget.walletId) as PaynymInterface;
 
     if (await wallet.hasConnected(widget.accountLite.code)) {
       canPop = true;
@@ -82,9 +81,9 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
       return;
     }
 
-    final rates = await manager.fees;
+    final rates = await ref.read(pWallets).getWallet(widget.walletId).fees;
 
-    Map<String, dynamic> preparedTx;
+    TxData preparedTx;
 
     try {
       preparedTx = await wallet.prepareNotificationTx(
@@ -121,18 +120,14 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
               showDialog(
                 context: context,
                 builder: (context) => DesktopDialog(
-                  maxHeight: double.infinity,
+                  maxHeight: MediaQuery.of(context).size.height - 64,
                   maxWidth: 580,
                   child: ConfirmTransactionView(
-                    walletId: manager.walletId,
+                    walletId: widget.walletId,
                     isPaynymNotificationTransaction: true,
-                    transactionInfo: {
-                      "hex": preparedTx["hex"],
-                      "address": preparedTx["recipientPaynym"],
-                      "recipientAmt": preparedTx["amount"],
-                      "fee": preparedTx["fee"],
-                      "vSize": preparedTx["vSize"],
-                      "note": "PayNym connect"
+                    txData: preparedTx,
+                    onSuccess: () {
+                      // do nothing extra
                     },
                     onSuccessInsteadOfRouteOnSuccess: () {
                       Navigator.of(context, rootNavigator: true).pop();
@@ -152,11 +147,8 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
               ),
             );
           },
-          amount: (preparedTx["amount"] as Amount) +
-              (preparedTx["fee"] as int).toAmountAsRaw(
-                fractionDigits: manager.coin.decimals,
-              ),
-          coin: manager.coin,
+          amount: preparedTx.amount! + preparedTx.fee!,
+          coin: ref.read(pWalletCoin(widget.walletId)),
         ),
       );
     }
@@ -174,10 +166,9 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
 
   @override
   Widget build(BuildContext context) {
-    final manager = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(widget.walletId)));
+    final wallet = ref.watch(pWallets).getWallet(widget.walletId);
 
-    final wallet = manager.wallet as PaynymWalletInterface;
+    final paynymWallet = wallet as PaynymInterface;
 
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(0),
@@ -205,7 +196,8 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                           style: STextStyles.desktopTextSmall(context),
                         ),
                         FutureBuilder(
-                          future: wallet.hasConnected(widget.accountLite.code),
+                          future: paynymWallet
+                              .hasConnected(widget.accountLite.code),
                           builder: (context, AsyncSnapshot<bool> snapshot) {
                             if (snapshot.connectionState ==
                                     ConnectionState.done &&
@@ -243,7 +235,8 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                   children: [
                     Expanded(
                       child: FutureBuilder(
-                        future: wallet.hasConnected(widget.accountLite.code),
+                        future:
+                            paynymWallet.hasConnected(widget.accountLite.code),
                         builder: (context, AsyncSnapshot<bool> snapshot) {
                           if (snapshot.connectionState ==
                                   ConnectionState.done &&
@@ -315,7 +308,7 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                           "Adding a PayNym to your contacts requires a one-time "
                           "transaction fee for creating the record on the "
                           "blockchain. Please deposit more "
-                          "${ref.read(walletsChangeNotifierProvider).getManager(widget.walletId).wallet.coin.ticker} "
+                          "${ref.watch(pWalletCoin(widget.walletId)).ticker} "
                           "into your wallet and try again.",
                           style: STextStyles.desktopTextExtraExtraSmall(context)
                               .copyWith(

@@ -37,9 +37,7 @@ class WalletInfoRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final manager = ref.watch(ref
-        .watch(walletsChangeNotifierProvider.notifier)
-        .getManagerProvider(walletId));
+    final wallet = ref.watch(pWallets).getWallet(walletId);
 
     EthContract? contract;
     if (contractAddress != null) {
@@ -59,7 +57,7 @@ class WalletInfoRow extends ConsumerWidget {
                 child: Row(
                   children: [
                     WalletInfoCoinIcon(
-                      coin: manager.coin,
+                      coin: wallet.info.coin,
                       contractAddress: contractAddress,
                     ),
                     const SizedBox(
@@ -87,7 +85,7 @@ class WalletInfoRow extends ConsumerWidget {
                             ],
                           )
                         : Text(
-                            manager.walletName,
+                            wallet.info.name,
                             style: STextStyles.desktopTextExtraSmall(context)
                                 .copyWith(
                               color: Theme.of(context)
@@ -125,7 +123,7 @@ class WalletInfoRow extends ConsumerWidget {
       return Row(
         children: [
           WalletInfoCoinIcon(
-            coin: manager.coin,
+            coin: wallet.info.coin,
             contractAddress: contractAddress,
           ),
           const SizedBox(
@@ -152,7 +150,7 @@ class WalletInfoRow extends ConsumerWidget {
                         ],
                       )
                     : Text(
-                        manager.walletName,
+                        wallet.info.name,
                         style: STextStyles.titleBold12(context),
                       ),
                 const SizedBox(

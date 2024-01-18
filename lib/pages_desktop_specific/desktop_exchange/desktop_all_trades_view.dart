@@ -24,7 +24,6 @@ import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
 import 'package:stackwallet/providers/exchange/trade_sent_from_stack_lookup_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
@@ -32,6 +31,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -367,10 +367,6 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
         ),
         onPressed: () async {
           if (txid != null && walletIds != null && walletIds.isNotEmpty) {
-            final manager = ref
-                .read(walletsChangeNotifierProvider)
-                .getManager(walletIds.first);
-
             //todo: check if print needed
             // debugPrint("name: ${manager.walletName}");
 
@@ -380,19 +376,21 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
                 .txidEqualTo(txid)
                 .findFirst();
 
-            await showDialog<void>(
-              context: context,
-              builder: (context) => DesktopDialog(
-                maxHeight: MediaQuery.of(context).size.height - 64,
-                maxWidth: 580,
-                child: TradeDetailsView(
-                  tradeId: tradeId,
-                  transactionIfSentFromStack: tx,
-                  walletName: manager.walletName,
-                  walletId: walletIds.first,
+            if (mounted) {
+              await showDialog<void>(
+                context: context,
+                builder: (context) => DesktopDialog(
+                  maxHeight: MediaQuery.of(context).size.height - 64,
+                  maxWidth: 580,
+                  child: TradeDetailsView(
+                    tradeId: tradeId,
+                    transactionIfSentFromStack: tx,
+                    walletName: ref.read(pWalletName(walletIds.first)),
+                    walletId: walletIds.first,
+                  ),
                 ),
-              ),
-            );
+              );
+            }
 
             if (mounted) {
               unawaited(
@@ -438,7 +436,8 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
                                     child: TradeDetailsView(
                                       tradeId: tradeId,
                                       transactionIfSentFromStack: tx,
-                                      walletName: manager.walletName,
+                                      walletName: ref
+                                          .read(pWalletName(walletIds.first)),
                                       walletId: walletIds.first,
                                     ),
                                   ),

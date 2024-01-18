@@ -5,7 +5,7 @@ import 'package:mockito/annotations.dart';
 // import 'package:mockito/mockito.dart';
 // import 'package:stackwallet/notifications/campfire_alert.dart';
 // import 'package:stackwallet/pages/settings_view/settings_subviews/network_settings_subviews/add_custom_node_view.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+
 import 'package:stackwallet/services/node_service.dart';
 
 // import 'package:stackwallet/widgets/custom_buttons/gradient_button.dart';
@@ -16,7 +16,6 @@ import 'package:stackwallet/services/node_service.dart';
 //
 @GenerateMocks([], customMocks: [
   MockSpec<NodeService>(returnNullOnMissingStub: true),
-  MockSpec<Manager>(returnNullOnMissingStub: true),
 ])
 void main() {
 //   testWidgets("AddCustomNodeView builds correctly", (tester) async {
@@ -415,7 +414,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap enabled test where connection fails", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.testNetworkConnection(any)).thenAnswer((_) async => false);
 //
@@ -482,7 +481,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap enabled test where connection succeeds", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.testNetworkConnection(any)).thenAnswer((_) async => true);
 //
@@ -550,7 +549,7 @@ void main() {
 //
 //   testWidgets("tap enabled save where save and node creation succeeds",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final nodeService = MockNodeService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -643,7 +642,7 @@ void main() {
 //
 //   testWidgets("tap enabled save where save and node creation fails",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final nodeService = MockNodeService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -738,7 +737,7 @@ void main() {
 //
 //   testWidgets("tap enabled save where save and connection test fails",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final nodeService = MockNodeService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -896,7 +895,7 @@ void main() {
 //   testWidgets(
 //       "tap enabled save where save fails due to attempting to save duplicate default node",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final nodeService = MockNodeService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -971,7 +970,7 @@ void main() {
 //
 //   testWidgets("tap enabled save where save fails due to an invalid tcp port",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final nodeService = MockNodeService();
 //     final navigator = mockingjay.MockNavigator();
 //

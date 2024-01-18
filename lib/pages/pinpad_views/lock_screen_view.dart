@@ -27,12 +27,12 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_pin_put/custom_pin_put.dart';
 import 'package:stackwallet/widgets/shake/shake.dart';
-import 'package:tuple/tuple.dart';
 
 class LockscreenView extends ConsumerStatefulWidget {
   const LockscreenView({
@@ -98,16 +98,21 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
       if (loadIntoWallet) {
         final walletId = widget.routeOnSuccessArguments as String;
 
-        final manager =
-            ref.read(walletsChangeNotifierProvider).getManager(walletId);
-        if (manager.coin == Coin.monero) {
-          await showLoading(
-            opaqueBG: true,
-            whileFuture: manager.initializeExisting(),
-            context: context,
-            message: "Loading ${manager.coin.prettyName} wallet...",
-          );
+        final wallet = ref.read(pWallets).getWallet(walletId);
+        final Future<void> loadFuture;
+        if (wallet is CwBasedInterface) {
+          loadFuture =
+              wallet.init().then((value) async => await (wallet).open());
+        } else {
+          loadFuture = wallet.init();
         }
+
+        await showLoading(
+          opaqueBG: true,
+          whileFuture: loadFuture,
+          context: context,
+          message: "Loading ${wallet.info.coin.prettyName} wallet...",
+        );
       }
 
       if (mounted) {
@@ -124,12 +129,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
           unawaited(
             Navigator.of(context).pushNamed(
               WalletView.routeName,
-              arguments: Tuple2(
-                walletId,
-                ref
-                    .read(walletsChangeNotifierProvider)
-                    .getManagerProvider(walletId),
-              ),
+              arguments: walletId,
             ),
           );
         }

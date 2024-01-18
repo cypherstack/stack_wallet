@@ -6,8 +6,7 @@ import 'package:mockito/annotations.dart';
 // import 'package:mockito/mockito.dart';
 // import 'package:stackwallet/notifications/campfire_alert.dart';
 // import 'package:stackwallet/pages/wallet_view/confirm_send_view.dart';
-import 'package:stackwallet/services/coins/manager.dart';
-import 'package:stackwallet/services/notes_service.dart';
+
 // import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 // import 'package:stackwallet/widgets/custom_buttons/gradient_button.dart';
 // import 'package:stackwallet/widgets/custom_pin_put/custom_pin_put.dart';
@@ -16,13 +15,10 @@ import 'package:stackwallet/services/notes_service.dart';
 //
 // import 'confirm_send_view_screen_test.mocks.dart';
 
-@GenerateMocks([], customMocks: [
-  MockSpec<Manager>(returnNullOnMissingStub: true),
-  MockSpec<NotesService>(returnNullOnMissingStub: true),
-])
+@GenerateMocks([], customMocks: [])
 void main() {
 //   testWidgets("ConfirmSendView builds correctly", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //
 //     when(manager.useBiometrics).thenAnswer((_) async => true);
@@ -63,7 +59,7 @@ void main() {
 //   });
 //
 //   testWidgets("confirm wrong pin", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final secureStore = FakeSecureStorage();
 //
@@ -124,7 +120,7 @@ void main() {
 //   });
 //
 //   testWidgets("confirm correct pin but send fails", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final secureStore = FakeSecureStorage();
 //     final navigator = mockingjay.MockNavigator();
@@ -212,7 +208,7 @@ void main() {
 //   });
 //
 //   testWidgets("confirm correct pin and send succeeds", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final secureStore = FakeSecureStorage();
 //     final navigator = mockingjay.MockNavigator();

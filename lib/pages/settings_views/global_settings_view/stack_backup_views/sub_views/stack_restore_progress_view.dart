@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/dialogs/cancel_stack_restore_dialog.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/restore_from_encrypted_string_view.dart';
@@ -215,10 +216,10 @@ class _StackRestoreProgressViewState
   }
 
   void _addWalletsToHomeView() {
-    ref.read(walletsChangeNotifierProvider).loadAfterStackRestore(
-          ref.read(prefsChangeNotifierProvider),
-          ref.read(stackRestoringUIStateProvider).managers,
-        );
+    ref.read(pWallets).loadAfterStackRestore(
+        ref.read(prefsChangeNotifierProvider),
+        ref.read(stackRestoringUIStateProvider).wallets,
+        Util.isDesktop);
   }
 
   @override
@@ -668,7 +669,15 @@ class _StackRestoreProgressViewState
                     ? TextButton(
                         onPressed: () async {
                           if (_success) {
-                            Navigator.of(context).pop();
+                            if (widget.shouldPushToHome) {
+                              Navigator.of(context).popUntil(
+                                ModalRoute.withName(
+                                  HomeView.routeName,
+                                ),
+                              );
+                            } else {
+                              Navigator.of(context).pop();
+                            }
                           } else {
                             if (await _requestCancel()) {
                               await _cancel();

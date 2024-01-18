@@ -19,35 +19,37 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/buy_view/buy_in_wallet_view.dart';
+import 'package:stackwallet/pages/cashfusion/cashfusion_view.dart';
 import 'package:stackwallet/pages/coin_control/coin_control_view.dart';
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
+import 'package:stackwallet/pages/monkey/monkey_view.dart';
 import 'package:stackwallet/pages/notification_views/notifications_view.dart';
+import 'package:stackwallet/pages/ordinals/ordinals_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages/receive_view/receive_view.dart';
 import 'package:stackwallet/pages/send_view/send_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_view.dart';
+import 'package:stackwallet/pages/special/firo_rescan_recovery_error_dialog.dart';
 import 'package:stackwallet/pages/token_view/my_tokens_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/transactions_list.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_summary.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/all_transactions_v2_view.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_list.dart';
+import 'package:stackwallet/providers/global/active_wallet_provider.dart';
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/global/paynym_api_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
 import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
-import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
-import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
-import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
-import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
@@ -57,10 +59,16 @@ import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -68,10 +76,13 @@ import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
+import 'package:stackwallet/widgets/small_tor_icon.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/buy_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/coin_control_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/exchange_nav_icon.dart';
+import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/fusion_nav_icon.dart';
+import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/ordinals_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/paynym_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/receive_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/send_nav_icon.dart';
@@ -84,7 +95,6 @@ class WalletView extends ConsumerStatefulWidget {
   const WalletView({
     Key? key,
     required this.walletId,
-    required this.managerProvider,
     this.eventBus,
     this.clipboardInterface = const ClipboardWrapper(),
   }) : super(key: key);
@@ -93,7 +103,6 @@ class WalletView extends ConsumerStatefulWidget {
   static const double navBarHeight = 65.0;
 
   final String walletId;
-  final ChangeNotifierProvider<Manager> managerProvider;
   final EventBus? eventBus;
 
   final ClipboardInterface clipboardInterface;
@@ -105,7 +114,9 @@ class WalletView extends ConsumerStatefulWidget {
 class _WalletViewState extends ConsumerState<WalletView> {
   late final EventBus eventBus;
   late final String walletId;
-  late final ChangeNotifierProvider<Manager> managerProvider;
+  late final Coin coin;
+
+  late final bool isSparkWallet;
 
   late final bool _shouldDisableAutoSyncOnLogOut;
 
@@ -116,40 +127,81 @@ class _WalletViewState extends ConsumerState<WalletView> {
   late StreamSubscription<dynamic> _nodeStatusSubscription;
 
   bool _rescanningOnOpen = false;
+  bool _lelantusRescanRecovery = false;
+
+  Future<void> _firoRescanRecovery() async {
+    final success = await (ref.read(pWallets).getWallet(walletId) as FiroWallet)
+        .firoRescanRecovery();
+
+    if (success) {
+      // go into wallet
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => setState(() {
+          _rescanningOnOpen = false;
+          _lelantusRescanRecovery = false;
+        }),
+      );
+    } else {
+      // show error message dialog w/ options
+      if (mounted) {
+        final shouldRetry = await Navigator.of(context).pushNamed(
+          FiroRescanRecoveryErrorView.routeName,
+          arguments: walletId,
+        );
+
+        if (shouldRetry is bool && shouldRetry) {
+          await _firoRescanRecovery();
+        }
+      } else {
+        return await _firoRescanRecovery();
+      }
+    }
+  }
 
   @override
   void initState() {
     walletId = widget.walletId;
-    managerProvider = widget.managerProvider;
+    final wallet = ref.read(pWallets).getWallet(walletId);
+    coin = wallet.info.coin;
 
-    ref.read(managerProvider).isActiveWallet = true;
-    if (!ref.read(managerProvider).shouldAutoSync) {
+    ref.read(currentWalletIdProvider.notifier).state = wallet.walletId;
+
+    if (!wallet.shouldAutoSync) {
       // enable auto sync if it wasn't enabled when loading wallet
-      ref.read(managerProvider).shouldAutoSync = true;
+      wallet.shouldAutoSync = true;
       _shouldDisableAutoSyncOnLogOut = true;
     } else {
       _shouldDisableAutoSyncOnLogOut = false;
     }
 
-    if (ref.read(managerProvider).rescanOnOpenVersion == Constants.rescanV1) {
+    isSparkWallet = wallet is SparkInterface;
+
+    if (coin == Coin.firo &&
+        (wallet as FiroWallet).lelantusCoinIsarRescanRequired) {
       _rescanningOnOpen = true;
-      ref.read(managerProvider).fullRescan(20, 1000).then(
-            (_) => ref.read(managerProvider).resetRescanOnOpen().then(
-                  (_) => WidgetsBinding.instance.addPostFrameCallback(
-                    (_) => setState(() => _rescanningOnOpen = false),
-                  ),
-                ),
-          );
+      _lelantusRescanRecovery = true;
+      _firoRescanRecovery();
+      // } else if (ref.read(managerProvider).rescanOnOpenVersion ==
+      // TODO: [prio=med]
+      //     Constants.rescanV1) {
+      //   _rescanningOnOpen = true;
+      //   ref.read(managerProvider).fullRescan(20, 1000).then(
+      //         (_) => ref.read(managerProvider).resetRescanOnOpen().then(
+      //               (_) => WidgetsBinding.instance.addPostFrameCallback(
+      //                 (_) => setState(() => _rescanningOnOpen = false),
+      //               ),
+      //             ),
+      //       );
     } else {
-      ref.read(managerProvider).refresh();
+      wallet.refresh();
     }
 
-    if (ref.read(managerProvider).isRefreshing) {
+    if (wallet.refreshMutex.isLocked) {
       _currentSyncStatus = WalletSyncStatus.syncing;
       _currentNodeStatus = NodeConnectionStatus.connected;
     } else {
       _currentSyncStatus = WalletSyncStatus.synced;
-      if (ref.read(managerProvider).isConnected) {
+      if (wallet.isConnected) {
         _currentNodeStatus = NodeConnectionStatus.connected;
       } else {
         _currentNodeStatus = NodeConnectionStatus.disconnected;
@@ -209,6 +261,10 @@ class _WalletViewState extends ConsumerState<WalletView> {
   DateTime? _cachedTime;
 
   Future<bool> _onWillPop() async {
+    if (_rescanningOnOpen || _lelantusRescanRecovery) {
+      return false;
+    }
+
     final now = DateTime.now();
     const timeout = Duration(milliseconds: 1500);
     if (_cachedTime == null || now.difference(_cachedTime!) > timeout) {
@@ -239,9 +295,10 @@ class _WalletViewState extends ConsumerState<WalletView> {
   void _logout() async {
     if (_shouldDisableAutoSyncOnLogOut) {
       // disable auto sync if it was enabled only when loading wallet
-      ref.read(managerProvider).shouldAutoSync = false;
+      ref.read(pWallets).getWallet(walletId).shouldAutoSync = false;
     }
-    ref.read(managerProvider.notifier).isActiveWallet = false;
+
+    ref.read(currentWalletIdProvider.notifier).state = null;
     ref.read(transactionFilterProvider.state).state = null;
     if (ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled &&
         ref.read(prefsChangeNotifierProvider).backupFrequencyType ==
@@ -277,7 +334,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
   }
 
   void _onExchangePressed(BuildContext context) async {
-    final Coin coin = ref.read(managerProvider).coin;
+    final Coin coin = ref.read(pWalletCoin(walletId));
 
     if (coin.isTestNet) {
       await showDialog<void>(
@@ -322,7 +379,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
   }
 
   void _onBuyPressed(BuildContext context) async {
-    final coin = ref.read(managerProvider).coin;
+    final Coin coin = ref.read(pWalletCoin(walletId));
 
     if (coin.isTestNet) {
       await showDialog<void>(
@@ -357,9 +414,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
         ),
       ),
     );
-    final firoWallet = ref.read(managerProvider).wallet as FiroWallet;
+    final firoWallet = ref.read(pWallets).getWallet(walletId) as FiroWallet;
 
-    final Amount publicBalance = firoWallet.availablePublicBalance();
+    final Amount publicBalance = firoWallet.info.cachedBalance.spendable;
     if (publicBalance <= Amount.zero) {
       shouldPop = true;
       if (mounted) {
@@ -378,7 +435,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
     }
 
     try {
-      await firoWallet.anonymizeAllPublicFunds();
+      // await firoWallet.anonymizeAllLelantus();
+      await firoWallet.anonymizeAllSpark();
       shouldPop = true;
       if (mounted) {
         Navigator.of(context).popUntil(
@@ -413,7 +471,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final Coin coin = ref.watch(managerProvider.select((value) => value.coin));
+    final coin = ref.watch(pWalletCoin(walletId));
 
     return ConditionalParent(
       condition: _rescanningOnOpen,
@@ -431,33 +489,37 @@ class _WalletViewState extends ConsumerState<WalletView> {
                   eventBus: null,
                   textColor:
                       Theme.of(context).extension<StackColors>()!.textDark,
-                  actionButton: SecondaryButton(
-                    label: "Cancel",
-                    onPressed: () async {
-                      await showDialog<void>(
-                        context: context,
-                        builder: (context) => StackDialog(
-                          title: "Warning!",
-                          message: "Skipping this process can completely"
-                              " break your wallet. It is only meant to be done in"
-                              " emergency situations where the migration fails"
-                              " and will not let you continue. Still skip?",
-                          leftButton: SecondaryButton(
-                            label: "Cancel",
-                            onPressed:
-                                Navigator.of(context, rootNavigator: true).pop,
-                          ),
-                          rightButton: SecondaryButton(
-                            label: "Ok",
-                            onPressed: () {
-                              Navigator.of(context, rootNavigator: true).pop();
-                              setState(() => _rescanningOnOpen = false);
-                            },
-                          ),
+                  actionButton: _lelantusRescanRecovery
+                      ? null
+                      : SecondaryButton(
+                          label: "Cancel",
+                          onPressed: () async {
+                            await showDialog<void>(
+                              context: context,
+                              builder: (context) => StackDialog(
+                                title: "Warning!",
+                                message: "Skipping this process can completely"
+                                    " break your wallet. It is only meant to be done in"
+                                    " emergency situations where the migration fails"
+                                    " and will not let you continue. Still skip?",
+                                leftButton: SecondaryButton(
+                                  label: "Cancel",
+                                  onPressed:
+                                      Navigator.of(context, rootNavigator: true)
+                                          .pop,
+                                ),
+                                rightButton: SecondaryButton(
+                                  label: "Ok",
+                                  onPressed: () {
+                                    Navigator.of(context, rootNavigator: true)
+                                        .pop();
+                                    setState(() => _rescanningOnOpen = false);
+                                  },
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
                 ),
               )
             ],
@@ -494,8 +556,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       ),
                       Expanded(
                         child: Text(
-                          ref.watch(managerProvider
-                              .select((value) => value.walletName)),
+                          ref.watch(pWalletName(walletId)),
                           style: STextStyles.navBarTitle(context),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -503,6 +564,17 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     ],
                   ),
                   actions: [
+                    const Padding(
+                      padding: EdgeInsets.only(
+                        top: 10,
+                        bottom: 10,
+                        right: 10,
+                      ),
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: SmallTorIcon(),
+                      ),
+                    ),
                     Padding(
                       padding: const EdgeInsets.only(
                         top: 10,
@@ -655,7 +727,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                               WalletSettingsView.routeName,
                               arguments: Tuple4(
                                 walletId,
-                                ref.read(managerProvider).coin,
+                                coin,
                                 _currentSyncStatus,
                                 _currentNodeStatus,
                               ),
@@ -681,18 +753,21 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             child: WalletSummary(
                               walletId: walletId,
                               aspectRatio: 1.75,
-                              initialSyncStatus: ref.watch(managerProvider
-                                      .select((value) => value.isRefreshing))
+                              initialSyncStatus: ref
+                                      .watch(pWallets)
+                                      .getWallet(walletId)
+                                      .refreshMutex
+                                      .isLocked
                                   ? WalletSyncStatus.syncing
                                   : WalletSyncStatus.synced,
                             ),
                           ),
                         ),
-                        if (coin == Coin.firo)
+                        if (isSparkWallet)
                           const SizedBox(
                             height: 10,
                           ),
-                        if (coin == Coin.firo)
+                        if (isSparkWallet)
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: Row(
@@ -778,7 +853,13 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                 text: "See all",
                                 onTap: () {
                                   Navigator.of(context).pushNamed(
-                                    AllTransactionsView.routeName,
+                                    ref
+                                                .read(pWallets)
+                                                .getWallet(widget.walletId)
+                                                .isarTransactionVersion ==
+                                            2
+                                        ? AllTransactionsV2View.routeName
+                                        : AllTransactionsView.routeName,
                                     arguments: walletId,
                                   );
                                 },
@@ -817,7 +898,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                       0.0,
                                       0.8,
                                       1.0,
-                                    ], // 10% purple, 80% transparent, 10% purple
+                                    ],
                                   ).createShader(bounds);
                                 },
                                 child: Container(
@@ -832,10 +913,17 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                         CrossAxisAlignment.stretch,
                                     children: [
                                       Expanded(
-                                        child: TransactionsList(
-                                          managerProvider: managerProvider,
-                                          walletId: walletId,
-                                        ),
+                                        child: ref
+                                                    .read(pWallets)
+                                                    .getWallet(widget.walletId)
+                                                    .isarTransactionVersion ==
+                                                2
+                                            ? TransactionsV2List(
+                                                walletId: widget.walletId,
+                                              )
+                                            : TransactionsList(
+                                                walletId: walletId,
+                                              ),
                                       ),
                                     ],
                                   ),
@@ -869,22 +957,21 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     label: "Send",
                     icon: const SendNavIcon(),
                     onTap: () {
-                      final walletId = ref.read(managerProvider).walletId;
-                      final coin = ref.read(managerProvider).coin;
-                      switch (ref
-                          .read(walletBalanceToggleStateProvider.state)
-                          .state) {
-                        case WalletBalanceToggleState.full:
-                          ref
-                              .read(publicPrivateBalanceStateProvider.state)
-                              .state = "Public";
-                          break;
-                        case WalletBalanceToggleState.available:
-                          ref
-                              .read(publicPrivateBalanceStateProvider.state)
-                              .state = "Private";
-                          break;
-                      }
+                      // not sure what this is supposed to accomplish?
+                      // switch (ref
+                      //     .read(walletBalanceToggleStateProvider.state)
+                      //     .state) {
+                      //   case WalletBalanceToggleState.full:
+                      //     ref
+                      //         .read(publicPrivateBalanceStateProvider.state)
+                      //         .state = "Public";
+                      //     break;
+                      //   case WalletBalanceToggleState.available:
+                      //     ref
+                      //         .read(publicPrivateBalanceStateProvider.state)
+                      //         .state = "Private";
+                      //     break;
+                      // }
                       Navigator.of(context).pushNamed(
                         SendView.routeName,
                         arguments: Tuple2(
@@ -909,9 +996,11 @@ class _WalletViewState extends ConsumerState<WalletView> {
                 ],
                 moreItems: [
                   if (ref.watch(
-                    walletsChangeNotifierProvider.select(
-                      (value) =>
-                          value.getManager(widget.walletId).hasTokenSupport,
+                    pWallets.select(
+                      (value) => value
+                          .getWallet(widget.walletId)
+                          .cryptoCurrency
+                          .hasTokenSupport,
                     ),
                   ))
                     WalletNavigationBarItemData(
@@ -924,11 +1013,27 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         );
                       },
                     ),
+                  if (coin == Coin.banano)
+                    WalletNavigationBarItemData(
+                        icon: SvgPicture.asset(
+                          Assets.svg.monkey,
+                          height: 20,
+                          width: 20,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .bottomNavIconIcon,
+                        ),
+                        label: "MonKey",
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            MonkeyView.routeName,
+                            arguments: widget.walletId,
+                          );
+                        }),
                   if (ref.watch(
-                        walletsChangeNotifierProvider.select(
-                          (value) => value
-                              .getManager(widget.walletId)
-                              .hasCoinControlSupport,
+                        pWallets.select(
+                          (value) => value.getWallet(widget.walletId)
+                              is CoinControlInterface,
                         ),
                       ) &&
                       ref.watch(
@@ -949,8 +1054,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         );
                       },
                     ),
-                  if (ref.watch(walletsChangeNotifierProvider.select((value) =>
-                      value.getManager(widget.walletId).hasPaynymSupport)))
+                  if (ref.watch(pWallets.select((value) =>
+                      value.getWallet(widget.walletId) is PaynymInterface)))
                     WalletNavigationBarItemData(
                       label: "PayNym",
                       icon: const PaynymNavIcon(),
@@ -964,12 +1069,10 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           ),
                         );
 
-                        final manager = ref
-                            .read(walletsChangeNotifierProvider)
-                            .getManager(widget.walletId);
+                        final wallet =
+                            ref.read(pWallets).getWallet(widget.walletId);
 
-                        final paynymInterface =
-                            manager.wallet as PaynymWalletInterface;
+                        final paynymInterface = wallet as PaynymInterface;
 
                         final code = await paynymInterface.getPaymentCode(
                           isSegwit: false,
@@ -1005,6 +1108,38 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             );
                           }
                         }
+                      },
+                    ),
+                  if (ref.watch(
+                    pWallets.select(
+                      (value) =>
+                          value.getWallet(widget.walletId) is OrdinalsInterface,
+                    ),
+                  ))
+                    WalletNavigationBarItemData(
+                      label: "Ordinals",
+                      icon: const OrdinalsNavIcon(),
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          OrdinalsView.routeName,
+                          arguments: widget.walletId,
+                        );
+                      },
+                    ),
+                  if (ref.watch(
+                    pWallets.select(
+                      (value) => value.getWallet(widget.walletId)
+                          is CashFusionInterface,
+                    ),
+                  ))
+                    WalletNavigationBarItemData(
+                      label: "Fusion",
+                      icon: const FusionNavIcon(),
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          CashFusionView.routeName,
+                          arguments: walletId,
+                        );
                       },
                     ),
                 ],

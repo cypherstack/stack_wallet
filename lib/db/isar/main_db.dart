@@ -13,12 +13,18 @@ import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/exceptions/main_db/main_db_exception.dart';
 import 'package:stackwallet/models/isar/models/block_explorer.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/models/isar/ordinal.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
+import 'package:stackwallet/wallets/isar/models/spark_coin.dart';
+import 'package:stackwallet/wallets/isar/models/token_wallet_info.dart';
+import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
+import 'package:stackwallet/wallets/isar/models/wallet_info_meta.dart';
 import 'package:tuple/tuple.dart';
 
 part '../queries/queries.dart';
@@ -54,6 +60,13 @@ class MainDB {
         TransactionBlockExplorerSchema,
         StackThemeSchema,
         ContactEntrySchema,
+        OrdinalSchema,
+        LelantusCoinSchema,
+        WalletInfoSchema,
+        TransactionV2Schema,
+        SparkCoinSchema,
+        WalletInfoMetaSchema,
+        TokenWalletInfoSchema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
       // inspector: kDebugMode,
@@ -62,6 +75,36 @@ class MainDB {
       maxSizeMiB: 512,
     );
     return true;
+  }
+
+  Future<void> putWalletInfo(WalletInfo walletInfo) async {
+    try {
+      await isar.writeTxn(() async {
+        await isar.walletInfo.put(walletInfo);
+      });
+    } catch (e) {
+      throw MainDBException("failed putWalletInfo()", e);
+    }
+  }
+
+  Future<void> updateWalletInfo(WalletInfo walletInfo) async {
+    try {
+      await isar.writeTxn(() async {
+        final info = await isar.walletInfo
+            .where()
+            .walletIdEqualTo(walletInfo.walletId)
+            .findFirst();
+        if (info == null) {
+          throw Exception("updateWalletInfo() called with new WalletInfo."
+              " Use putWalletInfo()");
+        }
+
+        await isar.walletInfo.deleteByWalletId(walletInfo.walletId);
+        await isar.walletInfo.put(walletInfo);
+      });
+    } catch (e) {
+      throw MainDBException("failed updateWalletInfo()", e);
+    }
   }
 
   // contact entries
@@ -238,6 +281,14 @@ class MainDB {
   QueryBuilder<UTXO, UTXO, QAfterWhereClause> getUTXOs(String walletId) =>
       isar.utxos.where().walletIdEqualTo(walletId);
 
+  QueryBuilder<UTXO, UTXO, QAfterFilterCondition> getUTXOsByAddress(
+          String walletId, String address) =>
+      isar.utxos
+          .where()
+          .walletIdEqualTo(walletId)
+          .filter()
+          .addressEqualTo(address);
+
   Future<void> putUTXO(UTXO utxo) => isar.writeTxn(() async {
         await isar.utxos.put(utxo);
       });
@@ -246,7 +297,8 @@ class MainDB {
         await isar.utxos.putAll(utxos);
       });
 
-  Future<void> updateUTXOs(String walletId, List<UTXO> utxos) async {
+  Future<bool> updateUTXOs(String walletId, List<UTXO> utxos) async {
+    bool newUTXO = false;
     await isar.writeTxn(() async {
       final set = utxos.toSet();
       for (final utxo in utxos) {
@@ -268,12 +320,16 @@ class MainDB {
               blockHash: utxo.blockHash,
             ),
           );
+        } else {
+          newUTXO = true;
         }
       }
 
       await isar.utxos.where().walletIdEqualTo(walletId).deleteAll();
       await isar.utxos.putAll(set.toList());
     });
+
+    return newUTXO;
   }
 
   Stream<UTXO?> watchUTXO({
@@ -368,8 +424,12 @@ class MainDB {
   //
   Future<void> deleteWalletBlockchainData(String walletId) async {
     final transactionCount = await getTransactions(walletId).count();
+    final transactionCountV2 =
+        await isar.transactionV2s.where().walletIdEqualTo(walletId).count();
     final addressCount = await getAddresses(walletId).count();
     final utxoCount = await getUTXOs(walletId).count();
+    // final lelantusCoinCount =
+    //     await isar.lelantusCoins.where().walletIdEqualTo(walletId).count();
 
     await isar.writeTxn(() async {
       const paginateLimit = 50;
@@ -382,6 +442,18 @@ class MainDB {
             .idProperty()
             .findAll();
         await isar.transactions.deleteAll(txnIds);
+      }
+
+      // transactions V2
+      for (int i = 0; i < transactionCountV2; i += paginateLimit) {
+        final txnIds = await isar.transactionV2s
+            .where()
+            .walletIdEqualTo(walletId)
+            .offset(i)
+            .limit(paginateLimit)
+            .idProperty()
+            .findAll();
+        await isar.transactionV2s.deleteAll(txnIds);
       }
 
       // addresses
@@ -403,6 +475,25 @@ class MainDB {
             .findAll();
         await isar.utxos.deleteAll(utxoIds);
       }
+
+      // lelantusCoins
+      await isar.lelantusCoins.where().walletIdEqualTo(walletId).deleteAll();
+      //   for (int i = 0; i < lelantusCoinCount; i += paginateLimit) {
+      //     final lelantusCoinIds = await isar.lelantusCoins
+      //         .where()
+      //         .walletIdEqualTo(walletId)
+      //         .offset(i)
+      //         .limit(paginateLimit)
+      //         .idProperty()
+      //         .findAll();
+      //     await isar.lelantusCoins.deleteAll(lelantusCoinIds);
+      //   }
+
+      // spark coins
+      await isar.sparkCoins
+          .where()
+          .walletIdEqualToAnyLTagHash(walletId)
+          .deleteAll();
     });
   }
 
@@ -476,6 +567,36 @@ class MainDB {
     }
   }
 
+  Future<List<int>> updateOrPutTransactionV2s(
+    List<TransactionV2> transactions,
+  ) async {
+    try {
+      List<int> ids = [];
+      await isar.writeTxn(() async {
+        for (final tx in transactions) {
+          final storedTx = await isar.transactionV2s
+              .where()
+              .txidWalletIdEqualTo(tx.txid, tx.walletId)
+              .findFirst();
+
+          Id id;
+          if (storedTx == null) {
+            id = await isar.transactionV2s.put(tx);
+          } else {
+            tx.id = storedTx.id;
+            await isar.transactionV2s.delete(storedTx.id);
+            id = await isar.transactionV2s.put(tx);
+          }
+          ids.add(id);
+        }
+      });
+      return ids;
+    } catch (e) {
+      throw MainDBException(
+          "failed updateOrPutTransactionV2s: $transactions", e);
+    }
+  }
+
   // ========== Ethereum =======================================================
 
   // eth contracts
@@ -497,4 +618,15 @@ class MainDB {
       isar.writeTxn(() async {
         await isar.ethContracts.putAll(contracts);
       });
+
+  // ========== Lelantus =======================================================
+
+  Future<int?> getHighestUsedMintIndex({required String walletId}) async {
+    return await isar.lelantusCoins
+        .where()
+        .walletIdEqualTo(walletId)
+        .sortByMintIndexDesc()
+        .mintIndexProperty()
+        .findFirst();
+  }
 }

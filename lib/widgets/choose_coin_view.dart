@@ -70,9 +70,8 @@ class _ChooseCoinViewState extends ConsumerState<ChooseCoinView> {
       prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
     );
 
-    List<Coin> coins = showTestNet
-        ? _coins
-        : _coins.sublist(0, _coins.length - kTestNetCoinCount);
+    List<Coin> coins =
+        showTestNet ? _coins : _coins.where((e) => !e.isTestNet).toList();
 
     return Background(
       child: Scaffold(

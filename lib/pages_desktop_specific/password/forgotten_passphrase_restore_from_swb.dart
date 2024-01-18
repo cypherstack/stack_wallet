@@ -136,7 +136,7 @@ class _ForgottenPassphraseRestoreFromSWBState
         return;
       }
 
-      ref.read(walletsChangeNotifierProvider);
+      ref.read(pWallets);
 
       await showDialog<void>(
         context: context,
@@ -144,7 +144,7 @@ class _ForgottenPassphraseRestoreFromSWBState
         builder: (context) {
           return DesktopDialog(
             maxWidth: 580,
-            maxHeight: double.infinity,
+            maxHeight: MediaQuery.of(context).size.height - 64,
             child: Padding(
               padding: const EdgeInsets.all(32),
               child: Column(
@@ -162,9 +162,11 @@ class _ForgottenPassphraseRestoreFromSWBState
                   const SizedBox(
                     height: 44,
                   ),
-                  StackRestoreProgressView(
-                    jsonString: jsonString,
-                    shouldPushToHome: true,
+                  Flexible(
+                    child: StackRestoreProgressView(
+                      jsonString: jsonString,
+                      shouldPushToHome: true,
+                    ),
                   ),
                 ],
               ),

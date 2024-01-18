@@ -13,9 +13,7 @@ import 'package:mockito/annotations.dart';
 // import 'package:stackwallet/models/models.dart';
 // import 'package:stackwallet/pages/address_book_view/subviews/address_book_entry_details_view.dart';
 import 'package:stackwallet/services/address_book_service.dart';
-import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/locale_service.dart';
-import 'package:stackwallet/services/notes_service.dart';
 // import 'package:stackwallet/utilities/clipboard_interface.dart';
 // import 'package:stackwallet/widgets/custom_buttons/gradient_button.dart';
 // import 'package:stackwallet/widgets/transaction_card.dart';
@@ -26,13 +24,11 @@ import 'package:stackwallet/services/notes_service.dart';
 
 @GenerateMocks([], customMocks: [
   MockSpec<AddressBookService>(returnNullOnMissingStub: true),
-  MockSpec<Manager>(returnNullOnMissingStub: true),
-  MockSpec<NotesService>(returnNullOnMissingStub: true),
   MockSpec<LocaleService>(returnNullOnMissingStub: true),
 ])
 void main() {
 //   testWidgets("AddressBookDetailsView builds correctly", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -92,7 +88,7 @@ void main() {
 //   testWidgets(
 //       "AddressBookDetailsView loads correctly with three matching wallet transactions history",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
@@ -173,7 +169,7 @@ void main() {
 //   testWidgets(
 //       "AddressBookDetailsView loads correctly with no wallet transaction history",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final navigator = mockingjay.MockNavigator();
 //
@@ -230,7 +226,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap back", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
@@ -317,7 +313,7 @@ void main() {
 //
 //   testWidgets("tap options then tap anywhere but the context menu",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
@@ -407,7 +403,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap options then tap delete", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
@@ -501,7 +497,7 @@ void main() {
 //   });
 //
 //   testWidgets("cancel delete", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
@@ -598,7 +594,7 @@ void main() {
 //   });
 //
 //   testWidgets("confirm delete", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
@@ -702,7 +698,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap copy address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
@@ -791,7 +787,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap edit/pencil icon", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
@@ -879,7 +875,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap send", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final addressBookService = MockAddressBookService();
 //     final notesService = MockNotesService();
 //     final navigator = mockingjay.MockNavigator();

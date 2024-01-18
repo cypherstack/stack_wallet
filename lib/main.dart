@@ -12,11 +12,11 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:coinlib_flutter/coinlib_flutter.dart';
 import 'package:cw_core/node.dart';
 import 'package:cw_core/unspent_coins_info.dart';
 import 'package:cw_core/wallet_info.dart';
 import 'package:cw_core/wallet_type.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_libmonero/monero/monero.dart';
@@ -28,6 +28,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:isar/isar.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:stackwallet/db/db_version_migration.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
@@ -45,6 +46,7 @@ import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
 import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/restore_from_encrypted_string_view.dart';
 import 'package:stackwallet/pages_desktop_specific/password/desktop_login_view.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
 import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
 import 'package:stackwallet/providers/global/base_currencies_provider.dart';
@@ -59,17 +61,18 @@ import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/notifications_service.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/services/trade_service.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/db_version_migration.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/all_wallets_info_provider.dart';
 import 'package:stackwallet/widgets/crypto_notifications.dart';
 import 'package:window_size/window_size.dart';
 
@@ -79,8 +82,15 @@ final openedFromSWBFileStringStateProvider =
 // main() is the entry point to the app. It initializes Hive (local database),
 // runs the MyApp widget and checks for new users, caching the value in the
 // miscellaneous box for later use
-void main() async {
+void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  if (Util.isDesktop && args.length == 2 && args.first == "-d") {
+    StackFileSystem.overrideDir = args.last;
+  }
+
+  final loadCoinlibFuture = loadCoinlib();
+
   GoogleFonts.config.allowRuntimeFetching = false;
   if (Platform.isIOS) {
     Util.libraryPath = await getLibraryDirectory();
@@ -97,7 +107,7 @@ void main() async {
     setWindowMaxSize(Size.infinite);
 
     final screenHeight = screen?.frame.height;
-    if (screenHeight != null && !kDebugMode) {
+    if (screenHeight != null) {
       // starting to height be 3/4 screen height or 900, whichever is smaller
       final height = min<double>(screenHeight * 0.75, 900);
       setWindowFrame(
@@ -167,6 +177,18 @@ void main() async {
   await Hive.openBox<dynamic>(DB.boxNamePrefs);
   await Prefs.instance.init();
 
+  // TODO:
+  // This should be moved to happen during the loading animation instead of
+  // showing a blank screen for 4-10 seconds.
+  // Some refactoring will need to be done here to make sure we don't make any
+  // network calls before starting up tor
+  if (Prefs.instance.useTor) {
+    TorService.sharedInstance.init(
+      torDataDirPath: (await StackFileSystem.applicationTorDirectory()).path,
+    );
+    await TorService.sharedInstance.start();
+  }
+
   await StackFileSystem.initThemesDir();
 
   // Desktop migrate handled elsewhere (currently desktop_login_view.dart)
@@ -200,6 +222,8 @@ void main() async {
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
   //     overlays: [SystemUiOverlay.bottom]);
   await NotificationApi.init();
+
+  await loadCoinlibFuture;
 
   await MainDB.instance.initMainDB();
   ThemeService.instance.init(MainDB.instance);
@@ -293,13 +317,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       _desktopHasPassword =
           await ref.read(storageCryptoHandlerProvider).hasPassword();
     }
-
-    ref
-        .read(priceAnd24hChangeNotifierProvider)
-        .tokenContractAddressesToCheck
-        .addAll(
-          await MainDB.instance.getEthContracts().addressProperty().findAll(),
-        );
   }
 
   Future<void> load() async {
@@ -332,9 +349,10 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         prefs: ref.read(prefsChangeNotifierProvider),
       );
       ref.read(priceAnd24hChangeNotifierProvider).start(true);
-      await ref
-          .read(walletsChangeNotifierProvider)
-          .load(ref.read(prefsChangeNotifierProvider));
+      await ref.read(pWallets).load(
+            ref.read(prefsChangeNotifierProvider),
+            ref.read(mainDBProvider),
+          );
       loadingCompleter.complete();
       // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
       //  unawaited(_nodeService.updateCommunityNodes());
@@ -723,7 +741,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
                 builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
                   if (snapshot.connectionState == ConnectionState.done) {
                     // FlutterNativeSplash.remove();
-                    if (ref.read(walletsChangeNotifierProvider).hasWallets ||
+                    if (ref.read(pAllWalletsInfo).isNotEmpty ||
                         ref.read(prefsChangeNotifierProvider).hasPin) {
                       // return HomeView();
 

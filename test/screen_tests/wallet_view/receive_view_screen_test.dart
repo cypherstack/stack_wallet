@@ -5,7 +5,7 @@ import 'package:mockito/annotations.dart';
 // import 'package:mockito/mockito.dart';
 // import 'package:stackwallet/notifications/modal_popup_dialog.dart';
 // import 'package:stackwallet/pages/wallet_view/receive_view.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+
 // import 'package:stackwallet/utilities/clipboard_interface.dart';
 // import 'package:stackwallet/widgets/custom_buttons/gradient_button.dart';
 // import 'package:stackwallet/widgets/custom_buttons/simple_button.dart';
@@ -14,12 +14,10 @@ import 'package:stackwallet/services/coins/manager.dart';
 //
 // import 'receive_view_screen_test.mocks.dart';
 
-@GenerateMocks([], customMocks: [
-  MockSpec<Manager>(returnNullOnMissingStub: true),
-])
+@GenerateMocks([], customMocks: [])
 void main() {
 //   testWidgets("ReceiveView builds without loading address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final clipboard = FakeClipboard();
 //
 //     when(manager.currentReceivingAddress).thenAnswer(((_) async => null) as Future<String>? Function(Invocation));
@@ -56,7 +54,7 @@ void main() {
 //   });
 //
 //   testWidgets("ReceiveView builds correctly and loads address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final clipboard = FakeClipboard();
 //
 //     when(manager.currentReceivingAddress)
@@ -96,7 +94,7 @@ void main() {
 //   });
 //
 //   testWidgets("tap copy address", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final clipboard = FakeClipboard();
 //
 //     when(manager.currentReceivingAddress)
@@ -158,7 +156,7 @@ void main() {
 //     tester.binding.defaultBinaryMessenger
 //         .setMockMethodCallHandler(channel, handler);
 //
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final clipboard = FakeClipboard();
 //
 //     when(manager.currentReceivingAddress)
@@ -266,7 +264,7 @@ void main() {
 //     tester.binding.defaultBinaryMessenger
 //         .setMockMethodCallHandler(channel, handler);
 //
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final clipboard = FakeClipboard();
 //
 //     when(manager.currentReceivingAddress)
@@ -348,7 +346,7 @@ void main() {
 //     tester.binding.defaultBinaryMessenger
 //         .setMockMethodCallHandler(channel, handler);
 //
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final clipboard = FakeClipboard();
 //
 //     when(manager.currentReceivingAddress)

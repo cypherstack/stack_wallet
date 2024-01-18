@@ -25,6 +25,7 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/stack_back
 import 'package:stackwallet/pages/settings_views/global_settings_view/startup_preferences/startup_preferences_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/support_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/syncing_preferences_views/syncing_preferences_view.dart';
+import 'package:stackwallet/pages/settings_views/global_settings_view/tor_settings/tor_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/sub_widgets/settings_list_button.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -154,6 +155,18 @@ class GlobalSettingsView extends StatelessWidget {
                                   onPressed: () {
                                     Navigator.of(context).pushNamed(
                                         LanguageSettingsView.routeName);
+                                  },
+                                ),
+                                const SizedBox(
+                                  height: 8,
+                                ),
+                                SettingsListButton(
+                                  iconAssetName: Assets.svg.tor,
+                                  iconSize: 18,
+                                  title: "Tor Settings",
+                                  onPressed: () {
+                                    Navigator.of(context)
+                                        .pushNamed(TorSettingsView.routeName);
                                   },
                                 ),
                                 const SizedBox(

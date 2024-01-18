@@ -1707,10 +1707,15 @@ class StackColors extends ThemeExtension<StackColors> {
         return _coin.wownero;
       case Coin.particl:
         return _coin.particl;
+      case Coin.stellar:
+      case Coin.stellarTestnet:
+        return _coin.stellar;
       case Coin.nano:
         return _coin.nano;
       case Coin.banano:
         return _coin.banano;
+      case Coin.tezos:
+        return _coin.tezos;
     }
   }
 

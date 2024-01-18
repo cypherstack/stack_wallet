@@ -70,7 +70,7 @@ class _RescanningDialogState extends State<RescanningDialog>
       child: ConditionalParent(
         condition: isDesktop,
         builder: (child) => DesktopDialog(
-          maxHeight: 200,
+          maxHeight: 150,
           maxWidth: 500,
           child: child,
         ),

@@ -14,7 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
@@ -27,8 +27,10 @@ import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
 import 'package:stackwallet/utilities/test_monero_node_connection.dart';
+import 'package:stackwallet/utilities/test_stellar_node_connection.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/api/tezos/tezos_rpc_api.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -169,7 +171,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
       case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
-        final client = ElectrumX(
+        final client = ElectrumXClient(
           host: formData.host!,
           port: formData.port!,
           useSSL: formData.useSSL!,
@@ -193,10 +195,26 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         try {
           // await client.getSyncStatus();
         } catch (_) {}
+        break;
+      case Coin.stellar:
+      case Coin.stellarTestnet:
+        try {
+          testPassed =
+              await testStellarNodeConnection(formData.host!, formData.port!);
+        } catch (_) {}
+        break;
 
       case Coin.nano:
       case Coin.banano:
+        throw UnimplementedError();
       //TODO: check network/node
+      case Coin.tezos:
+        try {
+          testPassed = await TezosRpcAPI.testNetworkConnection(
+            nodeInfo: (host: formData.host!, port: formData.port!),
+          );
+        } catch (_) {}
+        break;
     }
 
     if (showFlushBar && mounted) {
@@ -727,6 +745,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       case Coin.namecoin:
       case Coin.bitcoincash:
       case Coin.particl:
+      case Coin.tezos:
       case Coin.bitcoinTestNet:
       case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:
@@ -736,6 +755,8 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       case Coin.nano:
       case Coin.banano:
       case Coin.eCash:
+      case Coin.stellar:
+      case Coin.stellarTestnet:
         return false;
 
       case Coin.ethereum:

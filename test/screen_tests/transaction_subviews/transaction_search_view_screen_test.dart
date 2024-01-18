@@ -6,7 +6,6 @@ import 'package:mockito/annotations.dart';
 // import 'package:mockito/mockito.dart';
 // import 'package:stackwallet/pages/transaction_subviews/transaction_search_view.dart';
 import 'package:stackwallet/services/address_book_service.dart';
-import 'package:stackwallet/services/notes_service.dart';
 // import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 // import 'package:stackwallet/widgets/custom_buttons/gradient_button.dart';
 // import 'package:stackwallet/widgets/custom_buttons/simple_button.dart';
@@ -16,7 +15,6 @@ import 'package:stackwallet/services/notes_service.dart';
 
 @GenerateMocks([], customMocks: [
   MockSpec<AddressBookService>(returnNullOnMissingStub: true),
-  MockSpec<NotesService>(returnNullOnMissingStub: true),
 ])
 void main() {
 //   testWidgets("TransactionSearchView builds correctly", (tester) async {

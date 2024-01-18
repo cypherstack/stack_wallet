@@ -2,15 +2,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_test/hive_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:stackwallet/electrumx_rpc/cached_electrumx.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
+import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 
 import 'cached_electrumx_test.mocks.dart';
 // import 'sample_data/get_anonymity_set_sample_data.dart';
 
-@GenerateMocks([ElectrumX, Prefs])
+@GenerateMocks([ElectrumXClient, Prefs])
 void main() {
   group("tests using mock hive", () {
     setUp(() async {
@@ -22,7 +22,7 @@ void main() {
     });
     group("getAnonymitySet", () {
       // test("empty set cache call", () async {
-      //   final client = MockElectrumX();
+      //   final client = MockElectrumXClient();
       //   when(
       //     client.getAnonymitySet(
       //       groupId: "1",
@@ -58,7 +58,7 @@ void main() {
       //   final box = await Hive.openBox('Some coinName_anonymitySetCache');
       //   await box.put("1", storedData);
       //
-      //   final client = MockElectrumX();
+      //   final client = MockElectrumXClient();
       //   when(
       //     client.getAnonymitySet(
       //       groupId: "1",
@@ -90,7 +90,7 @@ void main() {
       // });
 
       // test("getAnonymitySet throws", () async {
-      //   final client = MockElectrumX();
+      //   final client = MockElectrumXClient();
       //   when(
       //     client.getAnonymitySet(
       //       groupId: "1",
@@ -116,14 +116,14 @@ void main() {
     });
 
     test("getTransaction throws", () async {
-      final client = MockElectrumX();
+      final client = MockElectrumXClient();
       when(
         client.getTransaction(
           txHash: "some hash",
         ),
       ).thenThrow(Exception());
 
-      final cachedClient = CachedElectrumX(
+      final cachedClient = CachedElectrumXClient(
         electrumXClient: client,
       );
 
@@ -136,8 +136,8 @@ void main() {
     });
 
     test("clearSharedTransactionCache", () async {
-      final cachedClient = CachedElectrumX(
-        electrumXClient: MockElectrumX(),
+      final cachedClient = CachedElectrumXClient(
+        electrumXClient: MockElectrumXClient(),
       );
 
       bool didThrow = false;
@@ -164,8 +164,9 @@ void main() {
       useSSL: true,
     );
 
-    final client = CachedElectrumX.from(electrumXClient: MockElectrumX());
+    final client =
+        CachedElectrumXClient.from(electrumXClient: MockElectrumXClient());
 
-    expect(client, isA<CachedElectrumX>());
+    expect(client, isA<CachedElectrumXClient>());
   });
 }

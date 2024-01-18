@@ -10,7 +10,6 @@
 
 import 'dart:convert';
 
-import 'package:decimal/decimal.dart';
 import 'package:http/http.dart';
 import 'package:stackwallet/dto/ethereum/eth_token_tx_dto.dart';
 import 'package:stackwallet/dto/ethereum/eth_token_tx_extra_dto.dart';
@@ -18,11 +17,14 @@ import 'package:stackwallet/dto/ethereum/eth_tx_dto.dart';
 import 'package:stackwallet/dto/ethereum/pending_eth_tx_dto.dart';
 import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
+import 'package:stackwallet/networking/http.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/eth_commons.dart';
 import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
 
 class EthApiException implements Exception {
@@ -47,19 +49,24 @@ class EthereumResponse<T> {
 abstract class EthereumAPI {
   static String get stackBaseServer => DefaultNodes.ethereum.host;
 
+  static HTTP client = HTTP();
+
   static Future<EthereumResponse<List<EthTxDTO>>> getEthTransactions({
     required String address,
     int firstBlock = 0,
     bool includeTokens = false,
   }) async {
     try {
-      final response = await get(
-        Uri.parse(
+      final response = await client.get(
+        url: Uri.parse(
           "$stackBaseServer/export?addrs=$address&firstBlock=$firstBlock",
         ),
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
-      if (response.statusCode == 200) {
+      if (response.code == 200) {
         if (response.body.isNotEmpty) {
           final json = jsonDecode(response.body) as Map;
           final list = json["data"] as List?;
@@ -68,7 +75,7 @@ abstract class EthereumAPI {
           for (final map in list!) {
             final txn = EthTxDTO.fromMap(Map<String, dynamic>.from(map as Map));
 
-            if (txn.hasToken == 0 || includeTokens) {
+            if (!txn.hasToken || includeTokens) {
               txns.add(txn);
             }
           }
@@ -87,7 +94,7 @@ abstract class EthereumAPI {
       } else {
         throw EthApiException(
           "getEthTransactions($address) failed with status code: "
-          "${response.statusCode}",
+          "${response.code}",
         );
       }
     } on EthApiException catch (e) {
@@ -174,13 +181,16 @@ abstract class EthereumAPI {
     List<EthTxDTO> txns,
   ) async {
     try {
-      final response = await get(
-        Uri.parse(
+      final response = await client.get(
+        url: Uri.parse(
           "$stackBaseServer/transactions?transactions=${txns.map((e) => e.hash).join(" ")}&raw=true",
         ),
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
-      if (response.statusCode == 200) {
+      if (response.code == 200) {
         if (response.body.isNotEmpty) {
           final json = jsonDecode(response.body) as Map;
           final list = List<Map<String, dynamic>>.from(json["data"] as List);
@@ -209,7 +219,7 @@ abstract class EthereumAPI {
       } else {
         throw EthApiException(
           "getEthTransactionNonces($txns) failed with status code: "
-          "${response.statusCode}",
+          "${response.code}",
         );
       }
     } on EthApiException catch (e) {
@@ -232,13 +242,16 @@ abstract class EthereumAPI {
   static Future<EthereumResponse<List<EthTokenTxExtraDTO>>>
       getEthTokenTransactionsByTxids(List<String> txids) async {
     try {
-      final response = await get(
-        Uri.parse(
+      final response = await client.get(
+        url: Uri.parse(
           "$stackBaseServer/transactions?transactions=${txids.join(" ")}",
         ),
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
-      if (response.statusCode == 200) {
+      if (response.code == 200) {
         if (response.body.isNotEmpty) {
           final json = jsonDecode(response.body) as Map;
           final list = json["data"] as List?;
@@ -258,13 +271,13 @@ abstract class EthereumAPI {
         } else {
           throw EthApiException(
             "getEthTokenTransactionsByTxids($txids) response is empty but status code is "
-            "${response.statusCode}",
+            "${response.code}",
           );
         }
       } else {
         throw EthApiException(
           "getEthTokenTransactionsByTxids($txids) failed with status code: "
-          "${response.statusCode}",
+          "${response.code}",
         );
       }
     } on EthApiException catch (e) {
@@ -289,13 +302,16 @@ abstract class EthereumAPI {
     required String tokenContractAddress,
   }) async {
     try {
-      final response = await get(
-        Uri.parse(
+      final response = await client.get(
+        url: Uri.parse(
           "$stackBaseServer/export?addrs=$address&emitter=$tokenContractAddress&logs=true",
         ),
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
-      if (response.statusCode == 200) {
+      if (response.code == 200) {
         if (response.body.isNotEmpty) {
           final json = jsonDecode(response.body) as Map;
           final list = json["data"] as List?;
@@ -322,7 +338,7 @@ abstract class EthereumAPI {
       } else {
         throw EthApiException(
           "getTokenTransactions($address, $tokenContractAddress) failed with status code: "
-          "${response.statusCode}",
+          "${response.code}",
         );
       }
     } on EthApiException catch (e) {
@@ -423,18 +439,23 @@ abstract class EthereumAPI {
       final uri = Uri.parse(
         "$stackBaseServer/tokens?addrs=$contractAddress $address",
       );
-      final response = await get(uri);
+      final response = await client.get(
+        url: uri,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
+      );
 
-      if (response.statusCode == 200) {
+      if (response.code == 200) {
         final json = jsonDecode(response.body);
         if (json["data"] is List) {
           final map = json["data"].first as Map;
 
           final balance =
-              Decimal.tryParse(map["balance"].toString()) ?? Decimal.zero;
+              BigInt.tryParse(map["units"].toString()) ?? BigInt.zero;
 
           return EthereumResponse(
-            Amount.fromDecimal(balance, fractionDigits: map["decimals"] as int),
+            Amount(rawValue: balance, fractionDigits: map["decimals"] as int),
             null,
           );
         } else {
@@ -443,7 +464,7 @@ abstract class EthereumAPI {
       } else {
         throw EthApiException(
           "getWalletTokenBalance($address) failed with status code: "
-          "${response.statusCode}",
+          "${response.code}",
         );
       }
     } on EthApiException catch (e) {
@@ -470,9 +491,14 @@ abstract class EthereumAPI {
       final uri = Uri.parse(
         "$stackBaseServer/state?addrs=$address&parts=all",
       );
-      final response = await get(uri);
+      final response = await client.get(
+        url: uri,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
+      );
 
-      if (response.statusCode == 200) {
+      if (response.code == 200) {
         final json = jsonDecode(response.body);
         if (json["data"] is List) {
           final map = json["data"].first as Map;
@@ -489,7 +515,7 @@ abstract class EthereumAPI {
       } else {
         throw EthApiException(
           "getAddressNonce($address) failed with status code: "
-          "${response.statusCode}",
+          "${response.code}",
         );
       }
     } on EthApiException catch (e) {
@@ -511,13 +537,16 @@ abstract class EthereumAPI {
 
   static Future<EthereumResponse<GasTracker>> getGasOracle() async {
     try {
-      final response = await get(
-        Uri.parse(
+      final response = await client.get(
+        url: Uri.parse(
           "$stackBaseServer/gas-prices",
         ),
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
-      if (response.statusCode == 200) {
+      if (response.code == 200) {
         final json = jsonDecode(response.body) as Map;
         if (json["success"] == true) {
           try {
@@ -542,7 +571,7 @@ abstract class EthereumAPI {
       } else {
         throw EthApiException(
           "getGasOracle() failed with status code: "
-          "${response.statusCode}",
+          "${response.code}",
         );
       }
     } on EthApiException catch (e) {
@@ -580,15 +609,23 @@ abstract class EthereumAPI {
   static Future<EthereumResponse<EthContract>> getTokenContractInfoByAddress(
       String contractAddress) async {
     try {
-      final response = await get(
-        Uri.parse(
-          "$stackBaseServer/tokens?addrs=$contractAddress&parts=all",
+      final response = await client.get(
+        url: Uri.parse(
+          // "$stackBaseServer/tokens?addrs=$contractAddress&parts=all",
+          "$stackBaseServer/names?terms=$contractAddress",
         ),
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
-      if (response.statusCode == 200) {
+      if (response.code == 200) {
         final json = jsonDecode(response.body) as Map;
         if (json["data"] is List) {
+          if ((json["data"] as List).isEmpty) {
+            throw EthApiException("Unknown token");
+          }
+
           final map = Map<String, dynamic>.from(json["data"].first as Map);
           EthContract? token;
           if (map["isErc20"] == true) {
@@ -622,7 +659,7 @@ abstract class EthereumAPI {
       } else {
         throw EthApiException(
           "getTokenByContractAddress($contractAddress) failed with status code: "
-          "${response.statusCode}",
+          "${response.code}",
         );
       }
     } on EthApiException catch (e) {
@@ -647,13 +684,16 @@ abstract class EthereumAPI {
     required String contractAddress,
   }) async {
     try {
-      final response = await get(
-        Uri.parse(
+      final response = await client.get(
+        url: Uri.parse(
           "$stackBaseServer/abis?addrs=$contractAddress&verbose=true",
         ),
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
-      if (response.statusCode == 200) {
+      if (response.code == 200) {
         final json = jsonDecode(response.body)["data"] as List;
 
         return EthereumResponse(
@@ -663,7 +703,7 @@ abstract class EthereumAPI {
       } else {
         throw EthApiException(
           "getTokenAbi($name, $contractAddress) failed with status code: "
-          "${response.statusCode}",
+          "${response.code}",
         );
       }
     } on EthApiException catch (e) {
@@ -688,9 +728,14 @@ abstract class EthereumAPI {
     String contractAddress,
   ) async {
     try {
-      final response = await get(Uri.parse(
-          "$stackBaseServer/state?addrs=$contractAddress&parts=proxy"));
-      if (response.statusCode == 200) {
+      final response = await client.get(
+        url: Uri.parse(
+            "$stackBaseServer/state?addrs=$contractAddress&parts=proxy"),
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
+      );
+      if (response.code == 200) {
         final json = jsonDecode(response.body);
         final list = json["data"] as List;
         final map = Map<String, dynamic>.from(list.first as Map);
@@ -702,7 +747,7 @@ abstract class EthereumAPI {
       } else {
         throw EthApiException(
           "getProxyTokenImplementationAddress($contractAddress) failed with"
-          " status code: ${response.statusCode}",
+          " status code: ${response.code}",
         );
       }
     } on EthApiException catch (e) {

@@ -16,6 +16,9 @@ list(APPEND FLUTTER_PLUGIN_LIST
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
+  coinlib_flutter
+  flutter_libsparkmobile
+  tor_ffi_plugin
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)

@@ -26,7 +26,6 @@ class EthTokenTxDto {
     required this.topics,
     required this.data,
     required this.articulatedLog,
-    required this.compressedLog,
     required this.transactionHash,
     required this.transactionIndex,
   });
@@ -44,7 +43,6 @@ class EthTokenTxDto {
                   map['articulatedLog'] as Map,
                 ),
               ),
-        compressedLog = map['compressedLog'] as String,
         transactionHash = map['transactionHash'] as String,
         transactionIndex = map['transactionIndex'] as int;
 
@@ -54,7 +52,6 @@ class EthTokenTxDto {
   final List<String> topics;
   final String data;
   final ArticulatedLog? articulatedLog;
-  final String compressedLog;
   final String transactionHash;
   final int transactionIndex;
 
@@ -76,7 +73,6 @@ class EthTokenTxDto {
         topics: topics ?? this.topics,
         data: data ?? this.data,
         articulatedLog: articulatedLog ?? this.articulatedLog,
-        compressedLog: compressedLog ?? this.compressedLog,
         transactionHash: transactionHash ?? this.transactionHash,
         transactionIndex: transactionIndex ?? this.transactionIndex,
       );
@@ -89,7 +85,6 @@ class EthTokenTxDto {
     map['topics'] = topics;
     map['data'] = data;
     map['articulatedLog'] = articulatedLog?.toMap();
-    map['compressedLog'] = compressedLog;
     map['transactionHash'] = transactionHash;
     map['transactionIndex'] = transactionIndex;
     return map;

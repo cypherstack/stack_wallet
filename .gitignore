@@ -55,4 +55,7 @@ libcw_monero.dll
 libcw_wownero.dll
 libepic_cash_wallet.dll
 libmobileliblelantus.dll
+libtor_ffi.dll
+flutter_libsparkmobile.dll
+secp256k1.dll
 /libisar.so

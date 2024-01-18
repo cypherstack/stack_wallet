@@ -11,11 +11,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/animated_widgets/rotate_icon.dart';
 import 'package:stackwallet/widgets/expandable.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -39,19 +39,6 @@ class MasterWalletCard extends ConsumerStatefulWidget {
 class _MasterWalletCardState extends ConsumerState<MasterWalletCard> {
   final expandableController = ExpandableController();
   final rotateIconController = RotateIconController();
-  late final List<String> tokenContractAddresses;
-
-  @override
-  void initState() {
-    final ethWallet = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .wallet as EthereumWallet;
-
-    tokenContractAddresses = ethWallet.getWalletTokenContractAddresses();
-
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -131,20 +118,20 @@ class _MasterWalletCardState extends ConsumerState<MasterWalletCard> {
                 popPrevious: true,
               ),
             ),
-            ...tokenContractAddresses.map(
-              (e) => Padding(
-                padding: const EdgeInsets.only(
-                  left: 7,
-                  right: 7,
-                  bottom: 7,
+            ...ref.watch(pWalletTokenAddresses(widget.walletId)).map(
+                  (e) => Padding(
+                    padding: const EdgeInsets.only(
+                      left: 7,
+                      right: 7,
+                      bottom: 7,
+                    ),
+                    child: SimpleWalletCard(
+                      walletId: widget.walletId,
+                      contractAddress: e,
+                      popPrevious: Util.isDesktop,
+                    ),
+                  ),
                 ),
-                child: SimpleWalletCard(
-                  walletId: widget.walletId,
-                  contractAddress: e,
-                  popPrevious: true,
-                ),
-              ),
-            ),
           ],
         ),
       ),

@@ -6,19 +6,17 @@ import 'package:mockito/annotations.dart';
 // import 'package:mockito/mockito.dart';
 // import 'package:stackwallet/notifications/modal_popup_dialog.dart';
 // import 'package:stackwallet/pages/onboarding_view/backup_key_view.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+
 // import 'package:stackwallet/widgets/custom_buttons/gradient_button.dart';
 // import 'package:pretty_qr_code/pretty_qr_code.dart';
 // import 'package:provider/provider.dart';
 //
 // import 'backup_key_view_screen_test.mocks.dart';
 
-@GenerateMocks([], customMocks: [
-  MockSpec<Manager>(returnNullOnMissingStub: true),
-])
+@GenerateMocks([], customMocks: [])
 void main() {
 //   testWidgets("BackupKeyView builds correctly", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.mnemonic).thenAnswer(
 //       (_) async => [
@@ -106,7 +104,7 @@ void main() {
 //
 //   testWidgets("back button test", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     mockingjay.when(() => navigator.pop()).thenAnswer((_) async => {});
 //
@@ -165,7 +163,7 @@ void main() {
 //
 //   testWidgets("skip button test", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     mockingjay
 //         .when(() => navigator.pushReplacementNamed("/mainview"))
@@ -227,7 +225,7 @@ void main() {
 //   });
 //
 //   testWidgets("qrcode button test", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.mnemonic).thenAnswer(
 //       (_) async => [
@@ -287,7 +285,7 @@ void main() {
 //   });
 //
 //   testWidgets("copy button test", (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.mnemonic).thenAnswer(
 //       (_) async => [
@@ -343,7 +341,7 @@ void main() {
 //
 //   testWidgets("verify button test", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     mockingjay
 //         .when(() => navigator.push(mockingjay.any()))

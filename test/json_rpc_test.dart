@@ -11,11 +11,15 @@ void main() {
       port: DefaultNodes.bitcoin.port,
       useSSL: true,
       connectionTimeout: const Duration(seconds: 40),
+      proxyInfo: null, // TODO test for proxyInfo
     );
 
     const jsonRequestString =
         '{"jsonrpc": "2.0", "id": "some id","method": "server.ping","params": []}';
-    final result = await jsonRPC.request(jsonRequestString);
+    final result = await jsonRPC.request(
+      jsonRequestString,
+      const Duration(seconds: 1),
+    );
 
     expect(result.data, {"jsonrpc": "2.0", "result": null, "id": "some id"});
   });
@@ -24,13 +28,18 @@ void main() {
     final jsonRPC = JsonRPC(
       host: "some.bad.address.thingdsfsdfsdaf",
       port: 3000,
-      connectionTimeout: Duration(seconds: 10),
+      connectionTimeout: const Duration(seconds: 10),
+      proxyInfo: null,
     );
 
     const jsonRequestString =
         '{"jsonrpc": "2.0", "id": "some id","method": "server.ping","params": []}';
 
-    expect(() => jsonRPC.request(jsonRequestString),
+    expect(
+        () => jsonRPC.request(
+              jsonRequestString,
+              const Duration(seconds: 1),
+            ),
         throwsA(isA<SocketException>()));
   });
 
@@ -40,12 +49,17 @@ void main() {
       port: 3000,
       useSSL: false,
       connectionTimeout: const Duration(seconds: 1),
+      proxyInfo: null,
     );
 
     const jsonRequestString =
         '{"jsonrpc": "2.0", "id": "some id","method": "server.ping","params": []}';
 
-    expect(() => jsonRPC.request(jsonRequestString),
+    expect(
+        () => jsonRPC.request(
+              jsonRequestString,
+              const Duration(seconds: 1),
+            ),
         throwsA(isA<SocketException>()));
   });
 }

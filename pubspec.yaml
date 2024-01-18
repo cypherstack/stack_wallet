@@ -11,7 +11,7 @@ description: Stack Wallet
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.7.16+182
+version: 1.9.0+199
 
 environment:
   sdk: ">=3.0.2 <4.0.0"
@@ -26,6 +26,11 @@ dependencies:
 
   lelantus:
     path: ./crypto_plugins/flutter_liblelantus
+
+  flutter_libsparkmobile:
+    git:
+      url: https://github.com/cypherstack/flutter_libsparkmobile.git
+      ref: d99c34cbb39666c8dcb819b457b3314577aaad43
 
   flutter_libmonero:
     path: ./crypto_plugins/flutter_libmonero
@@ -55,12 +60,22 @@ dependencies:
   bip47:
     git:
       url: https://github.com/cypherstack/bip47.git
-      ref: 081ca1863c2feba00c35bb5b297902f12f499941
+      ref: a6e7941b98a43a613708b1a12564bc17e712cfc7
+
+  tor_ffi_plugin:
+    git:
+      url: https://github.com/cypherstack/tor.git
+      ref: 0a6888282f4e98401051a396e9d2293bd55ac2c2
+
+  fusiondart:
+    git:
+      url: https://github.com/cypherstack/fusiondart.git
+      ref: df8f7c627cfc77eaa3e364c0d166f3d04169ae05
 
   # Utility plugins
   http: ^0.13.0
   local_auth: ^1.1.10
-  permission_handler: ^10.0.0
+  permission_handler: ^11.0.0
   flutter_local_notifications: ^9.4.0
   rxdart: ^0.27.3
   zxcvbn: ^1.0.0
@@ -101,7 +116,7 @@ dependencies:
   flutter_native_splash: ^2.2.4
   google_fonts: ^4.0.4
   url_launcher: ^6.0.5
-  flutter_svg: ^1.0.1
+  flutter_svg: ^2.0.7
   flutter_feather_icons: ^2.0.0+1
   decimal: ^2.1.0
   event_bus: ^2.0.0
@@ -123,7 +138,7 @@ dependencies:
   pointycastle: ^3.6.0
   package_info_plus: ^4.0.2
   lottie: ^2.3.2
-  file_picker: ^5.3.1
+  file_picker: ^5.5.0
   connectivity_plus: ^4.0.1
   isar: 3.0.5
   isar_flutter_libs: 3.0.5 # contains the binaries
@@ -138,6 +153,26 @@ dependencies:
   desktop_drop: ^0.4.1
   nanodart: ^2.0.0
   basic_utils: ^5.5.4
+  stellar_flutter_sdk: ^1.5.3
+  socks_socket:
+    git:
+      url: https://github.com/cypherstack/socks_socket.git
+      ref: master
+  bip340: ^0.2.0
+#  tezart: ^2.0.5
+  tezart:
+    git:
+      url: https://github.com/cypherstack/tezart.git
+      ref: 8a7070f533e63dd150edae99476f6853bfb25913
+  socks5_proxy: ^1.0.3+dev.3
+  convert: ^3.1.1
+  flutter_hooks: ^0.20.3
+  meta: ^1.9.1
+  coinlib_flutter:
+    git:
+      url: https://github.com/cypherstack/coinlib.git
+      path: coinlib_flutter
+      ref: 376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7
 
 dev_dependencies:
   flutter_test:
@@ -179,6 +214,22 @@ flutter_native_splash:
 
 dependency_overrides:
 
+  bip47:
+    git:
+      url: https://github.com/cypherstack/bip47.git
+      ref: a6e7941b98a43a613708b1a12564bc17e712cfc7
+
+  coinlib_flutter:
+    git:
+      url: https://github.com/cypherstack/coinlib.git
+      path: coinlib_flutter
+      ref: 376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7
+  coinlib:
+    git:
+      url: https://github.com/cypherstack/coinlib.git
+      path: coinlib
+      ref: 376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7
+
   # required for dart 3, at least until a fix is merged upstream
   wakelock_windows:
     git:
@@ -199,6 +250,14 @@ dependency_overrides:
       ref: 0cd6d54e2860bea68fc50c801cb9db2a760192fb
 
 
+  file_picker:
+    git:
+      url: https://github.com/muttsu-623/flutter_file_picker.git
+      ref: f0930d9fa79d347b2a0e25a7de4f5a4a88a9a907
+
+  crypto: 3.0.2
+  analyzer: ^5.2.0
+  pinenacl: ^0.3.3
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
@@ -214,127 +273,10 @@ flutter:
   #  - images/a_dot_burr.jpeg
   #  - images/a_dot_ham.jpeg
   assets:
-    - assets/images/splash.png
-    - assets/icon/icon.png
+    - assets/images/
+    - assets/icon/
     - google_fonts/
-    - assets/svg/circle-check.svg
-    - assets/svg/clipboard.svg
-    - assets/images/glasses.png
-    - assets/images/glasses-hidden.png
-    - assets/svg/unclaimed.svg
-    - assets/svg/plus.svg
-    - assets/svg/gear.svg
-    - assets/svg/bell.svg
-    - assets/svg/arrow-left-fa.svg
-    - assets/svg/copy-fa.svg
-    - assets/svg/star.svg
-    - assets/svg/x-circle.svg
-    - assets/svg/check.svg
-    - assets/svg/alert-circle.svg
-    - assets/svg/alert-circle2.svg
-    - assets/svg/arrow-down-left.svg
-    - assets/svg/arrow-up-right.svg
-    - assets/svg/bars.svg
-    - assets/svg/filter.svg
-    - assets/svg/pending.svg
-    - assets/svg/signal-stream.svg
-    - assets/svg/Ellipse-43.svg
-    - assets/svg/Ellipse-42.svg
-    - assets/svg/arrow-rotate.svg
-    - assets/svg/arrow-rotate2.svg
-    - assets/svg/qrcode1.svg
-    - assets/svg/gear-3.svg
-    - assets/svg/swap.svg
-    - assets/svg/chevron-down.svg
-    - assets/svg/chevron-up.svg
-    - assets/svg/lock-keyhole.svg
-    - assets/svg/lock-open.svg
-    - assets/svg/folder-down.svg
-    - assets/svg/network-wired.svg
-    - assets/svg/network-wired-2.svg
-    - assets/svg/address-book.svg
-    - assets/svg/address-book2.svg
-    - assets/svg/arrow-right.svg
-    - assets/svg/delete.svg
-    - assets/svg/dollar-sign.svg
-    - assets/svg/sun-bright2.svg
-    - assets/svg/language2.svg
-    - assets/svg/pen-solid-fa.svg
-    - assets/svg/magnifying-glass.svg
-    - assets/svg/x.svg
-    - assets/svg/x-fat.svg
-    - assets/svg/user.svg
-    - assets/svg/user-plus.svg
-    - assets/svg/user-minus.svg
-    - assets/svg/trash.svg
-    - assets/svg/eye.svg
-    - assets/svg/eye-slash.svg
-    - assets/svg/folder.svg
-    - assets/svg/calendar-days.svg
-    - assets/svg/circle-question.svg
-    - assets/svg/info-circle.svg
-    - assets/svg/key.svg
-    - assets/svg/node-alt.svg
-    - assets/svg/signal-problem-alt.svg
-    - assets/svg/signal-sync-alt.svg
-    - assets/svg/wallet-settings.svg
-    - assets/svg/ellipsis-vertical1.svg
-    - assets/svg/dice-alt.svg
-    - assets/svg/circle-arrow-up-right2.svg
-    - assets/svg/loader.svg
-    - assets/svg/add-backup.svg
-    - assets/svg/auto-backup.svg
-    - assets/svg/restore-backup.svg
-    - assets/svg/sliders-solid.svg
-    - assets/svg/message-question.svg
-    - assets/svg/envelope.svg
-    - assets/svg/share-2.svg
-    - assets/svg/anonymize.svg
-    - assets/svg/tx-icon-anonymize.svg
-    - assets/svg/tx-icon-anonymize-pending.svg
-    - assets/svg/tx-icon-anonymize-failed.svg
-    - assets/svg/Polygon.svg
-    - assets/svg/Button.svg
-    - assets/svg/enabled-button.svg
-    - assets/svg/lock-circle.svg
-    - assets/svg/dollar-sign-circle.svg
-    - assets/svg/language-circle.svg
-    - assets/svg/rotate-circle.svg
-    - assets/svg/sun-circle.svg
-    - assets/svg/node-circle.svg
-    - assets/svg/address-book-desktop.svg
-    - assets/svg/about-desktop.svg
-    - assets/svg/exchange-desktop.svg
-    - assets/svg/wallet-desktop.svg
-    - assets/svg/exit-desktop.svg
-    - assets/svg/keys.svg
-    - assets/svg/arrow-down.svg
-    - assets/svg/plus-circle.svg
-    - assets/svg/circle-plus-filled.svg
-    - assets/svg/configuration.svg
-    - assets/svg/tokens.svg
-    - assets/svg/circle-plus.svg
-    - assets/svg/robot-head.svg
-    - assets/svg/whirlpool.svg
-    - assets/svg/fingerprint.svg
-    - assets/svg/faceid.svg
-    - assets/svg/chevron-right.svg
-    - assets/svg/minimize.svg
-    - assets/svg/wallet-fa.svg
-    - assets/svg/exchange-3.svg
-    - assets/svg/message-question-1.svg
-    - assets/svg/drd-icon.svg
-    - assets/svg/box-auto.svg
-    - assets/svg/framed-address-book.svg
-    - assets/svg/framed-gear.svg
-    - assets/svg/list-ul.svg
-    - assets/svg/cc.svg
-    - assets/svg/file.svg
-    - assets/svg/file-upload.svg
-    - assets/svg/trocador_rating_a.svg
-    - assets/svg/trocador_rating_b.svg
-    - assets/svg/trocador_rating_c.svg
-    - assets/svg/trocador_rating_d.svg
+    - assets/svg/
 
     # coin control icons
     - assets/svg/coin_control/
@@ -348,12 +290,16 @@ flutter:
     # buy
     - assets/svg/buy/
 
+    # gif
+    - assets/gif/
+
     # lottie animations
     # basic
     - assets/lottie/test2.json
     - assets/lottie/icon_send.json
     - assets/lottie/loader_and_checkmark.json
     - assets/lottie/arrow_rotate.json
+    - assets/lottie/onion_animation.json
 
     # default themes_testing
     - assets/default_themes/

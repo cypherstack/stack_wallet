@@ -21,6 +21,7 @@ abstract class Assets {
   static const socials = _SOCIALS();
   static const exchange = _EXCHANGE();
   static const buy = _BUY();
+  static const gif = _GIF();
 }
 
 class _SOCIALS {
@@ -92,6 +93,15 @@ class _SVG {
 
   final coinControl = const _COIN_CONTROL();
 
+  String get peers => "assets/svg/peers.svg";
+  String get fusing => "assets/svg/fusing.svg";
+  String get upFromLine => "assets/svg/up-from-line.svg";
+  String get connectedButton => "assets/svg/connected-button.svg";
+  String get connectingButton => "assets/svg/connecting-button.svg";
+  String get disconnectedButton => "assets/svg/disconnected-button.svg";
+  String get circleTor => "assets/svg/tor-circle.svg";
+  String get tor => "assets/svg/tor.svg";
+  String get monkey => "assets/svg/monkey.svg";
   String get circleSliders => "assets/svg/configuration.svg";
   String get circlePlus => "assets/svg/plus-circle.svg";
   String get circlePlusFilled => "assets/svg/circle-plus-filled.svg";
@@ -188,6 +198,7 @@ class _SVG {
   String get arrowDown => "assets/svg/arrow-down.svg";
   String get robotHead => "assets/svg/robot-head.svg";
   String get whirlPool => "assets/svg/whirlpool.svg";
+  String get cashFusion => "assets/svg/cashfusion-icon.svg";
   String get fingerprint => "assets/svg/fingerprint.svg";
   String get faceId => "assets/svg/faceid.svg";
   String get tokens => "assets/svg/tokens.svg";
@@ -195,6 +206,7 @@ class _SVG {
   String get creditCard => "assets/svg/cc.svg";
   String get file => "assets/svg/file.svg";
   String get fileUpload => "assets/svg/file-upload.svg";
+  String get txCashFusion => "assets/svg/tx-cashfusion.svg";
 
   String get ellipse1 => "assets/svg/Ellipse-43.svg";
   String get ellipse2 => "assets/svg/Ellipse-42.svg";
@@ -205,6 +217,8 @@ class _SVG {
   String get messageQuestion => "assets/svg/message-question-1.svg";
   String get list => "assets/svg/list-ul.svg";
   String get unclaimedPaynym => "assets/svg/unclaimed.svg";
+  String get send => "assets/svg/send.svg";
+  String get ordinal => "assets/svg/ordinal.svg";
 
   String get trocadorRatingA => "assets/svg/trocador_rating_a.svg";
   String get trocadorRatingB => "assets/svg/trocador_rating_b.svg";
@@ -232,6 +246,8 @@ class _SVG {
   String get particl => "assets/svg/coin_icons/Particl.svg";
 
   String get bnbIcon => "assets/svg/coin_icons/bnb_icon.svg";
+
+  String get spark => "assets/svg/spark.svg";
 }
 
 class _PNG {
@@ -250,4 +266,11 @@ class _ANIMATIONS {
   String get iconSend => "assets/lottie/icon_send.json";
   String get loaderAndCheckmark => "assets/lottie/loader_and_checkmark.json";
   String get arrowRotate => "assets/lottie/arrow_rotate.json";
+  String get onionTor => "assets/lottie/onion_animation.json";
+}
+
+class _GIF {
+  const _GIF();
+
+  String get stacyOnion => "assets/gif/stacy_onion.gif";
 }

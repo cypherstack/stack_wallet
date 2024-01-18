@@ -16,12 +16,12 @@ import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/receive_view/addresses/address_card.dart';
 import 'package:stackwallet/pages_desktop_specific/addresses/desktop_wallet_addresses_view.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
@@ -132,8 +132,7 @@ class _DesktopAddressListState extends ConsumerState<DesktopAddressList> {
 
   @override
   Widget build(BuildContext context) {
-    final coin = ref.watch(walletsChangeNotifierProvider
-        .select((value) => value.getManager(widget.walletId).coin));
+    final coin = ref.watch(pWalletCoin(widget.walletId));
 
     final ids = _search(_searchString);
 
@@ -210,30 +209,27 @@ class _DesktopAddressListState extends ConsumerState<DesktopAddressList> {
           height: 20,
         ),
         Expanded(
-          child: SingleChildScrollView(
-            child: RoundedWhiteContainer(
-              padding: EdgeInsets.zero,
-              child: ListView.separated(
-                shrinkWrap: true,
-                itemCount: ids.length,
-                separatorBuilder: (_, __) => Container(
-                  height: 1,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .backgroundAppBar,
-                ),
-                itemBuilder: (_, index) => Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: AddressCard(
-                    key: Key("addressCardDesktop_key_${ids[index]}"),
-                    walletId: widget.walletId,
-                    addressId: ids[index],
-                    coin: coin,
-                    onPressed: () {
-                      ref.read(desktopSelectedAddressId.state).state =
-                          ids[index];
-                    },
-                  ),
+          child: RoundedWhiteContainer(
+            padding: EdgeInsets.zero,
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: ids.length,
+              separatorBuilder: (_, __) => Container(
+                height: 1,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .backgroundAppBar,
+              ),
+              itemBuilder: (_, index) => Padding(
+                padding: const EdgeInsets.all(4),
+                child: AddressCard(
+                  key: Key("addressCardDesktop_key_${ids[index]}"),
+                  walletId: widget.walletId,
+                  addressId: ids[index],
+                  coin: coin,
+                  onPressed: () {
+                    ref.read(desktopSelectedAddressId.state).state = ids[index];
+                  },
                 ),
               ),
             ),

@@ -387,6 +387,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                   RouteGenerator.getRoute(
                                     builder: (_) => StackRestoreProgressView(
                                       jsonString: jsonString,
+                                      shouldPushToHome: true,
                                     ),
                                   ),
                                 );
@@ -505,7 +506,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                     await showDialog<dynamic>(
                                         context: context,
                                         useSafeArea: false,
-                                        barrierDismissible: true,
+                                        barrierDismissible: false,
                                         builder: (context) {
                                           return DesktopDialog(
                                             maxHeight: 750,

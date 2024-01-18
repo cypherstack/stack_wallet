@@ -45,7 +45,7 @@ class StackTheme {
       case "dark":
         return Brightness.dark;
       default:
-        // just return light instead of a possible crash causing error
+      // just return light instead of a possible crash causing error
         return Brightness.light;
     }
   }
@@ -131,8 +131,8 @@ class StackTheme {
 
   @ignore
   Color get accentColorBlue => _accentColorBlue ??= Color(
-        accentColorBlueInt,
-      );
+    accentColorBlueInt,
+  );
   @ignore
   Color? _accentColorBlue;
   late final int accentColorBlueInt;
@@ -141,8 +141,8 @@ class StackTheme {
 
   @ignore
   Color get accentColorGreen => _accentColorGreen ??= Color(
-        accentColorGreenInt,
-      );
+    accentColorGreenInt,
+  );
   @ignore
   Color? _accentColorGreen;
   late final int accentColorGreenInt;
@@ -151,8 +151,8 @@ class StackTheme {
 
   @ignore
   Color get accentColorYellow => _accentColorYellow ??= Color(
-        accentColorYellowInt,
-      );
+    accentColorYellowInt,
+  );
   @ignore
   Color? _accentColorYellow;
   late final int accentColorYellowInt;
@@ -161,8 +161,8 @@ class StackTheme {
 
   @ignore
   Color get accentColorRed => _accentColorRed ??= Color(
-        accentColorRedInt,
-      );
+    accentColorRedInt,
+  );
   @ignore
   Color? _accentColorRed;
   late final int accentColorRedInt;
@@ -171,8 +171,8 @@ class StackTheme {
 
   @ignore
   Color get accentColorOrange => _accentColorOrange ??= Color(
-        accentColorOrangeInt,
-      );
+    accentColorOrangeInt,
+  );
   @ignore
   Color? _accentColorOrange;
   late final int accentColorOrangeInt;
@@ -181,8 +181,8 @@ class StackTheme {
 
   @ignore
   Color get accentColorDark => _accentColorDark ??= Color(
-        accentColorDarkInt,
-      );
+    accentColorDarkInt,
+  );
   @ignore
   Color? _accentColorDark;
   late final int accentColorDarkInt;
@@ -191,8 +191,8 @@ class StackTheme {
 
   @ignore
   Color get shadow => _shadow ??= Color(
-        shadowInt,
-      );
+    shadowInt,
+  );
   @ignore
   Color? _shadow;
   late final int shadowInt;
@@ -201,8 +201,8 @@ class StackTheme {
 
   @ignore
   Color get textDark => _textDark ??= Color(
-        textDarkInt,
-      );
+    textDarkInt,
+  );
   @ignore
   Color? _textDark;
   late final int textDarkInt;
@@ -211,8 +211,8 @@ class StackTheme {
 
   @ignore
   Color get textDark2 => _textDark2 ??= Color(
-        textDark2Int,
-      );
+    textDark2Int,
+  );
   @ignore
   Color? _textDark2;
   late final int textDark2Int;
@@ -221,8 +221,8 @@ class StackTheme {
 
   @ignore
   Color get textDark3 => _textDark3 ??= Color(
-        textDark3Int,
-      );
+    textDark3Int,
+  );
   @ignore
   Color? _textDark3;
   late final int textDark3Int;
@@ -231,8 +231,8 @@ class StackTheme {
 
   @ignore
   Color get textSubtitle1 => _textSubtitle1 ??= Color(
-        textSubtitle1Int,
-      );
+    textSubtitle1Int,
+  );
   @ignore
   Color? _textSubtitle1;
   late final int textSubtitle1Int;
@@ -241,8 +241,8 @@ class StackTheme {
 
   @ignore
   Color get textSubtitle2 => _textSubtitle2 ??= Color(
-        textSubtitle2Int,
-      );
+    textSubtitle2Int,
+  );
   @ignore
   Color? _textSubtitle2;
   late final int textSubtitle2Int;
@@ -251,8 +251,8 @@ class StackTheme {
 
   @ignore
   Color get textSubtitle3 => _textSubtitle3 ??= Color(
-        textSubtitle3Int,
-      );
+    textSubtitle3Int,
+  );
   @ignore
   Color? _textSubtitle3;
   late final int textSubtitle3Int;
@@ -261,8 +261,8 @@ class StackTheme {
 
   @ignore
   Color get textSubtitle4 => _textSubtitle4 ??= Color(
-        textSubtitle4Int,
-      );
+    textSubtitle4Int,
+  );
   @ignore
   Color? _textSubtitle4;
   late final int textSubtitle4Int;
@@ -271,8 +271,8 @@ class StackTheme {
 
   @ignore
   Color get textSubtitle5 => _textSubtitle5 ??= Color(
-        textSubtitle5Int,
-      );
+    textSubtitle5Int,
+  );
   @ignore
   Color? _textSubtitle5;
   late final int textSubtitle5Int;
@@ -281,8 +281,8 @@ class StackTheme {
 
   @ignore
   Color get textSubtitle6 => _textSubtitle6 ??= Color(
-        textSubtitle6Int,
-      );
+    textSubtitle6Int,
+  );
   @ignore
   Color? _textSubtitle6;
   late final int textSubtitle6Int;
@@ -291,8 +291,8 @@ class StackTheme {
 
   @ignore
   Color get textWhite => _textWhite ??= Color(
-        textWhiteInt,
-      );
+    textWhiteInt,
+  );
   @ignore
   Color? _textWhite;
   late final int textWhiteInt;
@@ -301,8 +301,8 @@ class StackTheme {
 
   @ignore
   Color get textFavoriteCard => _textFavoriteCard ??= Color(
-        textFavoriteCardInt,
-      );
+    textFavoriteCardInt,
+  );
   @ignore
   Color? _textFavoriteCard;
   late final int textFavoriteCardInt;
@@ -311,8 +311,8 @@ class StackTheme {
 
   @ignore
   Color get textError => _textError ??= Color(
-        textErrorInt,
-      );
+    textErrorInt,
+  );
   @ignore
   Color? _textError;
   late final int textErrorInt;
@@ -321,8 +321,8 @@ class StackTheme {
 
   @ignore
   Color get textRestore => _textRestore ??= Color(
-        textRestoreInt,
-      );
+    textRestoreInt,
+  );
   @ignore
   Color? _textRestore;
   late final int textRestoreInt;
@@ -331,8 +331,8 @@ class StackTheme {
 
   @ignore
   Color get buttonBackPrimary => _buttonBackPrimary ??= Color(
-        buttonBackPrimaryInt,
-      );
+    buttonBackPrimaryInt,
+  );
   @ignore
   Color? _buttonBackPrimary;
   late final int buttonBackPrimaryInt;
@@ -341,8 +341,8 @@ class StackTheme {
 
   @ignore
   Color get buttonBackSecondary => _buttonBackSecondary ??= Color(
-        buttonBackSecondaryInt,
-      );
+    buttonBackSecondaryInt,
+  );
   @ignore
   Color? _buttonBackSecondary;
   late final int buttonBackSecondaryInt;
@@ -351,8 +351,8 @@ class StackTheme {
 
   @ignore
   Color get buttonBackPrimaryDisabled => _buttonBackPrimaryDisabled ??= Color(
-        buttonBackPrimaryDisabledInt,
-      );
+    buttonBackPrimaryDisabledInt,
+  );
   @ignore
   Color? _buttonBackPrimaryDisabled;
   late final int buttonBackPrimaryDisabledInt;
@@ -372,8 +372,8 @@ class StackTheme {
 
   @ignore
   Color get buttonBackBorder => _buttonBackBorder ??= Color(
-        buttonBackBorderInt,
-      );
+    buttonBackBorderInt,
+  );
   @ignore
   Color? _buttonBackBorder;
   late final int buttonBackBorderInt;
@@ -382,8 +382,8 @@ class StackTheme {
 
   @ignore
   Color get buttonBackBorderDisabled => _buttonBackBorderDisabled ??= Color(
-        buttonBackBorderDisabledInt,
-      );
+    buttonBackBorderDisabledInt,
+  );
   @ignore
   Color? _buttonBackBorderDisabled;
   late final int buttonBackBorderDisabledInt;
@@ -392,8 +392,8 @@ class StackTheme {
 
   @ignore
   Color get buttonBackBorderSecondary => _buttonBackBorderSecondary ??= Color(
-        buttonBackBorderSecondaryInt,
-      );
+    buttonBackBorderSecondaryInt,
+  );
   @ignore
   Color? _buttonBackBorderSecondary;
   late final int buttonBackBorderSecondaryInt;
@@ -413,8 +413,8 @@ class StackTheme {
 
   @ignore
   Color get numberBackDefault => _numberBackDefault ??= Color(
-        numberBackDefaultInt,
-      );
+    numberBackDefaultInt,
+  );
   @ignore
   Color? _numberBackDefault;
   late final int numberBackDefaultInt;
@@ -423,8 +423,8 @@ class StackTheme {
 
   @ignore
   Color get numpadBackDefault => _numpadBackDefault ??= Color(
-        numpadBackDefaultInt,
-      );
+    numpadBackDefaultInt,
+  );
   @ignore
   Color? _numpadBackDefault;
   late final int numpadBackDefaultInt;
@@ -433,8 +433,8 @@ class StackTheme {
 
   @ignore
   Color get bottomNavBack => _bottomNavBack ??= Color(
-        bottomNavBackInt,
-      );
+    bottomNavBackInt,
+  );
   @ignore
   Color? _bottomNavBack;
   late final int bottomNavBackInt;
@@ -443,8 +443,8 @@ class StackTheme {
 
   @ignore
   Color get buttonTextPrimary => _buttonTextPrimary ??= Color(
-        buttonTextPrimaryInt,
-      );
+    buttonTextPrimaryInt,
+  );
   @ignore
   Color? _buttonTextPrimary;
   late final int buttonTextPrimaryInt;
@@ -453,8 +453,8 @@ class StackTheme {
 
   @ignore
   Color get buttonTextSecondary => _buttonTextSecondary ??= Color(
-        buttonTextSecondaryInt,
-      );
+    buttonTextSecondaryInt,
+  );
   @ignore
   Color? _buttonTextSecondary;
   late final int buttonTextSecondaryInt;
@@ -463,8 +463,8 @@ class StackTheme {
 
   @ignore
   Color get buttonTextPrimaryDisabled => _buttonTextPrimaryDisabled ??= Color(
-        buttonTextPrimaryDisabledInt,
-      );
+    buttonTextPrimaryDisabledInt,
+  );
   @ignore
   Color? _buttonTextPrimaryDisabled;
   late final int buttonTextPrimaryDisabledInt;
@@ -1517,117 +1517,117 @@ class StackTheme {
       ..version = version
       ..assetsV1 = version == 1
           ? ThemeAssets.fromJson(
-              json: Map<String, dynamic>.from(json["assets"] as Map),
-              themeId: json["id"] as String,
-            )
+        json: Map<String, dynamic>.from(json["assets"] as Map),
+        themeId: json["id"] as String,
+      )
           : null
       ..assetsV2 = version == 2
           ? ThemeAssetsV2.fromJson(
-              json: Map<String, dynamic>.from(json["assets"] as Map),
-              themeId: json["id"] as String,
-            )
+        json: Map<String, dynamic>.from(json["assets"] as Map),
+        themeId: json["id"] as String,
+      )
           : null
       ..assetsV3 = version >= 3
           ? ThemeAssetsV3.fromJson(
-              json: Map<String, dynamic>.from(json["assets"] as Map),
-              themeId: json["id"] as String,
-            )
+        json: Map<String, dynamic>.from(json["assets"] as Map),
+        themeId: json["id"] as String,
+      )
           : null
       ..themeId = json["id"] as String
       ..name = json["name"] as String
       ..brightnessString = json["brightness"] as String
       ..backgroundInt = parseColor(json["colors"]["background"] as String)
       ..backgroundAppBarInt =
-          parseColor(json["colors"]["background_app_bar"] as String)
+      parseColor(json["colors"]["background_app_bar"] as String)
       ..gradientBackgroundString = json["colors"]["gradients"] != null
           ? jsonEncode(json["colors"]["gradients"])
           : null
       ..standardBoxShadowString =
-          jsonEncode(json["colors"]["box_shadows"]["standard"] as Map)
+      jsonEncode(json["colors"]["box_shadows"]["standard"] as Map)
       ..homeViewButtonBarBoxShadowString =
-          json["colors"]["box_shadows"]["home_view_button_bar"] == null
-              ? null
-              : jsonEncode(
-                  json["colors"]["box_shadows"]["home_view_button_bar"] as Map)
+      json["colors"]["box_shadows"]["home_view_button_bar"] == null
+          ? null
+          : jsonEncode(
+          json["colors"]["box_shadows"]["home_view_button_bar"] as Map)
       ..coinColorsJsonString = jsonEncode(json["colors"]['coin'] as Map)
       ..overlayInt = parseColor(json["colors"]["overlay"] as String)
       ..accentColorBlueInt =
-          parseColor(json["colors"]["accent_color_blue"] as String)
+      parseColor(json["colors"]["accent_color_blue"] as String)
       ..accentColorGreenInt =
-          parseColor(json["colors"]["accent_color_green"] as String)
+      parseColor(json["colors"]["accent_color_green"] as String)
       ..accentColorYellowInt =
-          parseColor(json["colors"]["accent_color_yellow"] as String)
+      parseColor(json["colors"]["accent_color_yellow"] as String)
       ..accentColorRedInt =
-          parseColor(json["colors"]["accent_color_red"] as String)
+      parseColor(json["colors"]["accent_color_red"] as String)
       ..accentColorOrangeInt =
-          parseColor(json["colors"]["accent_color_orange"] as String)
+      parseColor(json["colors"]["accent_color_orange"] as String)
       ..accentColorDarkInt =
-          parseColor(json["colors"]["accent_color_dark"] as String)
+      parseColor(json["colors"]["accent_color_dark"] as String)
       ..shadowInt = parseColor(json["colors"]["shadow"] as String)
       ..textDarkInt = parseColor(json["colors"]["text_dark_one"] as String)
       ..textDark2Int = parseColor(json["colors"]["text_dark_two"] as String)
       ..textDark3Int = parseColor(json["colors"]["text_dark_three"] as String)
       ..textWhiteInt = parseColor(json["colors"]["text_white"] as String)
       ..textFavoriteCardInt =
-          parseColor(json["colors"]["text_favorite"] as String)
+      parseColor(json["colors"]["text_favorite"] as String)
       ..textErrorInt = parseColor(json["colors"]["text_error"] as String)
       ..textRestoreInt = parseColor(json["colors"]["text_restore"] as String)
       ..buttonBackPrimaryInt =
-          parseColor(json["colors"]["button_back_primary"] as String)
+      parseColor(json["colors"]["button_back_primary"] as String)
       ..buttonBackSecondaryInt =
-          parseColor(json["colors"]["button_back_secondary"] as String)
+      parseColor(json["colors"]["button_back_secondary"] as String)
       ..buttonBackPrimaryDisabledInt =
-          parseColor(json["colors"]["button_back_primary_disabled"] as String)
+      parseColor(json["colors"]["button_back_primary_disabled"] as String)
       ..buttonBackSecondaryDisabledInt =
-          parseColor(json["colors"]["button_back_secondary_disabled"] as String)
+      parseColor(json["colors"]["button_back_secondary_disabled"] as String)
       ..buttonBackBorderInt =
-          parseColor(json["colors"]["button_back_border"] as String)
+      parseColor(json["colors"]["button_back_border"] as String)
       ..buttonBackBorderDisabledInt =
-          parseColor(json["colors"]["button_back_border_disabled"] as String)
+      parseColor(json["colors"]["button_back_border_disabled"] as String)
       ..buttonBackBorderSecondaryInt =
-          parseColor(json["colors"]["button_back_border_secondary"] as String)
+      parseColor(json["colors"]["button_back_border_secondary"] as String)
       ..buttonBackBorderSecondaryDisabledInt = parseColor(
           json["colors"]["button_back_border_secondary_disabled"] as String)
       ..numberBackDefaultInt =
-          parseColor(json["colors"]["number_back_default"] as String)
+      parseColor(json["colors"]["number_back_default"] as String)
       ..numpadBackDefaultInt =
-          parseColor(json["colors"]["numpad_back_default"] as String)
+      parseColor(json["colors"]["numpad_back_default"] as String)
       ..bottomNavBackInt =
-          parseColor(json["colors"]["bottom_nav_back"] as String)
+      parseColor(json["colors"]["bottom_nav_back"] as String)
       ..textSubtitle1Int =
-          parseColor(json["colors"]["text_subtitle_one"] as String)
+      parseColor(json["colors"]["text_subtitle_one"] as String)
       ..textSubtitle2Int =
-          parseColor(json["colors"]["text_subtitle_two"] as String)
+      parseColor(json["colors"]["text_subtitle_two"] as String)
       ..textSubtitle3Int =
-          parseColor(json["colors"]["text_subtitle_three"] as String)
+      parseColor(json["colors"]["text_subtitle_three"] as String)
       ..textSubtitle4Int =
-          parseColor(json["colors"]["text_subtitle_four"] as String)
+      parseColor(json["colors"]["text_subtitle_four"] as String)
       ..textSubtitle5Int =
-          parseColor(json["colors"]["text_subtitle_five"] as String)
+      parseColor(json["colors"]["text_subtitle_five"] as String)
       ..textSubtitle6Int =
-          parseColor(json["colors"]["text_subtitle_six"] as String)
+      parseColor(json["colors"]["text_subtitle_six"] as String)
       ..buttonTextPrimaryInt =
-          parseColor(json["colors"]["button_text_primary"] as String)
+      parseColor(json["colors"]["button_text_primary"] as String)
       ..buttonTextSecondaryInt =
-          parseColor(json["colors"]["button_text_secondary"] as String)
+      parseColor(json["colors"]["button_text_secondary"] as String)
       ..buttonTextPrimaryDisabledInt =
-          parseColor(json["colors"]["button_text_primary_disabled"] as String)
+      parseColor(json["colors"]["button_text_primary_disabled"] as String)
       ..buttonTextSecondaryDisabledInt =
-          parseColor(json["colors"]["button_text_secondary_disabled"] as String)
+      parseColor(json["colors"]["button_text_secondary_disabled"] as String)
       ..buttonTextBorderInt =
-          parseColor(json["colors"]["button_text_border"] as String)
+      parseColor(json["colors"]["button_text_border"] as String)
       ..buttonTextDisabledInt =
-          parseColor(json["colors"]["button_text_disabled"] as String)
+      parseColor(json["colors"]["button_text_disabled"] as String)
       ..buttonTextBorderlessInt =
-          parseColor(json["colors"]["button_text_borderless"] as String)
+      parseColor(json["colors"]["button_text_borderless"] as String)
       ..buttonTextBorderlessDisabledInt = parseColor(
           json["colors"]["button_text_borderless_disabled"] as String)
       ..numberTextDefaultInt =
-          parseColor(json["colors"]["number_text_default"] as String)
+      parseColor(json["colors"]["number_text_default"] as String)
       ..numpadTextDefaultInt =
-          parseColor(json["colors"]["numpad_text_default"] as String)
+      parseColor(json["colors"]["numpad_text_default"] as String)
       ..bottomNavTextInt =
-          parseColor(json["colors"]["bottom_nav_text"] as String)
+      parseColor(json["colors"]["bottom_nav_text"] as String)
       ..customTextButtonEnabledTextInt = parseColor(
           json["colors"]["custom_text_button_enabled_text"] as String)
       ..customTextButtonDisabledTextInt = parseColor(
@@ -1635,87 +1635,87 @@ class StackTheme {
       ..switchBGOnInt = parseColor(json["colors"]["switch_bg_on"] as String)
       ..switchBGOffInt = parseColor(json["colors"]["switch_bg_off"] as String)
       ..switchBGDisabledInt =
-          parseColor(json["colors"]["switch_bg_disabled"] as String)
+      parseColor(json["colors"]["switch_bg_disabled"] as String)
       ..switchCircleOnInt =
-          parseColor(json["colors"]["switch_circle_on"] as String)
+      parseColor(json["colors"]["switch_circle_on"] as String)
       ..switchCircleOffInt =
-          parseColor(json["colors"]["switch_circle_off"] as String)
+      parseColor(json["colors"]["switch_circle_off"] as String)
       ..switchCircleDisabledInt =
-          parseColor(json["colors"]["switch_circle_disabled"] as String)
+      parseColor(json["colors"]["switch_circle_disabled"] as String)
       ..stepIndicatorBGCheckInt =
-          parseColor(json["colors"]["step_indicator_bg_check"] as String)
+      parseColor(json["colors"]["step_indicator_bg_check"] as String)
       ..stepIndicatorBGNumberInt =
-          parseColor(json["colors"]["step_indicator_bg_number"] as String)
+      parseColor(json["colors"]["step_indicator_bg_number"] as String)
       ..stepIndicatorBGInactiveInt =
-          parseColor(json["colors"]["step_indicator_bg_inactive"] as String)
+      parseColor(json["colors"]["step_indicator_bg_inactive"] as String)
       ..stepIndicatorBGLinesInt =
-          parseColor(json["colors"]["step_indicator_bg_lines"] as String)
+      parseColor(json["colors"]["step_indicator_bg_lines"] as String)
       ..stepIndicatorBGLinesInactiveInt = parseColor(
           json["colors"]["step_indicator_bg_lines_inactive"] as String)
       ..stepIndicatorIconTextInt =
-          parseColor(json["colors"]["step_indicator_icon_text"] as String)
+      parseColor(json["colors"]["step_indicator_icon_text"] as String)
       ..stepIndicatorIconNumberInt =
-          parseColor(json["colors"]["step_indicator_icon_number"] as String)
+      parseColor(json["colors"]["step_indicator_icon_number"] as String)
       ..stepIndicatorIconInactiveInt =
-          parseColor(json["colors"]["step_indicator_icon_inactive"] as String)
+      parseColor(json["colors"]["step_indicator_icon_inactive"] as String)
       ..checkboxBGCheckedInt =
-          parseColor(json["colors"]["checkbox_bg_checked"] as String)
+      parseColor(json["colors"]["checkbox_bg_checked"] as String)
       ..checkboxBorderEmptyInt =
-          parseColor(json["colors"]["checkbox_border_empty"] as String)
+      parseColor(json["colors"]["checkbox_border_empty"] as String)
       ..checkboxBGDisabledInt =
-          parseColor(json["colors"]["checkbox_bg_disabled"] as String)
+      parseColor(json["colors"]["checkbox_bg_disabled"] as String)
       ..checkboxIconCheckedInt =
-          parseColor(json["colors"]["checkbox_icon_checked"] as String)
+      parseColor(json["colors"]["checkbox_icon_checked"] as String)
       ..checkboxIconDisabledInt =
-          parseColor(json["colors"]["checkbox_icon_disabled"] as String)
+      parseColor(json["colors"]["checkbox_icon_disabled"] as String)
       ..checkboxTextLabelInt =
-          parseColor(json["colors"]["checkbox_text_label"] as String)
+      parseColor(json["colors"]["checkbox_text_label"] as String)
       ..snackBarBackSuccessInt =
-          parseColor(json["colors"]["snack_bar_back_success"] as String)
+      parseColor(json["colors"]["snack_bar_back_success"] as String)
       ..snackBarBackErrorInt =
-          parseColor(json["colors"]["snack_bar_back_error"] as String)
+      parseColor(json["colors"]["snack_bar_back_error"] as String)
       ..snackBarBackInfoInt =
-          parseColor(json["colors"]["snack_bar_back_info"] as String)
+      parseColor(json["colors"]["snack_bar_back_info"] as String)
       ..snackBarTextSuccessInt =
-          parseColor(json["colors"]["snack_bar_text_success"] as String)
+      parseColor(json["colors"]["snack_bar_text_success"] as String)
       ..snackBarTextErrorInt =
-          parseColor(json["colors"]["snack_bar_text_error"] as String)
+      parseColor(json["colors"]["snack_bar_text_error"] as String)
       ..snackBarTextInfoInt =
-          parseColor(json["colors"]["snack_bar_text_info"] as String)
+      parseColor(json["colors"]["snack_bar_text_info"] as String)
       ..bottomNavIconBackInt =
-          parseColor(json["colors"]["bottom_nav_icon_back"] as String)
+      parseColor(json["colors"]["bottom_nav_icon_back"] as String)
       ..bottomNavIconIconInt =
-          parseColor(json["colors"]["bottom_nav_icon_icon"] as String)
+      parseColor(json["colors"]["bottom_nav_icon_icon"] as String)
       ..bottomNavIconIconHighlightedInt = parseColor(
           json["colors"]["bottom_nav_icon_icon_highlighted"] as String)
       ..topNavIconPrimaryInt =
-          parseColor(json["colors"]["top_nav_icon_primary"] as String)
+      parseColor(json["colors"]["top_nav_icon_primary"] as String)
       ..topNavIconGreenInt =
-          parseColor(json["colors"]["top_nav_icon_green"] as String)
+      parseColor(json["colors"]["top_nav_icon_green"] as String)
       ..topNavIconYellowInt =
-          parseColor(json["colors"]["top_nav_icon_yellow"] as String)
+      parseColor(json["colors"]["top_nav_icon_yellow"] as String)
       ..topNavIconRedInt =
-          parseColor(json["colors"]["top_nav_icon_red"] as String)
+      parseColor(json["colors"]["top_nav_icon_red"] as String)
       ..settingsIconBackInt =
-          parseColor(json["colors"]["settings_icon_back"] as String)
+      parseColor(json["colors"]["settings_icon_back"] as String)
       ..settingsIconIconInt =
-          parseColor(json["colors"]["settings_icon_icon"] as String)
+      parseColor(json["colors"]["settings_icon_icon"] as String)
       ..settingsIconBack2Int =
-          parseColor(json["colors"]["settings_icon_back_two"] as String)
+      parseColor(json["colors"]["settings_icon_back_two"] as String)
       ..settingsIconElementInt =
-          parseColor(json["colors"]["settings_icon_element"] as String)
+      parseColor(json["colors"]["settings_icon_element"] as String)
       ..textFieldActiveBGInt =
-          parseColor(json["colors"]["text_field_active_bg"] as String)
+      parseColor(json["colors"]["text_field_active_bg"] as String)
       ..textFieldDefaultBGInt =
-          parseColor(json["colors"]["text_field_default_bg"] as String)
+      parseColor(json["colors"]["text_field_default_bg"] as String)
       ..textFieldErrorBGInt =
-          parseColor(json["colors"]["text_field_error_bg"] as String)
+      parseColor(json["colors"]["text_field_error_bg"] as String)
       ..textFieldSuccessBGInt =
-          parseColor(json["colors"]["text_field_success_bg"] as String)
+      parseColor(json["colors"]["text_field_success_bg"] as String)
       ..textFieldErrorBorderInt =
-          parseColor(json["colors"]["text_field_error_border"] as String)
+      parseColor(json["colors"]["text_field_error_border"] as String)
       ..textFieldSuccessBorderInt =
-          parseColor(json["colors"]["text_field_success_border"] as String)
+      parseColor(json["colors"]["text_field_success_border"] as String)
       ..textFieldActiveSearchIconLeftInt = parseColor(
           json["colors"]["text_field_active_search_icon_left"] as String)
       ..textFieldDefaultSearchIconLeftInt = parseColor(
@@ -1725,19 +1725,19 @@ class StackTheme {
       ..textFieldSuccessSearchIconLeftInt = parseColor(
           json["colors"]["text_field_success_search_icon_left"] as String)
       ..textFieldActiveTextInt =
-          parseColor(json["colors"]["text_field_active_text"] as String)
+      parseColor(json["colors"]["text_field_active_text"] as String)
       ..textFieldDefaultTextInt =
-          parseColor(json["colors"]["text_field_default_text"] as String)
+      parseColor(json["colors"]["text_field_default_text"] as String)
       ..textFieldErrorTextInt =
-          parseColor(json["colors"]["text_field_error_text"] as String)
+      parseColor(json["colors"]["text_field_error_text"] as String)
       ..textFieldSuccessTextInt =
-          parseColor(json["colors"]["text_field_success_text"] as String)
+      parseColor(json["colors"]["text_field_success_text"] as String)
       ..textFieldActiveLabelInt =
-          parseColor(json["colors"]["text_field_active_label"] as String)
+      parseColor(json["colors"]["text_field_active_label"] as String)
       ..textFieldErrorLabelInt =
-          parseColor(json["colors"]["text_field_error_label"] as String)
+      parseColor(json["colors"]["text_field_error_label"] as String)
       ..textFieldSuccessLabelInt =
-          parseColor(json["colors"]["text_field_success_label"] as String)
+      parseColor(json["colors"]["text_field_success_label"] as String)
       ..textFieldActiveSearchIconRightInt = parseColor(
           json["colors"]["text_field_active_search_icon_right"] as String)
       ..textFieldDefaultSearchIconRightInt = parseColor(
@@ -1753,61 +1753,61 @@ class StackTheme {
       ..settingsItem2ActiveSubInt = parseColor(
           json["colors"]["settings_item_level_two_active_sub"] as String)
       ..radioButtonIconBorderInt =
-          parseColor(json["colors"]["radio_button_icon_border"] as String)
+      parseColor(json["colors"]["radio_button_icon_border"] as String)
       ..radioButtonIconBorderDisabledInt = parseColor(
           json["colors"]["radio_button_icon_border_disabled"] as String)
       ..radioButtonBorderEnabledInt =
-          parseColor(json["colors"]["radio_button_border_enabled"] as String)
+      parseColor(json["colors"]["radio_button_border_enabled"] as String)
       ..radioButtonBorderDisabledInt =
-          parseColor(json["colors"]["radio_button_border_disabled"] as String)
+      parseColor(json["colors"]["radio_button_border_disabled"] as String)
       ..radioButtonIconCircleInt =
-          parseColor(json["colors"]["radio_button_icon_circle"] as String)
+      parseColor(json["colors"]["radio_button_icon_circle"] as String)
       ..radioButtonIconEnabledInt =
-          parseColor(json["colors"]["radio_button_icon_enabled"] as String)
+      parseColor(json["colors"]["radio_button_icon_enabled"] as String)
       ..radioButtonTextEnabledInt =
-          parseColor(json["colors"]["radio_button_text_enabled"] as String)
+      parseColor(json["colors"]["radio_button_text_enabled"] as String)
       ..radioButtonTextDisabledInt =
-          parseColor(json["colors"]["radio_button_text_disabled"] as String)
+      parseColor(json["colors"]["radio_button_text_disabled"] as String)
       ..radioButtonLabelEnabledInt =
-          parseColor(json["colors"]["radio_button_label_enabled"] as String)
+      parseColor(json["colors"]["radio_button_label_enabled"] as String)
       ..radioButtonLabelDisabledInt =
-          parseColor(json["colors"]["radio_button_label_disabled"] as String)
+      parseColor(json["colors"]["radio_button_label_disabled"] as String)
       ..infoItemBGInt = parseColor(json["colors"]["info_item_bg"] as String)
       ..infoItemLabelInt =
-          parseColor(json["colors"]["info_item_label"] as String)
+      parseColor(json["colors"]["info_item_label"] as String)
       ..infoItemTextInt = parseColor(json["colors"]["info_item_text"] as String)
       ..infoItemIconsInt =
-          parseColor(json["colors"]["info_item_icons"] as String)
+      parseColor(json["colors"]["info_item_icons"] as String)
       ..popupBGInt = parseColor(json["colors"]["popup_bg"] as String)
       ..currencyListItemBGInt =
-          parseColor(json["colors"]["currency_list_item_bg"] as String)
+      parseColor(json["colors"]["currency_list_item_bg"] as String)
       ..stackWalletBGInt = parseColor(json["colors"]["sw_bg"] as String)
       ..stackWalletMidInt = parseColor(json["colors"]["sw_mid"] as String)
       ..stackWalletBottomInt = parseColor(json["colors"]["sw_bottom"] as String)
       ..bottomNavShadowInt =
-          parseColor(json["colors"]["bottom_nav_shadow"] as String)
+      parseColor(json["colors"]["bottom_nav_shadow"] as String)
       ..splashInt = parseColor(json["colors"]["splash"] as String)
       ..highlightInt = parseColor(json["colors"]["highlight"] as String)
       ..warningForegroundInt =
-          parseColor(json["colors"]["warning_foreground"] as String)
+      parseColor(json["colors"]["warning_foreground"] as String)
       ..warningBackgroundInt =
-          parseColor(json["colors"]["warning_background"] as String)
+      parseColor(json["colors"]["warning_background"] as String)
       ..loadingOverlayTextColorInt =
-          parseColor(json["colors"]["loading_overlay_text_color"] as String)
+      parseColor(json["colors"]["loading_overlay_text_color"] as String)
       ..myStackContactIconBGInt =
-          parseColor(json["colors"]["my_stack_contact_icon_bg"] as String)
+      parseColor(json["colors"]["my_stack_contact_icon_bg"] as String)
       ..textConfirmTotalAmountInt =
-          parseColor(json["colors"]["text_confirm_total_amount"] as String)
+      parseColor(json["colors"]["text_confirm_total_amount"] as String)
       ..textSelectedWordTableItemInt =
-          parseColor(json["colors"]["text_selected_word_table_iterm"] as String)
+      parseColor(json["colors"]["text_selected_word_table_iterm"] as String)
       ..favoriteStarActiveInt =
-          parseColor(json["colors"]["favorite_star_active"] as String)
+      parseColor(json["colors"]["favorite_star_active"] as String)
       ..favoriteStarInactiveInt =
-          parseColor(json["colors"]["favorite_star_inactive"] as String)
+      parseColor(json["colors"]["favorite_star_inactive"] as String)
       ..rateTypeToggleColorOnInt =
-          parseColor(json["colors"]["rate_type_toggle_color_on"] as String)
+      parseColor(json["colors"]["rate_type_toggle_color_on"] as String)
       ..rateTypeToggleColorOffInt =
-          parseColor(json["colors"]["rate_type_toggle_color_off"] as String)
+      parseColor(json["colors"]["rate_type_toggle_color_off"] as String)
       ..rateTypeToggleDesktopColorOnInt = parseColor(
           json["colors"]["rate_type_toggle_desktop_color_on"] as String)
       ..rateTypeToggleDesktopColorOffInt = parseColor(
@@ -1815,19 +1815,19 @@ class StackTheme {
       ..ethTagTextInt = parseColor(json["colors"]["eth_tag_text"] as String)
       ..ethTagBGInt = parseColor(json["colors"]["eth_tag_bg"] as String)
       ..ethWalletTagTextInt =
-          parseColor(json["colors"]["eth_wallet_tag_text"] as String)
+      parseColor(json["colors"]["eth_wallet_tag_text"] as String)
       ..ethWalletTagBGInt =
-          parseColor(json["colors"]["eth_wallet_tag_bg"] as String)
+      parseColor(json["colors"]["eth_wallet_tag_bg"] as String)
       ..tokenSummaryTextPrimaryInt =
-          parseColor(json["colors"]["token_summary_text_primary"] as String)
+      parseColor(json["colors"]["token_summary_text_primary"] as String)
       ..tokenSummaryTextSecondaryInt =
-          parseColor(json["colors"]["token_summary_text_secondary"] as String)
+      parseColor(json["colors"]["token_summary_text_secondary"] as String)
       ..tokenSummaryBGInt =
-          parseColor(json["colors"]["token_summary_bg"] as String)
+      parseColor(json["colors"]["token_summary_bg"] as String)
       ..tokenSummaryButtonBGInt =
-          parseColor(json["colors"]["token_summary_button_bg"] as String)
+      parseColor(json["colors"]["token_summary_button_bg"] as String)
       ..tokenSummaryIconInt =
-          parseColor(json["colors"]["token_summary_icon"] as String);
+      parseColor(json["colors"]["token_summary_icon"] as String);
   }
 
   /// Grab the int value of the hex color string.
@@ -1840,7 +1840,7 @@ class StackTheme {
       } else {
         throw ArgumentError(
           '"$colorHex" and corresponding int '
-          'value "$colorValue" is not a valid color.',
+              'value "$colorValue" is not a valid color.',
         );
       }
     } catch (_) {
@@ -2078,18 +2078,18 @@ class ThemeAssetsV2 implements IThemeAssets {
 
   @ignore
   Map<Coin, String> get coinIcons => _coinIcons ??= parseCoinAssetsString(
-        coinIconsString,
-        placeHolder: coinPlaceholder,
-      );
+    coinIconsString,
+    placeHolder: coinPlaceholder,
+  );
   @ignore
   Map<Coin, String>? _coinIcons;
   late final String coinIconsString;
 
   @ignore
   Map<Coin, String> get coinImages => _coinImages ??= parseCoinAssetsString(
-        coinImagesString,
-        placeHolder: coinPlaceholder,
-      );
+    coinImagesString,
+    placeHolder: coinPlaceholder,
+  );
   @ignore
   Map<Coin, String>? _coinImages;
   late final String coinImagesString;
@@ -2164,9 +2164,9 @@ class ThemeAssetsV2 implements IThemeAssets {
   }
 
   static Map<Coin, String> parseCoinAssetsString(
-    String jsonString, {
-    required String placeHolder,
-  }) {
+      String jsonString, {
+        required String placeHolder,
+      }) {
     final json = jsonDecode(jsonString) as Map;
     final map = Map<String, dynamic>.from(json);
 
@@ -2348,18 +2348,18 @@ class ThemeAssetsV3 implements IThemeAssets {
 
   @ignore
   Map<Coin, String> get coinIcons => _coinIcons ??= parseCoinAssetsString(
-        coinIconsString,
-        placeHolder: coinPlaceholder,
-      );
+    coinIconsString,
+    placeHolder: coinPlaceholder,
+  );
   @ignore
   Map<Coin, String>? _coinIcons;
   late final String coinIconsString;
 
   @ignore
   Map<Coin, String> get coinImages => _coinImages ??= parseCoinAssetsString(
-        coinImagesString,
-        placeHolder: coinPlaceholder,
-      );
+    coinImagesString,
+    placeHolder: coinPlaceholder,
+  );
   @ignore
   Map<Coin, String>? _coinImages;
   late final String coinImagesString;
@@ -2379,9 +2379,9 @@ class ThemeAssetsV3 implements IThemeAssets {
       _coinCardImages ??= coinCardImagesString == null
           ? null
           : parseCoinAssetsString(
-              coinCardImagesString!,
-              placeHolder: coinPlaceholder,
-            );
+        coinCardImagesString!,
+        placeHolder: coinPlaceholder,
+      );
   @ignore
   Map<Coin, String>? _coinCardImages;
   late final String? coinCardImagesString;
@@ -2391,9 +2391,9 @@ class ThemeAssetsV3 implements IThemeAssets {
       _coinCardFavoritesImages ??= coinCardFavoritesImagesString == null
           ? null
           : parseCoinAssetsString(
-              coinCardFavoritesImagesString!,
-              placeHolder: coinPlaceholder,
-            );
+        coinCardFavoritesImagesString!,
+        placeHolder: coinPlaceholder,
+      );
   @ignore
   Map<Coin, String>? _coinCardFavoritesImages;
   @Name("otherStringParam1")
@@ -2450,15 +2450,15 @@ class ThemeAssetsV3 implements IThemeAssets {
       )
       ..coinCardImagesString = json["coins"]["cards"] is Map
           ? createCoinAssetsString(
-              "$themeId/assets",
-              Map<String, dynamic>.from(json["coins"]["cards"] as Map),
-            )
+        "$themeId/assets",
+        Map<String, dynamic>.from(json["coins"]["cards"] as Map),
+      )
           : null
       ..coinCardFavoritesImagesString = json["coins"]["favoriteCards"] is Map
           ? createCoinAssetsString(
-              "$themeId/assets",
-              Map<String, dynamic>.from(json["coins"]["favoriteCards"] as Map),
-            )
+        "$themeId/assets",
+        Map<String, dynamic>.from(json["coins"]["favoriteCards"] as Map),
+      )
           : null
       ..loadingGifRelative = json["loading_gif"] is String
           ? "$themeId/assets/${json["loading_gif"] as String}"
@@ -2499,9 +2499,9 @@ class ThemeAssetsV3 implements IThemeAssets {
   }
 
   static Map<Coin, String> parseCoinAssetsString(
-    String jsonString, {
-    required String placeHolder,
-  }) {
+      String jsonString, {
+        required String placeHolder,
+      }) {
     final json = jsonDecode(jsonString) as Map;
     final map = Map<String, dynamic>.from(json);
 

@@ -10,6 +10,7 @@
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -32,10 +33,9 @@ import 'package:stackwallet/pages/add_wallet_views/verify_recovery_phrase_view/v
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/coins/coin_service.dart';
-import 'package:stackwallet/services/coins/manager.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
@@ -50,6 +50,12 @@ import 'package:stackwallet/utilities/enums/form_input_status_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
+import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/monero_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
+import 'package:stackwallet/wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
+import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
@@ -98,7 +104,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
   final List<TextEditingController> _controllers = [];
   final List<FormInputStatus> _inputStatuses = [];
-  final List<FocusNode> _focusNodes = [];
+  // final List<FocusNode> _focusNodes = [];
 
   late final BarcodeScannerInterface scanner;
 
@@ -152,7 +158,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     for (int i = 0; i < _seedWordCount; i++) {
       _controllers.add(TextEditingController());
       _inputStatuses.add(FormInputStatus.empty);
-      _focusNodes.add(FocusNode());
+      // _focusNodes.add(FocusNode());
     }
 
     super.initState();
@@ -201,6 +207,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       mnemonic = mnemonic.trim();
 
       int height = 0;
+      String? otherDataJsonString;
 
       if (widget.coin == Coin.monero) {
         height = monero.getHeigthByDate(date: widget.restoreFromDate);
@@ -227,6 +234,22 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         if (height < 0) {
           height = 0;
         }
+
+        otherDataJsonString = jsonEncode(
+          {
+            WalletInfoKeys.epiccashData: jsonEncode(
+              ExtraEpiccashWalletInfo(
+                receivingIndex: 0,
+                changeIndex: 0,
+                slatesToAddresses: {},
+                slatesToCommits: {},
+                lastScannedBlock: height,
+                restoreHeight: height,
+                creationHeight: height,
+              ).toMap(),
+            ),
+          },
+        );
       }
 
       // TODO: do actual check to make sure it is a valid mnemonic for monero
@@ -239,13 +262,14 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         ));
       } else {
         if (!Platform.isLinux) await Wakelock.enable();
-        final walletsService = ref.read(walletsServiceChangeNotifierProvider);
 
-        final walletId = await walletsService.addNewWallet(
-          name: widget.walletName,
+        final info = WalletInfo.createNew(
           coin: widget.coin,
-          shouldNotifyListeners: false,
+          name: widget.walletName,
+          restoreHeight: height,
+          otherDataJsonString: otherDataJsonString,
         );
+
         bool isRestoring = true;
         // show restoring in progress
         unawaited(showDialog<dynamic>(
@@ -256,14 +280,11 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             return RestoringDialog(
               onCancel: () async {
                 isRestoring = false;
-                ref
-                    .read(walletsChangeNotifierProvider.notifier)
-                    .removeWallet(walletId: walletId!);
 
-                await walletsService.deleteWallet(
-                  widget.walletName,
-                  false,
-                );
+                await ref.read(pWallets).deleteWallet(
+                      info,
+                      ref.read(secureStoreProvider),
+                    );
               },
             );
           },
@@ -281,49 +302,47 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
               );
         }
 
-        final txTracker = TransactionNotificationTracker(walletId: walletId!);
-
-        final failovers = ref
-            .read(nodeServiceChangeNotifierProvider)
-            .failoverNodesFor(coin: widget.coin);
-
-        final wallet = CoinServiceAPI.from(
-          widget.coin,
-          walletId,
-          widget.walletName,
-          ref.read(secureStoreProvider),
-          node,
-          txTracker,
-          ref.read(prefsChangeNotifierProvider),
-          failovers,
-        );
-
-        final manager = Manager(wallet);
+        final txTracker =
+            TransactionNotificationTracker(walletId: info.walletId);
 
         try {
-          // TODO GUI option to set maxUnusedAddressGap?
-          // default is 20 but it may miss some transactions if
-          // the previous wallet software generated many addresses
-          // without using them
-          await manager.recoverFromMnemonic(
-            mnemonic: mnemonic,
+          final wallet = await Wallet.create(
+            walletInfo: info,
+            mainDB: ref.read(mainDBProvider),
+            secureStorageInterface: ref.read(secureStoreProvider),
+            nodeService: ref.read(nodeServiceChangeNotifierProvider),
+            prefs: ref.read(prefsChangeNotifierProvider),
             mnemonicPassphrase: widget.mnemonicPassphrase,
-            maxUnusedAddressGap: widget.coin == Coin.firo ? 50 : 20,
-            maxNumberOfIndexesToCheck: 1000,
-            height: height,
+            mnemonic: mnemonic,
           );
+
+          // TODO: extract interface with isRestore param
+          switch (wallet.runtimeType) {
+            case EpiccashWallet:
+              await (wallet as EpiccashWallet).init(isRestore: true);
+              break;
+
+            case MoneroWallet:
+              await (wallet as MoneroWallet).init(isRestore: true);
+              break;
+
+            case WowneroWallet:
+              await (wallet as WowneroWallet).init(isRestore: true);
+              break;
+
+            default:
+              await wallet.init();
+          }
+
+          await wallet.recover(isRescan: false);
 
           // check if state is still active before continuing
           if (mounted) {
-            await ref
-                .read(walletsServiceChangeNotifierProvider)
-                .setMnemonicVerified(
-                  walletId: manager.walletId,
-                );
+            await wallet.info.setMnemonicVerified(
+              isar: ref.read(mainDBProvider).isar,
+            );
 
-            ref
-                .read(walletsChangeNotifierProvider.notifier)
-                .addWallet(walletId: manager.walletId, manager: manager);
+            ref.read(pWallets).addWallet(wallet);
 
             final isCreateSpecialEthWallet =
                 ref.read(createSpecialEthWalletRoutingFlag);
@@ -360,11 +379,11 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                       (route) => false,
                     ),
                   );
-                  if (manager.coin == Coin.ethereum) {
+                  if (info.coin == Coin.ethereum) {
                     unawaited(
                       Navigator.of(context).pushNamed(
                         EditWalletTokensView.routeName,
-                        arguments: manager.walletId,
+                        arguments: wallet.walletId,
                       ),
                     );
                   }
@@ -410,8 +429,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
               builder: (context) {
                 return RestoreFailedDialog(
                   errorMessage: e.toString(),
-                  walletId: wallet.walletId,
-                  walletName: wallet.walletName,
+                  walletId: info.walletId,
+                  walletName: info.name,
                 );
               },
             );
@@ -821,8 +840,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                     i * 4 + j - 1 == 1
                                                         ? textSelectionControls
                                                         : null,
-                                                focusNode:
-                                                    _focusNodes[i * 4 + j - 1],
+                                                // focusNode:
+                                                //     _focusNodes[i * 4 + j - 1],
                                                 onChanged: (value) {
                                                   final FormInputStatus
                                                       formInputStatus;
@@ -841,18 +860,18 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                         FormInputStatus.invalid;
                                                   }
 
-                                                  if (formInputStatus ==
-                                                      FormInputStatus.valid) {
-                                                    if (i * 4 + j <
-                                                        _focusNodes.length) {
-                                                      _focusNodes[i * 4 + j]
-                                                          .requestFocus();
-                                                    } else if (i * 4 + j ==
-                                                        _focusNodes.length) {
-                                                      _focusNodes[i * 4 + j - 1]
-                                                          .unfocus();
-                                                    }
-                                                  }
+                                                  // if (formInputStatus ==
+                                                  //     FormInputStatus.valid) {
+                                                  //   if (i * 4 + j <
+                                                  //       _focusNodes.length) {
+                                                  //     _focusNodes[i * 4 + j]
+                                                  //         .requestFocus();
+                                                  //   } else if (i * 4 + j ==
+                                                  //       _focusNodes.length) {
+                                                  //     _focusNodes[i * 4 + j - 1]
+                                                  //         .unfocus();
+                                                  //   }
+                                                  // }
                                                   setState(() {
                                                     _inputStatuses[i * 4 +
                                                         j -
@@ -929,7 +948,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                 selectionControls: i == 1
                                                     ? textSelectionControls
                                                     : null,
-                                                focusNode: _focusNodes[i],
+                                                // focusNode: _focusNodes[i],
                                                 onChanged: (value) {
                                                   final FormInputStatus
                                                       formInputStatus;
@@ -948,27 +967,27 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                         FormInputStatus.invalid;
                                                   }
 
-                                                  if (formInputStatus ==
-                                                          FormInputStatus
-                                                              .valid &&
-                                                      (i - 1) <
-                                                          _focusNodes.length) {
-                                                    Focus.of(context)
-                                                        .requestFocus(
-                                                            _focusNodes[i]);
-                                                  }
+                                                  // if (formInputStatus ==
+                                                  //         FormInputStatus
+                                                  //             .valid &&
+                                                  //     (i - 1) <
+                                                  //         _focusNodes.length) {
+                                                  //   Focus.of(context)
+                                                  //       .requestFocus(
+                                                  //           _focusNodes[i]);
+                                                  // }
 
-                                                  if (formInputStatus ==
-                                                      FormInputStatus.valid) {
-                                                    if (i + 1 <
-                                                        _focusNodes.length) {
-                                                      _focusNodes[i + 1]
-                                                          .requestFocus();
-                                                    } else if (i + 1 ==
-                                                        _focusNodes.length) {
-                                                      _focusNodes[i].unfocus();
-                                                    }
-                                                  }
+                                                  // if (formInputStatus ==
+                                                  //     FormInputStatus.valid) {
+                                                  //   if (i + 1 <
+                                                  //       _focusNodes.length) {
+                                                  //     _focusNodes[i + 1]
+                                                  //         .requestFocus();
+                                                  //   } else if (i + 1 ==
+                                                  //       _focusNodes.length) {
+                                                  //     _focusNodes[i].unfocus();
+                                                  //   }
+                                                  // }
                                                 },
                                                 controller: _controllers[i],
                                                 style:
@@ -1068,7 +1087,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                           AutovalidateMode.onUserInteraction,
                                       selectionControls:
                                           i == 1 ? textSelectionControls : null,
-                                      focusNode: _focusNodes[i - 1],
+                                      // focusNode: _focusNodes[i - 1],
                                       onChanged: (value) {
                                         final FormInputStatus formInputStatus;
 
@@ -1084,14 +1103,14 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                               FormInputStatus.invalid;
                                         }
 
-                                        if (formInputStatus ==
-                                            FormInputStatus.valid) {
-                                          if (i < _focusNodes.length) {
-                                            _focusNodes[i].requestFocus();
-                                          } else if (i == _focusNodes.length) {
-                                            _focusNodes[i - 1].unfocus();
-                                          }
-                                        }
+                                        // if (formInputStatus ==
+                                        //     FormInputStatus.valid) {
+                                        //   if (i < _focusNodes.length) {
+                                        //     _focusNodes[i].requestFocus();
+                                        //   } else if (i == _focusNodes.length) {
+                                        //     _focusNodes[i - 1].unfocus();
+                                        //   }
+                                        // }
                                         setState(() {
                                           _inputStatuses[i - 1] =
                                               formInputStatus;

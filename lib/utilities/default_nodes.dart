@@ -1,6 +1,6 @@
-/* 
+/*
  * This file is part of Stack Wallet.
- * 
+ *
  * Copyright (c) 2023 Cypher Stack
  * All Rights Reserved.
  * The code is distributed under GPLv3 license, see LICENSE file for details.
@@ -13,9 +13,10 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 abstract class DefaultNodes {
   static const String defaultNodeIdPrefix = "default_";
-  static String _nodeId(Coin coin) => "$defaultNodeIdPrefix${coin.name}";
+  static String buildId(Coin coin) => "$defaultNodeIdPrefix${coin.name}";
   static const String defaultName = "Stack Default";
 
+  @Deprecated("old and decrepit")
   static List<NodeModel> get all => [
         bitcoin,
         litecoin,
@@ -29,18 +30,23 @@ abstract class DefaultNodes {
         namecoin,
         wownero,
         particl,
+        stellar,
+        nano,
+        banano,
+        tezos,
         bitcoinTestnet,
         litecoinTestNet,
         bitcoincashTestnet,
         dogecoinTestnet,
         firoTestnet,
+        stellarTestnet,
       ];
 
   static NodeModel get bitcoin => NodeModel(
         host: "bitcoin.stackwallet.com",
         port: 50002,
-        name: defaultName,
-        id: _nodeId(Coin.bitcoin),
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(Coin.bitcoin),
         useSSL: true,
         enabled: true,
         coinName: Coin.bitcoin.name,
@@ -51,8 +57,8 @@ abstract class DefaultNodes {
   static NodeModel get litecoin => NodeModel(
         host: "litecoin.stackwallet.com",
         port: 20063,
-        name: defaultName,
-        id: _nodeId(Coin.litecoin),
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(Coin.litecoin),
         useSSL: true,
         enabled: true,
         coinName: Coin.litecoin.name,
@@ -63,8 +69,8 @@ abstract class DefaultNodes {
   static NodeModel get litecoinTestNet => NodeModel(
         host: "litecoin.stackwallet.com",
         port: 51002,
-        name: defaultName,
-        id: _nodeId(Coin.litecoinTestNet),
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(Coin.litecoinTestNet),
         useSSL: true,
         enabled: true,
         coinName: Coin.litecoinTestNet.name,
@@ -75,8 +81,8 @@ abstract class DefaultNodes {
   static NodeModel get bitcoincash => NodeModel(
         host: "bitcoincash.stackwallet.com",
         port: 50002,
-        name: defaultName,
-        id: _nodeId(Coin.bitcoincash),
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(Coin.bitcoincash),
         useSSL: true,
         enabled: true,
         coinName: Coin.bitcoincash.name,
@@ -87,8 +93,8 @@ abstract class DefaultNodes {
   static NodeModel get dogecoin => NodeModel(
         host: "dogecoin.stackwallet.com",
         port: 50022,
-        name: defaultName,
-        id: _nodeId(Coin.dogecoin),
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(Coin.dogecoin),
         useSSL: true,
         enabled: true,
         coinName: Coin.dogecoin.name,
@@ -99,8 +105,8 @@ abstract class DefaultNodes {
   static NodeModel get firo => NodeModel(
         host: "firo.stackwallet.com",
         port: 50002,
-        name: defaultName,
-        id: _nodeId(Coin.firo),
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(Coin.firo),
         useSSL: true,
         enabled: true,
         coinName: Coin.firo.name,
@@ -111,8 +117,8 @@ abstract class DefaultNodes {
   static NodeModel get monero => NodeModel(
         host: "https://monero.stackwallet.com",
         port: 18081,
-        name: defaultName,
-        id: _nodeId(Coin.monero),
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(Coin.monero),
         useSSL: true,
         enabled: true,
         coinName: Coin.monero.name,
@@ -124,8 +130,8 @@ abstract class DefaultNodes {
   static NodeModel get wownero => NodeModel(
         host: "https://wownero.stackwallet.com",
         port: 34568,
-        name: defaultName,
-        id: _nodeId(Coin.wownero),
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(Coin.wownero),
         useSSL: true,
         enabled: true,
         coinName: Coin.wownero.name,
@@ -137,8 +143,8 @@ abstract class DefaultNodes {
   static NodeModel get epicCash => NodeModel(
         host: "http://epiccash.stackwallet.com",
         port: 3413,
-        name: defaultName,
-        id: _nodeId(Coin.epicCash),
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(Coin.epicCash),
         useSSL: false,
         enabled: true,
         coinName: Coin.epicCash.name,
@@ -149,8 +155,8 @@ abstract class DefaultNodes {
   static NodeModel get ethereum => NodeModel(
         host: "https://eth.stackwallet.com",
         port: 443,
-        name: defaultName,
-        id: _nodeId(Coin.ethereum),
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(Coin.ethereum),
         useSSL: true,
         enabled: true,
         coinName: Coin.ethereum.name,
@@ -161,8 +167,8 @@ abstract class DefaultNodes {
   static NodeModel get namecoin => NodeModel(
         host: "namecoin.stackwallet.com",
         port: 57002,
-        name: defaultName,
-        id: _nodeId(Coin.namecoin),
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(Coin.namecoin),
         useSSL: true,
         enabled: true,
         coinName: Coin.namecoin.name,
@@ -171,43 +177,71 @@ abstract class DefaultNodes {
       );
 
   static NodeModel get particl => NodeModel(
-      host: "particl.stackwallet.com",
-      port: 58002,
-      name: defaultName,
-      id: _nodeId(Coin.particl),
-      useSSL: true,
-      enabled: true,
-      coinName: Coin.particl.name,
-      isFailover: true,
-      isDown: false);
+        host: "particl.stackwallet.com",
+        port: 58002,
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(Coin.particl),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.particl.name,
+        isFailover: true,
+        isDown: false,
+      );
+
+  static NodeModel get stellar => NodeModel(
+        host: "https://horizon.stellar.org",
+        port: 443,
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(Coin.stellar),
+        useSSL: false,
+        enabled: true,
+        coinName: Coin.stellar.name,
+        isFailover: true,
+        isDown: false,
+      );
+
+  static NodeModel get tezos => NodeModel(
+        // TODO: Change this to stack wallet one
+        host: "https://mainnet.api.tez.ie",
+        port: 443,
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(Coin.tezos),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.tezos.name,
+        isFailover: true,
+        isDown: false,
+      );
 
   static NodeModel get nano => NodeModel(
-      host: "https://rainstorm.city/api",
-      port: 443,
-      name: defaultName,
-      id: _nodeId(Coin.nano),
-      useSSL: true,
-      enabled: true,
-      coinName: Coin.nano.name,
-      isFailover: true,
-      isDown: false);
+        host: "https://rainstorm.city/api",
+        port: 443,
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(Coin.nano),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.nano.name,
+        isFailover: true,
+        isDown: false,
+      );
 
   static NodeModel get banano => NodeModel(
-      host: "https://kaliumapi.appditto.com/api",
-      port: 443,
-      name: defaultName,
-      id: _nodeId(Coin.banano),
-      useSSL: true,
-      enabled: true,
-      coinName: Coin.banano.name,
-      isFailover: true,
-      isDown: false);
+        host: "https://kaliumapi.appditto.com/api",
+        port: 443,
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(Coin.banano),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.banano.name,
+        isFailover: true,
+        isDown: false,
+      );
 
   static NodeModel get bitcoinTestnet => NodeModel(
         host: "bitcoin-testnet.stackwallet.com",
         port: 51002,
-        name: defaultName,
-        id: _nodeId(Coin.bitcoinTestNet),
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(Coin.bitcoinTestNet),
         useSSL: true,
         enabled: true,
         coinName: Coin.bitcoinTestNet.name,
@@ -218,8 +252,8 @@ abstract class DefaultNodes {
   static NodeModel get firoTestnet => NodeModel(
         host: "firo-testnet.stackwallet.com",
         port: 50002,
-        name: defaultName,
-        id: _nodeId(Coin.firoTestNet),
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(Coin.firoTestNet),
         useSSL: true,
         enabled: true,
         coinName: Coin.firoTestNet.name,
@@ -230,8 +264,8 @@ abstract class DefaultNodes {
   static NodeModel get dogecoinTestnet => NodeModel(
         host: "dogecoin-testnet.stackwallet.com",
         port: 50022,
-        name: defaultName,
-        id: _nodeId(Coin.dogecoinTestNet),
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(Coin.dogecoinTestNet),
         useSSL: true,
         enabled: true,
         coinName: Coin.dogecoinTestNet.name,
@@ -242,8 +276,8 @@ abstract class DefaultNodes {
   static NodeModel get bitcoincashTestnet => NodeModel(
         host: "bitcoincash-testnet.stackwallet.com",
         port: 60002,
-        name: defaultName,
-        id: _nodeId(Coin.bitcoincashTestnet),
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(Coin.bitcoincashTestnet),
         useSSL: true,
         enabled: true,
         coinName: Coin.bitcoincashTestnet.name,
@@ -252,13 +286,25 @@ abstract class DefaultNodes {
       );
 
   static NodeModel get eCash => NodeModel(
-        host: "electrum.bitcoinabc.org",
-        port: 50002,
-        name: defaultName,
-        id: _nodeId(Coin.eCash),
+        host: "ecash.stackwallet.com",
+        port: 59002,
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(Coin.eCash),
         useSSL: true,
         enabled: true,
         coinName: Coin.eCash.name,
+        isFailover: true,
+        isDown: false,
+      );
+
+  static NodeModel get stellarTestnet => NodeModel(
+        host: "https://horizon-testnet.stellar.org/",
+        port: 50022,
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(Coin.stellarTestnet),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.stellarTestnet.name,
         isFailover: true,
         isDown: false,
       );
@@ -301,11 +347,17 @@ abstract class DefaultNodes {
       case Coin.particl:
         return particl;
 
+      case Coin.stellar:
+        return stellar;
+
       case Coin.nano:
         return nano;
 
       case Coin.banano:
         return banano;
+
+      case Coin.tezos:
+        return tezos;
 
       case Coin.bitcoinTestNet:
         return bitcoinTestnet;
@@ -321,6 +373,9 @@ abstract class DefaultNodes {
 
       case Coin.dogecoinTestNet:
         return dogecoinTestnet;
+
+      case Coin.stellarTestnet:
+        return stellarTestnet;
     }
   }
 }

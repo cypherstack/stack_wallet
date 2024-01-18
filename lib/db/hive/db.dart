@@ -26,12 +26,13 @@ class DB {
   @Deprecated("Left over for migration from old versions of Stack Wallet")
   static const String boxNameAddressBook = "addressBook";
   static const String boxNameTrades = "exchangeTransactionsBox";
+  static const String boxNameAllWalletsData = "wallets";
+  static const String boxNameFavoriteWallets = "favoriteWallets";
 
   // in use
   // TODO: migrate
   static const String boxNameNodeModels = "nodeModels";
   static const String boxNamePrimaryNodes = "primaryNodes";
-  static const String boxNameAllWalletsData = "wallets";
   static const String boxNameNotifications = "notificationModels";
   static const String boxNameWatchedTransactions =
       "watchedTxNotificationModels";
@@ -39,21 +40,25 @@ class DB {
   static const String boxNameTradesV2 = "exchangeTradesBox";
   static const String boxNameTradeNotes = "tradeNotesBox";
   static const String boxNameTradeLookup = "tradeToTxidLookUpBox";
-  static const String boxNameFavoriteWallets = "favoriteWallets";
   static const String boxNameWalletsToDeleteOnStart = "walletsToDeleteOnStart";
   static const String boxNamePriceCache = "priceAPIPrice24hCache";
 
   // in use (keep for now)
   static const String boxNameDBInfo = "dbInfo";
   static const String boxNamePrefs = "prefs";
+  static const String boxNameOneTimeDialogsShown = "oneTimeDialogsShown";
 
   String _boxNameTxCache({required Coin coin}) => "${coin.name}_txCache";
 
   // firo only
   String _boxNameSetCache({required Coin coin}) =>
       "${coin.name}_anonymitySetCache";
+  String _boxNameSetSparkCache({required Coin coin}) =>
+      "${coin.name}_anonymitySetSparkCache";
   String _boxNameUsedSerialsCache({required Coin coin}) =>
       "${coin.name}_usedSerialsCache";
+  String _boxNameSparkUsedCoinsTagsCache({required Coin coin}) =>
+      "${coin.name}_sparkUsedCoinsTagsCache";
 
   Box<NodeModel>? _boxNodeModels;
   Box<NodeModel>? _boxPrimaryNodes;
@@ -74,7 +79,9 @@ class DB {
 
   final Map<Coin, Box<dynamic>> _txCacheBoxes = {};
   final Map<Coin, Box<dynamic>> _setCacheBoxes = {};
+  final Map<Coin, Box<dynamic>> _setSparkCacheBoxes = {};
   final Map<Coin, Box<dynamic>> _usedSerialsCacheBoxes = {};
+  final Map<Coin, Box<dynamic>> _getSparkUsedCoinsTagsCacheBoxes = {};
 
   // exposed for monero
   Box<xmr.WalletInfo> get moneroWalletInfoBox => _walletInfoSource!;
@@ -177,6 +184,9 @@ class DB {
   }
 
   Future<Box<dynamic>> getTxCacheBox({required Coin coin}) async {
+    if (_txCacheBoxes[coin]?.isOpen != true) {
+      _txCacheBoxes.remove(coin);
+    }
     return _txCacheBoxes[coin] ??=
         await Hive.openBox<dynamic>(_boxNameTxCache(coin: coin));
   }
@@ -186,8 +196,20 @@ class DB {
   }
 
   Future<Box<dynamic>> getAnonymitySetCacheBox({required Coin coin}) async {
+    if (_setCacheBoxes[coin]?.isOpen != true) {
+      _setCacheBoxes.remove(coin);
+    }
     return _setCacheBoxes[coin] ??=
         await Hive.openBox<dynamic>(_boxNameSetCache(coin: coin));
+  }
+
+  Future<Box<dynamic>> getSparkAnonymitySetCacheBox(
+      {required Coin coin}) async {
+    if (_setSparkCacheBoxes[coin]?.isOpen != true) {
+      _setSparkCacheBoxes.remove(coin);
+    }
+    return _setSparkCacheBoxes[coin] ??=
+        await Hive.openBox<dynamic>(_boxNameSetSparkCache(coin: coin));
   }
 
   Future<void> closeAnonymitySetCacheBox({required Coin coin}) async {
@@ -195,8 +217,21 @@ class DB {
   }
 
   Future<Box<dynamic>> getUsedSerialsCacheBox({required Coin coin}) async {
+    if (_usedSerialsCacheBoxes[coin]?.isOpen != true) {
+      _usedSerialsCacheBoxes.remove(coin);
+    }
     return _usedSerialsCacheBoxes[coin] ??=
         await Hive.openBox<dynamic>(_boxNameUsedSerialsCache(coin: coin));
+  }
+
+  Future<Box<dynamic>> getSparkUsedCoinsTagsCacheBox(
+      {required Coin coin}) async {
+    if (_getSparkUsedCoinsTagsCacheBoxes[coin]?.isOpen != true) {
+      _getSparkUsedCoinsTagsCacheBoxes.remove(coin);
+    }
+    return _getSparkUsedCoinsTagsCacheBoxes[coin] ??=
+        await Hive.openBox<dynamic>(
+            _boxNameSparkUsedCoinsTagsCache(coin: coin));
   }
 
   Future<void> closeUsedSerialsCacheBox({required Coin coin}) async {
@@ -206,9 +241,12 @@ class DB {
   /// Clear all cached transactions for the specified coin
   Future<void> clearSharedTransactionCache({required Coin coin}) async {
     await deleteAll<dynamic>(boxName: _boxNameTxCache(coin: coin));
-    if (coin == Coin.firo) {
+    if (coin == Coin.firo || coin == Coin.firoTestNet) {
       await deleteAll<dynamic>(boxName: _boxNameSetCache(coin: coin));
+      await deleteAll<dynamic>(boxName: _boxNameSetSparkCache(coin: coin));
       await deleteAll<dynamic>(boxName: _boxNameUsedSerialsCache(coin: coin));
+      await deleteAll<dynamic>(
+          boxName: _boxNameSparkUsedCoinsTagsCache(coin: coin));
     }
   }
 
@@ -265,8 +303,12 @@ class DB {
           {required dynamic key, required String boxName}) async =>
       await mutex.protect(() async => await Hive.box<T>(boxName).delete(key));
 
-  Future<void> deleteAll<T>({required String boxName}) async =>
-      await mutex.protect(() async => await Hive.box<T>(boxName).clear());
+  Future<void> deleteAll<T>({required String boxName}) async {
+    await mutex.protect(() async {
+      final box = await Hive.openBox<T>(boxName);
+      await box.clear();
+    });
+  }
 
   Future<void> deleteBoxFromDisk({required String boxName}) async =>
       await mutex.protect(() async => await Hive.deleteBoxFromDisk(boxName));
@@ -308,5 +350,4 @@ abstract class DBKeys {
   static const String isFavorite = "isFavorite";
   static const String id = "id";
   static const String storedChainHeight = "storedChainHeight";
-  static const String ethTokenContracts = "ethTokenContracts";
 }

@@ -16,18 +16,19 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import 'package:stackwallet/widgets/coin_card.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:tuple/tuple.dart';
 
 class FavoriteCard extends ConsumerStatefulWidget {
   const FavoriteCard({
@@ -59,10 +60,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
 
   @override
   Widget build(BuildContext context) {
-    final coin = ref.watch(
-      walletsChangeNotifierProvider
-          .select((value) => value.getManager(walletId).coin),
-    );
+    final coin = ref.watch(pWalletCoin(walletId));
     final externalCalls = ref.watch(
       prefsChangeNotifierProvider.select((value) => value.externalCalls),
     );
@@ -116,12 +114,22 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
       ),
       child: GestureDetector(
         onTap: () async {
-          if (coin == Coin.monero || coin == Coin.wownero) {
-            await ref
-                .read(walletsChangeNotifierProvider)
-                .getManager(walletId)
-                .initializeExisting();
+          final wallet = ref.read(pWallets).getWallet(walletId);
+
+          final Future<void> loadFuture;
+          if (wallet is CwBasedInterface) {
+            loadFuture =
+                wallet.init().then((value) async => await (wallet).open());
+          } else {
+            loadFuture = wallet.init();
           }
+          await showLoading(
+            whileFuture: loadFuture,
+            context: context,
+            message: 'Opening ${wallet.info.name}',
+            isDesktop: Util.isDesktop,
+          );
+
           if (mounted) {
             if (Util.isDesktop) {
               await Navigator.of(context).pushNamed(
@@ -131,12 +139,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
             } else {
               await Navigator.of(context).pushNamed(
                 WalletView.routeName,
-                arguments: Tuple2(
-                  walletId,
-                  ref
-                      .read(walletsChangeNotifierProvider)
-                      .getManagerProvider(walletId),
-                ),
+                arguments: walletId,
               );
             }
           }
@@ -163,12 +166,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                       children: [
                         Expanded(
                           child: Text(
-                            ref.watch(
-                              walletsChangeNotifierProvider.select(
-                                (value) =>
-                                    value.getManager(walletId).walletName,
-                              ),
-                            ),
+                            ref.watch(pWalletName(walletId)),
                             style: STextStyles.itemSubtitle12(context).copyWith(
                               color: Theme.of(context)
                                   .extension<StackColors>()!
@@ -190,22 +188,16 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                   Builder(
                     builder: (context) {
                       final balance = ref.watch(
-                        walletsChangeNotifierProvider.select(
-                          (value) => value.getManager(walletId).balance,
-                        ),
+                        pWalletBalance(walletId),
                       );
 
                       Amount total = balance.total;
                       if (coin == Coin.firo || coin == Coin.firoTestNet) {
-                        final balancePrivate = ref.watch(
-                          walletsChangeNotifierProvider.select(
-                            (value) => (value.getManager(walletId).wallet
-                                    as FiroWallet)
-                                .balancePrivate,
-                          ),
-                        );
-
-                        total += balancePrivate.total;
+                        total += ref
+                            .watch(
+                              pWalletBalanceSecondary(walletId),
+                            )
+                            .total;
                       }
 
                       Amount fiatTotal = Amount.zero;

@@ -15,20 +15,37 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/util.dart';
 
 abstract class StackFileSystem {
+  static String? overrideDir;
+
   static Future<Directory> applicationRootDirectory() async {
     Directory appDirectory;
+
+    // if this is changed, the directories in libmonero must also be changed!!!!!
+    const dirName = "stackwallet";
 
     // todo: can merge and do same as regular linux home dir?
     if (Logging.isArmLinux) {
       appDirectory = await getApplicationDocumentsDirectory();
-      appDirectory = Directory("${appDirectory.path}/.stackwallet");
+      appDirectory = Directory("${appDirectory.path}/.$dirName");
     } else if (Platform.isLinux) {
-      appDirectory = Directory("${Platform.environment['HOME']}/.stackwallet");
+      if (overrideDir != null) {
+        appDirectory = Directory(overrideDir!);
+      } else {
+        appDirectory = Directory("${Platform.environment['HOME']}/.$dirName");
+      }
     } else if (Platform.isWindows) {
-      appDirectory = await getApplicationSupportDirectory();
+      if (overrideDir != null) {
+        appDirectory = Directory(overrideDir!);
+      } else {
+        appDirectory = await getApplicationSupportDirectory();
+      }
     } else if (Platform.isMacOS) {
-      appDirectory = await getLibraryDirectory();
-      appDirectory = Directory("${appDirectory.path}/stackwallet");
+      if (overrideDir != null) {
+        appDirectory = Directory(overrideDir!);
+      } else {
+        appDirectory = await getLibraryDirectory();
+        appDirectory = Directory("${appDirectory.path}/$dirName");
+      }
     } else if (Platform.isIOS) {
       // todo: check if we need different behaviour here
       if (Util.isDesktop) {
@@ -51,6 +68,19 @@ abstract class StackFileSystem {
     final root = await applicationRootDirectory();
     if (Util.isDesktop) {
       final dir = Directory("${root.path}/isar");
+      if (!dir.existsSync()) {
+        await dir.create();
+      }
+      return dir;
+    } else {
+      return root;
+    }
+  }
+
+  static Future<Directory> applicationTorDirectory() async {
+    final root = await applicationRootDirectory();
+    if (Util.isDesktop) {
+      final dir = Directory("${root.path}/tor");
       if (!dir.existsSync()) {
         await dir.create();
       }

@@ -1,6 +1,6 @@
-/* 
+/*
  * This file is part of Stack Wallet.
- * 
+ *
  * Copyright (c) 2023 Cypher Stack
  * All Rights Reserved.
  * The code is distributed under GPLv3 license, see LICENSE file for details.
@@ -8,26 +8,7 @@
  *
  */
 
-import 'package:stackwallet/services/coins/bitcoin/bitcoin_wallet.dart' as btc;
-import 'package:stackwallet/services/coins/bitcoincash/bitcoincash_wallet.dart'
-    as bch;
-import 'package:stackwallet/services/coins/dogecoin/dogecoin_wallet.dart'
-    as doge;
-import 'package:stackwallet/services/coins/ecash/ecash_wallet.dart' as ecash;
-import 'package:stackwallet/services/coins/epiccash/epiccash_wallet.dart'
-    as epic;
-import 'package:stackwallet/services/coins/ethereum/ethereum_wallet.dart'
-    as eth;
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart' as firo;
-import 'package:stackwallet/services/coins/litecoin/litecoin_wallet.dart'
-    as ltc;
-import 'package:stackwallet/services/coins/monero/monero_wallet.dart' as xmr;
-import 'package:stackwallet/services/coins/namecoin/namecoin_wallet.dart'
-    as nmc;
-import 'package:stackwallet/services/coins/nano/nano_wallet.dart' as nano;
-import 'package:stackwallet/services/coins/particl/particl_wallet.dart'
-    as particl;
-import 'package:stackwallet/services/coins/wownero/wownero_wallet.dart' as wow;
+import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/utilities/constants.dart';
 
 enum Coin {
@@ -44,6 +25,8 @@ enum Coin {
   namecoin,
   nano,
   particl,
+  stellar,
+  tezos,
   wownero,
 
   ///
@@ -56,10 +39,8 @@ enum Coin {
   dogecoinTestNet,
   firoTestNet,
   litecoinTestNet,
+  stellarTestnet,
 }
-
-final int kTestNetCoinCount = 4; // Util.isDesktop ? 5 : 4;
-// remove firotestnet for now
 
 extension CoinExt on Coin {
   String get prettyName {
@@ -84,6 +65,10 @@ extension CoinExt on Coin {
         return "Monero";
       case Coin.particl:
         return "Particl";
+      case Coin.stellar:
+        return "Stellar";
+      case Coin.tezos:
+        return "Tezos";
       case Coin.wownero:
         return "Wownero";
       case Coin.namecoin:
@@ -102,6 +87,8 @@ extension CoinExt on Coin {
         return "tFiro";
       case Coin.dogecoinTestNet:
         return "tDogecoin";
+      case Coin.stellarTestnet:
+        return "tStellar";
     }
   }
 
@@ -127,6 +114,10 @@ extension CoinExt on Coin {
         return "XMR";
       case Coin.particl:
         return "PART";
+      case Coin.stellar:
+        return "XLM";
+      case Coin.tezos:
+        return "XTZ";
       case Coin.wownero:
         return "WOW";
       case Coin.namecoin:
@@ -145,6 +136,8 @@ extension CoinExt on Coin {
         return "tFIRO";
       case Coin.dogecoinTestNet:
         return "tDOGE";
+      case Coin.stellarTestnet:
+        return "tXLM";
     }
   }
 
@@ -171,6 +164,10 @@ extension CoinExt on Coin {
         return "monero";
       case Coin.particl:
         return "particl";
+      case Coin.stellar:
+        return "stellar";
+      case Coin.tezos:
+        return "tezos";
       case Coin.wownero:
         return "wownero";
       case Coin.namecoin:
@@ -189,6 +186,8 @@ extension CoinExt on Coin {
         return "firo";
       case Coin.dogecoinTestNet:
         return "dogecoin";
+      case Coin.stellarTestnet:
+        return "stellar";
     }
   }
 
@@ -212,9 +211,42 @@ extension CoinExt on Coin {
       case Coin.epicCash:
       case Coin.ethereum:
       case Coin.monero:
+      case Coin.tezos:
       case Coin.wownero:
       case Coin.nano:
       case Coin.banano:
+      case Coin.stellar:
+      case Coin.stellarTestnet:
+        return false;
+    }
+  }
+
+  bool get hasMnemonicPassphraseSupport {
+    switch (this) {
+      case Coin.bitcoin:
+      case Coin.bitcoinTestNet:
+      case Coin.litecoin:
+      case Coin.litecoinTestNet:
+      case Coin.bitcoincash:
+      case Coin.bitcoincashTestnet:
+      case Coin.dogecoin:
+      case Coin.dogecoinTestNet:
+      case Coin.firo:
+      case Coin.firoTestNet:
+      case Coin.namecoin:
+      case Coin.particl:
+      case Coin.ethereum:
+      case Coin.eCash:
+      case Coin.stellar:
+      case Coin.stellarTestnet:
+        return true;
+
+      case Coin.epicCash:
+      case Coin.monero:
+      case Coin.wownero:
+      case Coin.nano:
+      case Coin.banano:
+      case Coin.tezos:
         return false;
     }
   }
@@ -234,6 +266,7 @@ extension CoinExt on Coin {
       case Coin.eCash:
       case Coin.epicCash:
       case Coin.monero:
+      case Coin.tezos:
       case Coin.wownero:
       case Coin.dogecoinTestNet:
       case Coin.bitcoinTestNet:
@@ -242,6 +275,8 @@ extension CoinExt on Coin {
       case Coin.firoTestNet:
       case Coin.nano:
       case Coin.banano:
+      case Coin.stellar:
+      case Coin.stellarTestnet:
         return false;
     }
   }
@@ -258,10 +293,12 @@ extension CoinExt on Coin {
       case Coin.epicCash:
       case Coin.ethereum:
       case Coin.monero:
+      case Coin.tezos:
       case Coin.wownero:
       case Coin.nano:
       case Coin.banano:
       case Coin.eCash:
+      case Coin.stellar:
         return false;
 
       case Coin.dogecoinTestNet:
@@ -269,6 +306,7 @@ extension CoinExt on Coin {
       case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
+      case Coin.stellarTestnet:
         return true;
     }
   }
@@ -285,10 +323,12 @@ extension CoinExt on Coin {
       case Coin.epicCash:
       case Coin.ethereum:
       case Coin.monero:
+      case Coin.tezos:
       case Coin.wownero:
       case Coin.nano:
       case Coin.banano:
       case Coin.eCash:
+      case Coin.stellar:
         return this;
 
       case Coin.dogecoinTestNet:
@@ -305,59 +345,58 @@ extension CoinExt on Coin {
 
       case Coin.firoTestNet:
         return Coin.firo;
-    }
-  }
 
-  int get requiredConfirmations {
-    switch (this) {
-      case Coin.bitcoin:
-      case Coin.bitcoinTestNet:
-        return btc.MINIMUM_CONFIRMATIONS;
-
-      case Coin.litecoin:
-      case Coin.litecoinTestNet:
-        return ltc.MINIMUM_CONFIRMATIONS;
-
-      case Coin.bitcoincash:
-      case Coin.bitcoincashTestnet:
-        return bch.MINIMUM_CONFIRMATIONS;
-
-      case Coin.firo:
-      case Coin.firoTestNet:
-        return firo.MINIMUM_CONFIRMATIONS;
-
-      case Coin.dogecoin:
-      case Coin.dogecoinTestNet:
-        return doge.MINIMUM_CONFIRMATIONS;
-
-      case Coin.epicCash:
-        return epic.MINIMUM_CONFIRMATIONS;
-
-      case Coin.eCash:
-        return ecash.MINIMUM_CONFIRMATIONS;
-
-      case Coin.ethereum:
-        return eth.MINIMUM_CONFIRMATIONS;
-
-      case Coin.monero:
-        return xmr.MINIMUM_CONFIRMATIONS;
-
-      case Coin.particl:
-        return particl.MINIMUM_CONFIRMATIONS;
-
-      case Coin.wownero:
-        return wow.MINIMUM_CONFIRMATIONS;
-
-      case Coin.namecoin:
-        return nmc.MINIMUM_CONFIRMATIONS;
-
-      case Coin.nano:
-      case Coin.banano:
-        return nano.MINIMUM_CONFIRMATIONS;
+      case Coin.stellarTestnet:
+        return Coin.stellar;
     }
   }
 
   int get decimals => Constants.decimalPlacesForCoin(this);
+
+  // Note: this must relate to DerivePathType for certain coins!
+  AddressType get primaryAddressType {
+    switch (this) {
+      case Coin.bitcoin:
+      case Coin.bitcoinTestNet:
+      case Coin.litecoin:
+      case Coin.litecoinTestNet:
+      case Coin.namecoin:
+      case Coin.particl:
+        return AddressType.p2wpkh;
+
+      case Coin.eCash:
+      case Coin.bitcoincash:
+      case Coin.bitcoincashTestnet:
+      case Coin.dogecoin:
+      case Coin.firo:
+      case Coin.firoTestNet:
+      case Coin.dogecoinTestNet:
+        return AddressType.p2pkh;
+
+      case Coin.monero:
+      case Coin.wownero:
+        return AddressType.cryptonote;
+
+      case Coin.epicCash:
+        return AddressType.mimbleWimble;
+
+      case Coin.ethereum:
+        return AddressType.ethereum;
+
+      case Coin.tezos:
+        return AddressType.tezos;
+
+      case Coin.nano:
+        return AddressType.nano;
+
+      case Coin.banano:
+        return AddressType.banano;
+
+      case Coin.stellar:
+      case Coin.stellarTestnet:
+        return AddressType.stellar;
+    }
+  }
 }
 
 Coin coinFromPrettyName(String name) {
@@ -404,6 +443,14 @@ Coin coinFromPrettyName(String name) {
     case "particl":
       return Coin.particl;
 
+    case "Stellar":
+    case "stellar":
+      return Coin.stellar;
+
+    case "Tezos":
+    case "tezos":
+      return Coin.tezos;
+
     case "Namecoin":
     case "namecoin":
       return Coin.namecoin;
@@ -448,6 +495,12 @@ Coin coinFromPrettyName(String name) {
     case "banano":
       return Coin.banano;
 
+    case "Stellar Testnet":
+    case "stellarTestnet":
+    case "stellarTestNet":
+    case "tStellar":
+      return Coin.stellarTestnet;
+
     default:
       throw ArgumentError.value(
         name,
@@ -481,6 +534,10 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
       return Coin.namecoin;
     case "part":
       return Coin.particl;
+    case "xlm":
+      return Coin.stellar;
+    case "xtz":
+      return Coin.tezos;
     case "tltc":
       return Coin.litecoinTestNet;
     case "tbtc":
@@ -497,6 +554,8 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
       return Coin.nano;
     case "ban":
       return Coin.banano;
+    case "txlm":
+      return Coin.stellarTestnet;
     default:
       throw ArgumentError.value(
           ticker, "name", "No Coin enum value with that ticker");

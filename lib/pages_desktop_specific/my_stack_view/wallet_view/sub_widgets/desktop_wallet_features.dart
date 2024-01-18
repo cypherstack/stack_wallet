@@ -16,18 +16,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/monkey/monkey_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
+import 'package:stackwallet/pages_desktop_specific/cashfusion/desktop_cashfusion_view.dart';
 import 'package:stackwallet/pages_desktop_specific/coin_control/desktop_coin_control_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_menu.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/more_features/more_features_dialog.dart';
+import 'package:stackwallet/pages_desktop_specific/ordinals/desktop_ordinals_view.dart';
 import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
 import 'package:stackwallet/providers/global/paynym_api_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
-import 'package:stackwallet/services/coins/firo/firo_wallet.dart';
-import 'package:stackwallet/services/mixins/paynym_wallet_interface.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -36,6 +37,11 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -80,6 +86,9 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         onCoinControlPressed: _onCoinControlPressed,
         onAnonymizeAllPressed: _onAnonymizeAllPressed,
         onWhirlpoolPressed: _onWhirlpoolPressed,
+        onOrdinalsPressed: _onOrdinalsPressed,
+        onMonkeyPressed: _onMonkeyPressed,
+        onFusionPressed: _onFusionPressed,
       ),
     );
   }
@@ -153,10 +162,6 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
   }
 
   Future<void> _attemptAnonymize() async {
-    final managerProvider = ref
-        .read(walletsChangeNotifierProvider)
-        .getManagerProvider(widget.walletId);
-
     bool shouldPop = false;
     unawaited(
       showDialog(
@@ -170,9 +175,10 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         ),
       ),
     );
-    final firoWallet = ref.read(managerProvider).wallet as FiroWallet;
+    final firoWallet =
+        ref.read(pWallets).getWallet(widget.walletId) as FiroWallet;
 
-    final publicBalance = firoWallet.availablePublicBalance();
+    final publicBalance = firoWallet.info.cachedBalance.spendable;
     if (publicBalance <= Amount.zero) {
       shouldPop = true;
       if (context.mounted) {
@@ -192,7 +198,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     }
 
     try {
-      await firoWallet.anonymizeAllPublicFunds();
+      // await firoWallet.anonymizeAllLelantus();
+      await firoWallet.anonymizeAllSpark();
       shouldPop = true;
       if (context.mounted) {
         Navigator.of(context, rootNavigator: true).pop();
@@ -277,10 +284,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       ),
     );
 
-    final manager =
-        ref.read(walletsChangeNotifierProvider).getManager(widget.walletId);
-
-    final wallet = manager.wallet as PaynymWalletInterface;
+    final wallet =
+        ref.read(pWallets).getWallet(widget.walletId) as PaynymInterface;
 
     final code = await wallet.getPaymentCode(isSegwit: false);
 
@@ -313,24 +318,51 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     }
   }
 
+  Future<void> _onMonkeyPressed() async {
+    Navigator.of(context, rootNavigator: true).pop();
+
+    await (Navigator.of(context).pushNamed(
+      MonkeyView.routeName,
+      arguments: widget.walletId,
+    ));
+  }
+
+  void _onOrdinalsPressed() {
+    Navigator.of(context, rootNavigator: true).pop();
+
+    Navigator.of(context).pushNamed(
+      DesktopOrdinalsView.routeName,
+      arguments: widget.walletId,
+    );
+  }
+
+  void _onFusionPressed() {
+    Navigator.of(context, rootNavigator: true).pop();
+
+    Navigator.of(context).pushNamed(
+      DesktopCashFusionView.routeName,
+      arguments: widget.walletId,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final manager = ref.watch(
-      walletsChangeNotifierProvider.select(
-        (value) => value.getManager(widget.walletId),
-      ),
-    );
+    final wallet = ref.watch(pWallets).getWallet(widget.walletId);
+    final coin = wallet.info.coin;
 
-    final showMore = manager.hasPaynymSupport ||
-        (manager.hasCoinControlSupport &&
+    final showMore = wallet is PaynymInterface ||
+        (wallet is CoinControlInterface &&
             ref.watch(
               prefsChangeNotifierProvider.select(
                 (value) => value.enableCoinControl,
               ),
             )) ||
-        manager.coin == Coin.firo ||
-        manager.coin == Coin.firoTestNet ||
-        manager.hasWhirlpoolSupport;
+        coin == Coin.firo ||
+        coin == Coin.firoTestNet ||
+        // manager.hasWhirlpoolSupport ||
+        coin == Coin.banano ||
+        wallet is OrdinalsInterface ||
+        wallet is CashFusionInterface;
 
     return Row(
       children: [

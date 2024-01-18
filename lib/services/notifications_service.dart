@@ -12,7 +12,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/exceptions/electrumx/no_such_transaction.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/notification_model.dart';
@@ -20,6 +20,7 @@ import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/trade_service.dart';
+import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
@@ -118,6 +119,7 @@ class NotificationsService extends ChangeNotifier {
       try {
         final Coin coin = coinFromPrettyName(notification.coinName);
         final txid = notification.txid!;
+        final wallet = Wallets.sharedInstance.getWallet(notification.walletId);
 
         final node = nodeService.getPrimaryNodeFor(coin: coin);
         if (node != null) {
@@ -140,7 +142,7 @@ class NotificationsService extends ChangeNotifier {
                     ))
                 .toList();
 
-            final client = ElectrumX.from(
+            final client = ElectrumXClient.from(
               node: eNode,
               failovers: failovers,
               prefs: prefs,
@@ -153,14 +155,14 @@ class NotificationsService extends ChangeNotifier {
             // check if the number of confirmations is greater than the number
             // required by the wallet to count the tx as confirmed and update the
             // flag on whether this notification should still be monitored
-            if (confirmations >= coin.requiredConfirmations) {
+            if (confirmations >= wallet.cryptoCurrency.minConfirms) {
               shouldWatchForUpdates = false;
-              confirmations = coin.requiredConfirmations;
+              confirmations = wallet.cryptoCurrency.minConfirms;
             }
 
             // grab confirms string to compare
             final String newConfirms =
-                "($confirmations/${coin.requiredConfirmations})";
+                "($confirmations/${wallet.cryptoCurrency.minConfirms})";
             final String oldConfirms = notification.title
                 .substring(notification.title.lastIndexOf("("));
 

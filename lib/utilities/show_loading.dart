@@ -12,15 +12,17 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 
-Future<T> showLoading<T>({
+Future<T?> showLoading<T>({
   required Future<T> whileFuture,
   required BuildContext context,
   required String message,
   String? subMessage,
   bool isDesktop = false,
   bool opaqueBG = false,
+  void Function(Exception)? onException,
 }) async {
   unawaited(
     showDialog<void>(
@@ -43,10 +45,24 @@ Future<T> showLoading<T>({
     ),
   );
 
-  final result = await whileFuture;
+  Exception? ex;
+  T? result;
+
+  try {
+    result = await whileFuture;
+  } catch (e, s) {
+    Logging.instance.log(
+      "showLoading caught: $e\n$s",
+      level: LogLevel.Warning,
+    );
+    ex = e is Exception ? e : Exception(e.toString());
+  }
 
   if (context.mounted) {
     Navigator.of(context, rootNavigator: isDesktop).pop();
+    if (ex != null) {
+      onException?.call(ex);
+    }
   }
 
   return result;

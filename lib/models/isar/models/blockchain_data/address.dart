@@ -70,6 +70,30 @@ class Address extends CryptoCurrencyAddress {
       subType == AddressSubType.paynymSend ||
       subType == AddressSubType.paynymReceive;
 
+  /// If called on an [Address] already stored in the DB be sure to update the
+  /// [transactions] Isar Links if required
+  Address copyWith({
+    String? walletId,
+    String? value,
+    List<byte>? publicKey,
+    int? derivationIndex,
+    AddressType? type,
+    AddressSubType? subType,
+    DerivationPath? derivationPath,
+    String? otherData,
+  }) {
+    return Address(
+      walletId: walletId ?? this.walletId,
+      value: value ?? this.value,
+      publicKey: publicKey ?? this.publicKey,
+      derivationIndex: derivationIndex ?? this.derivationIndex,
+      type: type ?? this.type,
+      subType: subType ?? this.subType,
+      derivationPath: derivationPath ?? this.derivationPath,
+      otherData: otherData ?? this.otherData,
+    );
+  }
+
   @override
   String toString() => "{ "
       "id: $id, "
@@ -124,7 +148,7 @@ class Address extends CryptoCurrencyAddress {
   }
 }
 
-// do not modify
+// do not modify unless you know what the consequences are
 enum AddressType {
   p2pkh,
   p2sh,
@@ -135,7 +159,11 @@ enum AddressType {
   nonWallet,
   ethereum,
   nano,
-  banano;
+  banano,
+  spark,
+  stellar,
+  tezos,
+  ;
 
   String get readableName {
     switch (this) {
@@ -159,6 +187,12 @@ enum AddressType {
         return "Nano";
       case AddressType.banano:
         return "Banano";
+      case AddressType.spark:
+        return "Spark";
+      case AddressType.stellar:
+        return "Stellar";
+      case AddressType.tezos:
+        return "Tezos";
     }
   }
 }

@@ -96,7 +96,7 @@ class _NewContactAddressEntryFormState
 
       coins.remove(Coin.firoTestNet);
       if (showTestNet) {
-        coins = coins.sublist(0, coins.length - kTestNetCoinCount);
+        coins = coins.where((e) => !e.isTestNet).toList();
       }
     }
 

@@ -12,14 +12,19 @@ import 'dart:async';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart';
+import 'package:isar/isar.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
+import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/services/price.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:tuple/tuple.dart';
 
 class PriceService extends ChangeNotifier {
   late final String baseTicker;
-  final Set<String> tokenContractAddressesToCheck = {};
+  Future<Set<String>> get tokenContractAddressesToCheck async =>
+      (await MainDB.instance.getEthContracts().addressProperty().findAll())
+          .toSet();
   final Duration updateInterval = const Duration(seconds: 60);
 
   Timer? _timer;
@@ -29,7 +34,7 @@ class PriceService extends ChangeNotifier {
 
   final Map<String, Tuple2<Decimal, double>> _cachedTokenPrices = {};
 
-  final _priceAPI = PriceAPI(Client());
+  final _priceAPI = PriceAPI(HTTP());
 
   Tuple2<Decimal, double> getPrice(Coin coin) => _cachedPrices[coin]!;
 
@@ -51,9 +56,11 @@ class PriceService extends ChangeNotifier {
       }
     }
 
-    if (tokenContractAddressesToCheck.isNotEmpty) {
+    final _tokenContractAddressesToCheck = await tokenContractAddressesToCheck;
+
+    if (_tokenContractAddressesToCheck.isNotEmpty) {
       final tokenPriceMap = await _priceAPI.getPricesAnd24hChangeForEthTokens(
-        contractAddresses: tokenContractAddressesToCheck,
+        contractAddresses: _tokenContractAddressesToCheck,
         baseCurrency: baseTicker,
       );
 

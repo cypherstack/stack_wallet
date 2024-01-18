@@ -9,11 +9,10 @@ import 'package:mockito/annotations.dart';
 // import 'package:mockito/mockito.dart';
 // import 'package:stackwallet/pages/transaction_subviews/transaction_search_view.dart';
 // import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
-import 'package:stackwallet/services/coins/manager.dart';
+
 // import 'package:stackwallet/services/event_bus/events/node_connection_status_changed_event.dart';
 // import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/locale_service.dart';
-import 'package:stackwallet/services/notes_service.dart';
 // import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
 // import 'package:stackwallet/widgets/gradient_card.dart';
 // import 'package:stackwallet/widgets/transaction_card.dart';
@@ -23,14 +22,12 @@ import 'package:stackwallet/services/notes_service.dart';
 // import 'wallet_view_screen_test.mocks.dart';
 
 @GenerateMocks([], customMocks: [
-  MockSpec<Manager>(returnNullOnMissingStub: true),
-  MockSpec<NotesService>(returnNullOnMissingStub: true),
   MockSpec<LocaleService>(returnNullOnMissingStub: true),
 ])
 void main() {
 //   testWidgets("WalletView builds correctly with no transactions",
 //       (tester) async {
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //
 //     when(manager.coinTicker).thenAnswer((_) => "FIRO");
 //     when(manager.fiatCurrency).thenAnswer((_) => "USD");
@@ -91,7 +88,7 @@ void main() {
 //   testWidgets("WalletView builds correctly with transaction history",
 //       (tester) async {
 //     final navigator = mockingjay.MockNavigator();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
 //
@@ -181,7 +178,7 @@ void main() {
 //
 //   testWidgets("tap tx search", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
 //
@@ -253,7 +250,7 @@ void main() {
 //
 //   testWidgets("scroll transactions and test pull down refresh", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
 //
@@ -326,7 +323,7 @@ void main() {
 //
 //   testWidgets("node events", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
 //
@@ -407,7 +404,7 @@ void main() {
 //
 //   testWidgets("select full/available balances", (tester) async {
 //     final navigator = mockingjay.MockNavigator();
-//     final manager = MockManager();
+//     final wallet =  MockManager();
 //     final notesService = MockNotesService();
 //     final localeService = MockLocaleService();
 //

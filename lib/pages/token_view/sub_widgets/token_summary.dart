@@ -19,12 +19,10 @@ import 'package:stackwallet/pages/buy_view/buy_in_wallet_view.dart';
 import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
 import 'package:stackwallet/pages/receive_view/receive_view.dart';
 import 'package:stackwallet/pages/send_view/token_send_view.dart';
-import 'package:stackwallet/pages/token_view/token_view.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
 import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/price_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
@@ -34,6 +32,9 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
+import 'package:stackwallet/wallets/isar/providers/eth/token_balance_provider.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:tuple/tuple.dart';
@@ -51,9 +52,9 @@ class TokenSummary extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final token =
-        ref.watch(tokenServiceProvider.select((value) => value!.tokenContract));
-    final balance =
-        ref.watch(tokenServiceProvider.select((value) => value!.balance));
+        ref.watch(pCurrentTokenWallet.select((value) => value!.tokenContract));
+    final balance = ref.watch(
+        pTokenBalance((walletId: walletId, contractAddress: token.address)));
 
     return Stack(
       children: [
@@ -78,9 +79,7 @@ class TokenSummary extends ConsumerWidget {
                   ),
                   Text(
                     ref.watch(
-                      walletsChangeNotifierProvider.select(
-                        (value) => value.getManager(walletId).walletName,
-                      ),
+                      pWalletName(walletId),
                     ),
                     style: STextStyles.w500_12(context).copyWith(
                       color: Theme.of(context)
@@ -159,7 +158,7 @@ class TokenSummary extends ConsumerWidget {
             walletId: walletId,
             initialSyncStatus: initialSyncStatus,
             tokenContractAddress: ref.watch(
-              tokenServiceProvider.select(
+              pCurrentTokenWallet.select(
                 (value) => value!.tokenContract.address,
               ),
             ),
@@ -366,10 +365,11 @@ class CoinTickerTag extends ConsumerWidget {
       radiusMultiplier: 0.25,
       color: Theme.of(context).extension<StackColors>()!.ethTagBG,
       child: Text(
-        ref.watch(
-          walletsChangeNotifierProvider
-              .select((value) => value.getManager(walletId).coin.ticker),
-        ),
+        ref
+            .watch(
+              pWalletCoin(walletId),
+            )
+            .ticker,
         style: STextStyles.w600_12(context).copyWith(
           color: Theme.of(context).extension<StackColors>()!.ethTagText,
         ),

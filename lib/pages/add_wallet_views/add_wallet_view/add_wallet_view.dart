@@ -8,6 +8,7 @@
  *
  */
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -60,11 +61,9 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
   String _searchTerm = "";
 
   final List<Coin> _coinsTestnet = [
-    ...Coin.values.sublist(Coin.values.length - kTestNetCoinCount - 1),
+    ...Coin.values.where((e) => e.isTestNet),
   ];
-  final List<Coin> _coins = [
-    ...Coin.values.sublist(0, Coin.values.length - kTestNetCoinCount - 1)
-  ];
+  final List<Coin> _coins = [...Coin.values.where((e) => !e.isTestNet)];
   final List<AddWalletListEntity> coinEntities = [];
   final List<EthTokenEntity> tokenEntities = [];
 
@@ -109,6 +108,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
 
     if (contract != null) {
       await MainDB.instance.putEthContract(contract);
+      unawaited(ref.read(priceAnd24hChangeNotifierProvider).updatePrice());
       if (mounted) {
         setState(() {
           if (tokenEntities
@@ -126,7 +126,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
   void initState() {
     _searchFieldController = TextEditingController();
     _searchFocusNode = FocusNode();
-    _coinsTestnet.remove(Coin.firoTestNet);
+    // _coinsTestnet.remove(Coin.firoTestNet);
     if (Platform.isWindows) {
       _coins.remove(Coin.monero);
       _coins.remove(Coin.wownero);
@@ -145,7 +145,8 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
 
     if (contracts.isEmpty) {
       contracts.addAll(DefaultTokens.list);
-      MainDB.instance.putEthContracts(contracts);
+      MainDB.instance.putEthContracts(contracts).then(
+          (value) => ref.read(priceAnd24hChangeNotifierProvider).updatePrice());
     }
 
     tokenEntities.addAll(contracts.map((e) => EthTokenEntity(e)));

@@ -10,10 +10,12 @@
 
 import 'package:stackwallet/db/isar/main_db.dart';
 
+@Deprecated("Legacy support")
 mixin WalletDB {
   MainDB? _db;
   MainDB get db => _db!;
 
+  @Deprecated("Legacy support")
   void initWalletDB({MainDB? mockableOverride}) async {
     _db = mockableOverride ?? MainDB.instance;
   }

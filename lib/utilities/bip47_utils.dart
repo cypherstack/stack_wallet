@@ -11,12 +11,12 @@
 import 'dart:typed_data';
 
 import 'package:bip47/src/util.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/output.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 
 abstract class Bip47Utils {
   /// looks at tx outputs and returns a blinded payment code if found
-  static Uint8List? getBlindedPaymentCodeBytesFrom(Transaction transaction) {
+  static Uint8List? getBlindedPaymentCodeBytesFrom(TransactionV2 transaction) {
     for (int i = 0; i < transaction.outputs.length; i++) {
       final bytes = getBlindedPaymentCodeBytesFromOutput(
           transaction.outputs.elementAt(i));
@@ -28,7 +28,7 @@ abstract class Bip47Utils {
     return null;
   }
 
-  static Uint8List? getBlindedPaymentCodeBytesFromOutput(Output output) {
+  static Uint8List? getBlindedPaymentCodeBytesFromOutput(OutputV2 output) {
     Uint8List? blindedCodeBytes;
 
     List<String>? scriptChunks = output.scriptPubKeyAsm?.split(" ");

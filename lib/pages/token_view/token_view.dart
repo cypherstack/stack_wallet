@@ -15,34 +15,32 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/token_summary.dart';
 import 'package:stackwallet/pages/token_view/sub_widgets/token_transaction_list_widget.dart';
 import 'package:stackwallet/pages/token_view/token_contract_details_view.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
-import 'package:stackwallet/services/ethereum/ethereum_token_service.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/all_transactions_v2_view.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/eth_token_icon.dart';
 import 'package:tuple/tuple.dart';
 
-final tokenServiceStateProvider = StateProvider<EthTokenWallet?>((ref) => null);
-final tokenServiceProvider = ChangeNotifierProvider<EthTokenWallet?>(
-    (ref) => ref.watch(tokenServiceStateProvider));
-
 /// [eventBus] should only be set during testing
 class TokenView extends ConsumerStatefulWidget {
   const TokenView({
     Key? key,
     required this.walletId,
+    this.popPrevious = false,
     this.eventBus,
   }) : super(key: key);
 
   static const String routeName = "/token";
 
   final String walletId;
+  final bool popPrevious;
   final EventBus? eventBus;
 
   @override
@@ -54,7 +52,7 @@ class _TokenViewState extends ConsumerState<TokenView> {
 
   @override
   void initState() {
-    initialSyncStatus = ref.read(tokenServiceProvider)!.isRefreshing
+    initialSyncStatus = ref.read(pCurrentTokenWallet)!.refreshMutex.isLocked
         ? WalletSyncStatus.syncing
         : WalletSyncStatus.synced;
     super.initState();
@@ -69,157 +67,179 @@ class _TokenViewState extends ConsumerState<TokenView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    return Background(
-      child: Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          centerTitle: true,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    EthTokenIcon(
-                      contractAddress: ref.watch(
-                        tokenServiceProvider.select(
-                          (value) => value!.tokenContract.address,
+    return WillPopScope(
+      onWillPop: () async {
+        final nav = Navigator.of(context);
+        if (widget.popPrevious) {
+          nav.pop();
+        }
+        nav.pop();
+        return false;
+      },
+      child: Background(
+        child: Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () {
+                final nav = Navigator.of(context);
+                if (widget.popPrevious) {
+                  nav.pop();
+                }
+                nav.pop();
+              },
+            ),
+            centerTitle: true,
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      EthTokenIcon(
+                        contractAddress: ref.watch(
+                          pCurrentTokenWallet.select(
+                            (value) => value!.tokenContract.address,
+                          ),
+                        ),
+                        size: 24,
+                      ),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      Flexible(
+                        child: Text(
+                          ref.watch(pCurrentTokenWallet
+                              .select((value) => value!.tokenContract.name)),
+                          style: STextStyles.navBarTitle(context),
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
                         ),
                       ),
-                      size: 24,
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 2),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: AppBarIconButton(
+                    icon: SvgPicture.asset(
+                      Assets.svg.verticalEllipsis,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .topNavIconPrimary,
                     ),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    Flexible(
-                      child: Text(
-                        ref.watch(tokenServiceProvider
-                            .select((value) => value!.tokenContract.name)),
-                        style: STextStyles.navBarTitle(context),
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
+                    onPressed: () {
+                      // todo: context menu
+                      Navigator.of(context).pushNamed(
+                        TokenContractDetailsView.routeName,
+                        arguments: Tuple2(
+                          ref.watch(pCurrentTokenWallet
+                              .select((value) => value!.tokenContract.address)),
+                          widget.walletId,
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
             ],
           ),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 2),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: AppBarIconButton(
-                  icon: SvgPicture.asset(
-                    Assets.svg.verticalEllipsis,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .topNavIconPrimary,
-                  ),
-                  onPressed: () {
-                    // todo: context menu
-                    Navigator.of(context).pushNamed(
-                      TokenContractDetailsView.routeName,
-                      arguments: Tuple2(
-                        ref.watch(tokenServiceProvider
-                            .select((value) => value!.tokenContract.address)),
-                        widget.walletId,
-                      ),
-                    );
-                  },
+          body: Container(
+            color: Theme.of(context).extension<StackColors>()!.background,
+            child: Column(
+              children: [
+                const SizedBox(
+                  height: 10,
                 ),
-              ),
-            ),
-          ],
-        ),
-        body: Container(
-          color: Theme.of(context).extension<StackColors>()!.background,
-          child: Column(
-            children: [
-              const SizedBox(
-                height: 10,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: TokenSummary(
-                  walletId: widget.walletId,
-                  initialSyncStatus: initialSyncStatus,
-                ),
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Transactions",
-                      style: STextStyles.itemSubtitle(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark3,
-                      ),
-                    ),
-                    CustomTextButton(
-                      text: "See all",
-                      onTap: () {
-                        Navigator.of(context).pushNamed(
-                          AllTransactionsView.routeName,
-                          arguments: widget.walletId,
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(
-                height: 12,
-              ),
-              Expanded(
-                child: Padding(
+                Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(
-                        Constants.size.circularBorderRadius,
+                  child: TokenSummary(
+                    walletId: widget.walletId,
+                    initialSyncStatus: initialSyncStatus,
+                  ),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Transactions",
+                        style: STextStyles.itemSubtitle(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textDark3,
+                        ),
                       ),
-                      bottom: Radius.circular(
-                        // TokenView.navBarHeight / 2.0,
-                        Constants.size.circularBorderRadius,
+                      CustomTextButton(
+                        text: "See all",
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            AllTransactionsV2View.routeName,
+                            arguments: (
+                              walletId: widget.walletId,
+                              contractAddress: ref.watch(
+                                pCurrentTokenWallet.select(
+                                  (value) => value!.tokenContract.address,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    ),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        borderRadius: BorderRadius.circular(
+                    ],
+                  ),
+                ),
+                const SizedBox(
+                  height: 12,
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
+                        bottom: Radius.circular(
+                          // TokenView.navBarHeight / 2.0,
                           Constants.size.circularBorderRadius,
                         ),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Expanded(
-                            child: TokenTransactionsList(
-                              walletId: widget.walletId,
-                            ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
                           ),
-                        ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                              child: TokenTransactionsList(
+                                walletId: widget.walletId,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

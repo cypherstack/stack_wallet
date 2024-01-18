@@ -1,0 +1,71 @@
+import 'dart:convert';
+
+import 'package:stackwallet/networking/http.dart';
+import 'package:stackwallet/services/tor_service.dart';
+import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/utilities/prefs.dart';
+
+abstract final class TezosRpcAPI {
+  static final HTTP _client = HTTP();
+
+  static Future<BigInt?> getBalance({
+    required ({String host, int port}) nodeInfo,
+    required String address,
+  }) async {
+    try {
+      String balanceCall =
+          "${nodeInfo.host}:${nodeInfo.port}/chains/main/blocks/head/context/contracts/$address/balance";
+
+      final response = await _client.get(
+        url: Uri.parse(balanceCall),
+        headers: {'Content-Type': 'application/json'},
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
+      );
+
+      final balance =
+          BigInt.parse(response.body.substring(1, response.body.length - 2));
+      return balance;
+    } catch (e) {
+      Logging.instance.log(
+        "Error occurred in tezos_rpc_api.dart while getting balance for $address: $e",
+        level: LogLevel.Error,
+      );
+    }
+    return null;
+  }
+
+  static Future<int?> getChainHeight({
+    required ({String host, int port}) nodeInfo,
+  }) async {
+    try {
+      final api =
+          "${nodeInfo.host}:${nodeInfo.port}/chains/main/blocks/head/header/shell";
+
+      final response = await _client.get(
+        url: Uri.parse(api),
+        headers: {'Content-Type': 'application/json'},
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
+      );
+
+      final jsonParsedResponse = jsonDecode(response.body);
+      return int.parse(jsonParsedResponse["level"].toString());
+    } catch (e) {
+      Logging.instance.log(
+        "Error occurred in tezos_rpc_api.dart while getting chain height for tezos: $e",
+        level: LogLevel.Error,
+      );
+    }
+    return null;
+  }
+
+  static Future<bool> testNetworkConnection({
+    required ({String host, int port}) nodeInfo,
+  }) async {
+    final result = await getChainHeight(nodeInfo: nodeInfo);
+    return result != null;
+  }
+}

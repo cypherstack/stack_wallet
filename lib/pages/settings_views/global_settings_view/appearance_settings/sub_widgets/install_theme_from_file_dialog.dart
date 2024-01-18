@@ -164,7 +164,7 @@ class _InstallThemeFromFileDialogState
                     );
                     if (mounted) {
                       Navigator.of(context).pop();
-                      if (!result) {
+                      if (!result!) {
                         unawaited(
                           showDialog(
                             context: context,

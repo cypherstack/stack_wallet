@@ -71,7 +71,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
       } else {
         ref
             .read(addressBookFilterProvider)
-            .addAll(coins.getRange(0, coins.length - kTestNetCoinCount), false);
+            .addAll(coins.where((e) => !e.isTestNet), false);
       }
     } else {
       ref.read(addressBookFilterProvider).add(widget.coin!, false);
@@ -79,14 +79,14 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       List<ContactAddressEntry> addresses = [];
-      final managers = ref.read(walletsChangeNotifierProvider).managers;
-      for (final manager in managers) {
+      final wallets = ref.read(pWallets).wallets;
+      for (final wallet in wallets) {
         addresses.add(
           ContactAddressEntry()
-            ..coinName = manager.coin.name
-            ..address = await manager.currentReceivingAddress
+            ..coinName = wallet.info.coin.name
+            ..address = (await wallet.getCurrentReceivingAddress())!.value
             ..label = "Current Receiving"
-            ..other = manager.walletName,
+            ..other = wallet.info.name,
         );
       }
       final self = ContactEntry(
