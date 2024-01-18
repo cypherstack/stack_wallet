@@ -44,6 +44,8 @@ extension DerivePathTypeExt on DerivePathType {
       case Coin.ethereum: // TODO: do we need something here?
         return DerivePathType.eth;
 
+      case Coin.bitcoinFrost:
+      case Coin.bitcoinFrostTestNet:
       case Coin.epicCash:
       case Coin.monero:
       case Coin.wownero:

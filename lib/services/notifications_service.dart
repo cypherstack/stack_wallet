@@ -24,6 +24,7 @@ import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 
 import 'exchange/exchange.dart';
 
@@ -123,7 +124,7 @@ class NotificationsService extends ChangeNotifier {
 
         final node = nodeService.getPrimaryNodeFor(coin: coin);
         if (node != null) {
-          if (coin.isElectrumXCoin) {
+          if (wallet is ElectrumXInterface) {
             final eNode = ElectrumXNode(
               address: node.host,
               port: node.port,

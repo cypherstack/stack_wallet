@@ -25,6 +25,7 @@ import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/banano_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoincash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/dogecoin_wallet.dart';
@@ -310,6 +311,11 @@ abstract class Wallet<T extends CryptoCurrency> {
         return BitcoinWallet(CryptoCurrencyNetwork.main);
       case Coin.bitcoinTestNet:
         return BitcoinWallet(CryptoCurrencyNetwork.test);
+
+      case Coin.bitcoinFrost:
+        return BitcoinFrostWallet(CryptoCurrencyNetwork.main);
+      case Coin.bitcoinFrostTestNet:
+        return BitcoinFrostWallet(CryptoCurrencyNetwork.test);
 
       case Coin.bitcoincash:
         return BitcoincashWallet(CryptoCurrencyNetwork.main);

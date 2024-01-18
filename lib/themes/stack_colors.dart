@@ -1680,6 +1680,8 @@ class StackColors extends ThemeExtension<StackColors> {
     switch (coin) {
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
+      case Coin.bitcoinFrost:
+      case Coin.bitcoinFrostTestNet:
         return _coin.bitcoin;
       case Coin.litecoin:
       case Coin.litecoinTestNet:
