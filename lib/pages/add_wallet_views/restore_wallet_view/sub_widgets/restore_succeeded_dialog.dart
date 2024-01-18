@@ -51,7 +51,7 @@ class RestoreSucceededDialog extends StatelessWidget {
               height: 16,
             ),
             Text(
-              "You can use your wallet now.",
+              "You may access your wallet now.",
               style: STextStyles.desktopTextMedium(context).copyWith(
                 color: Theme.of(context).extension<StackColors>()!.textDark3,
               ),
@@ -80,7 +80,7 @@ class RestoreSucceededDialog extends StatelessWidget {
     } else {
       return StackDialog(
         title: "Wallet restored",
-        message: "You can use your wallet now.",
+        message: "You may access your wallet now.",
         icon: SvgPicture.asset(
           Assets.svg.checkCircle,
           width: 24,
