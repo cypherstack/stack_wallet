@@ -395,6 +395,24 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
           walletInfo.address = wallet.walletAddresses.address;
           await DB.instance
               .add<WalletInfo>(boxName: WalletInfo.boxName, value: walletInfo);
+          if (walletInfo.address != null) {
+            final newReceivingAddress = await getCurrentReceivingAddress() ??
+                Address(
+                  walletId: walletId,
+                  derivationIndex: 0,
+                  derivationPath: null,
+                  value: walletInfo.address!,
+                  publicKey: [],
+                  type: AddressType.cryptonote,
+                  subType: AddressSubType.receiving,
+                );
+
+            await mainDB.updateOrPutAddresses([newReceivingAddress]);
+            await info.updateReceivingAddress(
+              newAddress: newReceivingAddress.value,
+              isar: mainDB.isar,
+            );
+          }
           cwWalletBase?.close();
           cwWalletBase = wallet as MoneroWalletBase;
         } catch (e, s) {
