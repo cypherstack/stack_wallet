@@ -9,7 +9,7 @@ Here you will find instructions on how to install the necessary tools for buildi
 - 100 GB of storage
 
 ## Linux host
-The following instructions are for building and running on a Linux host.  Alternatively, see the [Windows](#Windows host) section.
+The following instructions are for building and running on a Linux host.  Alternatively, see the [Mac](#mac-host) and/or [Windows](#windows-host) section.
 
 ### Android Studio
 Install Android Studio.  Follow instructions here [https://developer.android.com/studio/install#linux](https://developer.android.com/studio/install#linux) or install via snap:
@@ -44,6 +44,7 @@ Install [Rust](https://www.rust-lang.org/tools/install) with command:
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source ~/.bashrc 
 rustup install 1.67.1
+rustup install 1.72.0
 rustup default 1.67.1
 ```
 
@@ -128,6 +129,44 @@ Run the following commands or launch via Android Studio:
 flutter pub get
 flutter run linux
 ```
+
+## Mac host
+
+### Dependencies
+XCode, Homebrew and several homebrew packages, Rust, and Flutter are required for Mac development with the Flutter SDK.  Multiple IDEs may work, but Android Studio is recommended.
+
+Download and install Xcode at https://developer.apple.com/xcode/, register your device (Mac or iPhone), and enable developer mode for your device as applicable.
+
+Download and install [Homebrew](https://brew.sh/).  The following command can install it via script:
+```
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+After installing Homebrew, install the following packages:
+```
+brew install cocoapods git cmake autoconf fontconfig libpng lz4 pkg-config automake freetype libssh2 lzo procs berkeley-db gdbm libtool m4 rtmpdump brotli gettext libunistring make rustup-init ca-certificates git-gui libx11 openldap tcl-tk cairo glib libxau openssl@1.1 unbound cbindgen gmp libxcb openssl@3 unzip cmake libevent libxdmcp pcre2 xorgproto coreutils libidn2 libxext perl xz curl libnghttp2 libxrender pixman zstd
+```
+
+Download and install [Rust](https://www.rust-lang.org/tools/install).  [Rustup](https://rustup.rs/) is recommended for Rust setup.  Use `rustc` to confirm successful installation.  Install toolchains 1.67.1 and 1.72.0 and `cbindgen` and `cargo-lipo` too.  You will also have to add the platform targets `aarch64-apple-ios` and/or `aarch64-apple-darwin`.  You can use the command(s):
+```
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source ~/.bashrc 
+rustup install 1.67.1
+rustup install 1.72.0
+rustup default 1.67.1
+cargo install cbindgen cargo-lipo
+rustup target add aarch64-apple-ios aarch64-apple-darwin
+```
+
+Download and install [Flutter](https://docs.flutter.dev/get-started/install).  Versions 3.16.8 and 3.10.6 should both work.  Use `flutter doctor` to confirm successful installation. 
+
+Download [Android Studio](https://developer.android.com/studio).  VS Code may work as an alternative, but this is not recommended.
+
+### Building libraries
+
+### Install Flutter on Mac host
+Install Flutter 3.10.3 on your Mac host by following these instructions: https://docs.flutter.dev/get-started/install/macos.  Run `flutter doctor` in PowerShell to confirm its installation.
+
 
 ## Windows host
 ### Visual Studio
