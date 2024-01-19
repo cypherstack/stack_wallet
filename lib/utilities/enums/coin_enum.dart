@@ -297,6 +297,17 @@ extension CoinExt on Coin {
     }
   }
 
+  bool get isFrost {
+    switch (this) {
+      case Coin.bitcoinFrost:
+      case Coin.bitcoinFrostTestNet:
+        return true;
+
+      default:
+        return false;
+    }
+  }
+
   Coin get mainNetVersion {
     switch (this) {
       case Coin.bitcoin:
@@ -494,6 +505,15 @@ Coin coinFromPrettyName(String name) {
     case "stellarTestNet":
     case "tStellar":
       return Coin.stellarTestnet;
+
+    case "Bitcoin Frost":
+    case "bitcoinFrost":
+      return Coin.bitcoinFrost;
+
+    case "Bitcoin Frost Testnet":
+    case "tBitcoin Frost":
+    case "bitcoinFrostTestNet":
+      return Coin.bitcoinFrostTestNet;
 
     default:
       throw ArgumentError.value(

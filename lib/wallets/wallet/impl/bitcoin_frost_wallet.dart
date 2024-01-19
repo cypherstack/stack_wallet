@@ -171,7 +171,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
         }
       }
 
-      final serializedKeys = await _getSerializedKeys();
+      final serializedKeys = await getSerializedKeys();
       final keys = frost.deserializeKeys(keys: serializedKeys!);
 
       final int network = cryptoCurrency.network == CryptoCurrencyNetwork.main
@@ -213,7 +213,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
     final int network = cryptoCurrency.network == CryptoCurrencyNetwork.main
         ? Network.Mainnet
         : Network.Testnet;
-    final serializedKeys = await _getSerializedKeys();
+    final serializedKeys = await getSerializedKeys();
 
     return Frost.attemptSignConfig(
       network: network,
@@ -859,7 +859,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
 
   // =================== Secure storage ========================================
 
-  Future<String?> _getSerializedKeys() async =>
+  Future<String?> getSerializedKeys() async =>
       await secureStorageInterface.read(
         key: "{$walletId}_serializedFROSTKeys",
       );
@@ -867,7 +867,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
   Future<void> _saveSerializedKeys(
     String keys,
   ) async {
-    final current = await _getSerializedKeys();
+    final current = await getSerializedKeys();
 
     if (current == null) {
       // do nothing
