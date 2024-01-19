@@ -6,7 +6,7 @@ set -e
 source ../rust_version.sh
 set_rust_to_1671
 
-mkdir build
+mkdir -p build
 . ./config.sh
 ./install_ndk.sh
 
