@@ -457,18 +457,57 @@ class _NewWalletRecoveryPhraseWarningViewState
                                         );
                                       },
                                     ));
+                                    String? otherDataJsonString;
+                                    if (widget.coin == Coin.tezos) {
+                                      otherDataJsonString = jsonEncode({
+                                        WalletInfoKeys.tezosDerivationPath:
+                                            Tezos.standardDerivationPath.value,
+                                      });
+                                      //  }//todo: probably not needed (broken anyways)
+                                      // else if (widget.coin == Coin.epicCash) {
+                                      //    final int secondsSinceEpoch =
+                                      //        DateTime.now().millisecondsSinceEpoch ~/ 1000;
+                                      //    const int epicCashFirstBlock = 1565370278;
+                                      //    const double overestimateSecondsPerBlock = 61;
+                                      //    int chosenSeconds = secondsSinceEpoch - epicCashFirstBlock;
+                                      //    int approximateHeight = chosenSeconds ~/ overestimateSecondsPerBlock;
+                                      //    /
+                                      //    // debugPrint(
+                                      //    //     "approximate height: $approximateHeight chosen_seconds: $chosenSeconds");
+                                      //    height = approximateHeight;
+                                      //    if (height < 0) {
+                                      //      height = 0;
+                                      //    }
+                                      //
+                                      //    otherDataJsonString = jsonEncode(
+                                      //      {
+                                      //        WalletInfoKeys.epiccashData: jsonEncode(
+                                      //          ExtraEpiccashWalletInfo(
+                                      //            receivingIndex: 0,
+                                      //            changeIndex: 0,
+                                      //            slatesToAddresses: {},
+                                      //            slatesToCommits: {},
+                                      //            lastScannedBlock: epicCashFirstBlock,
+                                      //            restoreHeight: height,
+                                      //            creationHeight: height,
+                                      //          ).toMap(),
+                                      //        ),
+                                      //      },
+                                      //    );
+                                    } else if (widget.coin == Coin.firo) {
+                                      otherDataJsonString = jsonEncode(
+                                        {
+                                          WalletInfoKeys
+                                                  .lelantusCoinIsarRescanRequired:
+                                              false,
+                                        },
+                                      );
+                                    }
 
                                     final info = WalletInfo.createNew(
                                       coin: widget.coin,
                                       name: widget.walletName,
-                                      otherDataJsonString: coin == Coin.tezos
-                                          ? jsonEncode({
-                                              WalletInfoKeys
-                                                      .tezosDerivationPath:
-                                                  Tezos.standardDerivationPath
-                                                      .value,
-                                            })
-                                          : null,
+                                      otherDataJsonString: otherDataJsonString,
                                     );
 
                                     var node = ref
