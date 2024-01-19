@@ -12,27 +12,30 @@ class FrostWalletInfo implements IsarId {
   final String walletId;
 
   final List<String> knownSalts;
+  final List<String> participants;
+  final String myName;
+  final int threshold;
 
   FrostWalletInfo({
     required this.walletId,
     required this.knownSalts,
+    required this.participants,
+    required this.myName,
+    required this.threshold,
   });
 
   FrostWalletInfo copyWith({
     List<String>? knownSalts,
+    List<String>? participants,
+    String? myName,
+    int? threshold,
   }) {
     return FrostWalletInfo(
       walletId: walletId,
       knownSalts: knownSalts ?? this.knownSalts,
-    );
-  }
-
-  Future<void> updateKnownSalts(
-    List<String> knownSalts, {
-    required Isar isar,
-  }) async {
-    // await isar.writeTxn(() async {
-    //   await isar.
-    // })
+      participants: participants ?? this.participants,
+      myName: myName ?? this.myName,
+      threshold: threshold ?? this.threshold,
+    )..id = id;
   }
 }

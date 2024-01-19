@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:stackwallet/models/node_model.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
@@ -47,6 +48,12 @@ class BitcoinFrost extends FrostCurrency {
         throw Exception("Unsupported network: $network");
     }
   }
+
+  @override
+  Amount get dustLimit => Amount(
+        rawValue: BigInt.from(294),
+        fractionDigits: fractionDigits,
+      );
 
   @override
   String pubKeyToScriptHash({required Uint8List pubKey}) {

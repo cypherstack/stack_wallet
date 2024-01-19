@@ -289,7 +289,7 @@ abstract class Wallet<T extends CryptoCurrency> {
     wallet.prefs = prefs;
     wallet.nodeService = nodeService;
 
-    if (wallet is ElectrumXInterface) {
+    if (wallet is ElectrumXInterface || wallet is BitcoinFrostWallet) {
       // initialize electrumx instance
       await wallet.updateNode();
     }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ffi';
 
 import 'package:flutter/foundation.dart';
 import 'package:frostdart/frostdart.dart' as frost;
@@ -8,8 +9,15 @@ import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
+import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/frost.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -19,20 +27,274 @@ import 'package:stackwallet/wallets/crypto_currency/intermediate/private_key_cur
 import 'package:stackwallet/wallets/isar/models/frost_wallet_info.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/private_key_interface.dart';
 
-class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
-    with PrivateKeyInterface {
-  FrostWalletInfo get frostInfo => throw UnimplementedError();
+class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
+  BitcoinFrostWallet(CryptoCurrencyNetwork network)
+      : super(BitcoinFrost(network) as T);
+
+  FrostWalletInfo get frostInfo => mainDB.isar.frostWalletInfo
+      .where()
+      .walletIdEqualTo(walletId)
+      .findFirstSync()!;
 
   late ElectrumXClient electrumXClient;
   late CachedElectrumXClient electrumXCachedClient;
 
+  Future<void> initializeNewFrost({
+    required String mnemonic,
+    required String multisigConfig,
+    required String recoveryString,
+    required String serializedKeys,
+    required Uint8List multisigId,
+    required String myName,
+    required List<String> participants,
+    required int threshold,
+  }) async {
+    Logging.instance.log(
+      "Generating new FROST wallet.",
+      level: LogLevel.Info,
+    );
+
+    try {
+      final salt = frost
+          .multisigSalt(
+            multisigConfig: multisigConfig,
+          )
+          .toHex;
+
+      final FrostWalletInfo frostWalletInfo = FrostWalletInfo(
+        walletId: info.walletId,
+        knownSalts: [salt],
+        participants: participants,
+        myName: myName,
+        threshold: threshold,
+      );
+
+      await secureStorageInterface.write(
+        key: Wallet.mnemonicKey(walletId: info.walletId),
+        value: mnemonic,
+      );
+      await secureStorageInterface.write(
+        key: Wallet.mnemonicPassphraseKey(walletId: info.walletId),
+        value: "",
+      );
+      await _saveSerializedKeys(serializedKeys);
+      await _saveRecoveryString(recoveryString);
+      await _saveMultisigId(multisigId);
+      await _saveMultisigConfig(multisigConfig);
+
+      await mainDB.isar.frostWalletInfo.put(frostWalletInfo);
+
+      final keys = frost.deserializeKeys(keys: serializedKeys);
+
+      final addressString = frost.addressForKeys(
+        network: cryptoCurrency.network == CryptoCurrencyNetwork.main
+            ? Network.Mainnet
+            : Network.Testnet,
+        keys: keys,
+      );
+
+      final publicKey = frost.scriptPubKeyForKeys(keys: keys);
+
+      final address = Address(
+        walletId: info.walletId,
+        value: addressString,
+        publicKey: publicKey.toUint8ListFromHex,
+        derivationIndex: 0,
+        derivationPath: null,
+        subType: AddressSubType.receiving,
+        type: AddressType.unknown,
+      );
+
+      await mainDB.putAddresses([address]);
+    } catch (e, s) {
+      Logging.instance.log(
+        "Exception rethrown from initializeNewFrost(): $e\n$s",
+        level: LogLevel.Fatal,
+      );
+      rethrow;
+    }
+  }
+
+  Future<TxData> frostCreateSignConfig({
+    required TxData txData,
+    required String changeAddress,
+    required int feePerWeight,
+  }) async {
+    try {
+      if (txData.recipients == null || txData.recipients!.isEmpty) {
+        throw Exception("No recipients found!");
+      }
+
+      final total = txData.recipients!
+          .map((e) => e.amount)
+          .reduce((value, e) => value += e);
+
+      final utxos = await mainDB
+          .getUTXOs(walletId)
+          .filter()
+          .isBlockedEqualTo(false)
+          .findAll();
+
+      if (utxos.isEmpty) {
+        throw Exception("No UTXOs found");
+      } else {
+        final currentHeight = await chainHeight;
+        utxos.removeWhere(
+          (e) => !e.isConfirmed(
+            currentHeight,
+            cryptoCurrency.minConfirms,
+          ),
+        );
+        if (utxos.isEmpty) {
+          throw Exception("No confirmed UTXOs found");
+        }
+      }
+
+      if (total.raw >
+          utxos.map((e) => BigInt.from(e.value)).reduce((v, e) => v += e)) {
+        throw Exception("Insufficient available funds");
+      }
+
+      Amount sum = Amount.zeroWith(
+        fractionDigits: cryptoCurrency.fractionDigits,
+      );
+      final Set<UTXO> utxosToUse = {};
+      for (final utxo in utxos) {
+        sum += Amount(
+          rawValue: BigInt.from(utxo.value),
+          fractionDigits: cryptoCurrency.fractionDigits,
+        );
+        utxosToUse.add(utxo);
+        if (sum > total) {
+          break;
+        }
+      }
+
+      final serializedKeys = await _getSerializedKeys();
+      final keys = frost.deserializeKeys(keys: serializedKeys!);
+
+      final int network = cryptoCurrency.network == CryptoCurrencyNetwork.main
+          ? Network.Mainnet
+          : Network.Testnet;
+
+      final publicKey = frost
+          .scriptPubKeyForKeys(
+            keys: keys,
+          )
+          .toUint8ListFromHex;
+
+      final config = Frost.createSignConfig(
+        network: network,
+        inputs: utxosToUse
+            .map((e) => (
+                  utxo: e,
+                  scriptPubKey: publicKey,
+                ))
+            .toList(),
+        outputs: txData.recipients!,
+        changeAddress: (await getCurrentReceivingAddress())!.value,
+        feePerWeight: feePerWeight,
+      );
+
+      return txData.copyWith(frostMSConfig: config, utxos: utxosToUse);
+    } catch (_) {
+      rethrow;
+    }
+  }
+
+  Future<
+      ({
+        Pointer<TransactionSignMachineWrapper> machinePtr,
+        String preprocess,
+      })> frostAttemptSignConfig({
+    required String config,
+  }) async {
+    final int network = cryptoCurrency.network == CryptoCurrencyNetwork.main
+        ? Network.Mainnet
+        : Network.Testnet;
+    final serializedKeys = await _getSerializedKeys();
+
+    return Frost.attemptSignConfig(
+      network: network,
+      config: config,
+      serializedKeys: serializedKeys!,
+    );
+  }
+
+  Future<void> updateWithResharedData({
+    required String serializedKeys,
+    required String multisigConfig,
+    required bool isNewWallet,
+  }) async {
+    await _saveSerializedKeys(serializedKeys);
+    await _saveMultisigConfig(multisigConfig);
+
+    await _updateThreshold(
+      frost.getThresholdFromKeys(
+        serializedKeys: serializedKeys,
+      ),
+    );
+
+    final myNameIndex = frost.getParticipantIndexFromKeys(
+      serializedKeys: serializedKeys,
+    );
+    final participants = Frost.getParticipants(
+      multisigConfig: multisigConfig,
+    );
+    final myName = participants[myNameIndex];
+
+    await _updateParticipants(participants);
+    await _updateMyName(myName);
+
+    if (isNewWallet) {
+      await recover(
+        serializedKeys: serializedKeys,
+        multisigConfig: multisigConfig,
+        isRescan: false,
+      );
+    }
+  }
+
+  Future<Amount> sweepAllEstimate(int feeRate) async {
+    int available = 0;
+    int inputCount = 0;
+    final height = await chainHeight;
+    for (final output in (await mainDB.getUTXOs(walletId).findAll())) {
+      if (!output.isBlocked &&
+          output.isConfirmed(height, cryptoCurrency.minConfirms)) {
+        available += output.value;
+        inputCount++;
+      }
+    }
+
+    // transaction will only have 1 output minus the fee
+    final estimatedFee = _roughFeeEstimate(inputCount, 1, feeRate);
+
+    return Amount(
+          rawValue: BigInt.from(available),
+          fractionDigits: cryptoCurrency.fractionDigits,
+        ) -
+        estimatedFee;
+  }
+
+  // int _estimateTxFee({required int vSize, required int feeRatePerKB}) {
+  //   return vSize * (feeRatePerKB / 1000).ceil();
+  // }
+
+  Amount _roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
+    return Amount(
+      rawValue: BigInt.from(
+          ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
+              (feeRatePerKB / 1000).ceil()),
+      fractionDigits: cryptoCurrency.fractionDigits,
+    );
+  }
+
+  // ==================== Overrides ============================================
+
   @override
   int get isarTransactionVersion => 2;
-
-  BitcoinFrostWallet(CryptoCurrencyNetwork network)
-      : super(BitcoinFrost(network) as T);
 
   @override
   FilterOperation? get changeAddressFilterOperation => FilterGroup.and(
@@ -62,62 +324,321 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         ],
       );
 
-  // Future<List<Address>> fetchAddressesForElectrumXScan() async {
-  //   final allAddresses = await mainDB
-  //       .getAddresses(walletId)
-  //       .filter()
-  //       .typeEqualTo(AddressType.frostMS)
-  //       .and()
-  //       .group(
-  //         (q) => q
-  //             .subTypeEqualTo(AddressSubType.receiving)
-  //             .or()
-  //             .subTypeEqualTo(AddressSubType.change),
-  //       )
-  //       .findAll();
-  //   return allAddresses;
-  // }
+  @override
+  Future<void> updateTransactions() async {
+    final myAddress = (await getCurrentReceivingAddress())!;
+
+    final scriptHash = cryptoCurrency.pubKeyToScriptHash(
+      pubKey: Uint8List.fromList(myAddress.publicKey),
+    );
+    final allTxHashes =
+        (await electrumXClient.getHistory(scripthash: scriptHash)).toSet();
+
+    final currentHeight = await chainHeight;
+    final coin = info.coin;
+
+    List<Map<String, dynamic>> allTransactions = [];
+
+    for (final txHash in allTxHashes) {
+      final storedTx = await mainDB.isar.transactionV2s
+          .where()
+          .walletIdEqualTo(walletId)
+          .filter()
+          .txidEqualTo(txHash["tx_hash"] as String)
+          .findFirst();
+
+      if (storedTx == null ||
+          !storedTx.isConfirmed(currentHeight, cryptoCurrency.minConfirms)) {
+        final tx = await electrumXCachedClient.getTransaction(
+          txHash: txHash["tx_hash"] as String,
+          verbose: true,
+          coin: coin,
+        );
+
+        if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
+          tx["height"] = txHash["height"];
+          allTransactions.add(tx);
+        }
+      }
+    }
+
+    // Parse all new txs.
+    final List<TransactionV2> txns = [];
+    for (final txData in allTransactions) {
+      bool wasSentFromThisWallet = false;
+      // Set to true if any inputs were detected as owned by this wallet.
+
+      bool wasReceivedInThisWallet = false;
+      // Set to true if any outputs were detected as owned by this wallet.
+
+      // Parse inputs.
+      BigInt amountReceivedInThisWallet = BigInt.zero;
+      final List<InputV2> inputs = [];
+      for (final jsonInput in txData["vin"] as List) {
+        final map = Map<String, dynamic>.from(jsonInput as Map);
+
+        final List<String> addresses = [];
+        String valueStringSats = "0";
+        OutpointV2? outpoint;
+
+        final coinbase = map["coinbase"] as String?;
+
+        if (coinbase == null) {
+          // Not a coinbase (ie a typical input).
+          final txid = map["txid"] as String;
+          final vout = map["vout"] as int;
+
+          final inputTx = await electrumXCachedClient.getTransaction(
+            txHash: txid,
+            coin: cryptoCurrency.coin,
+          );
+
+          final prevOutJson = Map<String, dynamic>.from(
+              (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout)
+                  as Map);
+
+          final prevOut = OutputV2.fromElectrumXJson(
+            prevOutJson,
+            decimalPlaces: cryptoCurrency.fractionDigits,
+            isFullAmountNotSats: true,
+            walletOwns: false, // Doesn't matter here as this is not saved.
+          );
+
+          outpoint = OutpointV2.isarCantDoRequiredInDefaultConstructor(
+            txid: txid,
+            vout: vout,
+          );
+          valueStringSats = prevOut.valueStringSats;
+          addresses.addAll(prevOut.addresses);
+        }
+
+        InputV2 input = InputV2.fromElectrumxJson(
+          json: map,
+          outpoint: outpoint,
+          valueStringSats: valueStringSats,
+          addresses: addresses,
+          coinbase: coinbase,
+          // Need addresses before we can know if the wallet owns this input.
+          walletOwns: false,
+        );
+
+        // Check if input was from this wallet.
+        if (input.addresses.contains(myAddress.value)) {
+          wasSentFromThisWallet = true;
+          input = input.copyWith(walletOwns: true);
+        }
+
+        inputs.add(input);
+      }
+
+      // Parse outputs.
+      final List<OutputV2> outputs = [];
+      for (final outputJson in txData["vout"] as List) {
+        OutputV2 output = OutputV2.fromElectrumXJson(
+          Map<String, dynamic>.from(outputJson as Map),
+          decimalPlaces: cryptoCurrency.fractionDigits,
+          isFullAmountNotSats: true,
+          // Need addresses before we can know if the wallet owns this input.
+          walletOwns: false,
+        );
+
+        // If output was to my wallet, add value to amount received.
+        if (output.addresses.contains(myAddress.value)) {
+          wasReceivedInThisWallet = true;
+          amountReceivedInThisWallet += output.value;
+          output = output.copyWith(walletOwns: true);
+        }
+
+        outputs.add(output);
+      }
+
+      final totalOut = outputs
+          .map((e) => e.value)
+          .fold(BigInt.zero, (value, element) => value + element);
+
+      TransactionType type;
+      TransactionSubType subType = TransactionSubType.none;
+      if (outputs.length > 1 && inputs.isNotEmpty) {
+        for (int i = 0; i < outputs.length; i++) {
+          List<String>? scriptChunks = outputs[i].scriptPubKeyAsm?.split(" ");
+          if (scriptChunks?.length == 2 && scriptChunks?[0] == "OP_RETURN") {
+            final blindedPaymentCode = scriptChunks![1];
+            final bytes = blindedPaymentCode.toUint8ListFromHex;
+
+            // https://en.bitcoin.it/wiki/BIP_0047#Sending
+            if (bytes.length == 80 && bytes.first == 1) {
+              subType = TransactionSubType.bip47Notification;
+              break;
+            }
+          }
+        }
+      }
+
+      // At least one input was owned by this wallet.
+      if (wasSentFromThisWallet) {
+        type = TransactionType.outgoing;
+
+        if (wasReceivedInThisWallet) {
+          if (amountReceivedInThisWallet == totalOut) {
+            // Definitely sent all to self.
+            type = TransactionType.sentToSelf;
+          } else if (amountReceivedInThisWallet == BigInt.zero) {
+            // Most likely just a typical send, do nothing here yet.
+          }
+        }
+      } else if (wasReceivedInThisWallet) {
+        // Only found outputs owned by this wallet.
+        type = TransactionType.incoming;
+      } else {
+        Logging.instance.log(
+          "Unexpected tx found (ignoring it): $txData",
+          level: LogLevel.Error,
+        );
+        continue;
+      }
+
+      final tx = TransactionV2(
+        walletId: walletId,
+        blockHash: txData["blockhash"] as String?,
+        hash: txData["hash"] as String,
+        txid: txData["txid"] as String,
+        height: txData["height"] as int?,
+        version: txData["version"] as int,
+        timestamp: txData["blocktime"] as int? ??
+            DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
+        inputs: List.unmodifiable(inputs),
+        outputs: List.unmodifiable(outputs),
+        type: type,
+        subType: subType,
+        otherData: null,
+      );
+
+      txns.add(tx);
+    }
+
+    await mainDB.updateOrPutTransactionV2s(txns);
+  }
 
   @override
-  Future<void> updateTransactions() {
-    // TODO: implement updateTransactions
-    throw UnimplementedError();
+  Future<void> checkSaveInitialReceivingAddress() async {
+    // should not be needed for frost as we explicitly save the address
+    // on new init and restore
   }
 
-  int estimateTxFee({required int vSize, required int feeRatePerKB}) {
-    return vSize * (feeRatePerKB / 1000).ceil();
+  @override
+  Future<TxData> confirmSend({required TxData txData}) async {
+    try {
+      Logging.instance.log("confirmSend txData: $txData", level: LogLevel.Info);
+
+      final hex = txData.raw!;
+
+      final txHash = await electrumXClient.broadcastTransaction(rawTx: hex);
+      Logging.instance.log("Sent txHash: $txHash", level: LogLevel.Info);
+
+      // mark utxos as used
+      final usedUTXOs = txData.utxos!.map((e) => e.copyWith(used: true));
+      await mainDB.putUTXOs(usedUTXOs.toList());
+
+      txData = txData.copyWith(
+        utxos: usedUTXOs.toSet(),
+        txHash: txHash,
+        txid: txHash,
+      );
+
+      return txData;
+    } catch (e, s) {
+      Logging.instance.log("Exception rethrown from confirmSend(): $e\n$s",
+          level: LogLevel.Error);
+      rethrow;
+    }
   }
 
-  Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
-    return Amount(
-      rawValue: BigInt.from(
-          ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
-              (feeRatePerKB / 1000).ceil()),
+  @override
+  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
+    final available = info.cachedBalance.spendable;
+
+    if (available == amount) {
+      return amount - (await sweepAllEstimate(feeRate));
+    } else if (amount <= Amount.zero || amount > available) {
+      return _roughFeeEstimate(1, 2, feeRate);
+    }
+
+    Amount runningBalance = Amount(
+      rawValue: BigInt.zero,
       fractionDigits: cryptoCurrency.fractionDigits,
     );
+    int inputCount = 0;
+    for (final output in (await mainDB.getUTXOs(walletId).findAll())) {
+      if (!output.isBlocked) {
+        runningBalance += Amount(
+          rawValue: BigInt.from(output.value),
+          fractionDigits: cryptoCurrency.fractionDigits,
+        );
+        inputCount++;
+        if (runningBalance > amount) {
+          break;
+        }
+      }
+    }
+
+    final oneOutPutFee = _roughFeeEstimate(inputCount, 1, feeRate);
+    final twoOutPutFee = _roughFeeEstimate(inputCount, 2, feeRate);
+
+    if (runningBalance - amount > oneOutPutFee) {
+      if (runningBalance - amount > oneOutPutFee + cryptoCurrency.dustLimit) {
+        final change = runningBalance - amount - twoOutPutFee;
+        if (change > cryptoCurrency.dustLimit &&
+            runningBalance - amount - change == twoOutPutFee) {
+          return runningBalance - amount - change;
+        } else {
+          return runningBalance - amount;
+        }
+      } else {
+        return runningBalance - amount;
+      }
+    } else if (runningBalance - amount == oneOutPutFee) {
+      return oneOutPutFee;
+    } else {
+      return twoOutPutFee;
+    }
   }
 
   @override
-  Future<void> checkSaveInitialReceivingAddress() {
-    // TODO: implement checkSaveInitialReceivingAddress
-    throw UnimplementedError();
-  }
+  Future<FeeObject> get fees async {
+    try {
+      // adjust numbers for different speeds?
+      const int f = 1, m = 5, s = 20;
 
-  @override
-  Future<TxData> confirmSend({required TxData txData}) {
-    // TODO: implement confirmSend
-    throw UnimplementedError();
-  }
+      final fast = await electrumXClient.estimateFee(blocks: f);
+      final medium = await electrumXClient.estimateFee(blocks: m);
+      final slow = await electrumXClient.estimateFee(blocks: s);
 
-  @override
-  Future<Amount> estimateFeeFor(Amount amount, int feeRate) {
-    // TODO: implement estimateFeeFor
-    throw UnimplementedError();
-  }
+      final feeObject = FeeObject(
+        numberOfBlocksFast: f,
+        numberOfBlocksAverage: m,
+        numberOfBlocksSlow: s,
+        fast: Amount.fromDecimal(
+          fast,
+          fractionDigits: cryptoCurrency.fractionDigits,
+        ).raw.toInt(),
+        medium: Amount.fromDecimal(
+          medium,
+          fractionDigits: cryptoCurrency.fractionDigits,
+        ).raw.toInt(),
+        slow: Amount.fromDecimal(
+          slow,
+          fractionDigits: cryptoCurrency.fractionDigits,
+        ).raw.toInt(),
+      );
 
-  @override
-  // TODO: implement fees
-  Future<FeeObject> get fees => throw UnimplementedError();
+      Logging.instance.log("fetched fees: $feeObject", level: LogLevel.Info);
+      return feeObject;
+    } catch (e) {
+      Logging.instance
+          .log("Exception rethrown from _getFees(): $e", level: LogLevel.Error);
+      rethrow;
+    }
+  }
 
   @override
   Future<TxData> prepareSend({required TxData txData}) {
@@ -138,6 +659,16 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
       );
     }
 
+    final coin = info.coin;
+
+    GlobalEventBus.instance.fire(
+      WalletSyncStatusChangedEvent(
+        WalletSyncStatus.syncing,
+        walletId,
+        coin,
+      ),
+    );
+
     try {
       await refreshMutex.protect(() async {
         if (!isRescan) {
@@ -146,12 +677,16 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
                 multisigConfig: multisigConfig,
               )
               .toHex;
-          final knownSalts = frostInfo.knownSalts;
+          final knownSalts = _getKnownSalts();
           if (knownSalts.contains(salt)) {
             throw Exception("Known frost multisig salt found!");
           }
           knownSalts.add(salt);
-          await frostInfo.updateKnownSalts(knownSalts, isar: mainDB.isar);
+          await _updateKnownSalts(knownSalts);
+        } else {
+          // clear cache
+          await electrumXCachedClient.clearSharedTransactionCache(coin: coin);
+          await mainDB.deleteWalletBlockchainData(walletId);
         }
 
         final keys = frost.deserializeKeys(keys: serializedKeys);
@@ -180,11 +715,26 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         await mainDB.updateOrPutAddresses([address]);
       });
 
+      GlobalEventBus.instance.fire(
+        WalletSyncStatusChangedEvent(
+          WalletSyncStatus.synced,
+          walletId,
+          coin,
+        ),
+      );
+
       unawaited(refresh());
     } catch (e, s) {
       Logging.instance.log(
         "recoverFromSerializedKeys failed: $e\n$s",
         level: LogLevel.Fatal,
+      );
+      GlobalEventBus.instance.fire(
+        WalletSyncStatusChangedEvent(
+          WalletSyncStatus.unableToSync,
+          walletId,
+          coin,
+        ),
       );
       rethrow;
     }
@@ -309,12 +859,15 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
   // =================== Secure storage ========================================
 
-  Future<String?> get getSerializedKeys async =>
+  Future<String?> _getSerializedKeys() async =>
       await secureStorageInterface.read(
         key: "{$walletId}_serializedFROSTKeys",
       );
-  Future<void> _saveSerializedKeys(String keys) async {
-    final current = await getSerializedKeys;
+
+  Future<void> _saveSerializedKeys(
+    String keys,
+  ) async {
+    final current = await _getSerializedKeys();
 
     if (current == null) {
       // do nothing
@@ -334,20 +887,24 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     );
   }
 
-  Future<String?> get getSerializedKeysPrevGen async =>
+  Future<String?> _getSerializedKeysPrevGen() async =>
       await secureStorageInterface.read(
         key: "{$walletId}_serializedFROSTKeysPrevGen",
       );
 
-  Future<String?> get multisigConfig async => await secureStorageInterface.read(
+  Future<String?> _multisigConfig() async => await secureStorageInterface.read(
         key: "{$walletId}_multisigConfig",
       );
-  Future<String?> get multisigConfigPrevGen async =>
+
+  Future<String?> _multisigConfigPrevGen() async =>
       await secureStorageInterface.read(
         key: "{$walletId}_multisigConfigPrevGen",
       );
-  Future<void> _saveMultisigConfig(String multisigConfig) async {
-    final current = await this.multisigConfig;
+
+  Future<void> _saveMultisigConfig(
+    String multisigConfig,
+  ) async {
+    final current = await _multisigConfig();
 
     if (current == null) {
       // do nothing
@@ -367,7 +924,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     );
   }
 
-  Future<Uint8List?> get multisigId async {
+  Future<Uint8List?> _multisigId() async {
     final id = await secureStorageInterface.read(
       key: "{$walletId}_multisigIdFROST",
     );
@@ -378,20 +935,91 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     }
   }
 
-  Future<void> saveMultisigId(Uint8List id) async =>
+  Future<void> _saveMultisigId(
+    Uint8List id,
+  ) async =>
       await secureStorageInterface.write(
         key: "{$walletId}_multisigIdFROST",
         value: id.toHex,
       );
 
-  Future<String?> get recoveryString async => await secureStorageInterface.read(
+  Future<String?> _recoveryString() async => await secureStorageInterface.read(
         key: "{$walletId}_recoveryStringFROST",
       );
-  Future<void> saveRecoveryString(String recoveryString) async =>
+
+  Future<void> _saveRecoveryString(
+    String recoveryString,
+  ) async =>
       await secureStorageInterface.write(
         key: "{$walletId}_recoveryStringFROST",
         value: recoveryString,
       );
+
+  // =================== DB ====================================================
+
+  List<String> _getKnownSalts() => mainDB.isar.frostWalletInfo
+      .where()
+      .walletIdEqualTo(walletId)
+      .knownSaltsProperty()
+      .findFirstSync()!;
+
+  Future<void> _updateKnownSalts(List<String> knownSalts) async {
+    await mainDB.isar.writeTxn(() async {
+      final info = frostInfo;
+      await mainDB.isar.frostWalletInfo.delete(info.id);
+      await mainDB.isar.frostWalletInfo.put(
+        info.copyWith(knownSalts: knownSalts),
+      );
+    });
+  }
+
+  List<String> _getParticipants() => mainDB.isar.frostWalletInfo
+      .where()
+      .walletIdEqualTo(walletId)
+      .participantsProperty()
+      .findFirstSync()!;
+
+  Future<void> _updateParticipants(List<String> participants) async {
+    await mainDB.isar.writeTxn(() async {
+      final info = frostInfo;
+      await mainDB.isar.frostWalletInfo.delete(info.id);
+      await mainDB.isar.frostWalletInfo.put(
+        info.copyWith(participants: participants),
+      );
+    });
+  }
+
+  int _getThreshold() => mainDB.isar.frostWalletInfo
+      .where()
+      .walletIdEqualTo(walletId)
+      .thresholdProperty()
+      .findFirstSync()!;
+
+  Future<void> _updateThreshold(int threshold) async {
+    await mainDB.isar.writeTxn(() async {
+      final info = frostInfo;
+      await mainDB.isar.frostWalletInfo.delete(info.id);
+      await mainDB.isar.frostWalletInfo.put(
+        info.copyWith(threshold: threshold),
+      );
+    });
+  }
+
+  String _getMyName() => mainDB.isar.frostWalletInfo
+      .where()
+      .walletIdEqualTo(walletId)
+      .myNameProperty()
+      .findFirstSync()!;
+
+  Future<void> _updateMyName(String myName) async {
+    await mainDB.isar.writeTxn(() async {
+      final info = frostInfo;
+      await mainDB.isar.frostWalletInfo.delete(info.id);
+      await mainDB.isar.frostWalletInfo.put(
+        info.copyWith(myName: myName),
+      );
+    });
+  }
 
   // =================== Private ===============================================
 
@@ -430,6 +1058,16 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     );
   }
 
+  bool _duplicateTxCheck(
+      List<Map<String, dynamic>> allTransactions, String txid) {
+    for (int i = 0; i < allTransactions.length; i++) {
+      if (allTransactions[i]["txid"] == txid) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   Future<UTXO> _parseUTXO({
     required Map<String, dynamic> jsonUTXO,
   }) async {
@@ -443,12 +1081,12 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
     final outputs = txn["vout"] as List;
 
-    String? scriptPubKey;
+    // String? scriptPubKey;
     String? utxoOwnerAddress;
     // get UTXO owner address
     for (final output in outputs) {
       if (output["n"] == vout) {
-        scriptPubKey = output["scriptPubKey"]?["hex"] as String?;
+        // scriptPubKey = output["scriptPubKey"]?["hex"] as String?;
         utxoOwnerAddress =
             output["scriptPubKey"]?["addresses"]?[0] as String? ??
                 output["scriptPubKey"]?["address"] as String?;
