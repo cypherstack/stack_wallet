@@ -51,9 +51,11 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
 
     Amount total = ref.watch(pWalletBalance(walletId)).total;
     if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      final balancePrivate = ref.watch(pWalletBalanceSecondary(walletId));
+      final balancePrivate =
+          ref.watch(pWalletBalanceSecondary(walletId)).total +
+              ref.watch(pWalletBalanceTertiary(walletId)).total;
 
-      total += balancePrivate.total;
+      total += balancePrivate;
     }
 
     final isFavourite = ref.watch(pWalletIsFavourite(walletId));
