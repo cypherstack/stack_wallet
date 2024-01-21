@@ -294,6 +294,7 @@ class _BalanceDisplay extends ConsumerWidget {
     Amount total = ref.watch(pWalletBalance(walletId)).total;
     if (coin == Coin.firo || coin == Coin.firoTestNet) {
       total += ref.watch(pWalletBalanceSecondary(walletId)).total;
+      total += ref.watch(pWalletBalanceTertiary(walletId)).total;
     }
 
     return Text(
