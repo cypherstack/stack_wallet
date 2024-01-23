@@ -244,6 +244,8 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
 
   @override
   Future<void> updateBalance() async {
+    if (!walletOpen) return;
+
     final total = await totalBalance;
     final available = await availableBalance;
 
@@ -300,6 +302,7 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
   @override
   Future<void> exit() async {
     if (!_hasCalledExit) {
+      walletOpen = false;
       _hasCalledExit = true;
       autoSaveTimer?.cancel();
       await exitCwWallet();

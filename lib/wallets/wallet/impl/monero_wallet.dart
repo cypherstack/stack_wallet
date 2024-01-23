@@ -55,6 +55,7 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
 
   @override
   Future<void> exitCwWallet() async {
+    walletOpen = false;
     (cwWalletBase as MoneroWalletBase?)?.onNewBlock = null;
     (cwWalletBase as MoneroWalletBase?)?.onNewTransaction = null;
     (cwWalletBase as MoneroWalletBase?)?.syncStatusChanged = null;
@@ -63,6 +64,8 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
 
   @override
   Future<void> open() async {
+    walletOpen = false;
+
     String? password;
     try {
       password = await cwKeysStorage.getWalletPassword(walletName: walletId);
@@ -87,6 +90,8 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
       const Duration(seconds: 193),
       (_) async => await cwWalletBase?.save(),
     );
+
+    walletOpen = true;
   }
 
   @override
@@ -152,6 +157,8 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
 
   @override
   Future<void> updateTransactions() async {
+    if (!walletOpen) return;
+
     await (cwWalletBase as MoneroWalletBase?)?.updateTransactions();
     final transactions =
         (cwWalletBase as MoneroWalletBase?)?.transactionHistory?.transactions;

@@ -7,6 +7,8 @@ abstract class CryptonoteWallet<T extends CryptonoteCurrency> extends Wallet<T>
     with MnemonicInterface<T> {
   CryptonoteWallet(T currency) : super(currency);
 
+  bool walletOpen = false;
+
   // ========== Overrides ======================================================
 
   @override
