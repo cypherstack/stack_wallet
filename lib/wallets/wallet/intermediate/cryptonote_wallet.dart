@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:stackwallet/wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
@@ -7,7 +9,19 @@ abstract class CryptonoteWallet<T extends CryptonoteCurrency> extends Wallet<T>
     with MnemonicInterface<T> {
   CryptonoteWallet(T currency) : super(currency);
 
-  bool walletOpen = false;
+  Completer<void>? walletOpenCompleter;
+
+  void resetWalletOpenCompleter() {
+    if (walletOpenCompleter == null || walletOpenCompleter!.isCompleted) {
+      walletOpenCompleter = Completer<void>();
+    }
+  }
+
+  Future<void> waitForWalletOpen() async {
+    if (walletOpenCompleter != null && !walletOpenCompleter!.isCompleted) {
+      await walletOpenCompleter!.future;
+    }
+  }
 
   // ========== Overrides ======================================================
 
