@@ -85,43 +85,7 @@ class _NewWalletRecoveryPhraseWarningViewState
 
     return MasterScaffold(
       isDesktop: isDesktop,
-      appBar: isDesktop
-          ? const DesktopAppBar(
-              isCompactHeight: false,
-              leading: AppBarBackButton(),
-              trailing: ExitToMyStackButton(),
-            )
-          : AppBar(
-              leading: const AppBarBackButton(),
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                    top: 10,
-                    bottom: 10,
-                    right: 10,
-                  ),
-                  child: AppBarIconButton(
-                    semanticsLabel:
-                        "Question Button. Opens A Dialog For Recovery Phrase Explanation.",
-                    icon: SvgPicture.asset(
-                      Assets.svg.circleQuestion,
-                      width: 20,
-                      height: 20,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark,
-                    ),
-                    onPressed: () async {
-                      await showDialog<void>(
-                        context: context,
-                        builder: (context) =>
-                            const RecoveryPhraseExplanationDialog(),
-                      );
-                    },
-                  ),
-                )
-              ],
-            ),
+      appBar: _buildAppBar(context),
       body: ConditionalParent(
         condition: !isDesktop,
         builder: (child) => LayoutBuilder(
@@ -652,5 +616,45 @@ class _NewWalletRecoveryPhraseWarningViewState
         ),
       ),
     );
+  }
+
+  Widget _buildAppBar(BuildContext context) {
+    return isDesktop
+        ? const DesktopAppBar(
+            isCompactHeight: false,
+            leading: AppBarBackButton(),
+            trailing: ExitToMyStackButton(),
+          )
+        : AppBar(
+            leading: const AppBarBackButton(),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 10,
+                  bottom: 10,
+                  right: 10,
+                ),
+                child: AppBarIconButton(
+                  semanticsLabel:
+                      "Question Button. Opens A Dialog For Recovery Phrase Explanation.",
+                  icon: SvgPicture.asset(
+                    Assets.svg.circleQuestion,
+                    width: 20,
+                    height: 20,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
+                  ),
+                  onPressed: () async {
+                    await showDialog<void>(
+                      context: context,
+                      builder: (context) =>
+                          const RecoveryPhraseExplanationDialog(),
+                    );
+                  },
+                ),
+              )
+            ],
+          );
   }
 }
