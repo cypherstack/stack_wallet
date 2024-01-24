@@ -35,7 +35,6 @@ import 'package:stackwallet/wallets/crypto_currency/coins/tezos.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
@@ -131,535 +130,535 @@ class _NewWalletRecoveryPhraseWarningViewState
 
     final seedCount = options?.mnemonicWordsCount ??
         Constants.defaultSeedPhraseLengthFor(coin: coin);
-    
-    return ConditionalParent(
-      condition: !isDesktop,
-      builder: (child) => LayoutBuilder(
-        builder: (context, constraints) {
-          return SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: constraints.maxHeight,
-              ),
-              child: IntrinsicHeight(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: child,
+
+    return SingleChildScrollView(
+      child: IntrinsicHeight(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (isDesktop)
+                const Spacer(
+                  flex: 10,
                 ),
-              ),
-            ),
-          );
-        },
-      ),
-      child: Column(
-        crossAxisAlignment: isDesktop
-            ? CrossAxisAlignment.center
-            : CrossAxisAlignment.stretch,
-        children: [
-          if (isDesktop)
-            const Spacer(
-              flex: 10,
-            ),
-          if (!isDesktop)
-            const SizedBox(
-              height: 4,
-            ),
-          if (!isDesktop)
-            Text(
-              walletName,
-              textAlign: TextAlign.center,
-              style: STextStyles.label(context).copyWith(
-                fontSize: 12,
-              ),
-            ),
-          if (!isDesktop)
-            const SizedBox(
-              height: 4,
-            ),
-          Text(
-            "Recovery Phrase",
-            textAlign: TextAlign.center,
-            style: isDesktop
-                ? STextStyles.desktopH2(context)
-                : STextStyles.pageTitleH1(context),
-          ),
-          SizedBox(
-            height: isDesktop ? 32 : 16,
-          ),
-          RoundedWhiteContainer(
-            padding: const EdgeInsets.all(32),
-            width: isDesktop ? 480 : null,
-            child: isDesktop
-                ? Text(
-              "On the next screen you will see "
-                  "$seedCount "
-                  "words that make up your recovery phrase.\n\nPlease "
-                  "write it down. Keep it safe and never share it with "
-                  "anyone. Your recovery phrase is the only way you can"
-                  " access your funds if you forget your PIN, lose your"
-                  " phone, etc.\n\nStack Wallet does not keep nor is "
-                  "able to restore your recover phrase. Only you have "
-                  "access to your wallet.",
-              style: isDesktop
-                  ? STextStyles.desktopTextMediumRegular(context)
-                  : STextStyles.subtitle(context).copyWith(
-                fontSize: 12,
-              ),
-            )
-                : Column(
-              children: [
+              if (!isDesktop)
+                const SizedBox(
+                  height: 4,
+                ),
+              if (!isDesktop)
                 Text(
-                  "Important",
-                  style: STextStyles.desktopH3(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorBlue,
-                  ),
-                ),
-                const SizedBox(
-                  height: 24,
-                ),
-                RichText(
+                  walletName,
                   textAlign: TextAlign.center,
-                  text: TextSpan(
-                    style: STextStyles.desktopH3(context)
-                        .copyWith(fontSize: 18),
-                    children: [
-                      TextSpan(
-                        text: "On the next screen you will be given ",
-                        style: STextStyles.desktopH3(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textDark,
-                          fontSize: 18,
-                          height: 1.3,
-                        ),
-                      ),
-                      TextSpan(
-                        text: "$seedCount words",
-                        style: STextStyles.desktopH3(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .accentColorBlue,
-                          fontSize: 18,
-                          height: 1.3,
-                        ),
-                      ),
-                      TextSpan(
-                        text: ". They are your ",
-                        style: STextStyles.desktopH3(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textDark,
-                          fontSize: 18,
-                          height: 1.3,
-                        ),
-                      ),
-                      TextSpan(
-                        text: "recovery phrase",
-                        style: STextStyles.desktopH3(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .accentColorBlue,
-                          fontSize: 18,
-                          height: 1.3,
-                        ),
-                      ),
-                      TextSpan(
-                        text: ".",
-                        style: STextStyles.desktopH3(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textDark,
-                          fontSize: 18,
-                          height: 1.3,
-                        ),
-                      ),
-                    ],
+                  style: STextStyles.label(context).copyWith(
+                    fontSize: 12,
                   ),
                 ),
+              if (!isDesktop)
                 const SizedBox(
-                  height: 40,
+                  height: 4,
                 ),
-                Column(
-                  children: [
-                    Row(
-                      children: [
-                        SizedBox(
-                          width: 32,
-                          height: 32,
-                          child: RoundedContainer(
-                            radiusMultiplier: 20,
-                            padding: const EdgeInsets.all(9),
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .buttonBackSecondary,
-                            child: SvgPicture.asset(
-                              Assets.svg.pencil,
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .accentColorDark,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 20,
-                        ),
-                        Text(
-                          "Write them down.",
-                          style: STextStyles.navBarTitle(context),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(
-                      height: 30,
-                    ),
-                    Row(
-                      children: [
-                        SizedBox(
-                          width: 32,
-                          height: 32,
-                          child: RoundedContainer(
-                            radiusMultiplier: 20,
-                            padding: const EdgeInsets.all(8),
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .buttonBackSecondary,
-                            child: SvgPicture.asset(
-                              Assets.svg.lock,
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .accentColorDark,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 20,
-                        ),
-                        Text(
-                          "Keep them safe.",
-                          style: STextStyles.navBarTitle(context),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(
-                      height: 30,
-                    ),
-                    Row(
-                      children: [
-                        SizedBox(
-                          width: 32,
-                          height: 32,
-                          child: RoundedContainer(
-                            radiusMultiplier: 20,
-                            padding: const EdgeInsets.all(8),
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .buttonBackSecondary,
-                            child: SvgPicture.asset(
-                              Assets.svg.eyeSlash,
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .accentColorDark,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 20,
-                        ),
-                        Expanded(
-                          child: Text(
-                            "Do not show them to anyone.",
-                            style: STextStyles.navBarTitle(context),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                )
-              ],
-            ),
-          ),
-          if (!isDesktop) const Spacer(),
-          if (!isDesktop)
-            const SizedBox(
-              height: 16,
-            ),
-          if (isDesktop)
-            const SizedBox(
-              height: 32,
-            ),
-          ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: isDesktop ? 480 : 0,
-            ),
-            child: Consumer(
-              builder: (_, ref, __) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        final value =
-                            ref.read(checkBoxStateProvider.state).state;
-                        ref.read(checkBoxStateProvider.state).state = !value;
-                      },
-                      child: Container(
-                        color: Colors.transparent,
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: Checkbox(
-                                materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                                value: ref
-                                    .watch(checkBoxStateProvider.state)
-                                    .state,
-                                onChanged: (newValue) {
-                                  ref
-                                      .read(checkBoxStateProvider.state)
-                                      .state = newValue!;
-                                },
+              Text(
+                "Recovery Phrase",
+                textAlign: TextAlign.center,
+                style: isDesktop
+                    ? STextStyles.desktopH2(context)
+                    : STextStyles.pageTitleH1(context),
+              ),
+              SizedBox(
+                height: isDesktop ? 32 : 16,
+              ),
+              RoundedWhiteContainer(
+                padding: const EdgeInsets.all(32),
+                width: isDesktop ? 480 : null,
+                child: isDesktop
+                    ? Text(
+                        "On the next screen you will see "
+                        "$seedCount "
+                        "words that make up your recovery phrase.\n\nPlease "
+                        "write it down. Keep it safe and never share it with "
+                        "anyone. Your recovery phrase is the only way you can"
+                        " access your funds if you forget your PIN, lose your"
+                        " phone, etc.\n\nStack Wallet does not keep nor is "
+                        "able to restore your recover phrase. Only you have "
+                        "access to your wallet.",
+                        style: isDesktop
+                            ? STextStyles.desktopTextMediumRegular(context)
+                            : STextStyles.subtitle(context).copyWith(
+                                fontSize: 12,
                               ),
+                      )
+                    : Column(
+                        children: [
+                          Text(
+                            "Important",
+                            style: STextStyles.desktopH3(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorBlue,
                             ),
-                            SizedBox(
-                              width: isDesktop ? 20 : 10,
-                            ),
-                            Flexible(
-                              child: Text(
-                                "I understand that Stack Wallet does not keep and cannot restore my recovery phrase, and If I lose my recovery phrase, I will not be able to access my funds.",
-                                style: isDesktop
-                                    ? STextStyles.desktopTextMedium(context)
-                                    : STextStyles.baseXS(context).copyWith(
-                                  height: 1.3,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: isDesktop ? 32 : 16,
-                    ),
-                    ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: isDesktop ? 70 : 0,
-                      ),
-                      child: TextButton(
-                        onPressed: ref.read(checkBoxStateProvider.state).state
-                            ? () async {
-                          try {
-                            unawaited(showDialog<dynamic>(
-                              context: context,
-                              barrierDismissible: false,
-                              useSafeArea: true,
-                              builder: (ctx) {
-                                return const Center(
-                                  child: LoadingIndicator(
-                                    width: 50,
-                                    height: 50,
+                          ),
+                          const SizedBox(
+                            height: 24,
+                          ),
+                          RichText(
+                            textAlign: TextAlign.center,
+                            text: TextSpan(
+                              style: STextStyles.desktopH3(context)
+                                  .copyWith(fontSize: 18),
+                              children: [
+                                TextSpan(
+                                  text: "On the next screen you will be given ",
+                                  style:
+                                      STextStyles.desktopH3(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark,
+                                    fontSize: 18,
+                                    height: 1.3,
                                   ),
-                                );
-                              },
-                            ));
-                            String? otherDataJsonString;
-                            if (widget.coin == Coin.tezos) {
-                              otherDataJsonString = jsonEncode({
-                                WalletInfoKeys.tezosDerivationPath:
-                                Tezos.standardDerivationPath.value,
-                              });
-                              //  }//todo: probably not needed (broken anyways)
-                              // else if (widget.coin == Coin.epicCash) {
-                              //    final int secondsSinceEpoch =
-                              //        DateTime.now().millisecondsSinceEpoch ~/ 1000;
-                              //    const int epicCashFirstBlock = 1565370278;
-                              //    const double overestimateSecondsPerBlock = 61;
-                              //    int chosenSeconds = secondsSinceEpoch - epicCashFirstBlock;
-                              //    int approximateHeight = chosenSeconds ~/ overestimateSecondsPerBlock;
-                              //    /
-                              //    // debugPrint(
-                              //    //     "approximate height: $approximateHeight chosen_seconds: $chosenSeconds");
-                              //    height = approximateHeight;
-                              //    if (height < 0) {
-                              //      height = 0;
-                              //    }
-                              //
-                              //    otherDataJsonString = jsonEncode(
-                              //      {
-                              //        WalletInfoKeys.epiccashData: jsonEncode(
-                              //          ExtraEpiccashWalletInfo(
-                              //            receivingIndex: 0,
-                              //            changeIndex: 0,
-                              //            slatesToAddresses: {},
-                              //            slatesToCommits: {},
-                              //            lastScannedBlock: epicCashFirstBlock,
-                              //            restoreHeight: height,
-                              //            creationHeight: height,
-                              //          ).toMap(),
-                              //        ),
-                              //      },
-                              //    );
-                            } else if (widget.coin == Coin.firo) {
-                              otherDataJsonString = jsonEncode(
-                                {
-                                  WalletInfoKeys
-                                      .lelantusCoinIsarRescanRequired:
-                                  false,
-                                },
-                              );
-                            }
-
-                            final info = WalletInfo.createNew(
-                              coin: widget.coin,
-                              name: widget.walletName,
-                              otherDataJsonString: otherDataJsonString,
-                            );
-
-                            var node = ref
-                                .read(nodeServiceChangeNotifierProvider)
-                                .getPrimaryNodeFor(coin: coin);
-
-                            if (node == null) {
-                              node = DefaultNodes.getNodeFor(coin);
-                              await ref
-                                  .read(
-                                  nodeServiceChangeNotifierProvider)
-                                  .setPrimaryNodeFor(
-                                coin: coin,
-                                node: node,
-                              );
-                            }
-
-                            final txTracker =
-                            TransactionNotificationTracker(
-                              walletId: info.walletId,
-                            );
-
-                            int? wordCount;
-                            String? mnemonicPassphrase;
-                            String? mnemonic;
-                            String? privateKey;
-
-                            wordCount =
-                                Constants.defaultSeedPhraseLengthFor(
-                                  coin: info.coin,
-                                );
-
-                            if (coin == Coin.monero ||
-                                coin == Coin.wownero) {
-                              // currently a special case due to the
-                              // xmr/wow libraries handling their
-                              // own mnemonic generation
-                            } else if (wordCount > 0) {
-                              if (ref
-                                  .read(pNewWalletOptions.state)
-                                  .state !=
-                                  null) {
-                                if (coin.hasMnemonicPassphraseSupport) {
-                                  mnemonicPassphrase = ref
-                                      .read(pNewWalletOptions.state)
-                                      .state!
-                                      .mnemonicPassphrase;
-                                } else {}
-
-                                wordCount = ref
-                                    .read(pNewWalletOptions.state)
-                                    .state!
-                                    .mnemonicWordsCount;
-                              } else {
-                                mnemonicPassphrase = "";
-                              }
-
-                              if (wordCount < 12 ||
-                                  24 < wordCount ||
-                                  wordCount % 3 != 0) {
-                                throw Exception("Invalid word count");
-                              }
-
-                              final strength = (wordCount ~/ 3) * 32;
-
-                              mnemonic = bip39.generateMnemonic(
-                                strength: strength,
-                              );
-                            }
-
-                            final wallet = await Wallet.create(
-                              walletInfo: info,
-                              mainDB: ref.read(mainDBProvider),
-                              secureStorageInterface:
-                              ref.read(secureStoreProvider),
-                              nodeService: ref.read(
-                                  nodeServiceChangeNotifierProvider),
-                              prefs:
-                              ref.read(prefsChangeNotifierProvider),
-                              mnemonicPassphrase: mnemonicPassphrase,
-                              mnemonic: mnemonic,
-                              privateKey: privateKey,
-                            );
-
-                            await wallet.init();
-
-                            // pop progress dialog
-                            if (mounted) {
-                              Navigator.pop(context);
-                            }
-                            // set checkbox back to unchecked to annoy users to agree again :P
-                            ref
-                                .read(checkBoxStateProvider.state)
-                                .state = false;
-
-                            if (mounted) {
-                              unawaited(Navigator.of(context).pushNamed(
-                                NewWalletRecoveryPhraseView.routeName,
-                                arguments: Tuple2(
-                                  wallet,
-                                  await (wallet as MnemonicInterface)
-                                      .getMnemonicAsWords(),
                                 ),
-                              ));
-                            }
-                          } catch (e, s) {
-                            Logging.instance
-                                .log("$e\n$s", level: LogLevel.Fatal);
-                            // TODO: handle gracefully
-                            // any network/socket exception here will break new wallet creation
-                            rethrow;
-                          }
-                        }
-                            : null,
-                        style: ref.read(checkBoxStateProvider.state).state
-                            ? Theme.of(context)
-                            .extension<StackColors>()!
-                            .getPrimaryEnabledButtonStyle(context)
-                            : Theme.of(context)
-                            .extension<StackColors>()!
-                            .getPrimaryDisabledButtonStyle(context),
-                        child: Text(
-                          "View recovery phrase",
-                          style: isDesktop
-                              ? ref.read(checkBoxStateProvider.state).state
-                              ? STextStyles.desktopButtonEnabled(context)
-                              : STextStyles.desktopButtonDisabled(context)
-                              : STextStyles.button(context),
-                        ),
+                                TextSpan(
+                                  text: "$seedCount words",
+                                  style:
+                                      STextStyles.desktopH3(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorBlue,
+                                    fontSize: 18,
+                                    height: 1.3,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: ". They are your ",
+                                  style:
+                                      STextStyles.desktopH3(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark,
+                                    fontSize: 18,
+                                    height: 1.3,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: "recovery phrase",
+                                  style:
+                                      STextStyles.desktopH3(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorBlue,
+                                    fontSize: 18,
+                                    height: 1.3,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: ".",
+                                  style:
+                                      STextStyles.desktopH3(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark,
+                                    fontSize: 18,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 40,
+                          ),
+                          Column(
+                            children: [
+                              Row(
+                                children: [
+                                  SizedBox(
+                                    width: 32,
+                                    height: 32,
+                                    child: RoundedContainer(
+                                      radiusMultiplier: 20,
+                                      padding: const EdgeInsets.all(9),
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .buttonBackSecondary,
+                                      child: SvgPicture.asset(
+                                        Assets.svg.pencil,
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorDark,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    width: 20,
+                                  ),
+                                  Text(
+                                    "Write them down.",
+                                    style: STextStyles.navBarTitle(context),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(
+                                height: 30,
+                              ),
+                              Row(
+                                children: [
+                                  SizedBox(
+                                    width: 32,
+                                    height: 32,
+                                    child: RoundedContainer(
+                                      radiusMultiplier: 20,
+                                      padding: const EdgeInsets.all(8),
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .buttonBackSecondary,
+                                      child: SvgPicture.asset(
+                                        Assets.svg.lock,
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorDark,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    width: 20,
+                                  ),
+                                  Text(
+                                    "Keep them safe.",
+                                    style: STextStyles.navBarTitle(context),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(
+                                height: 30,
+                              ),
+                              Row(
+                                children: [
+                                  SizedBox(
+                                    width: 32,
+                                    height: 32,
+                                    child: RoundedContainer(
+                                      radiusMultiplier: 20,
+                                      padding: const EdgeInsets.all(8),
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .buttonBackSecondary,
+                                      child: SvgPicture.asset(
+                                        Assets.svg.eyeSlash,
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorDark,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    width: 20,
+                                  ),
+                                  Expanded(
+                                    child: Text(
+                                      "Do not show them to anyone.",
+                                      style: STextStyles.navBarTitle(context),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          )
+                        ],
                       ),
-                    ),
-                  ],
-                );
-              },
-            ),
+              ),
+              if (!isDesktop) const Spacer(),
+              if (!isDesktop)
+                const SizedBox(
+                  height: 16,
+                ),
+              if (isDesktop)
+                const SizedBox(
+                  height: 32,
+                ),
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: isDesktop ? 480 : 0,
+                ),
+                child: Consumer(
+                  builder: (_, ref, __) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            final value =
+                                ref.read(checkBoxStateProvider.state).state;
+                            ref.read(checkBoxStateProvider.state).state =
+                                !value;
+                          },
+                          child: Container(
+                            color: Colors.transparent,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: Checkbox(
+                                    materialTapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                    value: ref
+                                        .watch(checkBoxStateProvider.state)
+                                        .state,
+                                    onChanged: (newValue) {
+                                      ref
+                                          .read(checkBoxStateProvider.state)
+                                          .state = newValue!;
+                                    },
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: isDesktop ? 20 : 10,
+                                ),
+                                Flexible(
+                                  child: Text(
+                                    "I understand that Stack Wallet does not keep and cannot restore my recovery phrase, and If I lose my recovery phrase, I will not be able to access my funds.",
+                                    style: isDesktop
+                                        ? STextStyles.desktopTextMedium(context)
+                                        : STextStyles.baseXS(context).copyWith(
+                                            height: 1.3,
+                                          ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: isDesktop ? 32 : 16,
+                        ),
+                        ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: isDesktop ? 70 : 0,
+                          ),
+                          child: TextButton(
+                            onPressed: ref
+                                    .read(checkBoxStateProvider.state)
+                                    .state
+                                ? () async {
+                                    try {
+                                      unawaited(showDialog<dynamic>(
+                                        context: context,
+                                        barrierDismissible: false,
+                                        useSafeArea: true,
+                                        builder: (ctx) {
+                                          return const Center(
+                                            child: LoadingIndicator(
+                                              width: 50,
+                                              height: 50,
+                                            ),
+                                          );
+                                        },
+                                      ));
+                                      String? otherDataJsonString;
+                                      if (widget.coin == Coin.tezos) {
+                                        otherDataJsonString = jsonEncode({
+                                          WalletInfoKeys.tezosDerivationPath:
+                                              Tezos
+                                                  .standardDerivationPath.value,
+                                        });
+                                        //  }//todo: probably not needed (broken anyways)
+                                        // else if (widget.coin == Coin.epicCash) {
+                                        //    final int secondsSinceEpoch =
+                                        //        DateTime.now().millisecondsSinceEpoch ~/ 1000;
+                                        //    const int epicCashFirstBlock = 1565370278;
+                                        //    const double overestimateSecondsPerBlock = 61;
+                                        //    int chosenSeconds = secondsSinceEpoch - epicCashFirstBlock;
+                                        //    int approximateHeight = chosenSeconds ~/ overestimateSecondsPerBlock;
+                                        //    /
+                                        //    // debugPrint(
+                                        //    //     "approximate height: $approximateHeight chosen_seconds: $chosenSeconds");
+                                        //    height = approximateHeight;
+                                        //    if (height < 0) {
+                                        //      height = 0;
+                                        //    }
+                                        //
+                                        //    otherDataJsonString = jsonEncode(
+                                        //      {
+                                        //        WalletInfoKeys.epiccashData: jsonEncode(
+                                        //          ExtraEpiccashWalletInfo(
+                                        //            receivingIndex: 0,
+                                        //            changeIndex: 0,
+                                        //            slatesToAddresses: {},
+                                        //            slatesToCommits: {},
+                                        //            lastScannedBlock: epicCashFirstBlock,
+                                        //            restoreHeight: height,
+                                        //            creationHeight: height,
+                                        //          ).toMap(),
+                                        //        ),
+                                        //      },
+                                        //    );
+                                      } else if (widget.coin == Coin.firo) {
+                                        otherDataJsonString = jsonEncode(
+                                          {
+                                            WalletInfoKeys
+                                                    .lelantusCoinIsarRescanRequired:
+                                                false,
+                                          },
+                                        );
+                                      }
+
+                                      final info = WalletInfo.createNew(
+                                        coin: widget.coin,
+                                        name: widget.walletName,
+                                        otherDataJsonString:
+                                            otherDataJsonString,
+                                      );
+
+                                      var node = ref
+                                          .read(
+                                              nodeServiceChangeNotifierProvider)
+                                          .getPrimaryNodeFor(coin: coin);
+
+                                      if (node == null) {
+                                        node = DefaultNodes.getNodeFor(coin);
+                                        await ref
+                                            .read(
+                                                nodeServiceChangeNotifierProvider)
+                                            .setPrimaryNodeFor(
+                                              coin: coin,
+                                              node: node,
+                                            );
+                                      }
+
+                                      final txTracker =
+                                          TransactionNotificationTracker(
+                                        walletId: info.walletId,
+                                      );
+
+                                      int? wordCount;
+                                      String? mnemonicPassphrase;
+                                      String? mnemonic;
+                                      String? privateKey;
+
+                                      wordCount =
+                                          Constants.defaultSeedPhraseLengthFor(
+                                        coin: info.coin,
+                                      );
+
+                                      if (coin == Coin.monero ||
+                                          coin == Coin.wownero) {
+                                        // currently a special case due to the
+                                        // xmr/wow libraries handling their
+                                        // own mnemonic generation
+                                      } else if (wordCount > 0) {
+                                        if (ref
+                                                .read(pNewWalletOptions.state)
+                                                .state !=
+                                            null) {
+                                          if (coin
+                                              .hasMnemonicPassphraseSupport) {
+                                            mnemonicPassphrase = ref
+                                                .read(pNewWalletOptions.state)
+                                                .state!
+                                                .mnemonicPassphrase;
+                                          } else {}
+
+                                          wordCount = ref
+                                              .read(pNewWalletOptions.state)
+                                              .state!
+                                              .mnemonicWordsCount;
+                                        } else {
+                                          mnemonicPassphrase = "";
+                                        }
+
+                                        if (wordCount < 12 ||
+                                            24 < wordCount ||
+                                            wordCount % 3 != 0) {
+                                          throw Exception("Invalid word count");
+                                        }
+
+                                        final strength = (wordCount ~/ 3) * 32;
+
+                                        mnemonic = bip39.generateMnemonic(
+                                          strength: strength,
+                                        );
+                                      }
+
+                                      final wallet = await Wallet.create(
+                                        walletInfo: info,
+                                        mainDB: ref.read(mainDBProvider),
+                                        secureStorageInterface:
+                                            ref.read(secureStoreProvider),
+                                        nodeService: ref.read(
+                                            nodeServiceChangeNotifierProvider),
+                                        prefs: ref
+                                            .read(prefsChangeNotifierProvider),
+                                        mnemonicPassphrase: mnemonicPassphrase,
+                                        mnemonic: mnemonic,
+                                        privateKey: privateKey,
+                                      );
+
+                                      await wallet.init();
+
+                                      // pop progress dialog
+                                      if (mounted) {
+                                        Navigator.pop(context);
+                                      }
+                                      // set checkbox back to unchecked to annoy users to agree again :P
+                                      ref
+                                          .read(checkBoxStateProvider.state)
+                                          .state = false;
+
+                                      if (mounted) {
+                                        unawaited(
+                                            Navigator.of(context).pushNamed(
+                                          NewWalletRecoveryPhraseView.routeName,
+                                          arguments: Tuple2(
+                                            wallet,
+                                            await (wallet as MnemonicInterface)
+                                                .getMnemonicAsWords(),
+                                          ),
+                                        ));
+                                      }
+                                    } catch (e, s) {
+                                      Logging.instance
+                                          .log("$e\n$s", level: LogLevel.Fatal);
+                                      // TODO: handle gracefully
+                                      // any network/socket exception here will break new wallet creation
+                                      rethrow;
+                                    }
+                                  }
+                                : null,
+                            style: ref.read(checkBoxStateProvider.state).state
+                                ? Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .getPrimaryEnabledButtonStyle(context)
+                                : Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .getPrimaryDisabledButtonStyle(context),
+                            child: Text(
+                              "View recovery phrase",
+                              style: isDesktop
+                                  ? ref.read(checkBoxStateProvider.state).state
+                                      ? STextStyles.desktopButtonEnabled(
+                                          context)
+                                      : STextStyles.desktopButtonDisabled(
+                                          context)
+                                  : STextStyles.button(context),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+              if (isDesktop)
+                const Spacer(
+                  flex: 15,
+                ),
+            ],
           ),
-          if (isDesktop)
-            const Spacer(
-              flex: 15,
-            ),
-        ],
+        ),
       ),
-    ),
+    );
   }
 }
