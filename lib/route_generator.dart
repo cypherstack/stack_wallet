@@ -756,6 +756,24 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      case FrostSendView.routeName:
+        if (args is ({
+          String walletId,
+          Coin coin,
+        })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => FrostSendView(
+              walletId: args.walletId,
+              coin: args.coin,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       // case MonkeyLoadedView.routeName:
       //   if (args is Tuple2<String, ChangeNotifierProvider<Manager>>) {
       //     return getRoute(

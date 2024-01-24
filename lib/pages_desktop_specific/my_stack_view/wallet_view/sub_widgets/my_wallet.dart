@@ -10,13 +10,17 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/pages/send_view/frost_ms/frost_import_sign_config_view.dart';
+import 'package:stackwallet/pages/send_view/frost_ms/frost_send_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_list.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_receive.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_send.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_token_send.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import 'package:stackwallet/widgets/custom_tab_view.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class MyWallet extends ConsumerStatefulWidget {
@@ -40,11 +44,15 @@ class _MyWalletState extends ConsumerState<MyWallet> {
   ];
 
   late final bool isEth;
+  late final Coin coin;
+  late final bool isFrost;
 
   @override
   void initState() {
-    isEth = ref.read(pWallets).getWallet(widget.walletId).info.coin ==
-        Coin.ethereum;
+    final wallet = ref.read(pWallets).getWallet(widget.walletId);
+    coin = wallet.info.coin;
+    isFrost = wallet is BitcoinFrostWallet;
+    isEth = coin == Coin.ethereum;
 
     if (isEth && widget.contractAddress == null) {
       titles.add("Transactions");
@@ -64,12 +72,37 @@ class _MyWalletState extends ConsumerState<MyWallet> {
             titles: titles,
             children: [
               widget.contractAddress == null
-                  ? Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: DesktopSend(
-                        walletId: widget.walletId,
-                      ),
-                    )
+                  ? isFrost
+                      ? Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                SecondaryButton(
+                                  width: 200,
+                                  buttonHeight: ButtonHeight.l,
+                                  label: "Import sign config",
+                                  onPressed: () {
+                                    Navigator.of(context).pushNamed(
+                                      FrostImportSignConfigView.routeName,
+                                      arguments: widget.walletId,
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                            FrostSendView(
+                              walletId: widget.walletId,
+                              coin: coin,
+                            ),
+                          ],
+                        )
+                      : Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: DesktopSend(
+                            walletId: widget.walletId,
+                          ),
+                        )
                   : Padding(
                       padding: const EdgeInsets.all(20),
                       child: DesktopTokenSend(

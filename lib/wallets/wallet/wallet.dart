@@ -55,6 +55,9 @@ abstract class Wallet<T extends CryptoCurrency> {
   // default to Transaction class. For TransactionV2 set to 2
   int get isarTransactionVersion => 1;
 
+  // whether the wallet currently supports multiple recipients per tx
+  bool get supportsMultiRecipient => false;
+
   Wallet(this.cryptoCurrency);
 
   //============================================================================

@@ -29,6 +29,12 @@ import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
 
 class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
+  @override
+  int get isarTransactionVersion => 2;
+
+  @override
+  bool get supportsMultiRecipient => true;
+
   BitcoinFrostWallet(CryptoCurrencyNetwork network)
       : super(BitcoinFrost(network) as T);
 
