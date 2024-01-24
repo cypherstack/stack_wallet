@@ -1652,12 +1652,24 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
             case FeeRateType.slow:
               fee = feeObject.slow;
               break;
+            case FeeRateType.custom:
+              try {
+                fee = feeRateAmount as int;
+              } on TypeError catch (e, s) {
+                Logging.instance.log("Cannot case fee as int: $e, $s",
+                    level: LogLevel.Error);
+                rethrow;
+              }
+              break;
             default:
               throw ArgumentError("Invalid use of custom fee");
           }
           rate = fee;
+        } else if (feeRateAmount is int) {
+          rate = feeRateAmount;
         } else {
-          rate = feeRateAmount as int;
+          throw ArgumentError(
+              "Invalid fee rate argument provided. FeeRateType: $feeRateType, FeeRateAmount: $feeRateAmount");
         }
 
         // check for send all
