@@ -84,7 +84,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
 
     final recipients = recipientWidgetIndexes
         .map((i) => ref.read(pRecipient(i).state).state)
-        .map((e) => (address: e!.address, amount: e.amount!, isChange: false))
+        .map((e) => (address: e!.address, amount: e!.amount!, isChange: false))
         .toList(growable: false);
 
     final txData = await wallet.frostCreateSignConfig(

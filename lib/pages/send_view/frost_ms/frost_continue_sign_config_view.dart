@@ -9,13 +9,13 @@ import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/services/coins/bitcoin/frost_wallet.dart';
 import 'package:stackwallet/services/frost.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -61,17 +61,17 @@ class _FrostContinueSignViewState extends ConsumerState<FrostContinueSignView> {
 
   @override
   void initState() {
-    final wallet = ref
-        .read(walletsChangeNotifierProvider)
-        .getManager(widget.walletId)
-        .wallet as FrostWallet;
+    final wallet =
+        ref.read(pWallets).getWallet(widget.walletId) as BitcoinFrostWallet;
 
-    myName = wallet.myName;
-    participantsAll = wallet.participants;
-    myIndex = wallet.participants.indexOf(wallet.myName);
+    final frostInfo = wallet.frostInfo;
+
+    myName = frostInfo.myName;
+    participantsAll = frostInfo.participants;
+    myIndex = frostInfo.participants.indexOf(frostInfo.myName);
     myShare = ref.read(pFrostContinueSignData.state).state!.share;
 
-    participantsWithoutMe = wallet.participants
+    participantsWithoutMe = frostInfo.participants
         .toSet()
         .intersection(
             ref.read(pFrostSelectParticipantsUnordered.state).state!.toSet())

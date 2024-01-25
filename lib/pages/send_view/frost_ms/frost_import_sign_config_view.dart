@@ -92,7 +92,9 @@ class _FrostImportSignConfigViewState
       // TODO add more data from 'data' and display to user ?
       ref.read(pFrostTxData.notifier).state = TxData(
         frostMSConfig: config,
-        recipients: data.recipients,
+        recipients: data.recipients
+            .map((e) => (address: e.address, amount: e.amount, isChange: false))
+            .toList(),
         utxos: utxos.toSet(),
       );
 

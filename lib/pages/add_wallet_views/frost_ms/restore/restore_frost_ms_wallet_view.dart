@@ -4,7 +4,7 @@ import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frostdart/frostdart.dart';
+import 'package:frostdart/frostdart.dart' as frost;
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
@@ -70,7 +70,7 @@ class _RestoreFrostMsWalletViewState
     final keys = keysFieldController.text;
     final config = configFieldController.text;
 
-    final myNameIndex = getParticipantIndexFromKeys(serializedKeys: keys);
+    final myNameIndex = frost.getParticipantIndexFromKeys(serializedKeys: keys);
     final participants = Frost.getParticipants(multisigConfig: config);
     final myName = participants[myNameIndex];
 
@@ -92,7 +92,7 @@ class _RestoreFrostMsWalletViewState
       knownSalts: [],
       participants: participants,
       myName: myName,
-      threshold: multisigThreshold(
+      threshold: frost.multisigThreshold(
         multisigConfig: config,
       ),
     );

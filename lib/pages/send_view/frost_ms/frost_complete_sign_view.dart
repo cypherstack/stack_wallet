@@ -139,8 +139,8 @@ class _FrostCompleteSignViewState extends ConsumerState<FrostCompleteSignView> {
                   Exception? ex;
                   final txData = await showLoading(
                     whileFuture: ref
-                        .read(walletsChangeNotifierProvider)
-                        .getManager(widget.walletId)
+                        .read(pWallets)
+                        .getWallet(widget.walletId)
                         .confirmSend(
                           txData: ref.read(pFrostTxData.state).state!,
                         ),

@@ -29,12 +29,6 @@ import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
 
 class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
-  @override
-  int get isarTransactionVersion => 2;
-
-  @override
-  bool get supportsMultiRecipient => true;
-
   BitcoinFrostWallet(CryptoCurrencyNetwork network)
       : super(BitcoinFrost(network) as T);
 
@@ -89,7 +83,9 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
       await _saveMultisigId(multisigId);
       await _saveMultisigConfig(multisigConfig);
 
-      await mainDB.isar.frostWalletInfo.put(frostWalletInfo);
+      await mainDB.isar.writeTxn(() async {
+        await mainDB.isar.frostWalletInfo.put(frostWalletInfo);
+      });
 
       final keys = frost.deserializeKeys(keys: serializedKeys);
 
@@ -298,6 +294,9 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
   }
 
   // ==================== Overrides ============================================
+
+  @override
+  bool get supportsMultiRecipient => true;
 
   @override
   int get isarTransactionVersion => 2;
@@ -527,8 +526,40 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
 
   @override
   Future<void> checkSaveInitialReceivingAddress() async {
-    // should not be needed for frost as we explicitly save the address
-    // on new init and restore
+    final address = await getCurrentReceivingAddress();
+    if (address == null) {
+      final serializedKeys = await getSerializedKeys();
+      if (serializedKeys != null) {
+        final keys = frost.deserializeKeys(keys: serializedKeys);
+
+        final addressString = frost.addressForKeys(
+          network: cryptoCurrency.network == CryptoCurrencyNetwork.main
+              ? Network.Mainnet
+              : Network.Testnet,
+          keys: keys,
+        );
+
+        final publicKey = frost.scriptPubKeyForKeys(keys: keys);
+
+        final address = Address(
+          walletId: walletId,
+          value: addressString,
+          publicKey: publicKey.toUint8ListFromHex,
+          derivationIndex: 0,
+          derivationPath: null,
+          subType: AddressSubType.receiving,
+          type: AddressType.frostMS,
+        );
+
+        await mainDB.updateOrPutAddresses([address]);
+      } else {
+        Logging.instance.log(
+          "$runtimeType.checkSaveInitialReceivingAddress() failed due"
+          " to missing serialized keys",
+          level: LogLevel.Fatal,
+        );
+      }
+    }
   }
 
   @override

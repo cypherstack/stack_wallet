@@ -21,6 +21,7 @@ import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
+import 'package:stackwallet/wallets/isar/models/frost_wallet_info.dart';
 import 'package:stackwallet/wallets/isar/models/spark_coin.dart';
 import 'package:stackwallet/wallets/isar/models/token_wallet_info.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
@@ -67,6 +68,7 @@ class MainDB {
         SparkCoinSchema,
         WalletInfoMetaSchema,
         TokenWalletInfoSchema,
+        FrostWalletInfoSchema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
       // inspector: kDebugMode,
