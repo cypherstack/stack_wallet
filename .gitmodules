@@ -9,4 +9,4 @@
 	url = https://github.com/cypherstack/flutter_liblelantus.git
 [submodule "crypto_plugins/frostdart"]
 	path = crypto_plugins/frostdart
-	url = https://www.github.com/cypherstack/frostdart
+	url = https://github.com/cypherstack/frostdart
