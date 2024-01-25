@@ -47,6 +47,8 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
 
   Timer? autoSaveTimer;
 
+  static bool walletOperationWaiting = false;
+
   Future<String> pathForWalletDir({
     required String name,
     required WalletType type,
@@ -244,6 +246,13 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
 
   @override
   Future<void> updateBalance() async {
+    try {
+      await waitForWalletOpen().timeout(const Duration(seconds: 30));
+    } catch (e, s) {
+      Logging.instance
+          .log("Failed to wait for wallet open: $e\n$s", level: LogLevel.Fatal);
+    }
+
     final total = await totalBalance;
     final available = await availableBalance;
 
@@ -300,6 +309,7 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
   @override
   Future<void> exit() async {
     if (!_hasCalledExit) {
+      resetWalletOpenCompleter();
       _hasCalledExit = true;
       autoSaveTimer?.cancel();
       await exitCwWallet();
