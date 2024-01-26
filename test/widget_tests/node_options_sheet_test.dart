@@ -169,28 +169,32 @@ void main() {
     final mockTorService = MockTorService();
 
     when(mockNodeService.getNodeById(id: "node id")).thenAnswer(
-        (realInvocation) => NodeModel(
-            host: "127.0.0.1",
-            port: 2000,
-            name: "Stack Default",
-            id: "node id",
-            useSSL: true,
-            enabled: true,
-            coinName: "Bitcoin",
-            isFailover: false,
-            isDown: false));
+      (_) => NodeModel(
+        host: "127.0.0.1",
+        port: 2000,
+        name: "Stack Default",
+        id: "node id",
+        useSSL: true,
+        enabled: true,
+        coinName: "Bitcoin",
+        isFailover: false,
+        isDown: false,
+      ),
+    );
 
     when(mockNodeService.getPrimaryNodeFor(coin: Coin.bitcoin)).thenAnswer(
-        (realInvocation) => NodeModel(
-            host: "127.0.0.1",
-            port: 2000,
-            name: "Some other node name",
-            id: "some node id",
-            useSSL: true,
-            enabled: true,
-            coinName: "Bitcoin",
-            isFailover: false,
-            isDown: false));
+      (_) => NodeModel(
+        host: "127.0.0.1",
+        port: 2000,
+        name: "Some other node name",
+        id: "some node id",
+        useSSL: true,
+        enabled: true,
+        coinName: "Bitcoin",
+        isFailover: false,
+        isDown: false,
+      ),
+    );
 
     await tester.pumpWidget(
       ProviderScope(
@@ -211,7 +215,10 @@ void main() {
             ],
           ),
           home: const NodeOptionsSheet(
-              nodeId: "node id", coin: Coin.bitcoin, popBackToRoute: ""),
+            nodeId: "node id",
+            coin: Coin.bitcoin,
+            popBackToRoute: "",
+          ),
         ),
       ),
     );
