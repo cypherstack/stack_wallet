@@ -149,6 +149,7 @@ class _RecipientState extends ConsumerState<Recipient> {
     );
 
     return RoundedWhiteContainer(
+      padding: const EdgeInsets.all(0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
