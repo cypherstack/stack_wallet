@@ -985,8 +985,8 @@ void main() {
 
       expect(result, GetUsedSerialsSampleData.serials);
 
-      verify(mockPrefs.wifiOnly).called(1);
-      verify(mockPrefs.useTor).called(1);
+      verify(mockPrefs.wifiOnly).called(3);
+      verify(mockPrefs.useTor).called(3);
       verifyNoMoreInteractions(mockPrefs);
     });
 
@@ -1298,8 +1298,8 @@ void main() {
 
       expect(result, GetUsedSerialsSampleData.serials);
 
-      verify(mockPrefs.wifiOnly).called(1);
-      verify(mockPrefs.useTor).called(1);
+      verify(mockPrefs.wifiOnly).called(3);
+      verify(mockPrefs.useTor).called(3);
       verifyNoMoreInteractions(mockPrefs);
     });
 
