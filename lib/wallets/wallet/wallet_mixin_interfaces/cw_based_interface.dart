@@ -35,8 +35,8 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
   KeyService get cwKeysStorage =>
       _cwKeysStorageCached ??= KeyService(secureStorageInterface);
 
-  WalletService? cwWalletService;
-  WalletBase? cwWalletBase;
+  static WalletService? cwWalletService;
+  static WalletBase? cwWalletBase;
 
   bool _hasCalledExit = false;
   bool _txRefreshLock = false;
@@ -46,9 +46,6 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
   double highestPercentCached = 0;
 
   Timer? autoSaveTimer;
-
-  static bool walletOperationWaiting = false;
-
   Future<String> pathForWalletDir({
     required String name,
     required WalletType type,
@@ -246,13 +243,6 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
 
   @override
   Future<void> updateBalance() async {
-    try {
-      await waitForWalletOpen().timeout(const Duration(seconds: 30));
-    } catch (e, s) {
-      Logging.instance
-          .log("Failed to wait for wallet open: $e\n$s", level: LogLevel.Fatal);
-    }
-
     final total = await totalBalance;
     final available = await availableBalance;
 
@@ -306,14 +296,19 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
     }
   }
 
+  static Mutex exitMutex = Mutex();
+
   @override
   Future<void> exit() async {
     if (!_hasCalledExit) {
-      resetWalletOpenCompleter();
-      _hasCalledExit = true;
-      autoSaveTimer?.cancel();
-      await exitCwWallet();
-      cwWalletBase?.close();
+      await exitMutex.protect(() async {
+        _hasCalledExit = true;
+        autoSaveTimer?.cancel();
+        await exitCwWallet();
+        cwWalletBase?.close();
+        cwWalletBase = null;
+        cwWalletService = null;
+      });
     }
   }
 
