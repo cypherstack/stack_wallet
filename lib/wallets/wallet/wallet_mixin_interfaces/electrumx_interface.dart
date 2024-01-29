@@ -1702,7 +1702,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     try {
       final features = await electrumXClient
           .getServerFeatures()
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 5));
 
       Logging.instance.log("features: $features", level: LogLevel.Info);
 
@@ -1715,8 +1715,8 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     } catch (e, s) {
       // do nothing, still allow user into wallet
       Logging.instance.log(
-        "$runtimeType init() failed: $e\n$s",
-        level: LogLevel.Error,
+        "$runtimeType init() did not complete: $e\n$s",
+        level: LogLevel.Warning,
       );
     }
 
