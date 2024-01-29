@@ -399,7 +399,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
                   );
                 },
               ),
-          if (widget.addWalletType == AddWalletType.New)
+          if (widget.coin.isFrost && widget.addWalletType == AddWalletType.New)
             Column(
               children: [
                 PrimaryButton(
