@@ -77,82 +77,71 @@ class _NewWalletRecoveryPhraseWarningViewState
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-
-    return MasterScaffold(
-      isDesktop: isDesktop,
-      appBar: _buildAppBar(context),
-      body: _buildBody(context),
-    );
-  }
-
-  Widget _buildAppBar(BuildContext context) {
-    return isDesktop
-        ? const DesktopAppBar(
-            isCompactHeight: false,
-            leading: AppBarBackButton(),
-            trailing: ExitToMyStackButton(),
-          )
-        : AppBar(
-            leading: const AppBarBackButton(),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
-                  right: 10,
-                ),
-                child: AppBarIconButton(
-                  semanticsLabel:
-                      "Question Button. Opens A Dialog For Recovery Phrase Explanation.",
-                  icon: SvgPicture.asset(
-                    Assets.svg.circleQuestion,
-                    width: 20,
-                    height: 20,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorDark,
-                  ),
-                  onPressed: () async {
-                    await showDialog<void>(
-                      context: context,
-                      builder: (context) =>
-                          const RecoveryPhraseExplanationDialog(),
-                    );
-                  },
-                ),
-              )
-            ],
-          );
-  }
-
-  Widget _buildBody(BuildContext context) {
     final options = ref.read(pNewWalletOptions.state).state;
 
     final seedCount = options?.mnemonicWordsCount ??
         Constants.defaultSeedPhraseLengthFor(coin: coin);
 
-    return SingleChildScrollView(
-      child: Center(
+    return MasterScaffold(
+      isDesktop: isDesktop,
+      appBar: isDesktop
+          ? const DesktopAppBar(
+              isCompactHeight: false,
+              leading: AppBarBackButton(),
+              trailing: ExitToMyStackButton(),
+            )
+          : AppBar(
+              leading: const AppBarBackButton(),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    bottom: 10,
+                    right: 10,
+                  ),
+                  child: AppBarIconButton(
+                    semanticsLabel:
+                        "Question Button. Opens A Dialog For Recovery Phrase Explanation.",
+                    icon: SvgPicture.asset(
+                      Assets.svg.circleQuestion,
+                      width: 20,
+                      height: 20,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
+                    ),
+                    onPressed: () async {
+                      await showDialog<void>(
+                        context: context,
+                        builder: (context) =>
+                            const RecoveryPhraseExplanationDialog(),
+                      );
+                    },
+                  ),
+                )
+              ],
+            ),
+      body: SingleChildScrollView(
         child: ConstrainedBox(
           constraints:
               BoxConstraints(maxWidth: isDesktop ? 480 : double.infinity),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+          child: IntrinsicHeight(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Center(
+                child: Column(
+                  crossAxisAlignment: isDesktop
+                      ? CrossAxisAlignment.center
+                      : CrossAxisAlignment.stretch,
                   children: [
-                    if (isDesktop)
-                      // TODO vertical centering/alignment.
-                      /*const Spacer(
+                    /*if (isDesktop)
+                      const Spacer(
                         flex: 10,
                       ),*/
-                      if (!isDesktop)
-                        const SizedBox(
-                          height: 4,
-                        ),
+                    if (!isDesktop)
+                      const SizedBox(
+                        height: 4,
+                      ),
                     if (!isDesktop)
                       Text(
                         walletName,
@@ -694,7 +683,7 @@ class _NewWalletRecoveryPhraseWarningViewState
                       ),*/
                   ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
