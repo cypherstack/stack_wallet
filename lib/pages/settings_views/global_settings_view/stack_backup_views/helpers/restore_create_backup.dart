@@ -10,9 +10,11 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:frostdart/frostdart_bindings_generated.dart';
 import 'package:isar/isar.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
 import 'package:stackwallet/db/hive/db.dart';
@@ -26,6 +28,7 @@ import 'package:stackwallet/models/stack_restoring_ui_state.dart';
 import 'package:stackwallet/models/trade_wallet_lookup.dart';
 import 'package:stackwallet/models/wallet_restore_state.dart';
 import 'package:stackwallet/services/address_book_service.dart';
+import 'package:stackwallet/services/frost.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/trade_notes_service.dart';
 import 'package:stackwallet/services/trade_sent_from_stack_service.dart';
@@ -425,16 +428,92 @@ abstract class SWB {
     );
 
     try {
-      final wallet = await Wallet.create(
-        walletInfo: info,
-        mainDB: MainDB.instance,
-        secureStorageInterface: secureStorageInterface,
-        nodeService: nodeService,
-        prefs: prefs,
-        mnemonic: mnemonic,
-        mnemonicPassphrase: mnemonicPassphrase,
-        privateKey: privateKey,
-      );
+      final Wallet wallet;
+
+      if (info.coin == Coin.bitcoinFrost ||
+          info.coin == Coin.bitcoinFrostTestNet) {
+        // Decode info.otherDataJsonString for Frost recovery info.
+        final otherData = jsonDecode(info.otherDataJsonString!);
+        final String serializedKeys = otherData["keys"] as String;
+        final String multisigConfig = otherData["config"] as String;
+        final String myName = otherData["myName"] as String;
+
+        // Start Frost key generation.
+        final frostStartKeyGenData = Frost.startKeyGeneration(
+          multisigConfig: multisigConfig,
+          myName: myName,
+        );
+
+        // Generate shares.
+        final ({
+          Pointer<SecretSharesRes> secretSharesResPtr,
+          String share
+        }) frostSecretSharesData;
+        try {
+          frostSecretSharesData = Frost.generateSecretShares(
+            multisigConfigWithNamePtr:
+                frostStartKeyGenData.multisigConfigWithNamePtr,
+            mySeed: frostStartKeyGenData.seed,
+            secretShareMachineWrapperPtr:
+                frostStartKeyGenData.secretShareMachineWrapperPtr,
+            commitments: [frostStartKeyGenData.commitments],
+          );
+        } catch (e, s) {
+          Logging.instance.log(
+            "$e\n$s",
+            level: LogLevel.Fatal,
+          );
+
+          throw Error();
+        }
+
+        // Get shares.
+        final shares = [
+          frostSecretSharesData.share,
+        ];
+
+        // Complete Frost key generation.
+        final frostCompleteKeyGenData = Frost.completeKeyGeneration(
+          multisigConfigWithNamePtr:
+              frostStartKeyGenData.multisigConfigWithNamePtr,
+          secretSharesResPtr: frostSecretSharesData.secretSharesResPtr,
+          shares: [frostSecretSharesData.share], // TODO [prio=high]: verify.
+        );
+
+        wallet = await Wallet.create(
+          walletInfo: info,
+          mainDB: MainDB.instance,
+          secureStorageInterface: secureStorageInterface,
+          nodeService: nodeService,
+          prefs: prefs,
+        );
+
+        await (wallet as BitcoinFrostWallet).initializeNewFrost(
+          mnemonic: frostStartKeyGenData.seed,
+          multisigConfig: multisigConfig,
+          recoveryString: frostCompleteKeyGenData.recoveryString,
+          serializedKeys: serializedKeys,
+          multisigId: frostCompleteKeyGenData.multisigId,
+          myName: myName,
+          participants: Frost.getParticipants(
+            multisigConfig: multisigConfig,
+          ),
+          threshold: Frost.getThreshold(
+            multisigConfig: multisigConfig,
+          ),
+        );
+      } else {
+        wallet = await Wallet.create(
+          walletInfo: info,
+          mainDB: MainDB.instance,
+          secureStorageInterface: secureStorageInterface,
+          nodeService: nodeService,
+          prefs: prefs,
+          mnemonic: mnemonic,
+          mnemonicPassphrase: mnemonicPassphrase,
+          privateKey: privateKey,
+        );
+      }
 
       await wallet.init();
 
