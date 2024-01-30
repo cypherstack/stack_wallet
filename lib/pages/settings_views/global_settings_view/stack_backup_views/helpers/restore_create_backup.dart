@@ -42,6 +42,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
+import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
@@ -302,6 +303,16 @@ abstract class SWB {
               await wallet.getMnemonicPassphrase();
         } else if (wallet is PrivateKeyInterface) {
           backupWallet['privateKey'] = await wallet.getPrivateKey();
+        } else if (wallet is BitcoinFrostWallet) {
+          String? keys = await wallet.getSerializedKeys();
+          String? config = await wallet.getMultisigConfig();
+          // TODO handle case in which either keys or config is null.
+
+          // Format keys and config as a JSON string and set otherDataJsonString.
+          Map<String, dynamic> otherData = {};
+          otherData["keys"] = keys;
+          otherData["config"] = config;
+          backupWallet['otherDataJsonString'] = jsonEncode(otherData);
         }
         backupWallet['coinName'] = wallet.info.coin.name;
         backupWallet['storedChainHeight'] = wallet.info.cachedChainHeight;
