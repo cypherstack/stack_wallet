@@ -306,6 +306,7 @@ abstract class SWB {
         } else if (wallet is BitcoinFrostWallet) {
           String? keys = await wallet.getSerializedKeys();
           String? config = await wallet.getMultisigConfig();
+          String myName = wallet.frostInfo.myName;
           if (keys == null || config == null) {
             String err = "${wallet.info.coin.name} wallet ${wallet.info.name} "
                 "has null keys or config";
@@ -318,6 +319,7 @@ abstract class SWB {
           Map<String, dynamic> otherData = {};
           otherData["keys"] = keys;
           otherData["config"] = config;
+          otherData["myName"] = myName;
           backupWallet['otherDataJsonString'] = jsonEncode(otherData);
         }
         backupWallet['coinName'] = wallet.info.coin.name;
