@@ -8,6 +8,8 @@
  *
  */
 
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -27,6 +29,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
+import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class RestoringWalletCard extends ConsumerStatefulWidget {
   const RestoringWalletCard({
@@ -336,12 +339,43 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                                 ),
                               ),
                             );
+                          } else {
+                            // Show dialog with keys and multisig config.
+
+                            // Decode otherDataJsonString.
+                            final data = jsonDecode(ref
+                                .read(provider)
+                                .otherDataJsonString as String);
+                            Map<String, dynamic> otherData =
+                                Map<String, dynamic>.from(data as Map);
+
+                            String keys = otherData["keys"] as String;
+                            String multisigConfig =
+                                otherData["config"] as String;
+                            // TODO [prio=med]: validate both vars above.
+
+                            // TODO [prio=high]: Create widget with copyable text fields.
+                            // Refer to confirm_new_frost_ms_wallet_creation_view.dart.
+                            unawaited(
+                              showDialog<void>(
+                                context: context,
+                                barrierDismissible: true,
+                                builder: (_) => StackDialog(
+                                  title: "Frost wallet recovery info",
+                                  message: "$keys\n\n$multisigConfig",
+                                ),
+                              ),
+                            );
                           }
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0),
                           child: Text(
-                            "Show recovery phrase",
+                            (ref.read(provider).coin == Coin.bitcoinFrost ||
+                                    ref.read(provider).coin ==
+                                        Coin.bitcoinFrostTestNet)
+                                ? "Show recovery info"
+                                : "Show recovery phrase",
                             style: STextStyles.infoSmall(context).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!

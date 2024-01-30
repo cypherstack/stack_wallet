@@ -310,6 +310,7 @@ abstract class SWB {
           String? keys = await wallet.getSerializedKeys();
           String? config = await wallet.getMultisigConfig();
           String myName = wallet.frostInfo.myName;
+          // String commitments = wallet.frostInfo.commitments;
           if (keys == null || config == null) {
             String err = "${wallet.info.coin.name} wallet ${wallet.info.name} "
                 "has null keys or config";
@@ -458,7 +459,9 @@ abstract class SWB {
             mySeed: frostStartKeyGenData.seed,
             secretShareMachineWrapperPtr:
                 frostStartKeyGenData.secretShareMachineWrapperPtr,
-            commitments: [frostStartKeyGenData.commitments],
+            commitments: [
+              frostStartKeyGenData.commitments
+            ], // TODO [prio=high]: fix commitments.
           );
         } catch (e, s) {
           Logging.instance.log(
@@ -868,6 +871,7 @@ abstract class SWB {
         restoringStatus: StackRestoringStatus.waiting,
         walletId: walletId,
         walletName: walletName,
+        otherDataJsonString: walletbackup["otherDataJsonString"] as String,
       );
     }
 
