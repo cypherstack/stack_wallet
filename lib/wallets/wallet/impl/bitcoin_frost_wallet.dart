@@ -718,8 +718,9 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
           if (knownSalts.contains(salt)) {
             throw Exception("Known frost multisig salt found!");
           }
-          knownSalts.add(salt);
-          await _updateKnownSalts(knownSalts);
+          List<String> updatedKnownSalts = List<String>.from(knownSalts);
+          updatedKnownSalts.add(salt);
+          await _updateKnownSalts(updatedKnownSalts);
         } else {
           // clear cache
           await electrumXCachedClient.clearSharedTransactionCache(coin: coin);
@@ -1001,8 +1002,9 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
       .findFirstSync()!;
 
   Future<void> _updateKnownSalts(List<String> knownSalts) async {
+    final info = frostInfo;
+
     await mainDB.isar.writeTxn(() async {
-      final info = frostInfo;
       await mainDB.isar.frostWalletInfo.delete(info.id);
       await mainDB.isar.frostWalletInfo.put(
         info.copyWith(knownSalts: knownSalts),

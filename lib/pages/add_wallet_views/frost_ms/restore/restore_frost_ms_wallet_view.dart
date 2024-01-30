@@ -97,7 +97,9 @@ class _RestoreFrostMsWalletViewState
       ),
     );
 
-    await ref.read(mainDBProvider).isar.frostWalletInfo.put(frostInfo);
+    await ref.read(mainDBProvider).isar.writeTxn(() async {
+      await ref.read(mainDBProvider).isar.frostWalletInfo.put(frostInfo);
+    });
 
     await (wallet as BitcoinFrostWallet).recover(
       serializedKeys: keys,
