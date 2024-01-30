@@ -406,7 +406,9 @@ abstract class SWB {
 
     if (walletbackup['mnemonic'] == null) {
       // probably private key based
-      privateKey = walletbackup['privateKey'] as String;
+      if (walletbackup['privateKey'] != null) {
+        privateKey = walletbackup['privateKey'] as String;
+      }
     } else {
       if (walletbackup['mnemonic'] is List) {
         List<String> mnemonicList = (walletbackup['mnemonic'] as List<dynamic>)
