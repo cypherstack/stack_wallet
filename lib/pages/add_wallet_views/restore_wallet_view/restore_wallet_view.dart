@@ -250,6 +250,12 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             ),
           },
         );
+      } else if (widget.coin == Coin.firo) {
+        otherDataJsonString = jsonEncode(
+          {
+            WalletInfoKeys.lelantusCoinIsarRescanRequired: false,
+          },
+        );
       }
 
       // TODO: do actual check to make sure it is a valid mnemonic for monero

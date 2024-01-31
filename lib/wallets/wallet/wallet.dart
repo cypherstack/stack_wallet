@@ -482,6 +482,11 @@ abstract class Wallet<T extends CryptoCurrency> {
         ),
       );
 
+      // add some small buffer before making calls.
+      // this can probably be removed in the future but was added as a
+      // debugging feature
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       final Set<String> codesToCheck = {};
       if (this is PaynymInterface) {

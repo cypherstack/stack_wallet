@@ -140,20 +140,18 @@ class MockJsonRPC extends _i1.Mock implements _i2.JsonRPC {
         )),
       ) as _i5.Future<_i2.JsonRPCResponse>);
   @override
-  _i5.Future<void> disconnect({required String? reason}) => (super.noSuchMethod(
+  _i5.Future<void> disconnect({
+    required String? reason,
+    bool? ignoreMutex = false,
+  }) =>
+      (super.noSuchMethod(
         Invocation.method(
           #disconnect,
           [],
-          {#reason: reason},
-        ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
-  @override
-  _i5.Future<void> connect() => (super.noSuchMethod(
-        Invocation.method(
-          #connect,
-          [],
+          {
+            #reason: reason,
+            #ignoreMutex: ignoreMutex,
+          },
         ),
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),

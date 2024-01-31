@@ -35,8 +35,8 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
   KeyService get cwKeysStorage =>
       _cwKeysStorageCached ??= KeyService(secureStorageInterface);
 
-  WalletService? cwWalletService;
-  WalletBase? cwWalletBase;
+  static WalletService? cwWalletService;
+  static WalletBase? cwWalletBase;
 
   bool _hasCalledExit = false;
   bool _txRefreshLock = false;
@@ -46,7 +46,6 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
   double highestPercentCached = 0;
 
   Timer? autoSaveTimer;
-
   Future<String> pathForWalletDir({
     required String name,
     required WalletType type,
@@ -297,13 +296,19 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
     }
   }
 
+  static Mutex exitMutex = Mutex();
+
   @override
   Future<void> exit() async {
     if (!_hasCalledExit) {
-      _hasCalledExit = true;
-      autoSaveTimer?.cancel();
-      await exitCwWallet();
-      cwWalletBase?.close();
+      await exitMutex.protect(() async {
+        _hasCalledExit = true;
+        autoSaveTimer?.cancel();
+        await exitCwWallet();
+        cwWalletBase?.close();
+        cwWalletBase = null;
+        cwWalletService = null;
+      });
     }
   }
 

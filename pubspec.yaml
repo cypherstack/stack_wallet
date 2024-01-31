@@ -11,11 +11,11 @@ description: Stack Wallet
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.9.0+199
+version: 1.9.2+201
 
 environment:
   sdk: ">=3.0.2 <4.0.0"
-  flutter: ^3.10.0
+  flutter: ^3.16.0
 
 dependencies:
   flutter:
@@ -30,7 +30,7 @@ dependencies:
   flutter_libsparkmobile:
     git:
       url: https://github.com/cypherstack/flutter_libsparkmobile.git
-      ref: d99c34cbb39666c8dcb819b457b3314577aaad43
+      ref: fb50031056fbea0326f7dd76ad59d165c1e5eee5
 
   flutter_libmonero:
     path: ./crypto_plugins/flutter_libmonero
