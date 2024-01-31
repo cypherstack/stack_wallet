@@ -925,7 +925,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
     );
   }
 
-  Future<String?> _getSerializedKeysPrevGen() async =>
+  Future<String?> getSerializedKeysPrevGen() async =>
       await secureStorageInterface.read(
         key: "{$walletId}_serializedFROSTKeysPrevGen",
       );
@@ -935,7 +935,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
         key: "{$walletId}_multisigConfig",
       );
 
-  Future<String?> _multisigConfigPrevGen() async =>
+  Future<String?> getMultisigConfigPrevGen() async =>
       await secureStorageInterface.read(
         key: "{$walletId}_multisigConfigPrevGen",
       );

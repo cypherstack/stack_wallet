@@ -29,10 +29,12 @@ class WalletKeysDesktopPopup extends StatelessWidget {
   const WalletKeysDesktopPopup({
     Key? key,
     required this.words,
+    this.frostData,
     this.clipboardInterface = const ClipboardWrapper(),
   }) : super(key: key);
 
   final List<String> words;
+  final ({String keys, String config})? frostData;
   final ClipboardInterface clipboardInterface;
 
   static const String routeName = "walletKeysDesktopPopup";
@@ -66,85 +68,145 @@ class WalletKeysDesktopPopup extends StatelessWidget {
           const SizedBox(
             height: 28,
           ),
-          Text(
-            "Recovery phrase",
-            style: STextStyles.desktopTextMedium(context),
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 32,
-              ),
-              child: Text(
-                "Please write down your recovery phrase in the correct order and save it to keep your funds secure. You will also be asked to verify the words on the next screen.",
-                style: STextStyles.desktopTextExtraExtraSmall(context),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ),
-          const SizedBox(
-            height: 24,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 32,
-            ),
-            child: MnemonicTable(
-              words: words,
-              isDesktop: true,
-              itemBorderColor: Theme.of(context)
-                  .extension<StackColors>()!
-                  .buttonBackSecondary,
-            ),
-          ),
-          const SizedBox(
-            height: 24,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 32,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: SecondaryButton(
-                    label: "Show QR code",
-                    onPressed: () {
-                      final String value = AddressUtils.encodeQRSeedData(words);
-                      Navigator.of(context).pushNamed(
-                        QRCodeDesktopPopupContent.routeName,
-                        arguments: value,
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(
-                  width: 16,
-                ),
-                Expanded(
-                  child: PrimaryButton(
-                    label: "Copy",
-                    onPressed: () async {
-                      await clipboardInterface.setData(
-                        ClipboardData(text: words.join(" ")),
-                      );
-                      unawaited(
-                        showFloatingFlushBar(
-                          type: FlushBarType.info,
-                          message: "Copied to clipboard",
-                          iconAsset: Assets.svg.copy,
-                          context: context,
+          frostData != null
+              ? Column(
+                  children: [
+                    Text(
+                      "Keys",
+                      style: STextStyles.desktopTextMedium(context),
+                    ),
+                    const SizedBox(
+                      height: 8,
+                    ),
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
                         ),
-                      );
-                    },
-                  ),
+                        child: SelectableText(
+                          frostData!.keys,
+                          style:
+                              STextStyles.desktopTextExtraExtraSmall(context),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 24,
+                    ),
+                    Text(
+                      "Config",
+                      style: STextStyles.desktopTextMedium(context),
+                    ),
+                    const SizedBox(
+                      height: 8,
+                    ),
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                        ),
+                        child: SelectableText(
+                          frostData!.config,
+                          style:
+                              STextStyles.desktopTextExtraExtraSmall(context),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 24,
+                    ),
+                  ],
+                )
+              : Column(
+                  children: [
+                    Text(
+                      "Recovery phrase",
+                      style: STextStyles.desktopTextMedium(context),
+                    ),
+                    const SizedBox(
+                      height: 8,
+                    ),
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                        ),
+                        child: Text(
+                          "Please write down your recovery phrase in the correct order and save it to keep your funds secure. You will also be asked to verify the words on the next screen.",
+                          style:
+                              STextStyles.desktopTextExtraExtraSmall(context),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 24,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32,
+                      ),
+                      child: MnemonicTable(
+                        words: words,
+                        isDesktop: true,
+                        itemBorderColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .buttonBackSecondary,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 24,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: SecondaryButton(
+                              label: "Show QR code",
+                              onPressed: () {
+                                // TODO: address utils
+                                final String value =
+                                    AddressUtils.encodeQRSeedData(words);
+                                Navigator.of(context).pushNamed(
+                                  QRCodeDesktopPopupContent.routeName,
+                                  arguments: value,
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 16,
+                          ),
+                          Expanded(
+                            child: PrimaryButton(
+                              label: "Copy",
+                              onPressed: () async {
+                                await clipboardInterface.setData(
+                                  ClipboardData(text: words.join(" ")),
+                                );
+                                if (context.mounted) {
+                                  unawaited(
+                                    showFloatingFlushBar(
+                                      type: FlushBarType.info,
+                                      message: "Copied to clipboard",
+                                      iconAsset: Assets.svg.copy,
+                                      context: context,
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
           const SizedBox(
             height: 32,
           ),

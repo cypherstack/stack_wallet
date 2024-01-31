@@ -1403,12 +1403,33 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case WalletBackupView.routeName:
-        if (args is Tuple2<String, List<String>>) {
+        if (args is ({String walletId, List<String> mnemonic})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => WalletBackupView(
-              walletId: args.item1,
-              mnemonic: args.item2,
+              walletId: args.walletId,
+              mnemonic: args.mnemonic,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        } else if (args is ({
+          String walletId,
+          List<String> mnemonic,
+          ({
+            String myName,
+            String config,
+            String keys,
+            ({String config, String keys})? prevGen,
+          })? frostWalletData,
+        })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => WalletBackupView(
+              walletId: args.walletId,
+              mnemonic: args.mnemonic,
+              frostWalletData: args.frostWalletData,
             ),
             settings: RouteSettings(
               name: settings.name,
@@ -2313,10 +2334,14 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name));
 
       case WalletKeysDesktopPopup.routeName:
-        if (args is List<String>) {
+        if (args is ({
+          List<String> mnemonic,
+          ({String keys, String config})? frostData
+        })) {
           return FadePageRoute(
             WalletKeysDesktopPopup(
-              words: args,
+              words: args.mnemonic,
+              frostData: args.frostData,
             ),
             RouteSettings(
               name: settings.name,
