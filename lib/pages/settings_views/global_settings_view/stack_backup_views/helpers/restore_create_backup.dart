@@ -10,11 +10,10 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:frostdart/frostdart_bindings_generated.dart';
+import 'package:frostdart/frostdart.dart' as frost;
 import 'package:isar/isar.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
 import 'package:stackwallet/db/hive/db.dart';
@@ -44,6 +43,7 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/models/frost_wallet_info.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
@@ -309,21 +309,21 @@ abstract class SWB {
         } else if (wallet is BitcoinFrostWallet) {
           String? keys = await wallet.getSerializedKeys();
           String? config = await wallet.getMultisigConfig();
-          String myName = wallet.frostInfo.myName;
           if (keys == null || config == null) {
             String err = "${wallet.info.coin.name} wallet ${wallet.info.name} "
                 "has null keys or config";
             Logging.instance.log(err, level: LogLevel.Fatal);
             throw Exception(err);
           }
+          //This case should never actually happen in practice unless the whole
+          // wallet is somehow corrupt
           // TODO [prio=low]: solve case in which either keys or config is null.
 
           // Format keys & config as a JSON string and set otherDataJsonString.
-          Map<String, dynamic> otherData = {};
-          otherData["keys"] = keys;
-          otherData["config"] = config;
-          otherData["myName"] = myName;
-          backupWallet['otherDataJsonString'] = jsonEncode(otherData);
+          Map<String, dynamic> frostData = {};
+          frostData["keys"] = keys;
+          frostData["config"] = config;
+          backupWallet['frostWalletData'] = jsonEncode(frostData);
         }
         backupWallet['coinName'] = wallet.info.coin.name;
         backupWallet['storedChainHeight'] = wallet.info.cachedChainHeight;
@@ -430,92 +430,47 @@ abstract class SWB {
     );
 
     try {
-      final Wallet wallet;
-
-      if (info.coin == Coin.bitcoinFrost ||
-          info.coin == Coin.bitcoinFrostTestNet) {
+      String? serializedKeys;
+      String? multisigConfig;
+      if (info.coin.isFrost) {
         // Decode info.otherDataJsonString for Frost recovery info.
-        final otherData = jsonDecode(info.otherDataJsonString!);
-        final String serializedKeys = otherData["keys"] as String;
-        final String multisigConfig = otherData["config"] as String;
-        final String myName = otherData["myName"] as String;
+        final frostData = jsonDecode(walletbackup["frostWalletData"] as String);
+        serializedKeys = frostData["keys"] as String;
+        multisigConfig = frostData["config"] as String;
 
-        // Start Frost key generation.
-        final frostStartKeyGenData = Frost.startKeyGeneration(
-          multisigConfig: multisigConfig,
-          myName: myName,
-        );
-
-        // Generate shares.
-        final ({
-          Pointer<SecretSharesRes> secretSharesResPtr,
-          String share
-        }) frostSecretSharesData;
-        try {
-          frostSecretSharesData = Frost.generateSecretShares(
-            multisigConfigWithNamePtr:
-                frostStartKeyGenData.multisigConfigWithNamePtr,
-            mySeed: frostStartKeyGenData.seed,
-            secretShareMachineWrapperPtr:
-                frostStartKeyGenData.secretShareMachineWrapperPtr,
-            commitments: [frostStartKeyGenData.commitments],
-          );
-        } catch (e, s) {
-          Logging.instance.log(
-            "$e\n$s",
-            level: LogLevel.Fatal,
-          );
-
-          throw Error();
-        }
-
-        // Get shares.
-        final shares = [
-          frostSecretSharesData.share,
-        ];
-
-        // Complete Frost key generation.
-        final frostCompleteKeyGenData = Frost.completeKeyGeneration(
-          multisigConfigWithNamePtr:
-              frostStartKeyGenData.multisigConfigWithNamePtr,
-          secretSharesResPtr: frostSecretSharesData.secretSharesResPtr,
-          shares: [frostSecretSharesData.share], // TODO [prio=high]: verify.
-        );
-
-        wallet = await Wallet.create(
-          walletInfo: info,
-          mainDB: MainDB.instance,
-          secureStorageInterface: secureStorageInterface,
-          nodeService: nodeService,
-          prefs: prefs,
-        );
-
-        await (wallet as BitcoinFrostWallet).initializeNewFrost(
-          mnemonic: frostStartKeyGenData.seed,
-          multisigConfig: multisigConfig,
-          recoveryString: frostCompleteKeyGenData.recoveryString,
+        final myNameIndex = frost.getParticipantIndexFromKeys(
           serializedKeys: serializedKeys,
-          multisigId: frostCompleteKeyGenData.multisigId,
+        );
+        final participants = Frost.getParticipants(
+          multisigConfig: multisigConfig,
+        );
+        final myName = participants[myNameIndex];
+
+        final frostInfo = FrostWalletInfo(
+          walletId: info.walletId,
+          knownSalts: [],
+          participants: participants,
           myName: myName,
-          participants: Frost.getParticipants(
-            multisigConfig: multisigConfig,
-          ),
-          threshold: Frost.getThreshold(
+          threshold: frost.multisigThreshold(
             multisigConfig: multisigConfig,
           ),
         );
-      } else {
-        wallet = await Wallet.create(
-          walletInfo: info,
-          mainDB: MainDB.instance,
-          secureStorageInterface: secureStorageInterface,
-          nodeService: nodeService,
-          prefs: prefs,
-          mnemonic: mnemonic,
-          mnemonicPassphrase: mnemonicPassphrase,
-          privateKey: privateKey,
-        );
+
+        await MainDB.instance.isar.writeTxn(() async {
+          await MainDB.instance.isar.frostWalletInfo.put(frostInfo);
+        });
       }
+
+      final wallet = await Wallet.create(
+        walletInfo: info,
+        mainDB: MainDB.instance,
+        secureStorageInterface: secureStorageInterface,
+        nodeService: nodeService,
+        prefs: prefs,
+        mnemonic: mnemonic,
+        mnemonicPassphrase: mnemonicPassphrase,
+        privateKey: privateKey,
+      );
 
       await wallet.init();
 
@@ -527,7 +482,15 @@ abstract class SWB {
       Future<void>? restoringFuture;
 
       if (!(wallet is CwBasedInterface || wallet is EpiccashWallet)) {
-        restoringFuture = wallet.recover(isRescan: false);
+        if (wallet is BitcoinFrostWallet) {
+          restoringFuture = wallet.recover(
+            isRescan: false,
+            multisigConfig: multisigConfig!,
+            serializedKeys: serializedKeys!,
+          );
+        } else {
+          restoringFuture = wallet.recover(isRescan: false);
+        }
       }
 
       uiState?.update(
