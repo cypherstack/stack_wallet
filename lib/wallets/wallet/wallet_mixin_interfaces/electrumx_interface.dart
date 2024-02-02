@@ -7,6 +7,7 @@ import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
+import 'package:stackwallet/electrumx_rpc/subscribable_electrumx_client.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
@@ -30,6 +31,7 @@ import 'package:uuid/uuid.dart';
 mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   late ElectrumXClient electrumXClient;
   late CachedElectrumXClient electrumXCachedClient;
+  late SubscribableElectrumXClient subscribableElectrumXClient;
 
   int? get maximumFeerate => null;
 
@@ -793,10 +795,47 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   }
 
   Future<int> fetchChainHeight() async {
+    final Completer<int> completer = Completer<int>();
+
     try {
-      final result = await electrumXClient.getBlockHeadTip();
-      return result["height"] as int;
-    } catch (e) {
+      // Subscribe to block headers.
+      final subscription =
+          subscribableElectrumXClient.subscribeToBlockHeaders();
+
+      // Make sure we only complete once.
+      bool isFirstResponse = true;
+
+      // Add listener.
+      subscription.addListener(() {
+        final response = subscription.response;
+        if (response != null &&
+            response is Map &&
+            response.containsKey('height')) {
+          final int chainHeight = response['height'] as int;
+          // print("Current chain height: $chainHeight");
+
+          if (isFirstResponse) {
+            isFirstResponse = false;
+
+            // Return the chain height.
+            completer.complete(chainHeight);
+          }
+        } else {
+          Logging.instance.log(
+              "blockchain.headers.subscribe returned malformed response\n"
+              "Response: $response",
+              level: LogLevel.Error);
+        }
+      });
+
+      // Wait for first response.
+      return completer.future;
+    } catch (e, s) {
+      Logging.instance.log(
+          "Exception rethrown in fetchChainHeight\nError: $e\nStack trace: $s",
+          level: LogLevel.Error);
+      // completer.completeError(e, s);
+      // return Future.error(e, s);
       rethrow;
     }
   }
@@ -864,6 +903,10 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     );
     electrumXCachedClient = CachedElectrumXClient.from(
       electrumXClient: electrumXClient,
+    );
+    subscribableElectrumXClient = SubscribableElectrumXClient.from(
+      node: newNode,
+      // torService: torService,
     );
   }
 

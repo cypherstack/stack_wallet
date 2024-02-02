@@ -13,6 +13,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 class ElectrumXSubscription with ChangeNotifier {
@@ -60,6 +61,29 @@ class SubscribableElectrumXClient {
     _keepAlive = keepAlive;
   }
 
+  factory SubscribableElectrumXClient.from({
+    required ElectrumXNode node,
+    // TorService? torService,
+  }) {
+    return SubscribableElectrumXClient(
+      useSSL: node.useSSL,
+    );
+  }
+
+  // Example for returning a future which completes upon connection.
+  // static Future<SubscribableElectrumXClient> from({
+  //   required ElectrumXNode node,
+  //   TorService? torService,
+  // }) async {
+  //   final client = SubscribableElectrumXClient(
+  //     useSSL: node.useSSL,
+  //   );
+  //
+  //   await client.connect(host: node.address, port: node.port);
+  //
+  //   return client;
+  // }
+
   Future<void> connect({required String host, required int port}) async {
     try {
       await _socket?.close();
@@ -75,7 +99,10 @@ class SubscribableElectrumXClient {
               true, // TODO do not automatically trust bad certificates.
         );
       } catch (e, s) {
-        print(s);
+        Logging.instance.log(
+            "Error connecting in SubscribableElectrumXClient"
+            "\nError: $e\nStack trace: $s",
+            level: LogLevel.Error);
       }
     } else {
       _socket = await Socket.connect(
