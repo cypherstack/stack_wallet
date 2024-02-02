@@ -66,12 +66,17 @@ class SubscribableElectrumXClient {
     } catch (_) {}
 
     if (_useSSL) {
-      _socket = await SecureSocket.connect(
-        host,
-        port,
-        timeout: _connectionTimeout,
-        onBadCertificate: (_) => true,
-      );
+      try {
+        _socket = await SecureSocket.connect(
+          host,
+          port,
+          timeout: _connectionTimeout,
+          onBadCertificate: (_) =>
+              true, // TODO do not automatically trust bad certificates.
+        );
+      } catch (e, s) {
+        print(s);
+      }
     } else {
       _socket = await Socket.connect(
         host,
