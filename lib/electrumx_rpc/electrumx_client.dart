@@ -391,10 +391,14 @@ class ElectrumXClient {
 
       final List<dynamic> response;
       try {
-        response = jsonRpcResponse.data as List;
+        if (jsonRpcResponse.data is Map) {
+          response = [jsonRpcResponse.data];
+        } else {
+          response = jsonRpcResponse.data as List;
+        }
       } catch (_) {
         throw Exception(
-          "Expected json list but got a map: ${jsonRpcResponse.data}",
+          "Expected json list or map but got a ${jsonRpcResponse.data.runtimeType}: ${jsonRpcResponse.data}",
         );
       }
 
