@@ -908,6 +908,8 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       node: newNode,
       // torService: torService,
     );
+    await subscribableElectrumXClient.connect(
+        host: newNode.address, port: newNode.port);
   }
 
   //============================================================================
