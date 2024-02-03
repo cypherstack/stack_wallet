@@ -35,6 +35,8 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
   int? get maximumFeerate => null;
 
+  int? latestHeight;
+
   static const _kServerBatchCutoffVersion = [1, 6];
   List<int>? _serverVersion;
   bool get serverCanBatch {
@@ -802,6 +804,16 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       final subscription =
           subscribableElectrumXClient.subscribeToBlockHeaders();
 
+      // Don't add a listener if one already exists.
+      if (subscription.hasListeners) {
+        if (latestHeight != null) {
+          return latestHeight!;
+        } else {
+          // Wait for first response.
+          return completer.future;
+        }
+      }
+
       // Make sure we only complete once.
       bool isFirstResponse = true;
 
@@ -813,6 +825,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
             response.containsKey('height')) {
           final int chainHeight = response['height'] as int;
           // print("Current chain height: $chainHeight");
+          latestHeight = chainHeight;
 
           if (isFirstResponse) {
             isFirstResponse = false;
