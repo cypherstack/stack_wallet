@@ -12,17 +12,16 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
-class ElectrumXSubscription with ChangeNotifier {
-  dynamic _response;
-  dynamic get response => _response;
-  set response(dynamic newData) {
-    _response = newData;
-    notifyListeners();
-  }
+class ElectrumXSubscription {
+  final StreamController<dynamic> _controller =
+      StreamController(); // TODO controller params
+
+  Stream<dynamic> get responseStream => _controller.stream;
+
+  void addToStream(dynamic data) => _controller.add(data);
 }
 
 class SocketTask {
@@ -192,13 +191,13 @@ class SubscribableElectrumXClient {
         final scripthash = params.first as String;
         final taskId = "blockchain.scripthash.subscribe:$scripthash";
 
-        _tasks[taskId]?.subscription?.response = params.last;
+        _tasks[taskId]?.subscription?.addToStream(params.last);
         break;
       case "blockchain.headers.subscribe":
         final params = response["params"];
         const taskId = "blockchain.headers.subscribe";
 
-        _tasks[taskId]?.subscription?.response = params.first;
+        _tasks[taskId]?.subscription?.addToStream(params.first);
         break;
       default:
         break;
@@ -230,7 +229,7 @@ class SubscribableElectrumXClient {
     if (!(_tasks[id]?.isSubscription ?? false)) {
       _tasks.remove(id);
     } else {
-      _tasks[id]?.subscription?.response = data;
+      _tasks[id]?.subscription?.addToStream(data);
     }
   }
 

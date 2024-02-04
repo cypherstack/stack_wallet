@@ -35,7 +35,8 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
   int? get maximumFeerate => null;
 
-  int? latestHeight;
+  int? _latestHeight;
+  StreamSubscription<dynamic>? _heightSubscription;
 
   static const _kServerBatchCutoffVersion = [1, 6];
   List<int>? _serverVersion;
@@ -800,14 +801,10 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     final Completer<int> completer = Completer<int>();
 
     try {
-      // Subscribe to block headers.
-      final subscription =
-          subscribableElectrumXClient.subscribeToBlockHeaders();
-
-      // Don't add a listener if one already exists.
-      if (subscription.hasListeners) {
-        if (latestHeight != null) {
-          return latestHeight!;
+      // Don't set a stream subscription if one already exists.
+      if (_heightSubscription != null) {
+        if (_latestHeight != null) {
+          return _latestHeight!;
         } else {
           // Wait for first response.
           return completer.future;
@@ -817,15 +814,20 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       // Make sure we only complete once.
       bool isFirstResponse = true;
 
-      // Add listener.
-      subscription.addListener(() {
-        final response = subscription.response;
+      // Subscribe to block headers.
+      final subscription =
+          subscribableElectrumXClient.subscribeToBlockHeaders();
+
+      // set stream subscription
+      _heightSubscription =
+          subscription.responseStream.asBroadcastStream().listen((event) {
+        final response = event;
         if (response != null &&
             response is Map &&
             response.containsKey('height')) {
           final int chainHeight = response['height'] as int;
           // print("Current chain height: $chainHeight");
-          latestHeight = chainHeight;
+          _latestHeight = chainHeight;
 
           if (isFirstResponse) {
             isFirstResponse = false;
