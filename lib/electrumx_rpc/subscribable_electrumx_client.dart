@@ -114,29 +114,25 @@ class SubscribableElectrumXClient {
     );
 
     // Listen to global event bus for Tor preference changes.
-    try {
-      _torPreferenceListener = bus.on<TorPreferenceChangedEvent>().listen(
-        (event) async {
-          // Close open socket (if open).
-          final tempSocket = _socket;
-          _socket = null;
-          await tempSocket?.close();
+    _torPreferenceListener = bus.on<TorPreferenceChangedEvent>().listen(
+      (event) async {
+        // Close open socket (if open).
+        final tempSocket = _socket;
+        _socket = null;
+        await tempSocket?.close();
 
-          // Close open SOCKS socket (if open).
-          final tempSOCKSSocket = _socksSocket;
-          _socksSocket = null;
-          await tempSOCKSSocket?.close();
+        // Close open SOCKS socket (if open).
+        final tempSOCKSSocket = _socksSocket;
+        _socksSocket = null;
+        await tempSOCKSSocket?.close();
 
-          // Clear subscriptions.
-          _tasks.clear();
+        // Clear subscriptions.
+        _tasks.clear();
 
-          // Cancel alive timer
-          _aliveTimer?.cancel();
-        },
-      );
-    } catch (e, s) {
-      print(s);
-    }
+        // Cancel alive timer
+        _aliveTimer?.cancel();
+      },
+    );
   }
 
   factory SubscribableElectrumXClient.from({
