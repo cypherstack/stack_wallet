@@ -293,6 +293,7 @@ class SubscribableElectrumXClient {
     return '{"jsonrpc": "2.0", "id": "$id","method": "$method","params": $paramString}\r\n';
   }
 
+  /// Update the connection status and call the onConnectionStatusChanged callback if it exists.
   void _updateConnectionStatus(bool connectionStatus) {
     if (_isConnected != connectionStatus && onConnectionStatusChanged != null) {
       onConnectionStatusChanged!(connectionStatus);
@@ -300,6 +301,7 @@ class SubscribableElectrumXClient {
     _isConnected = connectionStatus;
   }
 
+  /// Called when the socket has data.
   void _dataHandler(List<int> data) {
     _responseData.addAll(data);
 
@@ -320,6 +322,7 @@ class SubscribableElectrumXClient {
     }
   }
 
+  /// Called when the socket has a response.
   void _responseHandler(Map<String, dynamic> response) {
     // subscriptions will have a method in the response
     if (response['method'] is String) {
@@ -333,6 +336,7 @@ class SubscribableElectrumXClient {
     _complete(id, result);
   }
 
+  /// Called when the subscription has a response.
   void _subscriptionHandler({
     required Map<String, dynamic> response,
   }) {
@@ -356,6 +360,7 @@ class SubscribableElectrumXClient {
     }
   }
 
+  /// Called when the socket has an error.
   void _errorHandler(Object error, StackTrace trace) {
     _updateConnectionStatus(false);
     Logging.instance.log(
@@ -363,12 +368,14 @@ class SubscribableElectrumXClient {
         level: LogLevel.Info);
   }
 
+  /// Called when the socket is closed.
   void _doneHandler() {
     _updateConnectionStatus(false);
     Logging.instance.log("SubscribableElectrumXClient called _doneHandler",
         level: LogLevel.Info);
   }
 
+  /// Complete a task with the given id and data.
   void _complete(String id, dynamic data) {
     if (_tasks[id] == null) {
       return;
@@ -385,6 +392,7 @@ class SubscribableElectrumXClient {
     }
   }
 
+  /// Add a task to the task list.
   void _addTask({
     required String id,
     required Completer<dynamic> completer,
@@ -392,6 +400,7 @@ class SubscribableElectrumXClient {
     _tasks[id] = SocketTask(completer: completer, subscription: null);
   }
 
+  /// Add a subscription task to the task list.
   void _addSubscriptionTask({
     required String id,
     required ElectrumXSubscription subscription,
@@ -399,6 +408,7 @@ class SubscribableElectrumXClient {
     _tasks[id] = SocketTask(completer: null, subscription: subscription);
   }
 
+  /// Write call to socket.
   Future<dynamic> _call({
     required String method,
     List<dynamic> params = const [],
