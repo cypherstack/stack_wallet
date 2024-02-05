@@ -6,6 +6,7 @@ import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx_chain_height_service.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/electrumx_rpc/subscribable_electrumx_client.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
@@ -36,7 +37,6 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   int? get maximumFeerate => null;
 
   int? _latestHeight;
-  StreamSubscription<dynamic>? _heightSubscription;
 
   static const _kServerBatchCutoffVersion = [1, 6];
   List<int>? _serverVersion;
@@ -807,7 +807,8 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
     try {
       // Don't set a stream subscription if one already exists.
-      if (_heightSubscription != null) {
+      if (ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] !=
+          null) {
         if (_latestHeight != null) {
           return _latestHeight!;
         } else {
@@ -824,7 +825,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
           subscribableElectrumXClient.subscribeToBlockHeaders();
 
       // set stream subscription
-      _heightSubscription =
+      ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] =
           subscription.responseStream.asBroadcastStream().listen((event) {
         final response = event;
         if (response != null &&
