@@ -128,7 +128,12 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     // don't care about sorting if using all utxos
     if (!coinControl) {
       // sort spendable by age (oldest first)
-      spendableOutputs.sort((a, b) => b.blockTime!.compareTo(a.blockTime!));
+      spendableOutputs.sort((a, b) => (b.blockTime ?? currentChainHeight)
+          .compareTo((a.blockTime ?? currentChainHeight)));
+      // Null check operator changed to null assignment in order to resolve a
+      // `Null check operator used on a null value` error.  currentChainHeight
+      // used in order to sort these unconfirmed outputs as the youngest, but we
+      // could just as well use currentChainHeight + 1.
     }
 
     Logging.instance.log("spendableOutputs.length: ${spendableOutputs.length}",
