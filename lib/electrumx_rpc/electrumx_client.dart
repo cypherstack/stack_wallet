@@ -202,6 +202,7 @@ class ElectrumXClient {
           // ... But if the killswitch is set, then we throw an exception.
           throw Exception(
               "Tor preference and killswitch set but Tor is not enabled, not connecting to ElectrumX");
+          // TODO [prio=low]: Restart Tor. Update Tor package for restart feature.
         }
       } else {
         // Get the proxy info from the TorService.
