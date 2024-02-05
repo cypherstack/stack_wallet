@@ -69,9 +69,13 @@ class SubscribableElectrumXClient {
   final Mutex _torConnectingLock = Mutex();
   bool _requireMutex = false;
 
+  List<ElectrumXNode>? failovers;
+  int currentFailoverIndex = -1;
+
   SubscribableElectrumXClient({
     required bool useSSL,
     required Prefs prefs,
+    required List<ElectrumXNode> failovers,
     TorService? torService,
     this.onConnectionStatusChanged,
     Duration connectionTimeout = const Duration(seconds: 5),
@@ -138,11 +142,13 @@ class SubscribableElectrumXClient {
   factory SubscribableElectrumXClient.from({
     required ElectrumXNode node,
     required Prefs prefs,
+    required List<ElectrumXNode> failovers,
     TorService? torService,
   }) {
     return SubscribableElectrumXClient(
       useSSL: node.useSSL,
       prefs: prefs,
+      failovers: failovers,
       torService: torService ?? TorService.sharedInstance,
     );
   }
@@ -160,6 +166,57 @@ class SubscribableElectrumXClient {
   //
   //   return client;
   // }
+
+  /// Check if the RPC client is connected and connect if needed.
+  ///
+  /// If Tor is enabled but not running, it will attempt to start Tor.
+  Future<void> _checkRpcClient() async {
+    if (_prefs.useTor) {
+      // If we're supposed to use Tor...
+      if (_torService.status != TorConnectionStatus.connected) {
+        // ... but Tor isn't running...
+        if (!_prefs.torKillSwitch) {
+          // ... and the killswitch isn't set, then we'll just return below.
+          Logging.instance.log(
+            "Tor preference set but Tor is not enabled, killswitch not set, connecting to ElectrumX through clearnet.",
+            level: LogLevel.Warning,
+          );
+        } else {
+          // ... but if the killswitch is set, then let's try to start Tor.
+          await _torService.start();
+          // TODO [prio=low]: Attempt to restart Tor if needed.  Update Tor package for restart feature.
+
+          // Double-check that Tor is running.
+          if (_torService.status != TorConnectionStatus.connected) {
+            // If Tor still isn't running, then we'll throw an exception.
+            throw Exception("SubscribableElectrumXClient._checkRpcClient: "
+                "Tor preference and killswitch set but Tor not enabled and could not start, not connecting to ElectrumX.");
+          }
+        }
+      }
+    }
+
+    // Connect if needed.
+    if ((!_prefs.useTor && _socket == null) ||
+        (_prefs.useTor && _socksSocket == null)) {
+      if (currentFailoverIndex == -1) {
+        // Check if we have cached node information
+        if (_host == null && _port == null) {
+          throw Exception("SubscribableElectrumXClient._checkRpcClient: "
+              "No host or port provided and no cached node information.");
+        }
+
+        // Connect to the server.
+        await connect(host: _host!, port: _port!);
+      } else {
+        // Attempt to connect to the next failover server.
+        await connect(
+          host: failovers![currentFailoverIndex].address,
+          port: failovers![currentFailoverIndex].port,
+        );
+      }
+    }
+  }
 
   /// Connect to the server.
   ///
@@ -179,8 +236,9 @@ class SubscribableElectrumXClient {
 
     // If we're connecting to Tor, wait.
     if (_requireMutex) {
-      // Just use a dummy function that waits for the lock to be released.
-      await _torConnectingLock.protect(() async {});
+      await _torConnectingLock.protect(() async => await _checkRpcClient());
+    } else {
+      await _checkRpcClient();
     }
 
     if (!Prefs.instance.useTor) {
@@ -509,8 +567,9 @@ class SubscribableElectrumXClient {
   }) async {
     // If we're connecting to Tor, wait.
     if (_requireMutex) {
-      // Just use a dummy function that waits for the lock to be released.
-      await _torConnectingLock.protect(() async {});
+      await _torConnectingLock.protect(() async => await _checkRpcClient());
+    } else {
+      await _checkRpcClient();
     }
 
     // Check socket is connected.
@@ -574,8 +633,9 @@ class SubscribableElectrumXClient {
   }) async {
     // If we're connecting to Tor, wait.
     if (_requireMutex) {
-      // Just use a dummy function that waits for the lock to be released.
-      await _torConnectingLock.protect(() async {});
+      await _torConnectingLock.protect(() async => await _checkRpcClient());
+    } else {
+      await _checkRpcClient();
     }
 
     // Check socket is connected.
@@ -728,8 +788,9 @@ class SubscribableElectrumXClient {
   Future<bool> ping() async {
     // If we're connecting to Tor, wait.
     if (_requireMutex) {
-      // Just use a dummy function that waits for the lock to be released.
-      await _torConnectingLock.protect(() async {});
+      await _torConnectingLock.protect(() async => await _checkRpcClient());
+    } else {
+      await _checkRpcClient();
     }
 
     // Write to the socket.

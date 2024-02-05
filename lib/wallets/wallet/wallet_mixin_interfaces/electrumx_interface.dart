@@ -948,6 +948,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     subscribableElectrumXClient = SubscribableElectrumXClient.from(
       node: newNode,
       prefs: prefs,
+      failovers: failovers,
     );
     await subscribableElectrumXClient.connect(
         host: newNode.address, port: newNode.port);
