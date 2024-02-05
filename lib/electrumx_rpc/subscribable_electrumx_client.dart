@@ -57,23 +57,34 @@ class SubscribableElectrumXClient {
 
   late Prefs _prefs;
   late TorService _torService;
+
   SubscribableElectrumXClient({
-    bool useSSL = true,
+    required bool useSSL,
+    required Prefs prefs,
+    TorService? torService,
     this.onConnectionStatusChanged,
     Duration connectionTimeout = const Duration(seconds: 5),
     Duration keepAlive = const Duration(seconds: 10),
   }) {
     _useSSL = useSSL;
+    _prefs = prefs;
+    _torService = torService ?? TorService.sharedInstance;
     _connectionTimeout = connectionTimeout;
     _keepAlive = keepAlive;
+
+    // TODO [prio=high]: Listen for TorConnectionStatusChangedEvent.
+    // TODO [prio=high]: Listen for TorPreferenceChangedEvent.
   }
 
   factory SubscribableElectrumXClient.from({
     required ElectrumXNode node,
-    // TorService? torService,
+    required Prefs prefs,
+    TorService? torService,
   }) {
     return SubscribableElectrumXClient(
       useSSL: node.useSSL,
+      prefs: prefs,
+      torService: torService ?? TorService.sharedInstance,
     );
   }
 
