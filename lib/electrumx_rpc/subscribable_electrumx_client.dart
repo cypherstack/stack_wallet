@@ -206,12 +206,35 @@ class SubscribableElectrumXClient {
 
     _updateConnectionStatus(true);
 
-    _socket!.listen(
-      _dataHandler,
-      onError: _errorHandler,
-      onDone: _doneHandler,
-      cancelOnError: true,
-    );
+    if (_prefs.useTor) {
+      if (_socksSocket == null) {
+        final String msg = "SubscribableElectrumXClient.connect(): "
+            "cannot listen to $host:$port via SOCKSSocket because it is not connected.";
+        Logging.instance.log(msg, level: LogLevel.Fatal);
+        throw Exception(msg);
+      }
+
+      _socksSocket!.listen(
+        _dataHandler,
+        onError: _errorHandler,
+        onDone: _doneHandler,
+        cancelOnError: true,
+      );
+    } else {
+      if (_socket == null) {
+        final String msg = "SubscribableElectrumXClient.connect(): "
+            "cannot listen to $host:$port via socket because it is not connected.";
+        Logging.instance.log(msg, level: LogLevel.Fatal);
+        throw Exception(msg);
+      }
+
+      _socket!.listen(
+        _dataHandler,
+        onError: _errorHandler,
+        onDone: _doneHandler,
+        cancelOnError: true,
+      );
+    }
 
     _aliveTimer?.cancel();
     _aliveTimer = Timer.periodic(
