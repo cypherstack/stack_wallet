@@ -56,6 +56,9 @@ class SubscribableElectrumXClient {
 
   bool get isConnected => _isConnected;
   bool get useSSL => _useSSL;
+  // Used to reconnect.
+  String? _host;
+  int? _port;
 
   void Function(bool)? onConnectionStatusChanged;
 
@@ -107,22 +110,29 @@ class SubscribableElectrumXClient {
     );
 
     // Listen to global event bus for Tor preference changes.
-    _torPreferenceListener = bus.on<TorPreferenceChangedEvent>().listen(
-      (event) async {
-        // Close open socket (if open).
-        final tempSocket = _socket;
-        _socket = null;
-        await tempSocket?.close();
+    try {
+      _torPreferenceListener = bus.on<TorPreferenceChangedEvent>().listen(
+        (event) async {
+          // Close open socket (if open).
+          final tempSocket = _socket;
+          _socket = null;
+          await tempSocket?.close();
 
-        // Close open SOCKS socket (if open).
-        final tempSOCKSSocket = _socksSocket;
-        _socksSocket = null;
-        await tempSOCKSSocket?.close();
+          // Close open SOCKS socket (if open).
+          final tempSOCKSSocket = _socksSocket;
+          _socksSocket = null;
+          await tempSOCKSSocket?.close();
 
-        // Clear subscriptions.
-        _tasks.clear();
-      },
-    );
+          // Clear subscriptions.
+          _tasks.clear();
+
+          // Cancel alive timer
+          _aliveTimer?.cancel();
+        },
+      );
+    } catch (e, s) {
+      print(s);
+    }
   }
 
   factory SubscribableElectrumXClient.from({
@@ -158,6 +168,10 @@ class SubscribableElectrumXClient {
     required String host,
     required int port,
   }) async {
+    // Cache node information.
+    _host = host;
+    _port = port;
+
     // If we're already connected, disconnect first.
     try {
       await _socket?.close();
@@ -567,17 +581,44 @@ class SubscribableElectrumXClient {
     // Check socket is connected.
     if (_prefs.useTor) {
       if (_socksSocket == null) {
-        final msg = "SubscribableElectrumXClient._call: "
-            "SOCKSSocket is not connected.  Method $method, params $params.";
-        Logging.instance.log(msg, level: LogLevel.Fatal);
-        throw Exception(msg);
+        try {
+          if (_host == null || _port == null) {
+            throw Exception("No host or port provided");
+          }
+
+          // Attempt to conect.
+          await connect(
+            host: _host!,
+            port: _port!,
+          );
+        } catch (e, s) {
+          final msg = "SubscribableElectrumXClient._callWithTimeout: "
+              "SOCKSSocket  not connected and cannot connect.  "
+              "Method $method, params $params."
+              "\nError: $e\nStack trace: $s";
+          Logging.instance.log(msg, level: LogLevel.Fatal);
+          throw Exception(msg);
+        }
       }
     } else {
       if (_socket == null) {
-        final msg = "SubscribableElectrumXClient._call: "
-            "Socket is not connected.  Method $method, params $params.";
-        Logging.instance.log(msg, level: LogLevel.Fatal);
-        throw Exception(msg);
+        try {
+          if (_host == null || _port == null) {
+            throw Exception("No host or port provided");
+          }
+
+          // Attempt to conect.
+          await connect(
+            host: _host!,
+            port: _port!,
+          );
+        } catch (e, s) {
+          final msg = "SubscribableElectrumXClient._callWithTimeout: "
+              "Socket not connected and cannot connect.  "
+              "Method $method, params $params.";
+          Logging.instance.log(msg, level: LogLevel.Fatal);
+          throw Exception(msg);
+        }
       }
     }
 
