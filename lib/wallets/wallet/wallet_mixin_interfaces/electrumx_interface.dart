@@ -809,6 +809,26 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       // Don't set a stream subscription if one already exists.
       if (ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] !=
           null) {
+        // Check if the stream subscription is paused.
+        if (ElectrumxChainHeightService
+            .subscriptions[cryptoCurrency.coin]!.isPaused) {
+          // If it's paused, resume it.
+          ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin]!
+              .resume();
+        }
+
+        // Check if the stream subscription is active by pinging it.
+        if (!(await subscribableElectrumXClient.ping())) {
+          // If it's not active, reconnect it.
+          final node = await getCurrentElectrumXNode();
+
+          await subscribableElectrumXClient.connect(
+              host: node.address, port: node.port);
+
+          // Wait for first response.
+          return completer.future;
+        }
+
         if (_latestHeight != null) {
           return _latestHeight!;
         } else {
