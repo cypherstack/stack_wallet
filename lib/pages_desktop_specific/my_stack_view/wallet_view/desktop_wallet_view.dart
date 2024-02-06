@@ -38,6 +38,7 @@ import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
+import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/impl/banano_wallet.dart';
@@ -91,6 +92,26 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
         ref.read(prefsChangeNotifierProvider).backupFrequencyType ==
             BackupFrequencyType.afterClosingAWallet) {
       unawaited(ref.read(autoSWBServiceProvider).doBackup());
+    }
+
+    // Close the wallet according to syncing preferences.
+    switch (ref.read(prefsChangeNotifierProvider).syncType) {
+      case SyncingType.currentWalletOnly:
+        // Close the wallet.
+        unawaited(wallet.exit());
+      // unawaited so we don't lag the UI.
+      case SyncingType.selectedWalletsAtStartup:
+        // Close if this wallet is not in the list to be synced.
+        if (!ref
+            .read(prefsChangeNotifierProvider)
+            .walletIdsSyncOnStartup
+            .contains(widget.walletId)) {
+          unawaited(wallet.exit());
+          // unawaited so we don't lag the UI.
+        }
+      case SyncingType.allWalletsOnStartup:
+        // Do nothing.
+        break;
     }
 
     ref.read(currentWalletIdProvider.notifier).state = null;
