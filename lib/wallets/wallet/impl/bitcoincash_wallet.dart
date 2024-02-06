@@ -177,7 +177,7 @@ class BitcoincashWallet extends Bip39HDWallet
           try {
             final prevOutJson = Map<String, dynamic>.from(
                 (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout)
-                as Map);
+                    as Map);
             final prevOut = OutputV2.fromElectrumXJson(
               prevOutJson,
               decimalPlaces: cryptoCurrency.fractionDigits,
@@ -192,13 +192,9 @@ class BitcoincashWallet extends Bip39HDWallet
             addresses.addAll(prevOut.addresses);
           } catch (e, s) {
             Logging.instance.log(
-              "Error getting prevOutJson"
-                  ": $e\n$s",
-              level: LogLevel.Warning,
-            );
+                "Error getting prevOutJson: $s\nStack trace: $s",
+                level: LogLevel.Warning);
           }
-
-
         }
 
         InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
