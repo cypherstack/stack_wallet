@@ -748,27 +748,25 @@ class ElectrumXClient {
         return {"rawtx": response["result"] as String};
       }
 
-      if (response is List) {
-        Logging.instance.log(
-          "getTransaction($txHash) returned null response",
-          level: LogLevel.Error,
-        );
-        throw 'getTransaction($txHash) returned null response';
-      } else {
-        if (response["result"] == null) {
-          Logging.instance.log(
-            "getTransaction($txHash) returned null response",
-            level: LogLevel.Error,
-          );
-          throw 'getTransaction($txHash) returned null response';
-        }
-        return Map<String, dynamic>.from(response["result"] as Map);
+      if (response is! Map) {
+        final String msg = "getTransaction($txHash) returned a non-Map response"
+            " of type ${response.runtimeType}.";
+        Logging.instance.log(msg, level: LogLevel.Fatal);
+        throw Exception(msg);
       }
-    } catch (e) {
+
+      if (response["result"] == null) {
+        final String msg = "getTransaction($txHash) returned null result."
+            "\nResponse: $response";
+        Logging.instance.log(msg, level: LogLevel.Fatal);
+        throw Exception(msg);
+      }
+      return Map<String, dynamic>.from(response["result"] as Map);
+    } catch (e, s) {
       Logging.instance.log(
-        "getTransaction($txHash) response: $response",
-        level: LogLevel.Error,
-      );
+          "getTransaction($txHash) response: $response"
+          "\nError: $e\nStack trace: $s",
+          level: LogLevel.Error);
       rethrow;
     }
   }
