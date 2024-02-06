@@ -4,6 +4,7 @@ import 'package:isar/isar.dart';
 import 'package:meta/meta.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx_chain_height_service.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/models/node_model.dart';
@@ -17,6 +18,7 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/paynym_is_api.dart';
@@ -609,7 +611,27 @@ abstract class Wallet<T extends CryptoCurrency> {
   Future<void> exit() async {
     _periodicRefreshTimer?.cancel();
     _networkAliveTimer?.cancel();
-    // TODO:
+
+    // If the syncing pref is currentWalletOnly or selectedWalletsAtStartup (and
+    // this wallet isn't in walletIdsSyncOnStartup), then we close subscriptions.
+
+    switch (prefs.syncType) {
+      case SyncingType.currentWalletOnly:
+        // Close the subscription for this coin's chain height.
+        await ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin]
+            ?.cancel();
+      case SyncingType.selectedWalletsAtStartup:
+        // Close the subscription if this wallet is not in the list to be synced.
+        if (!prefs.walletIdsSyncOnStartup.contains(walletId)) {
+          await ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin]
+              ?.cancel();
+        }
+      // TODO [prio=low]: Do not close subscription if another wallet of this coin
+      // is in walletIdsSyncOnStartup.
+      case SyncingType.allWalletsOnStartup:
+        // Do nothing.
+        break;
+    }
   }
 
   @mustCallSuper
