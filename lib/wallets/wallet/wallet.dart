@@ -623,11 +623,26 @@ abstract class Wallet<T extends CryptoCurrency> {
       case SyncingType.selectedWalletsAtStartup:
         // Close the subscription if this wallet is not in the list to be synced.
         if (!prefs.walletIdsSyncOnStartup.contains(walletId)) {
-          await ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin]
-              ?.cancel();
+          // Check if there's another wallet of this coin on the sync list.
+          List<String> walletIds = [];
+          for (final id in prefs.walletIdsSyncOnStartup) {
+            final wallet = mainDB.isar.walletInfo
+                .where()
+                .walletIdEqualTo(id)
+                .findFirstSync()!;
+
+            if (wallet.coin == cryptoCurrency.coin) {
+              walletIds.add(id);
+            }
+          }
+          // TODO [prio=low]: use a query instead of iterating thru wallets.
+
+          // If there are no other wallets of this coin, then close the sub.
+          if (walletIds.isEmpty) {
+            await ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin]
+                ?.cancel();
+          }
         }
-      // TODO [prio=low]: Do not close subscription if another wallet of this coin
-      // is in walletIdsSyncOnStartup.
       case SyncingType.allWalletsOnStartup:
         // Do nothing.
         break;
