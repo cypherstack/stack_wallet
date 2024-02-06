@@ -1287,9 +1287,9 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       Logging.instance.log("fetched fees: $feeObject", level: LogLevel.Info);
       _cachedFees = feeObject;
       return _cachedFees!;
-    } catch (e) {
+    } catch (e, s) {
       Logging.instance.log(
-        "Exception rethrown from _getFees(): $e",
+        "Exception rethrown from _getFees(): $e\nStack trace: $s",
         level: LogLevel.Error,
       );
       if (_cachedFees == null) {
