@@ -600,7 +600,6 @@ class ElectrumXClient {
             scripthash,
           ],
         );
-
         result = response["result"];
         retryCount--;
       }
@@ -749,15 +748,22 @@ class ElectrumXClient {
         return {"rawtx": response["result"] as String};
       }
 
-      if (response["result"] == null) {
+      if (response is List) {
         Logging.instance.log(
           "getTransaction($txHash) returned null response",
           level: LogLevel.Error,
         );
         throw 'getTransaction($txHash) returned null response';
+      } else {
+        if (response["result"] == null) {
+          Logging.instance.log(
+            "getTransaction($txHash) returned null response",
+            level: LogLevel.Error,
+          );
+          throw 'getTransaction($txHash) returned null response';
+        }
+        return Map<String, dynamic>.from(response["result"] as Map);
       }
-
-      return Map<String, dynamic>.from(response["result"] as Map);
     } catch (e) {
       Logging.instance.log(
         "getTransaction($txHash) response: $response",
