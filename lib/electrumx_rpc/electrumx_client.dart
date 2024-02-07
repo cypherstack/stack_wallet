@@ -397,8 +397,8 @@ class ElectrumXClient {
 
           if (requestStrings.length > 1) {
             Logging.instance.log(
-              "Map returned instead of a list and there are ${requestStrings.length} queued.",
-              level: LogLevel.Error);
+                "Map returned instead of a list and there are ${requestStrings.length} queued.",
+                level: LogLevel.Error);
           }
           // Could throw error here.
         } else {
@@ -680,8 +680,14 @@ class ElectrumXClient {
       );
       final Map<String, List<Map<String, dynamic>>> result = {};
       for (int i = 0; i < response.length; i++) {
-        result[response[i]["id"] as String] =
-            List<Map<String, dynamic>>.from(response[i]["result"] as List);
+        if (response[i]["result"] is Map) {
+          result[response[i]["id"] as String] = [
+            response[i]["result"] as Map<String, dynamic>
+          ];
+        } else {
+          result[response[i]["id"] as String] =
+              List<Map<String, dynamic>>.from(response[i]["result"] as List);
+        }
       }
       return result;
     } catch (e) {
