@@ -209,7 +209,7 @@ class _FiroRescanRecoveryErrorViewState
             children: [
               if (!Util.isDesktop) const Spacer(),
               Text(
-                "Failed to rescan firo wallet",
+                "Failed to rescan Firo wallet",
                 style: STextStyles.pageTitleH2(context),
               ),
               Util.isDesktop

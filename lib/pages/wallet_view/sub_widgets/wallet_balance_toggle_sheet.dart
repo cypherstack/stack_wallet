@@ -178,7 +178,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 ),
               if (balanceSecondary != null)
                 BalanceSelector(
-                  title: "Available lelantus balance",
+                  title: "Available Lelantus balance",
                   coin: coin,
                   balance: balanceSecondary.spendable,
                   onPressed: () {
@@ -204,7 +204,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 ),
               if (balanceSecondary != null)
                 BalanceSelector(
-                  title: "Full lelantus balance",
+                  title: "Full Lelantus balance",
                   coin: coin,
                   balance: balanceSecondary.total,
                   onPressed: () {
@@ -230,7 +230,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 ),
               if (balanceTertiary != null)
                 BalanceSelector(
-                  title: "Available spark balance",
+                  title: "Available Spark balance",
                   coin: coin,
                   balance: balanceTertiary.spendable,
                   onPressed: () {
@@ -256,7 +256,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 ),
               if (balanceTertiary != null)
                 BalanceSelector(
-                  title: "Full spark balance",
+                  title: "Full Spark balance",
                   coin: coin,
                   balance: balanceTertiary.total,
                   onPressed: () {
