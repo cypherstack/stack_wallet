@@ -843,7 +843,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
           subscribableElectrumXClient.subscribeToBlockHeaders();
 
       // set stream subscription
-      ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] =
+      ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] ??=
           subscription.responseStream.asBroadcastStream().listen((event) {
         final response = event;
         if (response != null &&
