@@ -14,6 +14,24 @@ import 'package:bitcoindart/bitcoindart.dart';
 import 'package:crypto/crypto.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+
+import 'package:stackwallet/wallets/crypto_currency/coins/banano.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/bitcoincash.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/dogecoin.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/ecash.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/epiccash.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/ethereum.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/litecoin.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/monero.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/namecoin.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/nano.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/particl.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/stellar.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/tezos.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
 
 class AddressUtils {
   static String condenseAddress(String address) {
@@ -49,7 +67,57 @@ class AddressUtils {
   }
 
   static bool validateAddress(String address, Coin coin) {
-    throw Exception("moved");
+    //This calls the validate address for each crypto coin, validateAddress is
+    //only used in 2 places, so I just replaced the old functionality here
+    switch (coin) {
+      case Coin.bitcoin:
+        return Bitcoin(CryptoCurrencyNetwork.main).validateAddress(address);
+      case Coin.litecoin:
+        return Litecoin(CryptoCurrencyNetwork.main).validateAddress(address);
+      case Coin.bitcoincash:
+        return Bitcoincash(CryptoCurrencyNetwork.main).validateAddress(address);
+      case Coin.dogecoin:
+        return Dogecoin(CryptoCurrencyNetwork.main).validateAddress(address);
+      case Coin.epicCash:
+        return Epiccash(CryptoCurrencyNetwork.main).validateAddress(address);
+      case Coin.ethereum:
+        return Ethereum(CryptoCurrencyNetwork.main).validateAddress(address);
+      case Coin.firo:
+        return Firo(CryptoCurrencyNetwork.main).validateAddress(address);
+      case Coin.eCash:
+        return Ecash(CryptoCurrencyNetwork.main).validateAddress(address);
+      case Coin.monero:
+        return Monero(CryptoCurrencyNetwork.main).validateAddress(address);
+      case Coin.wownero:
+        return Wownero(CryptoCurrencyNetwork.main).validateAddress(address);
+      case Coin.namecoin:
+        return Namecoin(CryptoCurrencyNetwork.main).validateAddress(address);
+      case Coin.particl:
+        return Particl(CryptoCurrencyNetwork.main).validateAddress(address);
+      case Coin.stellar:
+        return Stellar(CryptoCurrencyNetwork.main).validateAddress(address);
+      case Coin.nano:
+        return Nano(CryptoCurrencyNetwork.main).validateAddress(address);
+      case Coin.banano:
+        return Banano(CryptoCurrencyNetwork.main).validateAddress(address);
+      case Coin.tezos:
+        return Tezos(CryptoCurrencyNetwork.main).validateAddress(address);
+      case Coin.bitcoinTestNet:
+        return Bitcoin(CryptoCurrencyNetwork.test).validateAddress(address);
+      case Coin.litecoinTestNet:
+        return Litecoin(CryptoCurrencyNetwork.test).validateAddress(address);
+      case Coin.bitcoincashTestnet:
+        return Bitcoincash(CryptoCurrencyNetwork.test).validateAddress(address);
+      case Coin.firoTestNet:
+        return Firo(CryptoCurrencyNetwork.test).validateAddress(address);
+      case Coin.dogecoinTestNet:
+        return Dogecoin(CryptoCurrencyNetwork.test).validateAddress(address);
+      case Coin.stellarTestnet:
+        return Stellar(CryptoCurrencyNetwork.test).validateAddress(address);
+      case null:
+        throw Exception("Invalid coin");
+    }
+    // throw Exception("moved");
     // switch (coin) {
     //   case Coin.bitcoin:
     //     return Address.validateAddress(address, bitcoin);
