@@ -803,12 +803,47 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   }
 
   Future<int> fetchChainHeight() async {
-    final Completer<int> completer = Completer<int>();
-
     try {
       // Don't set a stream subscription if one already exists.
-      if (ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] !=
+      if (ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] ==
           null) {
+        final Completer<int> completer = Completer<int>();
+
+        // Make sure we only complete once.
+        final isFirstResponse = _latestHeight == null;
+
+        // Subscribe to block headers.
+        final subscription =
+            subscribableElectrumXClient.subscribeToBlockHeaders();
+
+        // set stream subscription
+        ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] =
+            subscription.responseStream.asBroadcastStream().listen((event) {
+          final response = event;
+          if (response != null &&
+              response is Map &&
+              response.containsKey('height')) {
+            final int chainHeight = response['height'] as int;
+            // print("Current chain height: $chainHeight");
+
+            _latestHeight = chainHeight;
+
+            if (isFirstResponse) {
+              // Return the chain height.
+              completer.complete(chainHeight);
+            }
+          } else {
+            Logging.instance.log(
+                "blockchain.headers.subscribe returned malformed response\n"
+                "Response: $response",
+                level: LogLevel.Error);
+          }
+        });
+
+        return _latestHeight ?? await completer.future;
+      }
+      // Don't set a stream subscription if one already exists.
+      else {
         // Check if the stream subscription is paused.
         if (ElectrumxChainHeightService
             .subscriptions[cryptoCurrency.coin]!.isPaused) {
@@ -833,42 +868,11 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         if (_latestHeight != null) {
           return _latestHeight!;
         }
-      } else {
-        // Make sure we only complete once.
-        bool isFirstResponse = true;
-
-        // Subscribe to block headers.
-        final subscription =
-            subscribableElectrumXClient.subscribeToBlockHeaders();
-
-        // set stream subscription
-        ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] =
-            subscription.responseStream.asBroadcastStream().listen((event) {
-          final response = event;
-          if (response != null &&
-              response is Map &&
-              response.containsKey('height')) {
-            final int chainHeight = response['height'] as int;
-            // print("Current chain height: $chainHeight");
-            _latestHeight = chainHeight;
-
-            if (isFirstResponse) {
-              isFirstResponse = false;
-
-              // Return the chain height.
-              completer.complete(chainHeight);
-            }
-          } else {
-            Logging.instance.log(
-                "blockchain.headers.subscribe returned malformed response\n"
-                "Response: $response",
-                level: LogLevel.Error);
-          }
-        });
       }
 
-      // Wait for first response.
-      return completer.future;
+      // Probably waiting on the subscription to receive the latest block height
+      // fallback to cached value
+      return info.cachedChainHeight;
     } catch (e, s) {
       Logging.instance.log(
           "Exception rethrown in fetchChainHeight\nError: $e\nStack trace: $s",
