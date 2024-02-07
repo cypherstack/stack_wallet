@@ -755,6 +755,13 @@ class ElectrumXClient {
         return {"rawtx": response["result"] as String};
       }
 
+      if (response is List && response.length == 1) {
+        response = response[0];
+        Logging.instance.log(
+            "getTransaction($txHash) returned a single-item list.",
+            level: LogLevel.Warning);
+      }
+
       if (response is! Map) {
         final String msg = "getTransaction($txHash) returned a non-Map response"
             " of type ${response.runtimeType}.";
