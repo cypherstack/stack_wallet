@@ -429,14 +429,14 @@ class TezosWallet extends Bip39Wallet<Tezos> {
       await mainDB.updateOrPutAddresses([address]);
 
       // ensure we only have a single address
-      await mainDB.isar.writeTxn(() async {
-        await mainDB.isar.addresses
+      mainDB.isar.writeTxnSync(() {
+        mainDB.isar.addresses
             .where()
             .walletIdEqualTo(walletId)
             .filter()
             .not()
             .derivationPath((q) => q.valueEqualTo(derivationPath))
-            .deleteAll();
+            .deleteAllSync();
       });
 
       if (info.cachedReceivingAddress != address.value) {
