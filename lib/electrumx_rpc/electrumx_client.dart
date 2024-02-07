@@ -761,11 +761,54 @@ class ElectrumXClient {
         return {"rawtx": response["result"] as String};
       }
 
-      if (response is List && response.length == 1) {
-        response = response[0];
-        Logging.instance.log(
-            "getTransaction($txHash) returned a single-item list.",
-            level: LogLevel.Warning);
+      if (response is List) {
+        if (response.length == 1) {
+          response = response[0];
+          Logging.instance.log(
+              "getTransaction($txHash) returned a single-item list."
+              "\nResponse: $response",
+              level: LogLevel.Warning);
+        } else if (response.isNotEmpty) {
+          Logging.instance.log(
+              "getTransaction($txHash) returned a list of length ${response.length}."
+              "\nResponse: $response",
+              level: LogLevel.Warning);
+          // Check if all the list-items that are Maps have an empty list as the result key.
+          int results =
+              0; // Will remain 0 if no responses have non-empty results.
+          for (final item in response) {
+            if (item is Map &&
+                item["result"] is List &&
+                (item["result"] as List).isEmpty) {
+              // Check the next result.
+              continue;
+            } else {
+              Logging.instance.log(
+                  "getTransaction($txHash) returned a list with a non-empty result, proceeding with it..."
+                  "\nNon-empty result: $item",
+                  level: LogLevel.Info);
+              results++;
+              // Return first non-empty result.
+              //
+              // Could select the "best" result by checking the height of the block.
+              response = item;
+              break;
+            }
+          }
+          if (results == 0) {
+            Logging.instance.log(
+                "getTransaction($txHash) returned a list of only empty results, proceeding..."
+                "\nResult: ${response.first}",
+                level: LogLevel.Info);
+            // All of the responses were empty, so just return the first one.
+            response = response.first;
+          }
+        } else {
+          final String msg =
+              "getTransaction($txHash) returned an empty list (expected a Map).";
+          Logging.instance.log(msg, level: LogLevel.Fatal);
+          throw Exception(msg);
+        }
       }
 
       if (response is! Map) {
