@@ -833,39 +833,39 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         if (_latestHeight != null) {
           return _latestHeight!;
         }
-      }
+      } else {
+        // Make sure we only complete once.
+        bool isFirstResponse = true;
 
-      // Make sure we only complete once.
-      bool isFirstResponse = true;
+        // Subscribe to block headers.
+        final subscription =
+            subscribableElectrumXClient.subscribeToBlockHeaders();
 
-      // Subscribe to block headers.
-      final subscription =
-          subscribableElectrumXClient.subscribeToBlockHeaders();
+        // set stream subscription
+        ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] =
+            subscription.responseStream.asBroadcastStream().listen((event) {
+          final response = event;
+          if (response != null &&
+              response is Map &&
+              response.containsKey('height')) {
+            final int chainHeight = response['height'] as int;
+            // print("Current chain height: $chainHeight");
+            _latestHeight = chainHeight;
 
-      // set stream subscription
-      ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] ??=
-          subscription.responseStream.asBroadcastStream().listen((event) {
-        final response = event;
-        if (response != null &&
-            response is Map &&
-            response.containsKey('height')) {
-          final int chainHeight = response['height'] as int;
-          // print("Current chain height: $chainHeight");
-          _latestHeight = chainHeight;
+            if (isFirstResponse) {
+              isFirstResponse = false;
 
-          if (isFirstResponse) {
-            isFirstResponse = false;
-
-            // Return the chain height.
-            completer.complete(chainHeight);
+              // Return the chain height.
+              completer.complete(chainHeight);
+            }
+          } else {
+            Logging.instance.log(
+                "blockchain.headers.subscribe returned malformed response\n"
+                "Response: $response",
+                level: LogLevel.Error);
           }
-        } else {
-          Logging.instance.log(
-              "blockchain.headers.subscribe returned malformed response\n"
-              "Response: $response",
-              level: LogLevel.Error);
-        }
-      });
+        });
+      }
 
       // Wait for first response.
       return completer.future;
