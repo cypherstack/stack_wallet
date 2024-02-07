@@ -133,6 +133,11 @@ class BitcoincashWallet extends Bip39HDWallet
           coin: cryptoCurrency.coin,
         );
 
+        // Check if the getTransaction result is an empty map.
+        if (tx.isEmpty) {
+          continue;
+        }
+
         // check for duplicates before adding to list
         if (allTransactions
                 .indexWhere((e) => e["txid"] == tx["txid"] as String) ==
@@ -173,6 +178,11 @@ class BitcoincashWallet extends Bip39HDWallet
             txHash: txid,
             coin: cryptoCurrency.coin,
           );
+
+          // If inputTx is empty, then continue to the next iteration.
+          if (inputTx.isEmpty) {
+            continue;
+          }
 
           try {
             final prevOutJson = Map<String, dynamic>.from(

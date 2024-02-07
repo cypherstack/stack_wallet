@@ -414,7 +414,10 @@ class ElectrumXClient {
       final List<String> errors = [];
       for (int i = 0; i < response.length; i++) {
         final result = response[i];
-        if (result["error"] != null || result["result"] == null) {
+        if (result["error"] != null /*|| result["result"] == null*/) {
+          // A null result does not necessarily mean an error.
+          //
+          // See https://github.com/cculianu/Fulcrum/blob/d4b3fa1865fcd2d2bd93d36edb264a719282da98/src/Servers.cpp#L1987C1-L2013C2
           errors.add(result.toString());
         }
       }
@@ -685,8 +688,13 @@ class ElectrumXClient {
             response[i]["result"] as Map<String, dynamic>
           ];
         } else {
-          result[response[i]["id"] as String] =
-              List<Map<String, dynamic>>.from(response[i]["result"] as List);
+          // If response[i]["result"] is null, then we'll just return an empty list.
+          if (response[i]["result"] == null) {
+            result[response[i]["id"] as String] = [];
+          } else {
+            result[response[i]["id"] as String] =
+                List<Map<String, dynamic>>.from(response[i]["result"] as List);
+          }
         }
       }
       return result;
@@ -798,7 +806,7 @@ class ElectrumXClient {
           if (results == 0) {
             Logging.instance.log(
                 "getTransaction($txHash) returned a list of only empty results, proceeding..."
-                "\nResult: ${response.first}",
+                "\nResult: ${response.first} (${response.first.runtimeType})",
                 level: LogLevel.Info);
             // All of the responses were empty, so just return the first one.
             response = response.first;
@@ -819,17 +827,38 @@ class ElectrumXClient {
       }
 
       if (response["result"] == null) {
-        final String msg = "getTransaction($txHash) returned null result."
-            "\nResponse: $response";
-        Logging.instance.log(msg, level: LogLevel.Fatal);
-        throw Exception(msg);
+        Logging.instance.log(
+            "getTransaction($txHash) returned null result."
+            "\nResponse: $response",
+            level: LogLevel.Info);
+        // Return an empty map.
+        return {};
       }
+
+      if (response["result"] is List && (response["result"] as List).isEmpty) {
+        Logging.instance.log(
+            "getTransaction($txHash) returned an empty list result.",
+            level: LogLevel.Info);
+        // Return an empty map.
+        return {};
+      }
+
+      // if (response["result"] is List && (response["result"] as List).length > 1) {
+      //   Logging.instance.log(
+      //       "getTransaction($txHash) returned multiple results."
+      //       "\nResponse: $response",
+      //       level: LogLevel.Warning);
+      //   // Return the first item in the list.
+      //   return Map<String, dynamic>.from((response["result"] as List).first as Map);
+      // }
+
+      // Return the result.
       return Map<String, dynamic>.from(response["result"] as Map);
     } catch (e, s) {
       Logging.instance.log(
           "getTransaction($txHash) response: $response"
           "\nError: $e\nStack trace: $s",
-          level: LogLevel.Error);
+          level: LogLevel.Fatal);
       rethrow;
     }
   }
