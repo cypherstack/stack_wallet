@@ -114,8 +114,6 @@ class AddressUtils {
         return Dogecoin(CryptoCurrencyNetwork.test).validateAddress(address);
       case Coin.stellarTestnet:
         return Stellar(CryptoCurrencyNetwork.test).validateAddress(address);
-      case null:
-        throw Exception("Invalid coin");
     }
     // throw Exception("moved");
     // switch (coin) {
