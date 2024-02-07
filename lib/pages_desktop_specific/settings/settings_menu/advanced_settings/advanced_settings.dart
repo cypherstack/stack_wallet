@@ -321,9 +321,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                               useSafeArea: false,
                               barrierDismissible: true,
                               builder: (context) {
-                                return const SingleChildScrollView(
-                                  child: DebugInfoDialog(),
-                                );
+                                return const DebugInfoDialog();
                               },
                             );
                           },
