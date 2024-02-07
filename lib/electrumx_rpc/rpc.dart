@@ -83,20 +83,29 @@ class JsonRPC {
         if (!Prefs.instance.useTor) {
           if (_socket == null) {
             Logging.instance.log(
-              "JsonRPC _sendNextAvailableRequest attempted with"
-              " _socket=null on $host:$port",
+              "JsonRPC _sendNextAvailableRequest attempted with _socket=null on "
+              "$host:$port.  Attempting to reconnect.",
               level: LogLevel.Error,
             );
+
+            // Reconnect socket.
+            _connect().then((_) => _socket?.write('${req.jsonRequest}\r\n'));
+          } else {
+            // \r\n required by electrumx server
+            _socket!.write('${req.jsonRequest}\r\n');
           }
-          // \r\n required by electrumx server
-          _socket!.write('${req.jsonRequest}\r\n');
         } else {
           if (_socksSocket == null) {
             Logging.instance.log(
-              "JsonRPC _sendNextAvailableRequest attempted with"
-              " _socksSocket=null on $host:$port",
+              "JsonRPC _sendNextAvailableRequest attempted with "
+              "_socksSocket=null on $host:$port.  Attempting to reconnect.",
               level: LogLevel.Error,
             );
+
+            // Reconnect socket.
+            _connect()
+                .then((_) => _socksSocket?.write('${req.jsonRequest}\r\n'));
+            ;
           }
           // \r\n required by electrumx server
           _socksSocket?.write('${req.jsonRequest}\r\n');
