@@ -1017,13 +1017,6 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
       // check and add appropriate addresses
       for (int k = 0; k < txCountBatchSize; k++) {
-        if (counts["${_id}_$k"] == null) {
-          print("121212");
-          print("${_id}_$k");
-          print("123123123");
-          print(counts);
-        }
-
         int count = (counts["${_id}_$k"] == null) ? 0 : counts["${_id}_$k"]!;
 
         if (count > 0) {
