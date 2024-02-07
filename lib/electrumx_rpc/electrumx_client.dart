@@ -394,6 +394,13 @@ class ElectrumXClient {
       try {
         if (jsonRpcResponse.data is Map) {
           response = [jsonRpcResponse.data];
+
+          if (requestStrings.length > 1) {
+            Logging.instance.log(
+              "Map returned instead of a list and there are ${requestStrings.length} queued.",
+              level: LogLevel.Error);
+          }
+          // Could throw error here.
         } else {
           response = jsonRpcResponse.data as List;
         }
