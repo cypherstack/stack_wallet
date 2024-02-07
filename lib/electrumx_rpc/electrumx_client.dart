@@ -202,6 +202,7 @@ class ElectrumXClient {
           // ... But if the killswitch is set, then we throw an exception.
           throw Exception(
               "Tor preference and killswitch set but Tor is not enabled, not connecting to ElectrumX");
+          // TODO [prio=low]: Try to start Tor.
         }
       } else {
         // Get the proxy info from the TorService.
@@ -391,10 +392,21 @@ class ElectrumXClient {
 
       final List<dynamic> response;
       try {
-        response = jsonRpcResponse.data as List;
+        if (jsonRpcResponse.data is Map) {
+          response = [jsonRpcResponse.data];
+
+          if (requestStrings.length > 1) {
+            Logging.instance.log(
+              "Map returned instead of a list and there are ${requestStrings.length} queued.",
+              level: LogLevel.Error);
+          }
+          // Could throw error here.
+        } else {
+          response = jsonRpcResponse.data as List;
+        }
       } catch (_) {
         throw Exception(
-          "Expected json list but got a map: ${jsonRpcResponse.data}",
+          "Expected json list or map but got a ${jsonRpcResponse.data.runtimeType}: ${jsonRpcResponse.data}",
         );
       }
 
@@ -595,7 +607,6 @@ class ElectrumXClient {
             scripthash,
           ],
         );
-
         result = response["result"];
         retryCount--;
       }
@@ -744,20 +755,25 @@ class ElectrumXClient {
         return {"rawtx": response["result"] as String};
       }
 
-      if (response["result"] == null) {
-        Logging.instance.log(
-          "getTransaction($txHash) returned null response",
-          level: LogLevel.Error,
-        );
-        throw 'getTransaction($txHash) returned null response';
+      if (response is! Map) {
+        final String msg = "getTransaction($txHash) returned a non-Map response"
+            " of type ${response.runtimeType}.";
+        Logging.instance.log(msg, level: LogLevel.Fatal);
+        throw Exception(msg);
       }
 
+      if (response["result"] == null) {
+        final String msg = "getTransaction($txHash) returned null result."
+            "\nResponse: $response";
+        Logging.instance.log(msg, level: LogLevel.Fatal);
+        throw Exception(msg);
+      }
       return Map<String, dynamic>.from(response["result"] as Map);
-    } catch (e) {
+    } catch (e, s) {
       Logging.instance.log(
-        "getTransaction($txHash) response: $response",
-        level: LogLevel.Error,
-      );
+          "getTransaction($txHash) response: $response"
+          "\nError: $e\nStack trace: $s",
+          level: LogLevel.Error);
       rethrow;
     }
   }

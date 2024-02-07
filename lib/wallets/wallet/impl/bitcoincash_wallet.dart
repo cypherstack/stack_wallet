@@ -174,22 +174,27 @@ class BitcoincashWallet extends Bip39HDWallet
             coin: cryptoCurrency.coin,
           );
 
-          final prevOutJson = Map<String, dynamic>.from(
-              (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout)
-                  as Map);
+          try {
+            final prevOutJson = Map<String, dynamic>.from(
+                (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout)
+                    as Map);
+            final prevOut = OutputV2.fromElectrumXJson(
+              prevOutJson,
+              decimalPlaces: cryptoCurrency.fractionDigits,
+              walletOwns: false, // doesn't matter here as this is not saved
+            );
 
-          final prevOut = OutputV2.fromElectrumXJson(
-            prevOutJson,
-            decimalPlaces: cryptoCurrency.fractionDigits,
-            walletOwns: false, // doesn't matter here as this is not saved
-          );
-
-          outpoint = OutpointV2.isarCantDoRequiredInDefaultConstructor(
-            txid: txid,
-            vout: vout,
-          );
-          valueStringSats = prevOut.valueStringSats;
-          addresses.addAll(prevOut.addresses);
+            outpoint = OutpointV2.isarCantDoRequiredInDefaultConstructor(
+              txid: txid,
+              vout: vout,
+            );
+            valueStringSats = prevOut.valueStringSats;
+            addresses.addAll(prevOut.addresses);
+          } catch (e, s) {
+            Logging.instance.log(
+                "Error getting prevOutJson: $s\nStack trace: $s",
+                level: LogLevel.Warning);
+          }
         }
 
         InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(

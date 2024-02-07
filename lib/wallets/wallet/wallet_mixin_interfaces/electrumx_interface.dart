@@ -6,7 +6,9 @@ import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx_chain_height_service.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
+import 'package:stackwallet/electrumx_rpc/subscribable_electrumx_client.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
@@ -30,8 +32,11 @@ import 'package:uuid/uuid.dart';
 mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   late ElectrumXClient electrumXClient;
   late CachedElectrumXClient electrumXCachedClient;
+  late SubscribableElectrumXClient subscribableElectrumXClient;
 
   int? get maximumFeerate => null;
+
+  int? _latestHeight;
 
   static const _kServerBatchCutoffVersion = [1, 6];
   List<int>? _serverVersion;
@@ -123,7 +128,12 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     // don't care about sorting if using all utxos
     if (!coinControl) {
       // sort spendable by age (oldest first)
-      spendableOutputs.sort((a, b) => b.blockTime!.compareTo(a.blockTime!));
+      spendableOutputs.sort((a, b) => (b.blockTime ?? currentChainHeight)
+          .compareTo((a.blockTime ?? currentChainHeight)));
+      // Null check operator changed to null assignment in order to resolve a
+      // `Null check operator used on a null value` error.  currentChainHeight
+      // used in order to sort these unconfirmed outputs as the youngest, but we
+      // could just as well use currentChainHeight + 1.
     }
 
     Logging.instance.log("spendableOutputs.length: ${spendableOutputs.length}",
@@ -794,9 +804,81 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
   Future<int> fetchChainHeight() async {
     try {
-      final result = await electrumXClient.getBlockHeadTip();
-      return result["height"] as int;
-    } catch (e) {
+      // Don't set a stream subscription if one already exists.
+      if (ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] ==
+          null) {
+        final Completer<int> completer = Completer<int>();
+
+        // Make sure we only complete once.
+        final isFirstResponse = _latestHeight == null;
+
+        // Subscribe to block headers.
+        final subscription =
+            subscribableElectrumXClient.subscribeToBlockHeaders();
+
+        // set stream subscription
+        ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] =
+            subscription.responseStream.asBroadcastStream().listen((event) {
+          final response = event;
+          if (response != null &&
+              response is Map &&
+              response.containsKey('height')) {
+            final int chainHeight = response['height'] as int;
+            // print("Current chain height: $chainHeight");
+
+            _latestHeight = chainHeight;
+
+            if (isFirstResponse) {
+              // Return the chain height.
+              completer.complete(chainHeight);
+            }
+          } else {
+            Logging.instance.log(
+                "blockchain.headers.subscribe returned malformed response\n"
+                "Response: $response",
+                level: LogLevel.Error);
+          }
+        });
+
+        return _latestHeight ?? await completer.future;
+      }
+      // Don't set a stream subscription if one already exists.
+      else {
+        // Check if the stream subscription is paused.
+        if (ElectrumxChainHeightService
+            .subscriptions[cryptoCurrency.coin]!.isPaused) {
+          // If it's paused, resume it.
+          ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin]!
+              .resume();
+        }
+
+        // Causes synchronization to stall.
+        // // Check if the stream subscription is active by pinging it.
+        // if (!(await subscribableElectrumXClient.ping())) {
+        //   // If it's not active, reconnect it.
+        //   final node = await getCurrentElectrumXNode();
+        //
+        //   await subscribableElectrumXClient.connect(
+        //       host: node.address, port: node.port);
+        //
+        //   // Wait for first response.
+        //   return completer.future;
+        // }
+
+        if (_latestHeight != null) {
+          return _latestHeight!;
+        }
+      }
+
+      // Probably waiting on the subscription to receive the latest block height
+      // fallback to cached value
+      return info.cachedChainHeight;
+    } catch (e, s) {
+      Logging.instance.log(
+          "Exception rethrown in fetchChainHeight\nError: $e\nStack trace: $s",
+          level: LogLevel.Error);
+      // completer.completeError(e, s);
+      // return Future.error(e, s);
       rethrow;
     }
   }
@@ -865,6 +947,13 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     electrumXCachedClient = CachedElectrumXClient.from(
       electrumXClient: electrumXClient,
     );
+    subscribableElectrumXClient = SubscribableElectrumXClient.from(
+      node: newNode,
+      prefs: prefs,
+      failovers: failovers,
+    );
+    await subscribableElectrumXClient.connect(
+        host: newNode.address, port: newNode.port);
   }
 
   //============================================================================
@@ -932,7 +1021,8 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
       // check and add appropriate addresses
       for (int k = 0; k < txCountBatchSize; k++) {
-        int count = counts["${_id}_$k"]!;
+        int count = (counts["${_id}_$k"] == null) ? 0 : counts["${_id}_$k"]!;
+
         if (count > 0) {
           iterationsAddressArray.add(txCountCallArgs["${_id}_$k"]!);
 
@@ -1196,9 +1286,9 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       Logging.instance.log("fetched fees: $feeObject", level: LogLevel.Info);
       _cachedFees = feeObject;
       return _cachedFees!;
-    } catch (e) {
+    } catch (e, s) {
       Logging.instance.log(
-        "Exception rethrown from _getFees(): $e",
+        "Exception rethrown from _getFees(): $e\nStack trace: $s",
         level: LogLevel.Error,
       );
       if (_cachedFees == null) {
