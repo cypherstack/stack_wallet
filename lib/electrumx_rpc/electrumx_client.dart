@@ -397,7 +397,7 @@ class ElectrumXClient {
 
           if (requestStrings.length > 1) {
             Logging.instance.log(
-                "Map returned instead of a list and there are ${requestStrings.length} queued.",
+                "ElectrumXClient.batchRequest: Map returned instead of a list and there are ${requestStrings.length} queued.",
                 level: LogLevel.Error);
           }
           // Could throw error here.
@@ -770,7 +770,7 @@ class ElectrumXClient {
 
       if (response is! Map) {
         final String msg = "getTransaction($txHash) returned a non-Map response"
-            " of type ${response.runtimeType}.";
+            " of type ${response.runtimeType}.\nResponse: $response";
         Logging.instance.log(msg, level: LogLevel.Fatal);
         throw Exception(msg);
       }
@@ -1045,7 +1045,14 @@ class ElectrumXClient {
           blocks,
         ],
       );
-      return Decimal.parse(response["result"].toString());
+      try {
+        return Decimal.parse(response["result"].toString());
+      } catch (e, s) {
+        final String msg = "Error parsing fee rate.  Response: $response"
+            "\nResult: ${response["result"]}\nError: $e\nStack trace: $s";
+        Logging.instance.log(msg, level: LogLevel.Fatal);
+        throw Exception(msg);
+      }
     } catch (e) {
       rethrow;
     }

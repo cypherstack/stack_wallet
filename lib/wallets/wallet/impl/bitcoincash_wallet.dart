@@ -192,7 +192,7 @@ class BitcoincashWallet extends Bip39HDWallet
             addresses.addAll(prevOut.addresses);
           } catch (e, s) {
             Logging.instance.log(
-                "Error getting prevOutJson: $s\nStack trace: $s",
+                "Error getting prevOutJson: $e\nStack trace: $s",
                 level: LogLevel.Warning);
           }
         }
