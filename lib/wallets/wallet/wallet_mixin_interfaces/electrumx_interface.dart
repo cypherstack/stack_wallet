@@ -828,7 +828,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
             _latestHeight = chainHeight;
 
-            if (isFirstResponse) {
+            if (isFirstResponse && !completer.isCompleted) {
               // Return the chain height.
               completer.complete(chainHeight);
             }
