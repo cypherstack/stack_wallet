@@ -263,8 +263,8 @@ class ElectrumXClient {
     String? requestID,
     int retries = 2,
     Duration requestTimeout = const Duration(seconds: 60),
-    Type? expectingType,
-    bool? allowNullOrEmptyResponse,
+    Type? expectedResultType,
+    bool? allowNullOrEmptyResult,
   }) async {
     if (!(await _allow())) {
       throw WifiOnlyException();
@@ -316,13 +316,14 @@ class ElectrumXClient {
       currentFailoverIndex = -1;
 
       // If passed an expected type, validate it.
-      if (expectingType != null) {
+      if (expectedResultType != null) {
         if (response.data is Map &&
             (response.data as Map).keys.contains("result") &&
-            (response.data as Map)["result"].runtimeType != expectingType) {
+            (response.data as Map)["result"].runtimeType !=
+                expectedResultType) {
           if (retries > 0) {
             Logging.instance.log(
-              "Expected $expectingType but got a ${response.data.runtimeType}: ${response.data}, retrying...",
+              "Expected $expectedResultType but got a ${response.data.runtimeType}: ${response.data}, retrying...",
               level: LogLevel.Warning,
             );
 
@@ -332,19 +333,19 @@ class ElectrumXClient {
               requestTimeout: requestTimeout,
               requestID: requestID,
               retries: retries - 1,
-              expectingType: expectingType,
-              allowNullOrEmptyResponse: allowNullOrEmptyResponse,
+              expectedResultType: expectedResultType,
+              allowNullOrEmptyResult: allowNullOrEmptyResult,
             );
           } else {
             throw Exception(
-              "Expected $expectingType but got a ${response.data.runtimeType}: ${response.data}",
+              "Expected $expectedResultType but got a ${response.data.runtimeType}: ${response.data}",
             );
           }
         }
       }
 
       // Check if null or empty responses are allowed.
-      if (allowNullOrEmptyResponse != null && !allowNullOrEmptyResponse) {
+      if (allowNullOrEmptyResult != null && !allowNullOrEmptyResult) {
         if (response.data == null ||
             (response.data is List && (response.data as List).isEmpty) ||
             (response.data is Map && (response.data as Map).isEmpty)) {
@@ -360,8 +361,8 @@ class ElectrumXClient {
               requestTimeout: requestTimeout,
               requestID: requestID,
               retries: retries - 1,
-              expectingType: expectingType,
-              allowNullOrEmptyResponse: allowNullOrEmptyResponse,
+              expectedResultType: expectedResultType,
+              allowNullOrEmptyResult: allowNullOrEmptyResult,
             );
           } else {
             throw Exception(
@@ -383,8 +384,8 @@ class ElectrumXClient {
           requestTimeout: requestTimeout,
           requestID: requestID,
           retries: retries - 1,
-          expectingType: expectingType,
-          allowNullOrEmptyResponse: allowNullOrEmptyResponse,
+          expectedResultType: expectedResultType,
+          allowNullOrEmptyResult: allowNullOrEmptyResult,
         );
       } else {
         rethrow;
@@ -397,8 +398,8 @@ class ElectrumXClient {
           args: args,
           requestTimeout: requestTimeout,
           requestID: requestID,
-          expectingType: expectingType,
-          allowNullOrEmptyResponse: allowNullOrEmptyResponse,
+          expectedResultType: expectedResultType,
+          allowNullOrEmptyResult: allowNullOrEmptyResult,
         );
       } else {
         currentFailoverIndex = -1;
@@ -978,6 +979,8 @@ class ElectrumXClient {
           coinGroupId,
           startBlockHash,
         ],
+        expectedResultType: Map<String, dynamic>,
+        allowNullOrEmptyResult: false,
       );
       Logging.instance.log("Fetching spark.getsparkanonymityset finished",
           level: LogLevel.Info);
@@ -1001,6 +1004,8 @@ class ElectrumXClient {
           "$startNumber",
         ],
         requestTimeout: const Duration(minutes: 2),
+        expectedResultType: List,
+        allowNullOrEmptyResult: false,
       );
       final map = Map<String, dynamic>.from(response["result"] as Map);
       final set = Set<String>.from(map["tags"] as List);
@@ -1053,8 +1058,8 @@ class ElectrumXClient {
       response = await request(
         requestID: requestID,
         command: 'spark.getsparklatestcoinid',
-        expectingType: int,
-        allowNullOrEmptyResponse: false,
+        expectedResultType: int,
+        allowNullOrEmptyResult: false,
       );
       return response["result"] as int;
     } catch (e, s) {
