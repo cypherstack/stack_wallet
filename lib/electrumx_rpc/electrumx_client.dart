@@ -263,6 +263,8 @@ class ElectrumXClient {
     String? requestID,
     int retries = 2,
     Duration requestTimeout = const Duration(seconds: 60),
+    Type? expectingType,
+    bool? allowNullOrEmptyResponse,
   }) async {
     if (!(await _allow())) {
       throw WifiOnlyException();
@@ -312,6 +314,63 @@ class ElectrumXClient {
       }
 
       currentFailoverIndex = -1;
+
+      // If passed an expected type, validate it.
+      if (expectingType != null) {
+        if (response.data is Map &&
+            (response.data as Map).keys.contains("result") &&
+            (response.data as Map)["result"].runtimeType != expectingType) {
+          if (retries > 0) {
+            Logging.instance.log(
+              "Expected $expectingType but got a ${response.data.runtimeType}: ${response.data}, retrying...",
+              level: LogLevel.Warning,
+            );
+
+            return request(
+              command: command,
+              args: args,
+              requestTimeout: requestTimeout,
+              requestID: requestID,
+              retries: retries - 1,
+              expectingType: expectingType,
+              allowNullOrEmptyResponse: allowNullOrEmptyResponse,
+            );
+          } else {
+            throw Exception(
+              "Expected $expectingType but got a ${response.data.runtimeType}: ${response.data}",
+            );
+          }
+        }
+      }
+
+      // Check if null or empty responses are allowed.
+      if (allowNullOrEmptyResponse != null && !allowNullOrEmptyResponse) {
+        if (response.data == null ||
+            (response.data is List && (response.data as List).isEmpty) ||
+            (response.data is Map && (response.data as Map).isEmpty)) {
+          if (retries > 0) {
+            Logging.instance.log(
+              "Expected non-null and non-empty response but got a ${response.data.runtimeType}: ${response.data}, retrying...",
+              level: LogLevel.Warning,
+            );
+
+            return request(
+              command: command,
+              args: args,
+              requestTimeout: requestTimeout,
+              requestID: requestID,
+              retries: retries - 1,
+              expectingType: expectingType,
+              allowNullOrEmptyResponse: allowNullOrEmptyResponse,
+            );
+          } else {
+            throw Exception(
+              "Expected non-null and non-empty response but got a ${response.data.runtimeType}: ${response.data}",
+            );
+          }
+        }
+      }
+
       return response.data;
     } on WifiOnlyException {
       rethrow;
@@ -324,6 +383,8 @@ class ElectrumXClient {
           requestTimeout: requestTimeout,
           requestID: requestID,
           retries: retries - 1,
+          expectingType: expectingType,
+          allowNullOrEmptyResponse: allowNullOrEmptyResponse,
         );
       } else {
         rethrow;
@@ -336,6 +397,8 @@ class ElectrumXClient {
           args: args,
           requestTimeout: requestTimeout,
           requestID: requestID,
+          expectingType: expectingType,
+          allowNullOrEmptyResponse: allowNullOrEmptyResponse,
         );
       } else {
         currentFailoverIndex = -1;
@@ -397,8 +460,8 @@ class ElectrumXClient {
 
           if (requestStrings.length > 1) {
             Logging.instance.log(
-              "Map returned instead of a list and there are ${requestStrings.length} queued.",
-              level: LogLevel.Error);
+                "Map returned instead of a list and there are ${requestStrings.length} queued.",
+                level: LogLevel.Error);
           }
           // Could throw error here.
         } else {
@@ -985,14 +1048,18 @@ class ElectrumXClient {
   Future<int> getSparkLatestCoinId({
     String? requestID,
   }) async {
+    dynamic response;
     try {
-      final response = await request(
+      response = await request(
         requestID: requestID,
         command: 'spark.getsparklatestcoinid',
+        expectingType: int,
+        allowNullOrEmptyResponse: false,
       );
       return response["result"] as int;
-    } catch (e) {
-      Logging.instance.log(e, level: LogLevel.Error);
+    } catch (e, s) {
+      Logging.instance.log("Response: $response\nError: $e\nStack trace: $s",
+          level: LogLevel.Error);
       rethrow;
     }
   }
