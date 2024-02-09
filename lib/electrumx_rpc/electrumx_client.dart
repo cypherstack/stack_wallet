@@ -263,6 +263,8 @@ class ElectrumXClient {
     String? requestID,
     int retries = 2,
     Duration requestTimeout = const Duration(seconds: 60),
+    Type? expectedResultType,
+    bool? allowNullOrEmptyResult,
   }) async {
     if (!(await _allow())) {
       throw WifiOnlyException();
@@ -312,6 +314,64 @@ class ElectrumXClient {
       }
 
       currentFailoverIndex = -1;
+
+      // If passed an expected type, validate it.
+      if (expectedResultType != null) {
+        if (response.data is Map &&
+            (response.data as Map).keys.contains("result") &&
+            (response.data as Map)["result"].runtimeType !=
+                expectedResultType) {
+          if (retries > 0) {
+            Logging.instance.log(
+              "Expected $expectedResultType but got a ${response.data.runtimeType}: ${response.data}, retrying...",
+              level: LogLevel.Warning,
+            );
+
+            return request(
+              command: command,
+              args: args,
+              requestTimeout: requestTimeout,
+              requestID: requestID,
+              retries: retries - 1,
+              expectedResultType: expectedResultType,
+              allowNullOrEmptyResult: allowNullOrEmptyResult,
+            );
+          } else {
+            throw Exception(
+              "Expected $expectedResultType but got a ${response.data.runtimeType}: ${response.data}",
+            );
+          }
+        }
+      }
+
+      // Check if null or empty responses are allowed.
+      if (allowNullOrEmptyResult != null && !allowNullOrEmptyResult) {
+        if (response.data == null ||
+            (response.data is List && (response.data as List).isEmpty) ||
+            (response.data is Map && (response.data as Map).isEmpty)) {
+          if (retries > 0) {
+            Logging.instance.log(
+              "Expected non-null and non-empty response but got a ${response.data.runtimeType}: ${response.data}, retrying...",
+              level: LogLevel.Warning,
+            );
+
+            return request(
+              command: command,
+              args: args,
+              requestTimeout: requestTimeout,
+              requestID: requestID,
+              retries: retries - 1,
+              expectedResultType: expectedResultType,
+              allowNullOrEmptyResult: allowNullOrEmptyResult,
+            );
+          } else {
+            throw Exception(
+              "Expected non-null and non-empty response but got a ${response.data.runtimeType}: ${response.data}",
+            );
+          }
+        }
+      }
+
       return response.data;
     } on WifiOnlyException {
       rethrow;
@@ -324,6 +384,8 @@ class ElectrumXClient {
           requestTimeout: requestTimeout,
           requestID: requestID,
           retries: retries - 1,
+          expectedResultType: expectedResultType,
+          allowNullOrEmptyResult: allowNullOrEmptyResult,
         );
       } else {
         rethrow;
@@ -336,6 +398,8 @@ class ElectrumXClient {
           args: args,
           requestTimeout: requestTimeout,
           requestID: requestID,
+          expectedResultType: expectedResultType,
+          allowNullOrEmptyResult: allowNullOrEmptyResult,
         );
       } else {
         currentFailoverIndex = -1;
@@ -915,6 +979,8 @@ class ElectrumXClient {
           coinGroupId,
           startBlockHash,
         ],
+        expectedResultType: Map<String, dynamic>,
+        allowNullOrEmptyResult: false,
       );
       Logging.instance.log("Fetching spark.getsparkanonymityset finished",
           level: LogLevel.Info);
@@ -938,6 +1004,8 @@ class ElectrumXClient {
           "$startNumber",
         ],
         requestTimeout: const Duration(minutes: 2),
+        expectedResultType: List,
+        allowNullOrEmptyResult: false,
       );
       final map = Map<String, dynamic>.from(response["result"] as Map);
       final set = Set<String>.from(map["tags"] as List);
@@ -985,14 +1053,18 @@ class ElectrumXClient {
   Future<int> getSparkLatestCoinId({
     String? requestID,
   }) async {
+    dynamic response;
     try {
-      final response = await request(
+      response = await request(
         requestID: requestID,
         command: 'spark.getsparklatestcoinid',
+        expectedResultType: int,
+        allowNullOrEmptyResult: false,
       );
       return response["result"] as int;
-    } catch (e) {
-      Logging.instance.log(e, level: LogLevel.Error);
+    } catch (e, s) {
+      Logging.instance.log("Response: $response\nError: $e\nStack trace: $s",
+          level: LogLevel.Error);
       rethrow;
     }
   }

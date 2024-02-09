@@ -388,6 +388,11 @@ class _JsonRPCRequest {
           "JsonRPC json.decode: $e\n$s",
           level: LogLevel.Error,
         );
+        Logging.instance.log(
+            "JsonRPCRequest received complete response.\nResponse : "
+            "${String.fromCharCodes(_responseData)} \nLast byte: ${data.last}\n"
+            "Separator byte: $separatorByte",
+            level: LogLevel.Info);
         completer.completeError(e, s);
       }
     }
