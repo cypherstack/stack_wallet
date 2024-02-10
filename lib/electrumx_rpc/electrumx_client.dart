@@ -263,6 +263,9 @@ class ElectrumXClient {
     String? requestID,
     int retries = 2,
     Duration requestTimeout = const Duration(seconds: 60),
+    Type? expectedResultType,
+    bool? allowNullOrEmptyResult,
+    List<String>? expectedResultKeys,
   }) async {
     if (!(await _allow())) {
       throw WifiOnlyException();
@@ -312,6 +315,113 @@ class ElectrumXClient {
       }
 
       currentFailoverIndex = -1;
+
+      // If passed an expected type, validate it.
+      if (expectedResultType != null) {
+        if (response.data is Map &&
+            (response.data as Map).keys.contains("result") &&
+            ((response.data as Map)["result"].runtimeType !=
+                    expectedResultType &&
+                (response.data as Map)["result"]
+                        .runtimeType
+                        .toString()
+                        .replaceAll("_", "") !=
+                    expectedResultType.toString().replaceAll("_", "")
+            // Needed to address issues such as "Expected Map but got _Map".
+            )) {
+          if (retries > 0) {
+            Logging.instance.log(
+              "Expected $expectedResultType but got a ${response.data.runtimeType}: ${response.data}, retrying...",
+              level: LogLevel.Warning,
+            );
+
+            return request(
+              command: command,
+              args: args,
+              requestTimeout: requestTimeout,
+              requestID: requestID,
+              retries: retries - 1,
+              expectedResultType: expectedResultType,
+              allowNullOrEmptyResult: allowNullOrEmptyResult,
+              expectedResultKeys: expectedResultKeys,
+            );
+          } else {
+            if (response.data is Map &&
+                (response.data as Map).keys.contains("result")) {
+              throw Exception(
+                "Expected $expectedResultType but got a ${(response.data as Map)["result"].runtimeType}: ${response.data}",
+              );
+            } else {
+              throw Exception(
+                "Expected a $expectedResultType result, but no result found.  Response (${response.data.runtimeType}): ${response.data}",
+              );
+            }
+          }
+        }
+      }
+
+      // Check if null or empty responses are allowed.
+      if (allowNullOrEmptyResult != null && !allowNullOrEmptyResult) {
+        if (response.data == null ||
+            (response.data is List && (response.data as List).isEmpty) ||
+            (response.data is Map && (response.data as Map).isEmpty)) {
+          if (retries > 0) {
+            Logging.instance.log(
+              "Expected non-null and non-empty response but got a ${response.data.runtimeType}: ${response.data}, retrying...",
+              level: LogLevel.Warning,
+            );
+
+            return request(
+              command: command,
+              args: args,
+              requestTimeout: requestTimeout,
+              requestID: requestID,
+              retries: retries - 1,
+              expectedResultType: expectedResultType,
+              allowNullOrEmptyResult: allowNullOrEmptyResult,
+              expectedResultKeys: expectedResultKeys,
+            );
+          } else {
+            throw Exception(
+              "Expected non-null and non-empty response but got a ${response.data.runtimeType}: ${response.data}",
+            );
+          }
+        }
+      }
+
+      // If passed a list of expected keys, validate them.
+      if (expectedResultKeys != null) {
+        if (response.data is Map &&
+            (response.data as Map).containsKey("result") &&
+            (response.data as Map)["result"] is Map) {
+          for (final key in expectedResultKeys) {
+            if (!((response.data as Map)["result"] as Map).keys.contains(key)) {
+              if (retries > 0) {
+                Logging.instance.log(
+                  "Expected key \"$key\" but it was not found in the response: ${response.data}, retrying...",
+                  level: LogLevel.Warning,
+                );
+
+                return request(
+                  command: command,
+                  args: args,
+                  requestTimeout: requestTimeout,
+                  requestID: requestID,
+                  retries: retries - 1,
+                  expectedResultType: expectedResultType,
+                  allowNullOrEmptyResult: allowNullOrEmptyResult,
+                  expectedResultKeys: expectedResultKeys,
+                );
+              } else {
+                throw Exception(
+                  "Expected key \"$key\" but it was not found in the response: ${response.data}",
+                );
+              }
+            }
+          }
+        }
+      }
+
       return response.data;
     } on WifiOnlyException {
       rethrow;
@@ -324,6 +434,9 @@ class ElectrumXClient {
           requestTimeout: requestTimeout,
           requestID: requestID,
           retries: retries - 1,
+          expectedResultType: expectedResultType,
+          allowNullOrEmptyResult: allowNullOrEmptyResult,
+          expectedResultKeys: expectedResultKeys,
         );
       } else {
         rethrow;
@@ -336,6 +449,9 @@ class ElectrumXClient {
           args: args,
           requestTimeout: requestTimeout,
           requestID: requestID,
+          expectedResultType: expectedResultType,
+          allowNullOrEmptyResult: allowNullOrEmptyResult,
+          expectedResultKeys: expectedResultKeys,
         );
       } else {
         currentFailoverIndex = -1;
@@ -397,8 +513,8 @@ class ElectrumXClient {
 
           if (requestStrings.length > 1) {
             Logging.instance.log(
-              "Map returned instead of a list and there are ${requestStrings.length} queued.",
-              level: LogLevel.Error);
+                "Map returned instead of a list and there are ${requestStrings.length} queued.",
+                level: LogLevel.Error);
           }
           // Could throw error here.
         } else {
@@ -915,6 +1031,8 @@ class ElectrumXClient {
           coinGroupId,
           startBlockHash,
         ],
+        expectedResultType: Map<String, dynamic>,
+        allowNullOrEmptyResult: false,
       );
       Logging.instance.log("Fetching spark.getsparkanonymityset finished",
           level: LogLevel.Info);
@@ -938,6 +1056,9 @@ class ElectrumXClient {
           "$startNumber",
         ],
         requestTimeout: const Duration(minutes: 2),
+        expectedResultType: Map<String, dynamic>,
+        allowNullOrEmptyResult: false,
+        expectedResultKeys: ["tags"],
       );
       final map = Map<String, dynamic>.from(response["result"] as Map);
       final set = Set<String>.from(map["tags"] as List);
@@ -985,14 +1106,18 @@ class ElectrumXClient {
   Future<int> getSparkLatestCoinId({
     String? requestID,
   }) async {
+    dynamic response;
     try {
-      final response = await request(
+      response = await request(
         requestID: requestID,
         command: 'spark.getsparklatestcoinid',
+        expectedResultType: int,
+        allowNullOrEmptyResult: false,
       );
       return response["result"] as int;
-    } catch (e) {
-      Logging.instance.log(e, level: LogLevel.Error);
+    } catch (e, s) {
+      Logging.instance.log("Response: $response\nError: $e\nStack trace: $s",
+          level: LogLevel.Error);
       rethrow;
     }
   }
@@ -1031,6 +1156,7 @@ class ElectrumXClient {
         args: [
           blocks,
         ],
+        allowNullOrEmptyResult: false,
       );
       return Decimal.parse(response["result"].toString());
     } catch (e) {
