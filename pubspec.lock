@@ -527,9 +527,11 @@ packages:
   electrum_adapter:
     dependency: "direct main"
     description:
-      path: electrum_adapter
-      relative: true
-    source: path
+      path: "."
+      ref: "2bffd84753d2c37503d0626c1b74706f63bc91bf"
+      resolved-ref: "2bffd84753d2c37503d0626c1b74706f63bc91bf"
+      url: "https://github.com/cypherstack/electrum_adapter.git"
+    source: git
     version: "3.0.0"
   emojis:
     dependency: "direct main"

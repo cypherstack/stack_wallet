@@ -174,7 +174,9 @@ dependencies:
       path: coinlib_flutter
       ref: 376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7
   electrum_adapter:
-    path: electrum_adapter
+    git:
+      url: https://github.com/cypherstack/electrum_adapter.git
+      ref: 2bffd84753d2c37503d0626c1b74706f63bc91bf
 
 dev_dependencies:
   flutter_test:

@@ -7,6 +7,3 @@
 [submodule "crypto_plugins/flutter_liblelantus"]
 	path = crypto_plugins/flutter_liblelantus
 	url = https://github.com/cypherstack/flutter_liblelantus.git
-[submodule "electrum_adapter"]
-	path = electrum_adapter
-	url = https://github.com/cypherstack/electrum_adapter
