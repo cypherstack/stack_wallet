@@ -524,6 +524,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.2"
+  electrum_adapter:
+    dependency: "direct main"
+    description:
+      path: electrum_adapter
+      relative: true
+    source: path
+    version: "3.0.0"
   emojis:
     dependency: "direct main"
     description:
@@ -1258,6 +1265,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.1"
+  pedantic:
+    dependency: transitive
+    description:
+      name: pedantic
+      sha256: "67fc27ed9639506c856c840ccce7594d0bdcd91bc8d53d6e52359449a1d50602"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.11.1"
   permission_handler:
     dependency: "direct main"
     description:
