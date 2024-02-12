@@ -835,10 +835,10 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
             _latestHeight = chainHeight;
 
-            if (isFirstResponse && !completer.isCompleted) {
-              // Return the chain height.
-              completer.complete(chainHeight);
-            }
+            // if (isFirstResponse && !completer.isCompleted) {
+            //   // Return the chain height.
+            //   completer.complete(chainHeight);
+            // }
           } else {
             Logging.instance.log(
                 "blockchain.headers.subscribe returned malformed response\n"
@@ -903,6 +903,11 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
                 }
               });
         }
+      }
+
+      if (isFirstResponse && !completer.isCompleted) {
+        // Return the chain height.
+        completer.complete(chainHeight);
       }
 
       // Probably waiting on the subscription to receive the latest block height
