@@ -803,124 +803,72 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   }
 
   Future<int> fetchChainHeight() async {
-    try {
-      final Completer<int> completer = Completer<int>();
+    if (_latestHeight == null) {
+      _manageChainHeightSubscription(); // Ensure subscription is active.
 
-      // Make sure we only complete once.
-      final isFirstResponse = _latestHeight == null;
-
-      // Subscribe to block headers.
-      final subscription =
-      subscribableElectrumXClient.subscribeToBlockHeaders();
-
-      // Don't set a stream subscription if one already exists.
-      if (ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] ==
-          null) {
-        // final Completer<int> completer = Completer<int>();
-
-        // Make sure we only complete once.
-        // final isFirstResponse = _latestHeight == null;
-
-
-
-        // set stream subscription
-        ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] =
-            subscription.responseStream.asBroadcastStream().listen((event) {
-          final response = event;
-          if (response != null &&
-              response is Map &&
-              response.containsKey('height')) {
-            final int chainHeight = response['height'] as int;
-            // print("Current chain height: $chainHeight");
-
-            _latestHeight = chainHeight;
-
-            // if (isFirstResponse && !completer.isCompleted) {
-            //   // Return the chain height.
-            //   completer.complete(chainHeight);
-            // }
-          } else {
-            Logging.instance.log(
-                "blockchain.headers.subscribe returned malformed response\n"
-                "Response: $response",
-                level: LogLevel.Error);
-          }
-        });
-
-        return _latestHeight ?? await completer.future;
-      }
-      // Don't set a stream subscription if one already exists.
-      else {
-        // Check if the stream subscription is paused.
-        if (ElectrumxChainHeightService
-            .subscriptions[cryptoCurrency.coin]!.isPaused) {
-          // If it's paused, resume it.
-          ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin]!
-              .resume();
-        }
-
-        // Causes synchronization to stall.
-        // // Check if the stream subscription is active by pinging it.
-        // if (!(await subscribableElectrumXClient.ping())) {
-        //   // If it's not active, reconnect it.
-        //   final node = await getCurrentElectrumXNode();
-        //
-        //   await subscribableElectrumXClient.connect(
-        //       host: node.address, port: node.port);
-        //
-        //   // Wait for first response.
-        //   return completer.future;
-        // }
-        if (_latestHeight != null) {
-          return _latestHeight!;
-        } else {
-          //If latest height is null, call ElectrumxChainHeightService and get
-          // the height
-          // Subscribe to block headers.
-          // final subscription =
-          // subscribableElectrumXClient.subscribeToBlockHeaders();
-
-          ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] =
-              subscription.responseStream.asBroadcastStream().listen((event) {
-                final response = event;
-                if (response != null &&
-                    response is Map &&
-                    response.containsKey('height')) {
-                  final int chainHeight = response['height'] as int;
-                  // print("Current chain height: $chainHeight");
-
-                  _latestHeight = chainHeight;
-
-                  if (isFirstResponse && !completer.isCompleted) {
-                    // Return the chain height.
-                    completer.complete(chainHeight);
-                  }
-                } else {
-                  Logging.instance.log(
-                      "blockchain.headers.subscribe returned malformed response\n"
-                          "Response: $response",
-                      level: LogLevel.Error);
-                }
-              });
-        }
-      }
-
-      if (isFirstResponse && !completer.isCompleted) {
-        // Return the chain height.
-        completer.complete(chainHeight);
-      }
-
-      // Probably waiting on the subscription to receive the latest block height
-      // fallback to cached value
-      return info.cachedChainHeight;
-    } catch (e, s) {
-      Logging.instance.log(
-          "Exception rethrown in fetchChainHeight\nError: $e\nStack trace: $s",
-          level: LogLevel.Error);
-      // completer.completeError(e, s);
-      // return Future.error(e, s);
-      rethrow;
+      // Wait for the first update with a timeout.
+      await Future<dynamic>.delayed(const Duration(seconds: 5));
     }
+    return _latestHeight ??
+        info.cachedChainHeight; // Return the latest height or fallback to cached value.
+  }
+
+  // Heartbeat timer used to manage the subscription.
+  Timer? _heartbeatTimer;
+
+  void _manageChainHeightSubscription() {
+    // Dispose of any existing subscription and timer to start fresh.
+    _disposeSubscription();
+    _latestHeight =
+        null; // Reset latest height (info.cachedChainHeight is fallback).
+
+    final subscription = subscribableElectrumXClient.subscribeToBlockHeaders();
+    ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] =
+        subscription.responseStream.asBroadcastStream().listen(
+      (event) {
+        final response = event;
+        if (response != null &&
+            response is Map &&
+            response.containsKey('height')) {
+          final int chainHeight = response['height'] as int;
+          _latestHeight = chainHeight;
+          _resetHeartbeatTimer(); // Reset the heartbeat timer on each successful update.
+        } else {
+          Logging.instance.log("Malformed response received: $response",
+              level: LogLevel.Error);
+        }
+      },
+      onError: (dynamic error) {
+        Logging.instance.log("Subscription encountered an error: $error",
+            level: LogLevel.Error);
+        _manageChainHeightSubscription(); // Attempt to re-establish the subscription on error.
+      },
+    );
+
+    _resetHeartbeatTimer(); // Start the heartbeat timer.
+  }
+
+  void _resetHeartbeatTimer() {
+    _heartbeatTimer?.cancel(); // Cancel any existing timer.
+    _heartbeatTimer = Timer(const Duration(minutes: 10), () {
+      // TODO [prio=low]: adjust duration by coin's block target time.
+      // Use ping to check if subscription is active.
+      subscribableElectrumXClient.ping().then((response) {
+        if (response) {
+          return; // Subscription is active, no action required.
+        }
+        _manageChainHeightSubscription(); // Re-establish the subscription.
+      }).catchError((error) {
+        _manageChainHeightSubscription();
+      });
+    });
+  }
+
+  void _disposeSubscription() {
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = null;
+    ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin]?.cancel();
+    ElectrumxChainHeightService.subscriptions.remove(cryptoCurrency.coin);
   }
 
   Future<int> fetchTxCount({required String addressScriptHash}) async {
