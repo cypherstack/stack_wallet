@@ -808,6 +808,11 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
       // Make sure we only complete once.
       final isFirstResponse = _latestHeight == null;
+
+      // Subscribe to block headers.
+      final subscription =
+      subscribableElectrumXClient.subscribeToBlockHeaders();
+
       // Don't set a stream subscription if one already exists.
       if (ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] ==
           null) {
@@ -816,9 +821,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         // Make sure we only complete once.
         // final isFirstResponse = _latestHeight == null;
 
-        // Subscribe to block headers.
-        final subscription =
-            subscribableElectrumXClient.subscribeToBlockHeaders();
+
 
         // set stream subscription
         ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] =
@@ -874,8 +877,8 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
           //If latest height is null, call ElectrumxChainHeightService and get
           // the height
           // Subscribe to block headers.
-          final subscription =
-          subscribableElectrumXClient.subscribeToBlockHeaders();
+          // final subscription =
+          // subscribableElectrumXClient.subscribeToBlockHeaders();
 
           ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] =
               subscription.responseStream.asBroadcastStream().listen((event) {
