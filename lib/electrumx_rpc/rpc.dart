@@ -372,7 +372,7 @@ class _JsonRPCRequest {
     _responseData.addAll(data);
     if (data.last == separatorByte) {
       try {
-        final response = json.decode(String.fromCharCodes(_responseData));
+        final response = json.decode(jsonEncode(String.fromCharCodes(_responseData)));
         completer.complete(JsonRPCResponse(data: response));
       } catch (e, s) {
         Logging.instance.log(

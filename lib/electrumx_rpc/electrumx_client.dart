@@ -402,7 +402,7 @@ class ElectrumXClient {
           }
           // Could throw error here.
         } else {
-          response = jsonRpcResponse.data as List;
+          response = json.decode(jsonRpcResponse.data as String) as List;
         }
       } catch (_) {
         throw Exception(
@@ -607,6 +607,7 @@ class ElectrumXClient {
             scripthash,
           ],
         );
+        // final jsonData = jsonDecode(response as String);
         result = response["result"];
         retryCount--;
       }
@@ -756,10 +757,8 @@ class ElectrumXClient {
       }
 
       if (response is! Map) {
-        final String msg = "getTransaction($txHash) returned a non-Map response"
-            " of type ${response.runtimeType}.\nResponse: $response";
-        Logging.instance.log(msg, level: LogLevel.Fatal);
-        throw Exception(msg);
+        final decodeResponse = jsonDecode(response.toString());
+        return Map<String, dynamic>.from(decodeResponse["result"] as Map);
       }
 
       if (response["result"] == null) {
@@ -1018,6 +1017,30 @@ class ElectrumXClient {
     }
   }
 
+
+  String parseOutputAmountString(
+      String amount, {
+        required int decimalPlaces,
+        bool isFullAmountNotSats = false,
+      }) {
+    final temp = Decimal.parse(amount);
+    if (temp < Decimal.zero) {
+      throw Exception("Negative value found");
+    }
+
+    final String valueStringSats;
+    if (isFullAmountNotSats) {
+      valueStringSats = temp.shift(decimalPlaces).toBigInt().toString();
+    } else if (temp.isInteger) {
+      valueStringSats = temp.toString();
+    } else {
+      valueStringSats = temp.shift(decimalPlaces).toBigInt().toString();
+    }
+
+    return valueStringSats;
+  }
+
+
   /// Return the estimated transaction fee per kilobyte for a transaction to be confirmed within a certain number of [blocks].
   ///
   /// Returns a Decimal fee rate
@@ -1033,7 +1056,9 @@ class ElectrumXClient {
         ],
       );
       try {
-        return Decimal.parse(response["result"].toString());
+        final jsonData = jsonDecode(response.toString());
+
+        return Decimal.parse(jsonData["result"].toString());
       } catch (e, s) {
         final String msg = "Error parsing fee rate.  Response: $response"
             "\nResult: ${response["result"]}\nError: $e\nStack trace: $s";

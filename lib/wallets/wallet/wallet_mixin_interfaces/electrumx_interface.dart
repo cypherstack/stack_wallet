@@ -804,6 +804,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
   Future<int> fetchChainHeight() async {
     if (_latestHeight == null) {
+      // _disposeSubscription();
       _manageChainHeightSubscription(); // Ensure subscription is active.
 
       // Wait for the first update with a timeout.
@@ -1174,7 +1175,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       coin: cryptoCurrency.coin,
     );
 
-    final vout = jsonUTXO["tx_pos"] as int;
+    final vout = jsonUTXO.containsKey("tx_pos") ? jsonUTXO["tx_pos"] as int : 0;
 
     final outputs = txn["vout"] as List;
 
