@@ -402,7 +402,7 @@ class ElectrumXClient {
           }
           // Could throw error here.
         } else {
-          response = json.decode(jsonRpcResponse.data as String) as List;
+          response = jsonDecode(jsonRpcResponse.data as String) as List;
         }
       } catch (_) {
         throw Exception(
@@ -522,7 +522,7 @@ class ElectrumXClient {
         requestID: requestID,
         command: 'server.features',
       );
-      return Map<String, dynamic>.from(response["result"] as Map);
+      return Map<String, dynamic>.from(jsonDecode(response as String)["result"] as Map);
     } catch (e) {
       rethrow;
     }
@@ -607,8 +607,7 @@ class ElectrumXClient {
             scripthash,
           ],
         );
-        // final jsonData = jsonDecode(response as String);
-        result = response["result"];
+        result = jsonDecode(response as String)["result"] as List;
         retryCount--;
       }
 
