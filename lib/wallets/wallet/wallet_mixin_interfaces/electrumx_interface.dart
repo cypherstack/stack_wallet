@@ -1250,6 +1250,8 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       coin: cryptoCurrency.coin,
     );
 
+    print("txn: $txn");
+
     final vout = jsonUTXO["tx_pos"] as int;
 
     final outputs = txn["vout"] as List;

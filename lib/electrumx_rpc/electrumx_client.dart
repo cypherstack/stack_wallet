@@ -14,6 +14,8 @@ import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:decimal/decimal.dart';
+import 'package:electrum_adapter/electrum_adapter.dart' as electrum_adapter;
+import 'package:electrum_adapter/methods/specific/firo.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
@@ -741,41 +743,20 @@ class ElectrumXClient {
     bool verbose = true,
     String? requestID,
   }) async {
-    dynamic response;
-    try {
-      response = await request(
-        requestID: requestID,
-        command: 'blockchain.transaction.get',
-        args: [
-          txHash,
-          verbose,
-        ],
-      );
-      if (!verbose) {
-        return {"rawtx": response["result"] as String};
-      }
+    Logging.instance.log("attempting to fetch blockchain.transaction.get...",
+        level: LogLevel.Info);
+    var channel =
+        await electrum_adapter.connect(host, port: port); // TODO pass useSLL.
+    var client = electrum_adapter.ElectrumClient(channel, host, port);
+    dynamic response = await client.getTransaction(txHash);
+    Logging.instance.log("Fetching blockchain.transaction.get finished",
+        level: LogLevel.Info);
 
-      if (response is! Map) {
-        final String msg = "getTransaction($txHash) returned a non-Map response"
-            " of type ${response.runtimeType}.\nResponse: $response";
-        Logging.instance.log(msg, level: LogLevel.Fatal);
-        throw Exception(msg);
-      }
-
-      if (response["result"] == null) {
-        final String msg = "getTransaction($txHash) returned null result."
-            "\nResponse: $response";
-        Logging.instance.log(msg, level: LogLevel.Fatal);
-        throw Exception(msg);
-      }
-      return Map<String, dynamic>.from(response["result"] as Map);
-    } catch (e, s) {
-      Logging.instance.log(
-          "getTransaction($txHash) response: $response"
-          "\nError: $e\nStack trace: $s",
-          level: LogLevel.Error);
-      rethrow;
+    if (!verbose) {
+      return {"rawtx": response as String};
     }
+
+    return Map<String, dynamic>.from(response as Map);
   }
 
   /// Returns the whole Lelantus anonymity set for denomination in the groupId.
@@ -797,23 +778,15 @@ class ElectrumXClient {
     String blockhash = "",
     String? requestID,
   }) async {
-    try {
-      Logging.instance.log("attempting to fetch lelantus.getanonymityset...",
-          level: LogLevel.Info);
-      final response = await request(
-        requestID: requestID,
-        command: 'lelantus.getanonymityset',
-        args: [
-          groupId,
-          blockhash,
-        ],
-      );
-      Logging.instance.log("Fetching lelantus.getanonymityset finished",
-          level: LogLevel.Info);
-      return Map<String, dynamic>.from(response["result"] as Map);
-    } catch (e) {
-      rethrow;
-    }
+    Logging.instance.log("attempting to fetch lelantus.getanonymityset...",
+        level: LogLevel.Info);
+    var channel = await electrum_adapter.connect(host, port: port);
+    var client = electrum_adapter.FiroElectrumClient(channel);
+    Map<String, dynamic> anonymitySet = await client.getLelantusAnonymitySet(
+        groupId: groupId, blockHash: blockhash);
+    Logging.instance.log("Fetching lelantus.getanonymityset finished",
+        level: LogLevel.Info);
+    return anonymitySet;
   }
 
   //TODO add example to docs
@@ -824,18 +797,14 @@ class ElectrumXClient {
     dynamic mints,
     String? requestID,
   }) async {
-    try {
-      final response = await request(
-        requestID: requestID,
-        command: 'lelantus.getmintmetadata',
-        args: [
-          mints,
-        ],
-      );
-      return response["result"];
-    } catch (e) {
-      rethrow;
-    }
+    Logging.instance.log("attempting to fetch lelantus.getmintmetadata...",
+        level: LogLevel.Info);
+    var channel = await electrum_adapter.connect(host, port: port);
+    var client = electrum_adapter.FiroElectrumClient(channel);
+    dynamic mintData = await client.getLelantusMintData(mints: mints);
+    Logging.instance.log("Fetching lelantus.getmintmetadata finished",
+        level: LogLevel.Info);
+    return mintData;
   }
 
   //TODO add example to docs
@@ -844,45 +813,39 @@ class ElectrumXClient {
     String? requestID,
     required int startNumber,
   }) async {
-    try {
-      int retryCount = 3;
-      dynamic result;
+    Logging.instance.log("attempting to fetch lelantus.getusedcoinserials...",
+        level: LogLevel.Info);
+    var channel = await electrum_adapter.connect('firo.stackwallet.com');
+    var client = electrum_adapter.FiroElectrumClient(channel);
 
-      while (retryCount > 0 && result is! List) {
-        final response = await request(
-          requestID: requestID,
-          command: 'lelantus.getusedcoinserials',
-          args: [
-            "$startNumber",
-          ],
-          requestTimeout: const Duration(minutes: 2),
-        );
+    int retryCount = 3;
+    dynamic usedCoinSerials;
 
-        result = response["result"];
-        retryCount--;
-      }
+    while (retryCount > 0 && usedCoinSerials is! List) {
+      usedCoinSerials =
+          await client.getLelantusUsedCoinSerials(startNumber: startNumber);
+      // TODO add 2 minute timeout.
+      Logging.instance.log("Fetching lelantus.getusedcoinserials finished",
+          level: LogLevel.Info);
 
-      return Map<String, dynamic>.from(result as Map);
-    } catch (e) {
-      Logging.instance.log(e, level: LogLevel.Error);
-      rethrow;
+      retryCount--;
     }
+
+    return Map<String, dynamic>.from(usedCoinSerials as Map);
   }
 
   /// Returns the latest Lelantus set id
   ///
   /// ex: 1
   Future<int> getLelantusLatestCoinId({String? requestID}) async {
-    try {
-      final response = await request(
-        requestID: requestID,
-        command: 'lelantus.getlatestcoinid',
-      );
-      return response["result"] as int;
-    } catch (e) {
-      Logging.instance.log(e, level: LogLevel.Error);
-      rethrow;
-    }
+    Logging.instance.log("attempting to fetch lelantus.getlatestcoinid...",
+        level: LogLevel.Info);
+    var channel = await electrum_adapter.connect('firo.stackwallet.com');
+    var client = electrum_adapter.FiroElectrumClient(channel);
+    int latestCoinId = await client.getLatestCoinId();
+    Logging.instance.log("Fetching lelantus.getlatestcoinid finished",
+        level: LogLevel.Info);
+    return latestCoinId;
   }
 
   // ============== Spark ======================================================
@@ -908,17 +871,13 @@ class ElectrumXClient {
     try {
       Logging.instance.log("attempting to fetch spark.getsparkanonymityset...",
           level: LogLevel.Info);
-      final response = await request(
-        requestID: requestID,
-        command: 'spark.getsparkanonymityset',
-        args: [
-          coinGroupId,
-          startBlockHash,
-        ],
-      );
+      var channel = await electrum_adapter.connect('firo.stackwallet.com');
+      var client = electrum_adapter.FiroElectrumClient(channel);
+      Map<String, dynamic> anonymitySet = await client.getSparkAnonymitySet(
+          coinGroupId: coinGroupId, startBlockHash: startBlockHash);
       Logging.instance.log("Fetching spark.getsparkanonymityset finished",
           level: LogLevel.Info);
-      return Map<String, dynamic>.from(response["result"] as Map);
+      return anonymitySet;
     } catch (e) {
       rethrow;
     }
@@ -931,15 +890,17 @@ class ElectrumXClient {
     required int startNumber,
   }) async {
     try {
-      final response = await request(
-        requestID: requestID,
-        command: 'spark.getusedcoinstags',
-        args: [
-          "$startNumber",
-        ],
-        requestTimeout: const Duration(minutes: 2),
-      );
-      final map = Map<String, dynamic>.from(response["result"] as Map);
+      // Use electrum_adapter package's getSparkUsedCoinsTags method.
+      Logging.instance.log("attempting to fetch spark.getusedcoinstags...",
+          level: LogLevel.Info);
+      var channel = await electrum_adapter.connect('firo.stackwallet.com');
+      var client = electrum_adapter.FiroElectrumClient(channel);
+      Map<String, dynamic> usedCoinsTags =
+          await client.getUsedCoinsTags(startNumber: startNumber);
+      // TODO: Add 2 minute timeout.
+      Logging.instance.log("Fetching spark.getusedcoinstags finished",
+          level: LogLevel.Info);
+      final map = Map<String, dynamic>.from(usedCoinsTags);
       final set = Set<String>.from(map["tags"] as List);
       return await compute(_ffiHashTagsComputeWrapper, set);
     } catch (e) {
@@ -963,16 +924,15 @@ class ElectrumXClient {
     required List<String> sparkCoinHashes,
   }) async {
     try {
-      final response = await request(
-        requestID: requestID,
-        command: 'spark.getsparkmintmetadata',
-        args: [
-          {
-            "coinHashes": sparkCoinHashes,
-          },
-        ],
-      );
-      return List<Map<String, dynamic>>.from(response["result"] as List);
+      Logging.instance.log("attempting to fetch spark.getsparkmintmetadata...",
+          level: LogLevel.Info);
+      var channel = await electrum_adapter.connect('firo.stackwallet.com');
+      var client = electrum_adapter.FiroElectrumClient(channel);
+      List<dynamic> mintMetaData =
+          await client.getSparkMintMetaData(sparkCoinHashes: sparkCoinHashes);
+      Logging.instance.log("Fetching spark.getsparkmintmetadata finished",
+          level: LogLevel.Info);
+      return List<Map<String, dynamic>>.from(mintMetaData);
     } catch (e) {
       Logging.instance.log(e, level: LogLevel.Error);
       rethrow;
@@ -986,11 +946,14 @@ class ElectrumXClient {
     String? requestID,
   }) async {
     try {
-      final response = await request(
-        requestID: requestID,
-        command: 'spark.getsparklatestcoinid',
-      );
-      return response["result"] as int;
+      Logging.instance.log("attempting to fetch spark.getsparklatestcoinid...",
+          level: LogLevel.Info);
+      var channel = await electrum_adapter.connect(host, port: port);
+      var client = electrum_adapter.FiroElectrumClient(channel);
+      int latestCoinId = await client.getSparkLatestCoinId();
+      Logging.instance.log("Fetching spark.getsparklatestcoinid finished",
+          level: LogLevel.Info);
+      return latestCoinId;
     } catch (e) {
       Logging.instance.log(e, level: LogLevel.Error);
       rethrow;
@@ -1007,15 +970,9 @@ class ElectrumXClient {
   ///   "rate": 1000,
   /// }
   Future<Map<String, dynamic>> getFeeRate({String? requestID}) async {
-    try {
-      final response = await request(
-        requestID: requestID,
-        command: 'blockchain.getfeerate',
-      );
-      return Map<String, dynamic>.from(response["result"] as Map);
-    } catch (e) {
-      rethrow;
-    }
+    var channel = await electrum_adapter.connect(host, port: port);
+    var client = electrum_adapter.FiroElectrumClient(channel);
+    return await client.getFeeRate();
   }
 
   /// Return the estimated transaction fee per kilobyte for a transaction to be confirmed within a certain number of [blocks].
