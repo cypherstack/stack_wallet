@@ -743,6 +743,19 @@ class ElectrumXClient {
     bool verbose = true,
     String? requestID,
   }) async {
+    // Use electrum_adapter package's getTransaction method.
+    Logging.instance.log("attempting to fetch blockchain.transaction.get...",
+        level: LogLevel.Info);
+    var channel =
+        await electrum_adapter.connect(host, port: port); // TODO pass useSLL.
+    var client = electrum_adapter.ElectrumClient(channel, host, port);
+    dynamic response = await client.getTransaction(txHash);
+    Logging.instance.log("Fetching blockchain.transaction.get finished",
+        level: LogLevel.Info);
+    return Map<String, dynamic>.from(response as Map);
+
+    /*
+    // Original ElectrumXClient:
     dynamic response;
     try {
       response = await request(
@@ -778,6 +791,7 @@ class ElectrumXClient {
           level: LogLevel.Error);
       rethrow;
     }
+     */
   }
 
   /// Returns the whole Lelantus anonymity set for denomination in the groupId.

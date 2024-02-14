@@ -176,7 +176,7 @@ dependencies:
   electrum_adapter:
     git:
       url: https://github.com/cypherstack/electrum_adapter.git
-      ref: 1c4962bf6fa8fe639be8540f8c61e89e625c7034
+      ref: 80d28a8b033af7bcf90cd6c7a3ee74160dc791a1
 
 dev_dependencies:
   flutter_test:
