@@ -816,7 +816,7 @@ class ElectrumXClient {
     // Use electrum_adapter package's getSparkAnonymitySet method.
     Logging.instance.log("attempting to fetch lelantus.getanonymityset...",
         level: LogLevel.Info);
-    var channel = await electrum_adapter.connect('firo.stackwallet.com');
+    var channel = await electrum_adapter.connect(host, port: port);
     var client = electrum_adapter.FiroElectrumClient(channel);
     Map<String, dynamic> anonymitySet = await client.getLelantusAnonymitySet(
         groupId: groupId, blockHash: blockhash);
@@ -857,7 +857,7 @@ class ElectrumXClient {
     // Use electrum_adapter package's getLelantusMintData method.
     Logging.instance.log("attempting to fetch lelantus.getmintmetadata...",
         level: LogLevel.Info);
-    var channel = await electrum_adapter.connect('firo.stackwallet.com');
+    var channel = await electrum_adapter.connect(host, port: port);
     var client = electrum_adapter.FiroElectrumClient(channel);
     dynamic mintData = await client.getLelantusMintData(mints: mints);
     Logging.instance.log("Fetching lelantus.getmintmetadata finished",
@@ -1103,7 +1103,7 @@ class ElectrumXClient {
       // Use electrum_adapter package's getSparkLatestCoinId method.
       Logging.instance.log("attempting to fetch spark.getsparklatestcoinid...",
           level: LogLevel.Info);
-      var channel = await electrum_adapter.connect('firo.stackwallet.com');
+      var channel = await electrum_adapter.connect(host, port: port);
       var client = electrum_adapter.FiroElectrumClient(channel);
       int latestCoinId = await client.getSparkLatestCoinId();
       Logging.instance.log("Fetching spark.getsparklatestcoinid finished",
