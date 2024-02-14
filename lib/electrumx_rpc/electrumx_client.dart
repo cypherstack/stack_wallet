@@ -745,8 +745,12 @@ class ElectrumXClient {
   }) async {
     Logging.instance.log("attempting to fetch blockchain.transaction.get...",
         level: LogLevel.Info);
-    var channel =
-        await electrum_adapter.connect(host, port: port); // TODO pass useSLL.
+    var channel = await electrum_adapter.connect(host,
+        port: port,
+        useSSL: useSSL,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null);
     var client = electrum_adapter.ElectrumClient(channel, host, port);
     dynamic response = await client.getTransaction(txHash);
     Logging.instance.log("Fetching blockchain.transaction.get finished",
@@ -780,7 +784,12 @@ class ElectrumXClient {
   }) async {
     Logging.instance.log("attempting to fetch lelantus.getanonymityset...",
         level: LogLevel.Info);
-    var channel = await electrum_adapter.connect(host, port: port);
+    var channel = await electrum_adapter.connect(host,
+        port: port,
+        useSSL: useSSL,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null);
     var client = electrum_adapter.FiroElectrumClient(channel);
     Map<String, dynamic> anonymitySet = await client.getLelantusAnonymitySet(
         groupId: groupId, blockHash: blockhash);
@@ -799,7 +808,12 @@ class ElectrumXClient {
   }) async {
     Logging.instance.log("attempting to fetch lelantus.getmintmetadata...",
         level: LogLevel.Info);
-    var channel = await electrum_adapter.connect(host, port: port);
+    var channel = await electrum_adapter.connect(host,
+        port: port,
+        useSSL: useSSL,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null);
     var client = electrum_adapter.FiroElectrumClient(channel);
     dynamic mintData = await client.getLelantusMintData(mints: mints);
     Logging.instance.log("Fetching lelantus.getmintmetadata finished",
@@ -815,7 +829,12 @@ class ElectrumXClient {
   }) async {
     Logging.instance.log("attempting to fetch lelantus.getusedcoinserials...",
         level: LogLevel.Info);
-    var channel = await electrum_adapter.connect('firo.stackwallet.com');
+    var channel = await electrum_adapter.connect(host,
+        port: port,
+        useSSL: useSSL,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null);
     var client = electrum_adapter.FiroElectrumClient(channel);
 
     int retryCount = 3;
@@ -840,7 +859,12 @@ class ElectrumXClient {
   Future<int> getLelantusLatestCoinId({String? requestID}) async {
     Logging.instance.log("attempting to fetch lelantus.getlatestcoinid...",
         level: LogLevel.Info);
-    var channel = await electrum_adapter.connect('firo.stackwallet.com');
+    var channel = await electrum_adapter.connect(host,
+        port: port,
+        useSSL: useSSL,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null);
     var client = electrum_adapter.FiroElectrumClient(channel);
     int latestCoinId = await client.getLatestCoinId();
     Logging.instance.log("Fetching lelantus.getlatestcoinid finished",
@@ -871,7 +895,12 @@ class ElectrumXClient {
     try {
       Logging.instance.log("attempting to fetch spark.getsparkanonymityset...",
           level: LogLevel.Info);
-      var channel = await electrum_adapter.connect('firo.stackwallet.com');
+      var channel = await electrum_adapter.connect(host,
+          port: port,
+          useSSL: useSSL,
+          proxyInfo: Prefs.instance.useTor
+              ? TorService.sharedInstance.getProxyInfo()
+              : null);
       var client = electrum_adapter.FiroElectrumClient(channel);
       Map<String, dynamic> anonymitySet = await client.getSparkAnonymitySet(
           coinGroupId: coinGroupId, startBlockHash: startBlockHash);
@@ -893,7 +922,12 @@ class ElectrumXClient {
       // Use electrum_adapter package's getSparkUsedCoinsTags method.
       Logging.instance.log("attempting to fetch spark.getusedcoinstags...",
           level: LogLevel.Info);
-      var channel = await electrum_adapter.connect('firo.stackwallet.com');
+      var channel = await electrum_adapter.connect(host,
+          port: port,
+          useSSL: useSSL,
+          proxyInfo: Prefs.instance.useTor
+              ? TorService.sharedInstance.getProxyInfo()
+              : null);
       var client = electrum_adapter.FiroElectrumClient(channel);
       Map<String, dynamic> usedCoinsTags =
           await client.getUsedCoinsTags(startNumber: startNumber);
@@ -926,7 +960,12 @@ class ElectrumXClient {
     try {
       Logging.instance.log("attempting to fetch spark.getsparkmintmetadata...",
           level: LogLevel.Info);
-      var channel = await electrum_adapter.connect('firo.stackwallet.com');
+      var channel = await electrum_adapter.connect(host,
+          port: port,
+          useSSL: useSSL,
+          proxyInfo: Prefs.instance.useTor
+              ? TorService.sharedInstance.getProxyInfo()
+              : null);
       var client = electrum_adapter.FiroElectrumClient(channel);
       List<dynamic> mintMetaData =
           await client.getSparkMintMetaData(sparkCoinHashes: sparkCoinHashes);
@@ -948,7 +987,12 @@ class ElectrumXClient {
     try {
       Logging.instance.log("attempting to fetch spark.getsparklatestcoinid...",
           level: LogLevel.Info);
-      var channel = await electrum_adapter.connect(host, port: port);
+      var channel = await electrum_adapter.connect(host,
+          port: port,
+          useSSL: useSSL,
+          proxyInfo: Prefs.instance.useTor
+              ? TorService.sharedInstance.getProxyInfo()
+              : null);
       var client = electrum_adapter.FiroElectrumClient(channel);
       int latestCoinId = await client.getSparkLatestCoinId();
       Logging.instance.log("Fetching spark.getsparklatestcoinid finished",
@@ -970,7 +1014,12 @@ class ElectrumXClient {
   ///   "rate": 1000,
   /// }
   Future<Map<String, dynamic>> getFeeRate({String? requestID}) async {
-    var channel = await electrum_adapter.connect(host, port: port);
+    var channel = await electrum_adapter.connect(host,
+        port: port,
+        useSSL: useSSL,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null);
     var client = electrum_adapter.FiroElectrumClient(channel);
     return await client.getFeeRate();
   }

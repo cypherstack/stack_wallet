@@ -14,7 +14,6 @@ import 'dart:io';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:mutex/mutex.dart';
-import 'package:socks_socket/socks_socket.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/exceptions/json_rpc/json_rpc_exception.dart';
 import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
@@ -23,6 +22,7 @@ import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:tor_ffi_plugin/socks_socket.dart';
 
 class ElectrumXSubscription {
   final StreamController<dynamic> _controller =
