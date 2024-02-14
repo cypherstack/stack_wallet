@@ -807,49 +807,22 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       // Don't set a stream subscription if one already exists.
       if (ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] ==
           null) {
-        final Completer<int> completer = Completer<int>();
-
-        // Make sure we only complete once.
-        final isFirstResponse = _latestHeight == null;
-
-        // Subscribe to block headers.
-        final subscription =
-            subscribableElectrumXClient.subscribeToBlockHeaders();
-
-        // set stream subscription
-        ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] =
-            subscription.responseStream.asBroadcastStream().listen((event) {
-          final response = event;
-          if (response != null &&
-              response is Map &&
-              response.containsKey('height')) {
-            final int chainHeight = response['height'] as int;
-            // print("Current chain height: $chainHeight");
-
-            _latestHeight = chainHeight;
-
-            if (isFirstResponse && !completer.isCompleted) {
-              // Return the chain height.
-              completer.complete(chainHeight);
-            }
-          } else {
-            Logging.instance.log(
-                "blockchain.headers.subscribe returned malformed response\n"
-                "Response: $response",
-                level: LogLevel.Error);
-          }
-        });
-
-        return _latestHeight ?? await completer.future;
+        return _manageChainHeightSubscription();
       }
       // Don't set a stream subscription if one already exists.
       else {
+        //IF there's already a wallet for a coin the chain height might not be
+        // stored for current wallet
         // Check if the stream subscription is paused.
         if (ElectrumxChainHeightService
             .subscriptions[cryptoCurrency.coin]!.isPaused) {
           // If it's paused, resume it.
           ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin]!
               .resume();
+        }
+        if (_latestHeight == null) {
+          //Get the chain height
+          return  _manageChainHeightSubscription();
         }
 
         // Causes synchronization to stall.
@@ -881,6 +854,42 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       // return Future.error(e, s);
       rethrow;
     }
+  }
+
+  Future<int> _manageChainHeightSubscription() async {
+    final Completer<int> completer = Completer<int>();
+    // Make sure we only complete once.
+    final isFirstResponse = _latestHeight == null;
+
+    // Subscribe to block headers.
+    final subscription =
+    subscribableElectrumXClient.subscribeToBlockHeaders();
+
+    // set stream subscription
+    ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] =
+        subscription.responseStream.asBroadcastStream().listen((event) {
+          final response = event;
+          if (response != null &&
+              response is Map &&
+              response.containsKey('height')) {
+            final int chainHeight = response['height'] as int;
+            // print("Current chain height: $chainHeight");
+
+            _latestHeight = chainHeight;
+
+            if (isFirstResponse && !completer.isCompleted) {
+              // Return the chain height.
+              completer.complete(chainHeight);
+            }
+          } else {
+            Logging.instance.log(
+                "blockchain.headers.subscribe returned malformed response\n"
+                    "Response: $response",
+                level: LogLevel.Error);
+          }
+        });
+
+    return _latestHeight ?? await completer.future;
   }
 
   Future<int> fetchTxCount({required String addressScriptHash}) async {
