@@ -825,6 +825,9 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   }
 
   Future<void> _manageChainHeightSubscription() async {
+    // Set the timeout period for the chain height subscription.
+    const timeout = Duration(seconds: 10);
+
     if (ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] ==
         null) {
       // No subscription exists for this coin yet, so create one.
@@ -839,6 +842,11 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       // Subscribe to block headers.
       final subscription =
           subscribableElectrumXClient.subscribeToBlockHeaders();
+
+      // Set the time the subscription was created.
+      final subscriptionCreationTime = DateTime.now();
+      ElectrumxChainHeightService.timeStarted[cryptoCurrency.coin] =
+          subscriptionCreationTime;
 
       // Set stream subscription.
       ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] =
@@ -902,7 +910,29 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
             .cancel();
         ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] = null;
 
+        // Retry/recurse.
+        return await _manageChainHeightSubscription();
+      }
+    }
+
+    // Check if the subscription has been running for too long.
+    if (ElectrumxChainHeightService.timeStarted[cryptoCurrency.coin] != null) {
+      final timeRunning = DateTime.now().difference(
+          ElectrumxChainHeightService.timeStarted[cryptoCurrency.coin]!);
+      // Cancel and retry if we've been waiting too long.
+      if (timeRunning > timeout) {
+        // Clear this coin's subscription.
+        await ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin]!
+            .cancel();
+        ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] = null;
+
         // Clear this coin's completer.
+        ElectrumxChainHeightService.completers[cryptoCurrency.coin]
+            ?.completeError(
+          Exception(
+            "Subscription to block headers has been running for too long",
+          ),
+        );
         ElectrumxChainHeightService.completers[cryptoCurrency.coin] = null;
 
         // Retry/recurse.
