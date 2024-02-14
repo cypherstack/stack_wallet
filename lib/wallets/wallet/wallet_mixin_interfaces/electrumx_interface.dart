@@ -938,6 +938,9 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         );
         ElectrumxChainHeightService.completers[cryptoCurrency.coin] = null;
 
+        // Reset time started.
+        ElectrumxChainHeightService.timeStarted[cryptoCurrency.coin] = null;
+
         // Retry/recurse.
         return await _manageChainHeightSubscription();
       }
