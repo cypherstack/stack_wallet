@@ -11,6 +11,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:electrum_adapter/electrum_adapter.dart' as electrum_adapter;
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -188,8 +189,11 @@ class CachedElectrumXClient {
 
       final cachedTx = box.get(txHash) as Map?;
       if (cachedTx == null) {
-        final Map<String, dynamic> result = await electrumXClient
-            .getTransaction(txHash: txHash, verbose: verbose);
+        var channel = await electrum_adapter.connect(electrumXClient.host,
+            port: electrumXClient.port); // TODO pass useSLL.
+        var client = electrum_adapter.ElectrumClient(
+            channel, electrumXClient.host, electrumXClient.port);
+        final Map<String, dynamic> result = await client.getTransaction(txHash);
 
         result.remove("hex");
         result.remove("lelantusData");
