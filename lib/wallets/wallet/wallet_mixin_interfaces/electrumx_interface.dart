@@ -1296,6 +1296,8 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   }
 
   Future<ElectrumClient> updateClient() async {
+    Logging.instance.log("Updating electrum node and ElectrumAdapterClient.",
+        level: LogLevel.Info);
     await updateNode();
     return electrumAdapterClient;
   }

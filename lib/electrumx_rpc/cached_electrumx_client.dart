@@ -47,13 +47,13 @@ class CachedElectrumXClient {
   /// If the client is closed, use the callback to update it.
   _checkElectrumAdapterClient() async {
     if (electrumAdapterClient.peer.isClosed) {
+      Logging.instance.log(
+        "ElectrumAdapterClient is closed, reopening it...",
+        level: LogLevel.Info,
+      );
       ElectrumClient? _electrumAdapterClient =
-          await electrumAdapterUpdateCallback?.call();
-      if (_electrumAdapterClient != null) {
-        electrumAdapterClient = _electrumAdapterClient;
-      } else {
-        throw Exception("ElectrumAdapterClient is closed");
-      }
+          await electrumAdapterUpdateCallback.call();
+      electrumAdapterClient = _electrumAdapterClient;
     }
   }
 
