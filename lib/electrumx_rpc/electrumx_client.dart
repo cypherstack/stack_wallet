@@ -90,8 +90,8 @@ class ElectrumXClient {
 
   final Duration connectionTimeoutForSpecialCaseJsonRPCClients;
 
-  Coin get coin => _coin;
-  late Coin _coin;
+  Coin? get coin => _coin;
+  late Coin? _coin;
 
   // add finalizer to cancel stream subscription when all references to an
   // instance of ElectrumX becomes inaccessible
@@ -113,7 +113,7 @@ class ElectrumXClient {
     required bool useSSL,
     required Prefs prefs,
     required List<ElectrumXNode> failovers,
-    required Coin coin,
+    Coin? coin,
     JsonRPC? client,
     this.connectionTimeoutForSpecialCaseJsonRPCClients =
         const Duration(seconds: 60),
