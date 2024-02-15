@@ -10,7 +10,6 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_chain_height_service.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
-import 'package:stackwallet/electrumx_rpc/subscribable_electrumx_client.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
@@ -33,16 +32,22 @@ import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import 'package:stream_channel/stream_channel.dart';
 
+import '../../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
+import '../../../services/event_bus/events/global/tor_status_changed_event.dart';
+
 mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   late ElectrumXClient electrumXClient;
   late StreamChannel electrumAdapterChannel;
   late ElectrumClient electrumAdapterClient;
   late CachedElectrumXClient electrumXCachedClient;
-  late SubscribableElectrumXClient subscribableElectrumXClient;
+  // late SubscribableElectrumXClient subscribableElectrumXClient;
 
   int? get maximumFeerate => null;
 
   int? _latestHeight;
+
+  StreamSubscription<TorPreferenceChangedEvent>? _torPreferenceListener;
+  StreamSubscription<TorConnectionStatusChangedEvent>? _torStatusListener;
 
   static const _kServerBatchCutoffVersion = [1, 6];
   List<int>? _serverVersion;
@@ -810,6 +815,9 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
   Future<int> fetchChainHeight() async {
     try {
+      // _checkChainHeightSubscription();
+      // TODO above.  Make sure that the subscription/stream is alive.
+
       // Don't set a stream subscription if one already exists.
       if (ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] ==
           null) {
@@ -818,38 +826,26 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         // Make sure we only complete once.
         final isFirstResponse = _latestHeight == null;
 
-        // Subscribe to block headers.
-        final subscription =
-            subscribableElectrumXClient.subscribeToBlockHeaders();
+        await electrumXClient.checkElectrumAdapter();
+        // TODO [prio=extreme]: Does this update anything in this file?? Thinking no.
 
-        // set stream subscription
+        final stream = electrumAdapterClient.subscribeHeaders();
+
         ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] =
-            subscription.responseStream.asBroadcastStream().listen((event) {
-          final response = event;
-          if (response != null &&
-              response is Map &&
-              response.containsKey('height')) {
-            final int chainHeight = response['height'] as int;
-            // print("Current chain height: $chainHeight");
+            stream.asBroadcastStream().listen((response) {
+          final int chainHeight = response.height;
+          // print("Current chain height: $chainHeight");
 
-            _latestHeight = chainHeight;
+          _latestHeight = chainHeight;
 
-            if (isFirstResponse && !completer.isCompleted) {
-              // Return the chain height.
-              completer.complete(chainHeight);
-            }
-          } else {
-            Logging.instance.log(
-                "blockchain.headers.subscribe returned malformed response\n"
-                "Response: $response",
-                level: LogLevel.Error);
+          if (isFirstResponse && !completer.isCompleted) {
+            // Return the chain height.
+            completer.complete(chainHeight);
           }
         });
+      } else {
+        // Don't set a stream subscription if one already exists.
 
-        return _latestHeight ?? await completer.future;
-      }
-      // Don't set a stream subscription if one already exists.
-      else {
         // Check if the stream subscription is paused.
         if (ElectrumxChainHeightService
             .subscriptions[cryptoCurrency.coin]!.isPaused) {
@@ -857,19 +853,6 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
           ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin]!
               .resume();
         }
-
-        // Causes synchronization to stall.
-        // // Check if the stream subscription is active by pinging it.
-        // if (!(await subscribableElectrumXClient.ping())) {
-        //   // If it's not active, reconnect it.
-        //   final node = await getCurrentElectrumXNode();
-        //
-        //   await subscribableElectrumXClient.connect(
-        //       host: node.address, port: node.port);
-        //
-        //   // Wait for first response.
-        //   return completer.future;
-        // }
 
         if (_latestHeight != null) {
           return _latestHeight!;
@@ -985,13 +968,14 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       electrumAdapterClient: electrumAdapterClient,
       electrumAdapterUpdateCallback: updateClient,
     );
-    subscribableElectrumXClient = SubscribableElectrumXClient.from(
-      node: newNode,
-      prefs: prefs,
-      failovers: failovers,
-    );
-    await subscribableElectrumXClient.connect(
-        host: newNode.address, port: newNode.port);
+    // Replaced using electrum_adapters' SubscribableClient in fetchChainHeight.
+    // subscribableElectrumXClient = SubscribableElectrumXClient.from(
+    //   node: newNode,
+    //   prefs: prefs,
+    //   failovers: failovers,
+    // );
+    // await subscribableElectrumXClient.connect(
+    //     host: newNode.address, port: newNode.port);
   }
 
   //============================================================================
