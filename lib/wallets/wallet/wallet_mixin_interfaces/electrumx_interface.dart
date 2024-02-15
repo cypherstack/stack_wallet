@@ -4,6 +4,8 @@ import 'dart:math';
 import 'package:bip47/src/util.dart';
 import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
+import 'package:electrum_adapter/electrum_adapter.dart' as electrum_adapter;
+import 'package:electrum_adapter/electrum_adapter.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_chain_height_service.dart';
@@ -15,22 +17,26 @@ import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/signing_data.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/paynym_is_api.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
-import 'package:uuid/uuid.dart';
+import 'package:stream_channel/stream_channel.dart';
 
 mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   late ElectrumXClient electrumXClient;
+  late StreamChannel electrumAdapterChannel;
+  late ElectrumClient electrumAdapterClient;
   late CachedElectrumXClient electrumXCachedClient;
   late SubscribableElectrumXClient subscribableElectrumXClient;
 
@@ -889,7 +895,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     return transactions.length;
   }
 
-  Future<Map<String, int>> fetchTxCountBatched({
+  Future<Map<int, int>> fetchTxCountBatched({
     required Map<String, String> addresses,
   }) async {
     try {
@@ -901,7 +907,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       }
       final response = await electrumXClient.getBatchHistory(args: args);
 
-      final Map<String, int> result = {};
+      final Map<int, int> result = {};
       for (final entry in response.entries) {
         result[entry.key] = entry.value.length;
       }
@@ -943,9 +949,40 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       node: newNode,
       prefs: prefs,
       failovers: failovers,
+      coin: cryptoCurrency.coin,
     );
+    electrumAdapterChannel = await electrum_adapter.connect(
+      newNode.address,
+      port: newNode.port,
+      acceptUnverified: true,
+      useSSL: newNode.useSSL,
+      proxyInfo: Prefs.instance.useTor
+          ? TorService.sharedInstance.getProxyInfo()
+          : null,
+    );
+    if (electrumXClient.coin == Coin.firo ||
+        electrumXClient.coin == Coin.firoTestNet) {
+      electrumAdapterClient = FiroElectrumClient(
+          electrumAdapterChannel,
+          newNode.address,
+          newNode.port,
+          newNode.useSSL,
+          Prefs.instance.useTor
+              ? TorService.sharedInstance.getProxyInfo()
+              : null);
+    } else {
+      electrumAdapterClient = ElectrumClient(
+          electrumAdapterChannel,
+          newNode.address,
+          newNode.port,
+          newNode.useSSL,
+          Prefs.instance.useTor
+              ? TorService.sharedInstance.getProxyInfo()
+              : null);
+    }
     electrumXCachedClient = CachedElectrumXClient.from(
       electrumXClient: electrumXClient,
+      electrumAdapterClient: electrumAdapterClient,
     );
     subscribableElectrumXClient = SubscribableElectrumXClient.from(
       node: newNode,
@@ -1115,21 +1152,22 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       List<Map<String, dynamic>> allTxHashes = [];
 
       if (serverCanBatch) {
-        final Map<int, Map<String, List<dynamic>>> batches = {};
-        final Map<String, String> requestIdToAddressMap = {};
+        final Map<String, Map<String, List<dynamic>>> batches = {};
+        final Map<int, String> requestIdToAddressMap = {};
         const batchSizeMax = 100;
         int batchNumber = 0;
         for (int i = 0; i < allAddresses.length; i++) {
-          if (batches[batchNumber] == null) {
-            batches[batchNumber] = {};
+          if (batches["$batchNumber"] == null) {
+            batches["$batchNumber"] = {};
           }
           final scriptHash = cryptoCurrency.addressToScriptHash(
             address: allAddresses.elementAt(i),
           );
-          final id = Logger.isTestEnv ? "$i" : const Uuid().v1();
-          requestIdToAddressMap[id] = allAddresses.elementAt(i);
-          batches[batchNumber]!.addAll({
-            id: [scriptHash]
+          // final id = Logger.isTestEnv ? "$i" : const Uuid().v1();
+          // TODO [prio=???]: Pass request IDs to electrum_adapter.
+          requestIdToAddressMap[i] = allAddresses.elementAt(i);
+          batches["$batchNumber"]!.addAll({
+            "$i": [scriptHash]
           });
           if (i % batchSizeMax == batchSizeMax - 1) {
             batchNumber++;
@@ -1138,7 +1176,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
         for (int i = 0; i < batches.length; i++) {
           final response =
-              await electrumXClient.getBatchHistory(args: batches[i]!);
+              await electrumXClient.getBatchHistory(args: batches["$i"]!);
           for (final entry in response.entries) {
             for (int j = 0; j < entry.value.length; j++) {
               entry.value[j]["address"] = requestIdToAddressMap[entry.key];

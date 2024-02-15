@@ -12,29 +12,32 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:electrum_adapter/electrum_adapter.dart' as electrum_adapter;
+import 'package:electrum_adapter/electrum_adapter.dart';
+import 'package:electrum_adapter/methods/specific/firo.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
-import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
 import 'package:string_validator/string_validator.dart';
 
 class CachedElectrumXClient {
   final ElectrumXClient electrumXClient;
+  final ElectrumClient electrumAdapterClient;
 
   static const minCacheConfirms = 30;
 
   const CachedElectrumXClient({
     required this.electrumXClient,
+    required this.electrumAdapterClient,
   });
 
   factory CachedElectrumXClient.from({
     required ElectrumXClient electrumXClient,
+    required ElectrumClient electrumAdapterClient,
   }) =>
       CachedElectrumXClient(
-        electrumXClient: electrumXClient,
-      );
+          electrumXClient: electrumXClient,
+          electrumAdapterClient: electrumAdapterClient);
 
   Future<Map<String, dynamic>> getAnonymitySet({
     required String groupId,
@@ -59,9 +62,10 @@ class CachedElectrumXClient {
         set = Map<String, dynamic>.from(cachedSet);
       }
 
-      final newSet = await electrumXClient.getLelantusAnonymitySet(
+      final newSet = await (electrumAdapterClient as FiroElectrumClient)
+          .getLelantusAnonymitySet(
         groupId: groupId,
-        blockhash: set["blockHash"] as String,
+        blockHash: set["blockHash"] as String,
       );
 
       // update set with new data
@@ -85,7 +89,7 @@ class CachedElectrumXClient {
             translatedCoin.add(!isHexadecimal(newCoin[2] as String)
                 ? base64ToHex(newCoin[2] as String)
                 : newCoin[2]);
-          } catch (e, s) {
+          } catch (e) {
             translatedCoin.add(newCoin[2]);
           }
           translatedCoin.add(!isHexadecimal(newCoin[3] as String)
@@ -133,7 +137,8 @@ class CachedElectrumXClient {
         set = Map<String, dynamic>.from(cachedSet);
       }
 
-      final newSet = await electrumXClient.getSparkAnonymitySet(
+      final newSet = await (electrumAdapterClient as FiroElectrumClient)
+          .getSparkAnonymitySet(
         coinGroupId: groupId,
         startBlockHash: set["blockHash"] as String,
       );
@@ -191,15 +196,8 @@ class CachedElectrumXClient {
 
       final cachedTx = box.get(txHash) as Map?;
       if (cachedTx == null) {
-        var channel = await electrum_adapter.connect(electrumXClient.host,
-            port: electrumXClient.port,
-            useSSL: electrumXClient.useSSL,
-            proxyInfo: Prefs.instance.useTor
-                ? TorService.sharedInstance.getProxyInfo()
-                : null);
-        var client = electrum_adapter.ElectrumClient(
-            channel, electrumXClient.host, electrumXClient.port);
-        final Map<String, dynamic> result = await client.getTransaction(txHash);
+        final Map<String, dynamic> result =
+            await electrumAdapterClient.getTransaction(txHash);
 
         result.remove("hex");
         result.remove("lelantusData");
@@ -241,7 +239,8 @@ class CachedElectrumXClient {
         cachedSerials.length - 100, // 100 being some arbitrary buffer
       );
 
-      final serials = await electrumXClient.getLelantusUsedCoinSerials(
+      final serials = await (electrumAdapterClient as FiroElectrumClient)
+          .getLelantusUsedCoinSerials(
         startNumber: startNumber,
       );
 
@@ -289,7 +288,8 @@ class CachedElectrumXClient {
         cachedTags.length - 100, // 100 being some arbitrary buffer
       );
 
-      final tags = await electrumXClient.getSparkUsedCoinsTags(
+      final tags =
+          await (electrumAdapterClient as FiroElectrumClient).getUsedCoinsTags(
         startNumber: startNumber,
       );
 
@@ -297,12 +297,18 @@ class CachedElectrumXClient {
       //     .map((e) => !isHexadecimal(e) ? base64ToHex(e) : e)
       //     .toSet();
 
+      // Convert the Map<String, dynamic> tags to a Set<Object?>.
+      final newTags = (tags["tags"] as List).toSet();
+
       // ensure we are getting some overlap so we know we are not missing any
       if (cachedTags.isNotEmpty && tags.isNotEmpty) {
-        assert(cachedTags.intersection(tags).isNotEmpty);
+        assert(cachedTags.intersection(newTags).isNotEmpty);
       }
 
-      cachedTags.addAll(tags);
+      // Make newTags an Iterable<String>.
+      final Iterable<String> iterableTags = newTags.map((e) => e.toString());
+
+      cachedTags.addAll(iterableTags);
 
       await box.put(
         "tags",
