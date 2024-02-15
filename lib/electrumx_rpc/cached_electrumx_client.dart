@@ -220,8 +220,6 @@ class CachedElectrumXClient {
       if (cachedTx == null) {
         await _checkElectrumAdapterClient();
 
-        print(121212);
-        print(electrumAdapterClient.peer.isClosed);
         final Map<String, dynamic> result =
             await electrumAdapterClient.getTransaction(txHash);
 
