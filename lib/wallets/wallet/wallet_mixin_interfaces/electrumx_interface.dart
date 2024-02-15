@@ -983,6 +983,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     electrumXCachedClient = CachedElectrumXClient.from(
       electrumXClient: electrumXClient,
       electrumAdapterClient: electrumAdapterClient,
+      electrumAdapterUpdateCallback: updateNode,
     );
     subscribableElectrumXClient = SubscribableElectrumXClient.from(
       node: newNode,
