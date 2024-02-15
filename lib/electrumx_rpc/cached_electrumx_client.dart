@@ -22,12 +22,12 @@ import 'package:string_validator/string_validator.dart';
 
 class CachedElectrumXClient {
   final ElectrumXClient electrumXClient;
-  final ElectrumClient electrumAdapterClient;
-  final Future<void> Function() electrumAdapterUpdateCallback;
+  ElectrumClient electrumAdapterClient;
+  final Future<ElectrumClient> Function() electrumAdapterUpdateCallback;
 
   static const minCacheConfirms = 30;
 
-  const CachedElectrumXClient({
+  CachedElectrumXClient({
     required this.electrumXClient,
     required this.electrumAdapterClient,
     required this.electrumAdapterUpdateCallback,
@@ -36,7 +36,7 @@ class CachedElectrumXClient {
   factory CachedElectrumXClient.from({
     required ElectrumXClient electrumXClient,
     required ElectrumClient electrumAdapterClient,
-    required Future<void> Function() electrumAdapterUpdateCallback,
+    required Future<ElectrumClient> Function() electrumAdapterUpdateCallback,
   }) =>
       CachedElectrumXClient(
         electrumXClient: electrumXClient,
@@ -47,8 +47,13 @@ class CachedElectrumXClient {
   /// If the client is closed, use the callback to update it.
   _checkElectrumAdapterClient() async {
     if (electrumAdapterClient.peer.isClosed) {
-      await electrumAdapterUpdateCallback?.call();
-      // throw Exception("ElectrumAdapterClient is closed");
+      ElectrumClient? _electrumAdapterClient =
+          await electrumAdapterUpdateCallback?.call();
+      if (_electrumAdapterClient != null) {
+        electrumAdapterClient = _electrumAdapterClient;
+      } else {
+        throw Exception("ElectrumAdapterClient is closed");
+      }
     }
   }
 
@@ -215,6 +220,8 @@ class CachedElectrumXClient {
       if (cachedTx == null) {
         await _checkElectrumAdapterClient();
 
+        print(121212);
+        print(electrumAdapterClient.peer.isClosed);
         final Map<String, dynamic> result =
             await electrumAdapterClient.getTransaction(txHash);
 
