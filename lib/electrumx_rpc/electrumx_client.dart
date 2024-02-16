@@ -114,7 +114,6 @@ class ElectrumXClient {
     required Prefs prefs,
     required List<ElectrumXNode> failovers,
     Coin? coin,
-    JsonRPC? client,
     this.connectionTimeoutForSpecialCaseJsonRPCClients =
         const Duration(seconds: 60),
     TorService? torService,
@@ -125,7 +124,6 @@ class ElectrumXClient {
     _host = host;
     _port = port;
     _useSSL = useSSL;
-    _rpcClient = client;
     _coin = coin;
 
     final bus = globalEventBusForTesting ?? GlobalEventBus.instance;
@@ -155,23 +153,10 @@ class ElectrumXClient {
         //   case TorStatus.disabled:
         // }
 
-        // might be ok to just reset/kill the current _jsonRpcClient
-
-        // since disconnecting is async and we want to ensure instant change over
-        // we will keep temp reference to current rpc client to call disconnect
-        // on before awaiting the disconnection future
-
-        final temp = _rpcClient;
-
         // setting to null should force the creation of a new json rpc client
         // on the next request sent through this electrumx instance
-        _rpcClient = null;
         _electrumAdapterChannel = null;
         _electrumAdapterClient = null;
-
-        await temp?.disconnect(
-          reason: "Tor status changed to \"${event.status}\"",
-        );
       },
     );
   }
@@ -202,58 +187,6 @@ class ElectrumXClient {
           ConnectivityResult.wifi;
     }
     return true;
-  }
-
-  void _checkRpcClient() {
-    // If we're supposed to use Tor...
-    if (_prefs.useTor) {
-      // But Tor isn't running...
-      if (_torService.status != TorConnectionStatus.connected) {
-        // And the killswitch isn't set...
-        if (!_prefs.torKillSwitch) {
-          // Then we'll just proceed and connect to ElectrumX through clearnet at the bottom of this function.
-          Logging.instance.log(
-            "Tor preference set but Tor is not enabled, killswitch not set, connecting to ElectrumX through clearnet",
-            level: LogLevel.Warning,
-          );
-        } else {
-          // ... But if the killswitch is set, then we throw an exception.
-          throw Exception(
-              "Tor preference and killswitch set but Tor is not enabled, not connecting to ElectrumX");
-          // TODO [prio=low]: Try to start Tor.
-        }
-      } else {
-        // Get the proxy info from the TorService.
-        final proxyInfo = _torService.getProxyInfo();
-
-        if (currentFailoverIndex == -1) {
-          _rpcClient ??= JsonRPC(
-            host: host,
-            port: port,
-            useSSL: useSSL,
-            connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-            proxyInfo: proxyInfo,
-          );
-        } else {
-          _rpcClient ??= JsonRPC(
-            host: failovers![currentFailoverIndex].address,
-            port: failovers![currentFailoverIndex].port,
-            useSSL: failovers![currentFailoverIndex].useSSL,
-            connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-            proxyInfo: proxyInfo,
-          );
-        }
-
-        if (_rpcClient!.proxyInfo != proxyInfo) {
-          _rpcClient!.proxyInfo = proxyInfo;
-          _rpcClient!.disconnect(
-            reason: "Tor proxyInfo does not match current info",
-          );
-        }
-
-        return;
-      }
-    }
   }
 
   Future<void> checkElectrumAdapter() async {
