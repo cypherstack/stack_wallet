@@ -1001,6 +1001,16 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         .toList();
 
     final newNode = await getCurrentElectrumXNode();
+    try {
+      await electrumXClient.electrumAdapterClient?.close();
+    } catch (e, s) {
+      if (e.toString().contains("initialized")) {
+        // Ignore.  This should happen every first time the wallet is opened.
+      } else {
+        Logging.instance
+            .log("Error closing electrumXClient: $e", level: LogLevel.Error);
+      }
+    }
     electrumXClient = ElectrumXClient.from(
       node: newNode,
       prefs: prefs,
