@@ -219,10 +219,8 @@ class CachedElectrumXClient {
       final cachedTx = box.get(txHash) as Map?;
       if (cachedTx == null) {
         await _checkElectrumAdapterClient();
-
         final Map<String, dynamic> result =
             await electrumAdapterClient.getTransaction(txHash);
-
         result.remove("hex");
         result.remove("lelantusData");
         result.remove("sparkData");

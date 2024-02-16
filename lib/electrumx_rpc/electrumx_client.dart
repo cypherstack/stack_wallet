@@ -106,6 +106,7 @@ class ElectrumXClient {
 
   final Mutex _torConnectingLock = Mutex();
   bool _requireMutex = false;
+  Future<ElectrumClient>? Function()? electrumAdapterUpdateCallback;
 
   ElectrumXClient({
     required String host,
@@ -119,6 +120,7 @@ class ElectrumXClient {
         const Duration(seconds: 60),
     TorService? torService,
     EventBus? globalEventBusForTesting,
+    Future<ElectrumClient>? Function()? electrumAdapterUpdateCallback,
   }) {
     _prefs = prefs;
     _torService = torService ?? TorService.sharedInstance;
@@ -172,6 +174,7 @@ class ElectrumXClient {
         await temp?.disconnect(
           reason: "Tor status changed to \"${event.status}\"",
         );
+        electrumAdapterUpdateCallback = electrumAdapterUpdateCallback;
       },
     );
   }
@@ -356,6 +359,18 @@ class ElectrumXClient {
     return;
   }
 
+  _checkElectrumAdapterClient() async {
+    if (_electrumAdapterClient!.peer.isClosed) {
+      Logging.instance.log(
+        "ElectrumAdapterClient is closed, reopening it...",
+        level: LogLevel.Info,
+      );
+       _electrumAdapterClient =
+      await electrumAdapterUpdateCallback!.call();
+      // electrumAdapterClient = _electrumAdapterClient;
+    }
+  }
+
   /// Send raw rpc command
   Future<dynamic> request({
     required String command,
@@ -373,6 +388,8 @@ class ElectrumXClient {
           .protect(() async => await _checkElectrumAdapter());
     } else {
       await _checkElectrumAdapter();
+      await _checkElectrumAdapterClient();
+
     }
 
     try {
@@ -815,7 +832,9 @@ class ElectrumXClient {
     Logging.instance.log("attempting to fetch blockchain.transaction.get...",
         level: LogLevel.Info);
     await _checkElectrumAdapter();
+    await _checkElectrumAdapterClient();
     dynamic response = await _electrumAdapterClient!.getTransaction(txHash);
+    await _checkElectrumAdapterClient();
     Logging.instance.log("Fetching blockchain.transaction.get finished",
         level: LogLevel.Info);
 
@@ -1038,6 +1057,7 @@ class ElectrumXClient {
   /// }
   Future<Map<String, dynamic>> getFeeRate({String? requestID}) async {
     await _checkElectrumAdapter();
+    await _checkElectrumAdapterClient();
     return await _electrumAdapterClient!.getFeeRate();
   }
 
@@ -1047,6 +1067,7 @@ class ElectrumXClient {
   /// Ex:
   /// 0.00001000
   Future<Decimal> estimateFee({String? requestID, required int blocks}) async {
+
     try {
       final response = await request(
         requestID: requestID,
