@@ -173,6 +173,11 @@ dependencies:
       url: https://github.com/cypherstack/coinlib.git
       path: coinlib_flutter
       ref: 376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7
+  electrum_adapter:
+    git:
+      url: https://github.com/cypherstack/electrum_adapter.git
+      ref: 51b7a60e07b0409b361e31da65d98178ee235bed
+  stream_channel: ^2.1.0
 
 dev_dependencies:
   flutter_test:
@@ -189,7 +194,7 @@ dev_dependencies:
 #  lint: ^1.10.0
   analyzer: ^5.13.0
   import_sorter: ^4.6.0
-  flutter_lints: ^2.0.1
+  flutter_lints: ^3.0.1
   isar_generator: 3.0.5
 
 flutter_launcher_icons:

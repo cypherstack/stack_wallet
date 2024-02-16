@@ -158,6 +158,7 @@ class NodeOptionsSheet extends ConsumerWidget {
           failovers: [],
           prefs: ref.read(prefsChangeNotifierProvider),
           torService: ref.read(pTorService),
+          coin: coin,
         );
 
         try {

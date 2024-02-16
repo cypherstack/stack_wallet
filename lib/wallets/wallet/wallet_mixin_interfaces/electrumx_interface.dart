@@ -4,39 +4,58 @@ import 'dart:math';
 import 'package:bip47/src/util.dart';
 import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
+import 'package:electrum_adapter/electrum_adapter.dart' as electrum_adapter;
+import 'package:electrum_adapter/electrum_adapter.dart';
 import 'package:isar/isar.dart';
+import 'package:mutex/mutex.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_chain_height_service.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
-import 'package:stackwallet/electrumx_rpc/subscribable_electrumx_client.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/signing_data.dart';
+import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/events/global/tor_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/paynym_is_api.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
-import 'package:uuid/uuid.dart';
+import 'package:stream_channel/stream_channel.dart';
 
 mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   late ElectrumXClient electrumXClient;
+  late StreamChannel electrumAdapterChannel;
+  late ElectrumClient electrumAdapterClient;
   late CachedElectrumXClient electrumXCachedClient;
-  late SubscribableElectrumXClient subscribableElectrumXClient;
+  // late SubscribableElectrumXClient subscribableElectrumXClient;
 
   int? get maximumFeerate => null;
 
   int? _latestHeight;
+
+  late Prefs _prefs;
+  late TorService _torService;
+  StreamSubscription<TorPreferenceChangedEvent>? _torPreferenceListener;
+  StreamSubscription<TorConnectionStatusChangedEvent>? _torStatusListener;
+  final Mutex _torConnectingLock = Mutex();
+  bool _requireMutex = false;
+  Timer? _aliveTimer;
+  static const Duration _keepAlive = Duration(minutes: 1);
+  bool _isConnected = false;
 
   static const _kServerBatchCutoffVersion = [1, 6];
   List<int>? _serverVersion;
@@ -812,38 +831,94 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         // Make sure we only complete once.
         final isFirstResponse = _latestHeight == null;
 
-        // Subscribe to block headers.
-        final subscription =
-            subscribableElectrumXClient.subscribeToBlockHeaders();
+        // Check Electrum and update internal and cached versions if necessary.
+        await electrumXClient.checkElectrumAdapter();
+        if (electrumAdapterChannel != electrumXClient.electrumAdapterChannel &&
+            electrumXClient.electrumAdapterChannel != null) {
+          electrumAdapterChannel = electrumXClient.electrumAdapterChannel!;
+        }
+        if (electrumAdapterClient != electrumXClient.electrumAdapterClient &&
+            electrumXClient.electrumAdapterClient != null) {
+          electrumAdapterClient = electrumXClient.electrumAdapterClient!;
+        }
+        // electrumXCachedClient.electrumAdapterChannel = electrumAdapterChannel;
+        if (electrumXCachedClient.electrumAdapterClient !=
+            electrumAdapterClient) {
+          electrumXCachedClient.electrumAdapterClient = electrumAdapterClient;
+        }
 
-        // set stream subscription
+        // Subscribe to and listen for new block headers.
+        final stream = electrumAdapterClient.subscribeHeaders();
         ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] =
-            subscription.responseStream.asBroadcastStream().listen((event) {
-          final response = event;
-          if (response != null &&
-              response is Map &&
-              response.containsKey('height')) {
-            final int chainHeight = response['height'] as int;
-            // print("Current chain height: $chainHeight");
+            stream.asBroadcastStream().listen((response) {
+          final int chainHeight = response.height;
+          // print("Current chain height: $chainHeight");
 
-            _latestHeight = chainHeight;
+          _latestHeight = chainHeight;
 
-            if (isFirstResponse && !completer.isCompleted) {
-              // Return the chain height.
-              completer.complete(chainHeight);
-            }
-          } else {
-            Logging.instance.log(
-                "blockchain.headers.subscribe returned malformed response\n"
-                "Response: $response",
-                level: LogLevel.Error);
+          if (isFirstResponse && !completer.isCompleted) {
+            // Return the chain height.
+            completer.complete(chainHeight);
           }
         });
 
-        return _latestHeight ?? await completer.future;
-      }
-      // Don't set a stream subscription if one already exists.
-      else {
+        // If we're testing, use the global event bus for testing.
+        // final bus = globalEventBusForTesting ?? GlobalEventBus.instance;
+        // No constructors for mixins, so no globalEventBusForTesting is passed in.
+        final bus = GlobalEventBus.instance;
+
+        // Listen to global event bus for Tor status changes.
+        _torStatusListener ??= bus.on<TorConnectionStatusChangedEvent>().listen(
+          (event) async {
+            try {
+              switch (event.newStatus) {
+                case TorConnectionStatus.connecting:
+                  // If Tor is connecting, we need to wait.
+                  await _torConnectingLock.acquire();
+                  _requireMutex = true;
+                  break;
+
+                case TorConnectionStatus.connected:
+                case TorConnectionStatus.disconnected:
+                  // If Tor is connected or disconnected, we can release the lock.
+                  if (_torConnectingLock.isLocked) {
+                    _torConnectingLock.release();
+                  }
+                  _requireMutex = false;
+                  break;
+              }
+            } finally {
+              // Ensure the lock is released.
+              if (_torConnectingLock.isLocked) {
+                _torConnectingLock.release();
+              }
+            }
+          },
+        );
+
+        // Listen to global event bus for Tor preference changes.
+        _torPreferenceListener ??= bus.on<TorPreferenceChangedEvent>().listen(
+          (event) async {
+            // Close any open subscriptions.
+            for (final coinSub
+                in ElectrumxChainHeightService.subscriptions.entries) {
+              await coinSub.value?.cancel();
+            }
+
+            // Cancel alive timer
+            _aliveTimer?.cancel();
+          },
+        );
+
+        // Set a timer to check if the subscription is still alive.
+        _aliveTimer?.cancel();
+        _aliveTimer = Timer.periodic(
+          _keepAlive,
+          (_) async => _updateConnectionStatus(await electrumXClient.ping()),
+        );
+      } else {
+        // Don't set a stream subscription if one already exists.
+
         // Check if the stream subscription is paused.
         if (ElectrumxChainHeightService
             .subscriptions[cryptoCurrency.coin]!.isPaused) {
@@ -851,19 +926,6 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
           ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin]!
               .resume();
         }
-
-        // Causes synchronization to stall.
-        // // Check if the stream subscription is active by pinging it.
-        // if (!(await subscribableElectrumXClient.ping())) {
-        //   // If it's not active, reconnect it.
-        //   final node = await getCurrentElectrumXNode();
-        //
-        //   await subscribableElectrumXClient.connect(
-        //       host: node.address, port: node.port);
-        //
-        //   // Wait for first response.
-        //   return completer.future;
-        // }
 
         if (_latestHeight != null) {
           return _latestHeight!;
@@ -889,7 +951,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     return transactions.length;
   }
 
-  Future<Map<String, int>> fetchTxCountBatched({
+  Future<Map<int, int>> fetchTxCountBatched({
     required Map<String, String> addresses,
   }) async {
     try {
@@ -901,7 +963,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       }
       final response = await electrumXClient.getBatchHistory(args: args);
 
-      final Map<String, int> result = {};
+      final Map<int, int> result = {};
       for (final entry in response.entries) {
         result[entry.key] = entry.value.length;
       }
@@ -939,21 +1001,73 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         .toList();
 
     final newNode = await getCurrentElectrumXNode();
+    try {
+      await electrumXClient.electrumAdapterClient?.close();
+    } catch (e, s) {
+      if (e.toString().contains("initialized")) {
+        // Ignore.  This should happen every first time the wallet is opened.
+      } else {
+        Logging.instance
+            .log("Error closing electrumXClient: $e", level: LogLevel.Error);
+      }
+    }
     electrumXClient = ElectrumXClient.from(
       node: newNode,
       prefs: prefs,
       failovers: failovers,
+      coin: cryptoCurrency.coin,
     );
+    electrumAdapterChannel = await electrum_adapter.connect(
+      newNode.address,
+      port: newNode.port,
+      acceptUnverified: true,
+      useSSL: newNode.useSSL,
+      proxyInfo: Prefs.instance.useTor
+          ? TorService.sharedInstance.getProxyInfo()
+          : null,
+    );
+    if (electrumXClient.coin == Coin.firo ||
+        electrumXClient.coin == Coin.firoTestNet) {
+      electrumAdapterClient = FiroElectrumClient(
+          electrumAdapterChannel,
+          newNode.address,
+          newNode.port,
+          newNode.useSSL,
+          Prefs.instance.useTor
+              ? TorService.sharedInstance.getProxyInfo()
+              : null);
+    } else {
+      electrumAdapterClient = ElectrumClient(
+          electrumAdapterChannel,
+          newNode.address,
+          newNode.port,
+          newNode.useSSL,
+          Prefs.instance.useTor
+              ? TorService.sharedInstance.getProxyInfo()
+              : null);
+    }
     electrumXCachedClient = CachedElectrumXClient.from(
       electrumXClient: electrumXClient,
+      electrumAdapterClient: electrumAdapterClient,
+      electrumAdapterUpdateCallback: updateClient,
     );
-    subscribableElectrumXClient = SubscribableElectrumXClient.from(
-      node: newNode,
-      prefs: prefs,
-      failovers: failovers,
-    );
-    await subscribableElectrumXClient.connect(
-        host: newNode.address, port: newNode.port);
+    // Replaced using electrum_adapters' SubscribableClient in fetchChainHeight.
+    // subscribableElectrumXClient = SubscribableElectrumXClient.from(
+    //   node: newNode,
+    //   prefs: prefs,
+    //   failovers: failovers,
+    // );
+    // await subscribableElectrumXClient.connect(
+    //     host: newNode.address, port: newNode.port);
+  }
+
+  /// Update the connection status and call the onConnectionStatusChanged callback if it exists.
+  void _updateConnectionStatus(bool connectionStatus) {
+    // TODO [prio=low]: Set onConnectionStatusChanged callback.
+    // if (_isConnected != connectionStatus && onConnectionStatusChanged != null) {
+    //   onConnectionStatusChanged!(connectionStatus);
+    // }
+    _isConnected = connectionStatus;
   }
 
   //============================================================================
@@ -1115,21 +1229,22 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       List<Map<String, dynamic>> allTxHashes = [];
 
       if (serverCanBatch) {
-        final Map<int, Map<String, List<dynamic>>> batches = {};
-        final Map<String, String> requestIdToAddressMap = {};
+        final Map<String, Map<String, List<dynamic>>> batches = {};
+        final Map<int, String> requestIdToAddressMap = {};
         const batchSizeMax = 100;
         int batchNumber = 0;
         for (int i = 0; i < allAddresses.length; i++) {
-          if (batches[batchNumber] == null) {
-            batches[batchNumber] = {};
+          if (batches["$batchNumber"] == null) {
+            batches["$batchNumber"] = {};
           }
           final scriptHash = cryptoCurrency.addressToScriptHash(
             address: allAddresses.elementAt(i),
           );
-          final id = Logger.isTestEnv ? "$i" : const Uuid().v1();
-          requestIdToAddressMap[id] = allAddresses.elementAt(i);
-          batches[batchNumber]!.addAll({
-            id: [scriptHash]
+          // final id = Logger.isTestEnv ? "$i" : const Uuid().v1();
+          // TODO [prio=???]: Pass request IDs to electrum_adapter.
+          requestIdToAddressMap[i] = allAddresses.elementAt(i);
+          batches["$batchNumber"]!.addAll({
+            "$i": [scriptHash]
           });
           if (i % batchSizeMax == batchSizeMax - 1) {
             batchNumber++;
@@ -1138,7 +1253,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
         for (int i = 0; i < batches.length; i++) {
           final response =
-              await electrumXClient.getBatchHistory(args: batches[i]!);
+              await electrumXClient.getBatchHistory(args: batches["$i"]!);
           for (final entry in response.entries) {
             for (int j = 0; j < entry.value.length; j++) {
               entry.value[j]["address"] = requestIdToAddressMap[entry.key];
@@ -1185,6 +1300,8 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       verbose: true,
       coin: cryptoCurrency.coin,
     );
+
+    print("txn: $txn");
 
     final vout = jsonUTXO["tx_pos"] as int;
 
@@ -1252,6 +1369,13 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   Future<void> updateNode() async {
     final node = await getCurrentElectrumXNode();
     await updateElectrumX(newNode: node);
+  }
+
+  Future<ElectrumClient> updateClient() async {
+    Logging.instance.log("Updating electrum node and ElectrumAdapterClient.",
+        level: LogLevel.Info);
+    await updateNode();
+    return electrumAdapterClient;
   }
 
   FeeObject? _cachedFees;
