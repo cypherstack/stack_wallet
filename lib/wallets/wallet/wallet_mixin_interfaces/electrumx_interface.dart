@@ -996,6 +996,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     electrumXCachedClient = CachedElectrumXClient.from(
       electrumXClient: electrumXClient,
       electrumAdapterClient: electrumAdapterClient,
+      electrumAdapterUpdateCallback: updateClient,
     );
     subscribableElectrumXClient = SubscribableElectrumXClient.from(
       node: newNode,
@@ -1305,6 +1306,13 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   Future<void> updateNode() async {
     final node = await getCurrentElectrumXNode();
     await updateElectrumX(newNode: node);
+  }
+
+  Future<ElectrumClient> updateClient() async {
+    Logging.instance.log("Updating electrum node and ElectrumAdapterClient.",
+        level: LogLevel.Info);
+    await updateNode();
+    return electrumAdapterClient;
   }
 
   FeeObject? _cachedFees;

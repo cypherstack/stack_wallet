@@ -290,6 +290,13 @@ class ElectrumXClient {
     //   );
     // }
 
+    // If the current ElectrumAdapterClient is closed, create a new one.
+    if (_electrumAdapterClient != null &&
+        _electrumAdapterClient!.peer.isClosed) {
+      _electrumAdapterChannel = null;
+      _electrumAdapterClient = null;
+    }
+
     if (currentFailoverIndex == -1) {
       _electrumAdapterChannel ??= await electrum_adapter.connect(
         host,
