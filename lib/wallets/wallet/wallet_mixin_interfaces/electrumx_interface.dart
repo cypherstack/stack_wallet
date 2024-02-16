@@ -7,7 +7,6 @@ import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:electrum_adapter/electrum_adapter.dart' as electrum_adapter;
 import 'package:electrum_adapter/electrum_adapter.dart';
 import 'package:isar/isar.dart';
-import 'package:mutex/mutex.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_chain_height_service.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
@@ -820,55 +819,12 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       // TODO above.  Make sure that the subscription/stream is alive.
 
       // Don't set a stream subscription if one already exists.
-      await _manageChainHeightSubscription();
-
-      return _latestHeight ?? info.cachedChainHeight;
-    } catch (e, s) {
-      Logging.instance.log(
-          "Exception rethrown in fetchChainHeight\nError: $e\nStack trace: $s",
-          level: LogLevel.Error);
-      // completer.completeError(e, s);
-      // return Future.error(e, s);
-      rethrow;
-    }
-  }
-
-  // Mutex to control subscription management access.
-  static final Mutex _subMutex = Mutex();
-
-  Future<void> _manageChainHeightSubscription() async {
-    // Set the timeout period for the chain height subscription.
-    const timeout = Duration(seconds: 10);
-
-    await _subMutex.protect(() async {
       if (ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] ==
           null) {
-        await _createSubscription();
-      } else if (ElectrumxChainHeightService
-          .subscriptions[cryptoCurrency.coin]!.isPaused) {
-        ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin]!
-            .resume();
-      }
-    });
+        final Completer<int> completer = Completer<int>();
 
-    // Ensure _latestHeight is updated before proceeding.
-    if (_latestHeight == null &&
-        ElectrumxChainHeightService.completers[cryptoCurrency.coin] != null) {
-      try {
-        // Use a timeout to wait for the completer to avoid indefinite blocking.
-        _latestHeight = await ElectrumxChainHeightService
-            .completers[cryptoCurrency.coin]!.future
-            .timeout(timeout);
-      } catch (e) {
-        Logging.instance
-            .log("Timeout waiting for chain height", level: LogLevel.Error);
-        // Clear this coin's subscription.
-        await ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin]!
-            .cancel();
-        ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] = null;
-      }
-    }
-  }
+        // Make sure we only complete once.
+        final isFirstResponse = _latestHeight == null;
 
         await electrumXClient.checkElectrumAdapter();
         // TODO [prio=extreme]: Does this update anything in this file?? Thinking no.
@@ -901,13 +857,19 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         if (_latestHeight != null) {
           return _latestHeight!;
         }
-      } else {
-        Logging.instance.log(
-            "blockchain.headers.subscribe returned malformed response\n"
-            "Response: $response",
-            level: LogLevel.Error);
       }
-    });
+
+      // Probably waiting on the subscription to receive the latest block height
+      // fallback to cached value
+      return info.cachedChainHeight;
+    } catch (e, s) {
+      Logging.instance.log(
+          "Exception rethrown in fetchChainHeight\nError: $e\nStack trace: $s",
+          level: LogLevel.Error);
+      // completer.completeError(e, s);
+      // return Future.error(e, s);
+      rethrow;
+    }
   }
 
   Future<int> fetchTxCount({required String addressScriptHash}) async {
