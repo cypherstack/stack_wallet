@@ -525,13 +525,21 @@ class ElectrumXClient {
   /// Returns true if ping succeeded
   Future<bool> ping({String? requestID, int retryCount = 1}) async {
     try {
+      // This doesn't work because electrum_adapter only returns the result
+      // (which is always `null`).
+      // await checkElectrumAdapter();
+      // final response = await electrumAdapterClient!
+      //     .ping()
+      //     .timeout(const Duration(seconds: 2));
+      // return (response as Map<String, dynamic>).isNotEmpty;
+
       final response = await request(
         requestID: requestID,
         command: 'server.ping',
         requestTimeout: const Duration(seconds: 2),
         retries: retryCount,
       ).timeout(const Duration(seconds: 2)) as Map<String, dynamic>;
-      return response.isNotEmpty; // TODO [prio=extreme]: Fix this.
+      return response.isNotEmpty;
     } catch (e) {
       rethrow;
     }
