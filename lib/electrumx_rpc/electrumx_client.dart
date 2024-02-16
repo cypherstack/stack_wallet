@@ -402,6 +402,12 @@ class ElectrumXClient {
       }
 
       currentFailoverIndex = -1;
+
+      // If the command is a ping, a good return should always be null.
+      if (command.contains("ping")) {
+        return true;
+      }
+
       return response;
     } on WifiOnlyException {
       rethrow;
@@ -525,7 +531,7 @@ class ElectrumXClient {
   /// Returns true if ping succeeded
   Future<bool> ping({String? requestID, int retryCount = 1}) async {
     try {
-      // This doesn't work because electrum_adapter only returns the result
+      // This doesn't work because electrum_adapter only returns the result:
       // (which is always `null`).
       // await checkElectrumAdapter();
       // final response = await electrumAdapterClient!
@@ -533,13 +539,15 @@ class ElectrumXClient {
       //     .timeout(const Duration(seconds: 2));
       // return (response as Map<String, dynamic>).isNotEmpty;
 
-      final response = await request(
+      // Because request() has been updated to use electrum_adapter, and because
+      // electrum_adapter returns the result of the request, request() has been
+      // updated to return a bool on a server.ping command as a special case.
+      return await request(
         requestID: requestID,
         command: 'server.ping',
         requestTimeout: const Duration(seconds: 2),
         retries: retryCount,
-      ).timeout(const Duration(seconds: 2)) as Map<String, dynamic>;
-      return response.isNotEmpty;
+      ).timeout(const Duration(seconds: 2)) as bool;
     } catch (e) {
       rethrow;
     }
