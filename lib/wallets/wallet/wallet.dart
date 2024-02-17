@@ -4,7 +4,6 @@ import 'package:isar/isar.dart';
 import 'package:meta/meta.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx_chain_height_service.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/models/node_model.dart';
@@ -617,9 +616,10 @@ abstract class Wallet<T extends CryptoCurrency> {
 
     switch (prefs.syncType) {
       case SyncingType.currentWalletOnly:
-        // Close the subscription for this coin's chain height.
-        await ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin]
-            ?.cancel();
+      // Close the subscription for this coin's chain height.
+      // NOTE: This does not work now that the subscription is shared
+      // await  (await ChainHeightServiceManager.getService(cryptoCurrency.coin))
+      //     ?.cancelListen();
       case SyncingType.selectedWalletsAtStartup:
         // Close the subscription if this wallet is not in the list to be synced.
         if (!prefs.walletIdsSyncOnStartup.contains(walletId)) {
@@ -639,8 +639,10 @@ abstract class Wallet<T extends CryptoCurrency> {
 
           // If there are no other wallets of this coin, then close the sub.
           if (walletIds.isEmpty) {
-            await ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin]
-                ?.cancel();
+            // NOTE: This does not work now that the subscription is shared
+            // await (await ChainHeightServiceManager.getService(
+            //         cryptoCurrency.coin))
+            //     ?.cancelListen();
           }
         }
       case SyncingType.allWalletsOnStartup:

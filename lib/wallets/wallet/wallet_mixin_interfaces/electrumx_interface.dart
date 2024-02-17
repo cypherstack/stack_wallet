@@ -44,8 +44,6 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
   int? get maximumFeerate => null;
 
-  int? _latestHeight;
-
   StreamSubscription<TorPreferenceChangedEvent>? _torPreferenceListener;
   StreamSubscription<TorConnectionStatusChangedEvent>? _torStatusListener;
 
@@ -815,53 +813,20 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
   Future<int> fetchChainHeight() async {
     try {
-      // _checkChainHeightSubscription();
-      // TODO above.  Make sure that the subscription/stream is alive.
+      ChainHeightService? service = ChainHeightServiceManager.getService(
+        cryptoCurrency.coin,
+      );
 
-      // Don't set a stream subscription if one already exists.
-      if (ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] ==
-          null) {
-        final Completer<int> completer = Completer<int>();
-
-        // Make sure we only complete once.
-        final isFirstResponse = _latestHeight == null;
-
-        await electrumXClient.checkElectrumAdapter();
-        // TODO [prio=extreme]: Does this update anything in this file?? Thinking no.
-
-        final stream = electrumAdapterClient.subscribeHeaders();
-
-        ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] =
-            stream.asBroadcastStream().listen((response) {
-          final int chainHeight = response.height;
-          // print("Current chain height: $chainHeight");
-
-          _latestHeight = chainHeight;
-
-          if (isFirstResponse && !completer.isCompleted) {
-            // Return the chain height.
-            completer.complete(chainHeight);
-          }
-        });
-      } else {
-        // Don't set a stream subscription if one already exists.
-
-        // Check if the stream subscription is paused.
-        if (ElectrumxChainHeightService
-            .subscriptions[cryptoCurrency.coin]!.isPaused) {
-          // If it's paused, resume it.
-          ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin]!
-              .resume();
-        }
-
-        if (_latestHeight != null) {
-          return _latestHeight!;
-        }
+      if (service == null) {
+        service = ChainHeightService(client: electrumAdapterClient);
+        ChainHeightServiceManager.add(service, cryptoCurrency.coin);
       }
 
-      // Probably waiting on the subscription to receive the latest block height
-      // fallback to cached value
-      return info.cachedChainHeight;
+      if (!service.started) {
+        return await service.fetchHeightAndStartListenForUpdates();
+      }
+
+      return service.height ?? info.cachedChainHeight;
     } catch (e, s) {
       Logging.instance.log(
           "Exception rethrown in fetchChainHeight\nError: $e\nStack trace: $s",
