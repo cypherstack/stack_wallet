@@ -7,7 +7,6 @@ import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:electrum_adapter/electrum_adapter.dart' as electrum_adapter;
 import 'package:electrum_adapter/electrum_adapter.dart';
 import 'package:isar/isar.dart';
-import 'package:mutex/mutex.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_chain_height_service.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
@@ -17,9 +16,6 @@ import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/signing_data.dart';
-import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/tor_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -42,16 +38,9 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   late ElectrumClient electrumAdapterClient;
   late CachedElectrumXClient electrumXCachedClient;
   // late SubscribableElectrumXClient subscribableElectrumXClient;
+  late ChainHeightServiceManager chainHeightServiceManager;
 
   int? get maximumFeerate => null;
-
-  StreamSubscription<TorPreferenceChangedEvent>? _torPreferenceListener;
-  StreamSubscription<TorConnectionStatusChangedEvent>? _torStatusListener;
-  final Mutex _torConnectingLock = Mutex();
-  bool _requireMutex = false;
-  Timer? _aliveTimer;
-  static const Duration _keepAlive = Duration(minutes: 1);
-  bool _isConnected = false;
 
   static const _kServerBatchCutoffVersion = [1, 6];
   List<int>? _serverVersion;
@@ -819,19 +808,23 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
   Future<int> fetchChainHeight() async {
     try {
+      // Get the chain height service for the current coin.
       ChainHeightService? service = ChainHeightServiceManager.getService(
         cryptoCurrency.coin,
       );
 
+      // ... or create a new one if it doesn't exist.
       if (service == null) {
         service = ChainHeightService(client: electrumAdapterClient);
         ChainHeightServiceManager.add(service, cryptoCurrency.coin);
       }
 
+      // If the service hasn't been started, start it and fetch the chain height.
       if (!service.started) {
         return await service.fetchHeightAndStartListenForUpdates();
       }
 
+      // Return the height as per the service if available or the cached height.
       return service.height ?? info.cachedChainHeight;
     } catch (e, s) {
       Logging.instance.log(
@@ -957,15 +950,6 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     // );
     // await subscribableElectrumXClient.connect(
     //     host: newNode.address, port: newNode.port);
-  }
-
-  /// Update the connection status and call the onConnectionStatusChanged callback if it exists.
-  void _updateConnectionStatus(bool connectionStatus) {
-    // TODO [prio=low]: Set onConnectionStatusChanged callback.
-    // if (_isConnected != connectionStatus && onConnectionStatusChanged != null) {
-    //   onConnectionStatusChanged!(connectionStatus);
-    // }
-    _isConnected = connectionStatus;
   }
 
   //============================================================================
