@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:electrum_adapter/electrum_adapter.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/logger.dart';
 
 /// Manage chain height subscriptions for each coin.
 abstract class ChainHeightServiceManager {
@@ -57,6 +58,15 @@ class ChainHeightService {
   int? _height;
   int? get height => _height;
 
+  // Whether the service is currently reconnecting.
+  bool _isReconnecting = false;
+
+  // The reconnect timer.
+  Timer? _reconnectTimer;
+
+  // The reconnection timeout duration.
+  static const Duration _connectionTimeout = Duration(seconds: 10);
+
   ChainHeightService({required this.client});
 
   /// Fetch the current chain height and start listening for updates.
@@ -81,10 +91,54 @@ class ChainHeightService {
       }
     });
 
+    _subscription?.onError((dynamic error) {
+      _handleError(error);
+    });
+
     // Wait for the current chain height to be fetched.
     return completer.future;
   }
 
+  /// Handle an error from the subscription.
+  void _handleError(dynamic error) {
+    Logging.instance.log(
+      "Error reconnecting for chain height: ${error.toString()}",
+      level: LogLevel.Error,
+    );
+
+    _subscription?.cancel();
+    _subscription = null;
+    _attemptReconnect();
+  }
+
+  /// Attempt to reconnect to the electrum server.
+  void _attemptReconnect() {
+    // Avoid multiple reconnection attempts.
+    if (_isReconnecting) return;
+    _isReconnecting = true;
+
+    // Attempt to reconnect.
+    unawaited(fetchHeightAndStartListenForUpdates().then((_) {
+      _isReconnecting = false;
+    }));
+
+    // Set a timer to on the reconnection attempt and clean up if it fails.
+    _reconnectTimer?.cancel();
+    _reconnectTimer = Timer(_connectionTimeout, () async {
+      if (_subscription == null) {
+        await _subscription?.cancel();
+        _subscription = null; // Will also occur on an error via handleError.
+        _reconnectTimer?.cancel();
+        _reconnectTimer = null;
+        _isReconnecting = false;
+      }
+    });
+  }
+
   /// Stop listening for chain height updates.
-  Future<void> cancelListen() async => await _subscription?.cancel();
+  Future<void> cancelListen() async {
+    await _subscription?.cancel();
+    _subscription = null;
+    _reconnectTimer?.cancel();
+  }
 }
