@@ -33,7 +33,12 @@ abstract class ChainHeightServiceManager {
   // Close all subscriptions and clean up resources.
   static Future<void> dispose() async {
     // Close each subscription.
-    for (final coin in _services.keys) {
+    //
+    // Create a list of keys to avoid concurrent modification during iteration
+    var keys = List<Coin>.from(_services.keys);
+
+    // Iterate over the copy of the keys
+    for (final coin in keys) {
       final ChainHeightService? service = getService(coin);
       await service?.cancelListen();
       remove(coin);
