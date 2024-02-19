@@ -114,7 +114,6 @@ class ElectrumXClient {
     required Prefs prefs,
     required List<ElectrumXNode> failovers,
     Coin? coin,
-    JsonRPC? client,
     this.connectionTimeoutForSpecialCaseJsonRPCClients =
         const Duration(seconds: 60),
     TorService? torService,
@@ -125,7 +124,6 @@ class ElectrumXClient {
     _host = host;
     _port = port;
     _useSSL = useSSL;
-    _rpcClient = client;
     _coin = coin;
 
     final bus = globalEventBusForTesting ?? GlobalEventBus.instance;
@@ -155,23 +153,10 @@ class ElectrumXClient {
         //   case TorStatus.disabled:
         // }
 
-        // might be ok to just reset/kill the current _jsonRpcClient
-
-        // since disconnecting is async and we want to ensure instant change over
-        // we will keep temp reference to current rpc client to call disconnect
-        // on before awaiting the disconnection future
-
-        final temp = _rpcClient;
-
         // setting to null should force the creation of a new json rpc client
         // on the next request sent through this electrumx instance
-        _rpcClient = null;
         _electrumAdapterChannel = null;
         _electrumAdapterClient = null;
-
-        await temp?.disconnect(
-          reason: "Tor status changed to \"${event.status}\"",
-        );
       },
     );
   }
@@ -202,58 +187,6 @@ class ElectrumXClient {
           ConnectivityResult.wifi;
     }
     return true;
-  }
-
-  void _checkRpcClient() {
-    // If we're supposed to use Tor...
-    if (_prefs.useTor) {
-      // But Tor isn't running...
-      if (_torService.status != TorConnectionStatus.connected) {
-        // And the killswitch isn't set...
-        if (!_prefs.torKillSwitch) {
-          // Then we'll just proceed and connect to ElectrumX through clearnet at the bottom of this function.
-          Logging.instance.log(
-            "Tor preference set but Tor is not enabled, killswitch not set, connecting to ElectrumX through clearnet",
-            level: LogLevel.Warning,
-          );
-        } else {
-          // ... But if the killswitch is set, then we throw an exception.
-          throw Exception(
-              "Tor preference and killswitch set but Tor is not enabled, not connecting to ElectrumX");
-          // TODO [prio=low]: Try to start Tor.
-        }
-      } else {
-        // Get the proxy info from the TorService.
-        final proxyInfo = _torService.getProxyInfo();
-
-        if (currentFailoverIndex == -1) {
-          _rpcClient ??= JsonRPC(
-            host: host,
-            port: port,
-            useSSL: useSSL,
-            connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-            proxyInfo: proxyInfo,
-          );
-        } else {
-          _rpcClient ??= JsonRPC(
-            host: failovers![currentFailoverIndex].address,
-            port: failovers![currentFailoverIndex].port,
-            useSSL: failovers![currentFailoverIndex].useSSL,
-            connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-            proxyInfo: proxyInfo,
-          );
-        }
-
-        if (_rpcClient!.proxyInfo != proxyInfo) {
-          _rpcClient!.proxyInfo = proxyInfo;
-          _rpcClient!.disconnect(
-            reason: "Tor proxyInfo does not match current info",
-          );
-        }
-
-        return;
-      }
-    }
   }
 
   Future<void> checkElectrumAdapter() async {
@@ -402,6 +335,12 @@ class ElectrumXClient {
       }
 
       currentFailoverIndex = -1;
+
+      // If the command is a ping, a good return should always be null.
+      if (command.contains("ping")) {
+        return true;
+      }
+
       return response;
     } on WifiOnlyException {
       rethrow;
@@ -525,13 +464,23 @@ class ElectrumXClient {
   /// Returns true if ping succeeded
   Future<bool> ping({String? requestID, int retryCount = 1}) async {
     try {
-      final response = await request(
+      // This doesn't work because electrum_adapter only returns the result:
+      // (which is always `null`).
+      // await checkElectrumAdapter();
+      // final response = await electrumAdapterClient!
+      //     .ping()
+      //     .timeout(const Duration(seconds: 2));
+      // return (response as Map<String, dynamic>).isNotEmpty;
+
+      // Because request() has been updated to use electrum_adapter, and because
+      // electrum_adapter returns the result of the request, request() has been
+      // updated to return a bool on a server.ping command as a special case.
+      return await request(
         requestID: requestID,
         command: 'server.ping',
         requestTimeout: const Duration(seconds: 2),
         retries: retryCount,
-      ).timeout(const Duration(seconds: 2)) as Map<String, dynamic>;
-      return response.isNotEmpty; // TODO [prio=extreme]: Fix this.
+      ).timeout(const Duration(seconds: 2)) as bool;
     } catch (e) {
       rethrow;
     }

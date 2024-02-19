@@ -7,6 +7,7 @@ import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:electrum_adapter/electrum_adapter.dart' as electrum_adapter;
 import 'package:electrum_adapter/electrum_adapter.dart';
 import 'package:isar/isar.dart';
+import 'package:mutex/mutex.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_chain_height_service.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
@@ -16,6 +17,9 @@ import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/signing_data.dart';
+import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/events/global/tor_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -32,9 +36,6 @@ import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import 'package:stream_channel/stream_channel.dart';
 
-import '../../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
-import '../../../services/event_bus/events/global/tor_status_changed_event.dart';
-
 mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   late ElectrumXClient electrumXClient;
   late StreamChannel electrumAdapterChannel;
@@ -46,6 +47,11 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
   StreamSubscription<TorPreferenceChangedEvent>? _torPreferenceListener;
   StreamSubscription<TorConnectionStatusChangedEvent>? _torStatusListener;
+  final Mutex _torConnectingLock = Mutex();
+  bool _requireMutex = false;
+  Timer? _aliveTimer;
+  static const Duration _keepAlive = Duration(minutes: 1);
+  bool _isConnected = false;
 
   static const _kServerBatchCutoffVersion = [1, 6];
   List<int>? _serverVersion;
@@ -893,6 +899,16 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         .toList();
 
     final newNode = await getCurrentElectrumXNode();
+    try {
+      await electrumXClient.electrumAdapterClient?.close();
+    } catch (e, s) {
+      if (e.toString().contains("initialized")) {
+        // Ignore.  This should happen every first time the wallet is opened.
+      } else {
+        Logging.instance
+            .log("Error closing electrumXClient: $e", level: LogLevel.Error);
+      }
+    }
     electrumXClient = ElectrumXClient.from(
       node: newNode,
       prefs: prefs,
@@ -941,6 +957,15 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     // );
     // await subscribableElectrumXClient.connect(
     //     host: newNode.address, port: newNode.port);
+  }
+
+  /// Update the connection status and call the onConnectionStatusChanged callback if it exists.
+  void _updateConnectionStatus(bool connectionStatus) {
+    // TODO [prio=low]: Set onConnectionStatusChanged callback.
+    // if (_isConnected != connectionStatus && onConnectionStatusChanged != null) {
+    //   onConnectionStatusChanged!(connectionStatus);
+    // }
+    _isConnected = connectionStatus;
   }
 
   //============================================================================
