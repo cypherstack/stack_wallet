@@ -528,8 +528,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "51b7a60e07b0409b361e31da65d98178ee235bed"
-      resolved-ref: "51b7a60e07b0409b361e31da65d98178ee235bed"
+      ref: "8eb1e0f580ac1ef60ca511d8c954a18e950ef39c"
+      resolved-ref: "8eb1e0f580ac1ef60ca511d8c954a18e950ef39c"
       url: "https://github.com/cypherstack/electrum_adapter.git"
     source: git
     version: "3.0.0"

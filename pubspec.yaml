@@ -176,7 +176,7 @@ dependencies:
   electrum_adapter:
     git:
       url: https://github.com/cypherstack/electrum_adapter.git
-      ref: bd228e3acbc8a2abbe3dd3889d6a7eb8cc94b64c
+      ref: 8eb1e0f580ac1ef60ca511d8c954a18e950ef39c
   stream_channel: ^2.1.0
 
 dev_dependencies:
