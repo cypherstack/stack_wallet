@@ -1776,7 +1776,8 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         Logging.instance.log("prepare send: $result", level: LogLevel.Info);
         if (result.fee!.raw.toInt() < result.vSize!) {
           throw Exception(
-              "Error in fee calculation: Transaction fee cannot be less than vSize");
+              "Error in fee calculation: Transaction fee (${result.fee!.raw.toInt()}) cannot "
+              "be less than vSize (${result.vSize})");
         }
 
         return result;
