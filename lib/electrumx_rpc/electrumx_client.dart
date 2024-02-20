@@ -1013,6 +1013,29 @@ class ElectrumXClient {
         ],
       );
       try {
+        // If the response is -1 or null, return a temporary hardcoded value for
+        // Dogecoin.  This is a temporary fix until the fee estimation is fixed.
+        if (coin == Coin.dogecoin &&
+            (response == null ||
+                response == -1 ||
+                Decimal.parse(response.toString()) == Decimal.parse("-1"))) {
+          return Decimal.parse("0.00001024");
+          // blockchain.estimatefee response for 1-, 5-, and 10--block intervals
+          // as of 2024/02/20 ("1.024e-05").
+          // TODO [prio=med]: Fix fee estimation.  Refer to the following:
+          // $ openssl s_client -connect dogecoin.stackwallet.com:50002
+          // ...
+          // $ {"id": 1, "method": "blockchain.estimatefee", "params": [1]}
+          // {"jsonrpc": "2.0", "result": 1.024e-05, "id": 1}
+          // $ {"id": 1, "method": "blockchain.estimatefee", "params": [5]}
+          // {"jsonrpc": "2.0", "result": 1.024e-05, "id": 1}
+          // $ {"id": 1, "method": "blockchain.estimatefee", "params": [10]}
+          // {"jsonrpc": "2.0", "result": 1.024e-05, "id": 1}
+          // $ {"id": 1, "method": "blockchain.estimatefee", "params": [50]}
+          // {"jsonrpc": "2.0", "result": -1, "id": 1}
+          // $ {"id": 1, "method": "blockchain.estimatefee", "params": [100]}
+          // {"jsonrpc": "2.0", "result": -1, "id": 1}w
+        }
         return Decimal.parse(response.toString());
       } catch (e, s) {
         final String msg = "Error parsing fee rate.  Response: $response"
