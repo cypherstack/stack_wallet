@@ -65,7 +65,7 @@ dependencies:
   tor_ffi_plugin:
     git:
       url: https://github.com/cypherstack/tor.git
-      ref: 0a6888282f4e98401051a396e9d2293bd55ac2c2
+      ref: e37dc4e22f7acb2746b70bdc935f0eb3c50b8b71
 
   fusiondart:
     git:
@@ -176,7 +176,7 @@ dependencies:
   electrum_adapter:
     git:
       url: https://github.com/cypherstack/electrum_adapter.git
-      ref: 51b7a60e07b0409b361e31da65d98178ee235bed
+      ref: 0a34f7f48d921fb33f551cb11dfc9b2930522240
   stream_channel: ^2.1.0
 
 dev_dependencies:

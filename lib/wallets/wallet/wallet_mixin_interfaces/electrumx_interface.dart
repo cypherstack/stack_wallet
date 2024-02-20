@@ -7,7 +7,6 @@ import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:electrum_adapter/electrum_adapter.dart' as electrum_adapter;
 import 'package:electrum_adapter/electrum_adapter.dart';
 import 'package:isar/isar.dart';
-import 'package:mutex/mutex.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_chain_height_service.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
@@ -17,9 +16,6 @@ import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/signing_data.dart';
-import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/tor_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -42,20 +38,9 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   late ElectrumClient electrumAdapterClient;
   late CachedElectrumXClient electrumXCachedClient;
   // late SubscribableElectrumXClient subscribableElectrumXClient;
+  late ChainHeightServiceManager chainHeightServiceManager;
 
   int? get maximumFeerate => null;
-
-  int? _latestHeight;
-
-  late Prefs _prefs;
-  late TorService _torService;
-  StreamSubscription<TorPreferenceChangedEvent>? _torPreferenceListener;
-  StreamSubscription<TorConnectionStatusChangedEvent>? _torStatusListener;
-  final Mutex _torConnectingLock = Mutex();
-  bool _requireMutex = false;
-  Timer? _aliveTimer;
-  static const Duration _keepAlive = Duration(minutes: 1);
-  bool _isConnected = false;
 
   static const _kServerBatchCutoffVersion = [1, 6];
   List<int>? _serverVersion;
@@ -823,118 +808,24 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
   Future<int> fetchChainHeight() async {
     try {
-      // Don't set a stream subscription if one already exists.
-      if (ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] ==
-          null) {
-        final Completer<int> completer = Completer<int>();
+      // Get the chain height service for the current coin.
+      ChainHeightService? service = ChainHeightServiceManager.getService(
+        cryptoCurrency.coin,
+      );
 
-        // Make sure we only complete once.
-        final isFirstResponse = _latestHeight == null;
-
-        // Check Electrum and update internal and cached versions if necessary.
-        await electrumXClient.checkElectrumAdapter();
-        if (electrumAdapterChannel != electrumXClient.electrumAdapterChannel &&
-            electrumXClient.electrumAdapterChannel != null) {
-          electrumAdapterChannel = electrumXClient.electrumAdapterChannel!;
-        }
-        if (electrumAdapterClient != electrumXClient.electrumAdapterClient &&
-            electrumXClient.electrumAdapterClient != null) {
-          electrumAdapterClient = electrumXClient.electrumAdapterClient!;
-        }
-        // electrumXCachedClient.electrumAdapterChannel = electrumAdapterChannel;
-        if (electrumXCachedClient.electrumAdapterClient !=
-            electrumAdapterClient) {
-          electrumXCachedClient.electrumAdapterClient = electrumAdapterClient;
-        }
-
-        // Subscribe to and listen for new block headers.
-        final stream = electrumAdapterClient.subscribeHeaders();
-        ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin] =
-            stream.asBroadcastStream().listen((response) {
-          final int chainHeight = response.height;
-          // print("Current chain height: $chainHeight");
-
-          _latestHeight = chainHeight;
-
-          if (isFirstResponse && !completer.isCompleted) {
-            // Return the chain height.
-            completer.complete(chainHeight);
-          }
-        });
-
-        // If we're testing, use the global event bus for testing.
-        // final bus = globalEventBusForTesting ?? GlobalEventBus.instance;
-        // No constructors for mixins, so no globalEventBusForTesting is passed in.
-        final bus = GlobalEventBus.instance;
-
-        // Listen to global event bus for Tor status changes.
-        _torStatusListener ??= bus.on<TorConnectionStatusChangedEvent>().listen(
-          (event) async {
-            try {
-              switch (event.newStatus) {
-                case TorConnectionStatus.connecting:
-                  // If Tor is connecting, we need to wait.
-                  await _torConnectingLock.acquire();
-                  _requireMutex = true;
-                  break;
-
-                case TorConnectionStatus.connected:
-                case TorConnectionStatus.disconnected:
-                  // If Tor is connected or disconnected, we can release the lock.
-                  if (_torConnectingLock.isLocked) {
-                    _torConnectingLock.release();
-                  }
-                  _requireMutex = false;
-                  break;
-              }
-            } finally {
-              // Ensure the lock is released.
-              if (_torConnectingLock.isLocked) {
-                _torConnectingLock.release();
-              }
-            }
-          },
-        );
-
-        // Listen to global event bus for Tor preference changes.
-        _torPreferenceListener ??= bus.on<TorPreferenceChangedEvent>().listen(
-          (event) async {
-            // Close any open subscriptions.
-            for (final coinSub
-                in ElectrumxChainHeightService.subscriptions.entries) {
-              await coinSub.value?.cancel();
-            }
-
-            // Cancel alive timer
-            _aliveTimer?.cancel();
-          },
-        );
-
-        // Set a timer to check if the subscription is still alive.
-        _aliveTimer?.cancel();
-        _aliveTimer = Timer.periodic(
-          _keepAlive,
-          (_) async => _updateConnectionStatus(await electrumXClient.ping()),
-        );
-      } else {
-        // Don't set a stream subscription if one already exists.
-
-        // Check if the stream subscription is paused.
-        if (ElectrumxChainHeightService
-            .subscriptions[cryptoCurrency.coin]!.isPaused) {
-          // If it's paused, resume it.
-          ElectrumxChainHeightService.subscriptions[cryptoCurrency.coin]!
-              .resume();
-        }
-
-        if (_latestHeight != null) {
-          return _latestHeight!;
-        }
+      // ... or create a new one if it doesn't exist.
+      if (service == null) {
+        service = ChainHeightService(client: electrumAdapterClient);
+        ChainHeightServiceManager.add(service, cryptoCurrency.coin);
       }
 
-      // Probably waiting on the subscription to receive the latest block height
-      // fallback to cached value
-      return info.cachedChainHeight;
+      // If the service hasn't been started, start it and fetch the chain height.
+      if (!service.started) {
+        return await service.fetchHeightAndStartListenForUpdates();
+      }
+
+      // Return the height as per the service if available or the cached height.
+      return service.height ?? info.cachedChainHeight;
     } catch (e, s) {
       Logging.instance.log(
           "Exception rethrown in fetchChainHeight\nError: $e\nStack trace: $s",
@@ -1059,15 +950,6 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     // );
     // await subscribableElectrumXClient.connect(
     //     host: newNode.address, port: newNode.port);
-  }
-
-  /// Update the connection status and call the onConnectionStatusChanged callback if it exists.
-  void _updateConnectionStatus(bool connectionStatus) {
-    // TODO [prio=low]: Set onConnectionStatusChanged callback.
-    // if (_isConnected != connectionStatus && onConnectionStatusChanged != null) {
-    //   onConnectionStatusChanged!(connectionStatus);
-    // }
-    _isConnected = connectionStatus;
   }
 
   //============================================================================

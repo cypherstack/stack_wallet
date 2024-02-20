@@ -528,8 +528,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "51b7a60e07b0409b361e31da65d98178ee235bed"
-      resolved-ref: "51b7a60e07b0409b361e31da65d98178ee235bed"
+      ref: "0a34f7f48d921fb33f551cb11dfc9b2930522240"
+      resolved-ref: "0a34f7f48d921fb33f551cb11dfc9b2930522240"
       url: "https://github.com/cypherstack/electrum_adapter.git"
     source: git
     version: "3.0.0"
@@ -1727,8 +1727,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "0a6888282f4e98401051a396e9d2293bd55ac2c2"
-      resolved-ref: "0a6888282f4e98401051a396e9d2293bd55ac2c2"
+      ref: e37dc4e22f7acb2746b70bdc935f0eb3c50b8b71
+      resolved-ref: e37dc4e22f7acb2746b70bdc935f0eb3c50b8b71
       url: "https://github.com/cypherstack/tor.git"
     source: git
     version: "0.0.1"

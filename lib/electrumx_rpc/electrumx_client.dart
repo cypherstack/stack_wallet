@@ -20,6 +20,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:mutex/mutex.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx_chain_height_service.dart';
 import 'package:stackwallet/electrumx_rpc/rpc.dart';
 import 'package:stackwallet/exceptions/electrumx/no_such_transaction.dart';
 import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
@@ -127,6 +128,8 @@ class ElectrumXClient {
     _coin = coin;
 
     final bus = globalEventBusForTesting ?? GlobalEventBus.instance;
+
+    // Listen for tor status changes.
     _torStatusListener = bus.on<TorConnectionStatusChangedEvent>().listen(
       (event) async {
         switch (event.newStatus) {
@@ -145,6 +148,8 @@ class ElectrumXClient {
         }
       },
     );
+
+    // Listen for tor preference changes.
     _torPreferenceListener = bus.on<TorPreferenceChangedEvent>().listen(
       (event) async {
         // not sure if we need to do anything specific here
@@ -157,6 +162,9 @@ class ElectrumXClient {
         // on the next request sent through this electrumx instance
         _electrumAdapterChannel = null;
         _electrumAdapterClient = null;
+
+        // Also close any chain height services that are currently open.
+        await ChainHeightServiceManager.dispose();
       },
     );
   }
