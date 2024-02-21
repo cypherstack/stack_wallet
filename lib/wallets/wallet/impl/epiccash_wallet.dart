@@ -1104,6 +1104,7 @@ class EpiccashWallet extends Bip39Wallet {
     final config = await _getRealConfig();
     final latestHeight =
         await epiccash.LibEpiccash.getChainHeight(config: config);
+    //print("CHAIN HEIGHT IS $chainHeight");
     await info.updateCachedChainHeight(
       newHeight: latestHeight,
       isar: mainDB.isar,
