@@ -1019,22 +1019,11 @@ class ElectrumXClient {
             (response == null ||
                 response == -1 ||
                 Decimal.parse(response.toString()) == Decimal.parse("-1"))) {
-          return Decimal.parse("0.00001024");
-          // blockchain.estimatefee response for 1-, 5-, and 10--block intervals
-          // as of 2024/02/20 ("1.024e-05").
-          // TODO [prio=med]: Fix fee estimation.  Refer to the following:
-          // $ openssl s_client -connect dogecoin.stackwallet.com:50002
-          // ...
-          // $ {"id": 1, "method": "blockchain.estimatefee", "params": [1]}
-          // {"jsonrpc": "2.0", "result": 1.024e-05, "id": 1}
-          // $ {"id": 1, "method": "blockchain.estimatefee", "params": [5]}
-          // {"jsonrpc": "2.0", "result": 1.024e-05, "id": 1}
-          // $ {"id": 1, "method": "blockchain.estimatefee", "params": [10]}
-          // {"jsonrpc": "2.0", "result": 1.024e-05, "id": 1}
-          // $ {"id": 1, "method": "blockchain.estimatefee", "params": [50]}
-          // {"jsonrpc": "2.0", "result": -1, "id": 1}
-          // $ {"id": 1, "method": "blockchain.estimatefee", "params": [100]}
-          // {"jsonrpc": "2.0", "result": -1, "id": 1}w
+          // Return 0.05 for slow, 0.2 for average, and 1 for fast txs.
+          // These numbers produce tx fees in line with txs in the wild on
+          // https://dogechain.info/
+          return Decimal.parse((1 / blocks).toString());
+          // TODO [prio=med]: Fix fee estimation.
         }
         return Decimal.parse(response.toString());
       } catch (e, s) {
