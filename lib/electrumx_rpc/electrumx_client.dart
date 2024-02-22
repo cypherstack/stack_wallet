@@ -387,7 +387,7 @@ class ElectrumXClient {
   /// returns a list of json response objects if no errors were found
   Future<List<dynamic>> batchRequest({
     required String command,
-    required Map<String, List<dynamic>> args,
+    required List<dynamic> args,
     Duration requestTimeout = const Duration(seconds: 60),
     int retries = 2,
   }) async {
@@ -404,37 +404,39 @@ class ElectrumXClient {
 
     try {
       var futures = <Future<dynamic>>[];
-      List? response;
       _electrumAdapterClient!.peer.withBatch(() {
-        for (final entry in args.entries) {
-          futures.add(_electrumAdapterClient!.request(command, entry.value));
+        for (final arg in args) {
+          futures.add(_electrumAdapterClient!.request(command, arg));
         }
       });
-      response = await Future.wait(futures);
+      final response = await Future.wait(futures);
 
-      // check for errors, format and throw if there are any
-      final List<String> errors = [];
-      for (int i = 0; i < response.length; i++) {
-        var result = response[i];
-
-        if (result == null || (result is List && result.isEmpty)) {
-          continue;
-          // TODO [prio=extreme]: Figure out if this is actually an issue.
-        }
-        result = result[0]; // Unwrap the list.
-        if ((result is Map && result.keys.contains("error")) ||
-            result == null) {
-          errors.add(result.toString());
-        }
-      }
-      if (errors.isNotEmpty) {
-        String error = "[\n";
-        for (int i = 0; i < errors.length; i++) {
-          error += "${errors[i]}\n";
-        }
-        error += "]";
-        throw Exception("JSONRPC response error: $error");
-      }
+      // We cannot modify the response list as the order and length are related
+      // to the order and length of the batched requests!
+      //
+      // // check for errors, format and throw if there are any
+      // final List<String> errors = [];
+      // for (int i = 0; i < response.length; i++) {
+      //   var result = response[i];
+      //
+      //   if (result == null || (result is List && result.isEmpty)) {
+      //     continue;
+      //     // TODO [prio=extreme]: Figure out if this is actually an issue.
+      //   }
+      //   result = result[0]; // Unwrap the list.
+      //   if ((result is Map && result.keys.contains("error")) ||
+      //       result == null) {
+      //     errors.add(result.toString());
+      //   }
+      // }
+      // if (errors.isNotEmpty) {
+      //   String error = "[\n";
+      //   for (int i = 0; i < errors.length; i++) {
+      //     error += "${errors[i]}\n";
+      //   }
+      //   error += "]";
+      //   throw Exception("JSONRPC response error: $error");
+      // }
 
       currentFailoverIndex = -1;
       return response;
@@ -636,16 +638,17 @@ class ElectrumXClient {
     }
   }
 
-  Future<Map<int, List<Map<String, dynamic>>>> getBatchHistory(
-      {required Map<String, List<dynamic>> args}) async {
+  Future<List<List<Map<String, dynamic>>>> getBatchHistory({
+    required List<dynamic> args,
+  }) async {
     try {
       final response = await batchRequest(
         command: 'blockchain.scripthash.get_history',
         args: args,
       );
-      final Map<int, List<Map<String, dynamic>>> result = {};
+      final List<List<Map<String, dynamic>>> result = [];
       for (int i = 0; i < response.length; i++) {
-        result[i] = List<Map<String, dynamic>>.from(response[i] as List);
+        result.add(List<Map<String, dynamic>>.from(response[i] as List));
       }
       return result;
     } catch (e) {
@@ -689,23 +692,27 @@ class ElectrumXClient {
     }
   }
 
-  Future<Map<int, List<Map<String, dynamic>>>> getBatchUTXOs(
-      {required Map<String, List<dynamic>> args}) async {
+  Future<List<List<Map<String, dynamic>>>> getBatchUTXOs({
+    required List<dynamic> args,
+  }) async {
     try {
       final response = await batchRequest(
         command: 'blockchain.scripthash.listunspent',
         args: args,
       );
-      final Map<int, List<Map<String, dynamic>>> result = {};
+      final List<List<Map<String, dynamic>>> result = [];
       for (int i = 0; i < response.length; i++) {
         if ((response[i] as List).isNotEmpty) {
           try {
-            // result[i] = response[i] as List<Map<String, dynamic>>;
-            result[i] = List<Map<String, dynamic>>.from(response[i] as List);
+            final data = List<Map<String, dynamic>>.from(response[i] as List);
+            result.add(data);
           } catch (e) {
-            print(response[i]);
+            // to ensure we keep same length of responses as requests/args
+            // add empty list on error
+            result.add([]);
+
             Logging.instance.log(
-              "getBatchUTXOs failed to parse response",
+              "getBatchUTXOs failed to parse response=${response[i]}: $e",
               level: LogLevel.Error,
             );
           }
