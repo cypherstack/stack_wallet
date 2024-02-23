@@ -119,28 +119,28 @@ class BitcoincashWallet extends Bip39HDWallet
     List<Map<String, dynamic>> allTransactions = [];
 
     for (final txHash in allTxHashes) {
-      final storedTx = await mainDB.isar.transactionV2s
-          .where()
-          .txidWalletIdEqualTo(txHash["tx_hash"] as String, walletId)
-          .findFirst();
+      // final storedTx = await mainDB.isar.transactionV2s
+      //     .where()
+      //     .txidWalletIdEqualTo(txHash["tx_hash"] as String, walletId)
+      //     .findFirst();
+      //
+      // if (storedTx == null ||
+      //     storedTx.height == null ||
+      //     (storedTx.height != null && storedTx.height! <= 0)) {
+      final tx = await electrumXCachedClient.getTransaction(
+        txHash: txHash["tx_hash"] as String,
+        verbose: true,
+        coin: cryptoCurrency.coin,
+      );
 
-      if (storedTx == null ||
-          storedTx.height == null ||
-          (storedTx.height != null && storedTx.height! <= 0)) {
-        final tx = await electrumXCachedClient.getTransaction(
-          txHash: txHash["tx_hash"] as String,
-          verbose: true,
-          coin: cryptoCurrency.coin,
-        );
-
-        // check for duplicates before adding to list
-        if (allTransactions
-                .indexWhere((e) => e["txid"] == tx["txid"] as String) ==
-            -1) {
-          tx["height"] = txHash["height"];
-          allTransactions.add(tx);
-        }
+      // check for duplicates before adding to list
+      if (allTransactions
+              .indexWhere((e) => e["txid"] == tx["txid"] as String) ==
+          -1) {
+        tx["height"] = txHash["height"];
+        allTransactions.add(tx);
       }
+      // }
     }
 
     final List<TransactionV2> txns = [];
@@ -182,6 +182,7 @@ class BitcoincashWallet extends Bip39HDWallet
               prevOutJson,
               decimalPlaces: cryptoCurrency.fractionDigits,
               walletOwns: false, // doesn't matter here as this is not saved
+              isFullAmountNotSats: true,
             );
 
             outpoint = OutpointV2.isarCantDoRequiredInDefaultConstructor(
@@ -227,6 +228,7 @@ class BitcoincashWallet extends Bip39HDWallet
           decimalPlaces: cryptoCurrency.fractionDigits,
           // don't know yet if wallet owns. Need addresses first
           walletOwns: false,
+          isFullAmountNotSats: true,
         );
 
         // if output was to my wallet, add value to amount received
