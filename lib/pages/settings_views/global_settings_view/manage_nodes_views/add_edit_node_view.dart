@@ -179,6 +179,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           useSSL: formData.useSSL!,
           failovers: [],
           prefs: ref.read(prefsChangeNotifierProvider),
+          coin: coin,
         );
 
         try {

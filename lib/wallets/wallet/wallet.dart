@@ -17,6 +17,7 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/paynym_is_api.dart';
@@ -618,7 +619,45 @@ abstract class Wallet<T extends CryptoCurrency> {
   Future<void> exit() async {
     _periodicRefreshTimer?.cancel();
     _networkAliveTimer?.cancel();
-    // TODO:
+
+    // If the syncing pref is currentWalletOnly or selectedWalletsAtStartup (and
+    // this wallet isn't in walletIdsSyncOnStartup), then we close subscriptions.
+
+    switch (prefs.syncType) {
+      case SyncingType.currentWalletOnly:
+      // Close the subscription for this coin's chain height.
+      // NOTE: This does not work now that the subscription is shared
+      // await  (await ChainHeightServiceManager.getService(cryptoCurrency.coin))
+      //     ?.cancelListen();
+      case SyncingType.selectedWalletsAtStartup:
+        // Close the subscription if this wallet is not in the list to be synced.
+        if (!prefs.walletIdsSyncOnStartup.contains(walletId)) {
+          // Check if there's another wallet of this coin on the sync list.
+          List<String> walletIds = [];
+          for (final id in prefs.walletIdsSyncOnStartup) {
+            final wallet = mainDB.isar.walletInfo
+                .where()
+                .walletIdEqualTo(id)
+                .findFirstSync()!;
+
+            if (wallet.coin == cryptoCurrency.coin) {
+              walletIds.add(id);
+            }
+          }
+          // TODO [prio=low]: use a query instead of iterating thru wallets.
+
+          // If there are no other wallets of this coin, then close the sub.
+          if (walletIds.isEmpty) {
+            // NOTE: This does not work now that the subscription is shared
+            // await (await ChainHeightServiceManager.getService(
+            //         cryptoCurrency.coin))
+            //     ?.cancelListen();
+          }
+        }
+      case SyncingType.allWalletsOnStartup:
+        // Do nothing.
+        break;
+    }
   }
 
   @mustCallSuper

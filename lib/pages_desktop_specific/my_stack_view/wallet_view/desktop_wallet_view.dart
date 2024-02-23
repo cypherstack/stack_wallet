@@ -10,9 +10,9 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:event_bus/event_bus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -38,7 +38,9 @@ import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
+import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/impl/banano_wallet.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -90,6 +92,26 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
         ref.read(prefsChangeNotifierProvider).backupFrequencyType ==
             BackupFrequencyType.afterClosingAWallet) {
       unawaited(ref.read(autoSWBServiceProvider).doBackup());
+    }
+
+    // Close the wallet according to syncing preferences.
+    switch (ref.read(prefsChangeNotifierProvider).syncType) {
+      case SyncingType.currentWalletOnly:
+        // Close the wallet.
+        unawaited(wallet.exit());
+      // unawaited so we don't lag the UI.
+      case SyncingType.selectedWalletsAtStartup:
+        // Close if this wallet is not in the list to be synced.
+        if (!ref
+            .read(prefsChangeNotifierProvider)
+            .walletIdsSyncOnStartup
+            .contains(widget.walletId)) {
+          unawaited(wallet.exit());
+          // unawaited so we don't lag the UI.
+        }
+      case SyncingType.allWalletsOnStartup:
+        // Do nothing.
+        break;
     }
 
     ref.read(currentWalletIdProvider.notifier).state = null;
@@ -181,6 +203,21 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                   ),
                 ),
               ),
+              if (kDebugMode) const Spacer(),
+              if (kDebugMode)
+                Row(
+                  children: [
+                    const Text(
+                      "Debug Height:",
+                    ),
+                    const SizedBox(
+                      width: 2,
+                    ),
+                    Text(
+                      ref.watch(pWalletChainHeight(widget.walletId)).toString(),
+                    ),
+                  ],
+                ),
               const Spacer(),
               Row(
                 children: [

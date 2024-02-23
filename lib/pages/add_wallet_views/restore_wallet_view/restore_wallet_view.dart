@@ -726,12 +726,13 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         color: Theme.of(context).extension<StackColors>()!.background,
         child: Padding(
           padding: const EdgeInsets.all(12.0),
-          child: Column(
+          child: SingleChildScrollView(
+            child: Column(
             children: [
-              if (isDesktop)
+              /*if (isDesktop)
                 const Spacer(
                   flex: 10,
-                ),
+                ),*/
               if (!isDesktop)
                 Text(
                   widget.walletName,
@@ -1060,10 +1061,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                     },
                   ),
                 ),
-              if (isDesktop)
+              /*if (isDesktop)
                 const Spacer(
                   flex: 15,
-                ),
+                ),*/
               if (!isDesktop)
                 Expanded(
                   child: SingleChildScrollView(
@@ -1173,6 +1174,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

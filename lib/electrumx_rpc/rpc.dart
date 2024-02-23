@@ -213,7 +213,7 @@ class JsonRPC {
           port,
           timeout: connectionTimeout,
           onBadCertificate: (_) => true,
-        ); // TODO do not automatically trust bad certificates
+        ); // TODO do not automatically trust bad certificates.
       } else {
         _socket = await Socket.connect(
           host,

@@ -524,6 +524,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.2"
+  electrum_adapter:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: "0a34f7f48d921fb33f551cb11dfc9b2930522240"
+      resolved-ref: "0a34f7f48d921fb33f551cb11dfc9b2930522240"
+      url: "https://github.com/cypherstack/electrum_adapter.git"
+    source: git
+    version: "3.0.0"
   emojis:
     dependency: "direct main"
     description:
@@ -674,10 +683,10 @@ packages:
     dependency: "direct dev"
     description:
       name: flutter_lints
-      sha256: a25a15ebbdfc33ab1cd26c63a6ee519df92338a9c10f122adda92938253bef04
+      sha256: e2a421b7e59244faef694ba7b30562e489c2b489866e505074eb005cd7060db7
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.3"
+    version: "3.0.1"
   flutter_local_notifications:
     dependency: "direct main"
     description:
@@ -1045,10 +1054,10 @@ packages:
     dependency: transitive
     description:
       name: lints
-      sha256: "0a217c6c989d21039f1498c3ed9f3ed71b354e69873f13a8dfc3c9fe76f1b452"
+      sha256: cbf8d4b858bb0134ef3ef87841abdf8d63bfc255c266b7bf6b39daa1085c4290
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.1"
+    version: "3.0.0"
   local_auth:
     dependency: "direct main"
     description:
@@ -1601,7 +1610,7 @@ packages:
     source: hosted
     version: "1.5.3"
   stream_channel:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: stream_channel
       sha256: ba2aa5d8cc609d96bbb2899c28934f9e1af5cddbd60a827822ea467161eb54e7
@@ -1725,8 +1734,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "0a6888282f4e98401051a396e9d2293bd55ac2c2"
-      resolved-ref: "0a6888282f4e98401051a396e9d2293bd55ac2c2"
+      ref: e37dc4e22f7acb2746b70bdc935f0eb3c50b8b71
+      resolved-ref: e37dc4e22f7acb2746b70bdc935f0eb3c50b8b71
       url: "https://github.com/cypherstack/tor.git"
     source: git
     version: "0.0.1"

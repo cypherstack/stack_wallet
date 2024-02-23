@@ -156,6 +156,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
           useSSL: node.useSSL,
           failovers: [],
           prefs: ref.read(prefsChangeNotifierProvider),
+          coin: coin,
         );
 
         try {
