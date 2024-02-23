@@ -182,6 +182,7 @@ class BitcoincashWallet extends Bip39HDWallet
               prevOutJson,
               decimalPlaces: cryptoCurrency.fractionDigits,
               walletOwns: false, // doesn't matter here as this is not saved
+              isFullAmountNotSats: true,
             );
 
             outpoint = OutpointV2.isarCantDoRequiredInDefaultConstructor(
@@ -227,6 +228,7 @@ class BitcoincashWallet extends Bip39HDWallet
           decimalPlaces: cryptoCurrency.fractionDigits,
           // don't know yet if wallet owns. Need addresses first
           walletOwns: false,
+          isFullAmountNotSats: true,
         );
 
         // if output was to my wallet, add value to amount received
