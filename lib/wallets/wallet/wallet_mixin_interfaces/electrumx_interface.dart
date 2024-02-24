@@ -4,8 +4,11 @@ import 'dart:math';
 import 'package:bip47/src/util.dart';
 import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
+import 'package:electrum_adapter/electrum_adapter.dart' as electrum_adapter;
+import 'package:electrum_adapter/electrum_adapter.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx_chain_height_service.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
@@ -13,23 +16,29 @@ import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/signing_data.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/paynym_is_api.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
-import 'package:uuid/uuid.dart';
+import 'package:stream_channel/stream_channel.dart';
 
 mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   late ElectrumXClient electrumXClient;
+  late StreamChannel electrumAdapterChannel;
+  late ElectrumClient electrumAdapterClient;
   late CachedElectrumXClient electrumXCachedClient;
+  // late SubscribableElectrumXClient subscribableElectrumXClient;
+  late ChainHeightServiceManager chainHeightServiceManager;
 
   int? get maximumFeerate => null;
 
@@ -123,7 +132,12 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     // don't care about sorting if using all utxos
     if (!coinControl) {
       // sort spendable by age (oldest first)
-      spendableOutputs.sort((a, b) => b.blockTime!.compareTo(a.blockTime!));
+      spendableOutputs.sort((a, b) => (b.blockTime ?? currentChainHeight)
+          .compareTo((a.blockTime ?? currentChainHeight)));
+      // Null check operator changed to null assignment in order to resolve a
+      // `Null check operator used on a null value` error.  currentChainHeight
+      // used in order to sort these unconfirmed outputs as the youngest, but we
+      // could just as well use currentChainHeight + 1.
     }
 
     Logging.instance.log("spendableOutputs.length: ${spendableOutputs.length}",
@@ -794,9 +808,30 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
   Future<int> fetchChainHeight() async {
     try {
-      final result = await electrumXClient.getBlockHeadTip();
-      return result["height"] as int;
-    } catch (e) {
+      // Get the chain height service for the current coin.
+      ChainHeightService? service = ChainHeightServiceManager.getService(
+        cryptoCurrency.coin,
+      );
+
+      // ... or create a new one if it doesn't exist.
+      if (service == null) {
+        service = ChainHeightService(client: electrumAdapterClient);
+        ChainHeightServiceManager.add(service, cryptoCurrency.coin);
+      }
+
+      // If the service hasn't been started, start it and fetch the chain height.
+      if (!service.started) {
+        return await service.fetchHeightAndStartListenForUpdates();
+      }
+
+      // Return the height as per the service if available or the cached height.
+      return service.height ?? info.cachedChainHeight;
+    } catch (e, s) {
+      Logging.instance.log(
+          "Exception rethrown in fetchChainHeight\nError: $e\nStack trace: $s",
+          level: LogLevel.Error);
+      // completer.completeError(e, s);
+      // return Future.error(e, s);
       rethrow;
     }
   }
@@ -807,21 +842,19 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     return transactions.length;
   }
 
-  Future<Map<String, int>> fetchTxCountBatched({
-    required Map<String, String> addresses,
+  /// Should return a list of tx counts matching the list of addresses given
+  Future<List<int>> fetchTxCountBatched({
+    required List<String> addresses,
   }) async {
     try {
-      final Map<String, List<dynamic>> args = {};
-      for (final entry in addresses.entries) {
-        args[entry.key] = [
-          cryptoCurrency.addressToScriptHash(address: entry.value),
-        ];
-      }
-      final response = await electrumXClient.getBatchHistory(args: args);
+      final response = await electrumXClient.getBatchHistory(
+          args: addresses
+              .map((e) => [cryptoCurrency.addressToScriptHash(address: e)])
+              .toList(growable: false));
 
-      final Map<String, int> result = {};
-      for (final entry in response.entries) {
-        result[entry.key] = entry.value.length;
+      final List<int> result = [];
+      for (final entry in response) {
+        result.add(entry.length);
       }
       return result;
     } catch (e, s) {
@@ -857,14 +890,64 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         .toList();
 
     final newNode = await getCurrentElectrumXNode();
+    try {
+      await electrumXClient.electrumAdapterClient?.close();
+    } catch (e, s) {
+      if (e.toString().contains("initialized")) {
+        // Ignore.  This should happen every first time the wallet is opened.
+      } else {
+        Logging.instance
+            .log("Error closing electrumXClient: $e", level: LogLevel.Error);
+      }
+    }
     electrumXClient = ElectrumXClient.from(
       node: newNode,
       prefs: prefs,
       failovers: failovers,
+      coin: cryptoCurrency.coin,
     );
+    electrumAdapterChannel = await electrum_adapter.connect(
+      newNode.address,
+      port: newNode.port,
+      acceptUnverified: true,
+      useSSL: newNode.useSSL,
+      proxyInfo: Prefs.instance.useTor
+          ? TorService.sharedInstance.getProxyInfo()
+          : null,
+    );
+    if (electrumXClient.coin == Coin.firo ||
+        electrumXClient.coin == Coin.firoTestNet) {
+      electrumAdapterClient = FiroElectrumClient(
+          electrumAdapterChannel,
+          newNode.address,
+          newNode.port,
+          newNode.useSSL,
+          Prefs.instance.useTor
+              ? TorService.sharedInstance.getProxyInfo()
+              : null);
+    } else {
+      electrumAdapterClient = ElectrumClient(
+          electrumAdapterChannel,
+          newNode.address,
+          newNode.port,
+          newNode.useSSL,
+          Prefs.instance.useTor
+              ? TorService.sharedInstance.getProxyInfo()
+              : null);
+    }
     electrumXCachedClient = CachedElectrumXClient.from(
       electrumXClient: electrumXClient,
+      electrumAdapterClient: electrumAdapterClient,
+      electrumAdapterUpdateCallback: updateClient,
     );
+    // Replaced using electrum_adapters' SubscribableClient in fetchChainHeight.
+    // subscribableElectrumXClient = SubscribableElectrumXClient.from(
+    //   node: newNode,
+    //   prefs: prefs,
+    //   failovers: failovers,
+    // );
+    // await subscribableElectrumXClient.connect(
+    //     host: newNode.address, port: newNode.port);
   }
 
   //============================================================================
@@ -883,13 +966,11 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         index < cryptoCurrency.maxNumberOfIndexesToCheck &&
             gapCounter < cryptoCurrency.maxUnusedAddressGap;
         index += txCountBatchSize) {
-      List<String> iterationsAddressArray = [];
       Logging.instance.log(
           "index: $index, \t GapCounter $chain ${type.name}: $gapCounter",
           level: LogLevel.Info);
 
-      final _id = "k_$index";
-      Map<String, String> txCountCallArgs = {};
+      List<String> txCountCallArgs = [];
 
       for (int j = 0; j < txCountBatchSize; j++) {
         final derivePath = cryptoCurrency.constructDerivePath(
@@ -922,9 +1003,9 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
         addressArray.add(address);
 
-        txCountCallArgs.addAll({
-          "${_id}_$j": addressString,
-        });
+        txCountCallArgs.add(
+          addressString,
+        );
       }
 
       // get address tx counts
@@ -932,10 +1013,9 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
       // check and add appropriate addresses
       for (int k = 0; k < txCountBatchSize; k++) {
-        int count = counts["${_id}_$k"]!;
-        if (count > 0) {
-          iterationsAddressArray.add(txCountCallArgs["${_id}_$k"]!);
+        final count = counts[k];
 
+        if (count > 0) {
           // update highest
           highestIndexWithHistory = index + k;
 
@@ -1025,22 +1105,20 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       List<Map<String, dynamic>> allTxHashes = [];
 
       if (serverCanBatch) {
-        final Map<int, Map<String, List<dynamic>>> batches = {};
-        final Map<String, String> requestIdToAddressMap = {};
+        final Map<int, List<List<dynamic>>> batches = {};
+        final Map<int, List<String>> batchIndexToAddressListMap = {};
         const batchSizeMax = 100;
         int batchNumber = 0;
         for (int i = 0; i < allAddresses.length; i++) {
-          if (batches[batchNumber] == null) {
-            batches[batchNumber] = {};
-          }
+          batches[batchNumber] ??= [];
+          batchIndexToAddressListMap[batchNumber] ??= [];
+
+          final address = allAddresses.elementAt(i);
           final scriptHash = cryptoCurrency.addressToScriptHash(
-            address: allAddresses.elementAt(i),
+            address: address,
           );
-          final id = Logger.isTestEnv ? "$i" : const Uuid().v1();
-          requestIdToAddressMap[id] = allAddresses.elementAt(i);
-          batches[batchNumber]!.addAll({
-            id: [scriptHash]
-          });
+          batches[batchNumber]!.add([scriptHash]);
+          batchIndexToAddressListMap[batchNumber]!.add(address);
           if (i % batchSizeMax == batchSizeMax - 1) {
             batchNumber++;
           }
@@ -1049,12 +1127,13 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         for (int i = 0; i < batches.length; i++) {
           final response =
               await electrumXClient.getBatchHistory(args: batches[i]!);
-          for (final entry in response.entries) {
-            for (int j = 0; j < entry.value.length; j++) {
-              entry.value[j]["address"] = requestIdToAddressMap[entry.key];
-              if (!allTxHashes.contains(entry.value[j])) {
-                allTxHashes.add(entry.value[j]);
-              }
+          for (int j = 0; j < response.length; j++) {
+            final entry = response[j];
+            for (int k = 0; k < entry.length; k++) {
+              entry[k]["address"] = batchIndexToAddressListMap[i]![j];
+              // if (!allTxHashes.contains(entry[j])) {
+              allTxHashes.add(entry[k]);
+              // }
             }
           }
         }
@@ -1095,6 +1174,8 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       verbose: true,
       coin: cryptoCurrency.coin,
     );
+
+    print("txn: $txn");
 
     final vout = jsonUTXO["tx_pos"] as int;
 
@@ -1164,6 +1245,13 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     await updateElectrumX(newNode: node);
   }
 
+  Future<ElectrumClient> updateClient() async {
+    Logging.instance.log("Updating electrum node and ElectrumAdapterClient.",
+        level: LogLevel.Info);
+    await updateNode();
+    return electrumAdapterClient;
+  }
+
   FeeObject? _cachedFees;
 
   @override
@@ -1196,9 +1284,9 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       Logging.instance.log("fetched fees: $feeObject", level: LogLevel.Info);
       _cachedFees = feeObject;
       return _cachedFees!;
-    } catch (e) {
+    } catch (e, s) {
       Logging.instance.log(
-        "Exception rethrown from _getFees(): $e",
+        "Exception rethrown from _getFees(): $e\nStack trace: $s",
         level: LogLevel.Error,
       );
       if (_cachedFees == null) {
@@ -1512,31 +1600,27 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       final fetchedUtxoList = <List<Map<String, dynamic>>>[];
 
       if (serverCanBatch) {
-        final Map<int, Map<String, List<dynamic>>> batches = {};
+        final Map<int, List<List<dynamic>>> batchArgs = {};
         const batchSizeMax = 10;
         int batchNumber = 0;
         for (int i = 0; i < allAddresses.length; i++) {
-          if (batches[batchNumber] == null) {
-            batches[batchNumber] = {};
-          }
+          batchArgs[batchNumber] ??= [];
           final scriptHash = cryptoCurrency.addressToScriptHash(
             address: allAddresses[i].value,
           );
 
-          batches[batchNumber]!.addAll({
-            scriptHash: [scriptHash]
-          });
+          batchArgs[batchNumber]!.add([scriptHash]);
           if (i % batchSizeMax == batchSizeMax - 1) {
             batchNumber++;
           }
         }
 
-        for (int i = 0; i < batches.length; i++) {
+        for (int i = 0; i < batchArgs.length; i++) {
           final response =
-              await electrumXClient.getBatchUTXOs(args: batches[i]!);
-          for (final entry in response.entries) {
-            if (entry.value.isNotEmpty) {
-              fetchedUtxoList.add(entry.value);
+              await electrumXClient.getBatchUTXOs(args: batchArgs[i]!);
+          for (final entry in response) {
+            if (entry.isNotEmpty) {
+              fetchedUtxoList.add(entry);
             }
           }
         }
@@ -1680,7 +1764,8 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         Logging.instance.log("prepare send: $result", level: LogLevel.Info);
         if (result.fee!.raw.toInt() < result.vSize!) {
           throw Exception(
-              "Error in fee calculation: Transaction fee cannot be less than vSize");
+              "Error in fee calculation: Transaction fee (${result.fee!.raw.toInt()}) cannot "
+              "be less than vSize (${result.vSize})");
         }
 
         return result;

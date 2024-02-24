@@ -98,7 +98,10 @@ class _DebugInfoDialog extends ConsumerState<DebugInfoDialog> {
   @override
   Widget build(BuildContext context) {
     return DesktopDialog(
-      maxHeight: 850,
+      // Max height of 850 unless the screen is smaller than that.
+      maxHeight: MediaQuery.of(context).size.height < 850
+          ? MediaQuery.of(context).size.height
+          : 850,
       maxWidth: 600,
       child: Column(
         children: [

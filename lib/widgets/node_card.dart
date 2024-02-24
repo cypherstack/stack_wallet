@@ -175,6 +175,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
           useSSL: node.useSSL,
           failovers: [],
           prefs: ref.read(prefsChangeNotifierProvider),
+          coin: widget.coin,
         );
 
         try {

@@ -17,7 +17,7 @@ abstract class DefaultEpicBoxes {
   static List<String> get defaultIds => ['americas', 'asia', 'europe'];
 
   static EpicBoxServerModel get americas => EpicBoxServerModel(
-        host: 'epicbox.epic.tech',
+        host: 'stackwallet.epicbox.com',
         port: 443,
         name: 'Americas',
         id: 'americas',
