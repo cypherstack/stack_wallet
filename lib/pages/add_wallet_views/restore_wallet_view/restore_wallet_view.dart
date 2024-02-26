@@ -728,7 +728,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: ConditionalParent(
-            condition: !isDesktop,
+            condition: isDesktop,
             builder: (child) => Expanded(
               child: child,
             ),
