@@ -56,6 +56,7 @@ import 'package:stackwallet/wallets/wallet/impl/monero_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
 import 'package:stackwallet/wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
@@ -726,7 +727,11 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         color: Theme.of(context).extension<StackColors>()!.background,
         child: Padding(
           padding: const EdgeInsets.all(12.0),
-          child: Expanded(
+          child: ConditionalParent(
+            condition: !isDesktop,
+            builder: (child) => Expanded(
+              child: child,
+            ),
             child: SingleChildScrollView(
               controller: controller,
               child: Column(
