@@ -1499,6 +1499,13 @@ Future<
       Uint8List serializedSpendPayload,
       List<Uint8List> outputScripts,
       int fee,
+      List<
+          ({
+            int groupId,
+            int height,
+            String serializedCoin,
+            String serializedCoinContext
+          })> usedCoins,
     })> _createSparkSend(
     ({
       String privateKeyHex,
