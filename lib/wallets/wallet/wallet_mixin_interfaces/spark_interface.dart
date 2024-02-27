@@ -499,6 +499,35 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       ),
     );
 
+    // Find out which coins were used and translate them into UTXOs.
+    final usedUTXOs = coins.where((coin) {
+      return spend.usedCoins.any((usedCoin) {
+        return usedCoin.serializedCoin == coin.serializedCoinB64 &&
+            usedCoin.serializedCoinContext == coin.contextB64;
+      });
+    }).map((coin) {
+      return UTXO(
+        walletId: walletId,
+        txid: extractedTx.getId(),
+        vout: coin.groupId,
+        value: coin.value.toInt(),
+        name: '',
+        isBlocked: false, // true?
+        blockedReason: null, // "Used in Spark spend."?
+        isCoinbase: false,
+        blockHash: null,
+        blockHeight: coin.height,
+        blockTime: null,
+        address: null,
+        used: true,
+        otherData: jsonEncode((
+          groupId: coin.groupId,
+          serializedCoin: coin.serializedCoinB64,
+          serializedCoinContext: coin.contextB64,
+        )),
+      );
+    }).toList();
+
     return txData.copyWith(
       raw: rawTxHex,
       vSize: extractedTx.virtualSize(),
@@ -523,7 +552,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         height: null,
         version: 3,
       ),
-      // TODO used coins
+      usedUTXOs: usedUTXOs,
     );
   }
 
@@ -540,17 +569,13 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       Logging.instance.log("Sent txHash: $txHash", level: LogLevel.Info);
 
       txData = txData.copyWith(
-        // TODO mark spark coins as spent locally and update balance before waiting to check via electrumx?
-
-        // usedUTXOs:
-        // txData.usedUTXOs!.map((e) => e.copyWith(used: true)).toList(),
-
+        usedUTXOs: txData.usedUTXOs,
         // TODO revisit setting these both
         txHash: txHash,
         txid: txHash,
       );
-      // // mark utxos as used
-      // await mainDB.putUTXOs(txData.usedUTXOs!);
+      // mark utxos as used
+      await mainDB.putUTXOs(txData.usedUTXOs!);
 
       return await updateSentCachedTxData(txData: txData);
     } catch (e, s) {
