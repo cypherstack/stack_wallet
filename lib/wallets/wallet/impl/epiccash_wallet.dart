@@ -332,7 +332,7 @@ class EpiccashWallet extends Bip39Wallet {
     }
 
 
-    // print("NOW THIS ADDRESS IS $address");
+    print("NOW THIS ADDRESS IS $address");
     return address;
   }
 
@@ -363,6 +363,12 @@ class EpiccashWallet extends Bip39Wallet {
     );
 
     await mainDB.updateOrPutAddresses([address]);
+    if (info.cachedReceivingAddress != address.value) {
+      await info.updateReceivingAddress(
+        newAddress: address.value,
+        isar: mainDB.isar,
+      );
+    }
     return address;
   }
 
@@ -934,6 +940,7 @@ class EpiccashWallet extends Bip39Wallet {
           .valueProperty()
           .findAll();
       final myAddressesSet = myAddresses.toSet();
+
 
       final transactions = await epiccash.LibEpiccash.getTransactions(
         wallet: wallet!,
