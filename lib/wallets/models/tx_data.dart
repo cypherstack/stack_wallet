@@ -69,6 +69,13 @@ class TxData {
         bool isChange,
       })>? sparkRecipients;
   final List<TxData>? sparkMints;
+  final List<
+      ({
+        String serializedCoin,
+        String serializedCoinContext,
+        int groupId,
+        int height,
+      })>? usedCoins;
 
   final TransactionV2? tempTx;
 
@@ -105,6 +112,7 @@ class TxData {
     this.tezosOperationsList,
     this.sparkRecipients,
     this.sparkMints,
+    this.usedCoins,
     this.tempTx,
   });
 
@@ -187,6 +195,14 @@ class TxData {
             })>?
         sparkRecipients,
     List<TxData>? sparkMints,
+    List<
+            ({
+              String serializedCoin,
+              String serializedCoinContext,
+              int groupId,
+              int height,
+            })>?
+        usedCoins,
     TransactionV2? tempTx,
   }) {
     return TxData(
@@ -224,6 +240,7 @@ class TxData {
       tezosOperationsList: tezosOperationsList ?? this.tezosOperationsList,
       sparkRecipients: sparkRecipients ?? this.sparkRecipients,
       sparkMints: sparkMints ?? this.sparkMints,
+      usedCoins: usedCoins ?? this.usedCoins,
       tempTx: tempTx ?? this.tempTx,
     );
   }
@@ -262,6 +279,7 @@ class TxData {
       'tezosOperationsList: $tezosOperationsList, '
       'sparkRecipients: $sparkRecipients, '
       'sparkMints: $sparkMints, '
+      'usedCoins: $usedCoins, '
       'tempTx: $tempTx, '
       '}';
 }

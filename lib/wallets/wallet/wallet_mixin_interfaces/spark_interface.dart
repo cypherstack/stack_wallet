@@ -499,35 +499,6 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       ),
     );
 
-    // Find out which coins were used and translate them into UTXOs.
-    final usedUTXOs = coins.where((coin) {
-      return spend.usedCoins.any((usedCoin) {
-        return usedCoin.serializedCoin == coin.serializedCoinB64 &&
-            usedCoin.serializedCoinContext == coin.contextB64;
-      });
-    }).map((coin) {
-      return UTXO(
-        walletId: walletId,
-        txid: extractedTx.getId(),
-        vout: coin.groupId,
-        value: coin.value.toInt(),
-        name: '',
-        isBlocked: false, // true?
-        blockedReason: null, // "Used in Spark spend."?
-        isCoinbase: false,
-        blockHash: null,
-        blockHeight: coin.height,
-        blockTime: null,
-        address: null,
-        used: true,
-        otherData: jsonEncode((
-          groupId: coin.groupId,
-          serializedCoin: coin.serializedCoinB64,
-          serializedCoinContext: coin.contextB64,
-        )),
-      );
-    }).toList();
-
     return txData.copyWith(
       raw: rawTxHex,
       vSize: extractedTx.virtualSize(),
@@ -552,7 +523,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         height: null,
         version: 3,
       ),
-      usedUTXOs: usedUTXOs,
+      usedCoins: spend.usedCoins,
     );
   }
 
@@ -569,13 +540,30 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       Logging.instance.log("Sent txHash: $txHash", level: LogLevel.Info);
 
       txData = txData.copyWith(
-        usedUTXOs: txData.usedUTXOs,
         // TODO revisit setting these both
         txHash: txHash,
         txid: txHash,
       );
-      // mark utxos as used
-      await mainDB.putUTXOs(txData.usedUTXOs!);
+
+      // Update coins as used in database.
+      final List<SparkCoin> usedCoins = [];
+      for (final usedCoin in txData.usedCoins!) {
+        // Find the SparkCoin that matches the usedCoin.
+        final sparkCoin = await mainDB.isar.sparkCoins
+            .where()
+            .walletIdEqualToAnyLTagHash(walletId)
+            .filter()
+            .serializedCoinB64EqualTo(usedCoin.serializedCoin)
+            .findFirst();
+
+        // Add the SparkCoin to usedCoins if it exists.
+        if (sparkCoin != null) {
+          usedCoins.add(sparkCoin.copyWith(isUsed: true));
+        }
+      }
+
+      // Update the SparkCoins in the database.
+      await _addOrUpdateSparkCoins(usedCoins);
 
       return await updateSentCachedTxData(txData: txData);
     } catch (e, s) {
