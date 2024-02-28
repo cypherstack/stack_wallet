@@ -499,6 +499,27 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       ),
     );
 
+    final List<SparkCoin> usedSparkCoins = [];
+
+    for (final usedCoin in spend.usedCoins) {
+      try {
+        usedSparkCoins.add(coins
+            .firstWhere((e) =>
+                usedCoin.height == e.height &&
+                usedCoin.groupId == e.groupId &&
+                base64Decode(e.serializedCoinB64!)
+                    .toHex
+                    .startsWith(base64Decode(usedCoin.serializedCoin).toHex))
+            .copyWith(
+              isUsed: true,
+            ));
+      } catch (_) {
+        throw Exception(
+          "Unexpectedly did not find used spark coin. This should never happen.",
+        );
+      }
+    }
+
     return txData.copyWith(
       raw: rawTxHex,
       vSize: extractedTx.virtualSize(),
@@ -523,7 +544,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         height: null,
         version: 3,
       ),
-      usedCoins: spend.usedCoins,
+      usedSparkCoins: usedSparkCoins,
     );
   }
 
@@ -545,25 +566,12 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         txid: txHash,
       );
 
-      // Update coins as used in database.
-      final List<SparkCoin> usedCoins = [];
-      for (final usedCoin in txData.usedCoins!) {
-        // Find the SparkCoin that matches the usedCoin.
-        final sparkCoin = await mainDB.isar.sparkCoins
-            .where()
-            .walletIdEqualToAnyLTagHash(walletId)
-            .filter()
-            .serializedCoinB64EqualTo(usedCoin.serializedCoin)
-            .findFirst();
-
-        // Add the SparkCoin to usedCoins if it exists.
-        if (sparkCoin != null) {
-          usedCoins.add(sparkCoin.copyWith(isUsed: true));
-        }
+      // Update used spark coins as used in database. They should already have
+      // been marked as isUsed.
+      // TODO: [prio=med] Could (probably should) throw an exception here if txData.usedSparkCoins is null or empty
+      if (txData.usedSparkCoins != null && txData.usedSparkCoins!.isNotEmpty) {
+        await _addOrUpdateSparkCoins(txData.usedSparkCoins!);
       }
-
-      // Update the SparkCoins in the database.
-      await _addOrUpdateSparkCoins(usedCoins);
 
       return await updateSentCachedTxData(txData: txData);
     } catch (e, s) {

@@ -5,6 +5,7 @@ import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
+import 'package:stackwallet/wallets/isar/models/spark_coin.dart';
 import 'package:tezart/tezart.dart' as tezart;
 import 'package:web3dart/web3dart.dart' as web3dart;
 
@@ -69,13 +70,7 @@ class TxData {
         bool isChange,
       })>? sparkRecipients;
   final List<TxData>? sparkMints;
-  final List<
-      ({
-        String serializedCoin,
-        String serializedCoinContext,
-        int groupId,
-        int height,
-      })>? usedCoins;
+  final List<SparkCoin>? usedSparkCoins;
 
   final TransactionV2? tempTx;
 
@@ -112,7 +107,7 @@ class TxData {
     this.tezosOperationsList,
     this.sparkRecipients,
     this.sparkMints,
-    this.usedCoins,
+    this.usedSparkCoins,
     this.tempTx,
   });
 
@@ -195,14 +190,7 @@ class TxData {
             })>?
         sparkRecipients,
     List<TxData>? sparkMints,
-    List<
-            ({
-              String serializedCoin,
-              String serializedCoinContext,
-              int groupId,
-              int height,
-            })>?
-        usedCoins,
+    List<SparkCoin>? usedSparkCoins,
     TransactionV2? tempTx,
   }) {
     return TxData(
@@ -240,7 +228,7 @@ class TxData {
       tezosOperationsList: tezosOperationsList ?? this.tezosOperationsList,
       sparkRecipients: sparkRecipients ?? this.sparkRecipients,
       sparkMints: sparkMints ?? this.sparkMints,
-      usedCoins: usedCoins ?? this.usedCoins,
+      usedSparkCoins: usedSparkCoins ?? this.usedSparkCoins,
       tempTx: tempTx ?? this.tempTx,
     );
   }
@@ -279,7 +267,7 @@ class TxData {
       'tezosOperationsList: $tezosOperationsList, '
       'sparkRecipients: $sparkRecipients, '
       'sparkMints: $sparkMints, '
-      'usedCoins: $usedCoins, '
+      'usedSparkCoins: $usedSparkCoins, '
       'tempTx: $tempTx, '
       '}';
 }
