@@ -104,45 +104,28 @@ class EpiccashWallet extends Bip39Wallet {
 
   Future<EpicBoxConfigModel> getEpicBoxConfig() async {
     EpicBoxConfigModel? _epicBoxConfig;
-    // read epicbox config from secure store
-    String? storedConfig =
-        await secureStorageInterface.read(key: '${walletId}_epicboxConfig');
 
-    // we should move to storing the primary server model like we do with nodes, and build the config from that (see epic-mobile)
-    // EpicBoxServerModel? _epicBox = epicBox ??
-    //     DB.instance.get<EpicBoxServerModel>(
-    //         boxName: DB.boxNamePrimaryEpicBox, key: 'primary');
-    // Logging.instance.log(
-    //     "Read primary Epic Box config: ${jsonEncode(_epicBox)}",
-    //     level: LogLevel.Info);
+    //Get the default Epicbox server and check if it's conected
+    bool isEpicboxConnected = await _testEpicboxServer(
+        DefaultEpicBoxes.defaultEpicBoxServer.host, DefaultEpicBoxes.defaultEpicBoxServer.port ?? 443);
 
-    if (storedConfig == null) {
-      // if no config stored, use the default epicbox server as config
+    if (isEpicboxConnected) {
+      //Use default server for as Epicbox config
       _epicBoxConfig =
           EpicBoxConfigModel.fromServer(DefaultEpicBoxes.defaultEpicBoxServer);
     } else {
-      // if a config is stored, test it
-
-      _epicBoxConfig = EpicBoxConfigModel.fromString(
-          storedConfig); // fromString handles checking old config formats
-    }
-
-    bool isEpicboxConnected = await _testEpicboxServer(
-        _epicBoxConfig.host, _epicBoxConfig.port ?? 443);
-
-    if (!isEpicboxConnected) {
-      // default Epicbox is not connected, default to Europe
+      //Use Europe config
       _epicBoxConfig = EpicBoxConfigModel.fromServer(DefaultEpicBoxes.europe);
-
-      // example of selecting another random server from the default list
-      // alternative servers: copy list of all default EB servers but remove the default default
-      // List<EpicBoxServerModel> alternativeServers = DefaultEpicBoxes.all;
-      // alternativeServers.removeWhere((opt) => opt.name == DefaultEpicBoxes.defaultEpicBoxServer.name);
-      // alternativeServers.shuffle(); // randomize which server is used
-      // _epicBoxConfig = EpicBoxConfigModel.fromServer(alternativeServers.first);
-
-      // TODO test this connection before returning it
     }
+    //   // example of selecting another random server from the default list
+    //   // alternative servers: copy list of all default EB servers but remove the default default
+    //   // List<EpicBoxServerModel> alternativeServers = DefaultEpicBoxes.all;
+    //   // alternativeServers.removeWhere((opt) => opt.name == DefaultEpicBoxes.defaultEpicBoxServer.name);
+    //   // alternativeServers.shuffle(); // randomize which server is used
+    //   // _epicBoxConfig = EpicBoxConfigModel.fromServer(alternativeServers.first);
+    //
+    //   // TODO test this connection before returning it
+    // }
 
     return _epicBoxConfig;
   }
@@ -334,36 +317,52 @@ class EpiccashWallet extends Bip39Wallet {
     int index,
   ) async {
     Address? address = await getCurrentReceivingAddress();
+    EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
 
-    if (address == null) {
-      final wallet =
-          await secureStorageInterface.read(key: '${walletId}_wallet');
-      EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
+    if (address != null) {
+      final splitted = address.value.split('@');
+      //Check if the address is the same as the current epicbox index
+      if (splitted[1] != epicboxConfig.host) {
+        //Update the address
+        address = await thisWalletAddress(index, epicboxConfig);
+      }
 
-      final walletAddress = await epiccash.LibEpiccash.getAddressInfo(
-        wallet: wallet!,
-        index: index,
-        epicboxConfig: epicboxConfig.toString(),
-      );
-
-      Logging.instance.log(
-        "WALLET_ADDRESS_IS $walletAddress",
-        level: LogLevel.Info,
-      );
-
-      address = Address(
-        walletId: walletId,
-        value: walletAddress,
-        derivationIndex: index,
-        derivationPath: null,
-        type: AddressType.mimbleWimble,
-        subType: AddressSubType.receiving,
-        publicKey: [], // ??
-      );
-
-      await mainDB.updateOrPutAddresses([address]);
+    } else {
+      address = await thisWalletAddress(index, epicboxConfig);
     }
 
+
+    // print("NOW THIS ADDRESS IS $address");
+    return address;
+  }
+
+  Future<Address> thisWalletAddress(int index, EpicBoxConfigModel epicboxConfig) async {
+    final wallet =
+        await secureStorageInterface.read(key: '${walletId}_wallet');
+    // EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
+
+    final walletAddress = await epiccash.LibEpiccash.getAddressInfo(
+      wallet: wallet!,
+      index: index,
+      epicboxConfig: epicboxConfig.toString(),
+    );
+
+    Logging.instance.log(
+      "WALLET_ADDRESS_IS $walletAddress",
+      level: LogLevel.Info,
+    );
+
+    final address = Address(
+      walletId: walletId,
+      value: walletAddress,
+      derivationIndex: index,
+      derivationPath: null,
+      type: AddressType.mimbleWimble,
+      subType: AddressSubType.receiving,
+      publicKey: [], // ??
+    );
+
+    await mainDB.updateOrPutAddresses([address]);
     return address;
   }
 
