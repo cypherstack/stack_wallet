@@ -1020,6 +1020,18 @@ class ElectrumXClient {
         ],
       );
       try {
+        // If the response is -1 or null, return a temporary hardcoded value for
+        // Dogecoin.  This is a temporary fix until the fee estimation is fixed.
+        if (coin == Coin.dogecoin &&
+            (response == null ||
+                response == -1 ||
+                Decimal.parse(response.toString()) == Decimal.parse("-1"))) {
+          // Return 0.05 for slow, 0.2 for average, and 1 for fast txs.
+          // These numbers produce tx fees in line with txs in the wild on
+          // https://dogechain.info/
+          return Decimal.parse((1 / blocks).toString());
+          // TODO [prio=med]: Fix fee estimation.
+        }
         return Decimal.parse(response.toString());
       } catch (e, s) {
         final String msg = "Error parsing fee rate.  Response: $response"
