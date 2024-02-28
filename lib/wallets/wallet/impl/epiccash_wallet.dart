@@ -103,20 +103,21 @@ class EpiccashWallet extends Bip39Wallet {
   }
 
   Future<EpicBoxConfigModel> getEpicBoxConfig() async {
-    EpicBoxConfigModel? _epicBoxConfig;
+    EpicBoxConfigModel? _epicBoxConfig =
+    EpicBoxConfigModel.fromServer(DefaultEpicBoxes.defaultEpicBoxServer);
 
     //Get the default Epicbox server and check if it's conected
-    bool isEpicboxConnected = await _testEpicboxServer(
-        DefaultEpicBoxes.defaultEpicBoxServer.host, DefaultEpicBoxes.defaultEpicBoxServer.port ?? 443);
+    // bool isEpicboxConnected = await _testEpicboxServer(
+    //     DefaultEpicBoxes.defaultEpicBoxServer.host, DefaultEpicBoxes.defaultEpicBoxServer.port ?? 443);
 
-    if (isEpicboxConnected) {
+    // if (isEpicboxConnected) {
       //Use default server for as Epicbox config
-      _epicBoxConfig =
-          EpicBoxConfigModel.fromServer(DefaultEpicBoxes.defaultEpicBoxServer);
-    } else {
-      //Use Europe config
-      _epicBoxConfig = EpicBoxConfigModel.fromServer(DefaultEpicBoxes.europe);
-    }
+
+    // }
+    // else {
+    //   //Use Europe config
+    //   _epicBoxConfig = EpicBoxConfigModel.fromServer(DefaultEpicBoxes.europe);
+    // }
     //   // example of selecting another random server from the default list
     //   // alternative servers: copy list of all default EB servers but remove the default default
     //   // List<EpicBoxServerModel> alternativeServers = DefaultEpicBoxes.all;
@@ -321,18 +322,16 @@ class EpiccashWallet extends Bip39Wallet {
 
     if (address != null) {
       final splitted = address.value.split('@');
-      //Check if the address is the same as the current epicbox index
+      //Check if the address is the same as the current epicbox domain
+      //Since we're only using one epicbpox now this doesn't apply but will be
+      // useful in the future
       if (splitted[1] != epicboxConfig.host) {
         //Update the address
         address = await thisWalletAddress(index, epicboxConfig);
       }
-
     } else {
       address = await thisWalletAddress(index, epicboxConfig);
     }
-
-
-    print("NOW THIS ADDRESS IS $address");
     return address;
   }
 
@@ -363,12 +362,6 @@ class EpiccashWallet extends Bip39Wallet {
     );
 
     await mainDB.updateOrPutAddresses([address]);
-    if (info.cachedReceivingAddress != address.value) {
-      await info.updateReceivingAddress(
-        newAddress: address.value,
-        isar: mainDB.isar,
-      );
-    }
     return address;
   }
 
