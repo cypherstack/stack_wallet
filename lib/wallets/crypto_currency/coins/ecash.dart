@@ -185,7 +185,8 @@ class Ecash extends Bip39HDCurrency {
       addr = cashAddr.split(":").last;
     }
 
-    return addr.startsWith("q") || addr.startsWith("p");
+    return addr.startsWith("q") /*|| addr.startsWith("p")*/;
+    // Do not validate "p" (P2SH) addresses.
   }
 
   @override
