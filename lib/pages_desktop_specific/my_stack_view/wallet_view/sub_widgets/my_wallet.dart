@@ -76,19 +76,23 @@ class _MyWalletState extends ConsumerState<MyWallet> {
                       ? Column(
                           children: [
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                SecondaryButton(
-                                  width: 200,
-                                  buttonHeight: ButtonHeight.l,
-                                  label: "Import sign config",
-                                  onPressed: () {
-                                    Navigator.of(context).pushNamed(
-                                      FrostImportSignConfigView.routeName,
-                                      arguments: widget.walletId,
-                                    );
-                                  },
-                                ),
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(0, 20, 0, 0),
+                                  child: SecondaryButton(
+                                    width: 200,
+                                    buttonHeight: ButtonHeight.l,
+                                    label: "Import sign config",
+                                    onPressed: () {
+                                      Navigator.of(context).pushNamed(
+                                        FrostImportSignConfigView.routeName,
+                                        arguments: widget.walletId,
+                                      );
+                                    },
+                                  ),
+                                )
                               ],
                             ),
                             FrostSendView(
