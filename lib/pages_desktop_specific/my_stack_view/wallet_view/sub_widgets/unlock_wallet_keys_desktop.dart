@@ -89,9 +89,11 @@ class _UnlockWalletKeysDesktopState
       if (wallet is! MnemonicInterface) {
         if (wallet is BitcoinFrostWallet) {
           frostData = (
-            keys: (await wallet.getMultisigConfig())!,
+            keys: (await wallet.getSerializedKeys())!,
             config: (await wallet.getMultisigConfig())!,
           );
+          print(1111111);
+          print(frostData);
         } else {
           throw Exception("FIXME ~= see todo in code");
         }
@@ -325,7 +327,7 @@ class _UnlockWalletKeysDesktopState
                               if (wallet is! MnemonicInterface) {
                                 if (wallet is BitcoinFrostWallet) {
                                   frostData = (
-                                    keys: (await wallet.getMultisigConfig())!,
+                                    keys: (await wallet.getSerializedKeys())!,
                                     config: (await wallet.getMultisigConfig())!,
                                   );
                                 } else {

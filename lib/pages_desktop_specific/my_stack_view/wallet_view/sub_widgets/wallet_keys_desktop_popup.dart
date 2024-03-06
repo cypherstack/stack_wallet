@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
+import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/qr_code_desktop_popup_content.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
@@ -24,6 +25,7 @@ import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class WalletKeysDesktopPopup extends StatelessWidget {
   const WalletKeysDesktopPopup({
@@ -83,11 +85,31 @@ class WalletKeysDesktopPopup extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                           horizontal: 32,
                         ),
-                        child: SelectableText(
-                          frostData!.keys,
-                          style:
-                              STextStyles.desktopTextExtraExtraSmall(context),
-                          textAlign: TextAlign.center,
+                        child: RoundedWhiteContainer(
+                          borderColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFieldDefaultBG,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 9),
+                          child: Row(
+                            children: [
+                              Flexible(
+                                child: SelectableText(
+                                  frostData!.keys,
+                                  style: STextStyles.desktopTextExtraExtraSmall(
+                                      context),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              IconCopyButton(
+                                data: frostData!.keys,
+                              )
+                              // TODO [prio=low: Add QR code button and dialog.
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -106,11 +128,31 @@ class WalletKeysDesktopPopup extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                           horizontal: 32,
                         ),
-                        child: SelectableText(
-                          frostData!.config,
-                          style:
-                              STextStyles.desktopTextExtraExtraSmall(context),
-                          textAlign: TextAlign.center,
+                        child: RoundedWhiteContainer(
+                          borderColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFieldDefaultBG,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 9),
+                          child: Row(
+                            children: [
+                              Flexible(
+                                child: SelectableText(
+                                  frostData!.config,
+                                  style: STextStyles.desktopTextExtraExtraSmall(
+                                      context),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              IconCopyButton(
+                                data: frostData!.config,
+                              )
+                              // TODO [prio=low: Add QR code button and dialog.
+                            ],
+                          ),
                         ),
                       ),
                     ),
