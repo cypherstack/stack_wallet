@@ -2,24 +2,27 @@
 New-Item -Path 'C:\development' -ItemType Directory -ErrorAction Ignore
 
 # $wc = [System.Net.WebClient]::new()
-# $publishedHash = '8E28E54D601F0751922DE24632C1E716B4684876255CF82304A9B19E89A9CCAC'
-# $FileHash = Get-FileHash -InputStream ($wc.OpenRead("C:\development\flutter_windows_3.7.12-stable.zip"))
+# $publishedHash = '8E28E54D601F0751922DE24632C1E716B4684876255CF82304A9B19E89A9CCAC' # Need to update for 3.16.0's hash.
+# $FileHash = Get-FileHash -InputStream ($wc.OpenRead("C:\development\flutter_windows_3.16.0-stable.zip"))
 
-# if (-Not [System.IO.File]::Exists("C:\development\flutter_windows_3.7.12-stable.zip") or -Not ($FileHash.Hash -eq $publishedHash)) {
-# } else {
-# Download flutter_windows_3.7.12-stable.zip
-# Write-Output "Downloading flutter_windows_3.7.12-stable.zip"
-# $ProgressPreference = 'SilentlyContinue' # Speed up download process, see https://stackoverflow.com/questions/28682642/powershell-why-is-using-invoke-webrequest-much-slower-than-a-browser-download
-# Invoke-WebRequest "https://storage.googleapis.com/flutter_infra_release/releases/stable/windows/flutter_windows_3.7.12-stable.zip" -OutFile "C:\development\flutter_windows_3.7.12-stable.zip"
+# if (-Not ($FileHash.Hash -eq $publishedHash)) {
+  # Delete mismatching archive.
 # }
 
+if (-Not [System.IO.File]::Exists("C:\development\flutter_windows_3.16.0-stable.zip")) {
+  # Download flutter_windows_3.16.0-stable.zip
+  Write-Output "Downloading flutter_windows_3.16.0-stable.zip"
+  $ProgressPreference = 'SilentlyContinue' # Speed up download process, see https://stackoverflow.com/questions/28682642/powershell-why-is-using-invoke-webrequest-much-slower-than-a-browser-download
+  Invoke-WebRequest "https://storage.googleapis.com/flutter_infra_release/releases/stable/windows/flutter_windows_3.16.0-stable.zip" -OutFile "C:\development\flutter_windows_3.16.0-stable.zip"
+}
+
 # Extract Flutter SDK
-Write-Output "Extracting flutter_windows_3.7.12-stable.zip"
+Write-Output "Extracting flutter_windows_3.16.0-stable.zip"
 $progressPreference = 'SilentlyContinue' # Speed up extraction process, see https://github.com/PowerShell/Microsoft.PowerShell.Archive/issues/32#issuecomment-642582179
 # Add-MpPreference -ExclusionPath C:\development
 # Expand-Archive "C:\development\flutter_windows_3.7.12-stable.zip" -DestinationPath "C:\development"
 Add-Type -Assembly "System.IO.Compression.Filesystem"
-[System.IO.Compression.ZipFile]::ExtractToDirectory("C:\development\flutter_windows_3.7.12-stable.zip", "C:\development")
+[System.IO.Compression.ZipFile]::ExtractToDirectory("C:\development\flutter_windows_3.16.0-stable.zip", "C:\development")
 
 # See https://stackoverflow.com/a/69239861
 function Add-Path {
