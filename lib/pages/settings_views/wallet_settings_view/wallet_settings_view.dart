@@ -22,6 +22,7 @@ import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/debug_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/syncing_preferences_views/syncing_preferences_view.dart';
 import 'package:stackwallet/pages/settings_views/sub_widgets/settings_list_button.dart';
+import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/frost_ms_options_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_backup_views/wallet_backup_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/change_representative_view.dart';
@@ -194,6 +195,21 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                             padding: const EdgeInsets.all(4),
                             child: Column(
                               children: [
+                                if (coin == Coin.bitcoinFrost ||
+                                    coin == Coin.bitcoinFrostTestNet)
+                                  if (coin == Coin.bitcoinFrost ||
+                                      coin == Coin.bitcoinFrostTestNet)
+                                    SettingsListButton(
+                                      iconAssetName: Assets.svg.addressBook2,
+                                      iconSize: 16,
+                                      title: "FROST Multisig settings",
+                                      onPressed: () {
+                                        Navigator.of(context).pushNamed(
+                                          FrostMSWalletOptionsView.routeName,
+                                          arguments: walletId,
+                                        );
+                                      },
+                                    ),
                                 SettingsListButton(
                                   iconAssetName: Assets.svg.addressBook,
                                   iconSize: 16,
