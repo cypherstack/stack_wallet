@@ -13,14 +13,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/frost_participants_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/resharing/involved/step_1a/begin_reshare_config_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/resharing/involved/step_1b/import_reshare_config_view.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/models/frost_wallet_info.dart';
 import 'package:stackwallet/widgets/background.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
+import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class FrostMSWalletOptionsView extends ConsumerWidget {
@@ -35,21 +40,40 @@ class FrostMSWalletOptionsView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Background(
-      child: Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          title: Text(
-            "Multisig settings",
-            style: STextStyles.navBarTitle(context),
-          ),
+    return ConditionalParent(
+      condition: Util.isDesktop,
+      builder: (child) => DesktopScaffold(
+        background: Theme.of(context).extension<StackColors>()!.background,
+        appBar: const DesktopAppBar(
+          isCompactHeight: false,
+          leading: AppBarBackButton(),
+          trailing: ExitToMyStackButton(),
         ),
-        body: Padding(
+        body: SizedBox(
+          width: 480,
+          child: child,
+        ),
+      ),
+      child: ConditionalParent(
+        condition: !Util.isDesktop,
+        builder: (child) => Background(
+          child: Scaffold(
+              backgroundColor:
+                  Theme.of(context).extension<StackColors>()!.background,
+              appBar: AppBar(
+                leading: AppBarBackButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                title: Text(
+                  "FROST Multisig options",
+                  style: STextStyles.navBarTitle(context),
+                ),
+              ),
+              body: child),
+        ),
+        child: Padding(
           padding: const EdgeInsets.only(
             top: 12,
             left: 16,
