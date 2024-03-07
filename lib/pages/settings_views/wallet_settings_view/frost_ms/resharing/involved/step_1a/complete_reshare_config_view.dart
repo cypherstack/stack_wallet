@@ -93,14 +93,14 @@ class _CompleteReshareConfigViewState
           ),
         );
       } else {
-        final salts = frostInfo.knownSalts;
-        salts.add(salt);
+        final salts = frostInfo.knownSalts; // Fixed length list.
+        final newSalts = List<String>.from(salts)..add(salt);
         final mainDB = ref.read(mainDBProvider);
         await mainDB.isar.writeTxn(() async {
           final info = frostInfo;
           await mainDB.isar.frostWalletInfo.delete(info.id);
           await mainDB.isar.frostWalletInfo.put(
-            info.copyWith(knownSalts: salts),
+            info.copyWith(knownSalts: newSalts),
           );
         });
       }
