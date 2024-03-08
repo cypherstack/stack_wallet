@@ -9,7 +9,7 @@ Here you will find instructions on how to install the necessary tools for buildi
 - 100 GB of storage
 
 ## Linux host
-The following instructions are for building and running on a Linux host.  Alternatively, see the [Windows](#Windows host) section.
+The following instructions are for building and running on a Linux host.  Alternatively, see the [Windows](#Windows-host) section.
 
 ### Android Studio
 Install Android Studio.  Follow instructions here [https://developer.android.com/studio/install#linux](https://developer.android.com/studio/install#linux) or install via snap:
@@ -29,6 +29,8 @@ Then in `File > Settings > Plugins`, install the **Flutter** and **Dart** plugin
 
 Make a Pixel 4 (API 30) x86_64 emulator with 2GB of storage space for emulation
 
+### Build dependencies
+
 Install basic dependencies
 ```
 sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm python3-distutils
@@ -43,19 +45,22 @@ Install [Rust](https://www.rust-lang.org/tools/install) with command:
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source ~/.bashrc 
-rustup install 1.67.1
+rustup install 1.72.0 # For tor.
+rustup install 1.67.1 # For flutter_libepiccash.
 rustup default 1.67.1
 ```
 
 Install the additional components for Rust:
 ```
-cargo install cargo-ndk --version 2.12.7
+cargo install cargo-ndk --version 2.12.7 --locked
 ```
+
 Android specific dependencies:
 ```
 sudo apt-get install libc6-dev-i386
 rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
 ```
+
 Linux desktop specific dependencies:
 ```
 sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev meson python3-pip libgirepository1.0-dev valac xsltproc docbook-xsl
@@ -67,8 +72,10 @@ After installing the prerequisites listed above, download the code and init the 
 git clone https://github.com/cypherstack/stack_wallet.git
 cd stack_wallet
 git submodule update --init --recursive
-
 ```
+
+### Remove system packages (may be needed for building flutter_libmonero)
+[`flutter_libmonero`](https://github.com/cypherstack/flutter_libmonero) may have issues building due to conflicts with system packages: if so, follow this section.
 
 Remove pre-installed system libraries for the following packages built by cryptography plugins in the crypto_plugins folder: `boost iconv libjson-dev libsecret openssl sodium unbound zmq`.  You can use
 ```
@@ -134,12 +141,7 @@ flutter run linux
 Visual Studio is required for Windows development with the Flutter SDK.  Download it at https://visualstudio.microsoft.com/downloads/ and install the "Desktop development with C++" workload, including all of its default components.
 
 ### Building libraries in WSL2
-Set up Ubuntu 20.04 in WSL2.  Follow the entire Linux host section in the WSL2 Ubuntu 20.04 host to get set up to build.  You will also need to install Rust and MXE dependencies on the WSL2 Ubuntu 20.04 host:
- - [Install Rust](https://rustup.rs/)
-   ```sh
-   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-   ```
- - Install MXE by running `stack_wallet/scripts/windows/deps.sh`
+Set up Ubuntu 20.04 in WSL2.  Follow the entire Linux host section in the WSL2 Ubuntu 20.04 host to get set up to build.  You will also need to install MXE on the WSL2 Ubuntu 20.04 host by running `stack_wallet/scripts/windows/deps.sh`
    ```sh
    ./stack_wallet/scripts/windows/deps.sh
    ```
@@ -158,10 +160,23 @@ Copy the resulting `dll`s to their respective positions on the Windows host:
 -->
 <!-- TODO: script the copying or installation of libraries from WSL2 to the parent Windows host -->
 
-### Install Flutter on Windows host
+### Flutter
 Install Flutter 3.10.3 on your Windows host (not in WSL2) by following these instructions: https://docs.flutter.dev/get-started/install/windows or by running `scripts/windows/deps.ps1`.  You may still have to add `C:\development\flutter\bin` to PATH before proceeding, even if you ran `deps.ps1`.  Run `flutter doctor` in PowerShell to confirm its installation.
 
-### Dependencies
+### Rust
+Install [Rust](https://www.rust-lang.org/tools/install) via `rustup`.  Make sure it works and install the following versions:
+```
+rustup install 1.72.0 # For tor.
+rustup install 1.67.1 # For flutter_libepiccash.
+rustup default 1.67.1
+```
+
+Also install `cargo-ndk`:
+```
+cargo install cargo-ndk --version 2.12.7 --locked
+```
+
+### Windows SDK and Developer Mode
 Install the Windows SDK: https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/  You may need to install the [Windows 10 SDK](https://developer.microsoft.com/en-us/windows/downloads/sdk-archive/), which can be installed [by Visual Studio](https://stackoverflow.com/a/73923899) (`Tools > Get Tools and Features... > Modify > Individual Components > Windows 10 SDK`).
 
 Enable Developer Mode for symlink support,
