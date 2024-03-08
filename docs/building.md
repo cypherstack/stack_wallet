@@ -90,7 +90,9 @@ Coinlib's native secp256k1 library must be built prior to running Stack Wallet. 
  - WSL2 host: `dart run coinlib:build_wsl`
 <!-- - macOS host: `dart run coinlib:build_macos` -->
 
-For Windows targets, you can use a `secp256k1.dll` produced by any of the three bottom<!--^H^H^H^H^H^Hmiddle--> options if the first attempts doesn't succeed!
+To build coinlib on Linux, you will need `docker` (see [installation instructions](https://docs.docker.com/engine/install/ubuntu/)) or [`podman`](https://podman.io/docs/installation) (`sudo apt-get -y install podman`)
+
+For Windows targets, you can use a `secp256k1.dll` produced by any of the three bottom<!--^H^H^H^H^H^Hmiddle--> options if the first attempt doesn't succeed!
 
 
 ### Run prebuild script
