@@ -9,7 +9,7 @@ Here you will find instructions on how to install the necessary tools for buildi
 - 100 GB of storage
 
 ## Linux host
-The following instructions are for building and running on a Linux host.  Alternatively, see the [Windows](#Windows-host) section.
+The following instructions are for building and running on a Linux host.  This entire section (except for the Android Studio section) needs to be completed in WSL if building on a Windows host.
 
 ### Android Studio
 Install Android Studio.  Follow instructions here [https://developer.android.com/studio/install#linux](https://developer.android.com/studio/install#linux) or install via snap:
@@ -27,18 +27,18 @@ Use `Tools > SDK Manager` to install:
 
 Then in `File > Settings > Plugins`, install the **Flutter** and **Dart** plugins and restart the IDE.  In `File > Settings > Languages & Frameworks > Flutter > Editor`, enable auto format on save to match the project's code style.  If you have problems with the Dart SDK, make sure to run `flutter` in a terminal to download it (use `source ~/.bashrc` to update your environment variables if you're still using the same terminal from which you ran `setup.sh`).  Run `flutter doctor` to install any missing dependencies and review and agree to any license agreements.
 
-Make a Pixel 4 (API 30) x86_64 emulator with 2GB of storage space for emulation
+Make a Pixel 4 (API 30) x86_64 emulator with 2GB of storage space for emulation.
+
+The following *may* be needed for Android studio:
+```
+sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-1.0:i386
+```
 
 ### Build dependencies
 
 Install basic dependencies
 ```
 sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm python3-distutils
-```
-
-The following *may* be needed for Android studio:
-```
-sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-1.0:i386
 ```
 
 Install [Rust](https://www.rust-lang.org/tools/install) with command:
@@ -74,18 +74,24 @@ cd stack_wallet
 git submodule update --init --recursive
 ```
 
-### Remove system packages (may be needed for building flutter_libmonero)
-[`flutter_libmonero`](https://github.com/cypherstack/flutter_libmonero) may have issues building due to conflicts with system packages: if so, follow this section.
+Build the secure storage dependencies in order to target Linux (not needed for Windows or other platforms):
+```
+cd scripts/linux
+./build_secure_storage_deps.sh
+// when finished go back to the root directory
+cd ../..
+```
 
-Remove pre-installed system libraries for the following packages built by cryptography plugins in the crypto_plugins folder: `boost iconv libjson-dev libsecret openssl sodium unbound zmq`.  You can use
-```
-sudo apt list --installed | grep boost
-```
-for example to find which pre-installed packages you may need to remove with `sudo apt remove`.  Be careful, as some packages (especially boost) are linked to GNOME (GUI) packages: when in doubt, remove `-dev` packages first like with
-```
-sudo apt-get remove '^libboost.*-dev.*'
-```
-<!-- TODO: configure compiler to prefer built over system libraries. Should already use them? -->
+### Build coinlib
+Coinlib's native secp256k1 library must be built prior to running Stack Wallet.  It can be built from within the root `stack_wallet` folder on a...
+ - Linux host for Linux targets: `dart run coinlib:build_linux`, or
+ - Linux host for Windows targets: `dart run coinlib:build_windows_crosscompile`
+ - Windows host: `dart run coinlib:build_windows`
+ - WSL2 host: `dart run coinlib:build_wsl`
+<!-- - macOS host: `dart run coinlib:build_macos` -->
+
+For Windows targets, you can use a `secp256k1.dll` produced by any of the three bottom<!--^H^H^H^H^H^Hmiddle--> options if the first attempts doesn't succeed!
+
 
 ### Run prebuild script
 
@@ -112,19 +118,25 @@ cd scripts/linux
 ./build_all.sh
 ```
 
+##### Remove system packages (may be needed for building flutter_libmonero)
+[`flutter_libmonero`](https://github.com/cypherstack/flutter_libmonero) may have issues building due to conflicts with system packages: if so, follow this section.
+
+Remove pre-installed system libraries for the following packages built by cryptography plugins in the crypto_plugins folder: `boost iconv libjson-dev libsecret openssl sodium unbound zmq`.  You can use
+```
+sudo apt list --installed | grep boost
+```
+for example to find which pre-installed packages you may need to remove with `sudo apt remove`.  Be careful, as some packages (especially boost) are linked to GNOME (GUI) packages: when in doubt, remove `-dev` packages first like with
+```
+sudo apt-get remove '^libboost.*-dev.*'
+```
+<!-- TODO: configure compiler to prefer built over system libraries. Should already use them? -->
+
 #### Building plugins for Windows
 ```
 cd scripts/windows
 ./deps.sh
 ./build_all.sh
 ```
-
-### Build coinlib
-Coinlib's native secp256k1 library must be built prior to running Stack Wallet.  It can be built from within the root `stack_wallet` folder on a...
- - Linux host for Linux targets: `dart run coinlib:build_linux`, or
- - Linux host for Windows targets: `dart run coinlib:build_windows_crosscompile`
-<!-- - macOS host: `dart run coinlib:build_macos` -->
-
 ### Running
 #### Android
 Plug in your android device or use the emulator available via Android Studio and then run the following commands:
@@ -144,7 +156,7 @@ flutter run linux
 
 ## Windows host
 ### Visual Studio
-Visual Studio is required for Windows development with the Flutter SDK.  Download it at https://visualstudio.microsoft.com/downloads/ and install the "Desktop development with C++" and "Linux development with C++" workloads.  You may also need the Windows 10, 11, and/or Universal SDK workloads depending on your Windows version.
+Visual Studio is required for Windows development with the Flutter SDK.  Download it at https://visualstudio.microsoft.com/downloads/ and install the "Desktop development with C++", "Linux development with C++", and "Visual C++ build tools" workloads.  You may also need the Windows 10, 11, and/or Universal SDK workloads depending on your Windows version.
 
 ### Building libraries in WSL2
 Set up Ubuntu 20.04 in WSL2.  Follow the entire Linux host section in the WSL2 Ubuntu 20.04 host to get set up to build.
@@ -205,14 +217,9 @@ winget install Microsoft.Windows.CppWinRT -Version 2.0.210806.1
 or [download the package](https://www.nuget.org/packages/Microsoft.Windows.CppWinRT/2.0.210806.1) and [manually install it](https://github.com/Baseflow/flutter-permission-handler/issues/1025#issuecomment-1518576722) by placing it in `flutter/bin` with [nuget.exe](https://dist.nuget.org/win-x86-commandline/latest/nuget.exe) and installing by running `nuget install Microsoft.Windows.CppWinRT -Version 2.0.210806.1` in the root `stack_wallet` folder. 
 <!-- TODO: script this NuGet and WinCppRT installation -->
 
-### Build coinlib
-Coinlib's native secp256k1 library must be built prior to running Stack Wallet.  It can be run from within the root `stack_wallet` folder on a...
- - Windows host: `dart run coinlib:build_windows`
- - WSL2 host: `dart run coinlib:build_wsl`
-
 ### Run prebuild script
 
-Certain test wallet parameter and API key template files must be created in order to run Stack Wallet.  These can be created by script as in
+Certain test wallet parameter and API key template files must be created in order to run Stack Wallet on Windows.  These can be created by script as in
 ```
 cd scripts
 ./prebuild.ps1
