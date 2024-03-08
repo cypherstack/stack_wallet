@@ -119,6 +119,12 @@ cd scripts/windows
 ./build_all.sh
 ```
 
+### Build coinlib
+Coinlib's native secp256k1 library must be built prior to running Stack Wallet.  It can be built from within the root `stack_wallet` folder on a...
+ - Linux host for Linux targets: `dart run coinlib:build_linux`, or
+ - Linux host for Windows targets: `dart run coinlib:build_windows_crosscompile`
+<!-- - macOS host: `dart run coinlib:build_macos` -->
+
 ### Running
 #### Android
 Plug in your android device or use the emulator available via Android Studio and then run the following commands:
@@ -138,13 +144,20 @@ flutter run linux
 
 ## Windows host
 ### Visual Studio
-Visual Studio is required for Windows development with the Flutter SDK.  Download it at https://visualstudio.microsoft.com/downloads/ and install the "Desktop development with C++" workload, including all of its default components.
+Visual Studio is required for Windows development with the Flutter SDK.  Download it at https://visualstudio.microsoft.com/downloads/ and install the "Desktop development with C++" and "Linux development with C++" workloads.  You may also need the Windows 10, 11, and/or Universal SDK workloads depending on your Windows version.
 
 ### Building libraries in WSL2
-Set up Ubuntu 20.04 in WSL2.  Follow the entire Linux host section in the WSL2 Ubuntu 20.04 host to get set up to build.  You will also need to install MXE on the WSL2 Ubuntu 20.04 host by running `stack_wallet/scripts/windows/deps.sh`
-   ```sh
-   ./stack_wallet/scripts/windows/deps.sh
-   ```
+Set up Ubuntu 20.04 in WSL2.  Follow the entire Linux host section in the WSL2 Ubuntu 20.04 host to get set up to build.
+
+Install the following libraries:
+```
+sudo apt-get install libgtk2.0-dev
+```
+
+You will also need to install MXE on the WSL2 Ubuntu 20.04 host and can do so by running `stack_wallet/scripts/windows/deps.sh`:
+```
+./stack_wallet/scripts/windows/deps.sh
+```
 
 The WSL2 host may optionally be navigated to the `stack_wallet` repository on the Windows host in order to build the plugins in-place and skip the next section in which you copy the `dll`s from WSL2 to Windows.  Then build windows `dll` libraries by running the following script on the WSL2 Ubuntu 20.04 host:
 
@@ -161,10 +174,10 @@ Copy the resulting `dll`s to their respective positions on the Windows host:
 <!-- TODO: script the copying or installation of libraries from WSL2 to the parent Windows host -->
 
 ### Flutter
-Install Flutter 3.10.3 on your Windows host (not in WSL2) by following these instructions: https://docs.flutter.dev/get-started/install/windows or by running `scripts/windows/deps.ps1`.  You may still have to add `C:\development\flutter\bin` to PATH before proceeding, even if you ran `deps.ps1`.  Run `flutter doctor` in PowerShell to confirm its installation.
+Install Flutter 3.16.0 on the Windows host (not in WSL2) by following these instructions: https://docs.flutter.dev/get-started/install/windows or by running `scripts/windows/deps.ps1`.  You may still have to add `C:\development\flutter\bin` to PATH before proceeding, even if you ran `deps.ps1` (you may need to open a new terminal).  Run `flutter doctor` in PowerShell to confirm its installation.
 
 ### Rust
-Install [Rust](https://www.rust-lang.org/tools/install) via `rustup`.  Make sure it works and install the following versions:
+Install [Rust](https://www.rust-lang.org/tools/install) on the Windows host (not in WSL2).  Download the installer from [rustup.rs](https://rustup.rs), make sure it works on the commandline (you may need to open a new terminal), and install the following versions:
 ```
 rustup install 1.72.0 # For tor.
 rustup install 1.67.1 # For flutter_libepiccash.
@@ -192,6 +205,11 @@ winget install Microsoft.Windows.CppWinRT -Version 2.0.210806.1
 or [download the package](https://www.nuget.org/packages/Microsoft.Windows.CppWinRT/2.0.210806.1) and [manually install it](https://github.com/Baseflow/flutter-permission-handler/issues/1025#issuecomment-1518576722) by placing it in `flutter/bin` with [nuget.exe](https://dist.nuget.org/win-x86-commandline/latest/nuget.exe) and installing by running `nuget install Microsoft.Windows.CppWinRT -Version 2.0.210806.1` in the root `stack_wallet` folder. 
 <!-- TODO: script this NuGet and WinCppRT installation -->
 
+### Build coinlib
+Coinlib's native secp256k1 library must be built prior to running Stack Wallet.  It can be run from within the root `stack_wallet` folder on a...
+ - Windows host: `dart run coinlib:build_windows`
+ - WSL2 host: `dart run coinlib:build_wsl`
+
 ### Run prebuild script
 
 Certain test wallet parameter and API key template files must be created in order to run Stack Wallet.  These can be created by script as in
@@ -201,7 +219,7 @@ cd scripts
 // when finished go back to the root directory
 cd ..
 ```
-or manually by creating the files referenced in that script with the specified content.
+or manually by creating the files referenced in that script with the specified content. 
 
 ### Running
 
