@@ -34,6 +34,15 @@ The following *may* be needed for Android studio:
 sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-1.0:i386
 ```
 
+### Flutter
+
+Flutter and the Dart SDK should have been set up by Android studio, but if running `flutter` doesn't work (try `flutter doctor`, too), follow the [guide to install Flutter on any of their supported platforms](https://docs.flutter.dev/get-started/install) or:
+ - `git clone https://github.com/flutter/flutter` somewhere it can live (`/var`, `/opt`, `~`)
+ - `git checkout 3.16.0` after navigating into the `flutter` directory, and 
+ - add `flutter/bin` to your PATH (on Ubuntu, add `PATH=$PATH:path/to/flutter/bin` to `~/.profile`).
+
+Run `flutter doctor` to install any missing dependencies and review and agree to any license agreements.
+
 ### Build dependencies
 
 Install basic dependencies
@@ -188,7 +197,11 @@ Copy the resulting `dll`s to their respective positions on the Windows host:
 <!-- TODO: script the copying or installation of libraries from WSL2 to the parent Windows host -->
 
 ### Flutter
-Install Flutter 3.16.0 on the Windows host (not in WSL2) by following these instructions: https://docs.flutter.dev/get-started/install/windows or by running `scripts/windows/deps.ps1`.  You may still have to add `C:\development\flutter\bin` to PATH before proceeding, even if you ran `deps.ps1` (you may need to open a new terminal).  Run `flutter doctor` in PowerShell to confirm its installation.
+Install Flutter 3.16.0 on the Windows host (not in WSL2) by following [Flutter's Windows install guide](https://docs.flutter.dev/get-started/install/windows), by running `scripts/windows/deps.ps1`, or by
+ - `git clone https://github.com/flutter/flutter` somewhere it can live (`C:`, **avoid** anywhere in `C:/Users/`),
+ - `git checkout 3.16.0` (after navigating into the `flutter` folder),
+ - and adding `flutter/bin` to your PATH environmen variable (search "environment variables" in the Start menu)
+You may still have to add `C:\development\flutter\bin` to PATH before proceeding, even if you ran `deps.ps1` (you may need to open a new terminal).  Run `flutter doctor` in PowerShell to confirm its installation.
 
 ### Rust
 Install [Rust](https://www.rust-lang.org/tools/install) on the Windows host (not in WSL2).  Download the installer from [rustup.rs](https://rustup.rs), make sure it works on the commandline (you may need to open a new terminal), and install the following versions:
