@@ -20,10 +20,11 @@ sudo snap install android-studio --classic
 ```
 
 Use `Tools > SDK Manager` to install:
- - `SDK Tools > Android SDK (API 30)`
- - `SDK Tools > NDK`
  - `SDK Tools > Android SDK command line tools`
  - `SDK Tools > CMake`
+and for Android builds,
+ - `SDK Tools > Android SDK (API 30)`
+ - `SDK Tools > NDK`
 
 Then in `File > Settings > Plugins`, install the **Flutter** and **Dart** plugins and restart the IDE.  In `File > Settings > Languages & Frameworks > Flutter > Editor`, enable auto format on save to match the project's code style.  If you have problems with the Dart SDK, make sure to run `flutter` in a terminal to download it (use `source ~/.bashrc` to update your environment variables if you're still using the same terminal from which you ran `setup.sh`).  Run `flutter doctor` to install any missing dependencies and review and agree to any license agreements.
 
