@@ -724,15 +724,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
               ],
             ),
       body: Container(
-        color: Theme.of(context).extension<StackColors>()!.background,
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: ConditionalParent(
-            condition: isDesktop,
-            builder: (child) => Expanded(
-              child: child,
-            ),
-            child: SingleChildScrollView(
+              color: Theme.of(context).extension<StackColors>()!.background,
+              child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: SingleChildScrollView(
               controller: controller,
               child: Column(
                 children: [
@@ -1203,7 +1198,6 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 }

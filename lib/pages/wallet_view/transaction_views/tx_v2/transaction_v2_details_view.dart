@@ -1048,7 +1048,7 @@ class _TransactionV2DetailsViewState
                                               pTransactionNote(
                                                 (
                                                   txid: (coin == Coin.epicCash) ?
-                                                  _transaction.slateId as String
+                                                  _transaction.slateId.toString()
                                                       : _transaction.txid,
                                                   walletId: walletId
                                                 ),
