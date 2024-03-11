@@ -78,7 +78,7 @@ class _FrostAttemptSignConfigViewState
 
     myName = frostInfo.myName;
     threshold = frostInfo.threshold;
-    participantsWithoutMe = frostInfo.participants;
+    participantsWithoutMe = List.from(frostInfo.participants); // Copy so it isn't fixed-length.
     myIndex = participantsWithoutMe.indexOf(frostInfo.myName);
     myPreprocess = ref.read(pFrostAttemptSignData.state).state!.preprocess;
 
