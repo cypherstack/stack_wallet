@@ -287,313 +287,324 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
           ),
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (!Util.isDesktop)
-            Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).extension<StackColors>()!.popupBG,
-                borderRadius: BorderRadius.circular(
-                  Constants.size.circularBorderRadius,
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Row(
-                  children: [
-                    SvgPicture.file(
-                      File(
-                        ref.watch(
-                          coinIconProvider(coin),
-                        ),
-                      ),
-                      width: 22,
-                      height: 22,
-                    ),
-                    const SizedBox(
-                      width: 6,
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          ref.watch(pWalletName(walletId)),
-                          style: STextStyles.titleBold12(context)
-                              .copyWith(fontSize: 14),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                        // const SizedBox(
-                        //   height: 2,
-                        // ),
-                        Text(
-                          "Available balance",
-                          style:
-                              STextStyles.label(context).copyWith(fontSize: 10),
-                        ),
-                      ],
-                    ),
-                    Util.isDesktop
-                        ? const SizedBox(
-                            height: 24,
-                          )
-                        : const Spacer(),
-                    GestureDetector(
-                      onTap: () {
-                        // cryptoAmountController.text = ref
-                        //     .read(pAmountFormatter(coin))
-                        //     .format(
-                        //       _cachedBalance!,
-                        //       withUnitName: false,
-                        //     );
-                      },
-                      child: Container(
-                        color: Colors.transparent,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              ref.watch(pAmountFormatter(coin)).format(ref
-                                  .watch(pWalletBalance(walletId))
-                                  .spendable),
-                              style: STextStyles.titleBold12(context).copyWith(
-                                fontSize: 10,
-                              ),
-                              textAlign: TextAlign.right,
-                            ),
-                            // Text(
-                            //   "${(manager.balance.spendable.decimal * ref.watch(
-                            //             priceAnd24hChangeNotifierProvider.select(
-                            //               (value) => value.getPrice(coin).item1,
-                            //             ),
-                            //           )).toAmount(
-                            //         fractionDigits: 2,
-                            //       ).fiatString(
-                            //         locale: locale,
-                            //       )} ${ref.watch(
-                            //     prefsChangeNotifierProvider
-                            //         .select((value) => value.currency),
-                            //   )}",
-                            //   style: STextStyles.subtitle(context).copyWith(
-                            //     fontSize: 8,
-                            //   ),
-                            //   textAlign: TextAlign.right,
-                            // )
-                          ],
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-              ),
-            ),
-          const SizedBox(
-            height: 16,
+      child: ConditionalParent(
+        condition: Util.isDesktop,
+        builder: (child) => Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 14,
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Recipients",
-                style: STextStyles.smallMed12(context),
-                textAlign: TextAlign.left,
-              ),
-              CustomTextButton(
-                text: "Add",
-                onTap: () {
-                  // used for tracking recipient forms
-                  _greatestWidgetIndex++;
-                  recipientWidgetIndexes.add(_greatestWidgetIndex);
-                  setState(() {});
-                },
-              ),
-            ],
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-          Column(
-            children: [
-              for (int i = 0; i < recipientWidgetIndexes.length; i++)
-                ConditionalParent(
-                  condition: recipientWidgetIndexes.length > 1,
-                  builder: (child) => Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: child,
-                  ),
-                  child: Recipient(
-                    key: Key(
-                      "recipientKey_${recipientWidgetIndexes[i]}",
-                    ),
-                    index: recipientWidgetIndexes[i],
-                    coin: coin,
-                    onChanged: () {
-                      _validateRecipientFormStates();
-                    },
-                    remove: i == 0 && recipientWidgetIndexes.length == 1
-                        ? null
-                        : () {
-                            recipientWidgetIndexes.removeAt(i);
-                            setState(() {});
-                          },
+          child: child,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (!Util.isDesktop)
+              Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).extension<StackColors>()!.popupBG,
+                  borderRadius: BorderRadius.circular(
+                    Constants.size.circularBorderRadius,
                   ),
                 ),
-            ],
-          ),
-          if (showCoinControl)
-            const SizedBox(
-              height: 8,
-            ),
-          if (showCoinControl)
-            RoundedWhiteContainer(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Coin control",
-                    style: STextStyles.w500_14(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textSubtitle1,
-                    ),
-                  ),
-                  CustomTextButton(
-                    text: selectedUTXOs.isEmpty
-                        ? "Select coins"
-                        : "Selected coins (${selectedUTXOs.length})",
-                    onTap: () async {
-                      if (FocusScope.of(context).hasFocus) {
-                        FocusScope.of(context).unfocus();
-                        await Future<void>.delayed(
-                          const Duration(milliseconds: 100),
-                        );
-                      }
-
-                      if (mounted) {
-                        // finally spendable = ref
-                        //     .read(walletsChangeNotifierProvider)
-                        //     .getManager(widget.walletId)
-                        //     .balance
-                        //     .spendable;
-
-                        // TODO: [prio=high] make sure this coincontrol works correctly
-
-                        Amount? amount;
-
-                        final result = await Navigator.of(context).pushNamed(
-                          CoinControlView.routeName,
-                          arguments: Tuple4(
-                            walletId,
-                            CoinControlViewType.use,
-                            amount,
-                            selectedUTXOs,
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Row(
+                    children: [
+                      SvgPicture.file(
+                        File(
+                          ref.watch(
+                            coinIconProvider(coin),
                           ),
-                        );
-
-                        if (result is Set<UTXO>) {
-                          setState(() {
-                            selectedUTXOs = result;
-                          });
-                        }
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-          const SizedBox(
-            height: 12,
-          ),
-          Text(
-            "Note (optional)",
-            style: STextStyles.smallMed12(context),
-            textAlign: TextAlign.left,
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(
-              Constants.size.circularBorderRadius,
-            ),
-            child: TextField(
-              autocorrect: Util.isDesktop ? false : true,
-              enableSuggestions: Util.isDesktop ? false : true,
-              controller: noteController,
-              focusNode: _noteFocusNode,
-              style: STextStyles.field(context),
-              onChanged: (_) => setState(() {}),
-              decoration: standardInputDecoration(
-                "Type something...",
-                _noteFocusNode,
-                context,
-              ).copyWith(
-                suffixIcon: noteController.text.isNotEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.only(right: 0),
-                        child: UnconstrainedBox(
-                          child: Row(
+                        ),
+                        width: 22,
+                        height: 22,
+                      ),
+                      const SizedBox(
+                        width: 6,
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            ref.watch(pWalletName(walletId)),
+                            style: STextStyles.titleBold12(context)
+                                .copyWith(fontSize: 14),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                          // const SizedBox(
+                          //   height: 2,
+                          // ),
+                          Text(
+                            "Available balance",
+                            style: STextStyles.label(context)
+                                .copyWith(fontSize: 10),
+                          ),
+                        ],
+                      ),
+                      Util.isDesktop
+                          ? const SizedBox(
+                              height: 24,
+                            )
+                          : const Spacer(),
+                      GestureDetector(
+                        onTap: () {
+                          // cryptoAmountController.text = ref
+                          //     .read(pAmountFormatter(coin))
+                          //     .format(
+                          //       _cachedBalance!,
+                          //       withUnitName: false,
+                          //     );
+                        },
+                        child: Container(
+                          color: Colors.transparent,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              TextFieldIconButton(
-                                child: const XIcon(),
-                                onTap: () async {
-                                  setState(() {
-                                    noteController.text = "";
-                                  });
-                                },
+                              Text(
+                                ref.watch(pAmountFormatter(coin)).format(ref
+                                    .watch(pWalletBalance(walletId))
+                                    .spendable),
+                                style:
+                                    STextStyles.titleBold12(context).copyWith(
+                                  fontSize: 10,
+                                ),
+                                textAlign: TextAlign.right,
                               ),
+                              // Text(
+                              //   "${(manager.balance.spendable.decimal * ref.watch(
+                              //             priceAnd24hChangeNotifierProvider.select(
+                              //               (value) => value.getPrice(coin).item1,
+                              //             ),
+                              //           )).toAmount(
+                              //         fractionDigits: 2,
+                              //       ).fiatString(
+                              //         locale: locale,
+                              //       )} ${ref.watch(
+                              //     prefsChangeNotifierProvider
+                              //         .select((value) => value.currency),
+                              //   )}",
+                              //   style: STextStyles.subtitle(context).copyWith(
+                              //     fontSize: 8,
+                              //   ),
+                              //   textAlign: TextAlign.right,
+                              // )
                             ],
                           ),
                         ),
                       )
-                    : null,
+                    ],
+                  ),
+                ),
+              ),
+            const SizedBox(
+              height: 16,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Recipients",
+                  style: STextStyles.smallMed12(context),
+                  textAlign: TextAlign.left,
+                ),
+                CustomTextButton(
+                  text: "Add",
+                  onTap: () {
+                    // used for tracking recipient forms
+                    _greatestWidgetIndex++;
+                    recipientWidgetIndexes.add(_greatestWidgetIndex);
+                    setState(() {});
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: 8,
+            ),
+            Column(
+              children: [
+                for (int i = 0; i < recipientWidgetIndexes.length; i++)
+                  ConditionalParent(
+                    condition: recipientWidgetIndexes.length > 1,
+                    builder: (child) => Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: child,
+                    ),
+                    child: Recipient(
+                      key: Key(
+                        "recipientKey_${recipientWidgetIndexes[i]}",
+                      ),
+                      index: recipientWidgetIndexes[i],
+                      coin: coin,
+                      onChanged: () {
+                        _validateRecipientFormStates();
+                      },
+                      remove: i == 0 && recipientWidgetIndexes.length == 1
+                          ? null
+                          : () {
+                              recipientWidgetIndexes.removeAt(i);
+                              setState(() {});
+                            },
+                    ),
+                  ),
+              ],
+            ),
+            if (showCoinControl)
+              const SizedBox(
+                height: 8,
+              ),
+            if (showCoinControl)
+              RoundedWhiteContainer(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Coin control",
+                      style: STextStyles.w500_14(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textSubtitle1,
+                      ),
+                    ),
+                    CustomTextButton(
+                      text: selectedUTXOs.isEmpty
+                          ? "Select coins"
+                          : "Selected coins (${selectedUTXOs.length})",
+                      onTap: () async {
+                        if (FocusScope.of(context).hasFocus) {
+                          FocusScope.of(context).unfocus();
+                          await Future<void>.delayed(
+                            const Duration(milliseconds: 100),
+                          );
+                        }
+
+                        if (mounted) {
+                          // finally spendable = ref
+                          //     .read(walletsChangeNotifierProvider)
+                          //     .getManager(widget.walletId)
+                          //     .balance
+                          //     .spendable;
+
+                          // TODO: [prio=high] make sure this coincontrol works correctly
+
+                          Amount? amount;
+
+                          final result = await Navigator.of(context).pushNamed(
+                            CoinControlView.routeName,
+                            arguments: Tuple4(
+                              walletId,
+                              CoinControlViewType.use,
+                              amount,
+                              selectedUTXOs,
+                            ),
+                          );
+
+                          if (result is Set<UTXO>) {
+                            setState(() {
+                              selectedUTXOs = result;
+                            });
+                          }
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            const SizedBox(
+              height: 12,
+            ),
+            Text(
+              "Note (optional)",
+              style: STextStyles.smallMed12(context),
+              textAlign: TextAlign.left,
+            ),
+            const SizedBox(
+              height: 8,
+            ),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(
+                Constants.size.circularBorderRadius,
+              ),
+              child: TextField(
+                autocorrect: Util.isDesktop ? false : true,
+                enableSuggestions: Util.isDesktop ? false : true,
+                controller: noteController,
+                focusNode: _noteFocusNode,
+                style: STextStyles.field(context),
+                onChanged: (_) => setState(() {}),
+                decoration: standardInputDecoration(
+                  "Type something...",
+                  _noteFocusNode,
+                  context,
+                ).copyWith(
+                  suffixIcon: noteController.text.isNotEmpty
+                      ? Padding(
+                          padding: const EdgeInsets.only(right: 0),
+                          child: UnconstrainedBox(
+                            child: Row(
+                              children: [
+                                TextFieldIconButton(
+                                  child: const XIcon(),
+                                  onTap: () async {
+                                    setState(() {
+                                      noteController.text = "";
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : null,
+                ),
               ),
             ),
-          ),
-          const SizedBox(
-            height: 12,
-          ),
-          Padding(
-            padding: const EdgeInsets.only(
-              bottom: 12,
-              top: 16,
+            const SizedBox(
+              height: 12,
             ),
-            child: FeeSlider(
-              coin: coin,
-              onSatVByteChanged: (rate) {
-                customFeeRate = rate;
-              },
+            Padding(
+              padding: const EdgeInsets.only(
+                bottom: 12,
+                top: 16,
+              ),
+              child: FeeSlider(
+                coin: coin,
+                onSatVByteChanged: (rate) {
+                  customFeeRate = rate;
+                },
+              ),
             ),
-          ),
-          Util.isDesktop
-              ? const SizedBox(
-                  height: 12,
-                )
-              : const Spacer(),
-          const SizedBox(
-            height: 12,
-          ),
-          TextButton(
-            onPressed: ref.watch(previewTxButtonStateProvider.state).state
-                ? _createSignConfig
-                : null,
-            style: ref.watch(previewTxButtonStateProvider.state).state
-                ? Theme.of(context)
-                    .extension<StackColors>()!
-                    .getPrimaryEnabledButtonStyle(context)
-                : Theme.of(context)
-                    .extension<StackColors>()!
-                    .getPrimaryDisabledButtonStyle(context),
-            child: Text(
-              "Create config",
-              style: STextStyles.button(context),
+            Util.isDesktop
+                ? const SizedBox(
+                    height: 12,
+                  )
+                : const Spacer(),
+            const SizedBox(
+              height: 12,
             ),
-          ),
-          const SizedBox(
-            height: 16,
-          ),
-        ],
+            TextButton(
+              onPressed: ref.watch(previewTxButtonStateProvider.state).state
+                  ? _createSignConfig
+                  : null,
+              style: ref.watch(previewTxButtonStateProvider.state).state
+                  ? Theme.of(context)
+                      .extension<StackColors>()!
+                      .getPrimaryEnabledButtonStyle(context)
+                  : Theme.of(context)
+                      .extension<StackColors>()!
+                      .getPrimaryDisabledButtonStyle(context),
+              child: Text(
+                "Create config",
+                style: STextStyles.button(context),
+              ),
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+          ],
+        ),
       ),
     );
   }
