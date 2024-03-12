@@ -698,10 +698,14 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
     String? multisigConfig,
   }) async {
     if (serializedKeys == null || multisigConfig == null) {
-      throw Exception(
-        "Failed to recover $runtimeType: "
-        "Missing serializedKeys and/or multisigConfig.",
-      );
+      serializedKeys = await getSerializedKeys();
+      multisigConfig = await getMultisigConfig();
+    }
+    if (serializedKeys == null || multisigConfig == null) {
+      String err = "${info.coinName} wallet ${info.walletId} had null keys/cfg";
+      Logging.instance.log(err, level: LogLevel.Fatal);
+      throw Exception(err);
+      // TODO [prio=low]: handle null keys or config.  This should not happen.
     }
 
     final coin = info.coin;
@@ -719,7 +723,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
         if (!isRescan) {
           final salt = frost
               .multisigSalt(
-                multisigConfig: multisigConfig,
+                multisigConfig: multisigConfig!,
               )
               .toHex;
           final knownSalts = _getKnownSalts();
@@ -735,9 +739,9 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
           await mainDB.deleteWalletBlockchainData(walletId);
         }
 
-        final keys = frost.deserializeKeys(keys: serializedKeys);
-        await _saveSerializedKeys(serializedKeys);
-        await _saveMultisigConfig(multisigConfig);
+        final keys = frost.deserializeKeys(keys: serializedKeys!);
+        await _saveSerializedKeys(serializedKeys!);
+        await _saveMultisigConfig(multisigConfig!);
 
         final addressString = frost.addressForKeys(
           network: cryptoCurrency.network == CryptoCurrencyNetwork.main
