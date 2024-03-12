@@ -85,6 +85,7 @@ import 'package:stackwallet/pages/receive_view/receive_view.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
 import 'package:stackwallet/pages/send_view/frost_ms/frost_attempt_sign_config_view.dart';
 import 'package:stackwallet/pages/send_view/frost_ms/frost_create_sign_config_view.dart';
+import 'package:stackwallet/pages/send_view/frost_ms/frost_import_sign_config_view.dart';
 import 'package:stackwallet/pages/send_view/frost_ms/frost_send_view.dart';
 import 'package:stackwallet/pages/send_view/send_view.dart';
 import 'package:stackwallet/pages/send_view/token_send_view.dart';
@@ -769,6 +770,20 @@ class RouteGenerator {
             builder: (_) => FrostSendView(
               walletId: args.walletId,
               coin: args.coin,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case FrostImportSignConfigView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => FrostImportSignConfigView(
+              walletId: args,
             ),
             settings: RouteSettings(
               name: settings.name,
