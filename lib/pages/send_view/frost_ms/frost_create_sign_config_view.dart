@@ -71,6 +71,8 @@ class _FrostCreateSignConfigViewState
 
   @override
   Widget build(BuildContext context) {
+    double qrImageSize =
+        Util.isDesktop ? 360 : MediaQuery.of(context).size.width - 32;
     return ConditionalParent(
       condition: Util.isDesktop,
       builder: (child) => DesktopScaffold(
@@ -79,9 +81,11 @@ class _FrostCreateSignConfigViewState
           isCompactHeight: false,
           leading: AppBarBackButton(),
         ),
-        body: SizedBox(
-          width: 480,
-          child: child,
+        body: SingleChildScrollView(
+          child: SizedBox(
+            width: 600, // Was 480, may look better but overflows the bottom.
+            child: child,
+          ),
         ),
       ),
       child: ConditionalParent(
@@ -126,13 +130,13 @@ class _FrostCreateSignConfigViewState
           children: [
             if (!Util.isDesktop) const Spacer(),
             SizedBox(
-              height: MediaQuery.of(context).size.width - 32,
+              height: qrImageSize,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   QrImageView(
                     data: ref.watch(pFrostTxData.state).state!.frostMSConfig!,
-                    size: MediaQuery.of(context).size.width - 32,
+                    size: qrImageSize,
                     backgroundColor:
                         Theme.of(context).extension<StackColors>()!.background,
                     foregroundColor: Theme.of(context)
@@ -142,9 +146,10 @@ class _FrostCreateSignConfigViewState
                 ],
               ),
             ),
-            const SizedBox(
-              height: 32,
-            ),
+            if (!Util.isDesktop)
+              const SizedBox(
+                height: 32,
+              ),
             DetailItem(
               title: "Encoded config",
               detail: ref.watch(pFrostTxData.state).state!.frostMSConfig!,
@@ -157,7 +162,7 @@ class _FrostCreateSignConfigViewState
                     ),
             ),
             SizedBox(
-              height: Util.isDesktop ? 64 : 16,
+              height: Util.isDesktop ? 20 : 16,
             ),
             if (!Util.isDesktop)
               const Spacer(
