@@ -22,6 +22,7 @@ import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/debug_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/syncing_preferences_views/syncing_preferences_view.dart';
 import 'package:stackwallet/pages/settings_views/sub_widgets/settings_list_button.dart';
+import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/frost_ms_options_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_backup_views/wallet_backup_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/change_representative_view.dart';
@@ -39,6 +40,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -193,6 +195,21 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                             padding: const EdgeInsets.all(4),
                             child: Column(
                               children: [
+                                if (coin == Coin.bitcoinFrost ||
+                                    coin == Coin.bitcoinFrostTestNet)
+                                  if (coin == Coin.bitcoinFrost ||
+                                      coin == Coin.bitcoinFrostTestNet)
+                                    SettingsListButton(
+                                      iconAssetName: Assets.svg.addressBook2,
+                                      iconSize: 16,
+                                      title: "FROST Multisig settings",
+                                      onPressed: () {
+                                        Navigator.of(context).pushNamed(
+                                          FrostMSWalletOptionsView.routeName,
+                                          arguments: walletId,
+                                        );
+                                      },
+                                    ),
                                 SettingsListButton(
                                   iconAssetName: Assets.svg.addressBook,
                                   iconSize: 16,
@@ -235,39 +252,83 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                         final wallet = ref
                                             .read(pWallets)
                                             .getWallet(widget.walletId);
-                                        // TODO: [prio=frost] take wallets that don't have a mnemonic into account
-                                        if (wallet is MnemonicInterface) {
-                                          final mnemonic =
-                                              await wallet.getMnemonicAsWords();
 
-                                          if (mounted) {
-                                            await Navigator.push(
-                                              context,
-                                              RouteGenerator.getRoute(
-                                                shouldUseMaterialRoute:
-                                                    RouteGenerator
-                                                        .useMaterialPageRoute,
-                                                builder: (_) => LockscreenView(
-                                                  routeOnSuccessArguments:
-                                                      Tuple2(
-                                                          walletId, mnemonic),
-                                                  showBackButton: true,
-                                                  routeOnSuccess:
-                                                      WalletBackupView
-                                                          .routeName,
-                                                  biometricsCancelButtonString:
-                                                      "CANCEL",
-                                                  biometricsLocalizedReason:
-                                                      "Authenticate to view recovery phrase",
-                                                  biometricsAuthenticationTitle:
-                                                      "View recovery phrase",
-                                                ),
-                                                settings: const RouteSettings(
-                                                    name:
-                                                        "/viewRecoverPhraseLockscreen"),
-                                              ),
+                                        // TODO: [prio=med] take wallets that don't have a mnemonic into account
+
+                                        List<String>? mnemonic;
+                                        ({
+                                          String myName,
+                                          String config,
+                                          String keys,
+                                          ({
+                                            String config,
+                                            String keys
+                                          })? prevGen,
+                                        })? frostWalletData;
+                                        if (wallet is BitcoinFrostWallet) {
+                                          List<Future<dynamic>> futures = [];
+
+                                          futures.addAll(
+                                            [
+                                              wallet.getSerializedKeys(),
+                                              wallet.getMultisigConfig(),
+                                              wallet.getSerializedKeysPrevGen(),
+                                              wallet.getMultisigConfigPrevGen(),
+                                            ],
+                                          );
+
+                                          final results =
+                                              await Future.wait(futures);
+
+                                          if (results.length == 5) {
+                                            frostWalletData = (
+                                              myName: wallet.frostInfo.myName,
+                                              config: results[1],
+                                              keys: results[0],
+                                              prevGen: results[2] == null ||
+                                                      results[3] == null
+                                                  ? null
+                                                  : (
+                                                      config: results[3],
+                                                      keys: results[2],
+                                                    ),
                                             );
                                           }
+                                        } else if (wallet
+                                            is MnemonicInterface) {
+                                          mnemonic =
+                                              await wallet.getMnemonicAsWords();
+                                        }
+
+                                        if (mounted) {
+                                          await Navigator.push(
+                                            context,
+                                            RouteGenerator.getRoute(
+                                              shouldUseMaterialRoute:
+                                                  RouteGenerator
+                                                      .useMaterialPageRoute,
+                                              builder: (_) => LockscreenView(
+                                                routeOnSuccessArguments: (
+                                                  walletId: walletId,
+                                                  mnemonic: mnemonic ?? [],
+                                                  frostWalletData:
+                                                      frostWalletData,
+                                                ),
+                                                showBackButton: true,
+                                                routeOnSuccess:
+                                                    WalletBackupView.routeName,
+                                                biometricsCancelButtonString:
+                                                    "CANCEL",
+                                                biometricsLocalizedReason:
+                                                    "Authenticate to view recovery phrase",
+                                                biometricsAuthenticationTitle:
+                                                    "View recovery phrase",
+                                              ),
+                                              settings: const RouteSettings(
+                                                  name:
+                                                      "/viewRecoverPhraseLockscreen"),
+                                            ),
+                                          );
                                         }
                                       },
                                     );

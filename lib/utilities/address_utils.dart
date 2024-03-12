@@ -14,10 +14,9 @@ import 'package:bitcoindart/bitcoindart.dart';
 import 'package:crypto/crypto.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-
 import 'package:stackwallet/wallets/crypto_currency/coins/banano.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin_frost.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/bitcoincash.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/dogecoin.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/ecash.dart';
@@ -32,6 +31,7 @@ import 'package:stackwallet/wallets/crypto_currency/coins/particl.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/stellar.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/tezos.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 class AddressUtils {
   static String condenseAddress(String address) {
@@ -72,6 +72,9 @@ class AddressUtils {
     switch (coin) {
       case Coin.bitcoin:
         return Bitcoin(CryptoCurrencyNetwork.main).validateAddress(address);
+      case Coin.bitcoinFrost:
+        return BitcoinFrost(CryptoCurrencyNetwork.main)
+            .validateAddress(address);
       case Coin.litecoin:
         return Litecoin(CryptoCurrencyNetwork.main).validateAddress(address);
       case Coin.bitcoincash:
@@ -104,6 +107,9 @@ class AddressUtils {
         return Tezos(CryptoCurrencyNetwork.main).validateAddress(address);
       case Coin.bitcoinTestNet:
         return Bitcoin(CryptoCurrencyNetwork.test).validateAddress(address);
+      case Coin.bitcoinFrostTestNet:
+        return BitcoinFrost(CryptoCurrencyNetwork.test)
+            .validateAddress(address);
       case Coin.litecoinTestNet:
         return Litecoin(CryptoCurrencyNetwork.test).validateAddress(address);
       case Coin.bitcoincashTestnet:

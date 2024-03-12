@@ -21,6 +21,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
@@ -80,19 +81,33 @@ class _UnlockWalletKeysDesktopState
       Navigator.of(context, rootNavigator: true).pop();
 
       final wallet = ref.read(pWallets).getWallet(widget.walletId);
+      ({String keys, String config})? frostData;
+      List<String>? words;
 
-      // TODO: [prio=med] handle wallets that don't have a mnemonic
+      // TODO: [prio=low] handle wallets that don't have a mnemonic
       // All wallets currently are mnemonic based
       if (wallet is! MnemonicInterface) {
-        throw Exception("FIXME ~= see todo in code");
+        if (wallet is BitcoinFrostWallet) {
+          frostData = (
+            keys: (await wallet.getSerializedKeys())!,
+            config: (await wallet.getMultisigConfig())!,
+          );
+          print(1111111);
+          print(frostData);
+        } else {
+          throw Exception("FIXME ~= see todo in code");
+        }
+      } else {
+        words = await wallet.getMnemonicAsWords();
       }
-
-      final words = await wallet.getMnemonicAsWords();
 
       if (mounted) {
         await Navigator.of(context).pushReplacementNamed(
           WalletKeysDesktopPopup.routeName,
-          arguments: words,
+          arguments: (
+            mnemonic: words ?? [],
+            frostData: frostData,
+          ),
         );
       }
     } else {
@@ -301,21 +316,35 @@ class _UnlockWalletKeysDesktopState
                             if (verified) {
                               Navigator.of(context, rootNavigator: true).pop();
 
+                              ({String keys, String config})? frostData;
+                              List<String>? words;
+
                               final wallet =
                                   ref.read(pWallets).getWallet(widget.walletId);
 
                               // TODO: [prio=low] handle wallets that don't have a mnemonic
                               // All wallets currently are mnemonic based
                               if (wallet is! MnemonicInterface) {
-                                throw Exception("FIXME ~= see todo in code");
+                                if (wallet is BitcoinFrostWallet) {
+                                  frostData = (
+                                    keys: (await wallet.getSerializedKeys())!,
+                                    config: (await wallet.getMultisigConfig())!,
+                                  );
+                                } else {
+                                  throw Exception("FIXME ~= see todo in code");
+                                }
+                              } else {
+                                words = await wallet.getMnemonicAsWords();
                               }
 
-                              final words = await wallet.getMnemonicAsWords();
                               if (mounted) {
                                 await Navigator.of(context)
                                     .pushReplacementNamed(
                                   WalletKeysDesktopPopup.routeName,
-                                  arguments: words,
+                                  arguments: (
+                                    mnemonic: words ?? [],
+                                    frostData: frostData,
+                                  ),
                                 );
                               }
                             } else {

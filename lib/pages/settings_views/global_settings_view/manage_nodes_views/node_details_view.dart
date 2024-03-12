@@ -148,6 +148,8 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
       case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:
       case Coin.eCash:
+      case Coin.bitcoinFrost:
+      case Coin.bitcoinFrostTestNet:
         final client = ElectrumXClient(
           host: node!.host,
           port: node.port,

@@ -163,6 +163,7 @@ enum AddressType {
   spark,
   stellar,
   tezos,
+  frostMS,
   ;
 
   String get readableName {
@@ -193,6 +194,8 @@ enum AddressType {
         return "Stellar";
       case AddressType.tezos:
         return "Tezos";
+      case AddressType.frostMS:
+        return "FrostMS";
     }
   }
 }

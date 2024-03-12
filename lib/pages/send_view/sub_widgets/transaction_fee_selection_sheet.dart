@@ -26,6 +26,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 
 final feeSheetSessionCacheProvider =
@@ -697,7 +698,7 @@ class _TransactionFeeSelectionSheetState
                     const SizedBox(
                       height: 24,
                     ),
-                    if (coin.isElectrumXCoin)
+                    if (wallet is ElectrumXInterface)
                       GestureDetector(
                         onTap: () {
                           final state =
@@ -766,7 +767,7 @@ class _TransactionFeeSelectionSheetState
                           ),
                         ),
                       ),
-                    if (coin.isElectrumXCoin)
+                    if (wallet is ElectrumXInterface)
                       const SizedBox(
                         height: 24,
                       ),

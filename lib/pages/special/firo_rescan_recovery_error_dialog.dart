@@ -23,7 +23,6 @@ import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
-import 'package:tuple/tuple.dart';
 
 enum FiroRescanRecoveryErrorViewOption {
   retry,
@@ -269,8 +268,10 @@ class _FiroRescanRecoveryErrorViewState
                                 shouldUseMaterialRoute:
                                     RouteGenerator.useMaterialPageRoute,
                                 builder: (_) => LockscreenView(
-                                  routeOnSuccessArguments:
-                                      Tuple2(widget.walletId, mnemonic),
+                                  routeOnSuccessArguments: (
+                                    walletId: widget.walletId,
+                                    mnemonic: mnemonic,
+                                  ),
                                   showBackButton: true,
                                   routeOnSuccess: WalletBackupView.routeName,
                                   biometricsCancelButtonString: "CANCEL",
