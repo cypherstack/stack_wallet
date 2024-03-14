@@ -212,9 +212,7 @@ void main(List<String> args) async {
     }
   }
 
-  if (!Platform.isWindows) {
-    monero.onStartup();
-  }
+  monero.onStartup();
   if (!Platform.isLinux && !Platform.isWindows) {
     wownero.onStartup();
   }
