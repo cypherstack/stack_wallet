@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:stackwallet/pages/FrostMascot.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/frost_share_shares_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/services/frost.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -121,17 +121,7 @@ class _FrostShareCommitmentsViewState
                 );
               },
             ),
-            trailing: ExitToMyStackButton(
-              onPressed: () async {
-                await showDialog<void>(
-                  context: context,
-                  builder: (_) => const FrostInterruptionDialog(
-                    type: FrostInterruptionDialogType.walletCreation,
-                    popUntilOnYesRouteName: DesktopHomeView.routeName,
-                  ),
-                );
-              },
-            ),
+            trailing: const FrostMascot(),
           ),
           body: SizedBox(
             width: 480,
