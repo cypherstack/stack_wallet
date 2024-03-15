@@ -5,7 +5,6 @@ import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/resharing/finish_resharing_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -19,6 +18,8 @@ import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/detail_item.dart';
 import 'package:stackwallet/widgets/dialogs/frost_interruption_dialog.dart';
+
+import 'package:stackwallet/pages/frost_mascot.dart';
 
 class NewContinueSharingView extends ConsumerStatefulWidget {
   const NewContinueSharingView({
@@ -68,16 +69,9 @@ class _NewContinueSharingViewState
                 );
               },
             ),
-            trailing: ExitToMyStackButton(
-              onPressed: () async {
-                await showDialog<void>(
-                  context: context,
-                  builder: (_) => const FrostInterruptionDialog(
-                    type: FrostInterruptionDialogType.resharing,
-                    popUntilOnYesRouteName: DesktopHomeView.routeName,
-                  ),
-                );
-              },
+            trailing: FrostMascot(
+              title: 'Lorem ipsum',
+              body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam est justo, ',
             ),
           ),
           body: SizedBox(

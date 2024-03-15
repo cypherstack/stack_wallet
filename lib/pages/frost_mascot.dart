@@ -9,18 +9,16 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/frost_step_explanation_dialog.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-
-import 'add_wallet_views/new_wallet_recovery_phrase_warning_view/recovery_phrase_explanation_dialog.dart';
 
 class FrostMascot extends StatelessWidget {
-  const FrostMascot({
-    Key? key,
-    this.onPressed,
-  }) : super(key: key);
+  final String title;
+  final String body;
+  FrostMascot({
+    super.key,
+    this.onPressed, required this.title, required this.body,
+  });
 
   final VoidCallback? onPressed;
 
@@ -35,7 +33,7 @@ class FrostMascot extends StatelessWidget {
           await showDialog<void>(
             context: context,
             builder: (context) =>
-            const RecoveryPhraseExplanationDialog(),
+            FrostStepExplanationDialog(title: title, body: body),
           );
         },
         child: Image(

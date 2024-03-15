@@ -27,6 +27,8 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
+import 'package:stackwallet/pages/frost_mascot.dart';
+
 class NewImportResharerConfigView extends ConsumerStatefulWidget {
   const NewImportResharerConfigView({
     super.key,
@@ -89,10 +91,13 @@ class _NewImportResharerConfigViewState
       condition: Util.isDesktop,
       builder: (child) => DesktopScaffold(
         background: Theme.of(context).extension<StackColors>()!.background,
-        appBar: const DesktopAppBar(
+        appBar: DesktopAppBar(
           isCompactHeight: false,
           leading: AppBarBackButton(),
-          trailing: ExitToMyStackButton(),
+          trailing: FrostMascot(
+            title: 'Lorem ipsum',
+            body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam est justo, ',
+          ),
         ),
         body: SizedBox(
           width: 480,

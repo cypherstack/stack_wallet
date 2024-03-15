@@ -8,7 +8,6 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/resharing/verify_updated_wallet_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
@@ -33,6 +32,8 @@ import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
+
+import 'package:stackwallet/pages/frost_mascot.dart';
 
 class FinishResharingView extends ConsumerStatefulWidget {
   const FinishResharingView({
@@ -180,10 +181,13 @@ class _FinishResharingViewState extends ConsumerState<FinishResharingView> {
       condition: Util.isDesktop,
       builder: (child) => DesktopScaffold(
         background: Theme.of(context).extension<StackColors>()!.background,
-        appBar: const DesktopAppBar(
+        appBar: DesktopAppBar(
           isCompactHeight: false,
           leading: AppBarBackButton(),
-          trailing: ExitToMyStackButton(),
+          trailing: FrostMascot(
+            title: 'Lorem ipsum',
+            body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam est justo, ',
+          ),
         ),
         body: SizedBox(
           width: 480,

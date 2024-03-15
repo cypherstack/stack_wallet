@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:stackwallet/pages/FrostMascot.dart';
+import 'package:stackwallet/pages/frost_mascot.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/frost_share_shares_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
@@ -121,7 +121,10 @@ class _FrostShareCommitmentsViewState
                 );
               },
             ),
-            trailing: const FrostMascot(),
+            trailing: FrostMascot(
+              title: 'Lorem ipsum',
+              body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam est justo, ',
+            ),
           ),
           body: SizedBox(
             width: 480,
