@@ -1861,7 +1861,19 @@ class RouteGenerator {
               name: settings.name,
             ),
           );
+        } else if (args is ({Coin coin, String walletId})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SendView(
+              walletId: args.walletId,
+              coin: args.coin,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
         }
+
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case TokenSendView.routeName:
