@@ -13,10 +13,10 @@ import 'package:stackwallet/utilities/constants.dart';
 
 enum Coin {
   bitcoin,
-  bitcoinFrost,
   monero,
   banano,
   bitcoincash,
+  bitcoinFrost,
   dogecoin,
   eCash,
   epicCash,
@@ -36,8 +36,8 @@ enum Coin {
   ///
 
   bitcoinTestNet,
-  bitcoinFrostTestNet,
   bitcoincashTestnet,
+  bitcoinFrostTestNet,
   dogecoinTestNet,
   firoTestNet,
   litecoinTestNet,
