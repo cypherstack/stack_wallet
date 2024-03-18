@@ -218,9 +218,10 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
   }
 
   Future<void> _refreshTxData() async {
+    // Calling the function too quickly causes crashes.
+    await Future<void>.delayed(const Duration(seconds: 1));
     await updateTransactions();
     final count = await mainDB.getTransactions(walletId).count();
-
     if (count > _txCount) {
       _txCount = count;
       await updateBalance();
