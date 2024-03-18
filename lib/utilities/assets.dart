@@ -257,6 +257,7 @@ class _PNG {
 
   String get glasses => "assets/images/glasses.png";
   String get glassesHidden => "assets/images/glasses-hidden.png";
+  String get mascot => "assets/images/mascot.png";
 }
 
 class _ANIMATIONS {

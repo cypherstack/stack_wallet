@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/pages/frost_mascot.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/share_new_multisig_config_view.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/services/frost.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -118,10 +118,13 @@ class _NewFrostMsWalletViewState
       condition: Util.isDesktop,
       builder: (child) => DesktopScaffold(
         background: Theme.of(context).extension<StackColors>()!.background,
-        appBar: const DesktopAppBar(
+        appBar: DesktopAppBar(
           isCompactHeight: false,
           leading: AppBarBackButton(),
-          trailing: ExitToMyStackButton(),
+          trailing: FrostMascot(
+            title: 'Lorem ipsum',
+            body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam est justo, ',
+          ),
         ),
         body: SizedBox(
           width: 480,
