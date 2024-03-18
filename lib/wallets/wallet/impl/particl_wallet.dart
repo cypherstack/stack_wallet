@@ -193,8 +193,8 @@ class ParticlWallet extends Bip39HDWallet
         OutpointV2? outpoint;
 
         final coinbase = map["coinbase"] as String?;
-
-        if (coinbase == null) {
+        final txType = map['type'] as String?;
+        if (coinbase == null && txType == null) {
           // Not a coinbase (ie a typical input).
           final txid = map["txid"] as String;
           final vout = map["vout"] as int;
