@@ -39,7 +39,7 @@ Uri getDefaultBlockExplorerUrlFor({
       throw UnimplementedError("missing block explorer for epic cash");
     case Coin.ethereum:
       return Uri.parse("https://etherscan.io/tx/$txid");
-    case Coin.monero:
+    case Coin.monero || Coin.monerodart:
       return Uri.parse("https://xmrchain.net/tx/$txid");
     case Coin.wownero:
       return Uri.parse("https://explore.wownero.com/search?value=$txid");

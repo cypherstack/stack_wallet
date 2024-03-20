@@ -89,7 +89,7 @@ class AddressUtils {
         return Firo(CryptoCurrencyNetwork.main).validateAddress(address);
       case Coin.eCash:
         return Ecash(CryptoCurrencyNetwork.main).validateAddress(address);
-      case Coin.monero:
+      case Coin.monero || Coin.monerodart:
         return Monero(CryptoCurrencyNetwork.main).validateAddress(address);
       case Coin.wownero:
         return Wownero(CryptoCurrencyNetwork.main).validateAddress(address);

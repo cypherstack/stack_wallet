@@ -36,6 +36,7 @@ import 'package:stackwallet/wallets/wallet/impl/ethereum_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/litecoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/monero_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/monerodart_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/namecoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/nano_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/particl_wallet.dart';
@@ -151,7 +152,7 @@ abstract class Wallet<T extends CryptoCurrency> {
     );
 
     if (wallet is MnemonicInterface) {
-      if (wallet is CryptonoteWallet) {
+      if (wallet is CryptonoteWallet || wallet is MoneroDartWallet) {
         // currently a special case due to the xmr/wow libraries handling their
         // own mnemonic generation on new wallet creation
         // if its a restore we must set them
@@ -353,6 +354,9 @@ abstract class Wallet<T extends CryptoCurrency> {
       case Coin.monero:
         return MoneroWallet(CryptoCurrencyNetwork.main);
 
+      case Coin.monerodart:
+        return MoneroDartWallet(CryptoCurrencyNetwork.main);
+
       case Coin.namecoin:
         return NamecoinWallet(CryptoCurrencyNetwork.main);
 
@@ -373,9 +377,6 @@ abstract class Wallet<T extends CryptoCurrency> {
       case Coin.wownero:
         return WowneroWallet(CryptoCurrencyNetwork.main);
 
-      default:
-        // should never hit in reality
-        throw Exception("Unknown crypto currency: ${walletInfo.coin}");
     }
   }
 

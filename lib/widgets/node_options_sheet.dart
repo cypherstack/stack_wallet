@@ -37,11 +37,11 @@ import 'package:tuple/tuple.dart';
 
 class NodeOptionsSheet extends ConsumerWidget {
   const NodeOptionsSheet({
-    Key? key,
+    super.key,
     required this.nodeId,
     required this.coin,
     required this.popBackToRoute,
-  }) : super(key: key);
+  });
 
   final String nodeId;
   final Coin coin;
@@ -100,6 +100,7 @@ class NodeOptionsSheet extends ConsumerWidget {
         break;
 
       case Coin.monero:
+      case Coin.monerodart:
       case Coin.wownero:
         try {
           final uri = Uri.parse(node.host);

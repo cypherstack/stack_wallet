@@ -1702,6 +1702,7 @@ class StackColors extends ThemeExtension<StackColors> {
       case Coin.firoTestNet:
         return _coin.firo;
       case Coin.monero:
+      case Coin.monerodart:
         return _coin.monero;
       case Coin.namecoin:
         return _coin.namecoin;

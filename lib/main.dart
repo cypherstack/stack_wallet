@@ -75,6 +75,7 @@ import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/providers/all_wallets_info_provider.dart';
 import 'package:stackwallet/widgets/crypto_notifications.dart';
 import 'package:window_size/window_size.dart';
+import 'package:monero/monero.dart' as monero_dart;
 
 final openedFromSWBFileStringStateProvider =
     StateProvider<String?>((ref) => null);
@@ -83,6 +84,7 @@ final openedFromSWBFileStringStateProvider =
 // runs the MyApp widget and checks for new users, caching the value in the
 // miscellaneous box for later use
 void main(List<String> args) async {
+  monero_dart.printStarts = true;
   WidgetsFlutterBinding.ensureInitialized();
 
   if (Util.isDesktop && args.length == 2 && args.first == "-d") {
@@ -257,7 +259,7 @@ void main(List<String> args) async {
 
 /// MyApp initialises relevant services with a MultiProvider
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -274,8 +276,8 @@ class MyApp extends StatelessWidget {
 
 class MaterialAppWithTheme extends ConsumerStatefulWidget {
   const MaterialAppWithTheme({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   ConsumerState<MaterialAppWithTheme> createState() =>

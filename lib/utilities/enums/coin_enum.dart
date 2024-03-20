@@ -14,6 +14,7 @@ import 'package:stackwallet/utilities/constants.dart';
 enum Coin {
   bitcoin,
   monero,
+  monerodart,
   banano,
   bitcoincash,
   bitcoinFrost,
@@ -67,6 +68,8 @@ extension CoinExt on Coin {
         return "Firo";
       case Coin.monero:
         return "Monero";
+      case Coin.monerodart:
+        return "Monero.dart";
       case Coin.particl:
         return "Particl";
       case Coin.stellar:
@@ -117,7 +120,7 @@ extension CoinExt on Coin {
         return "XEC";
       case Coin.firo:
         return "FIRO";
-      case Coin.monero:
+      case Coin.monero || Coin.monerodart:
         return "XMR";
       case Coin.particl:
         return "PART";
@@ -169,7 +172,7 @@ extension CoinExt on Coin {
         return "ecash";
       case Coin.firo:
         return "firo";
-      case Coin.monero:
+      case Coin.monero || Coin.monerodart:
         return "monero";
       case Coin.particl:
         return "particl";
@@ -201,6 +204,37 @@ extension CoinExt on Coin {
     }
   }
 
+  bool get isElectrumXCoin {
+    switch (this) {
+      case Coin.bitcoin:
+      case Coin.litecoin:
+      case Coin.bitcoincash:
+      case Coin.dogecoin:
+      case Coin.firo:
+      case Coin.namecoin:
+      case Coin.particl:
+      case Coin.bitcoinTestNet:
+      case Coin.litecoinTestNet:
+      case Coin.bitcoincashTestnet:
+      case Coin.firoTestNet:
+      case Coin.dogecoinTestNet:
+      case Coin.eCash:
+        return true;
+
+      case Coin.epicCash:
+      case Coin.ethereum:
+      case Coin.monero:
+      case Coin.monerodart:
+      case Coin.tezos:
+      case Coin.wownero:
+      case Coin.nano:
+      case Coin.banano:
+      case Coin.stellar:
+      case Coin.stellarTestnet:
+        return false;
+    }
+  }
+
   bool get hasMnemonicPassphraseSupport {
     switch (this) {
       case Coin.bitcoin:
@@ -225,6 +259,7 @@ extension CoinExt on Coin {
       case Coin.bitcoinFrostTestNet:
       case Coin.epicCash:
       case Coin.monero:
+      case Coin.monerodart:
       case Coin.wownero:
       case Coin.nano:
       case Coin.banano:
@@ -250,6 +285,7 @@ extension CoinExt on Coin {
       case Coin.eCash:
       case Coin.epicCash:
       case Coin.monero:
+      case Coin.monerodart:
       case Coin.tezos:
       case Coin.wownero:
       case Coin.dogecoinTestNet:
@@ -278,6 +314,7 @@ extension CoinExt on Coin {
       case Coin.epicCash:
       case Coin.ethereum:
       case Coin.monero:
+      case Coin.monerodart:
       case Coin.tezos:
       case Coin.wownero:
       case Coin.nano:
@@ -321,6 +358,7 @@ extension CoinExt on Coin {
       case Coin.epicCash:
       case Coin.ethereum:
       case Coin.monero:
+      case Coin.monerodart:
       case Coin.tezos:
       case Coin.wownero:
       case Coin.nano:
@@ -379,6 +417,7 @@ extension CoinExt on Coin {
         return AddressType.p2pkh;
 
       case Coin.monero:
+      case Coin.monerodart:
       case Coin.wownero:
         return AddressType.cryptonote;
 
@@ -443,6 +482,10 @@ Coin coinFromPrettyName(String name) {
     case "Monero":
     case "monero":
       return Coin.monero;
+
+    case "Monero.dart":
+    case "monero.dart":
+      return Coin.monerodart;
 
     case "Particl":
     case "particl":
@@ -543,7 +586,7 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
     case "firo":
       return Coin.firo;
     case "xmr":
-      return Coin.monero;
+      return Coin.monerodart;
     case "nmc":
       return Coin.namecoin;
     case "part":
