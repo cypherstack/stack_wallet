@@ -9,8 +9,10 @@ import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/event_bus/events/global/blocks_remaining_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
+import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/monero.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
@@ -225,7 +227,10 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
   Future<void> updateNode() async {
     final node = getCurrentNode();
     final host = Uri.parse(node.host).host;
-    MONERO_Wallet_init(wPtr!, daemonAddress: "$host:${node.port}");
+    final proxy = (TorService.sharedInstance.status == TorConnectionStatus.connected) ?
+      "${TorService.sharedInstance.getProxyInfo().host.address}:${TorService.sharedInstance.getProxyInfo().port}" : "";
+    print("proxy: $proxy");
+    MONERO_Wallet_init(wPtr!, daemonAddress: "$host:${node.port}", proxyAddress: proxy);
     MONERO_Wallet_init3(wPtr!, argv0: '', defaultLogBaseName: 'moneroc', console: true, logPath: '/dev/shm/log.txt');
     syncCheckTimer?.cancel();
     syncCheckTimer = Timer.periodic(const Duration(seconds: 2), (timer) {

@@ -84,7 +84,7 @@ final openedFromSWBFileStringStateProvider =
 // runs the MyApp widget and checks for new users, caching the value in the
 // miscellaneous box for later use
 void main(List<String> args) async {
-  monero_dart.printStarts = true;
+  // monero_dart.printStarts = true;
   WidgetsFlutterBinding.ensureInitialized();
 
   if (Util.isDesktop && args.length == 2 && args.first == "-d") {
