@@ -158,6 +158,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+  borsh_annotation:
+    dependency: transitive
+    description:
+      name: borsh_annotation
+      sha256: "4a226cf8b7a165ecf8020c0c8d366b2728167fd102ef9b9e89d94d86f89ac57b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.1+5"
   bs58check:
     dependency: "direct main"
     description:
@@ -506,6 +514,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.9"
+  ed25519_hd_key:
+    dependency: transitive
+    description:
+      name: ed25519_hd_key
+      sha256: c5c9f11a03f5789bf9dcd9ae88d641571c802640851f1cacdb13123f171b3a26
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.1"
   eip1559:
     dependency: transitive
     description:
@@ -588,7 +604,7 @@ packages:
     source: hosted
     version: "2.1.0"
   file:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: file
       sha256: "5fc22d7c25582e38ad9a8515372cd9a93834027aacf1801cf01164dac0ffa08c"
@@ -694,7 +710,7 @@ packages:
     source: hosted
     version: "17.0.0"
   flutter_local_notifications_linux:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: flutter_local_notifications_linux
       sha256: "33f741ef47b5f63cc7f78fe75eeeac7e19f171ff3c3df054d84c1e38bedb6a03"
@@ -815,6 +831,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  freezed_annotation:
+    dependency: transitive
+    description:
+      name: freezed_annotation
+      sha256: c3fd9336eb55a38cc1bbd79ab17573113a8deccd0ecbbf926cca3c62803b5c2d
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.1"
   frontend_server_client:
     dependency: transitive
     description:
@@ -1393,7 +1417,7 @@ packages:
     source: hosted
     version: "1.2.0-beta-1"
   process:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: process
       sha256: "21e54fd2faf1b5bdd5102afd25012184a6793927648ea81eea80552ac9405b32"
@@ -1558,6 +1582,14 @@ packages:
       url: "https://github.com/cypherstack/socks_socket.git"
     source: git
     version: "0.1.0"
+  solana:
+    dependency: "direct main"
+    description:
+      name: solana
+      sha256: "99a6a40a847f57ccf4687a730413d67fcaef4fc6778ddd9c3258e7fe8e4c6743"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.30.3"
   source_gen:
     dependency: transitive
     description:
@@ -2036,7 +2068,7 @@ packages:
     source: git
     version: "0.1.0"
   xdg_directories:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: xdg_directories
       sha256: faea9dee56b520b55a566385b84f2e8de55e7496104adada9962e0bd11bcff1d

@@ -164,6 +164,7 @@ enum AddressType {
   stellar,
   tezos,
   frostMS,
+  solana,
   p2tr;
 
   String get readableName {
@@ -196,6 +197,8 @@ enum AddressType {
         return "Tezos";
       case AddressType.frostMS:
         return "FrostMS";
+      case AddressType.solana:
+        return "Solana";
       case AddressType.p2tr:
         return "Taproot"; // Why not use P2TR, P2PKH, etc.?
     }
