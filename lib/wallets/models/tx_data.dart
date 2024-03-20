@@ -8,6 +8,7 @@ import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/wallets/isar/models/spark_coin.dart';
 import 'package:tezart/tezart.dart' as tezart;
 import 'package:web3dart/web3dart.dart' as web3dart;
+import 'package:monero/monero.dart';
 
 class TxData {
   final FeeRateType? feeRateType;
@@ -49,6 +50,9 @@ class TxData {
 
   // monero specific
   final PendingMoneroTransaction? pendingMoneroTransaction;
+
+  // monerodart specific
+  final MONERO_PendingTransaction? pendingTransactionPtr;
 
   // firo lelantus specific
   final int? jMintValue;
@@ -98,6 +102,7 @@ class TxData {
     this.feeInWei,
     this.pendingWowneroTransaction,
     this.pendingMoneroTransaction,
+    this.pendingTransactionPtr,
     this.jMintValue,
     this.spendCoinIndexes,
     this.height,
@@ -174,6 +179,7 @@ class TxData {
     BigInt? feeInWei,
     PendingWowneroTransaction? pendingWowneroTransaction,
     PendingMoneroTransaction? pendingMoneroTransaction,
+    MONERO_PendingTransaction? pendingTransactionPtr,
     int? jMintValue,
     List<int>? spendCoinIndexes,
     int? height,
@@ -219,6 +225,7 @@ class TxData {
           pendingWowneroTransaction ?? this.pendingWowneroTransaction,
       pendingMoneroTransaction:
           pendingMoneroTransaction ?? this.pendingMoneroTransaction,
+      pendingTransactionPtr: pendingTransactionPtr ?? this.pendingTransactionPtr,
       jMintValue: jMintValue ?? this.jMintValue,
       spendCoinIndexes: spendCoinIndexes ?? this.spendCoinIndexes,
       height: height ?? this.height,

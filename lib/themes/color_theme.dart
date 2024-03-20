@@ -57,6 +57,7 @@ class CoinThemeColorDefault {
       case Coin.firoTestNet:
         return firo;
       case Coin.monero:
+      case Coin.monerodart:
         return monero;
       case Coin.namecoin:
         return namecoin;

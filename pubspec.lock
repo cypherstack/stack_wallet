@@ -1147,6 +1147,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.0"
+  monero:
+    dependency: "direct main"
+    description:
+      name: monero
+      sha256: "0e900c096d16eb703536d5dd85ebfe94d8259d261c45308394d125a2643d7f2e"
+      url: "https://git.mrcyjanek.net/api/packages/mrcyjanek/pub/"
+    source: hosted
+    version: "0.018003001.38"
   mutex:
     dependency: "direct main"
     description:

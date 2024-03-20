@@ -93,6 +93,7 @@ abstract class Constants {
         return _satsPerCoinWownero;
 
       case Coin.monero:
+      case Coin.monerodart:
         return _satsPerCoinMonero;
 
       case Coin.ethereum:
@@ -137,6 +138,7 @@ abstract class Constants {
         return _decimalPlacesWownero;
 
       case Coin.monero:
+      case Coin.monerodart:
         return _decimalPlacesMonero;
 
       case Coin.ethereum:
@@ -184,7 +186,8 @@ abstract class Constants {
         values.addAll([24, 12]);
 
       case Coin.monero:
-        values.addAll([25]);
+      case Coin.monerodart:
+        values.addAll([16]);
         break;
       case Coin.wownero:
         values.addAll([14, 25]);
@@ -222,6 +225,7 @@ abstract class Constants {
         return 15;
 
       case Coin.monero:
+      case Coin.monerodart:
         return 120;
 
       case Coin.wownero:
@@ -276,6 +280,7 @@ abstract class Constants {
         return 24;
 
       case Coin.monero:
+      case Coin.monerodart:
         return 25;
       //
       // default:

@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
+import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
@@ -41,11 +42,11 @@ import 'package:tuple/tuple.dart';
 
 class NodeDetailsView extends ConsumerStatefulWidget {
   const NodeDetailsView({
-    Key? key,
+    super.key,
     required this.coin,
     required this.nodeId,
     required this.popRouteName,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/nodeDetails";
 
@@ -97,6 +98,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
         break;
 
       case Coin.monero:
+      case Coin.monerodart:
       case Coin.wownero:
         try {
           final uri = Uri.parse(node!.host);
@@ -181,7 +183,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
       case Coin.tezos:
         try {
           testPassed = await TezosRpcAPI.testNetworkConnection(
-            nodeInfo: (host: node!.host, port: node!.port),
+            nodeInfo: (host: node!.host, port: (node as NodeModel).port),
           );
         } catch (_) {}
         break;

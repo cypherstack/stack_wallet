@@ -53,6 +53,7 @@ import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/monero_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/monerodart_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
 import 'package:stackwallet/wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
@@ -70,7 +71,7 @@ import 'package:wakelock/wakelock.dart';
 
 class RestoreWalletView extends ConsumerStatefulWidget {
   const RestoreWalletView({
-    Key? key,
+    super.key,
     required this.walletName,
     required this.coin,
     required this.seedWordsLength,
@@ -78,7 +79,7 @@ class RestoreWalletView extends ConsumerStatefulWidget {
     required this.restoreFromDate,
     this.barcodeScanner = const BarcodeScannerWrapper(),
     this.clipboard = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   static const routeName = "/restoreWallet";
 
@@ -261,7 +262,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
       // TODO: do actual check to make sure it is a valid mnemonic for monero
       if (bip39.validateMnemonic(mnemonic) == false &&
-          !(widget.coin == Coin.monero || widget.coin == Coin.wownero)) {
+          !(widget.coin == Coin.monero || widget.coin == Coin.wownero || widget.coin == Coin.monerodart)) {
         unawaited(showFloatingFlushBar(
           type: FlushBarType.warning,
           message: "Invalid seed phrase!",
@@ -331,6 +332,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
             case MoneroWallet:
               await (wallet as MoneroWallet).init(isRestore: true);
+              break;
+
+            case MoneroDartWallet:
+              await (wallet as MoneroDartWallet).init(isRestore: true);
               break;
 
             case WowneroWallet:

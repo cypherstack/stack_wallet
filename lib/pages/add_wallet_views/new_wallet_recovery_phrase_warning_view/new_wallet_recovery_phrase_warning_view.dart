@@ -45,10 +45,10 @@ import 'package:tuple/tuple.dart';
 
 class NewWalletRecoveryPhraseWarningView extends ConsumerStatefulWidget {
   const NewWalletRecoveryPhraseWarningView({
-    Key? key,
+    super.key,
     required this.coin,
     required this.walletName,
-  }) : super(key: key);
+  });
 
   static const routeName = "/newWalletRecoveryPhraseWarning";
 
@@ -555,7 +555,8 @@ class _NewWalletRecoveryPhraseWarningViewState
                                             );
 
                                             if (coin == Coin.monero ||
-                                                coin == Coin.wownero) {
+                                                coin == Coin.wownero ||
+                                                coin == Coin.monerodart) {
                                               // currently a special case due to the
                                               // xmr/wow libraries handling their
                                               // own mnemonic generation
@@ -587,7 +588,7 @@ class _NewWalletRecoveryPhraseWarningViewState
                                                   24 < wordCount ||
                                                   wordCount % 3 != 0) {
                                                 throw Exception(
-                                                    "Invalid word count");
+                                                    "Invalid word count ($wordCount)");
                                               }
 
                                               final strength =
