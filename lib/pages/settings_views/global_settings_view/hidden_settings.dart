@@ -10,6 +10,7 @@
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -215,7 +216,6 @@ class HiddenSettings extends StatelessWidget {
                             ),
                           );
                         }),
-
                         const SizedBox(
                           height: 12,
                         ),
@@ -251,6 +251,36 @@ class HiddenSettings extends StatelessWidget {
                               return Container();
                             }
                           },
+                        ),
+                        Consumer(
+                          builder: (_, ref, __) {
+                            return GestureDetector(
+                              onTap: () async {
+                                ref
+                                        .read(prefsChangeNotifierProvider)
+                                        .frostEnabled =
+                                    !(ref
+                                        .read(prefsChangeNotifierProvider)
+                                        .frostEnabled);
+                                if (kDebugMode) {
+                                  print(
+                                      "FROST enabled: ${ref.read(prefsChangeNotifierProvider).frostEnabled}");
+                                }
+                              },
+                              child: RoundedWhiteContainer(
+                                child: Text(
+                                  "Toggle FROST multisig",
+                                  style: STextStyles.button(context).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(
+                          height: 12,
                         ),
                         Consumer(
                           builder: (_, ref, __) {
