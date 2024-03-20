@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:solana/solana.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
@@ -217,6 +218,20 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
             nodeInfo: (host: formData.host!, port: formData.port!),
           );
         } catch (_) {}
+        break;
+
+      case Coin.solana:
+        try {
+          RpcClient rpcClient;
+          if (formData.host!.startsWith("http") || formData.host!.startsWith("https")) {
+            rpcClient = RpcClient("${formData.host}:${formData.port}");
+          } else {
+            rpcClient = RpcClient("http://${formData.host}:${formData.port}");
+          }
+          await rpcClient.getEpochInfo().then((value) => testPassed = true);
+        } catch (_) {
+          testPassed = false;
+        }
         break;
     }
 
@@ -758,6 +773,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       case Coin.nano:
       case Coin.banano:
       case Coin.eCash:
+      case Coin.solana:
       case Coin.stellar:
       case Coin.stellarTestnet:
       case Coin.bitcoinFrost:

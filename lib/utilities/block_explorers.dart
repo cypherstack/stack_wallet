@@ -66,6 +66,8 @@ Uri getDefaultBlockExplorerUrlFor({
       return Uri.parse("https://testnet.stellarchain.io/transactions/$txid");
     case Coin.tezos:
       return Uri.parse("https://tzstats.com/$txid");
+    case Coin.solana:
+      return Uri.parse("https://explorer.solana.com/tx/$txid");
   }
 }
 
