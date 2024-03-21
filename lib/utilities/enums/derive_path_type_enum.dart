@@ -17,6 +17,7 @@ enum DerivePathType {
   bip84,
   eth,
   eCash44,
+  solana,
   bip86,
 }
 
@@ -45,6 +46,9 @@ extension DerivePathTypeExt on DerivePathType {
       case Coin.ethereum: // TODO: do we need something here?
         return DerivePathType.eth;
 
+      case Coin.solana:
+        return DerivePathType.solana;
+
       case Coin.bitcoinFrost:
       case Coin.bitcoinFrostTestNet:
       case Coin.epicCash:
@@ -55,7 +59,6 @@ extension DerivePathTypeExt on DerivePathType {
       case Coin.stellar:
       case Coin.stellarTestnet:
       case Coin.tezos: // TODO: Is this true?
-      case Coin.solana:
         throw UnsupportedError(
             "$coin does not use bitcoin style derivation paths");
     }
