@@ -134,6 +134,11 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
       _coins.remove(Coin.wownero);
     }
 
+    // Remove FROST from the list of coins based on our frostEnabled preference.
+    if (!ref.read(prefsChangeNotifierProvider).solanaEnabled) {
+      _coins.remove(Coin.solana);
+    }
+
     coinEntities.addAll(_coins.map((e) => CoinEntity(e)));
 
     if (ref.read(prefsChangeNotifierProvider).showTestNetCoins) {
