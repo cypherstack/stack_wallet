@@ -28,6 +28,7 @@ import 'package:stackwallet/wallets/crypto_currency/coins/monero.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/namecoin.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/nano.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/particl.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/solana.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/stellar.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/tezos.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
@@ -97,6 +98,8 @@ class AddressUtils {
         return Namecoin(CryptoCurrencyNetwork.main).validateAddress(address);
       case Coin.particl:
         return Particl(CryptoCurrencyNetwork.main).validateAddress(address);
+      case Coin.solana:
+        return Solana(CryptoCurrencyNetwork.main).validateAddress(address);
       case Coin.stellar:
         return Stellar(CryptoCurrencyNetwork.main).validateAddress(address);
       case Coin.nano:
