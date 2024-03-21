@@ -68,6 +68,7 @@ class Prefs extends ChangeNotifier {
       await _setMaxDecimals();
       _useTor = await _getUseTor();
       _fusionServerInfo = await _getFusionServerInfo();
+      _solanaEnabled = await _getSolanaEnabled();
       _frostEnabled = await _getFrostEnabled();
 
       _initialized = true;
@@ -1008,6 +1009,27 @@ class Prefs extends ChangeNotifier {
     }
 
     return actualMap;
+  }
+
+  // Solana
+
+  bool _solanaEnabled = false;
+
+  bool get solanaEnabled => _solanaEnabled;
+
+  set solanaEnabled(bool solanaEnabled) {
+    if (_solanaEnabled != solanaEnabled) {
+      DB.instance.put<dynamic>(
+          boxName: DB.boxNamePrefs, key: "solanaEnabled", value: solanaEnabled);
+      _solanaEnabled = solanaEnabled;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _getSolanaEnabled() async {
+    return await DB.instance.get<dynamic>(
+            boxName: DB.boxNamePrefs, key: "solanaEnabled") as bool? ??
+        false;
   }
 
   // FROST multisig
