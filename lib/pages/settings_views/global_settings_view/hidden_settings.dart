@@ -13,8 +13,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/debug_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
@@ -25,7 +23,6 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/onetime_popups/tor_has_been_add_dialog.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class HiddenSettings extends StatelessWidget {
@@ -176,49 +173,48 @@ class HiddenSettings extends StatelessWidget {
                         const SizedBox(
                           height: 12,
                         ),
-                        Consumer(builder: (_, ref, __) {
-                          return GestureDetector(
-                            onTap: () async {
-                              await showOneTimeTorHasBeenAddedDialogIfRequired(
-                                context,
-                              );
-                            },
-                            child: RoundedWhiteContainer(
-                              child: Text(
-                                "Test tor stacy popup",
-                                style: STextStyles.button(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .accentColorDark),
-                              ),
-                            ),
-                          );
-                        }),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        Consumer(builder: (_, ref, __) {
-                          return GestureDetector(
-                            onTap: () async {
-                              final box = await Hive.openBox<bool>(
-                                  DB.boxNameOneTimeDialogsShown);
-                              await box.clear();
-                            },
-                            child: RoundedWhiteContainer(
-                              child: Text(
-                                "Reset tor stacy popup",
-                                style: STextStyles.button(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .accentColorDark),
-                              ),
-                            ),
-                          );
-                        }),
-
-                        const SizedBox(
-                          height: 12,
-                        ),
+                        // Consumer(builder: (_, ref, __) {
+                        //   return GestureDetector(
+                        //     onTap: () async {
+                        //       await showOneTimeTorHasBeenAddedDialogIfRequired(
+                        //         context,
+                        //       );
+                        //     },
+                        //     child: RoundedWhiteContainer(
+                        //       child: Text(
+                        //         "Test tor stacy popup",
+                        //         style: STextStyles.button(context).copyWith(
+                        //             color: Theme.of(context)
+                        //                 .extension<StackColors>()!
+                        //                 .accentColorDark),
+                        //       ),
+                        //     ),
+                        //   );
+                        // }),
+                        // const SizedBox(
+                        //   height: 12,
+                        // ),
+                        // Consumer(builder: (_, ref, __) {
+                        //   return GestureDetector(
+                        //     onTap: () async {
+                        //       final box = await Hive.openBox<bool>(
+                        //           DB.boxNameOneTimeDialogsShown);
+                        //       await box.clear();
+                        //     },
+                        //     child: RoundedWhiteContainer(
+                        //       child: Text(
+                        //         "Reset tor stacy popup",
+                        //         style: STextStyles.button(context).copyWith(
+                        //             color: Theme.of(context)
+                        //                 .extension<StackColors>()!
+                        //                 .accentColorDark),
+                        //       ),
+                        //     ),
+                        //   );
+                        // }),
+                        // const SizedBox(
+                        //   height: 12,
+                        // ),
                         Consumer(
                           builder: (_, ref, __) {
                             if (ref.watch(prefsChangeNotifierProvider
