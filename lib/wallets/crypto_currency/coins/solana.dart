@@ -1,3 +1,4 @@
+import 'package:solana/solana.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
@@ -39,8 +40,7 @@ class Solana extends Bip39Currency {
 
   @override
   bool validateAddress(String address) {
-    RegExp regex = RegExp(r'^[a-zA-Z0-9]{44}$');
-    return regex.hasMatch(address);
+    return isPointOnEd25519Curve(Ed25519HDPublicKey.fromBase58(address).toByteArray());
   }
 
   @override

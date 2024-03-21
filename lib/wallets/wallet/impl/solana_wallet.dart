@@ -36,7 +36,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
         value: (await _getKeyPair()).address,
         publicKey: List<int>.empty(),
         derivationIndex: 0,
-        derivationPath: null,
+        derivationPath: DerivationPath()..value = "m/44'/501'/0'/0'",
         type: cryptoCurrency.coin.primaryAddressType,
         subType: AddressSubType.unknown);
     return addressStruct;
@@ -63,7 +63,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
             value: address,
             publicKey: List<int>.empty(),
             derivationIndex: 0,
-            derivationPath: null,
+            derivationPath: DerivationPath()..value = "m/44'/501'/0'/0'",
             type: cryptoCurrency.coin.primaryAddressType,
             subType: AddressSubType.unknown)
       ]);
@@ -187,7 +187,17 @@ class SolanaWallet extends Bip39Wallet<Solana> {
 
   @override
   Future<bool> pingCheck() {
-    return Future.value(false);
+    try {
+      var rpcClient = RpcClient("${getCurrentNode().host}:${getCurrentNode().port}");
+      rpcClient.getHealth();
+      return Future.value(true);
+    } catch (e, s) {
+      Logging.instance.log(
+        "$runtimeType Solana pingCheck failed: $e\n$s",
+        level: LogLevel.Error,
+      );
+      return Future.value(false);
+    }
   }
 
   @override
@@ -337,7 +347,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
             value: receiverAddress,
             publicKey: List<int>.empty(),
             derivationIndex: 0,
-            derivationPath: null,
+            derivationPath: DerivationPath()..value = "m/44'/501'/0'/0'",
             type: AddressType.solana,
             subType: txType == isar.TransactionType.outgoing ? AddressSubType.unknown : AddressSubType.receiving
         );
