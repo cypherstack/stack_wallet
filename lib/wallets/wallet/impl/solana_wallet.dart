@@ -1,33 +1,40 @@
-
+import 'dart:io';
 import 'dart:math';
 
 import 'package:isar/isar.dart';
 import 'package:solana/dto.dart';
 import 'package:solana/solana.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart' as isar;
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
+import 'package:stackwallet/models/balance.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart'
+    as isar;
 import 'package:stackwallet/models/isar/models/isar_models.dart';
+import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
+import 'package:stackwallet/services/node_service.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
+import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/solana.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_wallet.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/models/balance.dart';
 import 'package:tuple/tuple.dart';
-import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/services/node_service.dart';
 
 class SolanaWallet extends Bip39Wallet<Solana> {
   SolanaWallet(CryptoCurrencyNetwork network) : super(Solana(network));
 
   NodeModel? _solNode;
 
+  ElectrumXClient? electrumXClient; // Used for Tor.
+  RpcClient? rpcClient; // The Solana RpcClient.
+
   Future<Ed25519HDKeyPair> _getKeyPair() async {
-    return Ed25519HDKeyPair.fromMnemonic(await getMnemonic(), account: 0, change: 0);
+    return Ed25519HDKeyPair.fromMnemonic(await getMnemonic(),
+        account: 0, change: 0);
   }
 
   Future<Address> _getCurrentAddress() async {
@@ -43,9 +50,9 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   }
 
   Future<int> _getCurrentBalanceInLamports() async {
-    var rpcClient = RpcClient("${getCurrentNode().host}:${getCurrentNode().port}");
-    var balance = await rpcClient.getBalance((await _getKeyPair()).address);
-    return balance.value;
+    await _checkClients(); // Check electrumXClient and rpcClient.
+    var balance = await rpcClient?.getBalance((await _getKeyPair()).address);
+    return balance!.value;
   }
 
   @override
@@ -78,6 +85,8 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<TxData> prepareSend({required TxData txData}) async {
     try {
+      await _checkClients(); // Check ElectrumXClient and Solana RpcClient.
+
       if (txData.recipients == null || txData.recipients!.length != 1) {
         throw Exception("$runtimeType prepareSend requires 1 recipient");
       }
@@ -104,11 +113,17 @@ class SolanaWallet extends Bip39Wallet<Solana> {
       }
 
       // Rent exemption of Solana
-      final rpcClient = RpcClient("${getCurrentNode().host}:${getCurrentNode().port}");
-      final accInfo = await rpcClient.getAccountInfo((await _getKeyPair()).address);
-      final minimumRent = await rpcClient.getMinimumBalanceForRentExemption(accInfo.value!.data.toString().length);
-      if (minimumRent > ((await _getCurrentBalanceInLamports()) - txData.amount!.raw.toInt() - feeAmount)) {
-        throw Exception("Insufficient remaining balance for rent exemption, minimum rent: ${minimumRent / pow(10, cryptoCurrency.fractionDigits)}");
+      final accInfo =
+          await rpcClient?.getAccountInfo((await _getKeyPair()).address);
+      int minimumRent = await rpcClient?.getMinimumBalanceForRentExemption(
+              accInfo!.value!.data.toString().length) ??
+          0; // TODO revisit null condition.
+      if (minimumRent >
+          ((await _getCurrentBalanceInLamports()) -
+              txData.amount!.raw.toInt() -
+              feeAmount)) {
+        throw Exception(
+            "Insufficient remaining balance for rent exemption, minimum rent: ${minimumRent / pow(10, cryptoCurrency.fractionDigits)}");
       }
 
       return txData.copyWith(
@@ -129,18 +144,24 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<TxData> confirmSend({required TxData txData}) async {
     try {
+      await _checkClients(); // Check ElectrumXClient and Solana RpcClient.
+
       final keyPair = await _getKeyPair();
-      final rpcClient = RpcClient("${getCurrentNode().host}:${getCurrentNode().port}");
       var recipientAccount = txData.recipients!.first;
-      var recipientPubKey = Ed25519HDPublicKey.fromBase58(recipientAccount.address);
+      var recipientPubKey =
+          Ed25519HDPublicKey.fromBase58(recipientAccount.address);
       final message = Message(
         instructions: [
-          SystemInstruction.transfer(fundingAccount: keyPair.publicKey, recipientAccount: recipientPubKey, lamports: txData.amount!.raw.toInt()),
-          ComputeBudgetInstruction.setComputeUnitPrice(microLamports: txData.fee!.raw.toInt()),
+          SystemInstruction.transfer(
+              fundingAccount: keyPair.publicKey,
+              recipientAccount: recipientPubKey,
+              lamports: txData.amount!.raw.toInt()),
+          ComputeBudgetInstruction.setComputeUnitPrice(
+              microLamports: txData.fee!.raw.toInt()),
         ],
       );
 
-      final txid = await rpcClient.signAndSendTransaction(message, [keyPair]);
+      final txid = await rpcClient?.signAndSendTransaction(message, [keyPair]);
       return txData.copyWith(
         txid: txid,
       );
@@ -155,6 +176,8 @@ class SolanaWallet extends Bip39Wallet<Solana> {
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
+    await _checkClients(); // Check ElectrumXClient and Solana RpcClient.
+
     if (info.cachedBalance.spendable.raw == BigInt.zero) {
       return Amount(
         rawValue: BigInt.zero,
@@ -162,27 +185,28 @@ class SolanaWallet extends Bip39Wallet<Solana> {
       );
     }
 
-    final rpcClient = RpcClient("${getCurrentNode().host}:${getCurrentNode().port}");
-    final fee = await rpcClient.getFees();
+    final fee = await rpcClient?.getFees();
+    // TODO [prio=low]: handle null fee.
 
     return Amount(
-      rawValue: BigInt.from(fee.value.feeCalculator.lamportsPerSignature),
+      rawValue: BigInt.from(fee!.value.feeCalculator.lamportsPerSignature),
       fractionDigits: cryptoCurrency.fractionDigits,
     );
   }
 
   @override
   Future<FeeObject> get fees async {
-    final rpcClient = RpcClient("${getCurrentNode().host}:${getCurrentNode().port}");
-    final fees = await rpcClient.getFees();
+    await _checkClients(); // Check ElectrumXClient and Solana RpcClient.
+
+    final fees = await rpcClient?.getFees();
+    // TODO [prio=low]: handle null fees.
     return FeeObject(
         numberOfBlocksFast: 1,
         numberOfBlocksAverage: 1,
         numberOfBlocksSlow: 1,
-        fast: fees.value.feeCalculator.lamportsPerSignature,
-        medium: fees.value.feeCalculator.lamportsPerSignature,
-        slow: fees.value.feeCalculator.lamportsPerSignature
-    );
+        fast: fees!.value.feeCalculator.lamportsPerSignature,
+        medium: fees!.value.feeCalculator.lamportsPerSignature,
+        slow: fees!.value.feeCalculator.lamportsPerSignature);
   }
 
   @override
@@ -219,13 +243,20 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<void> updateBalance() async {
     try {
-      var rpcClient = RpcClient("${getCurrentNode().host}:${getCurrentNode().port}");
-      var balance = await rpcClient.getBalance(info.cachedReceivingAddress);
+      await _checkClients(); // Check ElectrumXClient and Solana RpcClient.
+
+      var balance = await rpcClient?.getBalance(info.cachedReceivingAddress);
 
       // Rent exemption of Solana
-      final accInfo = await rpcClient.getAccountInfo((await _getKeyPair()).address);
-      final minimumRent = await rpcClient.getMinimumBalanceForRentExemption(accInfo.value!.data.toString().length);
-      var spendableBalance = balance.value - minimumRent;
+      final accInfo =
+          await rpcClient?.getAccountInfo((await _getKeyPair()).address);
+      // TODO [prio=low]: handle null account info.
+      final int minimumRent =
+          await rpcClient?.getMinimumBalanceForRentExemption(
+                  accInfo!.value!.data.toString().length) ??
+              0;
+      // TODO [prio=low]: revisit null condition.
+      var spendableBalance = balance!.value - minimumRent;
 
       final newBalance = Balance(
         total: Amount(
@@ -258,8 +289,10 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<void> updateChainHeight() async {
     try {
-      var rpcClient = RpcClient("${getCurrentNode().host}:${getCurrentNode().port}");
-      var blockHeight = await rpcClient.getSlot();
+      await _checkClients(); // Check ElectrumXClient and Solana RpcClient.
+
+      int blockHeight = await rpcClient?.getSlot() ?? 0;
+      // TODO [prio=low]: Revisit null condition.
 
       await info.updateCachedChainHeight(
         newHeight: blockHeight,
@@ -268,7 +301,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
     } catch (e, s) {
       Logging.instance.log(
         "Error occurred in solana_wallet.dart while getting"
-            " chain height for solana: $e\n$s",
+        " chain height for solana: $e\n$s",
         level: LogLevel.Error,
       );
     }
@@ -291,20 +324,30 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<void> updateTransactions() async {
     try {
-      var rpcClient = RpcClient("${getCurrentNode().host}:${getCurrentNode().port}");
-      var transactionsList = await rpcClient.getTransactionsList((await _getKeyPair()).publicKey, encoding: Encoding.jsonParsed);
-      var txsList = List<Tuple2<isar.Transaction, Address>>.empty(growable: true);
+      await _checkClients(); // Check ElectrumXClient and Solana RpcClient.
 
-      for (final tx in transactionsList) {
-        var senderAddress = (tx.transaction as ParsedTransaction).message.accountKeys[0].pubkey;
-        var receiverAddress = (tx.transaction as ParsedTransaction).message.accountKeys[1].pubkey;
+      var transactionsList = await rpcClient?.getTransactionsList(
+          (await _getKeyPair()).publicKey,
+          encoding: Encoding.jsonParsed);
+      var txsList =
+          List<Tuple2<isar.Transaction, Address>>.empty(growable: true);
+
+      // TODO [prio=low]: Revisit null assertion below.
+
+      for (final tx in transactionsList!) {
+        var senderAddress =
+            (tx.transaction as ParsedTransaction).message.accountKeys[0].pubkey;
+        var receiverAddress =
+            (tx.transaction as ParsedTransaction).message.accountKeys[1].pubkey;
         var txType = isar.TransactionType.unknown;
         var txAmount = Amount(
-          rawValue: BigInt.from(tx.meta!.postBalances[1] - tx.meta!.preBalances[1]),
+          rawValue:
+              BigInt.from(tx.meta!.postBalances[1] - tx.meta!.preBalances[1]),
           fractionDigits: cryptoCurrency.fractionDigits,
         );
 
-        if ((senderAddress == (await _getKeyPair()).address) && (receiverAddress == (await _getKeyPair()).address) ){
+        if ((senderAddress == (await _getKeyPair()).address) &&
+            (receiverAddress == (await _getKeyPair()).address)) {
           txType = isar.TransactionType.sentToSelf;
         } else if (senderAddress == (await _getKeyPair()).address) {
           txType = isar.TransactionType.outgoing;
@@ -339,8 +382,9 @@ class SolanaWallet extends Bip39Wallet<Solana> {
             derivationIndex: 0,
             derivationPath: null,
             type: AddressType.solana,
-            subType: txType == isar.TransactionType.outgoing ? AddressSubType.unknown : AddressSubType.receiving
-        );
+            subType: txType == isar.TransactionType.outgoing
+                ? AddressSubType.unknown
+                : AddressSubType.receiving);
 
         txsList.add(Tuple2(transaction, txAddress));
       }
@@ -348,7 +392,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
     } catch (e, s) {
       Logging.instance.log(
         "Error occurred in solana_wallet.dart while getting"
-            " transactions for solana: $e\n$s",
+        " transactions for solana: $e\n$s",
         level: LogLevel.Error,
       );
     }
@@ -358,5 +402,26 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   Future<bool> updateUTXOs() {
     // No UTXOs in Solana
     return Future.value(false);
+  }
+
+  /// Check that the ElectrumXClient is active and usable by a Solana RpcClient.
+  Future<void> _checkClients() async {
+    if (prefs.useTor) {
+      electrumXClient ??= ElectrumXClient(
+        host: getCurrentNode().host,
+        port: getCurrentNode().port,
+        useSSL: getCurrentNode().useSSL,
+        failovers: [],
+        prefs: prefs,
+        coin: Coin.solana,
+      );
+      int torPort = electrumXClient?.rpcClient?.proxyInfo?.port ??
+          TorService.sharedInstance.getProxyInfo().port;
+      rpcClient = RpcClient("${InternetAddress.loopbackIPv4}:$torPort");
+    } else {
+      rpcClient =
+          RpcClient("${getCurrentNode().host}:${getCurrentNode().port}");
+    }
+    return;
   }
 }
