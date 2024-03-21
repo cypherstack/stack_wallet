@@ -188,6 +188,18 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
+  static NodeModel get solana => NodeModel(
+        host: "https://api.mainnet-beta.solana.com", // TODO: Change this to stack wallet one
+        port: 443,
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(Coin.solana),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.solana.name,
+        isFailover: true,
+        isDown: false,
+      );
+
   static NodeModel get stellar => NodeModel(
         host: "https://horizon.stellar.org",
         port: 443,
@@ -347,6 +359,9 @@ abstract class DefaultNodes {
 
       case Coin.particl:
         return particl;
+
+      case Coin.solana:
+        return solana;
 
       case Coin.stellar:
         return stellar;

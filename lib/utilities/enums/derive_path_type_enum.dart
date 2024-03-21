@@ -17,6 +17,7 @@ enum DerivePathType {
   bip84,
   eth,
   eCash44,
+  solana,
 }
 
 extension DerivePathTypeExt on DerivePathType {
@@ -43,6 +44,9 @@ extension DerivePathTypeExt on DerivePathType {
 
       case Coin.ethereum: // TODO: do we need something here?
         return DerivePathType.eth;
+
+      case Coin.solana:
+        return DerivePathType.solana;
 
       case Coin.bitcoinFrost:
       case Coin.bitcoinFrostTestNet:

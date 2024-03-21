@@ -26,6 +26,7 @@ enum Coin {
   namecoin,
   nano,
   particl,
+  solana,
   stellar,
   tezos,
   wownero,
@@ -69,6 +70,8 @@ extension CoinExt on Coin {
         return "Monero";
       case Coin.particl:
         return "Particl";
+      case Coin.solana:
+        return "Solana";
       case Coin.stellar:
         return "Stellar";
       case Coin.tezos:
@@ -121,6 +124,8 @@ extension CoinExt on Coin {
         return "XMR";
       case Coin.particl:
         return "PART";
+      case Coin.solana:
+        return "SOL";
       case Coin.stellar:
         return "XLM";
       case Coin.tezos:
@@ -173,6 +178,8 @@ extension CoinExt on Coin {
         return "monero";
       case Coin.particl:
         return "particl";
+      case Coin.solana:
+        return "solana";
       case Coin.stellar:
         return "stellar";
       case Coin.tezos:
@@ -229,6 +236,7 @@ extension CoinExt on Coin {
       case Coin.nano:
       case Coin.banano:
       case Coin.tezos:
+      case Coin.solana:
         return false;
     }
   }
@@ -259,6 +267,7 @@ extension CoinExt on Coin {
       case Coin.firoTestNet:
       case Coin.nano:
       case Coin.banano:
+      case Coin.solana:
       case Coin.stellar:
       case Coin.stellarTestnet:
         return false;
@@ -284,6 +293,7 @@ extension CoinExt on Coin {
       case Coin.banano:
       case Coin.eCash:
       case Coin.stellar:
+      case Coin.solana:
         return false;
 
       case Coin.dogecoinTestNet:
@@ -327,6 +337,7 @@ extension CoinExt on Coin {
       case Coin.banano:
       case Coin.eCash:
       case Coin.stellar:
+      case Coin.solana:
         return this;
 
       case Coin.dogecoinTestNet:
@@ -400,6 +411,9 @@ extension CoinExt on Coin {
       case Coin.stellar:
       case Coin.stellarTestnet:
         return AddressType.stellar;
+
+      case Coin.solana:
+        return AddressType.solana;
     }
   }
 }
@@ -447,6 +461,10 @@ Coin coinFromPrettyName(String name) {
     case "Particl":
     case "particl":
       return Coin.particl;
+
+    case "Solana":
+    case "solana":
+      return Coin.solana;
 
     case "Stellar":
     case "stellar":
@@ -548,6 +566,8 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
       return Coin.namecoin;
     case "part":
       return Coin.particl;
+    case "sol":
+      return Coin.solana;
     case "xlm":
       return Coin.stellar;
     case "xtz":
