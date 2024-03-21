@@ -184,6 +184,9 @@ dependencies:
   monero:
     hosted: https://git.mrcyjanek.net/api/packages/mrcyjanek/pub/
     version: 0.18003001.38
+  monero_libs:
+    hosted: https://git.mrcyjanek.net/api/packages/mrcyjanek/pub/
+    version: 0.18003003.6
 
 dev_dependencies:
   flutter_test:
