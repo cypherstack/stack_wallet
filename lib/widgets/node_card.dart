@@ -43,11 +43,11 @@ import 'package:tuple/tuple.dart';
 
 class NodeCard extends ConsumerStatefulWidget {
   const NodeCard({
-    Key? key,
+    super.key,
     required this.nodeId,
     required this.coin,
     required this.popBackToRoute,
-  }) : super(key: key);
+  });
 
   final Coin coin;
   final String nodeId;
@@ -118,6 +118,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
         break;
 
       case Coin.monero:
+      case Coin.monerodart:
       case Coin.wownero:
         try {
           final uri = Uri.parse(node.host);

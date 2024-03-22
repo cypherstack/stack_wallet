@@ -36,12 +36,12 @@ import 'package:stackwallet/widgets/wallet_info_row/wallet_info_row.dart';
 
 class SimpleWalletCard extends ConsumerWidget {
   const SimpleWalletCard({
-    Key? key,
+    super.key,
     required this.walletId,
     this.contractAddress,
     this.popPrevious = false,
     this.desktopNavigatorState,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final String? contractAddress;
@@ -91,9 +91,11 @@ class SimpleWalletCard extends ConsumerWidget {
 
   void _openWallet(BuildContext context, WidgetRef ref) async {
     final nav = Navigator.of(context);
-
+    print("openWallet");
     final wallet = ref.read(pWallets).getWallet(walletId);
-
+    print(wallet);
+    print("is CwBasedInterface: ${wallet is CwBasedInterface}");
+    print("is CwBasedInterface: ${wallet.runtimeType}");
     if (context.mounted) {
       final Future<void> loadFuture;
       if (wallet is CwBasedInterface) {

@@ -56,11 +56,11 @@ import 'package:url_launcher/url_launcher.dart';
 
 class TransactionDetailsView extends ConsumerStatefulWidget {
   const TransactionDetailsView({
-    Key? key,
+    super.key,
     required this.transaction,
     required this.walletId,
     required this.coin,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/transactionDetails";
 
@@ -755,7 +755,7 @@ class _TransactionDetailsViewState
                                                 )
                                               : SelectableText(
                                                   _transaction
-                                                      .address.value!.value,
+                                                      .address.value?.value?? "unknown address",
                                                   style: isDesktop
                                                       ? STextStyles
                                                               .desktopTextExtraExtraSmall(
@@ -776,7 +776,7 @@ class _TransactionDetailsViewState
                                     ),
                                     if (isDesktop)
                                       IconCopyButton(
-                                        data: _transaction.address.value!.value,
+                                        data: _transaction.address.value?.value ?? "",
                                       ),
                                   ],
                                 ),
@@ -1662,7 +1662,7 @@ class _TransactionDetailsViewState
 }
 
 class _Divider extends StatelessWidget {
-  const _Divider({Key? key}) : super(key: key);
+  const _Divider({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -1675,9 +1675,9 @@ class _Divider extends StatelessWidget {
 
 class IconCopyButton extends StatelessWidget {
   const IconCopyButton({
-    Key? key,
+    super.key,
     required this.data,
-  }) : super(key: key);
+  });
 
   final String data;
 
@@ -1721,9 +1721,9 @@ class IconCopyButton extends StatelessWidget {
 
 class IconPencilButton extends StatelessWidget {
   const IconPencilButton({
-    Key? key,
+    super.key,
     this.onPressed,
-  }) : super(key: key);
+  });
 
   final VoidCallback? onPressed;
 

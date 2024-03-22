@@ -48,12 +48,12 @@ enum AddEditNodeViewType { add, edit }
 
 class AddEditNodeView extends ConsumerStatefulWidget {
   const AddEditNodeView({
-    Key? key,
+    super.key,
     required this.viewType,
     required this.coin,
     required this.nodeId,
     required this.routeOnSuccessOrDelete,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/addEditNode";
 
@@ -135,6 +135,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         break;
 
       case Coin.monero:
+      case Coin.monerodart:
       case Coin.wownero:
         try {
           final url = formData.host!;
@@ -695,13 +696,13 @@ final nodeFormDataProvider = Provider<NodeFormData>((_) => NodeFormData());
 
 class NodeForm extends ConsumerStatefulWidget {
   const NodeForm({
-    Key? key,
+    super.key,
     this.node,
     required this.secureStore,
     required this.readOnly,
     required this.coin,
     this.onChanged,
-  }) : super(key: key);
+  });
 
   final NodeModel? node;
   final SecureStorageInterface secureStore;
@@ -762,6 +763,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
 
       case Coin.ethereum:
       case Coin.monero:
+      case Coin.monerodart:
       case Coin.wownero:
         return true;
     }

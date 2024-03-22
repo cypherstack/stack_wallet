@@ -46,7 +46,7 @@ import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
 class AddWalletView extends ConsumerStatefulWidget {
-  const AddWalletView({Key? key}) : super(key: key);
+  const AddWalletView({super.key});
 
   static const routeName = "/addWallet";
 
@@ -127,6 +127,8 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
     _searchFieldController = TextEditingController();
     _searchFocusNode = FocusNode();
     // _coinsTestnet.remove(Coin.firoTestNet);
+    _coins.remove(Coin.monero);
+    
     if (Platform.isWindows) {
       _coins.remove(Coin.monero);
       _coins.remove(Coin.wownero);
