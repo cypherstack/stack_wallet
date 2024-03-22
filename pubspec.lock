@@ -274,20 +274,20 @@ packages:
     dependency: "direct overridden"
     description:
       path: coinlib
-      ref: "376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7"
-      resolved-ref: "376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7"
+      ref: "980c8936f5679d6fea95b45822050be37a8c9011"
+      resolved-ref: "980c8936f5679d6fea95b45822050be37a8c9011"
       url: "https://github.com/cypherstack/coinlib.git"
     source: git
-    version: "1.1.0"
+    version: "2.0.0"
   coinlib_flutter:
     dependency: "direct main"
     description:
       path: coinlib_flutter
-      ref: "376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7"
-      resolved-ref: "376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7"
+      ref: "980c8936f5679d6fea95b45822050be37a8c9011"
+      resolved-ref: "980c8936f5679d6fea95b45822050be37a8c9011"
       url: "https://github.com/cypherstack/coinlib.git"
     source: git
-    version: "1.1.0"
+    version: "2.0.0"
   collection:
     dependency: transitive
     description:
