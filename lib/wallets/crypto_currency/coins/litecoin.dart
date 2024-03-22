@@ -146,7 +146,7 @@ class Litecoin extends Bip39HDCurrency {
           hrp: networkParams.bech32Hrp,
         ).program.script;
 
-        final addr = coinlib.P2SHAddress.fromScript(
+        final addr = coinlib.P2SHAddress.fromRedeemScript(
           p2wpkhScript,
           version: networkParams.p2shPrefix,
         );
