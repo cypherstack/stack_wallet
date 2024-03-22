@@ -11,7 +11,7 @@ import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_currency.
 abstract class Bip39HDCurrency extends Bip39Currency {
   Bip39HDCurrency(super.network);
 
-  coinlib.NetworkParams get networkParams;
+  coinlib.Network get networkParams;
 
   Amount get dustLimit;
 

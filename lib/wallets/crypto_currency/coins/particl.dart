@@ -125,10 +125,10 @@ class Particl extends Bip39HDCurrency {
 
   @override
   // See https://github.com/cypherstack/stack_wallet/blob/d08b5c9b22b58db800ad07b2ceeb44c6d05f9cf3/lib/services/coins/particl/particl_wallet.dart#L3532
-  coinlib.NetworkParams get networkParams {
+  coinlib.Network get networkParams {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return const coinlib.NetworkParams(
+        return coinlib.Network(
           wifPrefix: 0x6c,
           p2pkhPrefix: 0x38,
           p2shPrefix: 0x3c,
@@ -136,6 +136,9 @@ class Particl extends Bip39HDCurrency {
           pubHDPrefix: 0x696e82d1,
           bech32Hrp: "pw",
           messagePrefix: '\x18Bitcoin Signed Message:\n',
+          minFee: BigInt.from(1), // TODO [prio=high].
+          minOutput: BigInt.from(1), // TODO.
+          feePerKb: BigInt.from(1), // TODO.
         );
       // case CryptoCurrencyNetwork.test:
       // TODO: [prio=low] Add testnet.
