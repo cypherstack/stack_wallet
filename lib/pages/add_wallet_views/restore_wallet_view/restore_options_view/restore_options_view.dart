@@ -331,6 +331,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                   textAlign: TextAlign.left,
                 ),
               if (coin == Coin.monero ||
+                  (coin == Coin.monerodart &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) ||
                   coin == Coin.epicCash ||
                   (coin == Coin.wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
@@ -339,6 +342,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                   height: isDesktop ? 16 : 8,
                 ),
               if (coin == Coin.monero ||
+                  (coin == Coin.monerodart &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) ||
                   coin == Coin.epicCash ||
                   (coin == Coin.wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
@@ -350,6 +356,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                   ),
               if (coin == Coin.monero ||
                   coin == Coin.epicCash ||
+                  (coin == Coin.monerodart &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) ||
                   (coin == Coin.wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
                           25))
@@ -361,6 +370,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                   ),
               if (coin == Coin.monero ||
                   coin == Coin.epicCash ||
+                  (coin == Coin.monerodart &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) ||
                   (coin == Coin.wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
                           25))
@@ -369,6 +381,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 ),
               if (coin == Coin.monero ||
                   coin == Coin.epicCash ||
+                  (coin == Coin.monerodart &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) ||
                   (coin == Coin.wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
                           25))
@@ -390,6 +405,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 ),
               if (coin == Coin.monero ||
                   coin == Coin.epicCash ||
+                  (coin == Coin.monerodart &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) ||
                   (coin == Coin.wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
                           25))
