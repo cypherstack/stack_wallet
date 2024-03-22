@@ -117,30 +117,6 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
       _keysStorageCached ??= KeyService(secureStorageInterface);
 
   @override
-  Future<void> recover({required bool isRescan}) async {
-    print("recover");
-    MONERO_WalletManager_createWalletFromPolyseed(
-      wmPtr,
-      path: await pathForWalletDir(name: walletId),
-      password: await keysStorage.getWalletPassword(walletName: walletId),
-      mnemonic: await getMnemonic(),
-      seedOffset: '',
-      newWallet: false,
-      restoreHeight: 0,
-      kdfRounds: 1,
-    );
-    // MONERO_WalletManager_recoveryWallet(
-    //   wmPtr,
-    //   path: await pathForWalletDir(name: walletId),
-    //   password: await keysStorage.getWalletPassword(walletName: walletId),
-    //   mnemonic: await getMnemonic(),
-    //   restoreHeight: info.restoreHeight,
-    //   seedOffset: '', // TODO(mrcyjanek): do we get seedOffest from somewhere? 
-    // );
-    return;
-  }
-
-  @override
   Future<void> updateBalance() async {
     final total = Amount(rawValue: BigInt.from(MONERO_Wallet_balance(wPtr!, accountIndex: 0)), fractionDigits: cryptoCurrency.fractionDigits);
     final available = Amount(rawValue: BigInt.from(MONERO_Wallet_unlockedBalance(wPtr!, accountIndex: 0)), fractionDigits: cryptoCurrency.fractionDigits);
@@ -171,10 +147,8 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
   }
 
   Future<void> refreshSyncTimer() async {
-    final addr = wPtr!.address; 
-    final height = await Isolate.run(() async {
-      return MONERO_Wallet_daemonBlockChainHeight(Pointer.fromAddress(addr));
-    });
+    await updateChainHeight();
+    final height = info.cachedChainHeight;
     if (wPtr == null) {
       syncCheckTimer?.cancel();
       return;
@@ -212,13 +186,19 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
       );
     }
   }
+  @override
+  Future<void> recover({required bool isRescan}) async {
+    await refreshSyncTimer();
+    MONERO_Wallet_rescanBlockchainAsync(wPtr!);
+    await refreshSyncTimer();
+    MONERO_Wallet_startRefresh(wPtr!);
+    return;
+  }
 
   @override
   Future<void> refresh() async {
-    await refreshSyncTimer();
-    // MONERO_Wallet_rescanBlockchainAsync(wPtr!);
-    // await refreshSyncTimer();
-    MONERO_Wallet_startRefresh(wPtr!);
+
+    MONERO_Wallet_refreshAsync(wPtr!);
     await refreshSyncTimer();
     await super.refresh();
   }
@@ -336,7 +316,13 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
     final txHistoryPtr = MONERO_Wallet_history(wPtr!);
     MONERO_TransactionHistory_refresh(txHistoryPtr);
     final txCount = MONERO_TransactionHistory_count(txHistoryPtr);
-    final txList = List.generate(txCount, (index) => MoneroTransaction(wPtr: wPtr!, txInfo: MONERO_TransactionHistory_transaction(txHistoryPtr, index: index),),);
+    final txList = List.generate(
+      txCount,
+      (index) => MoneroTransaction(
+        wPtr: wPtr!,
+        txInfo: MONERO_TransactionHistory_transaction(txHistoryPtr, index: index),
+      ),
+    );
     print("txList: ${txList.length}");
     return txList;
   }
@@ -351,9 +337,7 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
     if (!walletExists && isRestore == true) {
       if (wPtr != null) {
         MONERO_Wallet_store(wPtr!);
-        MONERO_Wallet_stop(wPtr!);
       }
-
 
       wPtr = MONERO_WalletManager_createWalletFromPolyseed(
         wmPtr,
@@ -368,7 +352,11 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
       if (MONERO_Wallet_status(wPtr!) != 0) {
         throw Exception(MONERO_Wallet_errorString(wPtr!));
       }
+      
       await updateNode();
+      MONERO_Wallet_rescanBlockchainAsync(wPtr!);
+      MONERO_Wallet_store(wPtr!);
+
       return;
     } else {
       final mnemonic = MONERO_Wallet_createPolyseed();
@@ -380,21 +368,36 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
         key: Wallet.mnemonicPassphraseKey(walletId: walletId),
         value: "",
       );
-      wPtr = MONERO_WalletManager_createWalletFromPolyseed(
-        wmPtr,
-        path: walletPath,
-        password: await keysStorage.getWalletPassword(walletName: walletId),
-        mnemonic: mnemonic,
-        seedOffset: '',
-        newWallet: true,
-        restoreHeight: 0,
-        kdfRounds: 1,
-      );
+      if ((await getMnemonicAsWords()).length == 16) {
+        wPtr = MONERO_WalletManager_createWalletFromPolyseed(
+          wmPtr,
+          path: walletPath,
+          password: await keysStorage.getWalletPassword(walletName: walletId),
+          mnemonic: mnemonic,
+          seedOffset: '',
+          newWallet: true,
+          restoreHeight: info.restoreHeight,
+          kdfRounds: 1,
+        );
+      } else {
+        MONERO_WalletManager_recoveryWallet(
+          wmPtr,
+          path: walletPath,
+          password: await keysStorage.getWalletPassword(walletName: walletId),
+          mnemonic: mnemonic,
+          restoreHeight: info.restoreHeight,
+          seedOffset: '',
+        );
+      }
       print("createWalletFromPolyseed init");
       wPtr = MONERO_WalletManager_openWallet(wmPtr, path: walletPath, password: await keysStorage.getWalletPassword(walletName: walletId));
       print("status: ${MONERO_Wallet_status(wPtr!)}: ${MONERO_Wallet_errorString(wPtr!)}");
       print("address: ${MONERO_Wallet_address(wPtr!)}");
-      print("address: ${MONERO_Wallet_getRefreshFromBlockHeight(wPtr!)}");
+      print("MONERO_Wallet_getRefreshFromBlockHeight: ${MONERO_Wallet_getRefreshFromBlockHeight(wPtr!)}");
+      await secureStorageInterface.write(
+        key: Wallet.mnemonicKey(walletId: walletId),
+        value: MONERO_Wallet_getPolyseed(wPtr!,passphrase: '').trim(),
+      );
       await updateNode();
     }
 
@@ -491,26 +494,6 @@ class MoneroTransaction {
   late DateTime timeStamp;
   late final bool isConfirmed = !isPending;
   final String hash;
-
-  Map<String, dynamic> toJson() {
-    return {
-      "displayLabel": displayLabel,
-      "subaddressLabel": subaddressLabel,
-      "address": address,
-      "description": description,
-      "fee": fee,
-      "confirmations": confirmations,
-      "isPending": isPending,
-      "blockheight": blockheight,
-      "accountIndex": accountIndex,
-      "paymentId": paymentId,
-      "amount": amount,
-      "isSpend": isSpend,
-      "timeStamp": timeStamp.toIso8601String(),
-      "isConfirmed": isConfirmed,
-      "hash": hash,
-    };
-  }
 
   // S finalubAddress? subAddress;
   // List<Transfer> transfers = [];

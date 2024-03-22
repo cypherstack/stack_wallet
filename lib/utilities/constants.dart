@@ -191,7 +191,7 @@ abstract class Constants {
 
       case Coin.monero:
       case Coin.monerodart:
-        values.addAll([16]);
+        values.addAll([16, 25]);
         break;
       case Coin.wownero:
         values.addAll([14, 25]);

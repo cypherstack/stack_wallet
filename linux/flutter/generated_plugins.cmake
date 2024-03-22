@@ -18,6 +18,7 @@ list(APPEND FLUTTER_FFI_PLUGIN_LIST
   coinlib_flutter
   flutter_libsparkmobile
   frostdart
+  monero_libs
   tor_ffi_plugin
 )
 
