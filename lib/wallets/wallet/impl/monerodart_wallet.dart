@@ -339,16 +339,28 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
         MONERO_Wallet_store(wPtr!);
       }
 
-      wPtr = MONERO_WalletManager_createWalletFromPolyseed(
-        wmPtr,
-        path: walletPath,
-        password: await keysStorage.getWalletPassword(walletName: walletId),
-        mnemonic: await getMnemonic(),
-        seedOffset: '',
-        newWallet: true,
-        restoreHeight: 0,
-        kdfRounds: 1,
-      );
+      final mnemonic = await getMnemonicAsWords();
+      if ((await getMnemonicAsWords()).length == 16) {
+        wPtr = MONERO_WalletManager_createWalletFromPolyseed(
+          wmPtr,
+          path: walletPath,
+          password: await keysStorage.getWalletPassword(walletName: walletId),
+          mnemonic: mnemonic.join(' '),
+          seedOffset: '',
+          newWallet: true,
+          restoreHeight: info.restoreHeight,
+          kdfRounds: 1,
+        );
+      } else {
+        wPtr = MONERO_WalletManager_recoveryWallet(
+          wmPtr,
+          path: walletPath,
+          password: await keysStorage.getWalletPassword(walletName: walletId),
+          mnemonic: mnemonic.join(' '),
+          restoreHeight: info.restoreHeight,
+          seedOffset: '',
+        );
+      }
       if (MONERO_Wallet_status(wPtr!) != 0) {
         throw Exception(MONERO_Wallet_errorString(wPtr!));
       }
@@ -380,7 +392,7 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
           kdfRounds: 1,
         );
       } else {
-        MONERO_WalletManager_recoveryWallet(
+        wPtr = MONERO_WalletManager_recoveryWallet(
           wmPtr,
           path: walletPath,
           password: await keysStorage.getWalletPassword(walletName: walletId),
@@ -389,14 +401,16 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
           seedOffset: '',
         );
       }
-      print("createWalletFromPolyseed init");
       wPtr = MONERO_WalletManager_openWallet(wmPtr, path: walletPath, password: await keysStorage.getWalletPassword(walletName: walletId));
       print("status: ${MONERO_Wallet_status(wPtr!)}: ${MONERO_Wallet_errorString(wPtr!)}");
       print("address: ${MONERO_Wallet_address(wPtr!)}");
-      print("MONERO_Wallet_getRefreshFromBlockHeight: ${MONERO_Wallet_getRefreshFromBlockHeight(wPtr!)}");
+      // MONERO_Wallet_setRefreshFromBlockHeight(wPtr!, refresh_from_block_height: info.restoreHeight);
+      print("MONERO_Wallet_getRefreshFromBlockHeight: ${MONERO_Wallet_getRefreshFromBlockHeight(wPtr!)} (${info.restoreHeight})");
+      final polyseed = MONERO_Wallet_getPolyseed(wPtr!,passphrase: '').trim();
+      final legacySeed = MONERO_Wallet_seed(wPtr!, seedOffset: '').trim();
       await secureStorageInterface.write(
         key: Wallet.mnemonicKey(walletId: walletId),
-        value: MONERO_Wallet_getPolyseed(wPtr!,passphrase: '').trim(),
+        value: (polyseed.isNotEmpty) ? polyseed : legacySeed,
       );
       await updateNode();
     }
