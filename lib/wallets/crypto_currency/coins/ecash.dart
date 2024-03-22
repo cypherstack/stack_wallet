@@ -57,10 +57,10 @@ class Ecash extends Bip39HDCurrency {
       );
 
   @override
-  coinlib.NetworkParams get networkParams {
+  coinlib.Network get networkParams {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return const coinlib.NetworkParams(
+        return coinlib.Network(
           wifPrefix: 0x80,
           p2pkhPrefix: 0x00,
           p2shPrefix: 0x05,
@@ -68,9 +68,12 @@ class Ecash extends Bip39HDCurrency {
           pubHDPrefix: 0x0488b21e,
           bech32Hrp: "bc",
           messagePrefix: '\x18Bitcoin Signed Message:\n',
+          minFee: BigInt.from(1), // TODO [prio=high].
+          minOutput: BigInt.from(1), // TODO.
+          feePerKb: BigInt.from(1), // TODO.
         );
       case CryptoCurrencyNetwork.test:
-        return const coinlib.NetworkParams(
+        return coinlib.Network(
           wifPrefix: 0xef,
           p2pkhPrefix: 0x6f,
           p2shPrefix: 0xc4,
@@ -78,6 +81,9 @@ class Ecash extends Bip39HDCurrency {
           pubHDPrefix: 0x043587cf,
           bech32Hrp: "tb",
           messagePrefix: "\x18Bitcoin Signed Message:\n",
+          minFee: BigInt.from(1), // TODO [prio=high].
+          minOutput: BigInt.from(1), // TODO.
+          feePerKb: BigInt.from(1), // TODO.
         );
       default:
         throw Exception("Unsupported network: $network");
