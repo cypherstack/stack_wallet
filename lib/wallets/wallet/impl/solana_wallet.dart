@@ -1,4 +1,7 @@
 
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:isar/isar.dart';
@@ -7,6 +10,7 @@ import 'package:solana/solana.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart' as isar;
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -16,6 +20,7 @@ import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_wallet.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/models/balance.dart';
+import 'package:tor_ffi_plugin/tor_ffi_plugin.dart';
 import 'package:tuple/tuple.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/models/node_model.dart';
@@ -25,6 +30,8 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   SolanaWallet(CryptoCurrencyNetwork network) : super(Solana(network));
 
   NodeModel? _solNode;
+
+  RpcClient rpcClient = RpcClient("https://api.mainnet-beta.solana.com"); // Placeholder in case of error
 
   Future<Ed25519HDKeyPair> _getKeyPair() async {
     return Ed25519HDKeyPair.fromMnemonic(await getMnemonic(), account: 0, change: 0);
@@ -43,7 +50,8 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   }
 
   Future<int> _getCurrentBalanceInLamports() async {
-    var rpcClient = RpcClient("${getCurrentNode().host}:${getCurrentNode().port}");
+    await _updateClient();
+
     var balance = await rpcClient.getBalance((await _getKeyPair()).address);
     return balance.value;
   }
@@ -103,8 +111,9 @@ class SolanaWallet extends Bip39Wallet<Solana> {
           break;
       }
 
+      await _updateClient();
+
       // Rent exemption of Solana
-      final rpcClient = RpcClient("${getCurrentNode().host}:${getCurrentNode().port}");
       final accInfo = await rpcClient.getAccountInfo((await _getKeyPair()).address);
       final minimumRent = await rpcClient.getMinimumBalanceForRentExemption(accInfo.value!.data.toString().length);
       if (minimumRent > ((await _getCurrentBalanceInLamports()) - txData.amount!.raw.toInt() - feeAmount)) {
@@ -130,7 +139,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   Future<TxData> confirmSend({required TxData txData}) async {
     try {
       final keyPair = await _getKeyPair();
-      final rpcClient = RpcClient("${getCurrentNode().host}:${getCurrentNode().port}");
+      await _updateClient();
       var recipientAccount = txData.recipients!.first;
       var recipientPubKey = Ed25519HDPublicKey.fromBase58(recipientAccount.address);
       final message = Message(
@@ -162,7 +171,8 @@ class SolanaWallet extends Bip39Wallet<Solana> {
       );
     }
 
-    final rpcClient = RpcClient("${getCurrentNode().host}:${getCurrentNode().port}");
+    await _updateClient();
+
     final fee = await rpcClient.getFees();
 
     return Amount(
@@ -173,7 +183,8 @@ class SolanaWallet extends Bip39Wallet<Solana> {
 
   @override
   Future<FeeObject> get fees async {
-    final rpcClient = RpcClient("${getCurrentNode().host}:${getCurrentNode().port}");
+    await _updateClient();
+
     final fees = await rpcClient.getFees();
     return FeeObject(
         numberOfBlocksFast: 1,
@@ -186,10 +197,11 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   }
 
   @override
-  Future<bool> pingCheck() {
+  Future<bool> pingCheck() async {
     try {
-      var rpcClient = RpcClient("${getCurrentNode().host}:${getCurrentNode().port}");
-      rpcClient.getHealth();
+      await _updateClient();
+
+      await rpcClient.getHealth();
       return Future.value(true);
     } catch (e, s) {
       Logging.instance.log(
@@ -229,7 +241,8 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<void> updateBalance() async {
     try {
-      var rpcClient = RpcClient("${getCurrentNode().host}:${getCurrentNode().port}");
+      await _updateClient();
+
       var balance = await rpcClient.getBalance(info.cachedReceivingAddress);
 
       // Rent exemption of Solana
@@ -268,7 +281,8 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<void> updateChainHeight() async {
     try {
-      var rpcClient = RpcClient("${getCurrentNode().host}:${getCurrentNode().port}");
+      await _updateClient();
+
       var blockHeight = await rpcClient.getSlot();
 
       await info.updateCachedChainHeight(
@@ -301,7 +315,9 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<void> updateTransactions() async {
     try {
-      var rpcClient = RpcClient("${getCurrentNode().host}:${getCurrentNode().port}");
+      await _updateClient();
+
+      // var rpcClient = RpcClient("${getCurrentNode().host}:${getCurrentNode().port}");
       var transactionsList = await rpcClient.getTransactionsList((await _getKeyPair()).publicKey, encoding: Encoding.jsonParsed);
       var txsList = List<Tuple2<isar.Transaction, Address>>.empty(growable: true);
 
@@ -365,8 +381,44 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   }
 
   @override
-  Future<bool> updateUTXOs() {
+  Future<bool> updateUTXOs() async {
     // No UTXOs in Solana
     return Future.value(false);
+  }
+
+  Future<void> _updateClient() async {
+    if (prefs.useTor) {
+      final proxyInfo = TorService.sharedInstance.getProxyInfo();
+      final socket = await SOCKSSocket.create(
+          proxyHost: proxyInfo.host.host,
+          proxyPort: proxyInfo.port,
+      );
+      await socket.connect();
+      // Listen localhost for tor
+      var port = 0;
+      await HttpServer.bind(
+          "127.0.0.1",
+          0,
+          shared: true
+      ).then((server) {
+        port = server.port;
+        server.listen((HttpRequest request) async {
+          // Forward request to Solana node over Tor
+          final currentNode = getCurrentNode();
+final response = await HttpClient().postUrl(Uri.parse("${currentNode.host}:${currentNode.port}${request.uri.path}"))
+            ..headers.add("Content-Type", "application/json")
+            ..write(await utf8.decoder.bind(request).join());
+          final res = await response.close();
+          await request.response.addStream(res).then((_) {
+            request.response.close();
+          });
+        });
+      });
+      rpcClient = RpcClient("http://127.0.0.1:$port");
+    } else {
+      final currentNode = getCurrentNode();
+      var rpcClient = RpcClient("${currentNode.host}:${currentNode.port}");
+    }
+    return Future.value();
   }
 }

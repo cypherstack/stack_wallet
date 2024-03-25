@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
@@ -219,7 +220,7 @@ class TransactionV2 {
     } else if (type == TransactionType.sentToSelf) {
       return "Sent to self";
     } else {
-      return type.name;
+      return type.name.capitalize();
     }
   }
 

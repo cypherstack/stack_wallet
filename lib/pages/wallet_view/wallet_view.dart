@@ -196,7 +196,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
       //             ),
       //       );
     } else {
-      wallet.refresh();
+      unawaited(wallet.refresh());
     }
 
     if (wallet.refreshMutex.isLocked) {
@@ -256,8 +256,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
   @override
   void dispose() {
-    _nodeStatusSubscription.cancel();
-    _syncStatusSubscription.cancel();
+    unawaited(_nodeStatusSubscription.cancel());
+    unawaited(_syncStatusSubscription.cancel());
     super.dispose();
   }
 
