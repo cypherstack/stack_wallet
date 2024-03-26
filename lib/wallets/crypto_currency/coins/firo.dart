@@ -48,10 +48,10 @@ class Firo extends Bip39HDCurrency {
       );
 
   @override
-  coinlib.NetworkParams get networkParams {
+  coinlib.Network get networkParams {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return const coinlib.NetworkParams(
+        return coinlib.Network(
           wifPrefix: 0xd2,
           p2pkhPrefix: 0x52,
           p2shPrefix: 0x07,
@@ -59,9 +59,12 @@ class Firo extends Bip39HDCurrency {
           pubHDPrefix: 0x0488b21e,
           bech32Hrp: "bc",
           messagePrefix: '\x18Zcoin Signed Message:\n',
+          minFee: BigInt.from(1), // TODO [prio=high].
+          minOutput: BigInt.from(1), // TODO.
+          feePerKb: BigInt.from(1), // TODO.
         );
       case CryptoCurrencyNetwork.test:
-        return const coinlib.NetworkParams(
+        return coinlib.Network(
           wifPrefix: 0xb9,
           p2pkhPrefix: 0x41,
           p2shPrefix: 0xb2,
@@ -69,6 +72,9 @@ class Firo extends Bip39HDCurrency {
           pubHDPrefix: 0x043587cf,
           bech32Hrp: "tb",
           messagePrefix: "\x18Zcoin Signed Message:\n",
+          minFee: BigInt.from(1), // TODO [prio=high].
+          minOutput: BigInt.from(1), // TODO.
+          feePerKb: BigInt.from(1), // TODO.
         );
       default:
         throw Exception("Unsupported network: $network");

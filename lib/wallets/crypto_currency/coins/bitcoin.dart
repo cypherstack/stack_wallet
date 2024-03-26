@@ -30,6 +30,7 @@ class Bitcoin extends Bip39HDCurrency with PaynymCurrencyInterface {
         DerivePathType.bip44,
         DerivePathType.bip49,
         DerivePathType.bip84,
+        DerivePathType.bip86, // P2TR.
       ];
 
   @override
@@ -51,10 +52,10 @@ class Bitcoin extends Bip39HDCurrency with PaynymCurrencyInterface {
       );
 
   @override
-  coinlib.NetworkParams get networkParams {
+  coinlib.Network get networkParams {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return const coinlib.NetworkParams(
+        return coinlib.Network(
           wifPrefix: 0x80,
           p2pkhPrefix: 0x00,
           p2shPrefix: 0x05,
@@ -62,9 +63,12 @@ class Bitcoin extends Bip39HDCurrency with PaynymCurrencyInterface {
           pubHDPrefix: 0x0488b21e,
           bech32Hrp: "bc",
           messagePrefix: '\x18Bitcoin Signed Message:\n',
+          minFee: BigInt.from(1), // TODO [prio=high].
+          minOutput: BigInt.from(546), // TODO.
+          feePerKb: BigInt.from(1), // TODO.
         );
       case CryptoCurrencyNetwork.test:
-        return const coinlib.NetworkParams(
+        return coinlib.Network(
           wifPrefix: 0xef,
           p2pkhPrefix: 0x6f,
           p2shPrefix: 0xc4,
@@ -72,6 +76,9 @@ class Bitcoin extends Bip39HDCurrency with PaynymCurrencyInterface {
           pubHDPrefix: 0x043587cf,
           bech32Hrp: "tb",
           messagePrefix: "\x18Bitcoin Signed Message:\n",
+          minFee: BigInt.from(1), // TODO [prio=high].
+          minOutput: BigInt.from(546), // TODO.
+          feePerKb: BigInt.from(1), // TODO.
         );
       default:
         throw Exception("Unsupported network: $network");
@@ -109,6 +116,9 @@ class Bitcoin extends Bip39HDCurrency with PaynymCurrencyInterface {
       case DerivePathType.bip84:
         purpose = 84;
         break;
+      case DerivePathType.bip86:
+        purpose = 86;
+        break;
       default:
         throw Exception("DerivePathType $derivePathType not supported");
     }
@@ -136,7 +146,7 @@ class Bitcoin extends Bip39HDCurrency with PaynymCurrencyInterface {
           hrp: networkParams.bech32Hrp,
         ).program.script;
 
-        final addr = coinlib.P2SHAddress.fromScript(
+        final addr = coinlib.P2SHAddress.fromRedeemScript(
           p2wpkhScript,
           version: networkParams.p2shPrefix,
         );
@@ -150,6 +160,16 @@ class Bitcoin extends Bip39HDCurrency with PaynymCurrencyInterface {
         );
 
         return (address: addr, addressType: AddressType.p2wpkh);
+
+      case DerivePathType.bip86:
+        final taproot = coinlib.Taproot(internalKey: publicKey);
+
+        final addr = coinlib.P2TRAddress.fromTaproot(
+          taproot,
+          hrp: networkParams.bech32Hrp,
+        );
+
+        return (address: addr, addressType: AddressType.p2tr);
 
       default:
         throw Exception("DerivePathType $derivePathType not supported");

@@ -121,7 +121,7 @@ class Namecoin extends Bip39HDCurrency {
           hrp: networkParams.bech32Hrp,
         ).program.script;
 
-        final addr = coinlib.P2SHAddress.fromScript(
+        final addr = coinlib.P2SHAddress.fromRedeemScript(
           p2wpkhScript,
           version: networkParams.p2shPrefix,
         );
@@ -143,10 +143,10 @@ class Namecoin extends Bip39HDCurrency {
 
   @override
   // See https://github.com/cypherstack/stack_wallet/blob/621aff47969761014e0a6c4e699cb637d5687ab3/lib/services/coins/namecoin/namecoin_wallet.dart#L3474
-  coinlib.NetworkParams get networkParams {
+  coinlib.Network get networkParams {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return const coinlib.NetworkParams(
+        return coinlib.Network(
           wifPrefix: 0xb4, // From 180.
           p2pkhPrefix: 0x34, // From 52.
           p2shPrefix: 0x0d, // From 13.
@@ -154,6 +154,9 @@ class Namecoin extends Bip39HDCurrency {
           pubHDPrefix: 0x0488b21e,
           bech32Hrp: "nc",
           messagePrefix: '\x18Namecoin Signed Message:\n',
+          minFee: BigInt.from(1), // TODO [prio=high].
+          minOutput: BigInt.from(1), // TODO.
+          feePerKb: BigInt.from(1), // TODO.
         );
       // case CryptoCurrencyNetwork.test:
       // TODO: [prio=low] Add testnet support.
