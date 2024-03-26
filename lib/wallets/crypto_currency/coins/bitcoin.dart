@@ -166,7 +166,7 @@ class Bitcoin extends Bip39HDCurrency with PaynymCurrencyInterface {
 
         final addr = coinlib.P2TRAddress.fromTaproot(
           taproot,
-          hrp: coinlib.Network.mainnet.bech32Hrp,
+          hrp: networkParams.bech32Hrp,
         );
 
         return (address: addr, addressType: AddressType.p2tr);
