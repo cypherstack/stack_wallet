@@ -682,6 +682,20 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
     // TODO: use coinlib
 
+    // Check if any txData.recipients are taproot/P2TR outputs.
+    bool hasTaprootOutput = false;
+    for (final recipient in txData.recipients!) {
+      if (cryptoCurrency.addressType(address: recipient.address) ==
+          DerivePathType.bip86) {
+        hasTaprootOutput = true;
+      }
+    }
+
+    if (hasTaprootOutput) {
+      // Use Coinlib to construct taproot transaction.
+      // TODO [prio=high]: Implement taproot transaction construction.
+    }
+
     final txb = bitcoindart.TransactionBuilder(
       network: bitcoindart.NetworkType(
         messagePrefix: cryptoCurrency.networkParams.messagePrefix,
