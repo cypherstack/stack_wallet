@@ -80,12 +80,22 @@ abstract class Bip39HDCurrency extends Bip39Currency {
       } catch (err) {
         // Bech32 decode fail
       }
-      if (networkParams.bech32Hrp != decodeBech32!.hrp) {
-        throw ArgumentError('Invalid prefix or Network mismatch');
+      if (decodeBech32?.hrp != null) {
+        // P2TR Bech32m addresses have null hrp.
+        if (networkParams.bech32Hrp != decodeBech32!.hrp) {
+          throw ArgumentError('Invalid prefix or Network mismatch');
+        }
+        if (decodeBech32.version != 0) {
+          throw ArgumentError('Invalid address version');
+        }
+      } else {
+        // P2TR.
+        if (address.startsWith('bc1p') || address.startsWith('tb1p')) {
+          // P2TR (Taproot).
+          return DerivePathType.bip86;
+        }
       }
-      if (decodeBech32.version != 0) {
-        throw ArgumentError('Invalid address version');
-      }
+
       // P2WPKH
       return DerivePathType.bip84;
     }
