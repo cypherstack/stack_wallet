@@ -651,6 +651,8 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
                 .data;
             break;
 
+          // case DerivePathType.bip86: // TODO: implement.
+
           default:
             throw Exception("DerivePathType unsupported");
         }
@@ -693,7 +695,109 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
     if (hasTaprootOutput) {
       // Use Coinlib to construct taproot transaction.
-      // TODO [prio=high]: Implement taproot transaction construction.
+
+      // Placeholder tx (to be built below).
+      coinlib.Transaction trTx = coinlib.Transaction(
+        inputs: [],
+        outputs: [],
+      );
+      List<InputV2> tempInputs = [];
+      List<OutputV2> tempOutputs = [];
+
+      for (var i = 0; i < utxoSigningData.length; i++) {
+        // Get keys from signing data.
+        final coinlib.ECPublicKey pk = coinlib.ECPublicKey.fromHex(
+            utxoSigningData[i].keyPair!.publicKey.toHex);
+        final coinlib.ECPrivateKey sk = coinlib.ECPrivateKey.fromHex(
+            utxoSigningData[i]
+                .keyPair!
+                .privateKey!
+                .toHex); // TODO [prio=med]: Handle null assertion.
+
+        final taproot = coinlib.Taproot(internalKey: pk);
+        // TODO [prio=high]: Test with multiple taproot inputs.
+
+        // Add inputs.
+        trTx = trTx.addInput(coinlib.TaprootKeyInput(
+            prevOut: coinlib.OutPoint(utxoSigningData[i].utxo.txid.fromHex,
+                utxoSigningData[i].utxo.vout)));
+        tempInputs.add(
+          InputV2.isarCantDoRequiredInDefaultConstructor(
+            scriptSigHex: trTx.inputs.first.script?.asm,
+            scriptSigAsm: null,
+            sequence: 0xffffffff - 1,
+            outpoint: OutpointV2.isarCantDoRequiredInDefaultConstructor(
+              txid: utxoSigningData[i].utxo.txid,
+              vout: utxoSigningData[i].utxo.vout,
+            ),
+            addresses: utxoSigningData[i].utxo.address == null
+                ? []
+                : [utxoSigningData[i].utxo.address!],
+            valueStringSats: utxoSigningData[i].utxo.value.toString(),
+            witness: null,
+            innerRedeemScriptAsm: null,
+            coinbase: null,
+            walletOwns: true,
+          ),
+        );
+
+        // Add outputs.
+        for (final recipient in txData.recipients!) {
+          final trOutput = coinlib.Output.fromProgram(
+            recipient.amount.raw,
+            coinlib.P2TR.fromTaproot(taproot),
+          );
+          trTx = trTx.addOutput(trOutput);
+
+          tempOutputs.add(
+            OutputV2.isarCantDoRequiredInDefaultConstructor(
+              scriptPubKeyHex: "000000", // TODO [prio=low]: Real one needed?
+              valueStringSats: txData.recipients![i].amount.raw.toString(),
+              addresses: [
+                txData.recipients![i].address.toString(),
+              ],
+              walletOwns: (await mainDB.isar.addresses
+                      .where()
+                      .walletIdEqualTo(walletId)
+                      .filter()
+                      .valueEqualTo(txData.recipients![i].address)
+                      .valueProperty()
+                      .findFirst()) !=
+                  null,
+            ),
+          );
+
+          trTx = trTx.sign(
+            inputN: i,
+            key: taproot.tweakPrivateKey(sk),
+            prevOuts: [trOutput],
+          );
+        }
+      }
+
+      return txData.copyWith(
+        raw: trTx.toHex(),
+        vSize: trTx.size, // TODO [prio=med]: Make sure this is virtual size.
+        tempTx: TransactionV2(
+          walletId: walletId,
+          blockHash: null,
+          hash: trTx.hashHex, // This used to be bitcoindart's getId.
+          txid: trTx.txid,
+          height: null,
+          timestamp: DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
+          inputs: List.unmodifiable(tempInputs),
+          outputs: List.unmodifiable(tempOutputs),
+          version: 1, // TODO [prio=low]: Make sure that this is correct.
+          type: tempOutputs
+                      .map((e) => e.walletOwns)
+                      .fold(true, (p, e) => p &= e) &&
+                  txData.paynymAccountLite == null
+              ? TransactionType.sentToSelf
+              : TransactionType.outgoing,
+          subType: TransactionSubType.none,
+          otherData: null,
+        ),
+      );
     }
 
     final txb = bitcoindart.TransactionBuilder(
