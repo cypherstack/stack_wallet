@@ -30,6 +30,7 @@ class Bitcoin extends Bip39HDCurrency with PaynymCurrencyInterface {
         DerivePathType.bip44,
         DerivePathType.bip49,
         DerivePathType.bip84,
+        DerivePathType.bip86, // P2TR.
       ];
 
   @override
@@ -115,6 +116,9 @@ class Bitcoin extends Bip39HDCurrency with PaynymCurrencyInterface {
       case DerivePathType.bip84:
         purpose = 84;
         break;
+      case DerivePathType.bip86:
+        purpose = 86;
+        break;
       default:
         throw Exception("DerivePathType $derivePathType not supported");
     }
@@ -156,6 +160,16 @@ class Bitcoin extends Bip39HDCurrency with PaynymCurrencyInterface {
         );
 
         return (address: addr, addressType: AddressType.p2wpkh);
+
+      case DerivePathType.bip86:
+        final taproot = coinlib.Taproot(internalKey: publicKey);
+
+        final addr = coinlib.P2TRAddress.fromTaproot(
+          taproot,
+          hrp: coinlib.Network.mainnet.bech32Hrp,
+        );
+
+        return (address: addr, addressType: AddressType.p2tr);
 
       default:
         throw Exception("DerivePathType $derivePathType not supported");
