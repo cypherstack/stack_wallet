@@ -60,6 +60,7 @@ enum AmountUnit {
       case Coin.monero:
       case Coin.monerodart:
       case Coin.wownero:
+      case Coin.wownerodart:
         return AmountUnit.values.sublist(0, 5);
 
       case Coin.ethereum:

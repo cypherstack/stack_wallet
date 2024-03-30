@@ -100,6 +100,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
       case Coin.monero:
       case Coin.monerodart:
       case Coin.wownero:
+      case Coin.wownerodart:
         try {
           final uri = Uri.parse(node!.host);
           if (uri.scheme.startsWith("http")) {

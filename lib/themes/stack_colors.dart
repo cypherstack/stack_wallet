@@ -1707,6 +1707,7 @@ class StackColors extends ThemeExtension<StackColors> {
       case Coin.namecoin:
         return _coin.namecoin;
       case Coin.wownero:
+      case Coin.wownerodart:
         return _coin.wownero;
       case Coin.particl:
         return _coin.particl;

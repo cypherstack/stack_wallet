@@ -8,7 +8,7 @@ import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/wallets/isar/models/spark_coin.dart';
 import 'package:tezart/tezart.dart' as tezart;
 import 'package:web3dart/web3dart.dart' as web3dart;
-import 'package:monero/monero.dart';
+import 'package:monero/monero.dart' as monero;
 
 class TxData {
   final FeeRateType? feeRateType;
@@ -52,7 +52,7 @@ class TxData {
   final PendingMoneroTransaction? pendingMoneroTransaction;
 
   // monerodart specific
-  final MONERO_PendingTransaction? pendingTransactionPtr;
+  final monero.PendingTransaction? pendingTransactionPtr;
 
   // firo lelantus specific
   final int? jMintValue;
@@ -179,7 +179,7 @@ class TxData {
     BigInt? feeInWei,
     PendingWowneroTransaction? pendingWowneroTransaction,
     PendingMoneroTransaction? pendingMoneroTransaction,
-    MONERO_PendingTransaction? pendingTransactionPtr,
+    monero.PendingTransaction? pendingTransactionPtr,
     int? jMintValue,
     List<int>? spendCoinIndexes,
     int? height,

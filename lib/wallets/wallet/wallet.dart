@@ -44,6 +44,7 @@ import 'package:stackwallet/wallets/wallet/impl/stellar_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/sub_wallets/eth_token_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/tezos_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/wownerodart_wallet.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/cryptonote_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
@@ -152,7 +153,7 @@ abstract class Wallet<T extends CryptoCurrency> {
     );
 
     if (wallet is MnemonicInterface) {
-      if (wallet is CryptonoteWallet || wallet is MoneroDartWallet) {
+      if (wallet is CryptonoteWallet || wallet is MoneroDartWallet || wallet is WowneroDartWallet) {
         // currently a special case due to the xmr/wow libraries handling their
         // own mnemonic generation on new wallet creation
         // if its a restore we must set them
@@ -356,6 +357,9 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       case Coin.monerodart:
         return MoneroDartWallet(CryptoCurrencyNetwork.main);
+
+      case Coin.wownerodart:
+        return WowneroDartWallet(CryptoCurrencyNetwork.main);
 
       case Coin.namecoin:
         return NamecoinWallet(CryptoCurrencyNetwork.main);
