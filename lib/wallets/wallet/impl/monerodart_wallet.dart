@@ -17,7 +17,7 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/monero.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
-import 'package:monero/monero.dart';
+import 'package:monero/monero.dart' as monero;
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'package:tuple/tuple.dart';
 import 'package:stackwallet/exceptions/sw_exception.dart';
@@ -26,9 +26,9 @@ import 'package:stack_wallet_backup/generate_password.dart';
 import 'package:flutter_libmonero/entities/secret_store_key.dart';
 bool tRan = false;
 
-final MONERO_WalletManager wmPtr = MONERO_WalletManagerFactory_getWalletManager();
+final monero.WalletManager wmPtr = monero.WalletManagerFactory_getWalletManager();
 
-MONERO_wallet? wPtr;
+monero.wallet? wPtr;
 Timer? syncCheckTimer;
 
 class MoneroDartWallet extends Wallet with MnemonicInterface {
@@ -44,7 +44,7 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
     if (address == null) {
       final address = Address(
         walletId: walletId,
-        value: MONERO_Wallet_address(wPtr!),
+        value: monero.Wallet_address(wPtr!),
         publicKey: [],
         derivationIndex: 0,
         derivationPath: null,
@@ -57,7 +57,7 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
 
   @override
   Future<TxData> confirmSend({required TxData txData}) async {
-    MONERO_PendingTransaction_commit(txData.pendingTransactionPtr!, filename: '', overwrite: false);
+    monero.PendingTransaction_commit(txData.pendingTransactionPtr!, filename: '', overwrite: false);
     // TODO(mrcyjanek): Do I need to touch this variable?
     // None of the metadata changed, it just got pushed.
     return txData;
@@ -65,7 +65,7 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
-    // TODO(mrcyjanek): not implemented in monero_c/monero.dart
+    // TODO(mrcyjanek): not implemented in monero.c/monero.dart
     return Amount(rawValue: BigInt.from(1), fractionDigits: cryptoCurrency.fractionDigits);
   }
 
@@ -90,7 +90,7 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
     if (wPtr == null) {
       throw Exception("unable to prepare transaction, wallet pointer is null");
     }
-    final txPtr = MONERO_Wallet_createTransaction(
+    final txPtr = monero.Wallet_createTransaction(
       wPtr!,
       dst_addr: txData.recipients!.first.address,
       payment_id: '',
@@ -102,8 +102,8 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
     );
     final tx = txData.copyWith(
       pendingTransactionPtr: txPtr,
-      txHash: MONERO_PendingTransaction_txid(txPtr, ' ').trim(),
-      fee: Amount(rawValue: BigInt.from(MONERO_PendingTransaction_fee(txPtr)), fractionDigits: cryptoCurrency.fractionDigits),
+      txHash: monero.PendingTransaction_txid(txPtr, ' ').trim(),
+      fee: Amount(rawValue: BigInt.from(monero.PendingTransaction_fee(txPtr)), fractionDigits: cryptoCurrency.fractionDigits),
     );
     return tx;
   }
@@ -118,8 +118,8 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
 
   @override
   Future<void> updateBalance() async {
-    final total = Amount(rawValue: BigInt.from(MONERO_Wallet_balance(wPtr!, accountIndex: 0)), fractionDigits: cryptoCurrency.fractionDigits);
-    final available = Amount(rawValue: BigInt.from(MONERO_Wallet_unlockedBalance(wPtr!, accountIndex: 0)), fractionDigits: cryptoCurrency.fractionDigits);
+    final total = Amount(rawValue: BigInt.from(monero.Wallet_balance(wPtr!, accountIndex: 0)), fractionDigits: cryptoCurrency.fractionDigits);
+    final available = Amount(rawValue: BigInt.from(monero.Wallet_unlockedBalance(wPtr!, accountIndex: 0)), fractionDigits: cryptoCurrency.fractionDigits);
   
     final balance = Balance(
       total: total,
@@ -138,7 +138,7 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
   Future<void> updateChainHeight() async {
     final addr = wPtr!.address; 
     final height = await Isolate.run(() async {
-      return MONERO_Wallet_daemonBlockChainHeight(Pointer.fromAddress(addr));
+      return monero.Wallet_daemonBlockChainHeight(Pointer.fromAddress(addr));
     });
     await info.updateCachedChainHeight(
       newHeight: height,
@@ -154,8 +154,8 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
       return;
     }
     await updateTransactions();
-    MONERO_Wallet_store(wPtr!);
-    final curHeight = MONERO_Wallet_blockChainHeight(wPtr!);
+    monero.Wallet_store(wPtr!);
+    final curHeight = monero.Wallet_blockChainHeight(wPtr!);
     GlobalEventBus.instance.fire(
       RefreshPercentChangedEvent(
         curHeight / height,
@@ -168,7 +168,7 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
         walletId,
       ),
     );
-    if (MONERO_Wallet_synchronized(wPtr!) && (height - curHeight) == 0) {
+    if (monero.Wallet_synchronized(wPtr!) && (height - curHeight) == 0) {
       GlobalEventBus.instance.fire(
         WalletSyncStatusChangedEvent(
           WalletSyncStatus.synced,
@@ -189,16 +189,16 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
   @override
   Future<void> recover({required bool isRescan}) async {
     await refreshSyncTimer();
-    MONERO_Wallet_rescanBlockchainAsync(wPtr!);
+    monero.Wallet_rescanBlockchainAsync(wPtr!);
     await refreshSyncTimer();
-    MONERO_Wallet_startRefresh(wPtr!);
+    monero.Wallet_startRefresh(wPtr!);
     return;
   }
 
   @override
   Future<void> refresh() async {
 
-    MONERO_Wallet_refreshAsync(wPtr!);
+    monero.Wallet_refreshAsync(wPtr!);
     await refreshSyncTimer();
     await super.refresh();
   }
@@ -210,15 +210,15 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
     final proxy = (TorService.sharedInstance.status == TorConnectionStatus.connected) ?
       "${TorService.sharedInstance.getProxyInfo().host.address}:${TorService.sharedInstance.getProxyInfo().port}" : "";
     print("proxy: $proxy");
-    MONERO_Wallet_init(wPtr!, daemonAddress: "$host:${node.port}", proxyAddress: proxy);
-    MONERO_Wallet_init3(wPtr!, argv0: '', defaultLogBaseName: 'moneroc', console: true, logPath: '/dev/shm/log.txt');
+    monero.Wallet_init(wPtr!, daemonAddress: "$host:${node.port}", proxyAddress: proxy);
+    monero.Wallet_init3(wPtr!, argv0: '', defaultLogBaseName: 'moneroc', console: true, logPath: '/dev/shm/log.txt');
     syncCheckTimer?.cancel();
     syncCheckTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
       refreshSyncTimer();
     });
-    // MONERO_Wallet_rescanBlockchainAsync(wPtr!);
-    MONERO_Wallet_startRefresh(wPtr!);
-    MONERO_Wallet_refreshAsync(wPtr!);
+    // monero.Wallet_rescanBlockchainAsync(wPtr!);
+    monero.Wallet_startRefresh(wPtr!);
+    monero.Wallet_refreshAsync(wPtr!);
     print("node: $host:${node.port}");
     final addr = wPtr!.address;
     if (!tRan) {
@@ -226,7 +226,7 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
     unawaited(Isolate.run(() {
       // NOTE: This is _kinda_ broken for some reason? Leaving it unfixed for now
       
-      // MONERO_Wallet_daemonBlockChainHeight_runThread(Pointer.fromAddress(addr), 1000);
+      // monero.Wallet_daemonBlockChainHeight_runThread(Pointer.fromAddress(addr), 1000);
     }));
     }
   }
@@ -313,14 +313,14 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
 
   List<MoneroTransaction> getTransactionList() {
     print("getTransactionList");
-    final txHistoryPtr = MONERO_Wallet_history(wPtr!);
-    MONERO_TransactionHistory_refresh(txHistoryPtr);
-    final txCount = MONERO_TransactionHistory_count(txHistoryPtr);
+    final txHistoryPtr = monero.Wallet_history(wPtr!);
+    monero.TransactionHistory_refresh(txHistoryPtr);
+    final txCount = monero.TransactionHistory_count(txHistoryPtr);
     final txList = List.generate(
       txCount,
       (index) => MoneroTransaction(
         wPtr: wPtr!,
-        txInfo: MONERO_TransactionHistory_transaction(txHistoryPtr, index: index),
+        txInfo: monero.TransactionHistory_transaction(txHistoryPtr, index: index),
       ),
     );
     print("txList: ${txList.length}");
@@ -332,16 +332,16 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
   Future<void> init({bool? isRestore}) async {
     final walletPath = await pathForWalletDir(name: walletId);
     print("$walletPath:$walletPath");
-    final walletExists = MONERO_WalletManager_walletExists(wmPtr, walletPath);
+    final walletExists = monero.WalletManager_walletExists(wmPtr, walletPath);
     print("walletExists: $walletExists ; isRestore: $isRestore");
     if (!walletExists && isRestore == true) {
       if (wPtr != null) {
-        MONERO_Wallet_store(wPtr!);
+        monero.Wallet_store(wPtr!);
       }
 
       final mnemonic = await getMnemonicAsWords();
       if ((await getMnemonicAsWords()).length == 16) {
-        wPtr = MONERO_WalletManager_createWalletFromPolyseed(
+        wPtr = monero.WalletManager_createWalletFromPolyseed(
           wmPtr,
           path: walletPath,
           password: await keysStorage.getWalletPassword(walletName: walletId),
@@ -352,7 +352,7 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
           kdfRounds: 1,
         );
       } else {
-        wPtr = MONERO_WalletManager_recoveryWallet(
+        wPtr = monero.WalletManager_recoveryWallet(
           wmPtr,
           path: walletPath,
           password: await keysStorage.getWalletPassword(walletName: walletId),
@@ -361,17 +361,17 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
           seedOffset: '',
         );
       }
-      if (MONERO_Wallet_status(wPtr!) != 0) {
-        throw Exception(MONERO_Wallet_errorString(wPtr!));
+      if (monero.Wallet_status(wPtr!) != 0) {
+        throw Exception(monero.Wallet_errorString(wPtr!));
       }
       
       await updateNode();
-      MONERO_Wallet_rescanBlockchainAsync(wPtr!);
-      MONERO_Wallet_store(wPtr!);
+      monero.Wallet_rescanBlockchainAsync(wPtr!);
+      monero.Wallet_store(wPtr!);
 
       return;
     } else {
-      final mnemonic = MONERO_Wallet_createPolyseed();
+      final mnemonic = monero.Wallet_createPolyseed();
       await secureStorageInterface.write(
         key: Wallet.mnemonicKey(walletId: walletId),
         value: mnemonic.trim(),
@@ -381,7 +381,7 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
         value: "",
       );
       if ((await getMnemonicAsWords()).length == 16) {
-        wPtr = MONERO_WalletManager_createWalletFromPolyseed(
+        wPtr = monero.WalletManager_createWalletFromPolyseed(
           wmPtr,
           path: walletPath,
           password: await keysStorage.getWalletPassword(walletName: walletId),
@@ -392,7 +392,7 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
           kdfRounds: 1,
         );
       } else {
-        wPtr = MONERO_WalletManager_recoveryWallet(
+        wPtr = monero.WalletManager_recoveryWallet(
           wmPtr,
           path: walletPath,
           password: await keysStorage.getWalletPassword(walletName: walletId),
@@ -401,13 +401,13 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
           seedOffset: '',
         );
       }
-      wPtr = MONERO_WalletManager_openWallet(wmPtr, path: walletPath, password: await keysStorage.getWalletPassword(walletName: walletId));
-      print("status: ${MONERO_Wallet_status(wPtr!)}: ${MONERO_Wallet_errorString(wPtr!)}");
-      print("address: ${MONERO_Wallet_address(wPtr!)}");
-      // MONERO_Wallet_setRefreshFromBlockHeight(wPtr!, refresh_from_block_height: info.restoreHeight);
-      print("MONERO_Wallet_getRefreshFromBlockHeight: ${MONERO_Wallet_getRefreshFromBlockHeight(wPtr!)} (${info.restoreHeight})");
-      final polyseed = MONERO_Wallet_getPolyseed(wPtr!,passphrase: '').trim();
-      final legacySeed = MONERO_Wallet_seed(wPtr!, seedOffset: '').trim();
+      wPtr = monero.WalletManager_openWallet(wmPtr, path: walletPath, password: await keysStorage.getWalletPassword(walletName: walletId));
+      print("status: ${monero.Wallet_status(wPtr!)}: ${monero.Wallet_errorString(wPtr!)}");
+      print("address: ${monero.Wallet_address(wPtr!)}");
+      // monero.Wallet_setRefreshFromBlockHeight(wPtr!, refresh_from_block_height: info.restoreHeight);
+      print("monero.Wallet_getRefreshFromBlockHeight: ${monero.Wallet_getRefreshFromBlockHeight(wPtr!)} (${info.restoreHeight})");
+      final polyseed = monero.Wallet_getPolyseed(wPtr!,passphrase: '').trim();
+      final legacySeed = monero.Wallet_seed(wPtr!, seedOffset: '').trim();
       await secureStorageInterface.write(
         key: Wallet.mnemonicKey(walletId: walletId),
         value: (polyseed.isNotEmpty) ? polyseed : legacySeed,
@@ -488,10 +488,10 @@ Future<bool> isDesktop() async {
 const maxConfirms = 10;
 
 class MoneroTransaction {
-  MONERO_wallet wPtr;
+  monero.wallet wPtr;
   final String displayLabel;
   late String subaddressLabel = getSubaddressLabel(wPtr, 0); // TODO: fixme
-  late final String address = MONERO_Wallet_address(
+  late final String address = monero.Wallet_address(
     wPtr,
     accountIndex: 0,
     addressIndex: 0,
@@ -512,28 +512,28 @@ class MoneroTransaction {
   // S finalubAddress? subAddress;
   // List<Transfer> transfers = [];
   // final int txIndex;
-  final MONERO_TransactionInfo txInfo;
+  final monero.TransactionInfo txInfo;
   MoneroTransaction({
     required this.wPtr,
     required this.txInfo,
-  })  : displayLabel = MONERO_TransactionInfo_label(txInfo),
-        hash = MONERO_TransactionInfo_hash(txInfo),
+  })  : displayLabel = monero.TransactionInfo_label(txInfo),
+        hash = monero.TransactionInfo_hash(txInfo),
         timeStamp = DateTime.fromMillisecondsSinceEpoch(
-          MONERO_TransactionInfo_timestamp(txInfo) * 1000,
+          monero.TransactionInfo_timestamp(txInfo) * 1000,
         ),
-        isSpend = MONERO_TransactionInfo_direction(txInfo) ==
-            TransactionInfo_Direction.Out,
-        amount = MONERO_TransactionInfo_amount(txInfo),
-        paymentId = MONERO_TransactionInfo_paymentId(txInfo),
-        accountIndex = MONERO_TransactionInfo_subaddrAccount(txInfo),
-        blockheight = MONERO_TransactionInfo_blockHeight(txInfo),
-        confirmations = MONERO_TransactionInfo_confirmations(txInfo),
-        fee = MONERO_TransactionInfo_fee(txInfo),
-        description = MONERO_TransactionInfo_description(txInfo);
+        isSpend = monero.TransactionInfo_direction(txInfo) ==
+            monero.TransactionInfo_Direction.Out,
+        amount = monero.TransactionInfo_amount(txInfo),
+        paymentId = monero.TransactionInfo_paymentId(txInfo),
+        accountIndex = monero.TransactionInfo_subaddrAccount(txInfo),
+        blockheight = monero.TransactionInfo_blockHeight(txInfo),
+        confirmations = monero.TransactionInfo_confirmations(txInfo),
+        fee = monero.TransactionInfo_fee(txInfo),
+        description = monero.TransactionInfo_description(txInfo);
 }
 
-String getSubaddressLabel(MONERO_wallet walletPtr, int addressIndex) {
-  final label = MONERO_Wallet_getSubaddressLabel(walletPtr,
+String getSubaddressLabel(monero.wallet walletPtr, int addressIndex) {
+  final label = monero.Wallet_getSubaddressLabel(walletPtr,
       accountIndex: 0, addressIndex: addressIndex);
   if (label == "") return "SUBADDRESS #$addressIndex";
   return label;

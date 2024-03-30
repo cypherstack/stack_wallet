@@ -183,10 +183,13 @@ dependencies:
   stream_channel: ^2.1.0
   monero:
     hosted: https://git.mrcyjanek.net/api/packages/mrcyjanek/pub/
-    version: 0.18003001.38
+    version: 0.18003001.40
   monero_libs:
     hosted: https://git.mrcyjanek.net/api/packages/mrcyjanek/pub/
-    version: 0.18003003.6
+    version: 0.18003003.10
+  wownero_libs:
+    hosted: https://git.mrcyjanek.net/api/packages/mrcyjanek/pub/
+    version: 0.18003003.10
 
 dev_dependencies:
   flutter_test:

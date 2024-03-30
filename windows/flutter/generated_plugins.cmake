@@ -21,6 +21,7 @@ list(APPEND FLUTTER_FFI_PLUGIN_LIST
   frostdart
   monero_libs
   tor_ffi_plugin
+  wownero_libs
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)
