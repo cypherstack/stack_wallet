@@ -39,7 +39,7 @@ Uri getDefaultBlockExplorerUrlFor({
       return Uri.parse("https://etherscan.io/tx/$txid");
     case Coin.monero || Coin.monerodart:
       return Uri.parse("https://xmrchain.net/tx/$txid");
-    case Coin.wownero:
+    case Coin.wownero || Coin.wownerodart:
       return Uri.parse("https://explore.wownero.com/search?value=$txid");
     case Coin.firo:
       return Uri.parse("https://explorer.firo.org/tx/$txid");

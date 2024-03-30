@@ -62,6 +62,7 @@ class CoinThemeColorDefault {
       case Coin.namecoin:
         return namecoin;
       case Coin.wownero:
+      case Coin.wownerodart:
         return wownero;
       case Coin.particl:
         return particl;

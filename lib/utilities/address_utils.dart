@@ -88,7 +88,7 @@ class AddressUtils {
         return Ecash(CryptoCurrencyNetwork.main).validateAddress(address);
       case Coin.monero || Coin.monerodart:
         return Monero(CryptoCurrencyNetwork.main).validateAddress(address);
-      case Coin.wownero:
+      case Coin.wownero || Coin.wownerodart:
         return Wownero(CryptoCurrencyNetwork.main).validateAddress(address);
       case Coin.namecoin:
         return Namecoin(CryptoCurrencyNetwork.main).validateAddress(address);

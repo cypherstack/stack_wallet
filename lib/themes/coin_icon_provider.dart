@@ -36,8 +36,10 @@ final coinIconProvider = Provider.family<String, Coin>((ref, coin) {
       case Coin.firoTestNet:
         return assets.firo;
       case Coin.monero:
+      case Coin.monerodart:
         return assets.monero;
       case Coin.wownero:
+      case Coin.wownerodart:
         return assets.wownero;
       case Coin.namecoin:
         return assets.namecoin;

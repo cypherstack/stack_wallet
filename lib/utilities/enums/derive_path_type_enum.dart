@@ -48,6 +48,7 @@ extension DerivePathTypeExt on DerivePathType {
       case Coin.monero:
       case Coin.monerodart:
       case Coin.wownero:
+      case Coin.wownerodart:
       case Coin.nano:
       case Coin.banano:
       case Coin.stellar:

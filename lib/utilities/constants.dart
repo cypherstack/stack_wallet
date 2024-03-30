@@ -90,6 +90,7 @@ abstract class Constants {
         return _satsPerCoinBanano;
 
       case Coin.wownero:
+      case Coin.wownerodart:
         return _satsPerCoinWownero;
 
       case Coin.monero:
@@ -135,6 +136,7 @@ abstract class Constants {
         return _decimalPlacesBanano;
 
       case Coin.wownero:
+      case Coin.wownerodart:
         return _decimalPlacesWownero;
 
       case Coin.monero:
@@ -190,6 +192,8 @@ abstract class Constants {
         values.addAll([16, 25]);
         break;
       case Coin.wownero:
+      case Coin.wownerodart:
+        // TODO: **14** words? huh?
         values.addAll([14, 25]);
         break;
     }
@@ -229,7 +233,8 @@ abstract class Constants {
         return 120;
 
       case Coin.wownero:
-        return 120;
+      case Coin.wownerodart:
+        return 307; // Saw that number in the WOW codebase, and heard it is around 5 minutes.
 
       case Coin.namecoin:
         return 600;
@@ -269,6 +274,7 @@ abstract class Constants {
         return 12;
 
       case Coin.wownero:
+      case Coin.wownerodart:
         return 14;
 
       case Coin.nano:

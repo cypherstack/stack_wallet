@@ -179,11 +179,12 @@ dependencies:
       ref: 2897c6448e131241d4d91fe23fdab83305134225
   stream_channel: ^2.1.0
   monero:
-    hosted: https://git.mrcyjanek.net/api/packages/mrcyjanek/pub/
-    version: 0.18003001.40
-  monero_libs:
-    hosted: https://git.mrcyjanek.net/api/packages/mrcyjanek/pub/
-    version: 0.18003003.10
+    path: ../monero.dart
+    # hosted: https://git.mrcyjanek.net/api/packages/mrcyjanek/pub/
+    # version: 0.18003001.40
+  # monero_libs:
+  #   hosted: https://git.mrcyjanek.net/api/packages/mrcyjanek/pub/
+  #   version: 0.18003003.10
   wownero_libs:
     hosted: https://git.mrcyjanek.net/api/packages/mrcyjanek/pub/
     version: 0.18003003.10

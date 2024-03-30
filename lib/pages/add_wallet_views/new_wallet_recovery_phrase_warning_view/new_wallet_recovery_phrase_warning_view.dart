@@ -556,7 +556,8 @@ class _NewWalletRecoveryPhraseWarningViewState
 
                                             if (coin == Coin.monero ||
                                                 coin == Coin.wownero ||
-                                                coin == Coin.monerodart) {
+                                                coin == Coin.monerodart ||
+                                                coin == Coin.wownerodart) {
                                               // currently a special case due to the
                                               // xmr/wow libraries handling their
                                               // own mnemonic generation

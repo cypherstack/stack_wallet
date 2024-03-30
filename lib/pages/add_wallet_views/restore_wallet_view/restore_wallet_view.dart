@@ -55,6 +55,7 @@ import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/monero_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/monerodart_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/wownerodart_wallet.dart';
 import 'package:stackwallet/wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -182,7 +183,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       var moneroWordList = monero.getMoneroWordList("English");
       return moneroWordList.contains(word);
     }
-    if (widget.coin == Coin.wownero) {
+    if (widget.coin == Coin.wownero || widget.coin == Coin.wownerodart) {
       var wowneroWordList = wownero.getWowneroWordList("English",
           seedWordsLength: widget.seedWordsLength);
       return wowneroWordList.contains(word);
@@ -213,7 +214,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
       if (widget.coin == Coin.monero || widget.coin == Coin.monerodart) {
         height = monero.getHeigthByDate(date: widget.restoreFromDate);
-      } else if (widget.coin == Coin.wownero) {
+      } else if (widget.coin == Coin.wownero || widget.coin == Coin.wownerodart) {
         height = wownero.getHeightByDate(date: widget.restoreFromDate);
       }
       // todo: wait until this implemented
@@ -262,7 +263,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
       // TODO: do actual check to make sure it is a valid mnemonic for monero
       if (bip39.validateMnemonic(mnemonic) == false &&
-          !(widget.coin == Coin.monero || widget.coin == Coin.wownero || widget.coin == Coin.monerodart)) {
+          !(widget.coin == Coin.monero || widget.coin == Coin.wownero ||
+            widget.coin == Coin.monerodart || widget.coin == Coin.wownerodart)) {
         unawaited(showFloatingFlushBar(
           type: FlushBarType.warning,
           message: "Invalid seed phrase!",
@@ -340,6 +342,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
             case WowneroWallet:
               await (wallet as WowneroWallet).init(isRestore: true);
+              break;
+            
+            case WowneroDartWallet:
+              await (wallet as WowneroDartWallet).init(isRestore: true);
               break;
 
             default:

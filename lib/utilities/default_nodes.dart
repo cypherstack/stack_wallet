@@ -338,7 +338,7 @@ abstract class DefaultNodes {
       case Coin.monero || Coin.monerodart:
         return monero;
 
-      case Coin.wownero:
+      case Coin.wownero || Coin.wownerodart:
         return wownero;
 
       case Coin.namecoin:

@@ -76,6 +76,7 @@ import 'package:stackwallet/wallets/isar/providers/all_wallets_info_provider.dar
 import 'package:stackwallet/widgets/crypto_notifications.dart';
 import 'package:window_size/window_size.dart';
 import 'package:monero/monero.dart' as monero_dart;
+import 'package:monero/monero.dart' as wownero_dart;
 
 final openedFromSWBFileStringStateProvider =
     StateProvider<String?>((ref) => null);
@@ -85,6 +86,7 @@ final openedFromSWBFileStringStateProvider =
 // miscellaneous box for later use
 void main(List<String> args) async {
   monero_dart.printStarts = true;
+  wownero_dart.printStarts = true;
   WidgetsFlutterBinding.ensureInitialized();
 
   if (Util.isDesktop && args.length == 2 && args.first == "-d") {

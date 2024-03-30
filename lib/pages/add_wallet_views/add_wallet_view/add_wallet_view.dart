@@ -128,6 +128,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
     _searchFocusNode = FocusNode();
     // _coinsTestnet.remove(Coin.firoTestNet);
     _coins.remove(Coin.monero);
+    _coins.remove(Coin.wownero);
     
     if (Platform.isWindows) {
       _coins.remove(Coin.monero);

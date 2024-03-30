@@ -318,6 +318,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                           25) ||
                   (coin == Coin.monerodart &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) ||
+                  (coin == Coin.wownerodart &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
                           25))
                 Text(
                   "Choose start date",
@@ -337,6 +340,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                   coin == Coin.epicCash ||
                   (coin == Coin.wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) ||
+                  (coin == Coin.wownerodart &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
                           25))
                 SizedBox(
                   height: isDesktop ? 16 : 8,
@@ -347,6 +353,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                           25) ||
                   coin == Coin.epicCash ||
                   (coin == Coin.wownero &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) ||
+                  (coin == Coin.wownerodart &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
                           25))
                 if (!isDesktop)
@@ -360,6 +369,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
                           25) ||
                   (coin == Coin.wownero &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) || 
+                  (coin == Coin.wownerodart &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
                           25))
                 if (isDesktop)
@@ -375,6 +387,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                           25) ||
                   (coin == Coin.wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) ||
+                  (coin == Coin.wownerodart &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
                           25))
                 const SizedBox(
                   height: 8,
@@ -385,6 +400,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
                           25) ||
                   (coin == Coin.wownero &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) ||
+                  (coin == Coin.wownerodart &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
                           25))
                 RoundedWhiteContainer(
@@ -409,6 +427,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
                           25) ||
                   (coin == Coin.wownero &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) ||
+                  (coin == Coin.wownerodart &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
                           25))
                 SizedBox(

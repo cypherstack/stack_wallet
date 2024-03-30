@@ -29,6 +29,7 @@ enum Coin {
   stellar,
   tezos,
   wownero,
+  wownerodart,
 
   ///
 
@@ -74,6 +75,8 @@ extension CoinExt on Coin {
         return "Tezos";
       case Coin.wownero:
         return "Wownero";
+      case Coin.wownerodart:
+        return "Wownero.dart";
       case Coin.namecoin:
         return "Namecoin";
       case Coin.nano:
@@ -121,7 +124,7 @@ extension CoinExt on Coin {
         return "XLM";
       case Coin.tezos:
         return "XTZ";
-      case Coin.wownero:
+      case Coin.wownero || Coin.wownerodart:
         return "WOW";
       case Coin.namecoin:
         return "NMC";
@@ -171,7 +174,7 @@ extension CoinExt on Coin {
         return "stellar";
       case Coin.tezos:
         return "tezos";
-      case Coin.wownero:
+      case Coin.wownero || Coin.wownerodart:
         return "wownero";
       case Coin.namecoin:
         return "namecoin";
@@ -217,6 +220,7 @@ extension CoinExt on Coin {
       case Coin.monerodart:
       case Coin.tezos:
       case Coin.wownero:
+      case Coin.wownerodart:
       case Coin.nano:
       case Coin.banano:
       case Coin.stellar:
@@ -249,6 +253,7 @@ extension CoinExt on Coin {
       case Coin.monero:
       case Coin.monerodart:
       case Coin.wownero:
+      case Coin.wownerodart:
       case Coin.nano:
       case Coin.banano:
       case Coin.tezos:
@@ -274,6 +279,7 @@ extension CoinExt on Coin {
       case Coin.monerodart:
       case Coin.tezos:
       case Coin.wownero:
+      case Coin.wownerodart:
       case Coin.dogecoinTestNet:
       case Coin.bitcoinTestNet:
       case Coin.litecoinTestNet:
@@ -302,6 +308,7 @@ extension CoinExt on Coin {
       case Coin.monerodart:
       case Coin.tezos:
       case Coin.wownero:
+      case Coin.wownerodart:
       case Coin.nano:
       case Coin.banano:
       case Coin.eCash:
@@ -333,6 +340,7 @@ extension CoinExt on Coin {
       case Coin.monerodart:
       case Coin.tezos:
       case Coin.wownero:
+      case Coin.wownerodart:
       case Coin.nano:
       case Coin.banano:
       case Coin.eCash:
@@ -384,6 +392,7 @@ extension CoinExt on Coin {
       case Coin.monero:
       case Coin.monerodart:
       case Coin.wownero:
+      case Coin.wownerodart:
         return AddressType.cryptonote;
 
       case Coin.epicCash:
@@ -500,6 +509,11 @@ Coin coinFromPrettyName(String name) {
     case "wownero":
       return Coin.wownero;
 
+    case "Wownero.dart":
+    case "wownero.dart":
+      return Coin.wownerodart;
+
+
     case "Nano":
     case "nano":
       return Coin.nano;
@@ -562,7 +576,7 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
     case "tdoge":
       return Coin.dogecoinTestNet;
     case "wow":
-      return Coin.wownero;
+      return Coin.wownerodart;
     case "xno":
       return Coin.nano;
     case "ban":
