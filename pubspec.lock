@@ -1151,18 +1151,18 @@ packages:
     dependency: "direct main"
     description:
       name: monero
-      sha256: "0e900c096d16eb703536d5dd85ebfe94d8259d261c45308394d125a2643d7f2e"
+      sha256: "47e356c37461408465f6a168202c97a6837908a56cbfdd64d6d1097f5865d88b"
       url: "https://git.mrcyjanek.net/api/packages/mrcyjanek/pub/"
     source: hosted
-    version: "0.018003001.38"
+    version: "0.018003001.40"
   monero_libs:
     dependency: "direct main"
     description:
       name: monero_libs
-      sha256: f45173f0c380937c0eec4da1b8460269cb4f36f6f7c5f613ac364d9b3b20874b
+      sha256: b26fd17fcf6f55a3275a5e924ffde5b8722ceb40f64e5d2f513a440fc1c0dfcd
       url: "https://git.mrcyjanek.net/api/packages/mrcyjanek/pub/"
     source: hosted
-    version: "0.018003003.006"
+    version: "0.018003003.010"
   mutex:
     dependency: "direct main"
     description:
@@ -2030,6 +2030,14 @@ packages:
       url: "https://github.com/google/flutter-desktop-embedding.git"
     source: git
     version: "0.1.0"
+  wownero_libs:
+    dependency: "direct main"
+    description:
+      name: wownero_libs
+      sha256: "47d676cfc0ae6fb74b9e31a358f72ac944440ff1393eb6a903efbcf008810241"
+      url: "https://git.mrcyjanek.net/api/packages/mrcyjanek/pub/"
+    source: hosted
+    version: "0.018003003.010"
   xdg_directories:
     dependency: transitive
     description:

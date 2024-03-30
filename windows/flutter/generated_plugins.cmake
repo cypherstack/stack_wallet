@@ -20,6 +20,7 @@ list(APPEND FLUTTER_FFI_PLUGIN_LIST
   flutter_libsparkmobile
   monero_libs
   tor_ffi_plugin
+  wownero_libs
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)
