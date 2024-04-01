@@ -31,9 +31,10 @@ dependencies:
     path: ./crypto_plugins/frostdart
 
   flutter_libsparkmobile:
+    # path: ../flutter_libsparkmobile
     git:
-      url: https://github.com/cypherstack/flutter_libsparkmobile.git
-      ref: 3f986ca1a94bdac5d31373454c989cc2f5842de8
+      url: https://github.com/mrcyjanek/flutter_libsparkmobile.git
+      ref: 16bf629404168731772f0a06bf6cc2b76959cdf0
 
   flutter_libmonero:
     path: ./crypto_plugins/flutter_libmonero
@@ -182,15 +183,15 @@ dependencies:
       ref: 9e9441fc1e9ace8907256fff05fe2c607b0933b6
   stream_channel: ^2.1.0
   monero:
-    path: ../monero.dart
-    # hosted: https://git.mrcyjanek.net/api/packages/mrcyjanek/pub/
-    # version: 0.18003001.40
+    git:
+      url: https://git.mrcyjanek.net/mrcyjanek/monero.dart
+      ref: master
   # monero_libs:
   #   hosted: https://git.mrcyjanek.net/api/packages/mrcyjanek/pub/
   #   version: 0.18003003.10
-  wownero_libs:
-    hosted: https://git.mrcyjanek.net/api/packages/mrcyjanek/pub/
-    version: 0.18003003.10
+  # wownero_libs:
+  #   hosted: https://git.mrcyjanek.net/api/packages/mrcyjanek/pub/
+  #   version: 0.18003003.10
 
 dev_dependencies:
   flutter_test:
