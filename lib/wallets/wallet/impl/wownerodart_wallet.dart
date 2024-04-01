@@ -208,8 +208,8 @@ class WowneroDartWallet extends Wallet with MnemonicInterface {
     final proxy = (TorService.sharedInstance.status == TorConnectionStatus.connected) ?
       "${TorService.sharedInstance.getProxyInfo().host.address}:${TorService.sharedInstance.getProxyInfo().port}" : "";
     print("proxy: $proxy");
-    wownero.Wallet_init(wowwPtr!, daemonAddress: "$host:${node.port}", proxyAddress: proxy);
-    wownero.Wallet_init3(wowwPtr!, argv0: '', defaultLogBaseName: 'wowneroc', console: true, logPath: '/dev/shm/log.txt');
+    wownero.Wallet_init(wowwPtr!, daemonAddress: "node.suchwow.xyz:34568", proxyAddress: proxy);
+    wownero.Wallet_init3(wowwPtr!, argv0: '', defaultLogBaseName: 'wowneroc', console: true, logPath: '/tmp/log-wownero.txt');
     syncCheckTimer?.cancel();
     syncCheckTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
       refreshSyncTimer();
