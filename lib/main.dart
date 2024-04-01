@@ -76,7 +76,7 @@ import 'package:stackwallet/wallets/isar/providers/all_wallets_info_provider.dar
 import 'package:stackwallet/widgets/crypto_notifications.dart';
 import 'package:window_size/window_size.dart';
 import 'package:monero/monero.dart' as monero_dart;
-import 'package:monero/monero.dart' as wownero_dart;
+import 'package:monero/wownero.dart' as wownero_dart;
 
 final openedFromSWBFileStringStateProvider =
     StateProvider<String?>((ref) => null);
@@ -87,6 +87,23 @@ final openedFromSWBFileStringStateProvider =
 void main(List<String> args) async {
   monero_dart.printStarts = true;
   wownero_dart.printStarts = true;
+
+  // await Future.delayed(Duration(seconds: 1));
+  // final wptr = wownero_dart.WalletManagerFactory_getWalletManager();
+  // final w = wownero_dart.WalletManager_createWallet(wptr, path: '/tmp/${DateTime.now()}', password: '');
+  // final a = wownero_dart.Wallet_address(w);
+  // print("wow: $a");
+  // final wptr0 = monero_dart.WalletManagerFactory_getWalletManager();
+  // final w0 = monero_dart.WalletManager_createWallet(wptr0, path: '/tmp/${DateTime.now()}', password: '');
+  // final a0 = monero_dart.Wallet_address(w0);
+  // print("xmr: $a0");
+  // final wptr1 = wownero_dart.WalletManagerFactory_getWalletManager();
+  // final w1 = wownero_dart.WalletManager_createWallet(wptr1, path: '/tmp/${DateTime.now()}', password: '');
+  // final a1 = wownero_dart.Wallet_address(w1);
+  // print("wow: $a1");
+  // await Future.delayed(Duration(seconds: 1));
+  // exit(0);
+
   WidgetsFlutterBinding.ensureInitialized();
 
   if (Util.isDesktop && args.length == 2 && args.first == "-d") {

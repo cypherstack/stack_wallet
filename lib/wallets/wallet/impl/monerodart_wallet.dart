@@ -209,7 +209,7 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
       "${TorService.sharedInstance.getProxyInfo().host.address}:${TorService.sharedInstance.getProxyInfo().port}" : "";
     print("proxy: $proxy");
     monero.Wallet_init(xmrwPtr!, daemonAddress: "$host:${node.port}", proxyAddress: proxy);
-    monero.Wallet_init3(xmrwPtr!, argv0: '', defaultLogBaseName: 'moneroc', console: true, logPath: '/dev/shm/log.txt');
+    monero.Wallet_init3(xmrwPtr!, argv0: '', defaultLogBaseName: 'moneroc', console: true, logPath: '/tmp/log-monero.txt');
     syncCheckTimer?.cancel();
     syncCheckTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
       refreshSyncTimer();

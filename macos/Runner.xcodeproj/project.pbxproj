@@ -34,6 +34,8 @@
 		F1FA2C4E2BA4B49F00BDA1BB /* frostdart.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F1FA2C4D2BA4B49F00BDA1BB /* frostdart.dylib */; settings = {ATTRIBUTES = (Weak, ); }; };
 		F1FA2C502BA4B4CA00BDA1BB /* frostdart.dylib in Resources */ = {isa = PBXBuildFile; fileRef = F1FA2C4F2BA4B4CA00BDA1BB /* frostdart.dylib */; };
 		F1FA2C512BA4B51E00BDA1BB /* frostdart.dylib in Bundle Framework */ = {isa = PBXBuildFile; fileRef = F1FA2C4D2BA4B49F00BDA1BB /* frostdart.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		CE9E461B2BBB049A008A49E4 /* monero_libwallet2_api_c.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE9E461A2BBB049A008A49E4 /* monero_libwallet2_api_c.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		CE9E461D2BBB04A8008A49E4 /* wownero_libwallet2_api_c.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE9E461C2BBB04A8008A49E4 /* wownero_libwallet2_api_c.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		F653CA022D33E8B60E11A9F3 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E6036BF01BF05EA773C76D22 /* Pods_Runner.framework */; };
 /* End PBXBuildFile section */
 
@@ -67,6 +69,17 @@
 			name = "Bundle Framework";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CE9E46192BBB047B008A49E4 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 12;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				CE9E461D2BBB04A8008A49E4 /* wownero_libwallet2_api_c.dylib in CopyFiles */,
+				CE9E461B2BBB049A008A49E4 /* monero_libwallet2_api_c.dylib in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -97,6 +110,8 @@
 		B98151802A674022009D013C /* mobileliblelantus.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = mobileliblelantus.framework; path = ../crypto_plugins/flutter_liblelantus/scripts/macos/mobileliblelantus/mobileliblelantus.framework; sourceTree = "<group>"; };
 		B98151832A674143009D013C /* libsqlite3.0.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.0.tbd; path = usr/lib/libsqlite3.0.tbd; sourceTree = SDKROOT; };
 		BF5E76865ACB46314AC27D8F /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
+		CE9E461A2BBB049A008A49E4 /* monero_libwallet2_api_c.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = monero_libwallet2_api_c.dylib; sourceTree = "<group>"; };
+		CE9E461C2BBB04A8008A49E4 /* wownero_libwallet2_api_c.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = wownero_libwallet2_api_c.dylib; sourceTree = "<group>"; };
 		E6036BF01BF05EA773C76D22 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F1FA2C4D2BA4B49F00BDA1BB /* frostdart.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = frostdart.dylib; path = ../crypto_plugins/frostdart/macos/frostdart.dylib; sourceTree = "<group>"; };
 		F1FA2C4F2BA4B4CA00BDA1BB /* frostdart.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = frostdart.dylib; path = ../crypto_plugins/frostdart/macos/frostdart.dylib; sourceTree = "<group>"; };
@@ -148,6 +163,8 @@
 			isa = PBXGroup;
 			children = (
 				F1FA2C4F2BA4B4CA00BDA1BB /* frostdart.dylib */,
+				CE9E461C2BBB04A8008A49E4 /* wownero_libwallet2_api_c.dylib */,
+				CE9E461A2BBB049A008A49E4 /* monero_libwallet2_api_c.dylib */,
 				33FAB671232836740065AC1E /* Runner */,
 				33CEB47122A05771004F2AC0 /* Flutter */,
 				331C80D6294CF71000263BE5 /* RunnerTests */,
@@ -259,6 +276,7 @@
 				33CC110E2044A8840003C045 /* Bundle Framework */,
 				3399D490228B24CF009A79C7 /* ShellScript */,
 				529691D83C3BADE14E2EAC03 /* [CP] Embed Pods Frameworks */,
+				CE9E46192BBB047B008A49E4 /* CopyFiles */,
 			);
 			buildRules = (
 			);
