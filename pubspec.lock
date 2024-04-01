@@ -674,9 +674,9 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "3f986ca1a94bdac5d31373454c989cc2f5842de8"
-      resolved-ref: "3f986ca1a94bdac5d31373454c989cc2f5842de8"
-      url: "https://github.com/cypherstack/flutter_libsparkmobile.git"
+      ref: "16bf629404168731772f0a06bf6cc2b76959cdf0"
+      resolved-ref: "16bf629404168731772f0a06bf6cc2b76959cdf0"
+      url: "https://github.com/mrcyjanek/flutter_libsparkmobile.git"
     source: git
     version: "0.0.1"
   flutter_lints:
@@ -1150,9 +1150,11 @@ packages:
   monero:
     dependency: "direct main"
     description:
-      path: "../monero.dart"
-      relative: true
-    source: path
+      path: "."
+      ref: master
+      resolved-ref: "3b063bb50de6ea5442a1f6c950623e4ee5ba7b56"
+      url: "https://git.mrcyjanek.net/mrcyjanek/monero.dart"
+    source: git
     version: "0.0.0"
   mutex:
     dependency: "direct main"
@@ -2021,14 +2023,6 @@ packages:
       url: "https://github.com/google/flutter-desktop-embedding.git"
     source: git
     version: "0.1.0"
-  wownero_libs:
-    dependency: "direct main"
-    description:
-      name: wownero_libs
-      sha256: "47d676cfc0ae6fb74b9e31a358f72ac944440ff1393eb6a903efbcf008810241"
-      url: "https://git.mrcyjanek.net/api/packages/mrcyjanek/pub/"
-    source: hosted
-    version: "0.018003003.010"
   xdg_directories:
     dependency: transitive
     description:

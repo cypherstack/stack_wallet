@@ -171,7 +171,7 @@ SPEC CHECKSUMS:
   device_info_plus: 5401765fde0b8d062a2f8eb65510fb17e77cf07f
   devicelocale: 9f0f36ac651cabae2c33f32dcff4f32b61c38225
   flutter_libepiccash: be1560a04150c5cc85bcf08d236ec2b3d1f5d8da
-  flutter_libsparkmobile: 8ae86b0ccc7e52c9db6b53e258ee2977deb184ab
+  flutter_libsparkmobile: df2d36af1691379c81249e7be7b68be3c81d388b
   flutter_local_notifications: 3805ca215b2fb7f397d78b66db91f6a747af52e4
   flutter_secure_storage_macos: d56e2d218c1130b262bef8b4a7d64f88d7f9c9ea
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
@@ -189,4 +189,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 236401fc2c932af29a9fcf0e97baeeb2d750d367
 
-COCOAPODS: 1.11.3
+COCOAPODS: 1.15.2
