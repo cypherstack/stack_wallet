@@ -222,9 +222,9 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
 
   @override
   Future<void> recover({required bool isRescan}) async {
-    // await refreshSyncTimer();
+    await refreshSyncTimer();
     monero.Wallet_rescanBlockchainAsync(xmrwPtr!);
-    // await refreshSyncTimer();
+    await refreshSyncTimer();
     monero.Wallet_startRefresh(xmrwPtr!);
     return;
   }
