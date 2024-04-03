@@ -10,3 +10,7 @@
 [submodule "crypto_plugins/frostdart"]
 	path = crypto_plugins/frostdart
 	url = https://github.com/cypherstack/frostdart
+[submodule "crypto_plugins/monero_c"]
+	path = crypto_plugins/monero_c
+	url = https://github.com/cypherstack/monero_c
+	branch = rewrite-wip
