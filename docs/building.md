@@ -185,6 +185,7 @@ After installing Homebrew, install the following packages:
 ```
 brew install cocoapods git cmake autoconf fontconfig libpng lz4 pkg-config automake freetype libssh2 lzo procs berkeley-db gdbm libtool m4 rtmpdump brotli gettext libunistring make rustup-init ca-certificates git-gui libx11 openldap tcl-tk cairo glib libxau openssl@1.1 unbound cbindgen gmp libxcb openssl@3 unzip cmake libevent libxdmcp pcre2 xorgproto coreutils libidn2 libxext perl xz curl libnghttp2 libxrender pixman zstd
 ```
+<!-- TODO: reduce list of brews to install. -->
 
 Download and install [Rust](https://www.rust-lang.org/tools/install).  [Rustup](https://rustup.rs/) is recommended for Rust setup.  Use `rustc` to confirm successful installation.  Install toolchains 1.67.1 and 1.72.0 and `cbindgen` and `cargo-lipo` too.  You will also have to add the platform target(s) `aarch64-apple-ios` and/or `aarch64-apple-darwin`.  You can use the command(s):
 ```
@@ -201,17 +202,42 @@ Download and install [Flutter](https://docs.flutter.dev/get-started/install).  V
 
 Download [Android Studio](https://developer.android.com/studio).  VS Code may work as an alternative, but this is not recommended.
 
-### Building libraries
-TODO
+### Flutter
+Install [Flutter](https://docs.flutter.dev/get-started/install) 3.16.8 on your Mac host by following [these instructions](https://docs.flutter.dev/get-started/install/macos).  Run `flutter doctor` in a terminal to confirm its installation.
 
-### Install Flutter on Mac host
-Install Flutter 3.16.8 on your Mac host by following these instructions: https://docs.flutter.dev/get-started/install/macos.  Run `flutter doctor` in a terminal to confirm its installation.
+### Build plugins
+#### Building plugins for iOS 
+```
+cd scripts/ios
+./build_all.sh
+```
+
+#### Building plugins for macOS
+```
+cd scripts/macos
+./build_all.sh
+```
+
+### Running
+#### iOS
+Plug in your iOS device or use an emulato and then run the following commands:
+```
+flutter pub get
+flutter run ios
+```
+
+#### macOS
+Run the following commands or launch via Android Studio:
+```
+flutter pub get
+flutter run macos
+```
 
 ## Windows host
 ### Visual Studio
 Visual Studio is required for Windows development with the Flutter SDK.  Download it at https://visualstudio.microsoft.com/downloads/ and install the "Desktop development with C++", "Linux development with C++", and "Visual C++ build tools" workloads.  You may also need the Windows 10, 11, and/or Universal SDK workloads depending on your Windows version.
 
-### Building libraries in WSL2
+### Build plugins in WSL2
 Set up Ubuntu 20.04 in WSL2.  Follow the entire Linux host section in the WSL2 Ubuntu 20.04 host to get set up to build.  The Android Studio section may be skipped in WSL (it's only needed on the Windows host).
 
 Install the following libraries:
