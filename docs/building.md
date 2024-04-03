@@ -106,7 +106,6 @@ To build coinlib on Linux, you will need `docker` (see [installation instruction
 
 For Windows targets, you can use a `secp256k1.dll` produced by any of the three bottom<!--^H^H^H^H^H^Hmiddle--> options if the first attempt doesn't succeed!
 
-
 ### Run prebuild script
 
 Certain test wallet parameter and API key template files must be created in order to run Stack Wallet.  These can be created by script as in
@@ -217,6 +216,17 @@ cd scripts/ios
 cd scripts/macos
 ./build_all.sh
 ```
+
+### Run prebuild script
+
+Certain test wallet parameter and API key template files must be created in order to run Stack Wallet.  These can be created by script as in
+```
+cd scripts
+./prebuild.sh
+// when finished go back to the root directory
+cd ..
+```
+or manually by creating the files referenced in that script with the specified content.
 
 ### Running
 #### iOS
