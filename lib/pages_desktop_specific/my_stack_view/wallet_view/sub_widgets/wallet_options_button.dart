@@ -14,6 +14,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/frost_ms_options_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/change_representative_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/xpub_view.dart';
 import 'package:stackwallet/pages_desktop_specific/addresses/desktop_wallet_addresses_view.dart';
@@ -34,7 +35,8 @@ enum _WalletOptions {
   changeRepresentative,
   showXpub,
   lelantusCoins,
-  sparkCoins;
+  sparkCoins,
+  frostOptions;
 
   String get prettyName {
     switch (this) {
@@ -50,6 +52,8 @@ enum _WalletOptions {
         return "Lelantus Coins";
       case _WalletOptions.sparkCoins:
         return "Spark Coins";
+      case _WalletOptions.frostOptions:
+        return "FROST settings";
     }
   }
 }
@@ -95,6 +99,9 @@ class WalletOptionsButton extends StatelessWidget {
               },
               onFiroShowSparkCoins: () async {
                 Navigator.of(context).pop(_WalletOptions.sparkCoins);
+              },
+              onFrostMSWalletOptionsPressed: () async {
+                Navigator.of(context).pop(_WalletOptions.frostOptions);
               },
               walletId: walletId,
             );
@@ -207,6 +214,15 @@ class WalletOptionsButton extends StatelessWidget {
                 ),
               );
               break;
+
+            case _WalletOptions.frostOptions:
+              unawaited(
+                Navigator.of(context).pushNamed(
+                  FrostMSWalletOptionsView.routeName,
+                  arguments: walletId,
+                ),
+              );
+              break;
           }
         }
       },
@@ -241,6 +257,7 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
     required this.onChangeRepPressed,
     required this.onFiroShowLelantusCoins,
     required this.onFiroShowSparkCoins,
+    required this.onFrostMSWalletOptionsPressed,
     required this.walletId,
   }) : super(key: key);
 
@@ -250,6 +267,7 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
   final VoidCallback onChangeRepPressed;
   final VoidCallback onFiroShowLelantusCoins;
   final VoidCallback onFiroShowSparkCoins;
+  final VoidCallback onFrostMSWalletOptionsPressed;
   final String walletId;
 
   @override
@@ -264,6 +282,9 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
     final bool xpubEnabled = false;
 
     final bool canChangeRep = coin == Coin.nano || coin == Coin.banano;
+
+    final bool isFrost =
+        coin == Coin.bitcoinFrost || coin == Coin.bitcoinFrostTestNet;
 
     return Stack(
       children: [
@@ -416,6 +437,43 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                             Expanded(
                               child: Text(
                                 _WalletOptions.sparkCoins.prettyName,
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                        context)
+                                    .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  if (isFrost)
+                    const SizedBox(
+                      height: 8,
+                    ),
+                  if (isFrost)
+                    TransparentButton(
+                      onPressed: onFrostMSWalletOptionsPressed,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            SvgPicture.asset(
+                              Assets.svg.addressBookDesktop,
+                              width: 20,
+                              height: 20,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldActiveSearchIconLeft,
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Text(
+                                _WalletOptions.frostOptions.prettyName,
                                 style: STextStyles.desktopTextExtraExtraSmall(
                                         context)
                                     .copyWith(

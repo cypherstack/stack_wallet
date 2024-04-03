@@ -29,6 +29,7 @@ import 'package:stackwallet/pages/ordinals/ordinals_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages/receive_view/receive_view.dart';
+import 'package:stackwallet/pages/send_view/frost_ms/frost_send_view.dart';
 import 'package:stackwallet/pages/send_view/send_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_view.dart';
@@ -59,10 +60,12 @@ import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
@@ -304,6 +307,26 @@ class _WalletViewState extends ConsumerState<WalletView> {
         ref.read(prefsChangeNotifierProvider).backupFrequencyType ==
             BackupFrequencyType.afterClosingAWallet) {
       unawaited(ref.read(autoSWBServiceProvider).doBackup());
+    }
+
+    // Close the wallet according to syncing preferences.
+    switch (ref.read(prefsChangeNotifierProvider).syncType) {
+      case SyncingType.currentWalletOnly:
+        // Close the wallet.
+        unawaited(ref.watch(pWallets).getWallet(walletId).exit());
+      // unawaited so we don't lag the UI.
+      case SyncingType.selectedWalletsAtStartup:
+        // Close if this wallet is not in the list to be synced.
+        if (!ref
+            .read(prefsChangeNotifierProvider)
+            .walletIdsSyncOnStartup
+            .contains(widget.walletId)) {
+          unawaited(ref.watch(pWallets).getWallet(walletId).exit());
+          // unawaited so we don't lag the UI.
+        }
+      case SyncingType.allWalletsOnStartup:
+        // Do nothing.
+        break;
     }
   }
 
@@ -973,10 +996,13 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       //     break;
                       // }
                       Navigator.of(context).pushNamed(
-                        SendView.routeName,
-                        arguments: Tuple2(
-                          walletId,
-                          coin,
+                        ref.read(pWallets).getWallet(walletId)
+                                is BitcoinFrostWallet
+                            ? FrostSendView.routeName
+                            : SendView.routeName,
+                        arguments: (
+                          walletId: walletId,
+                          coin: coin,
                         ),
                       );
                     },

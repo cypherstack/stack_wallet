@@ -147,8 +147,10 @@ class StackOkDialog extends StatelessWidget {
     this.icon,
     required this.title,
     this.message,
+    this.desktopPopRootNavigator = false,
   }) : super(key: key);
 
+  final bool desktopPopRootNavigator;
   final Widget? leftButton;
   final void Function(String)? onOkPressed;
 
@@ -208,9 +210,13 @@ class StackOkDialog extends StatelessWidget {
                           onOkPressed?.call("OK");
                         }
                       : () {
-                          int count = 0;
-                          Navigator.of(context).popUntil((_) => count++ >= 2);
-                          // onOkPressed?.call("OK");
+                          if (desktopPopRootNavigator) {
+                            Navigator.of(context, rootNavigator: true).pop();
+                          } else {
+                            int count = 0;
+                            Navigator.of(context).popUntil((_) => count++ >= 2);
+                            // onOkPressed?.call("OK");
+                          }
                         },
                   style: Theme.of(context)
                       .extension<StackColors>()!

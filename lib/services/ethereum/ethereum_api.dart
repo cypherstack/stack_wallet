@@ -612,7 +612,7 @@ abstract class EthereumAPI {
       final response = await client.get(
         url: Uri.parse(
           // "$stackBaseServer/tokens?addrs=$contractAddress&parts=all",
-          "$stackBaseServer/names?terms=$contractAddress",
+          "$stackBaseServer/names?terms=$contractAddress&all",
         ),
         proxyInfo: Prefs.instance.useTor
             ? TorService.sharedInstance.getProxyInfo()

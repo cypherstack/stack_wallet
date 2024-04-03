@@ -17,6 +17,7 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/paynym_is_api.dart';
@@ -25,6 +26,7 @@ import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/banano_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoincash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/dogecoin_wallet.dart';
@@ -53,6 +55,9 @@ import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interfa
 abstract class Wallet<T extends CryptoCurrency> {
   // default to Transaction class. For TransactionV2 set to 2
   int get isarTransactionVersion => 1;
+
+  // whether the wallet currently supports multiple recipients per tx
+  bool get supportsMultiRecipient => false;
 
   Wallet(this.cryptoCurrency);
 
@@ -288,7 +293,7 @@ abstract class Wallet<T extends CryptoCurrency> {
     wallet.prefs = prefs;
     wallet.nodeService = nodeService;
 
-    if (wallet is ElectrumXInterface) {
+    if (wallet is ElectrumXInterface || wallet is BitcoinFrostWallet) {
       // initialize electrumx instance
       await wallet.updateNode();
     }
@@ -310,6 +315,11 @@ abstract class Wallet<T extends CryptoCurrency> {
         return BitcoinWallet(CryptoCurrencyNetwork.main);
       case Coin.bitcoinTestNet:
         return BitcoinWallet(CryptoCurrencyNetwork.test);
+
+      case Coin.bitcoinFrost:
+        return BitcoinFrostWallet(CryptoCurrencyNetwork.main);
+      case Coin.bitcoinFrostTestNet:
+        return BitcoinFrostWallet(CryptoCurrencyNetwork.test);
 
       case Coin.bitcoincash:
         return BitcoincashWallet(CryptoCurrencyNetwork.main);
@@ -482,6 +492,11 @@ abstract class Wallet<T extends CryptoCurrency> {
         ),
       );
 
+      // add some small buffer before making calls.
+      // this can probably be removed in the future but was added as a
+      // debugging feature
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       final Set<String> codesToCheck = {};
       if (this is PaynymInterface) {
@@ -604,7 +619,45 @@ abstract class Wallet<T extends CryptoCurrency> {
   Future<void> exit() async {
     _periodicRefreshTimer?.cancel();
     _networkAliveTimer?.cancel();
-    // TODO:
+
+    // If the syncing pref is currentWalletOnly or selectedWalletsAtStartup (and
+    // this wallet isn't in walletIdsSyncOnStartup), then we close subscriptions.
+
+    switch (prefs.syncType) {
+      case SyncingType.currentWalletOnly:
+      // Close the subscription for this coin's chain height.
+      // NOTE: This does not work now that the subscription is shared
+      // await  (await ChainHeightServiceManager.getService(cryptoCurrency.coin))
+      //     ?.cancelListen();
+      case SyncingType.selectedWalletsAtStartup:
+        // Close the subscription if this wallet is not in the list to be synced.
+        if (!prefs.walletIdsSyncOnStartup.contains(walletId)) {
+          // Check if there's another wallet of this coin on the sync list.
+          List<String> walletIds = [];
+          for (final id in prefs.walletIdsSyncOnStartup) {
+            final wallet = mainDB.isar.walletInfo
+                .where()
+                .walletIdEqualTo(id)
+                .findFirstSync()!;
+
+            if (wallet.coin == cryptoCurrency.coin) {
+              walletIds.add(id);
+            }
+          }
+          // TODO [prio=low]: use a query instead of iterating thru wallets.
+
+          // If there are no other wallets of this coin, then close the sub.
+          if (walletIds.isEmpty) {
+            // NOTE: This does not work now that the subscription is shared
+            // await (await ChainHeightServiceManager.getService(
+            //         cryptoCurrency.coin))
+            //     ?.cancelListen();
+          }
+        }
+      case SyncingType.allWalletsOnStartup:
+        // Do nothing.
+        break;
+    }
   }
 
   @mustCallSuper

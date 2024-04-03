@@ -166,6 +166,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
       case Coin.firo:
       case Coin.namecoin:
       case Coin.particl:
+      case Coin.bitcoinFrost:
+      case Coin.bitcoinFrostTestNet:
       case Coin.bitcoinTestNet:
       case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:
@@ -177,6 +179,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           useSSL: formData.useSSL!,
           failovers: [],
           prefs: ref.read(prefsChangeNotifierProvider),
+          coin: coin,
         );
 
         try {
@@ -757,6 +760,8 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       case Coin.eCash:
       case Coin.stellar:
       case Coin.stellarTestnet:
+      case Coin.bitcoinFrost:
+      case Coin.bitcoinFrostTestNet:
         return false;
 
       case Coin.ethereum:

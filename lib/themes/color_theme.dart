@@ -37,6 +37,8 @@ class CoinThemeColorDefault {
     switch (coin) {
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
+      case Coin.bitcoinFrost:
+      case Coin.bitcoinFrostTestNet:
         return bitcoin;
       case Coin.litecoin:
       case Coin.litecoinTestNet:

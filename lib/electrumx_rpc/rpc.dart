@@ -80,18 +80,32 @@ class JsonRPC {
   void _sendNextAvailableRequest() {
     _requestQueue.nextIncompleteReq.then((req) {
       if (req != null) {
-        // \r\n required by electrumx server
-        if (_socket != null) {
+        if (!Prefs.instance.useTor) {
+          if (_socket == null) {
+            Logging.instance.log(
+              "JsonRPC _sendNextAvailableRequest attempted with"
+              " _socket=null on $host:$port",
+              level: LogLevel.Error,
+            );
+          }
+          // \r\n required by electrumx server
           _socket!.write('${req.jsonRequest}\r\n');
-        }
-        if (_socksSocket != null) {
-          _socksSocket!.write('${req.jsonRequest}\r\n');
+        } else {
+          if (_socksSocket == null) {
+            Logging.instance.log(
+              "JsonRPC _sendNextAvailableRequest attempted with"
+              " _socksSocket=null on $host:$port",
+              level: LogLevel.Error,
+            );
+          }
+          // \r\n required by electrumx server
+          _socksSocket?.write('${req.jsonRequest}\r\n');
         }
 
         // TODO different timeout length?
         req.initiateTimeout(
           onTimedOut: () {
-            _requestQueue.remove(req);
+            _onReqCompleted(req);
           },
         );
       }
@@ -109,7 +123,7 @@ class JsonRPC {
             "JsonRPC request: opening socket $host:$port",
             level: LogLevel.Info,
           );
-          await connect().timeout(requestTimeout, onTimeout: () {
+          await _connect().timeout(requestTimeout, onTimeout: () {
             throw Exception("Request timeout: $jsonRpcRequest");
           });
         }
@@ -119,7 +133,7 @@ class JsonRPC {
             "JsonRPC request: opening SOCKS socket to $host:$port",
             level: LogLevel.Info,
           );
-          await connect().timeout(requestTimeout, onTimeout: () {
+          await _connect().timeout(requestTimeout, onTimeout: () {
             throw Exception("Request timeout: $jsonRpcRequest");
           });
         }
@@ -156,23 +170,42 @@ class JsonRPC {
     return future;
   }
 
-  Future<void> disconnect({required String reason}) async {
-    await _requestMutex.protect(() async {
-      await _subscription?.cancel();
-      _subscription = null;
-      _socket?.destroy();
-      _socket = null;
-      await _socksSocket?.close();
-      _socksSocket = null;
-
-      // clean up remaining queue
-      await _requestQueue.completeRemainingWithError(
-        "JsonRPC disconnect() called with reason: \"$reason\"",
-      );
-    });
+  /// DO NOT set [ignoreMutex] to true unless fully aware of the consequences
+  Future<void> disconnect({
+    required String reason,
+    bool ignoreMutex = false,
+  }) async {
+    if (ignoreMutex) {
+      await _disconnectHelper(reason: reason);
+    } else {
+      await _requestMutex.protect(() async {
+        await _disconnectHelper(reason: reason);
+      });
+    }
   }
 
-  Future<void> connect() async {
+  Future<void> _disconnectHelper({required String reason}) async {
+    await _subscription?.cancel();
+    _subscription = null;
+    _socket?.destroy();
+    _socket = null;
+    await _socksSocket?.close();
+    _socksSocket = null;
+
+    // clean up remaining queue
+    await _requestQueue.completeRemainingWithError(
+      "JsonRPC disconnect() called with reason: \"$reason\"",
+    );
+  }
+
+  Future<void> _connect() async {
+    // ignore mutex is set to true here as _connect is already called within
+    // the mutex.protect block. Setting to false here leads to a deadlock
+    await disconnect(
+      reason: "New connection requested",
+      ignoreMutex: true,
+    );
+
     if (!Prefs.instance.useTor) {
       if (useSSL) {
         _socket = await SecureSocket.connect(
@@ -180,7 +213,7 @@ class JsonRPC {
           port,
           timeout: connectionTimeout,
           onBadCertificate: (_) => true,
-        ); // TODO do not automatically trust bad certificates
+        ); // TODO do not automatically trust bad certificates.
       } else {
         _socket = await Socket.connect(
           host,
@@ -352,17 +385,20 @@ class _JsonRPCRequest {
   }
 
   void initiateTimeout({
-    VoidCallback? onTimedOut,
+    required VoidCallback onTimedOut,
   }) {
     Future<void>.delayed(requestTimeout).then((_) {
       if (!isComplete) {
-        try {
-          throw JsonRpcException("_JsonRPCRequest timed out: $jsonRequest");
-        } catch (e, s) {
-          completer.completeError(e, s);
-          onTimedOut?.call();
-        }
+        completer.complete(
+          JsonRPCResponse(
+            data: null,
+            exception: JsonRpcException(
+              "_JsonRPCRequest timed out: $jsonRequest",
+            ),
+          ),
+        );
       }
+      onTimedOut.call();
     });
   }
 
@@ -374,15 +410,4 @@ class JsonRPCResponse {
   final JsonRpcException? exception;
 
   JsonRPCResponse({this.data, this.exception});
-}
-
-bool isIpAddress(String host) {
-  try {
-    // if the string can be parsed into an InternetAddress, it's an IP.
-    InternetAddress(host);
-    return true;
-  } catch (e) {
-    // if parsing fails, it's not an IP.
-    return false;
-  }
 }

@@ -11,11 +11,11 @@ description: Stack Wallet
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.9.0+199
+version: 1.10.4+217
 
 environment:
   sdk: ">=3.0.2 <4.0.0"
-  flutter: ^3.10.0
+  flutter: ^3.16.0
 
 dependencies:
   flutter:
@@ -27,10 +27,13 @@ dependencies:
   lelantus:
     path: ./crypto_plugins/flutter_liblelantus
 
+  frostdart:
+    path: ./crypto_plugins/frostdart
+
   flutter_libsparkmobile:
     git:
       url: https://github.com/cypherstack/flutter_libsparkmobile.git
-      ref: d99c34cbb39666c8dcb819b457b3314577aaad43
+      ref: 3f986ca1a94bdac5d31373454c989cc2f5842de8
 
   flutter_libmonero:
     path: ./crypto_plugins/flutter_libmonero
@@ -65,7 +68,7 @@ dependencies:
   tor_ffi_plugin:
     git:
       url: https://github.com/cypherstack/tor.git
-      ref: 0a6888282f4e98401051a396e9d2293bd55ac2c2
+      ref: e37dc4e22f7acb2746b70bdc935f0eb3c50b8b71
 
   fusiondart:
     git:
@@ -173,6 +176,11 @@ dependencies:
       url: https://github.com/cypherstack/coinlib.git
       path: coinlib_flutter
       ref: 376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7
+  electrum_adapter:
+    git:
+      url: https://github.com/cypherstack/electrum_adapter.git
+      ref: 9e9441fc1e9ace8907256fff05fe2c607b0933b6
+  stream_channel: ^2.1.0
 
 dev_dependencies:
   flutter_test:
@@ -189,7 +197,7 @@ dev_dependencies:
 #  lint: ^1.10.0
   analyzer: ^5.13.0
   import_sorter: ^4.6.0
-  flutter_lints: ^2.0.1
+  flutter_lints: ^3.0.1
   isar_generator: 3.0.5
 
 flutter_launcher_icons:

@@ -45,48 +45,55 @@ class CreateOrRestoreWalletView extends StatelessWidget {
           leading: AppBarBackButton(),
           trailing: ExitToMyStackButton(),
         ),
-        body: SizedBox(
-          width: 480,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Spacer(
-                flex: 10,
+        body: SingleChildScrollView(
+          child: Center(
+            // Center the content horizontally
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 480),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  /*const Spacer(
+                    flex: 10,
+                  ),*/
+                  CreateRestoreWalletTitle(
+                    coin: entity.coin,
+                    isDesktop: isDesktop,
+                  ),
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  SizedBox(
+                    width: 324,
+                    child: CreateRestoreWalletSubTitle(
+                      isDesktop: isDesktop,
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 32,
+                  ),
+                  CoinImage(
+                    coin: entity.coin,
+                    width: isDesktop
+                        ? 324
+                        : MediaQuery.of(context).size.width / 1.6,
+                    height: isDesktop
+                        ? null
+                        : MediaQuery.of(context).size.width / 1.6,
+                  ),
+                  const SizedBox(
+                    height: 32,
+                  ),
+                  CreateWalletButtonGroup(
+                    coin: entity.coin,
+                    isDesktop: isDesktop,
+                  ),
+                  /*const Spacer(
+                    flex: 15,
+                  ),*/
+                ],
               ),
-              CreateRestoreWalletTitle(
-                coin: entity.coin,
-                isDesktop: isDesktop,
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-              SizedBox(
-                width: 324,
-                child: CreateRestoreWalletSubTitle(
-                  isDesktop: isDesktop,
-                ),
-              ),
-              const SizedBox(
-                height: 32,
-              ),
-              CoinImage(
-                coin: entity.coin,
-                width:
-                    isDesktop ? 324 : MediaQuery.of(context).size.width / 1.6,
-                height:
-                    isDesktop ? null : MediaQuery.of(context).size.width / 1.6,
-              ),
-              const SizedBox(
-                height: 32,
-              ),
-              CreateWalletButtonGroup(
-                coin: entity.coin,
-                isDesktop: isDesktop,
-              ),
-              const Spacer(
-                flex: 15,
-              ),
-            ],
+            ),
           ),
         ),
       );

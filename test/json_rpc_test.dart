@@ -55,11 +55,13 @@ void main() {
     const jsonRequestString =
         '{"jsonrpc": "2.0", "id": "some id","method": "server.ping","params": []}';
 
-    expect(
-        () => jsonRPC.request(
-              jsonRequestString,
-              const Duration(seconds: 1),
-            ),
-        throwsA(isA<SocketException>()));
+    await expectLater(
+      jsonRPC.request(
+        jsonRequestString,
+        const Duration(seconds: 1),
+      ),
+      throwsA(isA<Exception>()
+          .having((e) => e.toString(), 'message', contains("Request timeout"))),
+    );
   });
 }

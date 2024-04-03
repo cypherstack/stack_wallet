@@ -85,6 +85,7 @@ class DbVersionMigrator with WalletDB {
                 useSSL: node.useSSL),
             prefs: prefs,
             failovers: failovers,
+            coin: Coin.firo,
           );
 
           try {

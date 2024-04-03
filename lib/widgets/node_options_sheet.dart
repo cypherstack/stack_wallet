@@ -151,6 +151,8 @@ class NodeOptionsSheet extends ConsumerWidget {
       case Coin.namecoin:
       case Coin.bitcoincashTestnet:
       case Coin.eCash:
+      case Coin.bitcoinFrost:
+      case Coin.bitcoinFrostTestNet:
         final client = ElectrumXClient(
           host: node.host,
           port: node.port,
@@ -158,6 +160,7 @@ class NodeOptionsSheet extends ConsumerWidget {
           failovers: [],
           prefs: ref.read(prefsChangeNotifierProvider),
           torService: ref.read(pTorService),
+          coin: coin,
         );
 
         try {

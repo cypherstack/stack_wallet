@@ -42,7 +42,13 @@ class Wallets {
 
   final Map<String, Wallet> _wallets = {};
 
-  Wallet getWallet(String walletId) => _wallets[walletId]!;
+  Wallet getWallet(String walletId) {
+    if (_wallets[walletId] != null) {
+      return _wallets[walletId]!;
+    } else {
+      throw Exception("Wallet with id $walletId not found");
+    }
+  }
 
   void addWallet(Wallet wallet) {
     if (_wallets[wallet.walletId] != null) {

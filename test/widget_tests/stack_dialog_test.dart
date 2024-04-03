@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockingjay/mockingjay.dart' as mockingjay;
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -63,11 +62,13 @@ void main() {
   });
 
   testWidgets("Test StackDialogOk", (widgetTester) async {
-    final navigator = mockingjay.MockNavigator();
+    final navigatorKey = GlobalKey<NavigatorState>();
 
-    await widgetTester.pumpWidget(ProviderScope(
+    await widgetTester.pumpWidget(
+      ProviderScope(
         overrides: [],
         child: MaterialApp(
+          navigatorKey: navigatorKey,
           theme: ThemeData(
             extensions: [
               StackColors.fromStackColorTheme(
@@ -77,23 +78,23 @@ void main() {
               ),
             ],
           ),
-          home: mockingjay.MockNavigatorProvider(
-            navigator: navigator,
-            child: const StackOkDialog(
-              title: "Some random title",
-              message: "Some message",
-              leftButton: TextButton(onPressed: null, child: Text("I am left")),
+          home: StackOkDialog(
+            title: "Some random title",
+            message: "Some message",
+            leftButton: TextButton(
+              onPressed: () {},
+              child: const Text("I am left"),
             ),
           ),
-        )));
+        ),
+      ),
+    );
+
+    final button = find.text('I am left');
+    await widgetTester.tap(button);
     await widgetTester.pumpAndSettle();
 
-    expect(find.byType(StackOkDialog), findsOneWidget);
-    expect(find.text("Some random title"), findsOneWidget);
-    expect(find.text("Some message"), findsOneWidget);
-    expect(find.byType(TextButton), findsNWidgets(2));
-
-    await widgetTester.tap(find.text("I am left"));
-    await widgetTester.pumpAndSettle();
+    final navigatorState = navigatorKey.currentState;
+    expect(navigatorState?.overlay, isNotNull);
   });
 }

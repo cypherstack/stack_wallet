@@ -16,6 +16,13 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 final coinIconProvider = Provider.family<String, Coin>((ref, coin) {
   final assets = ref.watch(themeAssetsProvider);
 
+  // TODO: handle this differently by adding proper frost assets to themes
+  if (coin == Coin.bitcoinFrost) {
+    coin = Coin.bitcoin;
+  } else if (coin == Coin.bitcoinFrostTestNet) {
+    coin = Coin.bitcoinTestNet;
+  }
+
   if (assets is ThemeAssets) {
     switch (coin) {
       case Coin.bitcoin:

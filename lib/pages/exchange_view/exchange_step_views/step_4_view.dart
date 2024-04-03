@@ -138,7 +138,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
   Future<bool?> _showSendFromFiroBalanceSelectSheet(String walletId) async {
     final coin = ref.read(pWalletCoin(walletId));
     final balancePublic = ref.read(pWalletBalance(walletId));
-    final balancePrivate = ref.read(pWalletBalanceSecondary(walletId));
+    final balancePrivate = ref.read(pWalletBalanceTertiary(walletId));
 
     return await showModalBottomSheet<bool?>(
       context: context,

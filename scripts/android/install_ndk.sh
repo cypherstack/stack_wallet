@@ -1,6 +1,6 @@
 #!/bin/sh
 
-mkdir build
+mkdir -p build
 . ./config.sh
 TOOLCHAIN_DIR=${WORKDIR}/toolchain
 ANDROID_NDK_SHA256="8381c440fe61fcbb01e209211ac01b519cd6adf51ab1c2281d5daad6ca4c8c8c"

@@ -68,7 +68,7 @@ class OutputV2 {
         scriptPubKeyHex: json["scriptPubKey"]["hex"] as String,
         scriptPubKeyAsm: json["scriptPubKey"]["asm"] as String?,
         valueStringSats: parseOutputAmountString(
-          json["value"].toString(),
+          json["value"] != null ? json["value"].toString(): "0",
           decimalPlaces: decimalPlaces,
           isFullAmountNotSats: isFullAmountNotSats,
         ),

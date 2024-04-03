@@ -8,6 +8,8 @@
  *
  */
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -234,9 +236,13 @@ class _EditContactAddressViewState
                       e.coin == addressEntry.coin,
                 );
 
-                _addresses.remove(entry);
+                //Deleting an entry directly from _addresses gives error
+                // "Cannot remove from a fixed-length list", so we remove the
+                // entry from a copy
+                var tempAddresses = List<ContactAddressEntry>.from(_addresses);
+                tempAddresses.remove(entry);
                 ContactEntry editedContact =
-                    contact.copyWith(addresses: _addresses);
+                    contact.copyWith(addresses: tempAddresses);
                 if (await ref
                     .read(addressBookServiceProvider)
                     .editContact(editedContact)) {

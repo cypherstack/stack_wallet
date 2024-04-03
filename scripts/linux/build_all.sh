@@ -15,10 +15,8 @@ mkdir -p build
 (cd ../../crypto_plugins/flutter_liblelantus/scripts/linux && ./build_all.sh ) &
 (cd ../../crypto_plugins/flutter_libepiccash/scripts/linux && ./build_all.sh )  &
 (cd ../../crypto_plugins/flutter_libmonero/scripts/linux && ./build_monero_all.sh && ./build_sharedfile.sh ) &
+set_rust_to_1720 &
+(cd ../../crypto_plugins/frostdart/scripts/linux && ./build_all.sh ) &
 
 wait
 echo "Done building"
-
-# set rust (back) to a more recent stable release to allow stack wallet to build tor
-set_rust_to_1720
-
