@@ -865,7 +865,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     }
   }
 
-  Future<ElectrumXNode> getCurrentElectrumXNode() async {
+  Future<ElectrumXNode> _getCurrentElectrumXNode() async {
     final node = getCurrentNode();
 
     return ElectrumXNode(
@@ -877,7 +877,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     );
   }
 
-  Future<void> updateElectrumX({required ElectrumXNode newNode}) async {
+  Future<void> updateElectrumX() async {
     final failovers = nodeService
         .failoverNodesFor(coin: cryptoCurrency.coin)
         .map((e) => ElectrumXNode(
@@ -889,7 +889,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
             ))
         .toList();
 
-    final newNode = await getCurrentElectrumXNode();
+    final newNode = await _getCurrentElectrumXNode();
     try {
       await electrumXClient.electrumAdapterClient?.close();
     } catch (e, s) {
@@ -1241,8 +1241,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
   @override
   Future<void> updateNode() async {
-    final node = await getCurrentElectrumXNode();
-    await updateElectrumX(newNode: node);
+    await updateElectrumX();
   }
 
   Future<ElectrumClient> updateClient() async {
