@@ -69,6 +69,7 @@ abstract class Constants {
   static BigInt satsPerCoin(Coin coin) {
     switch (coin) {
       case Coin.bitcoin:
+      case Coin.bitcoinFrost:
       case Coin.litecoin:
       case Coin.litecoinTestNet:
       case Coin.bitcoincash:
@@ -76,6 +77,7 @@ abstract class Constants {
       case Coin.dogecoin:
       case Coin.firo:
       case Coin.bitcoinTestNet:
+      case Coin.bitcoinFrostTestNet:
       case Coin.dogecoinTestNet:
       case Coin.firoTestNet:
       case Coin.epicCash:
@@ -113,6 +115,7 @@ abstract class Constants {
   static int decimalPlacesForCoin(Coin coin) {
     switch (coin) {
       case Coin.bitcoin:
+      case Coin.bitcoinFrost:
       case Coin.litecoin:
       case Coin.litecoinTestNet:
       case Coin.bitcoincash:
@@ -120,6 +123,7 @@ abstract class Constants {
       case Coin.dogecoin:
       case Coin.firo:
       case Coin.bitcoinTestNet:
+      case Coin.bitcoinFrostTestNet:
       case Coin.dogecoinTestNet:
       case Coin.firoTestNet:
       case Coin.epicCash:
@@ -189,6 +193,10 @@ abstract class Constants {
       case Coin.wownero:
         values.addAll([14, 25]);
         break;
+
+      case Coin.bitcoinFrost:
+      case Coin.bitcoinFrostTestNet:
+        throw ArgumentError("Frost mnemonic lengths unsupported");
     }
     return values;
   }
@@ -198,6 +206,8 @@ abstract class Constants {
     switch (coin) {
       case Coin.bitcoin:
       case Coin.bitcoinTestNet:
+      case Coin.bitcoinFrost:
+      case Coin.bitcoinFrostTestNet:
       case Coin.bitcoincash:
       case Coin.bitcoincashTestnet:
       case Coin.eCash:
@@ -277,6 +287,10 @@ abstract class Constants {
 
       case Coin.monero:
         return 25;
+
+      case Coin.bitcoinFrost:
+      case Coin.bitcoinFrostTestNet:
+        throw ArgumentError("Frost mnemonic length unsupported");
       //
       // default:
       //   -1;

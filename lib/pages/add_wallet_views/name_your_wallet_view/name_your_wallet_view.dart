@@ -14,9 +14,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/coin_image.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/create_new_frost_ms_wallet_view.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/import_new_frost_ms_wallet_view.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/restore/restore_frost_ms_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_options/new_wallet_options_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_warning_view/new_wallet_recovery_phrase_warning_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/restore_options_view.dart';
+import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/resharing/new/new_import_resharer_config_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
@@ -32,6 +36,8 @@ import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/dice_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -75,6 +81,52 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
     final name = generator.generate(namesToExclude: namesToExclude);
     namesToExclude.add(name);
     return name;
+  }
+
+  Future<void> _nextPressed() async {
+    final name = textEditingController.text;
+
+    if (mounted) {
+      // hide keyboard if has focus
+      if (FocusScope.of(context).hasFocus) {
+        FocusScope.of(context).unfocus();
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+      }
+
+      if (mounted) {
+        ref.read(mnemonicWordCountStateProvider.state).state =
+            Constants.possibleLengthsForCoin(coin).last;
+        ref.read(pNewWalletOptions.notifier).state = null;
+
+        switch (widget.addWalletType) {
+          case AddWalletType.New:
+            unawaited(
+              Navigator.of(context).pushNamed(
+                coin.hasMnemonicPassphraseSupport
+                    ? NewWalletOptionsView.routeName
+                    : NewWalletRecoveryPhraseWarningView.routeName,
+                arguments: Tuple2(
+                  name,
+                  coin,
+                ),
+              ),
+            );
+            break;
+
+          case AddWalletType.Restore:
+            unawaited(
+              Navigator.of(context).pushNamed(
+                RestoreOptionsView.routeName,
+                arguments: Tuple2(
+                  name,
+                  coin,
+                ),
+              ),
+            );
+            break;
+        }
+      }
+    }
   }
 
   @override
@@ -330,78 +382,104 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
             const SizedBox(
               height: 32,
             ),
-          ConstrainedBox(
-            constraints: BoxConstraints(
-              minWidth: isDesktop ? 480 : 0,
-              minHeight: isDesktop ? 70 : 0,
+          if (widget.coin.isFrost)
+            if (widget.addWalletType == AddWalletType.Restore)
+              PrimaryButton(
+                label: "Next",
+                enabled: _nextEnabled,
+                onPressed: () async {
+                  final name = textEditingController.text;
+
+                  await Navigator.of(context).pushNamed(
+                    RestoreFrostMsWalletView.routeName,
+                    arguments: (
+                      walletName: name,
+                      coin: coin,
+                    ),
+                  );
+                },
+              ),
+          if (widget.coin.isFrost && widget.addWalletType == AddWalletType.New)
+            Column(
+              children: [
+                PrimaryButton(
+                  label: "Create config",
+                  enabled: _nextEnabled,
+                  onPressed: () async {
+                    final name = textEditingController.text;
+
+                    await Navigator.of(context).pushNamed(
+                      CreateNewFrostMsWalletView.routeName,
+                      arguments: (
+                        walletName: name,
+                        coin: coin,
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(
+                  height: 12,
+                ),
+                SecondaryButton(
+                  label: "Import multisig config",
+                  enabled: _nextEnabled,
+                  onPressed: () async {
+                    final name = textEditingController.text;
+
+                    await Navigator.of(context).pushNamed(
+                      ImportNewFrostMsWalletView.routeName,
+                      arguments: (
+                        walletName: name,
+                        coin: coin,
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(
+                  height: 12,
+                ),
+                SecondaryButton(
+                  label: "Import resharer config",
+                  enabled: _nextEnabled,
+                  onPressed: () async {
+                    final name = textEditingController.text;
+
+                    await Navigator.of(context).pushNamed(
+                      NewImportResharerConfigView.routeName,
+                      arguments: (
+                        walletName: name,
+                        coin: coin,
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
-            child: TextButton(
-              onPressed: _nextEnabled
-                  ? () async {
-                      final name = textEditingController.text;
-
-                      if (mounted) {
-                        // hide keyboard if has focus
-                        if (FocusScope.of(context).hasFocus) {
-                          FocusScope.of(context).unfocus();
-                          await Future<void>.delayed(
-                              const Duration(milliseconds: 50));
-                        }
-
-                        if (mounted) {
-                          ref.read(mnemonicWordCountStateProvider.state).state =
-                              Constants.possibleLengthsForCoin(coin).last;
-                          ref.read(pNewWalletOptions.notifier).state = null;
-
-                          switch (widget.addWalletType) {
-                            case AddWalletType.New:
-                              unawaited(
-                                Navigator.of(context).pushNamed(
-                                  coin.hasMnemonicPassphraseSupport
-                                      ? NewWalletOptionsView.routeName
-                                      : NewWalletRecoveryPhraseWarningView
-                                          .routeName,
-                                  arguments: Tuple2(
-                                    name,
-                                    coin,
-                                  ),
-                                ),
-                              );
-                              break;
-
-                            case AddWalletType.Restore:
-                              unawaited(
-                                Navigator.of(context).pushNamed(
-                                  RestoreOptionsView.routeName,
-                                  arguments: Tuple2(
-                                    name,
-                                    coin,
-                                  ),
-                                ),
-                              );
-                              break;
-                          }
-                        }
-                      }
-                    }
-                  : null,
-              style: _nextEnabled
-                  ? Theme.of(context)
-                      .extension<StackColors>()!
-                      .getPrimaryEnabledButtonStyle(context)
-                  : Theme.of(context)
-                      .extension<StackColors>()!
-                      .getPrimaryDisabledButtonStyle(context),
-              child: Text(
-                "Next",
-                style: isDesktop
-                    ? _nextEnabled
-                        ? STextStyles.desktopButtonEnabled(context)
-                        : STextStyles.desktopButtonDisabled(context)
-                    : STextStyles.button(context),
+          if (!widget.coin.isFrost)
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                minWidth: isDesktop ? 480 : 0,
+                minHeight: isDesktop ? 70 : 0,
+              ),
+              child: TextButton(
+                onPressed: _nextEnabled ? _nextPressed : null,
+                style: _nextEnabled
+                    ? Theme.of(context)
+                        .extension<StackColors>()!
+                        .getPrimaryEnabledButtonStyle(context)
+                    : Theme.of(context)
+                        .extension<StackColors>()!
+                        .getPrimaryDisabledButtonStyle(context),
+                child: Text(
+                  "Next",
+                  style: isDesktop
+                      ? _nextEnabled
+                          ? STextStyles.desktopButtonEnabled(context)
+                          : STextStyles.desktopButtonDisabled(context)
+                      : STextStyles.button(context),
+                ),
               ),
             ),
-          ),
           if (isDesktop)
             const Spacer(
               flex: 15,
