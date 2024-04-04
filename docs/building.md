@@ -285,15 +285,16 @@ You may still have to add `C:\development\flutter\bin` to PATH before proceeding
 Install [Rust](https://www.rust-lang.org/tools/install) on the Windows host (not in WSL2).  Download the installer from [rustup.rs](https://rustup.rs), make sure it works on the commandline (you may need to open a new terminal), and install the following versions:
 ```
 rustup install 1.72.0 # For frostdart and tor.
-rustup install 1.73.0 # For cargo-ndk.
 rustup install 1.67.1 # For flutter_libepiccash.
 rustup default 1.67.1
 ```
-
-Also install `cargo-ndk`:
+<!--
+You may also need to install `cargo-ndk`:
 ```
+rustup install 1.73.0 # For cargo-ndk.
 cargo install cargo-ndk --version 2.12.7 --locked
 ```
+-->
 
 ### Windows SDK and Developer Mode
 Install the Windows SDK: https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/  You may need to install the [Windows 10 SDK](https://developer.microsoft.com/en-us/windows/downloads/sdk-archive/), which can be installed [by Visual Studio](https://stackoverflow.com/a/73923899) (`Tools > Get Tools and Features... > Modify > Individual Components > Windows 10 SDK`).
