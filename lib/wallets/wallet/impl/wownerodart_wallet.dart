@@ -22,7 +22,44 @@ import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_inte
 import 'package:tuple/tuple.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
-import 'package:flutter_libmonero/entities/secret_store_key.dart';
+
+enum SecretStoreKey { moneroWalletPassword, pinCodePassword, backupPassword }
+
+const moneroWalletPassword = "MONERO_WALLET_PASSWORD";
+const pinCodePassword = "PIN_CODE_PASSWORD";
+const backupPassword = "BACKUP_CODE_PASSWORD";
+
+String generateStoreKeyFor({
+  SecretStoreKey? key,
+  String? walletName = "",
+}) {
+  var _key = "";
+
+  switch (key) {
+    case SecretStoreKey.moneroWalletPassword:
+      {
+        _key = "${moneroWalletPassword}_${walletName!.toUpperCase()}";
+      }
+      break;
+
+    case SecretStoreKey.pinCodePassword:
+      {
+        _key = pinCodePassword;
+      }
+      break;
+
+    case SecretStoreKey.backupPassword:
+      {
+        _key = backupPassword;
+      }
+      break;
+
+    default:
+      {}
+  }
+
+  return _key;
+}
 
 final wownero.WalletManager wowWmPtr =
     wownero.WalletManagerFactory_getWalletManager();

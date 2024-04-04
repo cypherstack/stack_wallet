@@ -53,10 +53,10 @@ packages:
     dependency: transitive
     description:
       name: asn1lib
-      sha256: "21afe4333076c02877d14f4a89df111e658a6d466cbfc802eb705eb91bd5adfd"
+      sha256: c9c85fedbe2188b95133cbe960e16f5f448860f7133330e272edbbca5893ddc6
       url: "https://pub.dev"
     source: hosted
-    version: "1.5.0"
+    version: "1.5.2"
   async:
     dependency: "direct main"
     description:
@@ -367,27 +367,6 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
-  cw_monero:
-    dependency: transitive
-    description:
-      path: "crypto_plugins/flutter_libmonero/cw_monero"
-      relative: true
-    source: path
-    version: "0.0.1"
-  cw_shared_external:
-    dependency: transitive
-    description:
-      path: "crypto_plugins/flutter_libmonero/cw_shared_external"
-      relative: true
-    source: path
-    version: "0.0.1"
-  cw_wownero:
-    dependency: transitive
-    description:
-      path: "crypto_plugins/flutter_libmonero/cw_wownero"
-      relative: true
-    source: path
-    version: "0.0.1"
   dart_base_x:
     dependency: transitive
     description:
@@ -663,13 +642,6 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
-  flutter_libmonero:
-    dependency: "direct main"
-    description:
-      path: "crypto_plugins/flutter_libmonero"
-      relative: true
-    source: path
-    version: "0.0.1"
   flutter_libsparkmobile:
     dependency: "direct main"
     description:
@@ -715,10 +687,10 @@ packages:
     dependency: transitive
     description:
       name: flutter_mobx
-      sha256: "0da4add0016387a7bf309a0d0c41d36c6b3ae25ed7a176409267f166509e723e"
+      sha256: "859fbf452fa9c2519d2700b125dd7fb14c508bbdd7fb65e26ca8ff6c92280e2e"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.6+5"
+    version: "2.2.1+1"
   flutter_native_splash:
     dependency: "direct main"
     description:
@@ -1119,10 +1091,10 @@ packages:
     dependency: transitive
     description:
       name: mobx
-      sha256: "0afcf88b3ee9d6819890bf16c11a727fc8c62cf736fda8e5d3b9b4eace4e62ea"
+      sha256: "63920b27b32ad1910adfe767ab1750e4c212e8923232a1f891597b362074ea5e"
       url: "https://pub.dev"
     source: hosted
-    version: "2.2.0"
+    version: "2.3.3+2"
   mockingjay:
     dependency: "direct dev"
     description:
@@ -1172,6 +1144,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
+  nested:
+    dependency: transitive
+    description:
+      name: nested
+      sha256: "03bac4c528c64c95c722ec99280375a6f2fc708eec17c7b3f07253b626cd2a20"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   nm:
     dependency: transitive
     description:
@@ -1388,6 +1368,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
+  provider:
+    dependency: transitive
+    description:
+      name: provider
+      sha256: c8a055ee5ce3fd98d6fc872478b03823ffdb448699c6ebdbbc71d59b596fd48c
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.1.2"
   pub_semver:
     dependency: transitive
     description:

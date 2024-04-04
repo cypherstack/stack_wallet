@@ -1,5 +1,3 @@
-import 'package:cw_monero/pending_monero_transaction.dart';
-import 'package:cw_wownero/pending_wownero_transaction.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
@@ -45,13 +43,10 @@ class TxData {
   final BigInt? chainId;
   final BigInt? feeInWei;
 
-  // wownero specific
-  final PendingWowneroTransaction? pendingWowneroTransaction;
-
-  // monero specific
-  final PendingMoneroTransaction? pendingMoneroTransaction;
-
-  // monerodart specific
+  // monerodart specific (also used by wownerodart)
+  // This is just a ffi.Pointer<Void> typedef alias, so it
+  // doesn't really matter if we separate monero and wownero
+  // values.
   final monero.PendingTransaction? pendingTransactionPtr;
 
   // firo lelantus specific
@@ -100,8 +95,6 @@ class TxData {
     this.nonce,
     this.chainId,
     this.feeInWei,
-    this.pendingWowneroTransaction,
-    this.pendingMoneroTransaction,
     this.pendingTransactionPtr,
     this.jMintValue,
     this.spendCoinIndexes,
@@ -177,8 +170,6 @@ class TxData {
     int? nonce,
     BigInt? chainId,
     BigInt? feeInWei,
-    PendingWowneroTransaction? pendingWowneroTransaction,
-    PendingMoneroTransaction? pendingMoneroTransaction,
     monero.PendingTransaction? pendingTransactionPtr,
     int? jMintValue,
     List<int>? spendCoinIndexes,
@@ -221,10 +212,6 @@ class TxData {
       nonce: nonce ?? this.nonce,
       chainId: chainId ?? this.chainId,
       feeInWei: feeInWei ?? this.feeInWei,
-      pendingWowneroTransaction:
-          pendingWowneroTransaction ?? this.pendingWowneroTransaction,
-      pendingMoneroTransaction:
-          pendingMoneroTransaction ?? this.pendingMoneroTransaction,
       pendingTransactionPtr: pendingTransactionPtr ?? this.pendingTransactionPtr,
       jMintValue: jMintValue ?? this.jMintValue,
       spendCoinIndexes: spendCoinIndexes ?? this.spendCoinIndexes,
@@ -263,8 +250,6 @@ class TxData {
       'nonce: $nonce, '
       'chainId: $chainId, '
       'feeInWei: $feeInWei, '
-      'pendingWowneroTransaction: $pendingWowneroTransaction, '
-      'pendingMoneroTransaction: $pendingMoneroTransaction, '
       'jMintValue: $jMintValue, '
       'spendCoinIndexes: $spendCoinIndexes, '
       'height: $height, '

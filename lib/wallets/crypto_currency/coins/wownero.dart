@@ -1,4 +1,4 @@
-import 'package:cw_wownero/api/wallet.dart' as wownero_wallet;
+import 'package:monero/wownero.dart' as wownero;
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -20,7 +20,7 @@ class Wownero extends CryptonoteCurrency {
 
   @override
   bool validateAddress(String address) {
-    return wownero_wallet.validateAddress(address);
+    return wownero.Wallet_addressValid(address, 0);
   }
 
   @override

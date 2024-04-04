@@ -25,15 +25,14 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class WalletListItem extends ConsumerWidget {
   const WalletListItem({
-    Key? key,
+    super.key,
     required this.coin,
     required this.walletCount,
-  }) : super(key: key);
+  });
 
   final Coin coin;
   final int walletCount;
@@ -64,12 +63,7 @@ class WalletListItem extends ConsumerWidget {
                 .wallets
                 .firstWhere((e) => e.info.coin == coin);
             final Future<void> loadFuture;
-            if (wallet is CwBasedInterface) {
-              loadFuture =
-                  wallet.init().then((value) async => await (wallet).open());
-            } else {
-              loadFuture = wallet.init();
-            }
+            loadFuture = wallet.init();
             await showLoading(
               whileFuture: loadFuture,
               context: context,
