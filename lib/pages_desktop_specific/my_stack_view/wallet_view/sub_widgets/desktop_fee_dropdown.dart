@@ -8,11 +8,11 @@
  *
  */
 
-import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/cw_legacy/monero_transasction_priority.dart';
 import 'package:stackwallet/models/models.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
@@ -38,10 +38,10 @@ final tokenFeeSessionCacheProvider =
 
 class DesktopFeeDropDown extends ConsumerStatefulWidget {
   const DesktopFeeDropDown({
-    Key? key,
+    super.key,
     required this.walletId,
     this.isToken = false,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final bool isToken;
@@ -291,13 +291,13 @@ final sendAmountProvider =
 
 class FeeDropDownChild extends ConsumerWidget {
   const FeeDropDownChild({
-    Key? key,
+    super.key,
     required this.feeObject,
     required this.feeRateType,
     required this.walletId,
     required this.feeFor,
     required this.isSelected,
-  }) : super(key: key);
+  });
 
   final FeeObject? feeObject;
   final FeeRateType feeRateType;

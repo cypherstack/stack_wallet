@@ -10,13 +10,13 @@
 
 import 'dart:async';
 
-import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:decimal/decimal.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:stackwallet/cw_legacy/monero_transasction_priority.dart';
 import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
@@ -73,13 +73,13 @@ import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
 class DesktopSend extends ConsumerStatefulWidget {
   const DesktopSend({
-    Key? key,
+    super.key,
     required this.walletId,
     this.autoFillData,
     this.clipboard = const ClipboardWrapper(),
     this.barcodeScanner = const BarcodeScannerWrapper(),
     this.accountLite,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final SendViewAutoFillData? autoFillData;
@@ -161,8 +161,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         ref.read(prefsChangeNotifierProvider).enableCoinControl;
 
     if (!(wallet is CoinControlInterface && coinControlEnabled) ||
-        (wallet is CoinControlInterface &&
-            coinControlEnabled &&
+        (coinControlEnabled &&
             ref.read(desktopUseUTXOs).isEmpty)) {
       // confirm send all
       if (amount == availableBalance) {
@@ -585,7 +584,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
 
         if (price > Decimal.zero) {
-          final String fiatAmountString = (amount!.decimal * price)
+          final String fiatAmountString = (amount.decimal * price)
               .toAmount(fractionDigits: 2)
               .fiatString(
                 locale: ref.read(localeServiceChangeNotifierProvider).locale,
@@ -770,7 +769,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           .log("it changed $amount $_cachedAmountToSend", level: LogLevel.Info);
 
       final amountString = ref.read(pAmountFormatter(coin)).format(
-            amount!,
+            amount,
             withUnitName: false,
           );
 
@@ -1660,7 +1659,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                                     ref.read(pWallets).getWallet(walletId);
 
                                 if (coin == Coin.monero ||
-                                    coin == Coin.wownero) {
+                                    coin == Coin.wownero || 
+                                    coin == Coin.monerodart || 
+                                    coin == Coin.wownerodart) {
                                   final fee = await wallet.estimateFeeFor(
                                       amount,
                                       MoneroTransactionPriority.regular.raw!);

@@ -1,7 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
-import 'package:cw_core/wallet_type.dart';
 import 'dart:async';
+
+import 'package:stackwallet/cw_legacy/wallet_type.dart';
 
 part 'wallet_info.g.dart';
 

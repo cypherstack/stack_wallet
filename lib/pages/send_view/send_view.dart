@@ -11,13 +11,13 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:stackwallet/cw_legacy/monero_transasction_priority.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
@@ -73,14 +73,14 @@ import 'package:tuple/tuple.dart';
 
 class SendView extends ConsumerStatefulWidget {
   const SendView({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.coin,
     this.autoFillData,
     this.clipboard = const ClipboardWrapper(),
     this.barcodeScanner = const BarcodeScannerWrapper(),
     this.accountLite,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/sendView";
 
@@ -287,7 +287,7 @@ class _SendViewState extends ConsumerState<SendView> {
             ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
 
         if (price > Decimal.zero) {
-          baseAmountController.text = (amount!.decimal * price)
+          baseAmountController.text = (amount.decimal * price)
               .toAmount(
                 fractionDigits: 2,
               )
@@ -307,9 +307,7 @@ class _SendViewState extends ConsumerState<SendView> {
         if (coin != Coin.epicCash && !_baseFocus.hasFocus) {
           setState(() {
             _calculateFeesFuture = calculateFees(
-              amount == null
-                  ? 0.toAmountAsRaw(fractionDigits: coin.decimals)
-                  : amount!,
+              amount ?? 0.toAmountAsRaw(fractionDigits: coin.decimals),
             );
           });
         }

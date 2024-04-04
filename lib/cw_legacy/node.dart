@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:cw_core/keyable.dart';
-import 'package:cw_core/wallet_type.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart' as ioc;
+import 'package:stackwallet/cw_legacy/keyable.dart';
+import 'package:stackwallet/cw_legacy/wallet_type.dart';
 
 part 'node.g.dart';
 

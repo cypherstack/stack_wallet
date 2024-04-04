@@ -36,9 +36,6 @@ dependencies:
       url: https://github.com/mrcyjanek/flutter_libsparkmobile.git
       ref: 16bf629404168731772f0a06bf6cc2b76959cdf0
 
-  cw_core:
-    path: ./crypto_plugins/flutter_libmonero/cw_core
-
   flutter_libepiccash:
     path: ./crypto_plugins/flutter_libepiccash
 
