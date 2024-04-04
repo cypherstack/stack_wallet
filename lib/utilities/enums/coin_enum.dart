@@ -17,6 +17,7 @@ enum Coin {
   monerodart,
   banano,
   bitcoincash,
+  bitcoinFrost,
   dogecoin,
   eCash,
   epicCash,
@@ -38,6 +39,7 @@ enum Coin {
 
   bitcoinTestNet,
   bitcoincashTestnet,
+  bitcoinFrostTestNet,
   dogecoinTestNet,
   firoTestNet,
   litecoinTestNet,
@@ -49,6 +51,8 @@ extension CoinExt on Coin {
     switch (this) {
       case Coin.bitcoin:
         return "Bitcoin";
+      case Coin.bitcoinFrost:
+        return "Bitcoin Frost";
       case Coin.litecoin:
         return "Litecoin";
       case Coin.bitcoincash:
@@ -85,6 +89,8 @@ extension CoinExt on Coin {
         return "Banano";
       case Coin.bitcoinTestNet:
         return "tBitcoin";
+      case Coin.bitcoinFrostTestNet:
+        return "tBitcoin Frost";
       case Coin.litecoinTestNet:
         return "tLitecoin";
       case Coin.bitcoincashTestnet:
@@ -101,6 +107,7 @@ extension CoinExt on Coin {
   String get ticker {
     switch (this) {
       case Coin.bitcoin:
+      case Coin.bitcoinFrost:
         return "BTC";
       case Coin.litecoin:
         return "LTC";
@@ -133,6 +140,7 @@ extension CoinExt on Coin {
       case Coin.banano:
         return "BAN";
       case Coin.bitcoinTestNet:
+      case Coin.bitcoinFrostTestNet:
         return "tBTC";
       case Coin.litecoinTestNet:
         return "tLTC";
@@ -150,6 +158,7 @@ extension CoinExt on Coin {
   String get uriScheme {
     switch (this) {
       case Coin.bitcoin:
+      case Coin.bitcoinFrost:
         return "bitcoin";
       case Coin.litecoin:
         return "litecoin";
@@ -183,6 +192,7 @@ extension CoinExt on Coin {
       case Coin.banano:
         return "ban";
       case Coin.bitcoinTestNet:
+      case Coin.bitcoinFrostTestNet:
         return "bitcoin";
       case Coin.litecoinTestNet:
         return "litecoin";
@@ -214,6 +224,8 @@ extension CoinExt on Coin {
       case Coin.eCash:
         return true;
 
+      case Coin.bitcoinFrost:
+      case Coin.bitcoinFrostTestNet:
       case Coin.epicCash:
       case Coin.ethereum:
       case Coin.monero:
@@ -249,6 +261,8 @@ extension CoinExt on Coin {
       case Coin.stellarTestnet:
         return true;
 
+      case Coin.bitcoinFrost:
+      case Coin.bitcoinFrostTestNet:
       case Coin.epicCash:
       case Coin.monero:
       case Coin.monerodart:
@@ -270,6 +284,8 @@ extension CoinExt on Coin {
       case Coin.ethereum:
         return true;
 
+      case Coin.bitcoinFrost:
+      case Coin.bitcoinFrostTestNet:
       case Coin.firo:
       case Coin.namecoin:
       case Coin.particl:
@@ -296,6 +312,7 @@ extension CoinExt on Coin {
   bool get isTestNet {
     switch (this) {
       case Coin.bitcoin:
+      case Coin.bitcoinFrost:
       case Coin.litecoin:
       case Coin.bitcoincash:
       case Coin.dogecoin:
@@ -317,6 +334,7 @@ extension CoinExt on Coin {
 
       case Coin.dogecoinTestNet:
       case Coin.bitcoinTestNet:
+      case Coin.bitcoinFrostTestNet:
       case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
@@ -325,9 +343,21 @@ extension CoinExt on Coin {
     }
   }
 
+  bool get isFrost {
+    switch (this) {
+      case Coin.bitcoinFrost:
+      case Coin.bitcoinFrostTestNet:
+        return true;
+
+      default:
+        return false;
+    }
+  }
+
   Coin get mainNetVersion {
     switch (this) {
       case Coin.bitcoin:
+      case Coin.bitcoinFrost:
       case Coin.litecoin:
       case Coin.bitcoincash:
       case Coin.dogecoin:
@@ -352,6 +382,9 @@ extension CoinExt on Coin {
 
       case Coin.bitcoinTestNet:
         return Coin.bitcoin;
+
+      case Coin.bitcoinFrostTestNet:
+        return Coin.bitcoinFrost;
 
       case Coin.litecoinTestNet:
         return Coin.litecoin;
@@ -379,6 +412,10 @@ extension CoinExt on Coin {
       case Coin.namecoin:
       case Coin.particl:
         return AddressType.p2wpkh;
+
+      case Coin.bitcoinFrost:
+      case Coin.bitcoinFrostTestNet:
+        return AddressType.frostMS;
 
       case Coin.eCash:
       case Coin.bitcoincash:
@@ -527,6 +564,15 @@ Coin coinFromPrettyName(String name) {
     case "stellarTestNet":
     case "tStellar":
       return Coin.stellarTestnet;
+
+    case "Bitcoin Frost":
+    case "bitcoinFrost":
+      return Coin.bitcoinFrost;
+
+    case "Bitcoin Frost Testnet":
+    case "tBitcoin Frost":
+    case "bitcoinFrostTestNet":
+      return Coin.bitcoinFrostTestNet;
 
     default:
       throw ArgumentError.value(

@@ -11,7 +11,7 @@ description: Stack Wallet
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.10.2+214
+version: 1.10.4+217
 
 environment:
   sdk: ">=3.0.2 <4.0.0"
@@ -26,6 +26,9 @@ dependencies:
 
   lelantus:
     path: ./crypto_plugins/flutter_liblelantus
+
+  frostdart:
+    path: ./crypto_plugins/frostdart
 
   flutter_libsparkmobile:
     # path: ../flutter_libsparkmobile
@@ -165,7 +168,7 @@ dependencies:
   electrum_adapter:
     git:
       url: https://github.com/cypherstack/electrum_adapter.git
-      ref: 2897c6448e131241d4d91fe23fdab83305134225
+      ref: 9e9441fc1e9ace8907256fff05fe2c607b0933b6
   stream_channel: ^2.1.0
   monero:
     git:

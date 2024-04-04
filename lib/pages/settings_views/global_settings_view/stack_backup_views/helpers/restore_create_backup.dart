@@ -13,6 +13,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:frostdart/frostdart.dart' as frost;
 import 'package:isar/isar.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
 import 'package:stackwallet/db/hive/db.dart';
@@ -26,6 +27,7 @@ import 'package:stackwallet/models/stack_restoring_ui_state.dart';
 import 'package:stackwallet/models/trade_wallet_lookup.dart';
 import 'package:stackwallet/models/wallet_restore_state.dart';
 import 'package:stackwallet/services/address_book_service.dart';
+import 'package:stackwallet/services/frost.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/trade_notes_service.dart';
 import 'package:stackwallet/services/trade_sent_from_stack_service.dart';
@@ -42,7 +44,9 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
+import 'package:stackwallet/wallets/isar/models/frost_wallet_info.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
+import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/monerodart_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/wownerodart_wallet.dart';
@@ -304,6 +308,24 @@ abstract class SWB {
               await wallet.getMnemonicPassphrase();
         } else if (wallet is PrivateKeyInterface) {
           backupWallet['privateKey'] = await wallet.getPrivateKey();
+        } else if (wallet is BitcoinFrostWallet) {
+          String? keys = await wallet.getSerializedKeys();
+          String? config = await wallet.getMultisigConfig();
+          if (keys == null || config == null) {
+            String err = "${wallet.info.coin.name} wallet ${wallet.info.name} "
+                "has null keys or config";
+            Logging.instance.log(err, level: LogLevel.Fatal);
+            throw Exception(err);
+          }
+          //This case should never actually happen in practice unless the whole
+          // wallet is somehow corrupt
+          // TODO [prio=low]: solve case in which either keys or config is null.
+
+          // Format keys & config as a JSON string and set otherDataJsonString.
+          Map<String, dynamic> frostData = {};
+          frostData["keys"] = keys;
+          frostData["config"] = config;
+          backupWallet['frostWalletData'] = jsonEncode(frostData);
         }
         backupWallet['coinName'] = wallet.info.coin.name;
         backupWallet['storedChainHeight'] = wallet.info.cachedChainHeight;
@@ -386,7 +408,9 @@ abstract class SWB {
 
     if (walletbackup['mnemonic'] == null) {
       // probably private key based
-      privateKey = walletbackup['privateKey'] as String;
+      if (walletbackup['privateKey'] != null) {
+        privateKey = walletbackup['privateKey'] as String;
+      }
     } else {
       if (walletbackup['mnemonic'] is List) {
         List<String> mnemonicList = (walletbackup['mnemonic'] as List<dynamic>)
@@ -408,6 +432,37 @@ abstract class SWB {
     );
 
     try {
+      String? serializedKeys;
+      String? multisigConfig;
+      if (info.coin.isFrost) {
+        // Decode info.otherDataJsonString for Frost recovery info.
+        final frostData = jsonDecode(walletbackup["frostWalletData"] as String);
+        serializedKeys = frostData["keys"] as String;
+        multisigConfig = frostData["config"] as String;
+
+        final myNameIndex = frost.getParticipantIndexFromKeys(
+          serializedKeys: serializedKeys,
+        );
+        final participants = Frost.getParticipants(
+          multisigConfig: multisigConfig,
+        );
+        final myName = participants[myNameIndex];
+
+        final frostInfo = FrostWalletInfo(
+          walletId: info.walletId,
+          knownSalts: [],
+          participants: participants,
+          myName: myName,
+          threshold: frost.multisigThreshold(
+            multisigConfig: multisigConfig,
+          ),
+        );
+
+        await MainDB.instance.isar.writeTxn(() async {
+          await MainDB.instance.isar.frostWalletInfo.put(frostInfo);
+        });
+      }
+
       final wallet = await Wallet.create(
         walletInfo: info,
         mainDB: MainDB.instance,
@@ -430,6 +485,15 @@ abstract class SWB {
 
       if (!(wallet is MoneroDartWallet || wallet is WowneroDartWallet || wallet is EpiccashWallet)) {
         restoringFuture = wallet.recover(isRescan: false);
+        if (wallet is BitcoinFrostWallet) {
+          restoringFuture = wallet.recover(
+            isRescan: false,
+            multisigConfig: multisigConfig!,
+            serializedKeys: serializedKeys!,
+          );
+        } else {
+          restoringFuture = wallet.recover(isRescan: false);
+        }
       }
 
       uiState?.update(

@@ -52,6 +52,7 @@ import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
@@ -1565,7 +1566,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (!([Coin.nano, Coin.banano, Coin.epicCash, Coin.tezos]
             .contains(coin)))
           ConditionalParent(
-            condition: coin.isElectrumXCoin &&
+            condition: ref.watch(pWallets).getWallet(walletId)
+                    is ElectrumXInterface &&
                 !(((coin == Coin.firo || coin == Coin.firoTestNet) &&
                     (ref.watch(publicPrivateBalanceStateProvider.state).state ==
                             FiroType.lelantus ||

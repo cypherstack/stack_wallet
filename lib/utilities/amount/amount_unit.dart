@@ -40,6 +40,8 @@ enum AmountUnit {
       case Coin.litecoin:
       case Coin.particl:
       case Coin.namecoin:
+      case Coin.bitcoinFrost:
+      case Coin.bitcoinFrostTestNet:
       case Coin.bitcoinTestNet:
       case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:

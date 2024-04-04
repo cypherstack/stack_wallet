@@ -312,6 +312,7 @@ abstract class DefaultNodes {
   static NodeModel getNodeFor(Coin coin) {
     switch (coin) {
       case Coin.bitcoin:
+      case Coin.bitcoinFrost:
         return bitcoin;
 
       case Coin.litecoin:
@@ -360,6 +361,7 @@ abstract class DefaultNodes {
         return tezos;
 
       case Coin.bitcoinTestNet:
+      case Coin.bitcoinFrostTestNet:
         return bitcoinTestnet;
 
       case Coin.litecoinTestNet:

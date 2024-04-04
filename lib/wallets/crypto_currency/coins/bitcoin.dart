@@ -170,30 +170,10 @@ class Bitcoin extends Bip39HDCurrency with PaynymCurrencyInterface {
   NodeModel get defaultNode {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return NodeModel(
-          host: "bitcoin.stackwallet.com",
-          port: 50002,
-          name: DefaultNodes.defaultName,
-          id: DefaultNodes.buildId(Coin.bitcoin),
-          useSSL: true,
-          enabled: true,
-          coinName: Coin.bitcoin.name,
-          isFailover: true,
-          isDown: false,
-        );
+        return DefaultNodes.bitcoin;
 
       case CryptoCurrencyNetwork.test:
-        return NodeModel(
-          host: "bitcoin-testnet.stackwallet.com",
-          port: 51002,
-          name: DefaultNodes.defaultName,
-          id: DefaultNodes.buildId(Coin.bitcoinTestNet),
-          useSSL: true,
-          enabled: true,
-          coinName: Coin.bitcoinTestNet.name,
-          isFailover: true,
-          isDown: false,
-        );
+        return DefaultNodes.bitcoinTestnet;
 
       default:
         throw UnimplementedError();

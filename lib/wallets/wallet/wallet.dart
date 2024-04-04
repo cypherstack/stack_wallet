@@ -26,6 +26,7 @@ import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/banano_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoincash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/dogecoin_wallet.dart';
@@ -54,6 +55,9 @@ import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interfa
 abstract class Wallet<T extends CryptoCurrency> {
   // default to Transaction class. For TransactionV2 set to 2
   int get isarTransactionVersion => 1;
+
+  // whether the wallet currently supports multiple recipients per tx
+  bool get supportsMultiRecipient => false;
 
   Wallet(this.cryptoCurrency);
 
@@ -289,7 +293,7 @@ abstract class Wallet<T extends CryptoCurrency> {
     wallet.prefs = prefs;
     wallet.nodeService = nodeService;
 
-    if (wallet is ElectrumXInterface) {
+    if (wallet is ElectrumXInterface || wallet is BitcoinFrostWallet) {
       // initialize electrumx instance
       await wallet.updateNode();
     }
@@ -311,6 +315,11 @@ abstract class Wallet<T extends CryptoCurrency> {
         return BitcoinWallet(CryptoCurrencyNetwork.main);
       case Coin.bitcoinTestNet:
         return BitcoinWallet(CryptoCurrencyNetwork.test);
+
+      case Coin.bitcoinFrost:
+        return BitcoinFrostWallet(CryptoCurrencyNetwork.main);
+      case Coin.bitcoinFrostTestNet:
+        return BitcoinFrostWallet(CryptoCurrencyNetwork.test);
 
       case Coin.bitcoincash:
         return BitcoincashWallet(CryptoCurrencyNetwork.main);

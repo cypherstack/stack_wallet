@@ -8,3 +8,6 @@
 	path = crypto_plugins/monero_c
 	url = https://git.mrcyjanek.net/mrcyjanek/monero_c
 	branch = rewrite-wip
+[submodule "crypto_plugins/frostdart"]
+	path = crypto_plugins/frostdart
+	url = https://github.com/cypherstack/frostdart
