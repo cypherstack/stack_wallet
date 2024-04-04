@@ -277,9 +277,9 @@ Copy the resulting `dll`s to their respective positions on the Windows host:
 ### Flutter
 Install Flutter 3.16.0 on the Windows host (not in WSL2) by following [Flutter's Windows install guide](https://docs.flutter.dev/get-started/install/windows), by running `scripts/windows/deps.ps1`, or by
  - `git clone https://github.com/flutter/flutter` somewhere it can live (`C:`, **avoid** anywhere in `C:/Users/`),
- - `git checkout 3.16.0` (after navigating into the `flutter` folder),
- - and adding `flutter/bin` to your PATH environmen variable (search "environment variables" in the Start menu)
-You may still have to add `C:\development\flutter\bin` to PATH before proceeding, even if you ran `deps.ps1` (you may need to open a new terminal).  Run `flutter doctor` in PowerShell to confirm its installation.
+ - `git checkout 3.16.9` (after navigating into the `flutter` folder),
+ - adding `flutter\bin`'s full absolute path to your PATH environment variable (search "environment variables" in the Start menu.  If you ran `deps.ps1`, use `C:\development\flutter\bin`.  You may also need to open a new terminal),
+ - and running `flutter doctor` in PowerShell to confirm its installation.  You may need to resolve any issues which `flutter doctor` might raise.
 
 ### Rust
 Install [Rust](https://www.rust-lang.org/tools/install) on the Windows host (not in WSL2).  Download the installer from [rustup.rs](https://rustup.rs), make sure it works on the commandline (you may need to open a new terminal), and install the following versions:
