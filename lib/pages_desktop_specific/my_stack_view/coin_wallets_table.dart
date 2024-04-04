@@ -18,15 +18,14 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/wallet_info_row/wallet_info_row.dart';
 
 class CoinWalletsTable extends ConsumerWidget {
   const CoinWalletsTable({
-    Key? key,
+    super.key,
     required this.coin,
-  }) : super(key: key);
+  });
 
   final Coin coin;
 
@@ -81,13 +80,7 @@ class CoinWalletsTable extends ConsumerWidget {
                             final wallet =
                                 ref.read(pWallets).getWallet(walletIds[i]);
                             final Future<void> loadFuture;
-                            if (wallet is CwBasedInterface) {
-                              loadFuture = wallet
-                                  .init()
-                                  .then((value) async => await (wallet).open());
-                            } else {
-                              loadFuture = wallet.init();
-                            }
+                            loadFuture = wallet.init();
                             await showLoading(
                               whileFuture: loadFuture,
                               context: context,
@@ -117,9 +110,9 @@ class CoinWalletsTable extends ConsumerWidget {
 
 class WalletRowHoverOverlay extends StatefulWidget {
   const WalletRowHoverOverlay({
-    Key? key,
+    super.key,
     required this.onPressed,
-  }) : super(key: key);
+  });
 
   final VoidCallback onPressed;
 

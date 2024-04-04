@@ -8,8 +8,6 @@
  *
  */
 
-import 'package:flutter_libmonero/monero/monero.dart';
-import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
@@ -25,7 +23,6 @@ import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 
 class Wallets {
   Wallets._private();
@@ -78,16 +75,11 @@ class Wallets {
         key: Wallet.mnemonicPassphraseKey(walletId: walletId));
     await secureStorage.delete(key: Wallet.privateKeyKey(walletId: walletId));
 
+    // TODO: do we need some extra logic here?
     if (info.coin == Coin.wownero) {
-      final wowService =
-          wownero.createWowneroWalletService(DB.instance.moneroWalletInfoBox);
-      await wowService.remove(walletId);
       Logging.instance
-          .log("monero wallet: $walletId deleted", level: LogLevel.Info);
+          .log("wownero wallet: $walletId deleted", level: LogLevel.Info);
     } else if (info.coin == Coin.monero) {
-      final xmrService =
-          monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
-      await xmrService.remove(walletId);
       Logging.instance
           .log("monero wallet: $walletId deleted", level: LogLevel.Info);
     } else if (info.coin == Coin.epicCash) {
@@ -199,15 +191,13 @@ class Wallets {
           final shouldSetAutoSync = shouldAutoSyncAll ||
               walletIdsToEnableAutoSync.contains(walletInfo.walletId);
 
-          if (wallet is CwBasedInterface) {
-            // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
-          } else {
-            walletInitFutures.add(wallet.init().then((_) {
-              if (shouldSetAutoSync) {
-                wallet.shouldAutoSync = true;
-              }
-            }));
-          }
+          
+          walletInitFutures.add(wallet.init().then((_) {
+            if (shouldSetAutoSync) {
+              wallet.shouldAutoSync = true;
+            }
+          }));
+          
 
           _wallets[wallet.walletId] = wallet;
         } else {
@@ -267,15 +257,11 @@ class Wallets {
             walletIdsToEnableAutoSync.contains(wallet.walletId);
 
         if (isDesktop) {
-          if (wallet is CwBasedInterface) {
-            // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
-          } else {
-            walletInitFutures.add(wallet.init().then((value) {
-              if (shouldSetAutoSync) {
-                wallet.shouldAutoSync = true;
-              }
-            }));
-          }
+          walletInitFutures.add(wallet.init().then((value) {
+            if (shouldSetAutoSync) {
+              wallet.shouldAutoSync = true;
+            }
+          }));
         }
 
         _wallets[wallet.walletId] = wallet;

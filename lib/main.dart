@@ -13,14 +13,8 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart';
-import 'package:cw_core/node.dart';
-import 'package:cw_core/unspent_coins_info.dart';
-import 'package:cw_core/wallet_info.dart';
-import 'package:cw_core/wallet_type.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_libmonero/monero/monero.dart';
-import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -182,15 +176,6 @@ void main(List<String> args) async {
   // node model adapter
   Hive.registerAdapter(NodeModelAdapter());
 
-  Hive.registerAdapter(NodeAdapter());
-
-  if (!Hive.isAdapterRegistered(WalletInfoAdapter().typeId)) {
-    Hive.registerAdapter(WalletInfoAdapter());
-  }
-
-  Hive.registerAdapter(WalletTypeAdapter());
-
-  Hive.registerAdapter(UnspentCoinsInfoAdapter());
   await Hive.initFlutter(
       (await StackFileSystem.applicationHiveDirectory()).path);
 
@@ -231,13 +216,6 @@ void main(List<String> args) async {
             level: LogLevel.Error, printFullLength: true);
       }
     }
-  }
-
-  if (!Platform.isWindows) {
-    monero.onStartup();
-  }
-  if (!Platform.isLinux && !Platform.isWindows) {
-    wownero.onStartup();
   }
 
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,

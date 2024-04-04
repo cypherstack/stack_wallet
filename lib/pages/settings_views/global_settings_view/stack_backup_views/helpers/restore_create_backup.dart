@@ -44,11 +44,13 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/models/frost_wallet_info.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/monerodart_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/wownerodart_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/private_key_interface.dart';
 import 'package:tuple/tuple.dart';
@@ -481,6 +483,7 @@ abstract class SWB {
 
       Future<void>? restoringFuture;
 
+<<<<<<< HEAD
       if (!(wallet is CwBasedInterface || wallet is EpiccashWallet)) {
         if (wallet is BitcoinFrostWallet) {
           restoringFuture = wallet.recover(
@@ -491,6 +494,10 @@ abstract class SWB {
         } else {
           restoringFuture = wallet.recover(isRescan: false);
         }
+=======
+      if (!(wallet is MoneroDartWallet || wallet is WowneroDartWallet || wallet is EpiccashWallet)) {
+        restoringFuture = wallet.recover(isRescan: false);
+>>>>>>> drop dependency on cake's library
       }
 
       uiState?.update(

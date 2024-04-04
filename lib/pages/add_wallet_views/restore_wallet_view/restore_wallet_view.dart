@@ -18,16 +18,16 @@ import 'package:bip39/bip39.dart' as bip39;
 import 'package:bip39/src/wordlists/english.dart' as bip39wordlist;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_libmonero/monero/monero.dart';
-import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/confirm_recovery_dialog.dart';
+import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/get_height_by_date.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/restore_failed_dialog.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/restore_succeeded_dialog.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/restoring_dialog.dart';
+import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/wordlist.dart';
 import 'package:stackwallet/pages/add_wallet_views/select_wallet_for_token_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/verify_recovery_phrase_view/verify_recovery_phrase_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
@@ -52,9 +52,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
-import 'package:stackwallet/wallets/wallet/impl/monero_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/monerodart_wallet.dart';
-import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/wownerodart_wallet.dart';
 import 'package:stackwallet/wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
@@ -180,12 +178,15 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
   bool _isValidMnemonicWord(String word) {
     // TODO: get the actual language
     if (widget.coin == Coin.monero || widget.coin == Coin.monerodart) {
-      var moneroWordList = monero.getMoneroWordList("English");
+      var moneroWordList = wowneroEnglishNormal;
+      moneroWordList.addAll(wowneroEnglishOld);
+      moneroWordList.addAll(polyseed);
       return moneroWordList.contains(word);
     }
     if (widget.coin == Coin.wownero || widget.coin == Coin.wownerodart) {
-      var wowneroWordList = wownero.getWowneroWordList("English",
-          seedWordsLength: widget.seedWordsLength);
+      var wowneroWordList = wowneroEnglishNormal;
+      wowneroWordList.addAll(wowneroEnglishOld);
+      wowneroWordList.addAll(polyseed);
       return wowneroWordList.contains(word);
     }
     return _wordListHashSet.contains(word);
@@ -213,9 +214,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       String? otherDataJsonString;
 
       if (widget.coin == Coin.monero || widget.coin == Coin.monerodart) {
-        height = monero.getHeigthByDate(date: widget.restoreFromDate);
+        height = getMoneroHeigthByDate (date: widget.restoreFromDate);
       } else if (widget.coin == Coin.wownero || widget.coin == Coin.wownerodart) {
-        height = wownero.getHeightByDate(date: widget.restoreFromDate);
+        height = getWowneroHeightByDate(date: widget.restoreFromDate);
       }
       // todo: wait until this implemented
       // else if (widget.coin == Coin.wownero) {
@@ -332,18 +333,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
               await (wallet as EpiccashWallet).init(isRestore: true);
               break;
 
-            case MoneroWallet:
-              await (wallet as MoneroWallet).init(isRestore: true);
-              break;
-
             case MoneroDartWallet:
               await (wallet as MoneroDartWallet).init(isRestore: true);
               break;
 
-            case WowneroWallet:
-              await (wallet as WowneroWallet).init(isRestore: true);
-              break;
-            
             case WowneroDartWallet:
               await (wallet as WowneroDartWallet).init(isRestore: true);
               break;

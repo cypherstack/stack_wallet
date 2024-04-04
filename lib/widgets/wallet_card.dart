@@ -27,7 +27,6 @@ import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_prov
 import 'package:stackwallet/wallets/wallet/impl/ethereum_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/sub_wallets/eth_token_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/dialogs/basic_dialog.dart';
@@ -93,16 +92,9 @@ class SimpleWalletCard extends ConsumerWidget {
     final nav = Navigator.of(context);
     print("openWallet");
     final wallet = ref.read(pWallets).getWallet(walletId);
-    print(wallet);
-    print("is CwBasedInterface: ${wallet is CwBasedInterface}");
-    print("is CwBasedInterface: ${wallet.runtimeType}");
     if (context.mounted) {
       final Future<void> loadFuture;
-      if (wallet is CwBasedInterface) {
-        loadFuture = wallet.init().then((value) async => await (wallet).open());
-      } else {
-        loadFuture = wallet.init();
-      }
+      loadFuture = wallet.init();
       await showLoading(
         whileFuture: loadFuture,
         context: context,

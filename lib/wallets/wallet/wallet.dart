@@ -35,7 +35,6 @@ import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/ethereum_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/litecoin_wallet.dart';
-import 'package:stackwallet/wallets/wallet/impl/monero_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/monerodart_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/namecoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/nano_wallet.dart';
@@ -43,7 +42,6 @@ import 'package:stackwallet/wallets/wallet/impl/particl_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/stellar_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/sub_wallets/eth_token_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/tezos_wallet.dart';
-import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/wownerodart_wallet.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/cryptonote_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
@@ -352,13 +350,10 @@ abstract class Wallet<T extends CryptoCurrency> {
       case Coin.litecoinTestNet:
         return LitecoinWallet(CryptoCurrencyNetwork.test);
 
-      case Coin.monero:
-        return MoneroWallet(CryptoCurrencyNetwork.main);
-
-      case Coin.monerodart:
+      case Coin.monero || Coin.monerodart:
         return MoneroDartWallet(CryptoCurrencyNetwork.main);
 
-      case Coin.wownerodart:
+      case Coin.wownero || Coin.wownerodart:
         return WowneroDartWallet(CryptoCurrencyNetwork.main);
 
       case Coin.namecoin:
@@ -377,10 +372,6 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       case Coin.tezos:
         return TezosWallet(CryptoCurrencyNetwork.main);
-
-      case Coin.wownero:
-        return WowneroWallet(CryptoCurrencyNetwork.main);
-
     }
   }
 

@@ -37,8 +37,6 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
-import 'package:stackwallet/wallets/wallet/impl/monero_wallet.dart';
-import 'package:stackwallet/wallets/wallet/impl/wownero_wallet.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -57,12 +55,12 @@ import 'package:wakelock/wakelock.dart';
 /// [eventBus] should only be set during testing
 class WalletNetworkSettingsView extends ConsumerStatefulWidget {
   const WalletNetworkSettingsView({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.initialSyncStatus,
     required this.initialNodeStatus,
     this.eventBus,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final WalletSyncStatus initialSyncStatus;
@@ -319,21 +317,7 @@ class _WalletNetworkSettingsViewState
 
     final coin = ref.watch(pWalletCoin(widget.walletId));
 
-    if (coin == Coin.monero) {
-      double highestPercent =
-          (ref.read(pWallets).getWallet(widget.walletId) as MoneroWallet)
-              .highestPercentCached;
-      if (_percent < highestPercent) {
-        _percent = highestPercent.clamp(0.0, 1.0);
-      }
-    } else if (coin == Coin.wownero) {
-      double highestPercent =
-          (ref.watch(pWallets).getWallet(widget.walletId) as WowneroWallet)
-              .highestPercentCached;
-      if (_percent < highestPercent) {
-        _percent = highestPercent.clamp(0.0, 1.0);
-      }
-    } else if (coin == Coin.epicCash) {
+    if (coin == Coin.epicCash) {
       double highestPercent =
           (ref.watch(pWallets).getWallet(widget.walletId) as EpiccashWallet)
               .highestPercent;

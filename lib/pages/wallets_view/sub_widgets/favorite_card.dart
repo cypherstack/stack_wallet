@@ -26,17 +26,16 @@ import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import 'package:stackwallet/widgets/coin_card.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 
 class FavoriteCard extends ConsumerStatefulWidget {
   const FavoriteCard({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.width,
     required this.height,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final double width;
@@ -117,12 +116,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
           final wallet = ref.read(pWallets).getWallet(walletId);
 
           final Future<void> loadFuture;
-          if (wallet is CwBasedInterface) {
-            loadFuture =
-                wallet.init().then((value) async => await (wallet).open());
-          } else {
-            loadFuture = wallet.init();
-          }
+          loadFuture = wallet.init();
           await showLoading(
             whileFuture: loadFuture,
             context: context,
@@ -275,8 +269,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
 
 class CardOverlayStack extends StatelessWidget {
   const CardOverlayStack(
-      {Key? key, required this.background, required this.child})
-      : super(key: key);
+      {super.key, required this.background, required this.child});
 
   final Widget background;
   final Widget child;
