@@ -8,9 +8,9 @@
  *
  */
 
-import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/cw_legacy/monero_transasction_priority.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
@@ -43,12 +43,12 @@ class FeeSheetSessionCache extends ChangeNotifier {
 
 class TransactionFeeSelectionSheet extends ConsumerStatefulWidget {
   const TransactionFeeSelectionSheet({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.amount,
     required this.updateChosen,
     this.isToken = false,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final Amount amount;

@@ -10,7 +10,7 @@
 
 import 'dart:isolate';
 
-import 'package:cw_core/wallet_info.dart' as xmr;
+import 'package:stackwallet/cw_legacy/wallet_info.dart' as xmr;
 import 'package:hive/hive.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
