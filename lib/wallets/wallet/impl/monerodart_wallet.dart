@@ -18,10 +18,13 @@ import 'package:stackwallet/wallets/crypto_currency/coins/monero.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:monero/monero.dart' as monero;
+import 'package:monero/src/generated_bindings_monero.g.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'package:tuple/tuple.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
+import 'package:ffi/ffi.dart';
+import 'dart:ffi';
 
 enum SecretStoreKey { moneroWalletPassword, pinCodePassword, backupPassword }
 
@@ -140,18 +143,46 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
     if (xmrwPtr == null) {
       throw Exception("unable to prepare transaction, wallet pointer is null");
     }
-
-    final txPtr = monero.Wallet_createTransaction(
-      xmrwPtr!,
-      dst_addr: txData.recipients!.first.address,
-      payment_id: '',
-      amount: txData.recipients!.first.amount.raw.toInt(),
-      mixin_count: 0,
-      // TODO(mrcyjanek): How can I get the number that I've set in fees?
-      pendingTransactionPriority: 0,
-      subaddr_account: 0,
+    // This is sync code (blocks the ui):
+    // final txPtr = monero.Wallet_createTransaction(
+    //   xmrwPtr!,
+    //   dst_addr: txData.recipients!.first.address,
+    //   payment_id: '',
+    //   amount: txData.recipients!.first.amount.raw.toInt(),
+    //   mixin_count: 0,
+    //   // TODO(mrcyjanek): How can I get the number that I've set in fees?
+    //   pendingTransactionPriority: 0,
+    //   subaddr_account: 0,
+    // );
+    // and this is async code (doesn't block the ui)
+    final ptrAddr = xmrwPtr!.address;
+    final dstAddrPtr = txData.recipients!.first.address.toNativeUtf8().address;
+    final paymentAddrPtr = ''.toNativeUtf8().address;
+    final preferredInputsPtr = ''.toNativeUtf8().address;
+    final separatorPtr = ''.toNativeUtf8().address;
+    final amount = txData.recipients!.first.amount.raw.toInt();
+    final txPtrAddr = await Isolate.run(() {
+      monero.lib ??= MoneroC(DynamicLibrary.open(monero.libPath));
+      final txPtr = monero.lib!.MONERO_Wallet_createTransaction(
+        Pointer.fromAddress(ptrAddr), 
+        Pointer.fromAddress(dstAddrPtr).cast(), 
+        Pointer.fromAddress(paymentAddrPtr).cast(), 
+        amount, 
+        0, 
+        0, 
+        0, 
+        Pointer.fromAddress(preferredInputsPtr).cast(), 
+        Pointer.fromAddress(separatorPtr).cast(),
+      );
+      // Nothing hits better than managing memory in GC language :)
+      return txPtr.address;
+    },
+      debugName: 'MONERO_Wallet_createTransaction',
     );
-
+    final txPtr = Pointer.fromAddress(txPtrAddr).cast<Void>();
+    calloc.free(Pointer.fromAddress(dstAddrPtr));
+    calloc.free(Pointer.fromAddress(paymentAddrPtr));
+    calloc.free(Pointer.fromAddress(preferredInputsPtr));
     final status = monero.PendingTransaction_status(txPtr);
     if (status != 0) {
       throw Exception(
