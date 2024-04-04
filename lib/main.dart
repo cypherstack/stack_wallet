@@ -13,6 +13,8 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart';
+import 'package:cw_core/wallet_info.dart';
+import 'package:cw_core/wallet_type.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,6 +24,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:isar/isar.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:stackwallet/cw_legacy/node.dart';
+import 'package:stackwallet/cw_legacy/unspent_coins_info.dart';
 import 'package:stackwallet/db/db_version_migration.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
@@ -175,6 +179,16 @@ void main(List<String> args) async {
 
   // node model adapter
   Hive.registerAdapter(NodeModelAdapter());
+
+  Hive.registerAdapter(NodeAdapter());
+
+  if (!Hive.isAdapterRegistered(WalletInfoAdapter().typeId)) {
+    Hive.registerAdapter(WalletInfoAdapter());
+  }
+
+  Hive.registerAdapter(WalletTypeAdapter());
+
+  Hive.registerAdapter(UnspentCoinsInfoAdapter());
 
   await Hive.initFlutter(
       (await StackFileSystem.applicationHiveDirectory()).path);

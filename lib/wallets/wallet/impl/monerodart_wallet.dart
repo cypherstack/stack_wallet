@@ -38,7 +38,7 @@ String generateStoreKeyFor({
   switch (key) {
     case SecretStoreKey.moneroWalletPassword:
       {
-        _key = moneroWalletPassword + "_" + walletName!.toUpperCase();
+        _key = "${moneroWalletPassword}_${walletName!.toUpperCase()}";
       }
       break;
 
@@ -403,6 +403,7 @@ class MoneroDartWallet extends Wallet with MnemonicInterface {
     print("$walletPath:$walletPath");
     final walletExists = monero.WalletManager_walletExists(wmPtr, walletPath);
     print("walletExists: $walletExists ; isRestore: $isRestore");
+    // TODO: is this if case okay?
     if (!walletExists && isRestore == true) {
       if (xmrwPtr != null) {
         monero.Wallet_store(xmrwPtr!);
