@@ -159,7 +159,7 @@ flutter pub get
 flutter run android
 ```
 
-Note on Emulators: Only x86_64 emulators are supported, x86 emulators will not work
+Note on Emulators: Only x86_64 emulators are supported, x86 emulators will not work.  You should [configure KVM](https://help.ubuntu.com/community/KVM/Installation) for much better performance.
 
 #### Linux
 Run the following commands or launch via Android Studio:
