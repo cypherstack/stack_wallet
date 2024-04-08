@@ -197,9 +197,7 @@ cargo install cbindgen cargo-lipo
 rustup target add aarch64-apple-ios aarch64-apple-darwin
 ```
 
-Download and install [Flutter](https://docs.flutter.dev/get-started/install).  Versions 3.16.8 and 3.10.6 should both work.  Use `flutter doctor` to confirm successful installation. 
-
-Download [Android Studio](https://developer.android.com/studio).  VS Code may work as an alternative, but this is not recommended.
+Optionally download [Android Studio](https://developer.android.com/studio) as an IDE and activate its Dart and Flutter plugins.  VS Code may work as an alternative, but this is not recommended.
 
 ### Flutter
 Install [Flutter](https://docs.flutter.dev/get-started/install) 3.16.8 on your Mac host by following [these instructions](https://docs.flutter.dev/get-started/install/macos).  Run `flutter doctor` in a terminal to confirm its installation.
