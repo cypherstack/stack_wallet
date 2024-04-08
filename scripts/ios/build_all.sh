@@ -10,13 +10,8 @@ set_rust_to_1671
 rustup target add aarch64-apple-ios
 rustup target add x86_64-apple-ios
 
-# ensure ios rust triples are there
-rustup target add aarch64-apple-ios
-rustup target add x86_64-apple-ios
-
 (cd ../../crypto_plugins/flutter_liblelantus/scripts/ios && ./build_all.sh )
 (cd ../../crypto_plugins/flutter_libepiccash/scripts/ios && ./build_all.sh )
-(cd ../../crypto_plugins/flutter_libmonero/scripts/ios   && ./build_all.sh )
 
 wait
 set_rust_to_1720
@@ -34,7 +29,3 @@ pushd ../../crypto_plugins/monero_c
 popd
 
 echo "Done building"
-
-# ensure ios rust triples are there
-rustup target add aarch64-apple-ios
-rustup target add x86_64-apple-ios
