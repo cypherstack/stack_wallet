@@ -11,6 +11,9 @@ Here you will find instructions on how to install the necessary tools for buildi
 ## Linux host
 The following instructions are for building and running on a Linux host.  Alternatively, see the [Windows](#Windows host) section.
 
+### Flutter
+Install Flutter 3.19 beta (3.19.0-0.1.pre) by following these instructions: https://docs.flutter.dev/get-started/install/linux/desktop?tab=download#install-the-flutter-sdk.  You can also clone https://github.com/flutter/flutter, check out the `3.19.0-0.1.pre` tag, and add its `flutter/bin` folder to your PATH.  Run `flutter doctor` in a terminal to confirm its installation.
+
 ### Android Studio
 Install Android Studio.  Follow instructions here [https://developer.android.com/studio/install#linux](https://developer.android.com/studio/install#linux) or install via snap:
 ```
@@ -159,7 +162,7 @@ Copy the resulting `dll`s to their respective positions on the Windows host:
 <!-- TODO: script the copying or installation of libraries from WSL2 to the parent Windows host -->
 
 ### Install Flutter on Windows host
-Install Flutter 3.10.3 on your Windows host (not in WSL2) by following these instructions: https://docs.flutter.dev/get-started/install/windows or by running `scripts/windows/deps.ps1`.  You may still have to add `C:\development\flutter\bin` to PATH before proceeding, even if you ran `deps.ps1`.  Run `flutter doctor` in PowerShell to confirm its installation.
+Install Flutter 3.19 beta (3.19.0-0.1.pre) on your Windows host (not in WSL2) by following these instructions: https://docs.flutter.dev/get-started/install/windows/desktop?tab=download#install-the-flutter-sdk.  You can also clone https://github.com/flutter/flutter, check out the `3.19.0-0.1.pre` tag, and add its `flutter/bin` folder to your PATH.  Run `flutter doctor` in PowerShell to confirm its installation.
 
 ### Dependencies
 Install the Windows SDK: https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/  You may need to install the [Windows 10 SDK](https://developer.microsoft.com/en-us/windows/downloads/sdk-archive/), which can be installed [by Visual Studio](https://stackoverflow.com/a/73923899) (`Tools > Get Tools and Features... > Modify > Individual Components > Windows 10 SDK`).
