@@ -17,8 +17,8 @@ wait
 pushd ../../crypto_plugins/monero_c
     ./apply_patches.sh monero
     ./apply_patches.sh wownero
-    ./build_single.sh monero host-apple-darwin -j8
-    ./build_single.sh wownero host-apple-darwin -j8
+    ./build_single.sh monero host-apple-darwin -j$(nproc)
+    ./build_single.sh wownero host-apple-darwin -j$(nproc)
 
     unxz -f release/*/*.xz
 popd

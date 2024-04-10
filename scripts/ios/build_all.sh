@@ -22,8 +22,8 @@ pushd ../../crypto_plugins/monero_c
     ./apply_patches.sh monero
     ./apply_patches.sh wownero
     rm -rf external/ios/build/ios/
-    ./build_single.sh monero host-apple-ios -j8
-    ./build_single.sh wownero host-apple-ios -j8
+    ./build_single.sh monero host-apple-ios -j$(nproc)
+    ./build_single.sh wownero host-apple-ios -j$(nproc)
 
     unxz -f release/*/*.xz
 popd
