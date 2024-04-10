@@ -224,6 +224,8 @@ extension CoinExt on Coin {
       case Coin.eCash:
         return true;
 
+      case Coin.bitcoinFrost:
+      case Coin.bitcoinFrostTestNet:
       case Coin.epicCash:
       case Coin.ethereum:
       case Coin.monero:

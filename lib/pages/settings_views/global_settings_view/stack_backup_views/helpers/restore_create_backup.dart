@@ -43,6 +43,7 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
 import 'package:stackwallet/wallets/isar/models/frost_wallet_info.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
@@ -483,8 +484,8 @@ abstract class SWB {
 
       Future<void>? restoringFuture;
 
-<<<<<<< HEAD
-      if (!(wallet is CwBasedInterface || wallet is EpiccashWallet)) {
+      if (!(wallet is MoneroDartWallet || wallet is WowneroDartWallet || wallet is EpiccashWallet)) {
+        restoringFuture = wallet.recover(isRescan: false);
         if (wallet is BitcoinFrostWallet) {
           restoringFuture = wallet.recover(
             isRescan: false,

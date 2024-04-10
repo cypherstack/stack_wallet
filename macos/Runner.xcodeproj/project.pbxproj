@@ -31,6 +31,8 @@
 		B98151822A67402A009D013C /* mobileliblelantus.framework in Bundle Framework */ = {isa = PBXBuildFile; fileRef = B98151802A674022009D013C /* mobileliblelantus.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B98151842A674143009D013C /* libsqlite3.0.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = B98151832A674143009D013C /* libsqlite3.0.tbd */; };
 		BFD0376C00E1FFD46376BB9D /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9206484E84CB0AD93E3E68CA /* Pods_RunnerTests.framework */; };
+		CE9E461B2BBB049A008A49E4 /* monero_libwallet2_api_c.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE9E461A2BBB049A008A49E4 /* monero_libwallet2_api_c.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		CE9E461D2BBB04A8008A49E4 /* wownero_libwallet2_api_c.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE9E461C2BBB04A8008A49E4 /* wownero_libwallet2_api_c.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		F1FA2C4E2BA4B49F00BDA1BB /* frostdart.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F1FA2C4D2BA4B49F00BDA1BB /* frostdart.dylib */; settings = {ATTRIBUTES = (Weak, ); }; };
 		F1FA2C502BA4B4CA00BDA1BB /* frostdart.dylib in Resources */ = {isa = PBXBuildFile; fileRef = F1FA2C4F2BA4B4CA00BDA1BB /* frostdart.dylib */; };
 		F1FA2C512BA4B51E00BDA1BB /* frostdart.dylib in Bundle Framework */ = {isa = PBXBuildFile; fileRef = F1FA2C4D2BA4B49F00BDA1BB /* frostdart.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -162,6 +164,8 @@
 		33CC10E42044A3C60003C045 = {
 			isa = PBXGroup;
 			children = (
+				CE9E461C2BBB04A8008A49E4 /* wownero_libwallet2_api_c.dylib */,
+				CE9E461A2BBB049A008A49E4 /* monero_libwallet2_api_c.dylib */,
 				F1FA2C4F2BA4B4CA00BDA1BB /* frostdart.dylib */,
 				CE9E461C2BBB04A8008A49E4 /* wownero_libwallet2_api_c.dylib */,
 				CE9E461A2BBB049A008A49E4 /* monero_libwallet2_api_c.dylib */,
