@@ -53,7 +53,7 @@ cargo install cargo-ndk --version 2.12.7
 ```
 Android specific dependencies:
 ```
-sudo apt-get install libc6-dev-i386
+sudo apt-get install libc6-dev-i386 libtinfo5 
 rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
 ```
 Linux desktop specific dependencies:
