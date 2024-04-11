@@ -26,7 +26,7 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class HiddenSettings extends StatelessWidget {
-  const HiddenSettings({Key? key}) : super(key: key);
+  const HiddenSettings({super.key});
 
   static const String routeName = "/hiddenSettings";
 
