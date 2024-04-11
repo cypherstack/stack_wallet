@@ -14,6 +14,7 @@ set_rust_to_1720
 (cd ../../crypto_plugins/frostdart/scripts/macos && ./build_all.sh )
 
 wait
+brew install boost libsodium zmq # Can be removed (listed in docs/building.md).
 pushd ../../crypto_plugins/monero_c
     ./apply_patches.sh monero
     ./apply_patches.sh wownero
