@@ -18,8 +18,10 @@ sudo apt install -y gcc g++ gperf # Can be removed (deps are listed in docs/buil
 pushd ../../crypto_plugins/monero_c
     ./apply_patches.sh monero
     ./apply_patches.sh wownero
-    ./build_single.sh monero x86_64-w64-mingw32 -j$(nproc)
-    ./build_single.sh wownero x86_64-w64-mingw32 -j$(nproc)
+    sudo ./build_single.sh monero x86_64-w64-mingw32 -j$(nproc)
+    # WSL2 needs superuser permissions related to error:
+    # update-alternatives: error creating symbolic link ...: Permission denied
+    sudo ./build_single.sh wownero x86_64-w64-mingw32 -j$(nproc)
 
     unxz -f release/*/*.xz
 pop
