@@ -9,14 +9,13 @@
  */
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:stackwallet/models/notification_model.dart';
 import 'package:stackwallet/services/notifications_service.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 
 class NotificationApi {
   static final _notifications = FlutterLocalNotificationsPlugin();
-  static final onNotifications = BehaviorSubject<String?>();
+  // static final onNotifications = BehaviorSubject<String?>();
 
   static Future<NotificationDetails> _notificationDetails() async {
     return const NotificationDetails(
@@ -44,12 +43,12 @@ class NotificationApi {
     );
     await _notifications.initialize(
       settings,
-      onDidReceiveNotificationResponse: (payload) async {
-        onNotifications.add(payload.payload);
-      },
-      onDidReceiveBackgroundNotificationResponse: (payload) async {
-        onNotifications.add(payload.payload);
-      },
+      // onDidReceiveNotificationResponse: (payload) async {
+      //   onNotifications.add(payload.payload);
+      // },
+      // onDidReceiveBackgroundNotificationResponse: (payload) async {
+      //   onNotifications.add(payload.payload);
+      // },
     );
   }
 
