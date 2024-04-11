@@ -182,9 +182,14 @@ Download and install [Homebrew](https://brew.sh/).  The following command can in
 
 After installing Homebrew, install the following packages:
 ```
-brew install cocoapods git cmake autoconf fontconfig libpng lz4 pkg-config automake freetype libssh2 lzo procs berkeley-db gdbm libtool m4 rtmpdump brotli gettext libunistring make rustup-init ca-certificates git-gui libx11 openldap tcl-tk cairo glib libxau openssl@1.1 unbound cbindgen gmp libxcb openssl@3 unzip cmake libevent libxdmcp pcre2 xorgproto coreutils libidn2 libxext perl xz curl libnghttp2 libxrender pixman zstd
+brew install autoconf automake boost berkeley-db ca-certificates cbindgen cmake cmake cocoapods curl git libssh2 make openssl@1.1 openssl@3 perl pkg-config rustup-init sodium unbound unzip xz zmq
 ```
-<!-- TODO: reduce list of brews to install. -->
+
+The following brew formula *may* be needed:
+```
+brew install brotli cairo coreutils gdbm gettext glib gmp libevent libidn2 libnghttp2 libtool libunistring libx11 libxau libxcb libxdmcp libxext libxrender lzo m4 openldap pcre2 pixman procs rtmpdump tcl-tk xorgproto zstd
+```
+<!-- TODO: determine which of the above list are not needed at all. -->
 
 Download and install [Rust](https://www.rust-lang.org/tools/install).  [Rustup](https://rustup.rs/) is recommended for Rust setup.  Use `rustc` to confirm successful installation.  Install toolchains 1.67.1 and 1.72.0 and `cbindgen` and `cargo-lipo` too.  You will also have to add the platform target(s) `aarch64-apple-ios` and/or `aarch64-apple-darwin`.  You can use the command(s):
 ```
