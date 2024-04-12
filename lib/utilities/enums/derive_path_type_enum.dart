@@ -15,9 +15,9 @@ enum DerivePathType {
   bch44,
   bip49,
   bip84,
-  bip86,
   eth,
   eCash44,
+  bip86,
 }
 
 extension DerivePathTypeExt on DerivePathType {
