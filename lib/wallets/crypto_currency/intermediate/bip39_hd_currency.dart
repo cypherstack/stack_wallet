@@ -1,5 +1,3 @@
-import 'package:bech32/bech32.dart';
-import 'package:bs58check/bs58check.dart' as bs58check;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
@@ -57,47 +55,19 @@ abstract class Bip39HDCurrency extends Bip39Currency {
   }
 
   DerivePathType addressType({required String address}) {
-    Uint8List? decodeBase58;
-    Segwit? decodeBech32;
-    try {
-      decodeBase58 = bs58check.decode(address);
-    } catch (err) {
-      // Base58check decode fail
-    }
-    if (decodeBase58 != null) {
-      if (decodeBase58[0] == networkParams.p2pkhPrefix) {
-        // P2PKH
-        return DerivePathType.bip44;
-      }
-      if (decodeBase58[0] == networkParams.p2shPrefix) {
-        // P2SH
-        return DerivePathType.bip49;
-      }
-      throw ArgumentError('Invalid version or Network mismatch');
-    } else {
-      try {
-        decodeBech32 = segwit.decode(address, networkParams.bech32Hrp);
-      } catch (err) {
-        // Bech32 decode fail
-      }
-      if (decodeBech32?.hrp != null) {
-        // P2TR Bech32m addresses have null hrp.
-        if (networkParams.bech32Hrp != decodeBech32!.hrp) {
-          throw ArgumentError('Invalid prefix or Network mismatch');
-        }
-        if (decodeBech32.version != 0) {
-          throw ArgumentError('Invalid address version');
-        }
-      } else {
-        // P2TR.
-        if (address.startsWith('bc1p') || address.startsWith('tb1p')) {
-          // P2TR (Taproot).
-          return DerivePathType.bip86;
-        }
-      }
+    final address2 = coinlib.Address.fromString(address, networkParams);
 
-      // P2WPKH
+    if (address2 is coinlib.P2PKHAddress) {
+      return DerivePathType.bip44;
+    } else if (address2 is coinlib.P2SHAddress) {
+      return DerivePathType.bip49;
+    } else if (address2 is coinlib.P2WPKHAddress) {
       return DerivePathType.bip84;
+    } else if (address2 is coinlib.P2TRAddress) {
+      return DerivePathType.bip86;
+    } else {
+      // TODO: [prio=med] better error handling
+      throw ArgumentError('Invalid address');
     }
   }
 }
