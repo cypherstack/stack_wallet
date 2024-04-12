@@ -171,11 +171,7 @@ dependencies:
   convert: ^3.1.1
   flutter_hooks: ^0.20.3
   meta: ^1.9.1
-  coinlib_flutter:
-    git:
-      url: https://github.com/cypherstack/coinlib.git
-      path: coinlib_flutter
-      ref: 376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7
+  coinlib_flutter: ^2.0.0
   electrum_adapter:
     git:
       url: https://github.com/cypherstack/electrum_adapter.git
@@ -226,17 +222,6 @@ dependency_overrides:
     git:
       url: https://github.com/cypherstack/bip47.git
       ref: a6e7941b98a43a613708b1a12564bc17e712cfc7
-
-  coinlib_flutter:
-    git:
-      url: https://github.com/cypherstack/coinlib.git
-      path: coinlib_flutter
-      ref: 376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7
-  coinlib:
-    git:
-      url: https://github.com/cypherstack/coinlib.git
-      path: coinlib
-      ref: 376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7
 
   # required for dart 3, at least until a fix is merged upstream
   wakelock_windows:

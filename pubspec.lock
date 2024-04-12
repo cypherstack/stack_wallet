@@ -271,23 +271,21 @@ packages:
     source: hosted
     version: "4.6.0"
   coinlib:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: coinlib
-      ref: "376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7"
-      resolved-ref: "376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7"
-      url: "https://github.com/cypherstack/coinlib.git"
-    source: git
-    version: "1.1.0"
+      name: coinlib
+      sha256: "44aa3f7b07d3b03d58353e7657f43cdaf76a70ad2cce5bdac9306208099d8df5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   coinlib_flutter:
     dependency: "direct main"
     description:
-      path: coinlib_flutter
-      ref: "376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7"
-      resolved-ref: "376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7"
-      url: "https://github.com/cypherstack/coinlib.git"
-    source: git
-    version: "1.1.0"
+      name: coinlib_flutter
+      sha256: b352378773158dbaec37bd542c297682f3812f9881acb676971f0f4c5893631f
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   collection:
     dependency: transitive
     description:
@@ -2078,5 +2076,5 @@ packages:
     source: hosted
     version: "1.0.0"
 sdks:
-  dart: ">=3.2.0-0 <4.0.0"
+  dart: ">=3.2.0 <4.0.0"
   flutter: ">=3.16.0"
