@@ -495,10 +495,6 @@ abstract class SWB {
         } else {
           restoringFuture = wallet.recover(isRescan: false);
         }
-=======
-      if (!(wallet is MoneroDartWallet || wallet is WowneroDartWallet || wallet is EpiccashWallet)) {
-        restoringFuture = wallet.recover(isRescan: false);
->>>>>>> drop dependency on cake's library
       }
 
       uiState?.update(
