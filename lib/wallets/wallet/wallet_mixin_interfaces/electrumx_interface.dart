@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:bip47/src/util.dart';
 import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
@@ -599,7 +600,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         // final coinlib.Input input;
 
         final pubKey = keys.publicKey.data;
-        final bitcoindart.PaymentData data;
+        final bitcoindart.PaymentData? data;
 
         switch (sd.derivePathType) {
           case DerivePathType.bip44:
@@ -651,12 +652,20 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
                 .data;
             break;
 
+          case DerivePathType.bip86:
+            data = null;
+            break;
+
           default:
             throw Exception("DerivePathType unsupported");
         }
 
         // sd.output = input.script!.compiled;
-        sd.output = data.output!;
+
+        if (sd.derivePathType != DerivePathType.bip86) {
+          sd.output = data!.output!;
+        }
+
         sd.keyPair = bitcoindart.ECPair.fromPrivateKey(
           keys.privateKey.data,
           compressed: keys.privateKey.compressed,
@@ -680,57 +689,87 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     Logging.instance
         .log("Starting buildTransaction ----------", level: LogLevel.Info);
 
-    // TODO: use coinlib
-
-    // Check if any txData.recipients are taproot/P2TR outputs.
-    bool hasTaprootOutput = false;
-    for (final recipient in txData.recipients!) {
-      if (cryptoCurrency.addressType(address: recipient.address) ==
-          DerivePathType.bip86) {
-        hasTaprootOutput = true;
-      }
-    }
-
-    if (hasTaprootOutput) {
-      // Use Coinlib to construct taproot transaction.
-      // TODO [prio=high]: Implement taproot transaction construction.
-    }
-
-    final txb = bitcoindart.TransactionBuilder(
-      network: bitcoindart.NetworkType(
-        messagePrefix: cryptoCurrency.networkParams.messagePrefix,
-        bech32: cryptoCurrency.networkParams.bech32Hrp,
-        bip32: bitcoindart.Bip32Type(
-          public: cryptoCurrency.networkParams.pubHDPrefix,
-          private: cryptoCurrency.networkParams.privHDPrefix,
-        ),
-        pubKeyHash: cryptoCurrency.networkParams.p2pkhPrefix,
-        scriptHash: cryptoCurrency.networkParams.p2shPrefix,
-        wif: cryptoCurrency.networkParams.wifPrefix,
-      ),
-      maximumFeeRate: maximumFeerate,
-    );
-    const version = 1; // TODO possibly override this for certain coins?
-    txb.setVersion(version);
-
     // temp tx data to show in gui while waiting for real data from server
     final List<InputV2> tempInputs = [];
     final List<OutputV2> tempOutputs = [];
 
+    final List<coinlib.Output> prevOuts = [];
+
+    coinlib.Transaction clTx = coinlib.Transaction(
+      version: 1, // TODO: check if we can use 3 (as is default in coinlib)
+      inputs: [],
+      outputs: [],
+    );
+
     // Add transaction inputs
     for (var i = 0; i < utxoSigningData.length; i++) {
       final txid = utxoSigningData[i].utxo.txid;
-      txb.addInput(
-        txid,
+
+      final hash = Uint8List.fromList(txid.fromHex.reversed.toList());
+
+      final prevOutpoint = coinlib.OutPoint(
+        hash,
         utxoSigningData[i].utxo.vout,
-        null,
-        utxoSigningData[i].output!,
-        cryptoCurrency.networkParams.bech32Hrp,
       );
+
+      final prevOutput = coinlib.Output.fromAddress(
+        BigInt.from(utxoSigningData[i].utxo.value),
+        coinlib.Address.fromString(
+          utxoSigningData[i].utxo.address!,
+          cryptoCurrency.networkParams,
+        ),
+      );
+
+      prevOuts.add(prevOutput);
+
+      final coinlib.Input input;
+
+      switch (utxoSigningData[i].derivePathType) {
+        case DerivePathType.bip44:
+        case DerivePathType.bch44:
+          input = coinlib.P2PKHInput(
+            prevOut: prevOutpoint,
+            // publicKey: utxoSigningData[i].keyPair!.publicKey,
+            publicKey: coinlib.ECPublicKey(
+              utxoSigningData[i].keyPair!.publicKey,
+            ),
+            sequence: 0xffffffff - 1,
+          );
+
+        // TODO: fix this as it is (probably) wrong!
+        case DerivePathType.bip49:
+          input = coinlib.P2SHMultisigInput(
+            prevOut: prevOutpoint,
+            program: coinlib.MultisigProgram.decompile(
+              utxoSigningData[i].redeemScript!,
+            ),
+            sequence: 0xffffffff - 1,
+          );
+
+        case DerivePathType.bip84:
+          input = coinlib.P2WPKHInput(
+            prevOut: prevOutpoint,
+            // publicKey: utxoSigningData[i].keyPair!.publicKey,
+            publicKey: coinlib.ECPublicKey(
+              utxoSigningData[i].keyPair!.publicKey,
+            ),
+            sequence: 0xffffffff - 1,
+          );
+
+        case DerivePathType.bip86:
+          input = coinlib.TaprootKeyInput(prevOut: prevOutpoint);
+
+        default:
+          throw UnsupportedError(
+            "Unknown derivation path type found: ${utxoSigningData[i].derivePathType}",
+          );
+      }
+
+      clTx = clTx.addInput(input);
 
       tempInputs.add(
         InputV2.isarCantDoRequiredInDefaultConstructor(
-          scriptSigHex: txb.inputs.first.script?.toHex,
+          scriptSigHex: input.scriptSig.toHex,
           scriptSigAsm: null,
           sequence: 0xffffffff - 1,
           outpoint: OutpointV2.isarCantDoRequiredInDefaultConstructor(
@@ -751,11 +790,17 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
     // Add transaction output
     for (var i = 0; i < txData.recipients!.length; i++) {
-      txb.addOutput(
+      final address = coinlib.Address.fromString(
         normalizeAddress(txData.recipients![i].address),
-        txData.recipients![i].amount.raw.toInt(),
-        cryptoCurrency.networkParams.bech32Hrp,
+        cryptoCurrency.networkParams,
       );
+
+      final output = coinlib.Output.fromAddress(
+        txData.recipients![i].amount.raw,
+        address,
+      );
+
+      clTx = clTx.addOutput(output);
 
       tempOutputs.add(
         OutputV2.isarCantDoRequiredInDefaultConstructor(
@@ -779,13 +824,37 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     try {
       // Sign the transaction accordingly
       for (var i = 0; i < utxoSigningData.length; i++) {
-        txb.sign(
-          vin: i,
-          keyPair: utxoSigningData[i].keyPair!,
-          witnessValue: utxoSigningData[i].utxo.value,
-          redeemScript: utxoSigningData[i].redeemScript,
-          overridePrefix: cryptoCurrency.networkParams.bech32Hrp,
+        final value = BigInt.from(utxoSigningData[i].utxo.value);
+        coinlib.ECPrivateKey key = coinlib.ECPrivateKey(
+          utxoSigningData[i].keyPair!.privateKey!,
+          compressed: utxoSigningData[i].keyPair!.compressed,
         );
+
+        if (clTx.inputs[i] is coinlib.TaprootKeyInput) {
+          final taproot = coinlib.Taproot(
+            internalKey: coinlib.ECPublicKey(
+              utxoSigningData[i].keyPair!.publicKey,
+            ),
+          );
+
+          key = taproot.tweakPrivateKey(key);
+        }
+
+        clTx = clTx.sign(
+          inputN: i,
+          value: value,
+          // key: utxoSigningData[i].keyPair!.privateKey,
+          key: key,
+          prevOuts: prevOuts,
+        );
+
+        // txb.sign(
+        //   vin: i,
+        //   keyPair: utxoSigningData[i].keyPair!,
+        //   witnessValue: utxoSigningData[i].utxo.value,
+        //   redeemScript: utxoSigningData[i].redeemScript,
+        //   overridePrefix: cryptoCurrency.networkParams.bech32Hrp,
+        // );
       }
     } catch (e, s) {
       Logging.instance.log("Caught exception while signing transaction: $e\n$s",
@@ -793,22 +862,19 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       rethrow;
     }
 
-    final builtTx = txb.build(cryptoCurrency.networkParams.bech32Hrp);
-    final vSize = builtTx.virtualSize();
-
     return txData.copyWith(
-      raw: builtTx.toHex(),
-      vSize: vSize,
+      raw: clTx.toHex(),
+      vSize: clTx.size,
       tempTx: TransactionV2(
         walletId: walletId,
         blockHash: null,
-        hash: builtTx.getId(),
-        txid: builtTx.getId(),
+        hash: clTx.hashHex,
+        txid: clTx.txid,
         height: null,
         timestamp: DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
         inputs: List.unmodifiable(tempInputs),
         outputs: List.unmodifiable(tempOutputs),
-        version: version,
+        version: clTx.version,
         type:
             tempOutputs.map((e) => e.walletOwns).fold(true, (p, e) => p &= e) &&
                     txData.paynymAccountLite == null
