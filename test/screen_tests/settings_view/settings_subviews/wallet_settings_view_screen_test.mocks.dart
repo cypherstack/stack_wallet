@@ -3,17 +3,18 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i4;
-import 'dart:ui' as _i10;
+import 'dart:async' as _i5;
+import 'dart:ui' as _i11;
 
-import 'package:local_auth/auth_strings.dart' as _i7;
-import 'package:local_auth/local_auth.dart' as _i6;
+import 'package:electrum_adapter/electrum_adapter.dart' as _i3;
+import 'package:local_auth/auth_strings.dart' as _i8;
+import 'package:local_auth/local_auth.dart' as _i7;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart' as _i3;
+import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart' as _i4;
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart' as _i2;
-import 'package:stackwallet/services/wallets_service.dart' as _i9;
-import 'package:stackwallet/utilities/biometrics.dart' as _i8;
-import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i5;
+import 'package:stackwallet/services/wallets_service.dart' as _i10;
+import 'package:stackwallet/utilities/biometrics.dart' as _i9;
+import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i6;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -37,11 +38,22 @@ class _FakeElectrumXClient_0 extends _i1.SmartFake
         );
 }
 
+class _FakeElectrumClient_1 extends _i1.SmartFake
+    implements _i3.ElectrumClient {
+  _FakeElectrumClient_1(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
 /// A class which mocks [CachedElectrumXClient].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockCachedElectrumXClient extends _i1.Mock
-    implements _i3.CachedElectrumXClient {
+    implements _i4.CachedElectrumXClient {
   MockCachedElectrumXClient() {
     _i1.throwOnMissingStub(this);
   }
@@ -55,10 +67,37 @@ class MockCachedElectrumXClient extends _i1.Mock
         ),
       ) as _i2.ElectrumXClient);
   @override
-  _i4.Future<Map<String, dynamic>> getAnonymitySet({
+  _i3.ElectrumClient get electrumAdapterClient => (super.noSuchMethod(
+        Invocation.getter(#electrumAdapterClient),
+        returnValue: _FakeElectrumClient_1(
+          this,
+          Invocation.getter(#electrumAdapterClient),
+        ),
+      ) as _i3.ElectrumClient);
+  @override
+  set electrumAdapterClient(_i3.ElectrumClient? _electrumAdapterClient) =>
+      super.noSuchMethod(
+        Invocation.setter(
+          #electrumAdapterClient,
+          _electrumAdapterClient,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  _i5.Future<_i3.ElectrumClient> Function() get electrumAdapterUpdateCallback =>
+      (super.noSuchMethod(
+        Invocation.getter(#electrumAdapterUpdateCallback),
+        returnValue: () =>
+            _i5.Future<_i3.ElectrumClient>.value(_FakeElectrumClient_1(
+          this,
+          Invocation.getter(#electrumAdapterUpdateCallback),
+        )),
+      ) as _i5.Future<_i3.ElectrumClient> Function());
+  @override
+  _i5.Future<Map<String, dynamic>> getAnonymitySet({
     required String? groupId,
     String? blockhash = r'',
-    required _i5.Coin? coin,
+    required _i6.Coin? coin,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -71,13 +110,13 @@ class MockCachedElectrumXClient extends _i1.Mock
           },
         ),
         returnValue:
-            _i4.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
-      ) as _i4.Future<Map<String, dynamic>>);
+            _i5.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+      ) as _i5.Future<Map<String, dynamic>>);
   @override
-  _i4.Future<Map<String, dynamic>> getSparkAnonymitySet({
+  _i5.Future<Map<String, dynamic>> getSparkAnonymitySet({
     required String? groupId,
     String? blockhash = r'',
-    required _i5.Coin? coin,
+    required _i6.Coin? coin,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -90,8 +129,8 @@ class MockCachedElectrumXClient extends _i1.Mock
           },
         ),
         returnValue:
-            _i4.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
-      ) as _i4.Future<Map<String, dynamic>>);
+            _i5.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+      ) as _i5.Future<Map<String, dynamic>>);
   @override
   String base64ToHex(String? source) => (super.noSuchMethod(
         Invocation.method(
@@ -109,9 +148,9 @@ class MockCachedElectrumXClient extends _i1.Mock
         returnValue: '',
       ) as String);
   @override
-  _i4.Future<Map<String, dynamic>> getTransaction({
+  _i5.Future<Map<String, dynamic>> getTransaction({
     required String? txHash,
-    required _i5.Coin? coin,
+    required _i6.Coin? coin,
     bool? verbose = true,
   }) =>
       (super.noSuchMethod(
@@ -125,11 +164,11 @@ class MockCachedElectrumXClient extends _i1.Mock
           },
         ),
         returnValue:
-            _i4.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
-      ) as _i4.Future<Map<String, dynamic>>);
+            _i5.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+      ) as _i5.Future<Map<String, dynamic>>);
   @override
-  _i4.Future<List<String>> getUsedCoinSerials({
-    required _i5.Coin? coin,
+  _i5.Future<List<String>> getUsedCoinSerials({
+    required _i6.Coin? coin,
     int? startNumber = 0,
   }) =>
       (super.noSuchMethod(
@@ -141,53 +180,53 @@ class MockCachedElectrumXClient extends _i1.Mock
             #startNumber: startNumber,
           },
         ),
-        returnValue: _i4.Future<List<String>>.value(<String>[]),
-      ) as _i4.Future<List<String>>);
+        returnValue: _i5.Future<List<String>>.value(<String>[]),
+      ) as _i5.Future<List<String>>);
   @override
-  _i4.Future<Set<String>> getSparkUsedCoinsTags({required _i5.Coin? coin}) =>
+  _i5.Future<Set<String>> getSparkUsedCoinsTags({required _i6.Coin? coin}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getSparkUsedCoinsTags,
           [],
           {#coin: coin},
         ),
-        returnValue: _i4.Future<Set<String>>.value(<String>{}),
-      ) as _i4.Future<Set<String>>);
+        returnValue: _i5.Future<Set<String>>.value(<String>{}),
+      ) as _i5.Future<Set<String>>);
   @override
-  _i4.Future<void> clearSharedTransactionCache({required _i5.Coin? coin}) =>
+  _i5.Future<void> clearSharedTransactionCache({required _i6.Coin? coin}) =>
       (super.noSuchMethod(
         Invocation.method(
           #clearSharedTransactionCache,
           [],
           {#coin: coin},
         ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
 }
 
 /// A class which mocks [LocalAuthentication].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockLocalAuthentication extends _i1.Mock
-    implements _i6.LocalAuthentication {
+    implements _i7.LocalAuthentication {
   MockLocalAuthentication() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i4.Future<bool> get canCheckBiometrics => (super.noSuchMethod(
+  _i5.Future<bool> get canCheckBiometrics => (super.noSuchMethod(
         Invocation.getter(#canCheckBiometrics),
-        returnValue: _i4.Future<bool>.value(false),
-      ) as _i4.Future<bool>);
+        returnValue: _i5.Future<bool>.value(false),
+      ) as _i5.Future<bool>);
   @override
-  _i4.Future<bool> authenticateWithBiometrics({
+  _i5.Future<bool> authenticateWithBiometrics({
     required String? localizedReason,
     bool? useErrorDialogs = true,
     bool? stickyAuth = false,
-    _i7.AndroidAuthMessages? androidAuthStrings =
-        const _i7.AndroidAuthMessages(),
-    _i7.IOSAuthMessages? iOSAuthStrings = const _i7.IOSAuthMessages(),
+    _i8.AndroidAuthMessages? androidAuthStrings =
+        const _i8.AndroidAuthMessages(),
+    _i8.IOSAuthMessages? iOSAuthStrings = const _i8.IOSAuthMessages(),
     bool? sensitiveTransaction = true,
   }) =>
       (super.noSuchMethod(
@@ -203,16 +242,16 @@ class MockLocalAuthentication extends _i1.Mock
             #sensitiveTransaction: sensitiveTransaction,
           },
         ),
-        returnValue: _i4.Future<bool>.value(false),
-      ) as _i4.Future<bool>);
+        returnValue: _i5.Future<bool>.value(false),
+      ) as _i5.Future<bool>);
   @override
-  _i4.Future<bool> authenticate({
+  _i5.Future<bool> authenticate({
     required String? localizedReason,
     bool? useErrorDialogs = true,
     bool? stickyAuth = false,
-    _i7.AndroidAuthMessages? androidAuthStrings =
-        const _i7.AndroidAuthMessages(),
-    _i7.IOSAuthMessages? iOSAuthStrings = const _i7.IOSAuthMessages(),
+    _i8.AndroidAuthMessages? androidAuthStrings =
+        const _i8.AndroidAuthMessages(),
+    _i8.IOSAuthMessages? iOSAuthStrings = const _i8.IOSAuthMessages(),
     bool? sensitiveTransaction = true,
     bool? biometricOnly = false,
   }) =>
@@ -230,46 +269,46 @@ class MockLocalAuthentication extends _i1.Mock
             #biometricOnly: biometricOnly,
           },
         ),
-        returnValue: _i4.Future<bool>.value(false),
-      ) as _i4.Future<bool>);
+        returnValue: _i5.Future<bool>.value(false),
+      ) as _i5.Future<bool>);
   @override
-  _i4.Future<bool> stopAuthentication() => (super.noSuchMethod(
+  _i5.Future<bool> stopAuthentication() => (super.noSuchMethod(
         Invocation.method(
           #stopAuthentication,
           [],
         ),
-        returnValue: _i4.Future<bool>.value(false),
-      ) as _i4.Future<bool>);
+        returnValue: _i5.Future<bool>.value(false),
+      ) as _i5.Future<bool>);
   @override
-  _i4.Future<bool> isDeviceSupported() => (super.noSuchMethod(
+  _i5.Future<bool> isDeviceSupported() => (super.noSuchMethod(
         Invocation.method(
           #isDeviceSupported,
           [],
         ),
-        returnValue: _i4.Future<bool>.value(false),
-      ) as _i4.Future<bool>);
+        returnValue: _i5.Future<bool>.value(false),
+      ) as _i5.Future<bool>);
   @override
-  _i4.Future<List<_i6.BiometricType>> getAvailableBiometrics() =>
+  _i5.Future<List<_i7.BiometricType>> getAvailableBiometrics() =>
       (super.noSuchMethod(
         Invocation.method(
           #getAvailableBiometrics,
           [],
         ),
         returnValue:
-            _i4.Future<List<_i6.BiometricType>>.value(<_i6.BiometricType>[]),
-      ) as _i4.Future<List<_i6.BiometricType>>);
+            _i5.Future<List<_i7.BiometricType>>.value(<_i7.BiometricType>[]),
+      ) as _i5.Future<List<_i7.BiometricType>>);
 }
 
 /// A class which mocks [Biometrics].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockBiometrics extends _i1.Mock implements _i8.Biometrics {
+class MockBiometrics extends _i1.Mock implements _i9.Biometrics {
   MockBiometrics() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i4.Future<bool> authenticate({
+  _i5.Future<bool> authenticate({
     required String? cancelButtonText,
     required String? localizedReason,
     required String? title,
@@ -284,28 +323,28 @@ class MockBiometrics extends _i1.Mock implements _i8.Biometrics {
             #title: title,
           },
         ),
-        returnValue: _i4.Future<bool>.value(false),
-      ) as _i4.Future<bool>);
+        returnValue: _i5.Future<bool>.value(false),
+      ) as _i5.Future<bool>);
 }
 
 /// A class which mocks [WalletsService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockWalletsService extends _i1.Mock implements _i9.WalletsService {
+class MockWalletsService extends _i1.Mock implements _i10.WalletsService {
   @override
-  _i4.Future<Map<String, _i9.WalletInfo>> get walletNames =>
+  _i5.Future<Map<String, _i10.WalletInfo>> get walletNames =>
       (super.noSuchMethod(
         Invocation.getter(#walletNames),
-        returnValue: _i4.Future<Map<String, _i9.WalletInfo>>.value(
-            <String, _i9.WalletInfo>{}),
-      ) as _i4.Future<Map<String, _i9.WalletInfo>>);
+        returnValue: _i5.Future<Map<String, _i10.WalletInfo>>.value(
+            <String, _i10.WalletInfo>{}),
+      ) as _i5.Future<Map<String, _i10.WalletInfo>>);
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
       ) as bool);
   @override
-  void addListener(_i10.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i11.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -313,7 +352,7 @@ class MockWalletsService extends _i1.Mock implements _i9.WalletsService {
         returnValueForMissingStub: null,
       );
   @override
-  void removeListener(_i10.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i11.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],

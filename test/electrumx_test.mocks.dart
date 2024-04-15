@@ -532,6 +532,19 @@ class MockPrefs extends _i1.Mock implements _i6.Prefs {
         returnValueForMissingStub: null,
       );
   @override
+  bool get frostEnabled => (super.noSuchMethod(
+        Invocation.getter(#frostEnabled),
+        returnValue: false,
+      ) as bool);
+  @override
+  set frostEnabled(bool? frostEnabled) => super.noSuchMethod(
+        Invocation.setter(
+          #frostEnabled,
+          frostEnabled,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,

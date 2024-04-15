@@ -112,6 +112,15 @@ class MockElectrumXClient extends _i1.Mock implements _i4.ElectrumXClient {
         returnValue: false,
       ) as bool);
   @override
+  _i5.Future<void> checkElectrumAdapter() => (super.noSuchMethod(
+        Invocation.method(
+          #checkElectrumAdapter,
+          [],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+  @override
   _i5.Future<dynamic> request({
     required String? command,
     List<dynamic>? args = const [],
@@ -134,9 +143,9 @@ class MockElectrumXClient extends _i1.Mock implements _i4.ElectrumXClient {
         returnValue: _i5.Future<dynamic>.value(),
       ) as _i5.Future<dynamic>);
   @override
-  _i5.Future<List<Map<String, dynamic>>> batchRequest({
+  _i5.Future<List<dynamic>> batchRequest({
     required String? command,
-    required Map<String, List<dynamic>>? args,
+    required List<dynamic>? args,
     Duration? requestTimeout = const Duration(seconds: 60),
     int? retries = 2,
   }) =>
@@ -151,9 +160,8 @@ class MockElectrumXClient extends _i1.Mock implements _i4.ElectrumXClient {
             #retries: retries,
           },
         ),
-        returnValue: _i5.Future<List<Map<String, dynamic>>>.value(
-            <Map<String, dynamic>>[]),
-      ) as _i5.Future<List<Map<String, dynamic>>>);
+        returnValue: _i5.Future<List<dynamic>>.value(<dynamic>[]),
+      ) as _i5.Future<List<dynamic>>);
   @override
   _i5.Future<bool> ping({
     String? requestID,
@@ -243,17 +251,17 @@ class MockElectrumXClient extends _i1.Mock implements _i4.ElectrumXClient {
             <Map<String, dynamic>>[]),
       ) as _i5.Future<List<Map<String, dynamic>>>);
   @override
-  _i5.Future<Map<String, List<Map<String, dynamic>>>> getBatchHistory(
-          {required Map<String, List<dynamic>>? args}) =>
+  _i5.Future<List<List<Map<String, dynamic>>>> getBatchHistory(
+          {required List<dynamic>? args}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getBatchHistory,
           [],
           {#args: args},
         ),
-        returnValue: _i5.Future<Map<String, List<Map<String, dynamic>>>>.value(
-            <String, List<Map<String, dynamic>>>{}),
-      ) as _i5.Future<Map<String, List<Map<String, dynamic>>>>);
+        returnValue: _i5.Future<List<List<Map<String, dynamic>>>>.value(
+            <List<Map<String, dynamic>>>[]),
+      ) as _i5.Future<List<List<Map<String, dynamic>>>>);
   @override
   _i5.Future<List<Map<String, dynamic>>> getUTXOs({
     required String? scripthash,
@@ -272,17 +280,17 @@ class MockElectrumXClient extends _i1.Mock implements _i4.ElectrumXClient {
             <Map<String, dynamic>>[]),
       ) as _i5.Future<List<Map<String, dynamic>>>);
   @override
-  _i5.Future<Map<String, List<Map<String, dynamic>>>> getBatchUTXOs(
-          {required Map<String, List<dynamic>>? args}) =>
+  _i5.Future<List<List<Map<String, dynamic>>>> getBatchUTXOs(
+          {required List<dynamic>? args}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getBatchUTXOs,
           [],
           {#args: args},
         ),
-        returnValue: _i5.Future<Map<String, List<Map<String, dynamic>>>>.value(
-            <String, List<Map<String, dynamic>>>{}),
-      ) as _i5.Future<Map<String, List<Map<String, dynamic>>>>);
+        returnValue: _i5.Future<List<List<Map<String, dynamic>>>>.value(
+            <List<Map<String, dynamic>>>[]),
+      ) as _i5.Future<List<List<Map<String, dynamic>>>>);
   @override
   _i5.Future<Map<String, dynamic>> getTransaction({
     required String? txHash,
@@ -851,6 +859,19 @@ class MockPrefs extends _i1.Mock implements _i6.Prefs {
         Invocation.setter(
           #useTor,
           useTor,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  bool get frostEnabled => (super.noSuchMethod(
+        Invocation.getter(#frostEnabled),
+        returnValue: false,
+      ) as bool);
+  @override
+  set frostEnabled(bool? frostEnabled) => super.noSuchMethod(
+        Invocation.setter(
+          #frostEnabled,
+          frostEnabled,
         ),
         returnValueForMissingStub: null,
       );
