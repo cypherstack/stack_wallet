@@ -72,7 +72,7 @@ class MainDB {
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
       // inspector: kDebugMode,
-      inspector: false,
+      inspector: true,
       name: "wallet_data",
       maxSizeMiB: 512,
     );

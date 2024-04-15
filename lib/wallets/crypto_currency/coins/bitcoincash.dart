@@ -71,7 +71,7 @@ class Bitcoincash extends Bip39HDCurrency {
           bech32Hrp: "bc",
           messagePrefix: '\x18Bitcoin Signed Message:\n',
           minFee: BigInt.from(1), // TODO [prio=high].
-          minOutput: BigInt.from(546), // TODO.
+          minOutput: dustLimit.raw, // TODO.
           feePerKb: BigInt.from(1), // TODO.
         );
       case CryptoCurrencyNetwork.test:
@@ -84,7 +84,7 @@ class Bitcoincash extends Bip39HDCurrency {
           bech32Hrp: "tb",
           messagePrefix: "\x18Bitcoin Signed Message:\n",
           minFee: BigInt.from(1), // TODO [prio=high].
-          minOutput: BigInt.from(546), // TODO.
+          minOutput: dustLimit.raw, // TODO.
           feePerKb: BigInt.from(1), // TODO.
         );
       default:

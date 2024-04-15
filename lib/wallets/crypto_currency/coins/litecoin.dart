@@ -67,7 +67,7 @@ class Litecoin extends Bip39HDCurrency {
           bech32Hrp: "ltc",
           messagePrefix: '\x19Litecoin Signed Message:\n',
           minFee: BigInt.from(1), // TODO [prio=high].
-          minOutput: BigInt.from(1), // TODO.
+          minOutput: dustLimit.raw, // TODO.
           feePerKb: BigInt.from(1), // TODO.
         );
       case CryptoCurrencyNetwork.test:
@@ -80,7 +80,7 @@ class Litecoin extends Bip39HDCurrency {
           bech32Hrp: "tltc",
           messagePrefix: "\x19Litecoin Signed Message:\n",
           minFee: BigInt.from(1), // TODO [prio=high].
-          minOutput: BigInt.from(1), // TODO.
+          minOutput: dustLimit.raw, // TODO.
           feePerKb: BigInt.from(1), // TODO.
         );
       default:
