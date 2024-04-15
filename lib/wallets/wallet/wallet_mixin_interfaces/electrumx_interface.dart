@@ -34,7 +34,7 @@ import 'package:stream_channel/stream_channel.dart';
 
 mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   late ElectrumXClient electrumXClient;
-  late StreamChannel electrumAdapterChannel;
+  late StreamChannel<dynamic> electrumAdapterChannel;
   late ElectrumClient electrumAdapterClient;
   late CachedElectrumXClient electrumXCachedClient;
   // late SubscribableElectrumXClient subscribableElectrumXClient;
@@ -906,7 +906,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     final newNode = await _getCurrentElectrumXNode();
     try {
       await electrumXClient.electrumAdapterClient?.close();
-    } catch (e, s) {
+    } catch (e) {
       if (e.toString().contains("initialized")) {
         // Ignore.  This should happen every first time the wallet is opened.
       } else {
@@ -1188,8 +1188,6 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       verbose: true,
       coin: cryptoCurrency.coin,
     );
-
-    print("txn: $txn");
 
     final vout = jsonUTXO["tx_pos"] as int;
 
