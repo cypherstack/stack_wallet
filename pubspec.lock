@@ -672,8 +672,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "3f986ca1a94bdac5d31373454c989cc2f5842de8"
-      resolved-ref: "3f986ca1a94bdac5d31373454c989cc2f5842de8"
+      ref: "65a6676e37f1bcaf2e293afbd50e50c81394276c"
+      resolved-ref: "65a6676e37f1bcaf2e293afbd50e50c81394276c"
       url: "https://github.com/cypherstack/flutter_libsparkmobile.git"
     source: git
     version: "0.0.1"
