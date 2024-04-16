@@ -26,6 +26,9 @@ class Bitcoin extends Bip39HDCurrency with PaynymCurrencyInterface {
   int get minConfirms => 1;
 
   @override
+  bool get torSupport => true;
+
+  @override
   List<DerivePathType> get supportedDerivationPathTypes => [
         DerivePathType.bip44,
         DerivePathType.bip49,

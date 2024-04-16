@@ -23,6 +23,9 @@ class Particl extends Bip39HDCurrency {
   int get minConfirms => 1;
 
   @override
+  bool get torSupport => true;
+
+  @override
   // See https://github.com/cypherstack/stack_wallet/blob/d08b5c9b22b58db800ad07b2ceeb44c6d05f9cf3/lib/services/coins/particl/particl_wallet.dart#L68
   String constructDerivePath(
       {required DerivePathType derivePathType,

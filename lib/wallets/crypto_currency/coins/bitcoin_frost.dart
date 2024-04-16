@@ -24,6 +24,9 @@ class BitcoinFrost extends FrostCurrency {
   int get minConfirms => 1;
 
   @override
+  bool get torSupport => true;
+
+  @override
   NodeModel get defaultNode {
     switch (network) {
       case CryptoCurrencyNetwork.main:

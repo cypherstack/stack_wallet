@@ -33,6 +33,9 @@ class Ecash extends Bip39HDCurrency {
   int get minConfirms => 0; // bch zeroconf
 
   @override
+  bool get torSupport => true;
+
+  @override
   List<DerivePathType> get supportedDerivationPathTypes => [
         DerivePathType.eCash44,
         DerivePathType.bip44,

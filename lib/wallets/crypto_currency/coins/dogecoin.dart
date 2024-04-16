@@ -21,6 +21,9 @@ class Dogecoin extends Bip39HDCurrency {
   }
 
   @override
+  bool get torSupport => true;
+
+  @override
   List<DerivePathType> get supportedDerivationPathTypes => [
         DerivePathType.bip44,
       ];

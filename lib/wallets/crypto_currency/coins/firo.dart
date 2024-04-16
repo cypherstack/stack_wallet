@@ -25,6 +25,9 @@ class Firo extends Bip39HDCurrency {
   int get minConfirms => 1;
 
   @override
+  bool get torSupport => true;
+
+  @override
   List<DerivePathType> get supportedDerivationPathTypes => [
         DerivePathType.bip44,
       ];
