@@ -212,4 +212,12 @@ class Litecoin extends Bip39HDCurrency {
         throw UnimplementedError();
     }
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is Litecoin && other.network == network;
+  }
+
+  @override
+  int get hashCode => Object.hash(Litecoin, network);
 }

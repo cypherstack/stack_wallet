@@ -165,4 +165,12 @@ class Particl extends Bip39HDCurrency {
       return false;
     }
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is Particl && other.network == network;
+  }
+
+  @override
+  int get hashCode => Object.hash(Particl, network);
 }

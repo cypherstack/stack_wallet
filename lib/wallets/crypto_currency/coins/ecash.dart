@@ -269,4 +269,12 @@ class Ecash extends Bip39HDCurrency {
         throw UnimplementedError();
     }
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is Ecash && other.network == network;
+  }
+
+  @override
+  int get hashCode => Object.hash(Ecash, network);
 }

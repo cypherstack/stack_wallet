@@ -289,4 +289,12 @@ class Bitcoincash extends Bip39HDCurrency {
         throw UnimplementedError();
     }
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is Bitcoincash && other.network == network;
+  }
+
+  @override
+  int get hashCode => Object.hash(Bitcoincash, network);
 }

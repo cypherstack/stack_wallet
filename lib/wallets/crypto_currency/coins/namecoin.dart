@@ -185,4 +185,12 @@ class Namecoin extends Bip39HDCurrency {
       return false;
     }
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is Namecoin && other.network == network;
+  }
+
+  @override
+  int get hashCode => Object.hash(Namecoin, network);
 }

@@ -203,4 +203,12 @@ class Bitcoin extends Bip39HDCurrency with PaynymCurrencyInterface {
         throw UnimplementedError();
     }
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is Bitcoin && other.network == network;
+  }
+
+  @override
+  int get hashCode => Object.hash(Bitcoin, network);
 }

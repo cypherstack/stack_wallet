@@ -44,4 +44,12 @@ class Wownero extends CryptonoteCurrency {
         throw UnimplementedError();
     }
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is Wownero && other.network == network;
+  }
+
+  @override
+  int get hashCode => Object.hash(Wownero, network);
 }
