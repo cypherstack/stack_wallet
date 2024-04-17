@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/wallets_view/wallets_overview.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -24,6 +25,7 @@ import 'package:stackwallet/wallets/isar/providers/all_wallets_info_provider.dar
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
+import 'package:stackwallet/widgets/dialogs/tor_warning_dialog.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class WalletSummaryTable extends ConsumerStatefulWidget {
@@ -85,7 +87,26 @@ class _DesktopWalletSummaryRowState
     extends ConsumerState<DesktopWalletSummaryRow> {
   bool _hovering = false;
 
-  void _onPressed() {
+  void _onPressed() async {
+    // Check if Tor is enabled...
+    if (ref.read(prefsChangeNotifierProvider).useTor) {
+      // ... and if the coin supports Tor.
+      final cryptocurrency = SupportedCoins.coins[widget.coin];
+      if (cryptocurrency != null && !cryptocurrency!.torSupport) {
+        // If not, show a Tor warning dialog.
+        final shouldContinue = await showDialog<bool>(
+              context: context,
+              builder: (_) => TorWarningDialog(
+                coin: widget.coin,
+              ),
+            ) ??
+            false;
+        if (!shouldContinue) {
+          return;
+        }
+      }
+    }
+
     showDialog<void>(
       context: context,
       builder: (_) => DesktopDialog(
