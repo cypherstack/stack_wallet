@@ -38,6 +38,7 @@ class TorWarningDialog extends StatelessWidget {
           Navigator.of(context).pop(true);
         },
       ),
+      flex: true,
     );
   }
 }
