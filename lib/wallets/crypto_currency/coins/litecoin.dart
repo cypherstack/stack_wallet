@@ -25,6 +25,9 @@ class Litecoin extends Bip39HDCurrency {
   int get minConfirms => 1;
 
   @override
+  bool get torSupport => true;
+
+  @override
   List<DerivePathType> get supportedDerivationPathTypes => [
         DerivePathType.bip44,
         DerivePathType.bip49,
@@ -209,4 +212,12 @@ class Litecoin extends Bip39HDCurrency {
         throw UnimplementedError();
     }
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is Litecoin && other.network == network;
+  }
+
+  @override
+  int get hashCode => Object.hash(Litecoin, network);
 }

@@ -61,4 +61,12 @@ class Epiccash extends Bip39Currency {
         throw UnimplementedError();
     }
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is Epiccash && other.network == network;
+  }
+
+  @override
+  int get hashCode => Object.hash(Epiccash, network);
 }

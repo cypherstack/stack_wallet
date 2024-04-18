@@ -26,6 +26,7 @@ class BasicDialog extends StatelessWidget {
     this.desktopHeight = 474,
     this.desktopWidth = 641,
     this.canPopWithBackButton = false,
+    this.flex = false,
   }) : super(key: key);
 
   final Widget? leftButton;
@@ -40,6 +41,8 @@ class BasicDialog extends StatelessWidget {
   final double desktopWidth;
 
   final bool canPopWithBackButton;
+
+  final bool flex;
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +67,10 @@ class BasicDialog extends StatelessWidget {
                 ],
               ),
             ),
+            if (flex)
+              const Spacer(
+                flex: 2,
+              ),
             if (message != null)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -71,6 +78,10 @@ class BasicDialog extends StatelessWidget {
                   message!,
                   style: STextStyles.desktopTextSmall(context),
                 ),
+              ),
+            if (flex)
+              const Spacer(
+                flex: 3,
               ),
             if (leftButton != null || rightButton != null)
               const SizedBox(

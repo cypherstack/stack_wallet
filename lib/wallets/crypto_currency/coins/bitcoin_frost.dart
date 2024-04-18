@@ -24,6 +24,9 @@ class BitcoinFrost extends FrostCurrency {
   int get minConfirms => 1;
 
   @override
+  bool get torSupport => true;
+
+  @override
   NodeModel get defaultNode {
     switch (network) {
       case CryptoCurrencyNetwork.main:
@@ -69,4 +72,12 @@ class BitcoinFrost extends FrostCurrency {
     // TODO: implement validateAddress for frost addresses
     return true;
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is BitcoinFrost && other.network == network;
+  }
+
+  @override
+  int get hashCode => Object.hash(BitcoinFrost, network);
 }

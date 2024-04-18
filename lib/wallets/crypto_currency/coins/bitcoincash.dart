@@ -35,6 +35,9 @@ class Bitcoincash extends Bip39HDCurrency {
   int get minConfirms => 0; // bch zeroconf
 
   @override
+  bool get torSupport => true;
+
+  @override
   List<DerivePathType> get supportedDerivationPathTypes => [
         DerivePathType.bip44,
         if (coin != Coin.bitcoincashTestnet) DerivePathType.bch44,
@@ -286,4 +289,12 @@ class Bitcoincash extends Bip39HDCurrency {
         throw UnimplementedError();
     }
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is Bitcoincash && other.network == network;
+  }
+
+  @override
+  int get hashCode => Object.hash(Bitcoincash, network);
 }

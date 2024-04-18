@@ -146,4 +146,12 @@ class Tezos extends Bip39Currency {
   }
 
   // ===========================================================================
+
+  @override
+  bool operator ==(Object other) {
+    return other is Tezos && other.network == network;
+  }
+
+  @override
+  int get hashCode => Object.hash(Tezos, network);
 }

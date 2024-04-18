@@ -21,6 +21,9 @@ class Dogecoin extends Bip39HDCurrency {
   }
 
   @override
+  bool get torSupport => true;
+
+  @override
   List<DerivePathType> get supportedDerivationPathTypes => [
         DerivePathType.bip44,
       ];
@@ -178,4 +181,12 @@ class Dogecoin extends Bip39HDCurrency {
         throw UnimplementedError();
     }
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is Dogecoin && other.network == network;
+  }
+
+  @override
+  int get hashCode => Object.hash(Dogecoin, network);
 }

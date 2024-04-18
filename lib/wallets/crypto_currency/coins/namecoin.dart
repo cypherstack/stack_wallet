@@ -23,6 +23,9 @@ class Namecoin extends Bip39HDCurrency {
   int get minConfirms => 2;
 
   @override
+  bool get torSupport => true;
+
+  @override
   // See https://github.com/cypherstack/stack_wallet/blob/621aff47969761014e0a6c4e699cb637d5687ab3/lib/services/coins/namecoin/namecoin_wallet.dart#L80
   String constructDerivePath({
     required DerivePathType derivePathType,
@@ -182,4 +185,12 @@ class Namecoin extends Bip39HDCurrency {
       return false;
     }
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is Namecoin && other.network == network;
+  }
+
+  @override
+  int get hashCode => Object.hash(Namecoin, network);
 }

@@ -33,6 +33,9 @@ class Ecash extends Bip39HDCurrency {
   int get minConfirms => 0; // bch zeroconf
 
   @override
+  bool get torSupport => true;
+
+  @override
   List<DerivePathType> get supportedDerivationPathTypes => [
         DerivePathType.eCash44,
         DerivePathType.bip44,
@@ -266,4 +269,12 @@ class Ecash extends Bip39HDCurrency {
         throw UnimplementedError();
     }
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is Ecash && other.network == network;
+  }
+
+  @override
+  int get hashCode => Object.hash(Ecash, network);
 }
