@@ -55,7 +55,7 @@ class SupportedCoins {
 
   /// A Map linking a CryptoCurrency with its associated Coin.
   ///
-  /// Temporary: Remove when the Coin enum is removed.dd
+  /// Temporary: Remove when the Coin enum is removed.
   static final Map<Coin, CryptoCurrency> coins = {
     Coin.bitcoin: Bitcoin(CryptoCurrencyNetwork.main),
     Coin.monero: Monero(CryptoCurrencyNetwork.main),
