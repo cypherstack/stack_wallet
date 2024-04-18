@@ -10,8 +10,6 @@
 
 import 'dart:convert';
 
-import 'package:bitcoindart/bitcoindart.dart';
-import 'package:crypto/crypto.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/banano.dart';
@@ -36,34 +34,6 @@ import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 class AddressUtils {
   static String condenseAddress(String address) {
     return '${address.substring(0, 5)}...${address.substring(address.length - 5)}';
-  }
-
-  /// attempts to convert a string to a valid scripthash
-  ///
-  /// Returns the scripthash or throws an exception on invalid firo address
-  static String convertToScriptHash(
-    String address,
-    NetworkType network, [
-    String overridePrefix = "",
-  ]) {
-    try {
-      final output =
-          Address.addressToOutputScript(address, network, overridePrefix);
-      final hash = sha256.convert(output.toList(growable: false)).toString();
-
-      final chars = hash.split("");
-      final reversedPairs = <String>[];
-      // TODO find a better/faster way to do this?
-      var i = chars.length - 1;
-      while (i > 0) {
-        reversedPairs.add(chars[i - 1]);
-        reversedPairs.add(chars[i]);
-        i -= 2;
-      }
-      return reversedPairs.join("");
-    } catch (e) {
-      rethrow;
-    }
   }
 
   static bool validateAddress(String address, Coin coin) {

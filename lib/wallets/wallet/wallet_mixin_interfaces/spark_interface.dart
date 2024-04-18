@@ -13,6 +13,7 @@ import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/signing_data.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
@@ -1001,13 +1002,64 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         for (final sd in setCoins) {
           vin.add(sd);
 
+          final pubKey = sd.keyPair!.publicKey.data;
+          final btc.PaymentData? data;
+
+          switch (sd.derivePathType) {
+            case DerivePathType.bip44:
+              data = btc
+                  .P2PKH(
+                    data: btc.PaymentData(
+                      pubkey: pubKey,
+                    ),
+                    network: _bitcoinDartNetwork,
+                  )
+                  .data;
+              break;
+
+            case DerivePathType.bip49:
+              final p2wpkh = btc
+                  .P2WPKH(
+                    data: btc.PaymentData(
+                      pubkey: pubKey,
+                    ),
+                    network: _bitcoinDartNetwork,
+                  )
+                  .data;
+              data = btc
+                  .P2SH(
+                    data: btc.PaymentData(redeem: p2wpkh),
+                    network: _bitcoinDartNetwork,
+                  )
+                  .data;
+              break;
+
+            case DerivePathType.bip84:
+              data = btc
+                  .P2WPKH(
+                    data: btc.PaymentData(
+                      pubkey: pubKey,
+                    ),
+                    network: _bitcoinDartNetwork,
+                  )
+                  .data;
+              break;
+
+            case DerivePathType.bip86:
+              data = null;
+              break;
+
+            default:
+              throw Exception("DerivePathType unsupported");
+          }
+
           // add to dummy tx
           dummyTxb.addInput(
             sd.utxo.txid,
             sd.utxo.vout,
             0xffffffff -
                 1, // minus 1 is important. 0xffffffff on its own will burn funds
-            sd.output,
+            data!.output!,
           );
         }
 
@@ -1015,9 +1067,15 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         for (var i = 0; i < setCoins.length; i++) {
           dummyTxb.sign(
             vin: i,
-            keyPair: setCoins[i].keyPair!,
+            keyPair: btc.ECPair.fromPrivateKey(
+              setCoins[i].keyPair!.privateKey.data,
+              network: _bitcoinDartNetwork,
+              compressed: setCoins[i].keyPair!.privateKey.compressed,
+            ),
             witnessValue: setCoins[i].utxo.value,
-            redeemScript: setCoins[i].redeemScript,
+
+            // maybe not needed here as this was originally copied from btc? We'll find out...
+            // redeemScript: setCoins[i].redeemScript,
           );
         }
 
@@ -1114,12 +1172,63 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       txb.setVersion(txVersion);
       txb.setLockTime(lockTime);
       for (final input in vin) {
+        final pubKey = input.keyPair!.publicKey.data;
+        final btc.PaymentData? data;
+
+        switch (input.derivePathType) {
+          case DerivePathType.bip44:
+            data = btc
+                .P2PKH(
+                  data: btc.PaymentData(
+                    pubkey: pubKey,
+                  ),
+                  network: _bitcoinDartNetwork,
+                )
+                .data;
+            break;
+
+          case DerivePathType.bip49:
+            final p2wpkh = btc
+                .P2WPKH(
+                  data: btc.PaymentData(
+                    pubkey: pubKey,
+                  ),
+                  network: _bitcoinDartNetwork,
+                )
+                .data;
+            data = btc
+                .P2SH(
+                  data: btc.PaymentData(redeem: p2wpkh),
+                  network: _bitcoinDartNetwork,
+                )
+                .data;
+            break;
+
+          case DerivePathType.bip84:
+            data = btc
+                .P2WPKH(
+                  data: btc.PaymentData(
+                    pubkey: pubKey,
+                  ),
+                  network: _bitcoinDartNetwork,
+                )
+                .data;
+            break;
+
+          case DerivePathType.bip86:
+            data = null;
+            break;
+
+          default:
+            throw Exception("DerivePathType unsupported");
+        }
+
         txb.addInput(
           input.utxo.txid,
           input.utxo.vout,
           0xffffffff -
               1, // minus 1 is important. 0xffffffff on its own will burn funds
-          input.output,
+          data!.output!,
         );
 
         tempInputs.add(
@@ -1172,9 +1281,15 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         for (var i = 0; i < vin.length; i++) {
           txb.sign(
             vin: i,
-            keyPair: vin[i].keyPair!,
+            keyPair: btc.ECPair.fromPrivateKey(
+              vin[i].keyPair!.privateKey.data,
+              network: _bitcoinDartNetwork,
+              compressed: vin[i].keyPair!.privateKey.compressed,
+            ),
             witnessValue: vin[i].utxo.value,
-            redeemScript: vin[i].redeemScript,
+
+            // maybe not needed here as this was originally copied from btc? We'll find out...
+            // redeemScript: setCoins[i].redeemScript,
           );
         }
       } catch (e, s) {
