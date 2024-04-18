@@ -742,18 +742,20 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
   Future<TxData> buildMintTransaction({required TxData txData}) async {
     final signingData = await fetchBuildTxData(txData.utxos!.toList());
 
-    final txb = bitcoindart.TransactionBuilder(
-      network: bitcoindart.NetworkType(
-        messagePrefix: cryptoCurrency.networkParams.messagePrefix,
-        bech32: cryptoCurrency.networkParams.bech32Hrp,
-        bip32: bitcoindart.Bip32Type(
-          public: cryptoCurrency.networkParams.pubHDPrefix,
-          private: cryptoCurrency.networkParams.privHDPrefix,
-        ),
-        pubKeyHash: cryptoCurrency.networkParams.p2pkhPrefix,
-        scriptHash: cryptoCurrency.networkParams.p2shPrefix,
-        wif: cryptoCurrency.networkParams.wifPrefix,
+    final convertedNetwork = bitcoindart.NetworkType(
+      messagePrefix: cryptoCurrency.networkParams.messagePrefix,
+      bech32: cryptoCurrency.networkParams.bech32Hrp,
+      bip32: bitcoindart.Bip32Type(
+        public: cryptoCurrency.networkParams.pubHDPrefix,
+        private: cryptoCurrency.networkParams.privHDPrefix,
       ),
+      pubKeyHash: cryptoCurrency.networkParams.p2pkhPrefix,
+      scriptHash: cryptoCurrency.networkParams.p2shPrefix,
+      wif: cryptoCurrency.networkParams.wifPrefix,
+    );
+
+    final txb = bitcoindart.TransactionBuilder(
+      network: convertedNetwork,
     );
     txb.setVersion(2);
 
@@ -763,11 +765,62 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
     int amount = 0;
     // Add transaction inputs
     for (var i = 0; i < signingData.length; i++) {
+      final pubKey = signingData[i].keyPair!.publicKey.data;
+      final bitcoindart.PaymentData? data;
+
+      switch (signingData[i].derivePathType) {
+        case DerivePathType.bip44:
+          data = bitcoindart
+              .P2PKH(
+                data: bitcoindart.PaymentData(
+                  pubkey: pubKey,
+                ),
+                network: convertedNetwork,
+              )
+              .data;
+          break;
+
+        case DerivePathType.bip49:
+          final p2wpkh = bitcoindart
+              .P2WPKH(
+                data: bitcoindart.PaymentData(
+                  pubkey: pubKey,
+                ),
+                network: convertedNetwork,
+              )
+              .data;
+          data = bitcoindart
+              .P2SH(
+                data: bitcoindart.PaymentData(redeem: p2wpkh),
+                network: convertedNetwork,
+              )
+              .data;
+          break;
+
+        case DerivePathType.bip84:
+          data = bitcoindart
+              .P2WPKH(
+                data: bitcoindart.PaymentData(
+                  pubkey: pubKey,
+                ),
+                network: convertedNetwork,
+              )
+              .data;
+          break;
+
+        case DerivePathType.bip86:
+          data = null;
+          break;
+
+        default:
+          throw Exception("DerivePathType unsupported");
+      }
+
       txb.addInput(
         signingData[i].utxo.txid,
         signingData[i].utxo.vout,
         null,
-        signingData[i].output,
+        data!.output!,
       );
       amount += signingData[i].utxo.value;
     }
@@ -782,7 +835,11 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
     for (var i = 0; i < signingData.length; i++) {
       txb.sign(
         vin: i,
-        keyPair: signingData[i].keyPair!,
+        keyPair: bitcoindart.ECPair.fromPrivateKey(
+          signingData[i].keyPair!.privateKey.data,
+          network: convertedNetwork,
+          compressed: signingData[i].keyPair!.privateKey.compressed,
+        ),
         witnessValue: signingData[i].utxo.value,
       );
     }
