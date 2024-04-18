@@ -13,7 +13,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
@@ -23,6 +22,7 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/connection_check/electrum_connection_check.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -153,18 +153,14 @@ class NodeOptionsSheet extends ConsumerWidget {
       case Coin.eCash:
       case Coin.bitcoinFrost:
       case Coin.bitcoinFrostTestNet:
-        final client = ElectrumXClient(
-          host: node.host,
-          port: node.port,
-          useSSL: node.useSSL,
-          failovers: [],
-          prefs: ref.read(prefsChangeNotifierProvider),
-          torService: ref.read(pTorService),
-          coin: coin,
-        );
-
         try {
-          testPassed = await client.ping();
+          testPassed = await checkElectrumServer(
+            host: node.host,
+            port: node.port,
+            useSSL: node.useSSL,
+            overridePrefs: ref.read(prefsChangeNotifierProvider),
+            overrideTorService: ref.read(pTorService),
+          );
         } catch (_) {
           testPassed = false;
         }

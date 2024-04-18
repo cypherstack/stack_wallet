@@ -147,7 +147,7 @@ class NotificationsService extends ChangeNotifier {
               node: eNode,
               failovers: failovers,
               prefs: prefs,
-              coin: coin,
+              cryptoCurrency: wallet.cryptoCurrency,
             );
             final tx = await client.getTransaction(txHash: txid);
 

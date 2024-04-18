@@ -20,16 +20,17 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:mutex/mutex.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx_chain_height_service.dart';
-import 'package:stackwallet/electrumx_rpc/rpc.dart';
+import 'package:stackwallet/electrumx_rpc/client_manager.dart';
 import 'package:stackwallet/exceptions/electrumx/no_such_transaction.dart';
 import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/tor_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/dogecoin.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stream_channel/stream_channel.dart';
 
 class WifiOnlyException implements Exception {}
@@ -65,6 +66,8 @@ class ElectrumXNode {
 }
 
 class ElectrumXClient {
+  final CryptoCurrency cryptoCurrency;
+
   String get host => _host;
   late String _host;
 
@@ -74,14 +77,13 @@ class ElectrumXClient {
   bool get useSSL => _useSSL;
   late bool _useSSL;
 
-  JsonRPC? get rpcClient => _rpcClient;
-  JsonRPC? _rpcClient;
-
-  StreamChannel<dynamic>? get electrumAdapterChannel => _electrumAdapterChannel;
+  // StreamChannel<dynamic>? get electrumAdapterChannel => _electrumAdapterChannel;
   StreamChannel<dynamic>? _electrumAdapterChannel;
 
-  ElectrumClient? get electrumAdapterClient => _electrumAdapterClient;
-  ElectrumClient? _electrumAdapterClient;
+  ElectrumClient? getElectrumAdapter() =>
+      ClientManager.sharedInstance.getClient(
+        cryptoCurrency: cryptoCurrency,
+      );
 
   late Prefs _prefs;
   late TorService _torService;
@@ -90,9 +92,6 @@ class ElectrumXClient {
   int currentFailoverIndex = -1;
 
   final Duration connectionTimeoutForSpecialCaseJsonRPCClients;
-
-  Coin? get coin => _coin;
-  late Coin? _coin;
 
   // add finalizer to cancel stream subscription when all references to an
   // instance of ElectrumX becomes inaccessible
@@ -114,7 +113,7 @@ class ElectrumXClient {
     required bool useSSL,
     required Prefs prefs,
     required List<ElectrumXNode> failovers,
-    Coin? coin,
+    required this.cryptoCurrency,
     this.connectionTimeoutForSpecialCaseJsonRPCClients =
         const Duration(seconds: 60),
     TorService? torService,
@@ -125,7 +124,6 @@ class ElectrumXClient {
     _host = host;
     _port = port;
     _useSSL = useSSL;
-    _coin = coin;
 
     final bus = globalEventBusForTesting ?? GlobalEventBus.instance;
 
@@ -161,10 +159,12 @@ class ElectrumXClient {
         // setting to null should force the creation of a new json rpc client
         // on the next request sent through this electrumx instance
         _electrumAdapterChannel = null;
-        _electrumAdapterClient = null;
+        await (await ClientManager.sharedInstance
+                .remove(cryptoCurrency: cryptoCurrency))
+            ?.close();
 
         // Also close any chain height services that are currently open.
-        await ChainHeightServiceManager.dispose();
+        // await ChainHeightServiceManager.dispose();
       },
     );
   }
@@ -173,7 +173,7 @@ class ElectrumXClient {
     required ElectrumXNode node,
     required Prefs prefs,
     required List<ElectrumXNode> failovers,
-    required Coin coin,
+    required CryptoCurrency cryptoCurrency,
     TorService? torService,
     EventBus? globalEventBusForTesting,
   }) {
@@ -185,7 +185,7 @@ class ElectrumXClient {
       torService: torService,
       failovers: failovers,
       globalEventBusForTesting: globalEventBusForTesting,
-      coin: coin,
+      cryptoCurrency: cryptoCurrency,
     );
   }
 
@@ -197,7 +197,11 @@ class ElectrumXClient {
     return true;
   }
 
-  Future<void> checkElectrumAdapter() async {
+  Future<void> closeAdapter() async {
+    await getElectrumAdapter()?.close();
+  }
+
+  Future<void> _checkElectrumAdapter() async {
     ({InternetAddress host, int port})? proxyInfo;
 
     // If we're supposed to use Tor...
@@ -223,75 +227,60 @@ class ElectrumXClient {
       }
     }
 
-    // TODO [prio=med]: Add proxyInfo to StreamChannel (or add to wrapper).
-    // if (_electrumAdapter!.proxyInfo != proxyInfo) {
-    //   _electrumAdapter!.proxyInfo = proxyInfo;
-    //   _electrumAdapter!.disconnect(
-    //     reason: "Tor proxyInfo does not match current info",
-    //   );
-    // }
-
     // If the current ElectrumAdapterClient is closed, create a new one.
-    if (_electrumAdapterClient != null &&
-        _electrumAdapterClient!.peer.isClosed) {
+    if (getElectrumAdapter() != null && getElectrumAdapter()!.peer.isClosed) {
       _electrumAdapterChannel = null;
-      _electrumAdapterClient = null;
+      ClientManager.sharedInstance.remove(cryptoCurrency: cryptoCurrency);
     }
 
+    final String useHost;
+    final int usePort;
+    final bool useUseSSL;
+
     if (currentFailoverIndex == -1) {
-      _electrumAdapterChannel ??= await electrum_adapter.connect(
-        host,
-        port: port,
-        connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-        aliveTimerDuration: connectionTimeoutForSpecialCaseJsonRPCClients,
-        acceptUnverified: true,
-        useSSL: useSSL,
-        proxyInfo: proxyInfo,
-      );
-      if (_coin == Coin.firo || _coin == Coin.firoTestNet) {
-        _electrumAdapterClient ??= FiroElectrumClient(
-          _electrumAdapterChannel!,
-          host,
-          port,
-          useSSL,
-          proxyInfo,
-        );
-      } else {
-        _electrumAdapterClient ??= ElectrumClient(
-          _electrumAdapterChannel!,
-          host,
-          port,
-          useSSL,
-          proxyInfo,
-        );
-      }
+      useHost = host;
+      usePort = port;
+      useUseSSL = useSSL;
     } else {
-      _electrumAdapterChannel ??= await electrum_adapter.connect(
-        failovers![currentFailoverIndex].address,
-        port: failovers![currentFailoverIndex].port,
-        connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-        aliveTimerDuration: connectionTimeoutForSpecialCaseJsonRPCClients,
-        acceptUnverified: true,
-        useSSL: failovers![currentFailoverIndex].useSSL,
-        proxyInfo: proxyInfo,
-      );
-      if (_coin == Coin.firo || _coin == Coin.firoTestNet) {
-        _electrumAdapterClient ??= FiroElectrumClient(
+      useHost = failovers![currentFailoverIndex].address;
+      usePort = failovers![currentFailoverIndex].port;
+      useUseSSL = failovers![currentFailoverIndex].useSSL;
+    }
+
+    _electrumAdapterChannel ??= await electrum_adapter.connect(
+      useHost,
+      port: usePort,
+      connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
+      aliveTimerDuration: connectionTimeoutForSpecialCaseJsonRPCClients,
+      acceptUnverified: true,
+      useSSL: useUseSSL,
+      proxyInfo: proxyInfo,
+    );
+
+    if (getElectrumAdapter() == null) {
+      final ElectrumClient newClient;
+      if (cryptoCurrency is Firo) {
+        newClient = FiroElectrumClient(
           _electrumAdapterChannel!,
-          failovers![currentFailoverIndex].address,
-          failovers![currentFailoverIndex].port,
-          failovers![currentFailoverIndex].useSSL,
+          useHost,
+          usePort,
+          useUseSSL,
           proxyInfo,
         );
       } else {
-        _electrumAdapterClient ??= ElectrumClient(
+        newClient = ElectrumClient(
           _electrumAdapterChannel!,
-          failovers![currentFailoverIndex].address,
-          failovers![currentFailoverIndex].port,
-          failovers![currentFailoverIndex].useSSL,
+          useHost,
+          usePort,
+          useUseSSL,
           proxyInfo,
         );
       }
+
+      ClientManager.sharedInstance.addClient(
+        newClient,
+        cryptoCurrency: cryptoCurrency,
+      );
     }
 
     return;
@@ -311,13 +300,13 @@ class ElectrumXClient {
 
     if (_requireMutex) {
       await _torConnectingLock
-          .protect(() async => await checkElectrumAdapter());
+          .protect(() async => await _checkElectrumAdapter());
     } else {
-      await checkElectrumAdapter();
+      await _checkElectrumAdapter();
     }
 
     try {
-      final response = await _electrumAdapterClient!.request(
+      final response = await getElectrumAdapter()!.request(
         command,
         args,
       );
@@ -397,16 +386,16 @@ class ElectrumXClient {
 
     if (_requireMutex) {
       await _torConnectingLock
-          .protect(() async => await checkElectrumAdapter());
+          .protect(() async => await _checkElectrumAdapter());
     } else {
-      await checkElectrumAdapter();
+      await _checkElectrumAdapter();
     }
 
     try {
       var futures = <Future<dynamic>>[];
-      _electrumAdapterClient!.peer.withBatch(() {
+      getElectrumAdapter()!.peer.withBatch(() {
         for (final arg in args) {
-          futures.add(_electrumAdapterClient!.request(command, arg));
+          futures.add(getElectrumAdapter()!.request(command, arg));
         }
       });
       final response = await Future.wait(futures);
@@ -778,8 +767,8 @@ class ElectrumXClient {
   }) async {
     Logging.instance.log("attempting to fetch blockchain.transaction.get...",
         level: LogLevel.Info);
-    await checkElectrumAdapter();
-    dynamic response = await _electrumAdapterClient!.getTransaction(txHash);
+    await _checkElectrumAdapter();
+    dynamic response = await getElectrumAdapter()!.getTransaction(txHash);
     Logging.instance.log("Fetching blockchain.transaction.get finished",
         level: LogLevel.Info);
 
@@ -811,9 +800,9 @@ class ElectrumXClient {
   }) async {
     Logging.instance.log("attempting to fetch lelantus.getanonymityset...",
         level: LogLevel.Info);
-    await checkElectrumAdapter();
+    await _checkElectrumAdapter();
     Map<String, dynamic> response =
-        await (_electrumAdapterClient as FiroElectrumClient)!
+        await (getElectrumAdapter() as FiroElectrumClient)
             .getLelantusAnonymitySet(groupId: groupId, blockHash: blockhash);
     Logging.instance.log("Fetching lelantus.getanonymityset finished",
         level: LogLevel.Info);
@@ -830,8 +819,8 @@ class ElectrumXClient {
   }) async {
     Logging.instance.log("attempting to fetch lelantus.getmintmetadata...",
         level: LogLevel.Info);
-    await checkElectrumAdapter();
-    dynamic response = await (_electrumAdapterClient as FiroElectrumClient)!
+    await _checkElectrumAdapter();
+    dynamic response = await (getElectrumAdapter() as FiroElectrumClient)
         .getLelantusMintData(mints: mints);
     Logging.instance.log("Fetching lelantus.getmintmetadata finished",
         level: LogLevel.Info);
@@ -846,13 +835,13 @@ class ElectrumXClient {
   }) async {
     Logging.instance.log("attempting to fetch lelantus.getusedcoinserials...",
         level: LogLevel.Info);
-    await checkElectrumAdapter();
+    await _checkElectrumAdapter();
 
     int retryCount = 3;
     dynamic response;
 
     while (retryCount > 0 && response is! List) {
-      response = await (_electrumAdapterClient as FiroElectrumClient)!
+      response = await (getElectrumAdapter() as FiroElectrumClient)
           .getLelantusUsedCoinSerials(startNumber: startNumber);
       // TODO add 2 minute timeout.
       Logging.instance.log("Fetching lelantus.getusedcoinserials finished",
@@ -870,9 +859,9 @@ class ElectrumXClient {
   Future<int> getLelantusLatestCoinId({String? requestID}) async {
     Logging.instance.log("attempting to fetch lelantus.getlatestcoinid...",
         level: LogLevel.Info);
-    await checkElectrumAdapter();
+    await _checkElectrumAdapter();
     int response =
-        await (_electrumAdapterClient as FiroElectrumClient).getLatestCoinId();
+        await (getElectrumAdapter() as FiroElectrumClient).getLatestCoinId();
     Logging.instance.log("Fetching lelantus.getlatestcoinid finished",
         level: LogLevel.Info);
     return response;
@@ -901,9 +890,9 @@ class ElectrumXClient {
     try {
       Logging.instance.log("attempting to fetch spark.getsparkanonymityset...",
           level: LogLevel.Info);
-      await checkElectrumAdapter();
+      await _checkElectrumAdapter();
       Map<String, dynamic> response =
-          await (_electrumAdapterClient as FiroElectrumClient)
+          await (getElectrumAdapter() as FiroElectrumClient)
               .getSparkAnonymitySet(
                   coinGroupId: coinGroupId, startBlockHash: startBlockHash);
       Logging.instance.log("Fetching spark.getsparkanonymityset finished",
@@ -924,11 +913,12 @@ class ElectrumXClient {
       // Use electrum_adapter package's getSparkUsedCoinsTags method.
       Logging.instance.log("attempting to fetch spark.getusedcoinstags...",
           level: LogLevel.Info);
-      await checkElectrumAdapter();
+      await _checkElectrumAdapter();
       Map<String, dynamic> response =
-          await (_electrumAdapterClient as FiroElectrumClient)
+          await (getElectrumAdapter() as FiroElectrumClient)
               .getUsedCoinsTags(startNumber: startNumber);
       // TODO: Add 2 minute timeout.
+      // Why 2 minutes?
       Logging.instance.log("Fetching spark.getusedcoinstags finished",
           level: LogLevel.Info);
       final map = Map<String, dynamic>.from(response);
@@ -957,9 +947,9 @@ class ElectrumXClient {
     try {
       Logging.instance.log("attempting to fetch spark.getsparkmintmetadata...",
           level: LogLevel.Info);
-      await checkElectrumAdapter();
+      await _checkElectrumAdapter();
       List<dynamic> response =
-          await (_electrumAdapterClient as FiroElectrumClient)
+          await (getElectrumAdapter() as FiroElectrumClient)
               .getSparkMintMetaData(sparkCoinHashes: sparkCoinHashes);
       Logging.instance.log("Fetching spark.getsparkmintmetadata finished",
           level: LogLevel.Info);
@@ -979,8 +969,8 @@ class ElectrumXClient {
     try {
       Logging.instance.log("attempting to fetch spark.getsparklatestcoinid...",
           level: LogLevel.Info);
-      await checkElectrumAdapter();
-      int response = await (_electrumAdapterClient as FiroElectrumClient)
+      await _checkElectrumAdapter();
+      int response = await (getElectrumAdapter() as FiroElectrumClient)
           .getSparkLatestCoinId();
       Logging.instance.log("Fetching spark.getsparklatestcoinid finished",
           level: LogLevel.Info);
@@ -1001,8 +991,8 @@ class ElectrumXClient {
   ///   "rate": 1000,
   /// }
   Future<Map<String, dynamic>> getFeeRate({String? requestID}) async {
-    await checkElectrumAdapter();
-    return await _electrumAdapterClient!.getFeeRate();
+    await _checkElectrumAdapter();
+    return await getElectrumAdapter()!.getFeeRate();
   }
 
   /// Return the estimated transaction fee per kilobyte for a transaction to be confirmed within a certain number of [blocks].
@@ -1022,7 +1012,7 @@ class ElectrumXClient {
       try {
         // If the response is -1 or null, return a temporary hardcoded value for
         // Dogecoin.  This is a temporary fix until the fee estimation is fixed.
-        if (coin == Coin.dogecoin &&
+        if (cryptoCurrency is Dogecoin &&
             (response == null ||
                 response == -1 ||
                 Decimal.parse(response.toString()) == Decimal.parse("-1"))) {
@@ -1035,7 +1025,7 @@ class ElectrumXClient {
         return Decimal.parse(response.toString());
       } catch (e, s) {
         final String msg = "Error parsing fee rate.  Response: $response"
-            "\nResult: ${response}\nError: $e\nStack trace: $s";
+            "\nResult: $response\nError: $e\nStack trace: $s";
         Logging.instance.log(msg, level: LogLevel.Fatal);
         throw Exception(msg);
       }

@@ -3,11 +3,9 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
-import 'package:electrum_adapter/electrum_adapter.dart' as electrum_adapter;
-import 'package:electrum_adapter/electrum_adapter.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx_chain_height_service.dart';
+import 'package:stackwallet/electrumx_rpc/client_manager.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
@@ -15,7 +13,6 @@ import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/signing_data.dart';
-import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
@@ -23,22 +20,16 @@ import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/paynym_is_api.dart';
-import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
-import 'package:stream_channel/stream_channel.dart';
 
 mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   late ElectrumXClient electrumXClient;
-  late StreamChannel<dynamic> electrumAdapterChannel;
-  late ElectrumClient electrumAdapterClient;
   late CachedElectrumXClient electrumXCachedClient;
-  // late SubscribableElectrumXClient subscribableElectrumXClient;
-  late ChainHeightServiceManager chainHeightServiceManager;
 
   int? get maximumFeerate => null;
 
@@ -706,6 +697,12 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         cryptoCurrency.networkParams,
       );
 
+      print("=============================================================");
+      print("$i ${txData.recipients![i].amount.decimal}");
+      print("$i ${txData.recipients![i].amount.raw}");
+      print("$address");
+      print("=============================================================");
+
       final output = coinlib.Output.fromAddress(
         txData.recipients![i].amount.raw,
         address,
@@ -785,24 +782,9 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
   Future<int> fetchChainHeight() async {
     try {
-      // Get the chain height service for the current coin.
-      ChainHeightService? service = ChainHeightServiceManager.getService(
-        cryptoCurrency.coin,
+      return await ClientManager.sharedInstance.getChainHeightFor(
+        cryptoCurrency,
       );
-
-      // ... or create a new one if it doesn't exist.
-      if (service == null) {
-        service = ChainHeightService(client: electrumAdapterClient);
-        ChainHeightServiceManager.add(service, cryptoCurrency.coin);
-      }
-
-      // If the service hasn't been started, start it and fetch the chain height.
-      if (!service.started) {
-        return await service.fetchHeightAndStartListenForUpdates();
-      }
-
-      // Return the height as per the service if available or the cached height.
-      return service.height ?? info.cachedChainHeight;
     } catch (e, s) {
       Logging.instance.log(
           "Exception rethrown in fetchChainHeight\nError: $e\nStack trace: $s",
@@ -868,7 +850,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
     final newNode = await _getCurrentElectrumXNode();
     try {
-      await electrumXClient.electrumAdapterClient?.close();
+      await electrumXClient.closeAdapter();
     } catch (e) {
       if (e.toString().contains("initialized")) {
         // Ignore.  This should happen every first time the wallet is opened.
@@ -881,50 +863,11 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       node: newNode,
       prefs: prefs,
       failovers: failovers,
-      coin: cryptoCurrency.coin,
+      cryptoCurrency: cryptoCurrency,
     );
-    electrumAdapterChannel = await electrum_adapter.connect(
-      newNode.address,
-      port: newNode.port,
-      acceptUnverified: true,
-      useSSL: newNode.useSSL,
-      proxyInfo: Prefs.instance.useTor
-          ? TorService.sharedInstance.getProxyInfo()
-          : null,
-    );
-    if (electrumXClient.coin == Coin.firo ||
-        electrumXClient.coin == Coin.firoTestNet) {
-      electrumAdapterClient = FiroElectrumClient(
-          electrumAdapterChannel,
-          newNode.address,
-          newNode.port,
-          newNode.useSSL,
-          Prefs.instance.useTor
-              ? TorService.sharedInstance.getProxyInfo()
-              : null);
-    } else {
-      electrumAdapterClient = ElectrumClient(
-          electrumAdapterChannel,
-          newNode.address,
-          newNode.port,
-          newNode.useSSL,
-          Prefs.instance.useTor
-              ? TorService.sharedInstance.getProxyInfo()
-              : null);
-    }
     electrumXCachedClient = CachedElectrumXClient.from(
       electrumXClient: electrumXClient,
-      electrumAdapterClient: electrumAdapterClient,
-      electrumAdapterUpdateCallback: updateClient,
     );
-    // Replaced using electrum_adapters' SubscribableClient in fetchChainHeight.
-    // subscribableElectrumXClient = SubscribableElectrumXClient.from(
-    //   node: newNode,
-    //   prefs: prefs,
-    //   failovers: failovers,
-    // );
-    // await subscribableElectrumXClient.connect(
-    //     host: newNode.address, port: newNode.port);
   }
 
   //============================================================================
@@ -1217,13 +1160,6 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   @override
   Future<void> updateNode() async {
     await updateElectrumX();
-  }
-
-  Future<ElectrumClient> updateClient() async {
-    Logging.instance.log("Updating electrum node and ElectrumAdapterClient.",
-        level: LogLevel.Info);
-    await updateNode();
-    return electrumAdapterClient;
   }
 
   FeeObject? _cachedFees;
