@@ -48,7 +48,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   }
 
   Future<int> _getCurrentBalanceInLamports() async {
-    await _checkClients(); // Check electrumXClient and rpcClient.
+    await _checkClient();
     var balance = await rpcClient?.getBalance((await _getKeyPair()).address);
     return balance!.value;
   }
@@ -83,7 +83,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<TxData> prepareSend({required TxData txData}) async {
     try {
-      await _checkClients(); // Check ElectrumXClient and Solana RpcClient.
+      await _checkClient();
 
       if (txData.recipients == null || txData.recipients!.length != 1) {
         throw Exception("$runtimeType prepareSend requires 1 recipient");
@@ -142,7 +142,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<TxData> confirmSend({required TxData txData}) async {
     try {
-      await _checkClients(); // Check ElectrumXClient and Solana RpcClient.
+      await _checkClient();
 
       final keyPair = await _getKeyPair();
       var recipientAccount = txData.recipients!.first;
@@ -174,7 +174,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
-    await _checkClients(); // Check ElectrumXClient and Solana RpcClient.
+    await _checkClient();
 
     if (info.cachedBalance.spendable.raw == BigInt.zero) {
       return Amount(
@@ -194,7 +194,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
 
   @override
   Future<FeeObject> get fees async {
-    await _checkClients(); // Check ElectrumXClient and Solana RpcClient.
+    await _checkClient();
 
     final fees = await rpcClient?.getFees();
     // TODO [prio=low]: handle null fees.
@@ -251,7 +251,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<void> updateBalance() async {
     try {
-      await _checkClients(); // Check ElectrumXClient and Solana RpcClient.
+      await _checkClient();
 
       var balance = await rpcClient?.getBalance(info.cachedReceivingAddress);
 
@@ -297,7 +297,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<void> updateChainHeight() async {
     try {
-      await _checkClients(); // Check ElectrumXClient and Solana RpcClient.
+      await _checkClient();
 
       int blockHeight = await rpcClient?.getSlot() ?? 0;
       // TODO [prio=low]: Revisit null condition.
@@ -332,7 +332,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<void> updateTransactions() async {
     try {
-      await _checkClients(); // Check ElectrumXClient and Solana RpcClient.
+      await _checkClient();
 
       var transactionsList = await rpcClient?.getTransactionsList(
           (await _getKeyPair()).publicKey,
