@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:isar/isar.dart';
 import 'package:solana/dto.dart';
 import 'package:solana/solana.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart'
     as isar;
@@ -29,7 +28,6 @@ class SolanaWallet extends Bip39Wallet<Solana> {
 
   NodeModel? _solNode;
 
-  ElectrumXClient? electrumXClient; // Used for Tor.
   RpcClient? rpcClient; // The Solana RpcClient.
 
   Future<Ed25519HDKeyPair> _getKeyPair() async {
@@ -212,8 +210,8 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<bool> pingCheck() {
     try {
-      var rpcClient = RpcClient("${getCurrentNode().host}:${getCurrentNode().port}");
-      rpcClient.getHealth();
+      _checkClient();
+      rpcClient?.getHealth();
       return Future.value(true);
     } catch (e, s) {
       Logging.instance.log(
@@ -414,24 +412,17 @@ class SolanaWallet extends Bip39Wallet<Solana> {
     return Future.value(false);
   }
 
-  /// Check that the ElectrumXClient is active and usable by a Solana RpcClient.
-  Future<void> _checkClients() async {
+  /// Make sure the Solana RpcClient uses Tor if it's enabled.
+  ///
+  /// TODO: Make synchronous.
+  Future<void> _checkClient() async {
     if (prefs.useTor) {
-      electrumXClient ??= ElectrumXClient(
-        host: getCurrentNode().host,
-        port: getCurrentNode().port,
-        useSSL: getCurrentNode().useSSL,
-        failovers: [],
-        prefs: prefs,
-        coin: Coin.solana,
-      );
-      int torPort = electrumXClient?.rpcClient?.proxyInfo?.port ??
-          TorService.sharedInstance.getProxyInfo().port;
-      rpcClient = RpcClient("${InternetAddress.loopbackIPv4}:$torPort");
-    } else {
-      rpcClient =
-          RpcClient("${getCurrentNode().host}:${getCurrentNode().port}");
-    }
+      final ({InternetAddress host, int port}) proxyInfo =
+          TorService.sharedInstance.getProxyInfo();
+      // If Tor is enabled, pass the optional proxyInfo to the Solana RpcClient.
+      rpcClient = RpcClient("${getCurrentNode().host}:${getCurrentNode().port}",
+          proxyInfo: {'host': proxyInfo.host, 'port': proxyInfo.port});
+    } else {}
     return;
   }
 }
