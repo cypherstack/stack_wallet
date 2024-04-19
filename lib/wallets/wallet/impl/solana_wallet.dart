@@ -421,8 +421,11 @@ class SolanaWallet extends Bip39Wallet<Solana> {
           TorService.sharedInstance.getProxyInfo();
       // If Tor is enabled, pass the optional proxyInfo to the Solana RpcClient.
       rpcClient = RpcClient("${getCurrentNode().host}:${getCurrentNode().port}",
-          proxyInfo: {'host': proxyInfo.host, 'port': proxyInfo.port});
-    } else {}
+          proxyInfo: {'host': proxyInfo.host.address, 'port': proxyInfo.port});
+    } else {
+      rpcClient ??=
+          RpcClient("${getCurrentNode().host}:${getCurrentNode().port}");
+    }
     return;
   }
 }
