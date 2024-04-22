@@ -1970,6 +1970,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  web:
+    dependency: transitive
+    description:
+      name: web
+      sha256: "97da13628db363c635202ad97068d47c5b8aa555808e7a9411963c533b449b27"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.1"
   web3dart:
     dependency: "direct main"
     description:
@@ -1979,13 +1987,13 @@ packages:
     source: hosted
     version: "2.6.1"
   web_socket_channel:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: web_socket_channel
-      sha256: d88238e5eac9a42bb43ca4e721edba3c08c6354d4a53063afaa568516217621b
+      sha256: "58c6666b342a38816b2e7e50ed0f1e261959630becd4c879c4f26bfa14aa5a42"
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.0"
+    version: "2.4.5"
   webdriver:
     dependency: transitive
     description:
@@ -2002,14 +2010,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.1"
-  websocket_universal:
-    dependency: "direct main"
-    description:
-      name: websocket_universal
-      sha256: "681e3050bd70b9c94617394f87a021746d24d4b3c8302be8c6b0b2a3e4209d7f"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.5.2"
   win32:
     dependency: transitive
     description:
@@ -2076,5 +2076,5 @@ packages:
     source: hosted
     version: "1.0.0"
 sdks:
-  dart: ">=3.2.0 <4.0.0"
+  dart: ">=3.3.0 <4.0.0"
   flutter: ">=3.16.0"
