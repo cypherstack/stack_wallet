@@ -187,33 +187,38 @@ class PriceAPI {
     }
 
     try {
-      final contractAddressesString =
-          contractAddresses.reduce((value, element) => "$value,$element");
-      final uri = Uri.parse(
-          "https://api.coingecko.com/api/v3/simple/token_price/ethereum"
-          "?vs_currencies=${baseCurrency.toLowerCase()}&contract_addresses"
-          "=$contractAddressesString&include_24hr_change=true");
+      for (final contractAddress in contractAddresses) {
+        final uri = Uri.parse(
+            "https://api.coingecko.com/api/v3/simple/token_price/ethereum"
+            "?vs_currencies=${baseCurrency.toLowerCase()}&contract_addresses"
+            "=$contractAddress&include_24hr_change=true");
 
-      final coinGeckoResponse = await client.get(
-        url: uri,
-        headers: {'Content-Type': 'application/json'},
-        proxyInfo: Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
-      );
+        final coinGeckoResponse = await client.get(
+          url: uri,
+          headers: {'Content-Type': 'application/json'},
+          proxyInfo: Prefs.instance.useTor
+              ? TorService.sharedInstance.getProxyInfo()
+              : null,
+        );
 
-      final coinGeckoData = jsonDecode(coinGeckoResponse.body) as Map;
+        try {
+          final coinGeckoData = jsonDecode(coinGeckoResponse.body) as Map;
 
-      for (final key in coinGeckoData.keys) {
-        final contractAddress = key as String;
+          final map = coinGeckoData[contractAddress] as Map;
 
-        final map = coinGeckoData[contractAddress] as Map;
+          final price =
+              Decimal.parse(map[baseCurrency.toLowerCase()].toString());
+          final change24h = double.parse(
+              map["${baseCurrency.toLowerCase()}_24h_change"].toString());
 
-        final price = Decimal.parse(map[baseCurrency.toLowerCase()].toString());
-        final change24h = double.parse(
-            map["${baseCurrency.toLowerCase()}_24h_change"].toString());
-
-        tokenPrices[contractAddress] = Tuple2(price, change24h);
+          tokenPrices[contractAddress] = Tuple2(price, change24h);
+        } catch (e, s) {
+          // only log the error as we don't want to interrupt the rest of the loop
+          Logging.instance.log(
+            "getPricesAnd24hChangeForEthTokens($baseCurrency,$contractAddress): $e\n$s\nRESPONSE: $coinGeckoResponse.body",
+            level: LogLevel.Warning,
+          );
+        }
       }
 
       return tokenPrices;

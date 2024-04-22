@@ -697,12 +697,6 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         cryptoCurrency.networkParams,
       );
 
-      print("=============================================================");
-      print("$i ${txData.recipients![i].amount.decimal}");
-      print("$i ${txData.recipients![i].amount.raw}");
-      print("$address");
-      print("=============================================================");
-
       final output = coinlib.Output.fromAddress(
         txData.recipients![i].amount.raw,
         address,
