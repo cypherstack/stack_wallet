@@ -39,15 +39,17 @@ import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class ReceiveView extends ConsumerStatefulWidget {
   const ReceiveView({
-    Key? key,
+    super.key,
     required this.walletId,
     this.tokenContract,
     this.clipboard = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   static const String routeName = "/receiveView";
 
@@ -536,6 +538,26 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                       ),
                     ),
                   ),
+                  const SizedBox(
+                    height: 12,
+                  ),
+                  PrimaryButton(
+                    label: "Copy address",
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      clipboard.setData(
+                        ClipboardData(
+                          text: _qrcodeContent ?? "",
+                        ),
+                      );
+                      showFloatingFlushBar(
+                        type: FlushBarType.info,
+                        message: "Copied to clipboard",
+                        iconAsset: Assets.svg.copy,
+                        context: context,
+                      );
+                    },
+                  ),
                   if (ref.watch(pWallets
                               .select((value) => value.getWallet(walletId)))
                           is MultiAddressInterface ||
@@ -547,20 +569,11 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                               .select((value) => value.getWallet(walletId)))
                           is MultiAddressInterface ||
                       supportsSpark)
-                    TextButton(
+                    SecondaryButton(
+                      label: "Generate new address",
                       onPressed: supportsSpark && _showSparkAddress
                           ? generateNewSparkAddress
                           : generateNewAddress,
-                      style: Theme.of(context)
-                          .extension<StackColors>()!
-                          .getSecondaryEnabledButtonStyle(context),
-                      child: Text(
-                        "Generate new address",
-                        style: STextStyles.button(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorDark),
-                      ),
                     ),
                   const SizedBox(
                     height: 30,
