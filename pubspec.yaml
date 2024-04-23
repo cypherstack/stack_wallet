@@ -256,12 +256,8 @@ dependency_overrides:
   crypto: 3.0.2
   analyzer: ^5.2.0
   pinenacl: ^0.3.3
-  xdg_directories: ^0.2.0
-  # flutter_local_notifications_linux: ^0.5.0+1 # Overridden by Solana's package (from espresso_cash
-  # _public).  Disabled for compatibility reasons, may affect Linux desktop notifications.
-  process: ^4.0.0
-  file: ^6.0.0
   http: ^0.13.0
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
