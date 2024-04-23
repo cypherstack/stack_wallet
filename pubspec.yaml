@@ -14,8 +14,8 @@ description: Stack Wallet
 version: 2.0.0+219
 
 environment:
-  sdk: ">=3.0.2 <4.0.0"
-  flutter: ^3.16.0
+  sdk: ">=3.3.3 <4.0.0"
+  flutter: ^3.19.5
 
 dependencies:
   flutter:
