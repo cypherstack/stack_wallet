@@ -237,6 +237,13 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       }
 
       final int amount = satoshiAmountToSend - feeForOneOutput;
+
+      if (amount < 0) {
+        throw Exception(
+          "Estimated fee ($feeForOneOutput sats) is greater than balance!",
+        );
+      }
+
       final data = await buildTransaction(
         txData: txData.copyWith(
           recipients: await _helperRecipientsConvert(
