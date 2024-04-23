@@ -10,6 +10,7 @@
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -264,6 +265,36 @@ class HiddenSettings extends StatelessWidget {
                               child: RoundedWhiteContainer(
                                 child: Text(
                                   "Show Tor warning popup",
+                                  style: STextStyles.button(context).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(
+                          height: 12,
+                        ),
+                        Consumer(
+                          builder: (_, ref, __) {
+                            return GestureDetector(
+                              onTap: () async {
+                                ref
+                                        .read(prefsChangeNotifierProvider)
+                                        .solanaEnabled =
+                                    !(ref
+                                        .read(prefsChangeNotifierProvider)
+                                        .solanaEnabled);
+                                if (kDebugMode) {
+                                  print(
+                                      "Solana enabled: ${ref.read(prefsChangeNotifierProvider).solanaEnabled}");
+                                }
+                              },
+                              child: RoundedWhiteContainer(
+                                child: Text(
+                                  "Toggle Solana",
                                   style: STextStyles.button(context).copyWith(
                                       color: Theme.of(context)
                                           .extension<StackColors>()!

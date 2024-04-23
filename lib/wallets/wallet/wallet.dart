@@ -52,6 +52,8 @@ import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interf
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/private_key_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 
+import 'impl/solana_wallet.dart';
+
 abstract class Wallet<T extends CryptoCurrency> {
   // default to Transaction class. For TransactionV2 set to 2
   int get isarTransactionVersion => 1;
@@ -361,6 +363,9 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       case Coin.particl:
         return ParticlWallet(CryptoCurrencyNetwork.main);
+
+      case Coin.solana:
+        return SolanaWallet(CryptoCurrencyNetwork.main);
 
       case Coin.stellar:
         return StellarWallet(CryptoCurrencyNetwork.main);

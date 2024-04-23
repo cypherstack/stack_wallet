@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:solana/solana.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
@@ -182,6 +183,20 @@ class NodeOptionsSheet extends ConsumerWidget {
       case Coin.stellarTestnet:
         throw UnimplementedError();
       //TODO: check network/node
+
+      case Coin.solana:
+        try {
+          RpcClient rpcClient;
+          if (node.host.startsWith("http") || node.host.startsWith("https")) {
+            rpcClient = RpcClient("${node.host}:${node.port}");
+          } else {
+            rpcClient = RpcClient("http://${node.host}:${node.port}");
+          }
+          await rpcClient.getEpochInfo().then((value) => testPassed = true);
+        } catch (_) {
+          testPassed = false;
+        }
+        break;
     }
 
     if (testPassed) {

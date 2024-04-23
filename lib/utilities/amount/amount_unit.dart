@@ -55,6 +55,7 @@ enum AmountUnit {
       case Coin.stellar: // TODO: check if this is correct
       case Coin.stellarTestnet:
       case Coin.tezos:
+      case Coin.solana:
         return AmountUnit.values.sublist(0, 4);
 
       case Coin.monero:
