@@ -230,7 +230,7 @@ class ElectrumXClient {
     // If the current ElectrumAdapterClient is closed, create a new one.
     if (getElectrumAdapter() != null && getElectrumAdapter()!.peer.isClosed) {
       _electrumAdapterChannel = null;
-      ClientManager.sharedInstance.remove(cryptoCurrency: cryptoCurrency);
+      await ClientManager.sharedInstance.remove(cryptoCurrency: cryptoCurrency);
     }
 
     final String useHost;
