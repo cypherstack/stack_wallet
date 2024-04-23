@@ -166,7 +166,7 @@ dependencies:
   tezart:
     git:
       url: https://github.com/cypherstack/tezart.git
-      ref: 8a7070f533e63dd150edae99476f6853bfb25913
+      ref: 1fb2669e2b530367a449217e952f220d5e667043
   socks5_proxy: ^1.0.3+dev.3
   convert: ^3.1.1
   flutter_hooks: ^0.20.3
