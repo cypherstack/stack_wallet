@@ -325,6 +325,17 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                     builder: (child) => Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        Text(
+                          "Address type",
+                          style: STextStyles.w500_14(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .infoItemLabel,
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
                         DropdownButtonHideUnderline(
                           child: DropdownButton2<bool>(
                             value: _showSparkAddress,
@@ -333,14 +344,14 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                                 value: true,
                                 child: Text(
                                   "Spark address",
-                                  style: STextStyles.desktopTextMedium(context),
+                                  style: STextStyles.w500_14(context),
                                 ),
                               ),
                               DropdownMenuItem(
                                 value: false,
                                 child: Text(
                                   "Transparent address",
-                                  style: STextStyles.desktopTextMedium(context),
+                                  style: STextStyles.w500_14(context),
                                 ),
                               ),
                             ],
@@ -362,6 +373,16 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                                   color: Theme.of(context)
                                       .extension<StackColors>()!
                                       .textFieldActiveSearchIconRight,
+                                ),
+                              ),
+                            ),
+                            buttonStyleData: ButtonStyleData(
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textFieldDefaultBG,
+                                borderRadius: BorderRadius.circular(
+                                  Constants.size.circularBorderRadius,
                                 ),
                               ),
                             ),
@@ -598,7 +619,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                               height: 20,
                             ),
                             CustomTextButton(
-                              text: "Create new QR code",
+                              text: "Advanced options",
                               onTap: () async {
                                 unawaited(Navigator.of(context).push(
                                   RouteGenerator.getRoute(
