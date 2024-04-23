@@ -215,7 +215,7 @@ class PriceAPI {
         } catch (e, s) {
           // only log the error as we don't want to interrupt the rest of the loop
           Logging.instance.log(
-            "getPricesAnd24hChangeForEthTokens($baseCurrency,$contractAddress): $e\n$s\nRESPONSE: $coinGeckoResponse.body",
+            "getPricesAnd24hChangeForEthTokens($baseCurrency,$contractAddress): $e\n$s\nRESPONSE: ${coinGeckoResponse.body}",
             level: LogLevel.Warning,
           );
         }
