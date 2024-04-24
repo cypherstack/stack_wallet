@@ -1586,8 +1586,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/solana"
-      ref: "2d7189d31f1bfd5d6779268c81a897f03f339f5d"
-      resolved-ref: "2d7189d31f1bfd5d6779268c81a897f03f339f5d"
+      ref: "5a392a44efe10d144933fd418a92ddf3cd331558"
+      resolved-ref: "5a392a44efe10d144933fd418a92ddf3cd331558"
       url: "https://github.com/cypherstack/espresso-cash-public.git"
     source: git
     version: "0.30.4"
