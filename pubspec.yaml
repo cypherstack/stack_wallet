@@ -156,7 +156,10 @@ dependencies:
   desktop_drop: ^0.4.1
   nanodart: ^2.0.0
   basic_utils: ^5.5.4
-  stellar_flutter_sdk: ^1.5.3
+  stellar_flutter_sdk: # ^1.5.3
+    git: # TODO Revert to official package once Tor support is merged upstream.
+      url: https://github.com/cypherstack/stellar_flutter_sdk.git
+      ref: eca1d730e952cf6a6d64502f977cfc03876b75d4 # tor-backport branch (based on 1.5.3).
   socks_socket:
     git:
       url: https://github.com/cypherstack/socks_socket.git
