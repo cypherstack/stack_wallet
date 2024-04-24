@@ -90,6 +90,8 @@ linter:
     unawaited_futures: true
     avoid_double_and_int_checks: false
     constant_identifier_names: false
+    prefer_final_locals: true
+    prefer_final_in_for_each: true
   # avoid_print: false  # Uncomment to disable the `avoid_print` rule
   # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
 
