@@ -1691,9 +1691,6 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   }
 
   @override
-  Future<void> checkSaveInitialReceivingAddress() async {}
-
-  @override
   Future<void> init() async {
     try {
       final features = await electrumXClient
