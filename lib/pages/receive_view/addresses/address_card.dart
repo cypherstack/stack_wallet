@@ -10,31 +10,46 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui' as ui;
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar/isar.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/pages/receive_view/addresses/address_tag.dart';
+import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/address_utils.dart';
+import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
+import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackwallet/widgets/custom_buttons/simple_edit_button.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class AddressCard extends ConsumerStatefulWidget {
   const AddressCard({
-    Key? key,
+    super.key,
     required this.addressId,
     required this.walletId,
     required this.coin,
     this.onPressed,
     this.clipboard = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   final int addressId;
   final String walletId;
@@ -47,12 +62,79 @@ class AddressCard extends ConsumerStatefulWidget {
 }
 
 class _AddressCardState extends ConsumerState<AddressCard> {
+  final _qrKey = GlobalKey();
   final isDesktop = Util.isDesktop;
 
   late Stream<AddressLabel?> stream;
   late final Address address;
 
   AddressLabel? label;
+
+  Future<void> _capturePng(bool shouldSaveInsteadOfShare) async {
+    try {
+      final RenderRepaintBoundary boundary =
+          _qrKey.currentContext?.findRenderObject() as RenderRepaintBoundary;
+      final ui.Image image = await boundary.toImage();
+      final ByteData? byteData =
+          await image.toByteData(format: ui.ImageByteFormat.png);
+      final Uint8List pngBytes = byteData!.buffer.asUint8List();
+
+      if (shouldSaveInsteadOfShare) {
+        if (Util.isDesktop) {
+          final dir = Directory("${Platform.environment['HOME']}");
+          if (!dir.existsSync()) {
+            throw Exception(
+                "Home dir not found while trying to open filepicker on QR image save");
+          }
+          final path = await FilePicker.platform.saveFile(
+            fileName: "qrcode.png",
+            initialDirectory: dir.path,
+          );
+
+          if (path != null) {
+            final file = File(path);
+            if (file.existsSync()) {
+              if (mounted) {
+                unawaited(
+                  showFloatingFlushBar(
+                    type: FlushBarType.warning,
+                    message: "$path already exists!",
+                    context: context,
+                  ),
+                );
+              }
+            } else {
+              await file.writeAsBytes(pngBytes);
+              if (mounted) {
+                unawaited(
+                  showFloatingFlushBar(
+                    type: FlushBarType.success,
+                    message: "$path saved!",
+                    context: context,
+                  ),
+                );
+              }
+            }
+          }
+        } else {
+          //   await DocumentFileSavePlus.saveFile(
+          //       pngBytes,
+          //       "receive_qr_code_${DateTime.now().toLocal().toIso8601String()}.png",
+          //       "image/png");
+        }
+      } else {
+        final tempDir = await getTemporaryDirectory();
+        final file = await File("${tempDir.path}/qrcode.png").create();
+        await file.writeAsBytes(pngBytes);
+
+        await Share.shareFiles(["${tempDir.path}/qrcode.png"],
+            text: "Receive URI QR Code");
+      }
+    } catch (e) {
+      //todo: comeback to this
+      debugPrint(e.toString());
+    }
+  }
 
   @override
   void initState() {
@@ -117,16 +199,32 @@ class _AddressCardState extends ConsumerState<AddressCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (label!.value.isNotEmpty)
-                  Text(
-                    label!.value,
-                    style: STextStyles.itemSubtitle(context),
-                    textAlign: TextAlign.left,
-                  ),
-                if (label!.value.isNotEmpty)
-                  SizedBox(
-                    height: isDesktop ? 2 : 8,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      label!.value.isNotEmpty ? label!.value : "No label",
+                      style: STextStyles.itemSubtitle(context),
+                      textAlign: TextAlign.left,
+                    ),
+                    SimpleEditButton(
+                      editValue: label!.value,
+                      editLabel: 'label',
+                      overrideTitle: 'Edit label',
+                      disableIcon: true,
+                      onValueChanged: (value) {
+                        MainDB.instance.putAddressLabel(
+                          label!.copyWith(
+                            label: value,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: isDesktop ? 2 : 8,
+                ),
                 Row(
                   children: [
                     Expanded(
@@ -140,18 +238,152 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                 const SizedBox(
                   height: 10,
                 ),
-                if (label!.tags != null && label!.tags!.isNotEmpty)
-                  Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
-                    children: label!.tags!
-                        .map(
-                          (e) => AddressTag(
-                            tag: e,
+                Row(
+                  children: [
+                    CustomTextButton(
+                      text: "Copy address",
+                      onTap: () {
+                        widget.clipboard
+                            .setData(
+                          ClipboardData(
+                            text: address.value,
                           ),
                         )
-                        .toList(),
-                  ),
+                            .then((value) {
+                          if (context.mounted) {
+                            unawaited(
+                              showFloatingFlushBar(
+                                type: FlushBarType.info,
+                                message: "Copied to clipboard",
+                                context: context,
+                              ),
+                            );
+                          }
+                        });
+                      },
+                    ),
+                    const SizedBox(
+                      width: 16,
+                    ),
+                    CustomTextButton(
+                      text: "Show QR code",
+                      onTap: () async {
+                        await showDialog<void>(
+                          context: context,
+                          builder: (_) {
+                            return StackDialogBase(
+                              child: Column(
+                                children: [
+                                  if (label!.value.isNotEmpty)
+                                    Text(
+                                      label!.value,
+                                      style: STextStyles.w600_18(context),
+                                    ),
+                                  if (label!.value.isNotEmpty)
+                                    const SizedBox(
+                                      height: 8,
+                                    ),
+                                  Text(
+                                    address.value,
+                                    style:
+                                        STextStyles.w500_16(context).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textSubtitle1,
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    height: 16,
+                                  ),
+                                  Center(
+                                    child: RepaintBoundary(
+                                      key: _qrKey,
+                                      child: QrImageView(
+                                        data: AddressUtils.buildUriString(
+                                          widget.coin,
+                                          address.value,
+                                          {},
+                                        ),
+                                        size: 220,
+                                        backgroundColor: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .popupBG,
+                                        foregroundColor: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorDark,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    height: 16,
+                                  ),
+                                  Row(
+                                    children: [
+                                      if (!isDesktop)
+                                        Expanded(
+                                          child: SecondaryButton(
+                                            label: "Share",
+                                            buttonHeight: isDesktop
+                                                ? ButtonHeight.l
+                                                : null,
+                                            icon: SvgPicture.asset(
+                                              Assets.svg.share,
+                                              width: 14,
+                                              height: 14,
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .buttonTextSecondary,
+                                            ),
+                                            onPressed: () async {
+                                              await _capturePng(false);
+                                            },
+                                          ),
+                                        ),
+                                      if (isDesktop)
+                                        Expanded(
+                                          child: PrimaryButton(
+                                            buttonHeight: isDesktop
+                                                ? ButtonHeight.l
+                                                : null,
+                                            onPressed: () async {
+                                              // TODO: add save functionality instead of share
+                                              // save works on linux at the moment
+                                              await _capturePng(true);
+                                            },
+                                            label: "Save",
+                                            icon: SvgPicture.asset(
+                                              Assets.svg.arrowDown,
+                                              width: 20,
+                                              height: 20,
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .buttonTextPrimary,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  )
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                // if (label!.tags != null && label!.tags!.isNotEmpty)
+                //   Wrap(
+                //     spacing: 10,
+                //     runSpacing: 10,
+                //     children: label!.tags!
+                //         .map(
+                //           (e) => AddressTag(
+                //             tag: e,
+                //           ),
+                //         )
+                //         .toList(),
+                //   ),
               ],
             ),
           );
