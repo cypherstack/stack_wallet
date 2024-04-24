@@ -59,3 +59,6 @@ libtor_ffi.dll
 flutter_libsparkmobile.dll
 secp256k1.dll
 /libisar.so
+
+# FVM Version Cache
+.fvm/

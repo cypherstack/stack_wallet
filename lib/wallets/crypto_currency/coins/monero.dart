@@ -4,6 +4,7 @@ import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/cryptonote_currency.dart';
+import 'package:monero/monero.dart' as monero;
 
 class Monero extends CryptonoteCurrency {
   Monero(super.network) {
@@ -20,7 +21,7 @@ class Monero extends CryptonoteCurrency {
 
   @override
   bool validateAddress(String address) {
-    return monero_wallet.validateAddress(address);
+    return monero.Wallet_addressValid(address, 0);
   }
 
   @override

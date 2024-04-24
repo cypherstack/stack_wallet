@@ -380,13 +380,6 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
-  cw_shared_external:
-    dependency: transitive
-    description:
-      path: "crypto_plugins/flutter_libmonero/cw_shared_external"
-      relative: true
-    source: path
-    version: "0.0.1"
   cw_wownero:
     dependency: "direct main"
     description:
@@ -1200,6 +1193,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.0"
+  monero:
+    dependency: transitive
+    description:
+      path: "."
+      ref: "342bad5d91d8476f0e32a57ae944f2cfe34d4241"
+      resolved-ref: "342bad5d91d8476f0e32a57ae944f2cfe34d4241"
+      url: "https://git.mrcyjanek.net/mrcyjanek/monero.dart"
+    source: git
+    version: "0.0.0"
   mutex:
     dependency: "direct main"
     description:

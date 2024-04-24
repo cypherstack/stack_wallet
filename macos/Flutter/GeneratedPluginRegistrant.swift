@@ -6,9 +6,6 @@ import FlutterMacOS
 import Foundation
 
 import connectivity_plus
-import cw_monero
-import cw_shared_external
-import cw_wownero
 import desktop_drop
 import device_info_plus
 import devicelocale
@@ -27,9 +24,6 @@ import window_size
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   ConnectivityPlugin.register(with: registry.registrar(forPlugin: "ConnectivityPlugin"))
-  CwMoneroPlugin.register(with: registry.registrar(forPlugin: "CwMoneroPlugin"))
-  CwSharedExternalPlugin.register(with: registry.registrar(forPlugin: "CwSharedExternalPlugin"))
-  CwWowneroPlugin.register(with: registry.registrar(forPlugin: "CwWowneroPlugin"))
   DesktopDropPlugin.register(with: registry.registrar(forPlugin: "DesktopDropPlugin"))
   DeviceInfoPlusMacosPlugin.register(with: registry.registrar(forPlugin: "DeviceInfoPlusMacosPlugin"))
   DevicelocalePlugin.register(with: registry.registrar(forPlugin: "DevicelocalePlugin"))
