@@ -1586,8 +1586,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/solana"
-      ref: "5a392a44efe10d144933fd418a92ddf3cd331558"
-      resolved-ref: "5a392a44efe10d144933fd418a92ddf3cd331558"
+      ref: "0ada1f775c2a2c815de640424270a229f5e91e2f"
+      resolved-ref: "0ada1f775c2a2c815de640424270a229f5e91e2f"
       url: "https://github.com/cypherstack/espresso-cash-public.git"
     source: git
     version: "0.30.4"
@@ -1740,8 +1740,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "9d4f326b19ef6ab51a40038ee2ddd3296454f228"
-      resolved-ref: "9d4f326b19ef6ab51a40038ee2ddd3296454f228"
+      ref: "1fb2669e2b530367a449217e952f220d5e667043"
+      resolved-ref: "1fb2669e2b530367a449217e952f220d5e667043"
       url: "https://github.com/cypherstack/tezart.git"
     source: git
     version: "2.0.5"
@@ -2109,5 +2109,5 @@ packages:
     source: hosted
     version: "1.0.0"
 sdks:
-  dart: ">=3.3.0 <4.0.0"
-  flutter: ">=3.16.0"
+  dart: ">=3.3.3 <4.0.0"
+  flutter: ">=3.19.5"

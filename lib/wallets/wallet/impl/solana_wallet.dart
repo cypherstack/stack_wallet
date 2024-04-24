@@ -29,7 +29,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
 
   NodeModel? _solNode;
 
-  RpcClient? rpcClient; // The Solana RpcClient.
+  RpcClient? _rpcClient; // The Solana RpcClient.
 
   Future<Ed25519HDKeyPair> _getKeyPair() async {
     return Ed25519HDKeyPair.fromMnemonic(await getMnemonic(),
@@ -49,8 +49,8 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   }
 
   Future<int> _getCurrentBalanceInLamports() async {
-    await _checkClient();
-    var balance = await rpcClient?.getBalance((await _getKeyPair()).address);
+    _checkClient();
+    var balance = await _rpcClient?.getBalance((await _getKeyPair()).address);
     return balance!.value;
   }
 
@@ -84,7 +84,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<TxData> prepareSend({required TxData txData}) async {
     try {
-      await _checkClient();
+      _checkClient();
 
       if (txData.recipients == null || txData.recipients!.length != 1) {
         throw Exception("$runtimeType prepareSend requires 1 recipient");
@@ -113,8 +113,8 @@ class SolanaWallet extends Bip39Wallet<Solana> {
 
       // Rent exemption of Solana
       final accInfo =
-          await rpcClient?.getAccountInfo((await _getKeyPair()).address);
-      int minimumRent = await rpcClient?.getMinimumBalanceForRentExemption(
+          await _rpcClient?.getAccountInfo((await _getKeyPair()).address);
+      int minimumRent = await _rpcClient?.getMinimumBalanceForRentExemption(
               accInfo!.value!.data.toString().length) ??
           0; // TODO revisit null condition.
       if (minimumRent >
@@ -143,7 +143,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<TxData> confirmSend({required TxData txData}) async {
     try {
-      await _checkClient();
+      _checkClient();
 
       final keyPair = await _getKeyPair();
       var recipientAccount = txData.recipients!.first;
@@ -160,7 +160,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
         ],
       );
 
-      final txid = await rpcClient?.signAndSendTransaction(message, [keyPair]);
+      final txid = await _rpcClient?.signAndSendTransaction(message, [keyPair]);
       return txData.copyWith(
         txid: txid,
       );
@@ -175,7 +175,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
-    await _checkClient();
+    _checkClient();
 
     if (info.cachedBalance.spendable.raw == BigInt.zero) {
       return Amount(
@@ -184,7 +184,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
       );
     }
 
-    final fee = await rpcClient?.getFees();
+    final fee = await _rpcClient?.getFees();
     // TODO [prio=low]: handle null fee.
 
     return Amount(
@@ -195,9 +195,9 @@ class SolanaWallet extends Bip39Wallet<Solana> {
 
   @override
   Future<FeeObject> get fees async {
-    await _checkClient();
+    _checkClient();
 
-    final fees = await rpcClient?.getFees();
+    final fees = await _rpcClient?.getFees();
     // TODO [prio=low]: handle null fees.
     return FeeObject(
         numberOfBlocksFast: 1,
@@ -212,7 +212,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   Future<bool> pingCheck() {
     try {
       _checkClient();
-      rpcClient?.getHealth();
+      _rpcClient?.getHealth();
       return Future.value(true);
     } catch (e, s) {
       Logging.instance.log(
@@ -252,16 +252,16 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<void> updateBalance() async {
     try {
-      await _checkClient();
+      _checkClient();
 
-      var balance = await rpcClient?.getBalance(info.cachedReceivingAddress);
+      var balance = await _rpcClient?.getBalance(info.cachedReceivingAddress);
 
       // Rent exemption of Solana
       final accInfo =
-          await rpcClient?.getAccountInfo((await _getKeyPair()).address);
+          await _rpcClient?.getAccountInfo((await _getKeyPair()).address);
       // TODO [prio=low]: handle null account info.
       final int minimumRent =
-          await rpcClient?.getMinimumBalanceForRentExemption(
+          await _rpcClient?.getMinimumBalanceForRentExemption(
                   accInfo!.value!.data.toString().length) ??
               0;
       // TODO [prio=low]: revisit null condition.
@@ -298,9 +298,9 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<void> updateChainHeight() async {
     try {
-      await _checkClient();
+      _checkClient();
 
-      int blockHeight = await rpcClient?.getSlot() ?? 0;
+      int blockHeight = await _rpcClient?.getSlot() ?? 0;
       // TODO [prio=low]: Revisit null condition.
 
       await info.updateCachedChainHeight(
@@ -333,9 +333,9 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<void> updateTransactions() async {
     try {
-      await _checkClient();
+      _checkClient();
 
-      var transactionsList = await rpcClient?.getTransactionsList(
+      var transactionsList = await _rpcClient?.getTransactionsList(
           (await _getKeyPair()).publicKey,
           encoding: Encoding.jsonParsed);
       var txsList =
@@ -415,8 +415,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
 
   /// Make sure the Solana RpcClient uses Tor if it's enabled.
   ///
-  /// TODO [prio=low]: Make synchronous.
-  Future<void> _checkClient() async {
+  void _checkClient() async {
     HttpClient? httpClient;
 
     if (prefs.useTor) {
@@ -429,7 +428,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
       SocksTCPClient.assignToHttpClient(httpClient, [proxySettings]);
     }
 
-    rpcClient = RpcClient(
+    _rpcClient = RpcClient(
       "${getCurrentNode().host}:${getCurrentNode().port}",
       timeout: const Duration(seconds: 30),
       customHeaders: {},
