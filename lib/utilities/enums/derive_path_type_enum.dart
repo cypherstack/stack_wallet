@@ -8,6 +8,7 @@
  *
  */
 
+import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 enum DerivePathType {
@@ -18,7 +19,31 @@ enum DerivePathType {
   eth,
   eCash44,
   solana,
-  bip86,
+  bip86;
+
+  AddressType getAddressType() {
+    switch (this) {
+      case DerivePathType.bip44:
+      case DerivePathType.bch44:
+      case DerivePathType.eCash44:
+        return AddressType.p2pkh;
+
+      case DerivePathType.bip49:
+        return AddressType.p2sh;
+
+      case DerivePathType.bip84:
+        return AddressType.p2wpkh;
+
+      case DerivePathType.eth:
+        return AddressType.ethereum;
+
+      case DerivePathType.solana:
+        return AddressType.solana;
+
+      case DerivePathType.bip86:
+        return AddressType.p2tr;
+    }
+  }
 }
 
 extension DerivePathTypeExt on DerivePathType {

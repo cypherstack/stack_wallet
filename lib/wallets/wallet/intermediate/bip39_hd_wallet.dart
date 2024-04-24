@@ -11,7 +11,13 @@ import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/multi_address
 
 abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     with MultiAddressInterface<T> {
-  Bip39HDWallet(T cryptoCurrency) : super(cryptoCurrency);
+  Bip39HDWallet(super.cryptoCurrency);
+
+  Set<AddressType> get supportedAddressTypes =>
+      cryptoCurrency.supportedDerivationPathTypes
+          .where((e) => e != DerivePathType.bip49)
+          .map((e) => e.getAddressType())
+          .toSet();
 
   Future<coinlib.HDPrivateKey> getRootHDNode() async {
     final seed = bip39.mnemonicToSeed(
@@ -19,6 +25,33 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
       passphrase: await getMnemonicPassphrase(),
     );
     return coinlib.HDPrivateKey.fromSeed(seed);
+  }
+
+  Future<Address> generateNextReceivingAddress({
+    required DerivePathType derivePathType,
+  }) async {
+    if (!cryptoCurrency.supportedDerivationPathTypes.contains(derivePathType)) {
+      throw Exception(
+        "Unsupported DerivePathType passed to generateNextReceivingAddress().",
+      );
+    }
+
+    final current = await mainDB.isar.addresses
+        .where()
+        .walletIdEqualTo(walletId)
+        .filter()
+        .typeEqualTo(derivePathType.getAddressType())
+        .sortByDerivationIndexDesc()
+        .findFirst();
+    final index = current == null ? 0 : current.derivationIndex + 1;
+    const chain = 0; // receiving address
+    final address = await _generateAddress(
+      chain: chain,
+      index: index,
+      derivePathType: derivePathType,
+    );
+
+    return address;
   }
 
   /// Generates a receiving address. If none
