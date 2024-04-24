@@ -598,6 +598,19 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
         returnValueForMissingStub: null,
       );
   @override
+  bool get solanaEnabled => (super.noSuchMethod(
+        Invocation.getter(#solanaEnabled),
+        returnValue: false,
+      ) as bool);
+  @override
+  set solanaEnabled(bool? solanaEnabled) => super.noSuchMethod(
+        Invocation.setter(
+          #solanaEnabled,
+          solanaEnabled,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   bool get frostEnabled => (super.noSuchMethod(
         Invocation.getter(#frostEnabled),
         returnValue: false,

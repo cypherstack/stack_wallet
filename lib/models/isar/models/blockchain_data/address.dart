@@ -164,8 +164,8 @@ enum AddressType {
   stellar,
   tezos,
   frostMS,
-  solana,
-  p2tr;
+  p2tr,
+  solana;
 
   String get readableName {
     switch (this) {

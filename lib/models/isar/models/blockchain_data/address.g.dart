@@ -268,6 +268,7 @@ const _AddresstypeEnumValueMap = {
   'tezos': 12,
   'frostMS': 13,
   'p2tr': 14,
+  'solana': 15,
 };
 const _AddresstypeValueEnumMap = {
   0: AddressType.p2pkh,
@@ -285,6 +286,7 @@ const _AddresstypeValueEnumMap = {
   12: AddressType.tezos,
   13: AddressType.frostMS,
   14: AddressType.p2tr,
+  15: AddressType.solana,
 };
 
 Id _addressGetId(Address object) {

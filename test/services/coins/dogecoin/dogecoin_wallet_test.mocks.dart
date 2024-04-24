@@ -5,14 +5,15 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i5;
 
-import 'package:decimal/decimal.dart' as _i2;
-import 'package:electrum_adapter/electrum_adapter.dart' as _i4;
+import 'package:decimal/decimal.dart' as _i3;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart' as _i6;
-import 'package:stackwallet/electrumx_rpc/electrumx_client.dart' as _i3;
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart' as _i4;
 import 'package:stackwallet/services/transaction_notification_tracker.dart'
     as _i8;
 import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i7;
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart'
+    as _i2;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -25,8 +26,9 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i7;
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
-class _FakeDuration_0 extends _i1.SmartFake implements Duration {
-  _FakeDuration_0(
+class _FakeCryptoCurrency_0 extends _i1.SmartFake
+    implements _i2.CryptoCurrency {
+  _FakeCryptoCurrency_0(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -35,8 +37,8 @@ class _FakeDuration_0 extends _i1.SmartFake implements Duration {
         );
 }
 
-class _FakeDecimal_1 extends _i1.SmartFake implements _i2.Decimal {
-  _FakeDecimal_1(
+class _FakeDuration_1 extends _i1.SmartFake implements Duration {
+  _FakeDuration_1(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -45,9 +47,8 @@ class _FakeDecimal_1 extends _i1.SmartFake implements _i2.Decimal {
         );
 }
 
-class _FakeElectrumXClient_2 extends _i1.SmartFake
-    implements _i3.ElectrumXClient {
-  _FakeElectrumXClient_2(
+class _FakeDecimal_2 extends _i1.SmartFake implements _i3.Decimal {
+  _FakeDecimal_2(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -56,9 +57,9 @@ class _FakeElectrumXClient_2 extends _i1.SmartFake
         );
 }
 
-class _FakeElectrumClient_3 extends _i1.SmartFake
-    implements _i4.ElectrumClient {
-  _FakeElectrumClient_3(
+class _FakeElectrumXClient_3 extends _i1.SmartFake
+    implements _i4.ElectrumXClient {
+  _FakeElectrumXClient_3(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -70,13 +71,21 @@ class _FakeElectrumClient_3 extends _i1.SmartFake
 /// A class which mocks [ElectrumXClient].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockElectrumXClient extends _i1.Mock implements _i3.ElectrumXClient {
+class MockElectrumXClient extends _i1.Mock implements _i4.ElectrumXClient {
   MockElectrumXClient() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  set failovers(List<_i3.ElectrumXNode>? _failovers) => super.noSuchMethod(
+  _i2.CryptoCurrency get cryptoCurrency => (super.noSuchMethod(
+        Invocation.getter(#cryptoCurrency),
+        returnValue: _FakeCryptoCurrency_0(
+          this,
+          Invocation.getter(#cryptoCurrency),
+        ),
+      ) as _i2.CryptoCurrency);
+  @override
+  set failovers(List<_i4.ElectrumXNode>? _failovers) => super.noSuchMethod(
         Invocation.setter(
           #failovers,
           _failovers,
@@ -100,7 +109,7 @@ class MockElectrumXClient extends _i1.Mock implements _i3.ElectrumXClient {
   Duration get connectionTimeoutForSpecialCaseJsonRPCClients =>
       (super.noSuchMethod(
         Invocation.getter(#connectionTimeoutForSpecialCaseJsonRPCClients),
-        returnValue: _FakeDuration_0(
+        returnValue: _FakeDuration_1(
           this,
           Invocation.getter(#connectionTimeoutForSpecialCaseJsonRPCClients),
         ),
@@ -121,9 +130,9 @@ class MockElectrumXClient extends _i1.Mock implements _i3.ElectrumXClient {
         returnValue: false,
       ) as bool);
   @override
-  _i5.Future<void> checkElectrumAdapter() => (super.noSuchMethod(
+  _i5.Future<void> closeAdapter() => (super.noSuchMethod(
         Invocation.method(
-          #checkElectrumAdapter,
+          #closeAdapter,
           [],
         ),
         returnValue: _i5.Future<void>.value(),
@@ -455,7 +464,7 @@ class MockElectrumXClient extends _i1.Mock implements _i3.ElectrumXClient {
             _i5.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i5.Future<Map<String, dynamic>>);
   @override
-  _i5.Future<_i2.Decimal> estimateFee({
+  _i5.Future<_i3.Decimal> estimateFee({
     String? requestID,
     required int? blocks,
   }) =>
@@ -468,7 +477,7 @@ class MockElectrumXClient extends _i1.Mock implements _i3.ElectrumXClient {
             #blocks: blocks,
           },
         ),
-        returnValue: _i5.Future<_i2.Decimal>.value(_FakeDecimal_1(
+        returnValue: _i5.Future<_i3.Decimal>.value(_FakeDecimal_2(
           this,
           Invocation.method(
             #estimateFee,
@@ -479,15 +488,15 @@ class MockElectrumXClient extends _i1.Mock implements _i3.ElectrumXClient {
             },
           ),
         )),
-      ) as _i5.Future<_i2.Decimal>);
+      ) as _i5.Future<_i3.Decimal>);
   @override
-  _i5.Future<_i2.Decimal> relayFee({String? requestID}) => (super.noSuchMethod(
+  _i5.Future<_i3.Decimal> relayFee({String? requestID}) => (super.noSuchMethod(
         Invocation.method(
           #relayFee,
           [],
           {#requestID: requestID},
         ),
-        returnValue: _i5.Future<_i2.Decimal>.value(_FakeDecimal_1(
+        returnValue: _i5.Future<_i3.Decimal>.value(_FakeDecimal_2(
           this,
           Invocation.method(
             #relayFee,
@@ -495,7 +504,7 @@ class MockElectrumXClient extends _i1.Mock implements _i3.ElectrumXClient {
             {#requestID: requestID},
           ),
         )),
-      ) as _i5.Future<_i2.Decimal>);
+      ) as _i5.Future<_i3.Decimal>);
 }
 
 /// A class which mocks [CachedElectrumXClient].
@@ -508,40 +517,13 @@ class MockCachedElectrumXClient extends _i1.Mock
   }
 
   @override
-  _i3.ElectrumXClient get electrumXClient => (super.noSuchMethod(
+  _i4.ElectrumXClient get electrumXClient => (super.noSuchMethod(
         Invocation.getter(#electrumXClient),
-        returnValue: _FakeElectrumXClient_2(
+        returnValue: _FakeElectrumXClient_3(
           this,
           Invocation.getter(#electrumXClient),
         ),
-      ) as _i3.ElectrumXClient);
-  @override
-  _i4.ElectrumClient get electrumAdapterClient => (super.noSuchMethod(
-        Invocation.getter(#electrumAdapterClient),
-        returnValue: _FakeElectrumClient_3(
-          this,
-          Invocation.getter(#electrumAdapterClient),
-        ),
-      ) as _i4.ElectrumClient);
-  @override
-  set electrumAdapterClient(_i4.ElectrumClient? _electrumAdapterClient) =>
-      super.noSuchMethod(
-        Invocation.setter(
-          #electrumAdapterClient,
-          _electrumAdapterClient,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  _i5.Future<_i4.ElectrumClient> Function() get electrumAdapterUpdateCallback =>
-      (super.noSuchMethod(
-        Invocation.getter(#electrumAdapterUpdateCallback),
-        returnValue: () =>
-            _i5.Future<_i4.ElectrumClient>.value(_FakeElectrumClient_3(
-          this,
-          Invocation.getter(#electrumAdapterUpdateCallback),
-        )),
-      ) as _i5.Future<_i4.ElectrumClient> Function());
+      ) as _i4.ElectrumXClient);
   @override
   _i5.Future<Map<String, dynamic>> getAnonymitySet({
     required String? groupId,
