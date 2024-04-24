@@ -39,6 +39,7 @@ import 'package:stackwallet/wallets/wallet/impl/monero_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/namecoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/nano_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/particl_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/solana_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/stellar_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/sub_wallets/eth_token_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/tezos_wallet.dart';
@@ -51,8 +52,6 @@ import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/multi_address
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/private_key_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
-
-import 'impl/solana_wallet.dart';
 
 abstract class Wallet<T extends CryptoCurrency> {
   // default to Transaction class. For TransactionV2 set to 2
@@ -398,10 +397,10 @@ abstract class Wallet<T extends CryptoCurrency> {
   }
 
   void _periodicPingCheck() async {
-    bool hasNetwork = await pingCheck();
+    final bool hasNetwork = await pingCheck();
 
     if (_isConnected != hasNetwork) {
-      NodeConnectionStatus status = hasNetwork
+      final NodeConnectionStatus status = hasNetwork
           ? NodeConnectionStatus.connected
           : NodeConnectionStatus.disconnected;
       GlobalEventBus.instance.fire(
@@ -638,7 +637,7 @@ abstract class Wallet<T extends CryptoCurrency> {
         // Close the subscription if this wallet is not in the list to be synced.
         if (!prefs.walletIdsSyncOnStartup.contains(walletId)) {
           // Check if there's another wallet of this coin on the sync list.
-          List<String> walletIds = [];
+          final List<String> walletIds = [];
           for (final id in prefs.walletIdsSyncOnStartup) {
             final wallet = mainDB.isar.walletInfo
                 .where()
