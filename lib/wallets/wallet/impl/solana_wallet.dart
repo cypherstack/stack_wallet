@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:isar/isar.dart';
+import 'package:socks5_proxy/socks_client.dart';
 import 'package:solana/dto.dart';
 import 'package:solana/solana.dart';
 import 'package:stackwallet/models/balance.dart';
@@ -414,18 +415,26 @@ class SolanaWallet extends Bip39Wallet<Solana> {
 
   /// Make sure the Solana RpcClient uses Tor if it's enabled.
   ///
-  /// TODO: Make synchronous.
+  /// TODO [prio=low]: Make synchronous.
   Future<void> _checkClient() async {
+    HttpClient? httpClient;
+
     if (prefs.useTor) {
+      // Make proxied HttpClient.
       final ({InternetAddress host, int port}) proxyInfo =
           TorService.sharedInstance.getProxyInfo();
-      // If Tor is enabled, pass the optional proxyInfo to the Solana RpcClient.
-      rpcClient = RpcClient("${getCurrentNode().host}:${getCurrentNode().port}",
-          proxyInfo: {'host': proxyInfo.host.address, 'port': proxyInfo.port});
-    } else {
-      rpcClient ??=
-          RpcClient("${getCurrentNode().host}:${getCurrentNode().port}");
+
+      final proxySettings = ProxySettings(proxyInfo.host, proxyInfo.port);
+      httpClient = HttpClient();
+      SocksTCPClient.assignToHttpClient(httpClient, [proxySettings]);
     }
+
+    rpcClient = RpcClient(
+      "${getCurrentNode().host}:${getCurrentNode().port}",
+      timeout: const Duration(seconds: 30),
+      customHeaders: {},
+      httpClient: httpClient,
+    );
     return;
   }
 }
