@@ -330,7 +330,8 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
         //     date: DateTime.now().subtract(const Duration(
         //         days:
         //         2))); // subtract a couple days to ensure we have a buffer for SWB
-        final bufferedCreateHeight = getSeedHeightSync(wallet!.seed.trim());
+        // TODO(mrcyjanek): implement
+        final bufferedCreateHeight = 1; //getSeedHeightSync(wallet!.seed.trim());
 
         await info.updateRestoreHeight(
           newRestoreHeight: bufferedCreateHeight,
@@ -441,7 +442,8 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
 
         // extract seed height from 14 word seed
         if (seedLength == 14) {
-          height = getSeedHeightSync(mnemonic.trim());
+          // TODO(mrcyjanek): implement
+          height = 1; // getSeedHeightSync(mnemonic.trim());
         } else {
           height = max(height, 0);
         }
