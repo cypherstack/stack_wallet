@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
@@ -5,6 +7,7 @@ import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart'
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/node_service.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -105,9 +108,12 @@ class TezosWallet extends Bip39Wallet<Tezos> {
       //   print("COUNTER: $counter");
       //   print("customFee: $customFee");
       // }
-      final tezartClient = tezart.TezartClient(
-        server,
-      );
+      ({InternetAddress host, int port})? proxyInfo =
+          prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null;
+      final tezartClient = tezart.TezartClient(server,
+          proxy: proxyInfo != null
+              ? "socks5://${proxyInfo.host}:${proxyInfo.port};"
+              : null);
 
       final opList = await tezartClient.transferOperation(
         source: sourceKeyStore,
