@@ -37,7 +37,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   }
 
   Future<Address> _getCurrentAddress() async {
-    var addressStruct = Address(
+    final addressStruct = Address(
         walletId: walletId,
         value: (await _getKeyPair()).address,
         publicKey: List<int>.empty(),
@@ -50,7 +50,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
 
   Future<int> _getCurrentBalanceInLamports() async {
     _checkClient();
-    var balance = await _rpcClient?.getBalance((await _getKeyPair()).address);
+    final balance = await _rpcClient?.getBalance((await _getKeyPair()).address);
     return balance!.value;
   }
 
@@ -61,7 +61,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<void> checkSaveInitialReceivingAddress() async {
     try {
-      var address = (await _getKeyPair()).address;
+      final address = (await _getKeyPair()).address;
 
       await mainDB.updateOrPutAddresses([
         Address(
@@ -90,14 +90,14 @@ class SolanaWallet extends Bip39Wallet<Solana> {
         throw Exception("$runtimeType prepareSend requires 1 recipient");
       }
 
-      Amount sendAmount = txData.amount!;
+      final Amount sendAmount = txData.amount!;
 
       if (sendAmount > info.cachedBalance.spendable) {
         throw Exception("Insufficient available balance");
       }
 
       int feeAmount;
-      var currentFees = await fees;
+      final currentFees = await fees;
       switch (txData.feeRateType) {
         case FeeRateType.fast:
           feeAmount = currentFees.fast;
@@ -114,9 +114,10 @@ class SolanaWallet extends Bip39Wallet<Solana> {
       // Rent exemption of Solana
       final accInfo =
           await _rpcClient?.getAccountInfo((await _getKeyPair()).address);
-      int minimumRent = await _rpcClient?.getMinimumBalanceForRentExemption(
-              accInfo!.value!.data.toString().length) ??
-          0; // TODO revisit null condition.
+      final int minimumRent =
+          await _rpcClient?.getMinimumBalanceForRentExemption(
+                  accInfo!.value!.data.toString().length) ??
+              0; // TODO revisit null condition.
       if (minimumRent >
           ((await _getCurrentBalanceInLamports()) -
               txData.amount!.raw.toInt() -
@@ -146,8 +147,8 @@ class SolanaWallet extends Bip39Wallet<Solana> {
       _checkClient();
 
       final keyPair = await _getKeyPair();
-      var recipientAccount = txData.recipients!.first;
-      var recipientPubKey =
+      final recipientAccount = txData.recipients!.first;
+      final recipientPubKey =
           Ed25519HDPublicKey.fromBase58(recipientAccount.address);
       final message = Message(
         instructions: [
@@ -230,7 +231,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<void> recover({required bool isRescan}) async {
     await refreshMutex.protect(() async {
-      var addressStruct = await _getCurrentAddress();
+      final addressStruct = await _getCurrentAddress();
 
       await mainDB.updateOrPutAddresses([addressStruct]);
 
@@ -254,7 +255,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
     try {
       _checkClient();
 
-      var balance = await _rpcClient?.getBalance(info.cachedReceivingAddress);
+      final balance = await _rpcClient?.getBalance(info.cachedReceivingAddress);
 
       // Rent exemption of Solana
       final accInfo =
@@ -265,7 +266,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
                   accInfo!.value!.data.toString().length) ??
               0;
       // TODO [prio=low]: revisit null condition.
-      var spendableBalance = balance!.value - minimumRent;
+      final spendableBalance = balance!.value - minimumRent;
 
       final newBalance = Balance(
         total: Amount(
@@ -300,7 +301,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
     try {
       _checkClient();
 
-      int blockHeight = await _rpcClient?.getSlot() ?? 0;
+      final int blockHeight = await _rpcClient?.getSlot() ?? 0;
       // TODO [prio=low]: Revisit null condition.
 
       await info.updateCachedChainHeight(
@@ -335,21 +336,21 @@ class SolanaWallet extends Bip39Wallet<Solana> {
     try {
       _checkClient();
 
-      var transactionsList = await _rpcClient?.getTransactionsList(
+      final transactionsList = await _rpcClient?.getTransactionsList(
           (await _getKeyPair()).publicKey,
           encoding: Encoding.jsonParsed);
-      var txsList =
+      final txsList =
           List<Tuple2<isar.Transaction, Address>>.empty(growable: true);
 
       // TODO [prio=low]: Revisit null assertion below.
 
       for (final tx in transactionsList!) {
-        var senderAddress =
+        final senderAddress =
             (tx.transaction as ParsedTransaction).message.accountKeys[0].pubkey;
-        var receiverAddress =
+        final receiverAddress =
             (tx.transaction as ParsedTransaction).message.accountKeys[1].pubkey;
         var txType = isar.TransactionType.unknown;
-        var txAmount = Amount(
+        final txAmount = Amount(
           rawValue:
               BigInt.from(tx.meta!.postBalances[1] - tx.meta!.preBalances[1]),
           fractionDigits: cryptoCurrency.fractionDigits,
@@ -364,7 +365,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
           txType = isar.TransactionType.incoming;
         }
 
-        var transaction = isar.Transaction(
+        final transaction = isar.Transaction(
           walletId: walletId,
           txid: (tx.transaction as ParsedTransaction).signatures[0],
           timestamp: tx.blockTime!,
@@ -384,7 +385,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
           numberOfMessages: 0,
         );
 
-        var txAddress = Address(
+        final txAddress = Address(
             walletId: walletId,
             value: receiverAddress,
             publicKey: List<int>.empty(),
