@@ -503,6 +503,24 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      case SelectNewFrostImportTypeView.routeName:
+        if (args is ({
+          String walletName,
+          FrostCurrency frostCurrency,
+        })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SelectNewFrostImportTypeView(
+              walletName: args.walletName,
+              frostCurrency: args.frostCurrency,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       case ImportNewFrostMsWalletView.routeName:
         if (args is ({
           String walletName,
