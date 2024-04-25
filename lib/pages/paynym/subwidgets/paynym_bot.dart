@@ -8,8 +8,12 @@
  *
  */
 
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
+import 'package:stackwallet/networking/http.dart';
+import 'package:stackwallet/services/tor_service.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 
 class PayNymBot extends StatelessWidget {
   const PayNymBot({
@@ -28,16 +32,37 @@ class PayNymBot extends StatelessWidget {
       child: SizedBox(
         width: size,
         height: size,
-        child: Image.network(
-          "https://paynym.is/$paymentCodeString/avatar",
-          loadingBuilder: (context, child, loadingProgress) =>
-              loadingProgress == null
-                  ? child
-                  : const Center(
-                      child: LoadingIndicator(),
-                    ),
+        child: FutureBuilder<Uint8List>(
+          future: _fetchImage(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return Image.memory(snapshot.data!);
+            } else if (snapshot.hasError) {
+              return const Center(child: Icon(Icons.error));
+            } else {
+              return const Center(); // TODO [prio=low]: Make better loading indicator.
+            }
+          },
         ),
       ),
     );
+  }
+
+  Future<Uint8List> _fetchImage() async {
+    final HTTP client = HTTP();
+    final Uri uri = Uri.parse("https://paynym.is/$paymentCodeString/avatar");
+
+    final response = await client.get(
+      url: uri,
+      proxyInfo: Prefs.instance.useTor
+          ? TorService.sharedInstance.getProxyInfo()
+          : null,
+    );
+
+    if (response.code == 200) {
+      return Uint8List.fromList(response.bodyBytes);
+    } else {
+      throw Exception('Failed to load image');
+    }
   }
 }
