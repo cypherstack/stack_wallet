@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:stackwallet/pages/frost_mascot.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/frost_share_commitments_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
@@ -18,6 +17,7 @@ import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/detail_item.dart';
+import 'package:stackwallet/widgets/frost_mascot.dart';
 
 class ShareNewMultisigConfigView extends ConsumerStatefulWidget {
   const ShareNewMultisigConfigView({
@@ -49,7 +49,8 @@ class _ShareNewMultisigConfigViewState
           leading: AppBarBackButton(),
           trailing: FrostMascot(
             title: 'Lorem ipsum',
-            body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam est justo, ',
+            body:
+                'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam est justo, ',
           ),
         ),
         body: SizedBox(

@@ -18,8 +18,7 @@ import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/detail_item.dart';
 import 'package:stackwallet/widgets/dialogs/frost_interruption_dialog.dart';
-
-import 'package:stackwallet/pages/frost_mascot.dart';
+import 'package:stackwallet/widgets/frost_mascot.dart';
 
 class NewContinueSharingView extends ConsumerStatefulWidget {
   const NewContinueSharingView({
@@ -71,7 +70,8 @@ class _NewContinueSharingViewState
             ),
             trailing: FrostMascot(
               title: 'Lorem ipsum',
-              body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam est justo, ',
+              body:
+                  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam est justo, ',
             ),
           ),
           body: SizedBox(

@@ -8,7 +8,6 @@ import 'package:frostdart/frostdart.dart' as frost;
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/node_service_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
@@ -33,14 +32,13 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/frost_mascot.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
-
-import 'package:stackwallet/pages/frost_mascot.dart';
 
 class RestoreFrostMsWalletView extends ConsumerStatefulWidget {
   const RestoreFrostMsWalletView({
@@ -215,13 +213,13 @@ class _RestoreFrostMsWalletViewState
       builder: (child) => DesktopScaffold(
         background: Theme.of(context).extension<StackColors>()!.background,
         appBar: DesktopAppBar(
-          isCompactHeight: false,
-          leading: AppBarBackButton(),
-          trailing: FrostMascot(
-            title: 'Lorem ipsum',
-            body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam est justo, ',
-          )
-        ),
+            isCompactHeight: false,
+            leading: AppBarBackButton(),
+            trailing: FrostMascot(
+              title: 'Lorem ipsum',
+              body:
+                  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam est justo, ',
+            )),
         body: SizedBox(
           width: 480,
           child: child,

@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/frost_mascot.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
@@ -21,6 +20,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -32,9 +32,8 @@ import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/detail_item.dart';
 import 'package:stackwallet/widgets/dialogs/frost_interruption_dialog.dart';
+import 'package:stackwallet/widgets/frost_mascot.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
-
-import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 
 class ConfirmNewFrostMSWalletCreationView extends ConsumerStatefulWidget {
   const ConfirmNewFrostMSWalletCreationView({
@@ -105,7 +104,8 @@ class _ConfirmNewFrostMSWalletCreationViewState
             ),
             trailing: FrostMascot(
               title: 'Lorem ipsum',
-              body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam est justo, ',
+              body:
+                  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam est justo, ',
             ),
           ),
           body: SizedBox(

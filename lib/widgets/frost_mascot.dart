@@ -15,9 +15,11 @@ import 'package:stackwallet/utilities/assets.dart';
 class FrostMascot extends StatelessWidget {
   final String title;
   final String body;
-  FrostMascot({
+  const FrostMascot({
     super.key,
-    this.onPressed, required this.title, required this.body,
+    this.onPressed,
+    required this.title,
+    required this.body,
   });
 
   final VoidCallback? onPressed;
@@ -32,8 +34,10 @@ class FrostMascot extends StatelessWidget {
         onTap: () async {
           await showDialog<void>(
             context: context,
-            builder: (context) =>
-            FrostStepExplanationDialog(title: title, body: body),
+            builder: (context) => FrostStepExplanationDialog(
+              title: title,
+              body: body,
+            ),
           );
         },
         child: Image(

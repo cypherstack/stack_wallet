@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:stackwallet/pages/frost_mascot.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/frost_share_shares_view.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
@@ -25,6 +24,7 @@ import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/detail_item.dart';
 import 'package:stackwallet/widgets/dialogs/frost_interruption_dialog.dart';
+import 'package:stackwallet/widgets/frost_mascot.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
@@ -123,7 +123,8 @@ class _FrostShareCommitmentsViewState
             ),
             trailing: FrostMascot(
               title: 'Lorem ipsum',
-              body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam est justo, ',
+              body:
+                  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam est justo, ',
             ),
           ),
           body: SizedBox(

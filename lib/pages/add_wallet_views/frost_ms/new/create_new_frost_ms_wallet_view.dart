@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/frost_mascot.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/share_new_multisig_config_view.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/services/frost.dart';
@@ -15,6 +14,7 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/frost_mascot.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class CreateNewFrostMsWalletView extends ConsumerStatefulWidget {
@@ -123,7 +123,8 @@ class _NewFrostMsWalletViewState
           leading: AppBarBackButton(),
           trailing: FrostMascot(
             title: 'Lorem ipsum',
-            body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam est justo, ',
+            body:
+                'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam est justo, ',
           ),
         ),
         body: SizedBox(
