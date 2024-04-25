@@ -1574,7 +1574,7 @@ packages:
     source: hosted
     version: "1.0.4"
   socks_socket:
-    dependency: "direct main"
+    dependency: transitive
     description:
       path: "."
       ref: master
@@ -1586,8 +1586,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/solana"
-      ref: "0ada1f775c2a2c815de640424270a229f5e91e2f"
-      resolved-ref: "0ada1f775c2a2c815de640424270a229f5e91e2f"
+      ref: a83e375678eb22fe544dc125d29bbec0fb833882
+      resolved-ref: a83e375678eb22fe544dc125d29bbec0fb833882
       url: "https://github.com/cypherstack/espresso-cash-public.git"
     source: git
     version: "0.30.4"
