@@ -71,6 +71,9 @@ class Tezos extends Bip39Currency {
   int get minConfirms => 1;
 
   @override
+  bool get torSupport => true;
+
+  @override
   bool validateAddress(String address) {
     return RegExp(r"^tz[1-9A-HJ-NP-Za-km-z]{34}$").hasMatch(address);
   }
