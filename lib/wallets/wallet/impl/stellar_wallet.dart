@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:isar/isar.dart';
+import 'package:socks5_proxy/socks.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
@@ -9,6 +11,7 @@ import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart'
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -43,6 +46,7 @@ class StellarWallet extends Bip39Wallet<Stellar> {
   // ============== Private ====================================================
 
   stellar.StellarSDK? _stellarSdk;
+  HttpClient? _httpClient;
 
   Future<int> _getBaseFee() async {
     final fees = await stellarSdk.feeStats.execute();
@@ -51,7 +55,21 @@ class StellarWallet extends Bip39Wallet<Stellar> {
 
   void _updateSdk() {
     final currentNode = getCurrentNode();
-    _stellarSdk = stellar.StellarSDK("${currentNode.host}:${currentNode.port}");
+
+    // TODO [prio=med]: refactor out and call before requests in case Tor is enabled/disabled, listen to prefs change, or similar.
+    if (prefs.useTor) {
+      final ({InternetAddress host, int port}) proxyInfo =
+          TorService.sharedInstance.getProxyInfo();
+
+      _httpClient = HttpClient();
+      SocksTCPClient.assignToHttpClient(
+          _httpClient!, [ProxySettings(proxyInfo.host, proxyInfo.port)]);
+    } else {
+      _httpClient = null;
+    }
+
+    _stellarSdk = stellar.StellarSDK("${currentNode.host}:${currentNode.port}",
+        httpClient: _httpClient);
   }
 
   Future<bool> _accountExists(String accountId) async {
