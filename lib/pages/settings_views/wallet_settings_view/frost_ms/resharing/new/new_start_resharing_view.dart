@@ -18,7 +18,7 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/dialogs/frost_interruption_dialog.dart';
+import 'package:stackwallet/widgets/dialogs/frost/frost_interruption_dialog.dart';
 import 'package:stackwallet/widgets/frost_mascot.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';

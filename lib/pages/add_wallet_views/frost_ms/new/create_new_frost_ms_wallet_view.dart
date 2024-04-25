@@ -11,10 +11,13 @@ import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/dialogs/simple_mobile_dialog.dart';
 import 'package:stackwallet/widgets/frost_mascot.dart';
+import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class CreateNewFrostMsWalletView extends ConsumerStatefulWidget {
@@ -67,13 +70,14 @@ class _NewFrostMsWalletViewState
     }
 
     final hasEmptyParticipants = controllers
-        .map((e) => e.text.isEmpty)
+        .map((e) => e.text.trim().isEmpty)
         .reduce((value, element) => value |= element);
     if (hasEmptyParticipants) {
       return "Participants must not be empty";
     }
 
-    if (controllers.length != controllers.map((e) => e.text).toSet().length) {
+    if (controllers.length !=
+        controllers.map((e) => e.text.trim()).toSet().length) {
       return "Duplicate participant name found";
     }
 
@@ -100,6 +104,31 @@ class _NewFrostMsWalletViewState
         setState(() {});
       }
     }
+  }
+
+  void _showWhatIsThresholdDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (_) => SimpleMobileDialog(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // TODO: [prio=high] need text from designers!
+            Text(
+              "What is a threshold?",
+              style: STextStyles.w600_20(context),
+            ),
+            const SizedBox(
+              height: 12,
+            ),
+            Text(
+              "Text here",
+              style: STextStyles.w400_16(context),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -146,7 +175,7 @@ class _NewFrostMsWalletViewState
                 },
               ),
               title: Text(
-                "New FROST multisig config",
+                "Create new group",
                 style: STextStyles.navBarTitle(context),
               ),
             ),
@@ -174,9 +203,21 @@ class _NewFrostMsWalletViewState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Threshold",
-              style: STextStyles.label(context),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Threshold",
+                  style: STextStyles.w500_14(context).copyWith(
+                    color:
+                        Theme.of(context).extension<StackColors>()!.textDark3,
+                  ),
+                ),
+                CustomTextButton(
+                  text: "What is a threshold?",
+                  onTap: _showWhatIsThresholdDialog,
+                ),
+              ],
             ),
             const SizedBox(
               height: 10,
@@ -185,22 +226,53 @@ class _NewFrostMsWalletViewState
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               controller: _thresholdController,
+              decoration: InputDecoration(
+                hintText: "Enter number of signatures",
+                hintStyle: STextStyles.fieldLabel(context),
+              ),
             ),
             const SizedBox(
               height: 16,
             ),
             Text(
               "Number of participants",
-              style: STextStyles.label(context),
+              style: STextStyles.w500_14(context).copyWith(
+                color: Theme.of(context).extension<StackColors>()!.textDark3,
+              ),
             ),
             const SizedBox(
               height: 10,
             ),
-            TextField(
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              controller: _participantsController,
-              onChanged: _participantsCountChanged,
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                TextField(
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  controller: _participantsController,
+                  onChanged: _participantsCountChanged,
+                  decoration: InputDecoration(
+                    hintText: "Enter number of participants",
+                    hintStyle: STextStyles.fieldLabel(context),
+                  ),
+                ),
+                const SizedBox(
+                  height: 6,
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: RoundedWhiteContainer(
+                        child: Text(
+                          "Enter number of signatures required for fund management",
+                          style: STextStyles.label(context),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
             const SizedBox(
               height: 16,
@@ -208,24 +280,75 @@ class _NewFrostMsWalletViewState
             if (controllers.isNotEmpty)
               Text(
                 "My name",
-                style: STextStyles.label(context),
+                style: STextStyles.w500_14(context).copyWith(
+                  color: Theme.of(context).extension<StackColors>()!.textDark3,
+                ),
               ),
             if (controllers.isNotEmpty)
               const SizedBox(
                 height: 10,
               ),
             if (controllers.isNotEmpty)
-              TextField(
-                controller: controllers.first,
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: controllers.first,
+                    decoration: InputDecoration(
+                      hintText: "Enter your name",
+                      hintStyle: STextStyles.fieldLabel(context),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 6,
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: RoundedWhiteContainer(
+                          child: Text(
+                            "Type your name in one word without spaces",
+                            style: STextStyles.label(context),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             if (controllers.length > 1)
               const SizedBox(
                 height: 16,
               ),
             if (controllers.length > 1)
-              Text(
-                "Remaining participants",
-                style: STextStyles.label(context),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Remaining participants",
+                    style: STextStyles.w500_14(context).copyWith(
+                      color:
+                          Theme.of(context).extension<StackColors>()!.textDark3,
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 6,
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: RoundedWhiteContainer(
+                          child: Text(
+                            "Type each name in one word without spaces",
+                            style: STextStyles.label(context),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             if (controllers.length > 1)
               Column(
@@ -237,6 +360,10 @@ class _NewFrostMsWalletViewState
                       ),
                       child: TextField(
                         controller: controllers[i],
+                        decoration: InputDecoration(
+                          hintText: "Enter name",
+                          hintStyle: STextStyles.fieldLabel(context),
+                        ),
                       ),
                     ),
                 ],
@@ -246,7 +373,7 @@ class _NewFrostMsWalletViewState
               height: 16,
             ),
             PrimaryButton(
-              label: "Generate",
+              label: "Create new group",
               onPressed: () async {
                 if (FocusScope.of(context).hasFocus) {
                   FocusScope.of(context).unfocus();
@@ -265,12 +392,13 @@ class _NewFrostMsWalletViewState
                 }
 
                 final config = Frost.createMultisigConfig(
-                  name: controllers.first.text,
+                  name: controllers.first.text.trim(),
                   threshold: int.parse(_thresholdController.text),
-                  participants: controllers.map((e) => e.text).toList(),
+                  participants: controllers.map((e) => e.text.trim()).toList(),
                 );
 
-                ref.read(pFrostMyName.notifier).state = controllers.first.text;
+                ref.read(pFrostMyName.notifier).state =
+                    controllers.first.text.trim();
                 ref.read(pFrostMultisigConfig.notifier).state = config;
 
                 await Navigator.of(context).pushNamed(

@@ -26,7 +26,7 @@ import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/detail_item.dart';
-import 'package:stackwallet/widgets/dialogs/frost_interruption_dialog.dart';
+import 'package:stackwallet/widgets/dialogs/frost/frost_interruption_dialog.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class VerifyUpdatedWalletView extends ConsumerStatefulWidget {

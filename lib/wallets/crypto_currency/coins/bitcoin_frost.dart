@@ -12,9 +12,9 @@ class BitcoinFrost extends FrostCurrency {
   BitcoinFrost(super.network) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        coin = Coin.bitcoin;
+        coin = Coin.bitcoinFrost;
       case CryptoCurrencyNetwork.test:
-        coin = Coin.bitcoinTestNet;
+        coin = Coin.bitcoinFrostTestNet;
       default:
         throw Exception("Unsupported network: $network");
     }

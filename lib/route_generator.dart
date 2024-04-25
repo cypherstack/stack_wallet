@@ -26,10 +26,8 @@ import 'package:stackwallet/pages/add_wallet_views/add_token_view/add_custom_tok
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
-import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/confirm_new_frost_ms_wallet_creation_view.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/frost_scaffold.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/create_new_frost_ms_wallet_view.dart';
-import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/frost_share_commitments_view.dart';
-import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/frost_share_shares_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/import_new_frost_ms_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/select_new_frost_import_type_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/share_new_multisig_config_view.dart';
@@ -585,59 +583,14 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
-      case FrostShareCommitmentsView.routeName:
-        if (args is ({
-          String walletName,
-          FrostCurrency frostCurrency,
-        })) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => FrostShareCommitmentsView(
-              walletName: args.walletName,
-              frostCurrency: args.frostCurrency,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case FrostShareSharesView.routeName:
-        if (args is ({
-          String walletName,
-          FrostCurrency frostCurrency,
-        })) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => FrostShareSharesView(
-              walletName: args.walletName,
-              frostCurrency: args.frostCurrency,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case ConfirmNewFrostMSWalletCreationView.routeName:
-        if (args is ({
-          String walletName,
-          FrostCurrency frostCurrency,
-        })) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => ConfirmNewFrostMSWalletCreationView(
-              walletName: args.walletName,
-              frostCurrency: args.frostCurrency,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
+      case FrostStepScaffold.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const FrostStepScaffold(),
+          settings: RouteSettings(
+            name: settings.name,
+          ),
+        );
 
       case FrostMSWalletOptionsView.routeName:
         if (args is String) {

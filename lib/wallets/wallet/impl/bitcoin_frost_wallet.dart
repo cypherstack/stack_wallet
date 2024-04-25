@@ -41,7 +41,6 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
   late CachedElectrumXClient electrumXCachedClient;
 
   Future<void> initializeNewFrost({
-    required String mnemonic,
     required String multisigConfig,
     required String recoveryString,
     required String serializedKeys,
@@ -70,14 +69,6 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
         threshold: threshold,
       );
 
-      await secureStorageInterface.write(
-        key: Wallet.mnemonicKey(walletId: info.walletId),
-        value: mnemonic,
-      );
-      await secureStorageInterface.write(
-        key: Wallet.mnemonicPassphraseKey(walletId: info.walletId),
-        value: "",
-      );
       await _saveSerializedKeys(serializedKeys);
       await _saveRecoveryString(recoveryString);
       await _saveMultisigId(multisigId);

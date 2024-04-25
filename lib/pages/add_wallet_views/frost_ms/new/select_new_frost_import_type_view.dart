@@ -14,7 +14,7 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/dialogs/simple_mobile_dialog.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class SelectNewFrostImportTypeView extends StatefulWidget {
@@ -268,124 +268,70 @@ class _FrostJoinInfoDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
+    return SimpleMobileDialog(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Flexible(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Material(
-                borderRadius: BorderRadius.circular(
-                  20,
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).extension<StackColors>()!.popupBG,
-                    borderRadius: BorderRadius.circular(
-                      20,
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Flexible(
-                          child: SingleChildScrollView(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // TODO: [prio=high] need text from designers!
-                                Text(
-                                  "Join a group",
-                                  style: STextStyles.w600_20(context),
-                                ),
-                                const SizedBox(
-                                  height: 12,
-                                ),
-                                Text(
-                                  "Text here",
-                                  style: STextStyles.w400_16(context),
-                                ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                Text(
-                                  "What is resharing?",
-                                  style: STextStyles.w600_16(context),
-                                ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                Text(
-                                  "In cryptocurrency, you are your own bank."
-                                  " Imagine keeping cash at home. If that cash"
-                                  " burns down or gets stolen, you lose it and"
-                                  " nobody will help you get your money back.",
-                                  style: STextStyles.w400_16(context),
-                                ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                Text(
-                                  "Since cryptocurrency is digital money, your "
-                                  "wallet key is like that “cash” you keep at "
-                                  "home. If you lose your phone or if you "
-                                  "forget your wallet PIN, but you have your "
-                                  "wallet key, your crypto money will be safe. "
-                                  "That is why you should keep your wallet key "
-                                  "safe.",
-                                  style: STextStyles.w400_16(context),
-                                ),
-                                const SizedBox(
-                                  height: 12,
-                                ),
-                                Text(
-                                  "Why write it down?",
-                                  style: STextStyles.w600_16(context),
-                                ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                Text(
-                                  "You do not put your cash on display, do you?"
-                                  " Keeping your wallet key on a digital device"
-                                  " is like having it on display for thieves - "
-                                  "malicious software and hackers. Write your "
-                                  "wallet key down on paper in multiple copies "
-                                  "and keep them in a real, physical safe.",
-                                  style: STextStyles.w400_16(context),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 16,
-                        ),
-                        Row(
-                          children: [
-                            const Spacer(),
-                            const SizedBox(
-                              width: 16,
-                            ),
-                            Expanded(
-                              child: SecondaryButton(
-                                label: "Close",
-                                onPressed: Navigator.of(context).pop,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
+          // TODO: [prio=high] need text from designers!
+          Text(
+            "Join a group",
+            style: STextStyles.w600_20(context),
+          ),
+          const SizedBox(
+            height: 12,
+          ),
+          Text(
+            "Text here",
+            style: STextStyles.w400_16(context),
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+          Text(
+            "What is resharing?",
+            style: STextStyles.w600_16(context),
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+          Text(
+            "In cryptocurrency, you are your own bank."
+            " Imagine keeping cash at home. If that cash"
+            " burns down or gets stolen, you lose it and"
+            " nobody will help you get your money back.",
+            style: STextStyles.w400_16(context),
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+          Text(
+            "Since cryptocurrency is digital money, your "
+            "wallet key is like that “cash” you keep at "
+            "home. If you lose your phone or if you "
+            "forget your wallet PIN, but you have your "
+            "wallet key, your crypto money will be safe. "
+            "That is why you should keep your wallet key "
+            "safe.",
+            style: STextStyles.w400_16(context),
+          ),
+          const SizedBox(
+            height: 12,
+          ),
+          Text(
+            "Why write it down?",
+            style: STextStyles.w600_16(context),
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+          Text(
+            "You do not put your cash on display, do you?"
+            " Keeping your wallet key on a digital device"
+            " is like having it on display for thieves - "
+            "malicious software and hackers. Write your "
+            "wallet key down on paper in multiple copies "
+            "and keep them in a real, physical safe.",
+            style: STextStyles.w400_16(context),
           ),
         ],
       ),
