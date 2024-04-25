@@ -11,10 +11,10 @@ import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/services/frost.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -36,13 +36,13 @@ class FrostShareSharesView extends ConsumerStatefulWidget {
   const FrostShareSharesView({
     super.key,
     required this.walletName,
-    required this.coin,
+    required this.frostCurrency,
   });
 
   static const String routeName = "/frostShareSharesView";
 
   final String walletName;
-  final Coin coin;
+  final FrostCurrency frostCurrency;
 
   @override
   ConsumerState<FrostShareSharesView> createState() =>
@@ -120,7 +120,8 @@ class _FrostShareSharesViewState extends ConsumerState<FrostShareSharesView> {
                 );
               },
             ),
-            trailing: FrostMascot(
+            // TODO: [prio=high] get rid of placeholder text??
+            trailing: const FrostMascot(
               title: 'Lorem ipsum',
               body:
                   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam est justo, ',
@@ -364,7 +365,7 @@ class _FrostShareSharesViewState extends ConsumerState<FrostShareSharesView> {
                       ConfirmNewFrostMSWalletCreationView.routeName,
                       arguments: (
                         walletName: widget.walletName,
-                        coin: widget.coin,
+                        frostCurrency: widget.frostCurrency,
                       ),
                     );
                   } catch (e, s) {

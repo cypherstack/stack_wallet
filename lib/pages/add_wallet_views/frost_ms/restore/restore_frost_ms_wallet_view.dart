@@ -17,11 +17,11 @@ import 'package:stackwallet/services/frost.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
 import 'package:stackwallet/wallets/isar/models/frost_wallet_info.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
@@ -44,13 +44,13 @@ class RestoreFrostMsWalletView extends ConsumerStatefulWidget {
   const RestoreFrostMsWalletView({
     super.key,
     required this.walletName,
-    required this.coin,
+    required this.frostCurrency,
   });
 
   static const String routeName = "/restoreFrostMsWalletView";
 
   final String walletName;
-  final Coin coin;
+  final FrostCurrency frostCurrency;
 
   @override
   ConsumerState<RestoreFrostMsWalletView> createState() =>
@@ -75,7 +75,7 @@ class _RestoreFrostMsWalletViewState
     final myName = participants[myNameIndex];
 
     final info = WalletInfo.createNew(
-      coin: widget.coin,
+      coin: widget.frostCurrency.coin,
       name: widget.walletName,
     );
 
@@ -212,14 +212,16 @@ class _RestoreFrostMsWalletViewState
       condition: Util.isDesktop,
       builder: (child) => DesktopScaffold(
         background: Theme.of(context).extension<StackColors>()!.background,
-        appBar: DesktopAppBar(
-            isCompactHeight: false,
-            leading: AppBarBackButton(),
-            trailing: FrostMascot(
-              title: 'Lorem ipsum',
-              body:
-                  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam est justo, ',
-            )),
+        appBar: const DesktopAppBar(
+          isCompactHeight: false,
+          leading: AppBarBackButton(),
+          // TODO: [prio=high] get rid of placeholder text??
+          trailing: FrostMascot(
+            title: 'Lorem ipsum',
+            body:
+                'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam est justo, ',
+          ),
+        ),
         body: SizedBox(
           width: 480,
           child: child,

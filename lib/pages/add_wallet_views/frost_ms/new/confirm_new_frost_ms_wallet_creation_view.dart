@@ -16,10 +16,10 @@ import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/frost.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
@@ -39,13 +39,13 @@ class ConfirmNewFrostMSWalletCreationView extends ConsumerStatefulWidget {
   const ConfirmNewFrostMSWalletCreationView({
     super.key,
     required this.walletName,
-    required this.coin,
+    required this.frostCurrency,
   });
 
   static const String routeName = "/confirmNewFrostMSWalletCreationView";
 
   final String walletName;
-  final Coin coin;
+  final FrostCurrency frostCurrency;
 
   @override
   ConsumerState<ConfirmNewFrostMSWalletCreationView> createState() =>
@@ -102,7 +102,8 @@ class _ConfirmNewFrostMSWalletCreationViewState
                 );
               },
             ),
-            trailing: FrostMascot(
+            // TODO: [prio=high] get rid of placeholder text??
+            trailing: const FrostMascot(
               title: 'Lorem ipsum',
               body:
                   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam est justo, ',
@@ -230,7 +231,7 @@ class _ConfirmNewFrostMSWalletCreationViewState
                     );
 
                     final info = WalletInfo.createNew(
-                      coin: widget.coin,
+                      coin: widget.frostCurrency.coin,
                       name: widget.walletName,
                     );
 

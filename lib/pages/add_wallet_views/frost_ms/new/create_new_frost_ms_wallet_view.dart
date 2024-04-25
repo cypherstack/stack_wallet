@@ -5,9 +5,9 @@ import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/share_new_multis
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/services/frost.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -21,13 +21,13 @@ class CreateNewFrostMsWalletView extends ConsumerStatefulWidget {
   const CreateNewFrostMsWalletView({
     super.key,
     required this.walletName,
-    required this.coin,
+    required this.frostCurrency,
   });
 
   static const String routeName = "/createNewFrostMsWalletView";
 
   final String walletName;
-  final Coin coin;
+  final FrostCurrency frostCurrency;
 
   @override
   ConsumerState<CreateNewFrostMsWalletView> createState() =>
@@ -118,9 +118,10 @@ class _NewFrostMsWalletViewState
       condition: Util.isDesktop,
       builder: (child) => DesktopScaffold(
         background: Theme.of(context).extension<StackColors>()!.background,
-        appBar: DesktopAppBar(
+        appBar: const DesktopAppBar(
           isCompactHeight: false,
           leading: AppBarBackButton(),
+          // TODO: [prio=high] get rid of placeholder text??
           trailing: FrostMascot(
             title: 'Lorem ipsum',
             body:
@@ -276,7 +277,7 @@ class _NewFrostMsWalletViewState
                   ShareNewMultisigConfigView.routeName,
                   arguments: (
                     walletName: widget.walletName,
-                    coin: widget.coin,
+                    frostCurrency: widget.frostCurrency,
                   ),
                 );
               },

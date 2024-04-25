@@ -31,6 +31,7 @@ import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/create_new_frost
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/frost_share_commitments_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/frost_share_shares_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/import_new_frost_ms_wallet_view.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/select_new_frost_import_type_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/share_new_multisig_config_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/restore/restore_frost_ms_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/name_your_wallet_view/name_your_wallet_view.dart';
@@ -205,6 +206,7 @@ import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/widgets/choose_coin_view.dart';
@@ -450,13 +452,13 @@ class RouteGenerator {
       case CreateNewFrostMsWalletView.routeName:
         if (args is ({
           String walletName,
-          Coin coin,
+          FrostCurrency frostCurrency,
         })) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => CreateNewFrostMsWalletView(
               walletName: args.walletName,
-              coin: args.coin,
+              frostCurrency: args.frostCurrency,
             ),
             settings: RouteSettings(
               name: settings.name,
@@ -468,13 +470,13 @@ class RouteGenerator {
       case RestoreFrostMsWalletView.routeName:
         if (args is ({
           String walletName,
-          Coin coin,
+          FrostCurrency frostCurrency,
         })) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => RestoreFrostMsWalletView(
               walletName: args.walletName,
-              coin: args.coin,
+              frostCurrency: args.frostCurrency,
             ),
             settings: RouteSettings(
               name: settings.name,
@@ -486,13 +488,13 @@ class RouteGenerator {
       case ShareNewMultisigConfigView.routeName:
         if (args is ({
           String walletName,
-          Coin coin,
+          FrostCurrency frostCurrency,
         })) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => ShareNewMultisigConfigView(
               walletName: args.walletName,
-              coin: args.coin,
+              frostCurrency: args.frostCurrency,
             ),
             settings: RouteSettings(
               name: settings.name,
@@ -504,13 +506,13 @@ class RouteGenerator {
       case ImportNewFrostMsWalletView.routeName:
         if (args is ({
           String walletName,
-          Coin coin,
+          FrostCurrency frostCurrency,
         })) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => ImportNewFrostMsWalletView(
               walletName: args.walletName,
-              coin: args.coin,
+              frostCurrency: args.frostCurrency,
             ),
             settings: RouteSettings(
               name: settings.name,
@@ -522,13 +524,13 @@ class RouteGenerator {
       case NewImportResharerConfigView.routeName:
         if (args is ({
           String walletName,
-          Coin coin,
+          FrostCurrency frostCurrency,
         })) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => NewImportResharerConfigView(
               walletName: args.walletName,
-              coin: args.coin,
+              frostCurrency: args.frostCurrency,
             ),
             settings: RouteSettings(
               name: settings.name,
@@ -568,13 +570,13 @@ class RouteGenerator {
       case FrostShareCommitmentsView.routeName:
         if (args is ({
           String walletName,
-          Coin coin,
+          FrostCurrency frostCurrency,
         })) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => FrostShareCommitmentsView(
               walletName: args.walletName,
-              coin: args.coin,
+              frostCurrency: args.frostCurrency,
             ),
             settings: RouteSettings(
               name: settings.name,
@@ -586,13 +588,13 @@ class RouteGenerator {
       case FrostShareSharesView.routeName:
         if (args is ({
           String walletName,
-          Coin coin,
+          FrostCurrency frostCurrency,
         })) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => FrostShareSharesView(
               walletName: args.walletName,
-              coin: args.coin,
+              frostCurrency: args.frostCurrency,
             ),
             settings: RouteSettings(
               name: settings.name,
@@ -604,13 +606,13 @@ class RouteGenerator {
       case ConfirmNewFrostMSWalletCreationView.routeName:
         if (args is ({
           String walletName,
-          Coin coin,
+          FrostCurrency frostCurrency,
         })) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => ConfirmNewFrostMSWalletCreationView(
               walletName: args.walletName,
-              coin: args.coin,
+              frostCurrency: args.frostCurrency,
             ),
             settings: RouteSettings(
               name: settings.name,
