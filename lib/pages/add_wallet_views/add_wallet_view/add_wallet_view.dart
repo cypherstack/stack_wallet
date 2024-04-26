@@ -131,7 +131,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
       _coins.remove(Coin.monero);
       _coins.remove(Coin.wownero);
     } else if (Platform.isLinux) {
-      _coins.remove(Coin.wownero);
+      // _coins.remove(Coin.wownero);
     }
 
     coinEntities.addAll(_coins.map((e) => CoinEntity(e)));

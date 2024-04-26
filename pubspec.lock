@@ -1144,8 +1144,8 @@ packages:
     dependency: transitive
     description:
       path: "."
-      ref: "342bad5d91d8476f0e32a57ae944f2cfe34d4241"
-      resolved-ref: "342bad5d91d8476f0e32a57ae944f2cfe34d4241"
+      ref: "2e1d13765c1403a933c77972511a661f26d4af2e"
+      resolved-ref: "2e1d13765c1403a933c77972511a661f26d4af2e"
       url: "https://git.mrcyjanek.net/mrcyjanek/monero.dart"
     source: git
     version: "0.0.0"
