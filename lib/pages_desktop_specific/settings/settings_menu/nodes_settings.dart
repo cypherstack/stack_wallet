@@ -69,7 +69,7 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
       _coins.remove(Coin.monero);
       _coins.remove(Coin.wownero);
     } else if (Platform.isLinux) {
-      _coins.remove(Coin.wownero);
+      // _coins.remove(Coin.wownero);
     }
 
     searchNodeController = TextEditingController();
