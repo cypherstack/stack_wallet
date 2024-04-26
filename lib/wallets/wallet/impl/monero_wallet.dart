@@ -218,8 +218,8 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
           final addressString =
               (CwBasedInterface.cwWalletBase as MoneroWalletBase?)
                   ?.getTransactionAddress(
-            addressInfo!['accountIndex'] as int,
-            addressInfo['addressIndex'] as int,
+            addressInfo?['accountIndex'] as int? ?? 0,
+            addressInfo?['addressIndex'] as int? ?? 0,
           );
 
           if (addressString != null) {
