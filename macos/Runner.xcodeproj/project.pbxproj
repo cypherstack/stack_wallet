@@ -31,6 +31,8 @@
 		B98151822A67402A009D013C /* mobileliblelantus.framework in Bundle Framework */ = {isa = PBXBuildFile; fileRef = B98151802A674022009D013C /* mobileliblelantus.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B98151842A674143009D013C /* libsqlite3.0.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = B98151832A674143009D013C /* libsqlite3.0.tbd */; };
 		BFD0376C00E1FFD46376BB9D /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9206484E84CB0AD93E3E68CA /* Pods_RunnerTests.framework */; };
+		CEA2021D2BDD4D7100FE1D27 /* wownero_libwallet2_api_c.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA2021C2BDD4D7100FE1D27 /* wownero_libwallet2_api_c.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		CEA202202BDD4F0B00FE1D27 /* monero_libwallet2_api_c.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA2021F2BDD4F0B00FE1D27 /* monero_libwallet2_api_c.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		F1FA2C4E2BA4B49F00BDA1BB /* frostdart.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F1FA2C4D2BA4B49F00BDA1BB /* frostdart.dylib */; settings = {ATTRIBUTES = (Weak, ); }; };
 		F1FA2C502BA4B4CA00BDA1BB /* frostdart.dylib in Resources */ = {isa = PBXBuildFile; fileRef = F1FA2C4F2BA4B4CA00BDA1BB /* frostdart.dylib */; };
 		F1FA2C512BA4B51E00BDA1BB /* frostdart.dylib in Bundle Framework */ = {isa = PBXBuildFile; fileRef = F1FA2C4D2BA4B49F00BDA1BB /* frostdart.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -67,6 +69,17 @@
 			name = "Bundle Framework";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CEA202192BDD4C3500FE1D27 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 12;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				CEA202202BDD4F0B00FE1D27 /* monero_libwallet2_api_c.dylib in CopyFiles */,
+				CEA2021D2BDD4D7100FE1D27 /* wownero_libwallet2_api_c.dylib in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -97,6 +110,8 @@
 		B98151802A674022009D013C /* mobileliblelantus.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = mobileliblelantus.framework; path = ../crypto_plugins/flutter_liblelantus/scripts/macos/mobileliblelantus/mobileliblelantus.framework; sourceTree = "<group>"; };
 		B98151832A674143009D013C /* libsqlite3.0.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.0.tbd; path = usr/lib/libsqlite3.0.tbd; sourceTree = SDKROOT; };
 		BF5E76865ACB46314AC27D8F /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
+		CEA2021C2BDD4D7100FE1D27 /* wownero_libwallet2_api_c.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = wownero_libwallet2_api_c.dylib; sourceTree = "<group>"; };
+		CEA2021F2BDD4F0B00FE1D27 /* monero_libwallet2_api_c.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = monero_libwallet2_api_c.dylib; sourceTree = "<group>"; };
 		E6036BF01BF05EA773C76D22 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F1FA2C4D2BA4B49F00BDA1BB /* frostdart.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = frostdart.dylib; path = ../crypto_plugins/frostdart/macos/frostdart.dylib; sourceTree = "<group>"; };
 		F1FA2C4F2BA4B4CA00BDA1BB /* frostdart.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = frostdart.dylib; path = ../crypto_plugins/frostdart/macos/frostdart.dylib; sourceTree = "<group>"; };
@@ -147,6 +162,8 @@
 		33CC10E42044A3C60003C045 = {
 			isa = PBXGroup;
 			children = (
+				CEA2021F2BDD4F0B00FE1D27 /* monero_libwallet2_api_c.dylib */,
+				CEA2021C2BDD4D7100FE1D27 /* wownero_libwallet2_api_c.dylib */,
 				F1FA2C4F2BA4B4CA00BDA1BB /* frostdart.dylib */,
 				33FAB671232836740065AC1E /* Runner */,
 				33CEB47122A05771004F2AC0 /* Flutter */,
@@ -259,6 +276,7 @@
 				33CC110E2044A8840003C045 /* Bundle Framework */,
 				3399D490228B24CF009A79C7 /* ShellScript */,
 				529691D83C3BADE14E2EAC03 /* [CP] Embed Pods Frameworks */,
+				CEA202192BDD4C3500FE1D27 /* CopyFiles */,
 			);
 			buildRules = (
 			);
