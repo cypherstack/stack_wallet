@@ -25,17 +25,17 @@ import 'package:stackwallet/widgets/detail_item.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 
-class FrostCreateStep4 extends ConsumerStatefulWidget {
-  const FrostCreateStep4({super.key});
+class FrostCreateStep5 extends ConsumerStatefulWidget {
+  const FrostCreateStep5({super.key});
 
-  static const String routeName = "/frostCreateStep4";
+  static const String routeName = "/frostCreateStep5";
   static const String title = "Back up your keys";
 
   @override
-  ConsumerState<FrostCreateStep4> createState() => _FrostCreateStep4State();
+  ConsumerState<FrostCreateStep5> createState() => _FrostCreateStep5State();
 }
 
-class _FrostCreateStep4State extends ConsumerState<FrostCreateStep4> {
+class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
   static const _warning = "These are your private keys. Please back them up, "
       "keep them safe and never share it with anyone. Your private keys are the"
       " only way you can access your funds if you forget PIN, lose your phone, "

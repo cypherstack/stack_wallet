@@ -1,10 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/share_new_multisig_config_view.dart';
+import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/frost_scaffold.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_route_generator.dart';
+import 'package:stackwallet/pages/home_view/home_view.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/services/frost.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
@@ -401,12 +408,47 @@ class _NewFrostMsWalletViewState
                     controllers.first.text.trim();
                 ref.read(pFrostMultisigConfig.notifier).state = config;
 
-                await Navigator.of(context).pushNamed(
-                  ShareNewMultisigConfigView.routeName,
-                  arguments: (
+                ref.read(pFrostCreateNewArgs.state).state = (
+                  (
                     walletName: widget.walletName,
                     frostCurrency: widget.frostCurrency,
                   ),
+                  FrostRouteGenerator.createNewConfigStepRoutes,
+                  () {
+                    // successful completion of steps
+                    if (Util.isDesktop) {
+                      Navigator.of(context).popUntil(
+                        ModalRoute.withName(
+                          DesktopHomeView.routeName,
+                        ),
+                      );
+                    } else {
+                      unawaited(
+                        Navigator.of(context).pushNamedAndRemoveUntil(
+                          HomeView.routeName,
+                          (route) => false,
+                        ),
+                      );
+                    }
+
+                    ref.read(pFrostMultisigConfig.state).state = null;
+                    ref.read(pFrostStartKeyGenData.state).state = null;
+                    ref.read(pFrostSecretSharesData.state).state = null;
+                    ref.read(pFrostCreateNewArgs.state).state = null;
+
+                    unawaited(
+                      showFloatingFlushBar(
+                        type: FlushBarType.success,
+                        message: "Your wallet is set up.",
+                        iconAsset: Assets.svg.check,
+                        context: context,
+                      ),
+                    );
+                  }
+                );
+
+                await Navigator.of(context).pushNamed(
+                  FrostStepScaffold.routeName,
                 );
               },
             ),

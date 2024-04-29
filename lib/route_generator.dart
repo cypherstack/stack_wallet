@@ -30,7 +30,6 @@ import 'package:stackwallet/pages/add_wallet_views/frost_ms/frost_scaffold.dart'
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/create_new_frost_ms_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/import_new_frost_ms_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/select_new_frost_import_type_view.dart';
-import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/share_new_multisig_config_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/restore/restore_frost_ms_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/name_your_wallet_view/name_your_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_options/new_wallet_options_view.dart';
@@ -473,24 +472,6 @@ class RouteGenerator {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => RestoreFrostMsWalletView(
-              walletName: args.walletName,
-              frostCurrency: args.frostCurrency,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case ShareNewMultisigConfigView.routeName:
-        if (args is ({
-          String walletName,
-          FrostCurrency frostCurrency,
-        })) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => ShareNewMultisigConfigView(
               walletName: args.walletName,
               frostCurrency: args.frostCurrency,
             ),

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_create_step_22.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_create_step_3.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_route_generator.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
@@ -27,19 +27,19 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
-class FrostCreateStep1 extends ConsumerStatefulWidget {
-  const FrostCreateStep1({
+class FrostCreateStep2 extends ConsumerStatefulWidget {
+  const FrostCreateStep2({
     super.key,
   });
 
-  static const String routeName = "/frostCreateStep1";
+  static const String routeName = "/frostCreateStep2";
   static const String title = "Commitments";
 
   @override
-  ConsumerState<FrostCreateStep1> createState() => _FrostCreateStep1State();
+  ConsumerState<FrostCreateStep2> createState() => _FrostCreateStep2State();
 }
 
-class _FrostCreateStep1State extends ConsumerState<FrostCreateStep1> {
+class _FrostCreateStep2State extends ConsumerState<FrostCreateStep2> {
   static const info = [
     "Share your commitment with other group members.",
     "Enter their commitments into the corresponding fields.",
@@ -60,7 +60,7 @@ class _FrostCreateStep1State extends ConsumerState<FrostCreateStep1> {
       context: context,
       builder: (_) => FrostStepQrDialog(
         myName: ref.read(pFrostMyName)!,
-        title: "Step 1 of 4 - ${FrostCreateStep1.title}",
+        title: "Step 2 of 5 - ${FrostCreateStep2.title}",
         data: myCommitment,
       ),
     );
@@ -341,9 +341,9 @@ class _FrostCreateStep1State extends ConsumerState<FrostCreateStep1> {
                   commitments: commitments,
                 );
 
-                ref.read(pFrostCreateCurrentStep.state).state = 2;
+                ref.read(pFrostCreateCurrentStep.state).state = 3;
                 await Navigator.of(context).pushNamed(
-                  FrostCreateStep2.routeName,
+                  FrostCreateStep3.routeName,
                 );
               } catch (e, s) {
                 Logging.instance.log(

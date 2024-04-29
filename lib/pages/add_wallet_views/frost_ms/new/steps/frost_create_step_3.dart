@@ -27,17 +27,17 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
-class FrostCreateStep2 extends ConsumerStatefulWidget {
-  const FrostCreateStep2({super.key});
+class FrostCreateStep3 extends ConsumerStatefulWidget {
+  const FrostCreateStep3({super.key});
 
-  static const String routeName = "/frostCreateStep2";
+  static const String routeName = "/frostCreateStep3";
   static const String title = "Shares";
 
   @override
-  ConsumerState<FrostCreateStep2> createState() => _FrostCreateStep2State();
+  ConsumerState<FrostCreateStep3> createState() => _FrostCreateStep3State();
 }
 
-class _FrostCreateStep2State extends ConsumerState<FrostCreateStep2> {
+class _FrostCreateStep3State extends ConsumerState<FrostCreateStep3> {
   static const info = [
     "Send your share to other group members.",
     "Enter their shares into the corresponding fields.",
@@ -57,7 +57,7 @@ class _FrostCreateStep2State extends ConsumerState<FrostCreateStep2> {
       context: context,
       builder: (_) => FrostStepQrDialog(
         myName: ref.read(pFrostMyName)!,
-        title: "Step 2 of 4 - ${FrostCreateStep2.title}",
+        title: "Step 3 of 5 - ${FrostCreateStep3.title}",
         data: myShare,
       ),
     );
@@ -291,9 +291,9 @@ class _FrostCreateStep2State extends ConsumerState<FrostCreateStep2> {
                   shares: shares,
                 );
 
-                ref.read(pFrostCreateCurrentStep.state).state = 3;
+                ref.read(pFrostCreateCurrentStep.state).state = 4;
                 await Navigator.of(context).pushNamed(
-                  FrostCreateStep3.routeName,
+                  FrostCreateStep4.routeName,
                 );
               } catch (e, s) {
                 Logging.instance.log(

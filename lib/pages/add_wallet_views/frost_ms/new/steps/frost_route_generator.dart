@@ -1,9 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_create_step_11.dart';
-import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_create_step_22.dart';
-import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_create_step_33.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_create_step_1.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_create_step_2.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_create_step_3.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_create_step_4.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_create_step_5.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
@@ -22,20 +23,21 @@ abstract class FrostRouteGenerator {
   static const bool useMaterialPageRoute = true;
 
   static const List<FrostStepRoute> createNewConfigStepRoutes = [
-    (routeName: FrostCreateStep1.routeName, title: FrostCreateStep1.title),
+    (routeName: FrostCreateStep1a.routeName, title: FrostCreateStep1a.title),
     (routeName: FrostCreateStep2.routeName, title: FrostCreateStep2.title),
     (routeName: FrostCreateStep3.routeName, title: FrostCreateStep3.title),
     (routeName: FrostCreateStep4.routeName, title: FrostCreateStep4.title),
+    (routeName: FrostCreateStep5.routeName, title: FrostCreateStep5.title),
   ];
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     final args = settings.arguments;
 
     switch (settings.name) {
-      case FrostCreateStep1.routeName:
+      case FrostCreateStep1a.routeName:
         return RouteGenerator.getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
-          builder: (_) => const FrostCreateStep1(),
+          builder: (_) => const FrostCreateStep1a(),
           settings: settings,
         );
 
@@ -57,6 +59,13 @@ abstract class FrostRouteGenerator {
         return RouteGenerator.getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
           builder: (_) => const FrostCreateStep4(),
+          settings: settings,
+        );
+
+      case FrostCreateStep5.routeName:
+        return RouteGenerator.getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const FrostCreateStep5(),
           settings: settings,
         );
 
