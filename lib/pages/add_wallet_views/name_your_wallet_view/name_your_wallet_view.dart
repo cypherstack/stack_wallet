@@ -395,7 +395,10 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
                     RestoreFrostMsWalletView.routeName,
                     arguments: (
                       walletName: name,
-                      coin: coin,
+                      // TODO: [prio=med] this will cause issues if frost is ever applied to other coins
+                      frostCurrency: coin.isTestNet
+                          ? BitcoinFrost(CryptoCurrencyNetwork.test)
+                          : BitcoinFrost(CryptoCurrencyNetwork.main),
                     ),
                   );
                 },
