@@ -126,9 +126,9 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/tor_settin
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/frost_ms_options_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/frost_participants_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/resharing/finish_resharing_view.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/resharing/involved/step_1a/begin_reshare_config_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/resharing/involved/step_1a/complete_reshare_config_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/resharing/involved/step_1a/display_reshare_config_view.dart';
+import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/resharing/involved/step_1a/initiate_resharing_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/resharing/involved/step_1b/import_reshare_config_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/resharing/involved/step_2/begin_resharing_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/resharing/involved/step_2/continue_resharing_view.dart';
@@ -634,11 +634,11 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
-      case BeginReshareConfigView.routeName:
+      case InitiateResharingView.routeName:
         if (args is String) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => BeginReshareConfigView(
+            builder: (_) => InitiateResharingView(
               walletId: args,
             ),
             settings: RouteSettings(

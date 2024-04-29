@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/settings_views/sub_widgets/settings_list_button.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/frost_participants_view.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/resharing/involved/step_1a/begin_reshare_config_view.dart';
+import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/resharing/involved/step_1a/initiate_resharing_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/resharing/involved/step_1b/import_reshare_config_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
@@ -120,7 +120,7 @@ class FrostMSWalletOptionsView extends ConsumerWidget {
                       ref.read(pFrostMyName.state).state = frostInfo.myName;
 
                       Navigator.of(context).pushNamed(
-                        BeginReshareConfigView.routeName,
+                        InitiateResharingView.routeName,
                         arguments: walletId,
                       );
                     },

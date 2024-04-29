@@ -5,7 +5,6 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stac
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/models/frost_wallet_info.dart';
@@ -15,9 +14,10 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/rounded_white_container.dart';
 
-final class BeginReshareConfigView extends ConsumerStatefulWidget {
-  const BeginReshareConfigView({
+final class InitiateResharingView extends ConsumerStatefulWidget {
+  const InitiateResharingView({
     super.key,
     required this.walletId,
   });
@@ -27,16 +27,18 @@ final class BeginReshareConfigView extends ConsumerStatefulWidget {
   final String walletId;
 
   @override
-  ConsumerState<BeginReshareConfigView> createState() =>
+  ConsumerState<InitiateResharingView> createState() =>
       _BeginReshareConfigViewState();
 }
 
 class _BeginReshareConfigViewState
-    extends ConsumerState<BeginReshareConfigView> {
+    extends ConsumerState<InitiateResharingView> {
+  late final String myName;
   late final int currentThreshold;
-  late final List<String> currentParticipants;
+  late final List<String> originalParticipants;
+  late final List<String> currentParticipantsWithoutMe;
 
-  final Map<String, int> pFrostResharersMap = {};
+  final Set<String> selectedParticipants = {};
 
   @override
   void initState() {
@@ -50,7 +52,14 @@ class _BeginReshareConfigViewState
         .getByWalletIdSync(widget.walletId)!;
 
     currentThreshold = frostInfo.threshold;
-    currentParticipants = frostInfo.participants;
+    originalParticipants = frostInfo.participants.toList(growable: false);
+    currentParticipantsWithoutMe = originalParticipants.toList();
+
+    // sanity check (should never actually fail, but very bad if it does)
+    assert(originalParticipants.length == currentParticipantsWithoutMe.length);
+
+    myName = frostInfo.myName;
+    currentParticipantsWithoutMe.remove(myName);
 
     super.initState();
   }
@@ -83,10 +92,10 @@ class _BeginReshareConfigViewState
                   Navigator.of(context).pop();
                 },
               ),
-              // title: Text(
-              //   "Modify Participants",
-              //   style: STextStyles.navBarTitle(context),
-              // ),
+              title: Text(
+                "Initiate resharing",
+                style: STextStyles.navBarTitle(context),
+              ),
             ),
             body: SafeArea(
               child: LayoutBuilder(
@@ -113,33 +122,48 @@ class _BeginReshareConfigViewState
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Select participants for resharing",
-              style: STextStyles.label(context),
+            RoundedWhiteContainer(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    "Select group members who will participate in resharing.",
+                    style: STextStyles.w600_12(context),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Text(
+                    "You must have the threshold number of members (including you) to initiate resharing.",
+                    style: STextStyles.w600_12(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .customTextButtonEnabledText,
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(
               height: 16,
             ),
             Column(
               children: [
-                for (int i = 0; i < currentParticipants.length; i++)
+                for (int i = 0; i < currentParticipantsWithoutMe.length; i++)
                   Padding(
                     padding: const EdgeInsets.only(
                       top: 10,
                     ),
-                    child: RawMaterialButton(
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
-                        ),
-                      ),
+                    child: RoundedWhiteContainer(
+                      padding: EdgeInsets.zero,
                       onPressed: () {
-                        if (pFrostResharersMap[currentParticipants[i]] ==
-                            null) {
-                          pFrostResharersMap[currentParticipants[i]] = i;
+                        if (selectedParticipants
+                            .contains(currentParticipantsWithoutMe[i])) {
+                          selectedParticipants
+                              .remove(currentParticipantsWithoutMe[i]);
                         } else {
-                          pFrostResharersMap.remove(currentParticipants[i]);
+                          selectedParticipants
+                              .add(currentParticipantsWithoutMe[i]);
                         }
 
                         setState(() {});
@@ -150,16 +174,15 @@ class _BeginReshareConfigViewState
                           child: Row(
                             children: [
                               Checkbox(
-                                value: pFrostResharersMap[
-                                        currentParticipants[i]] ==
-                                    i,
-                                onChanged: (bool? value) {},
+                                value: selectedParticipants
+                                    .contains(currentParticipantsWithoutMe[i]),
+                                onChanged: (_) {},
                               ),
                               const SizedBox(
                                 width: 10,
                               ),
                               Text(
-                                currentParticipants[i],
+                                currentParticipantsWithoutMe[i],
                                 style: STextStyles.itemSubtitle12(context),
                               ),
                             ],
@@ -174,16 +197,54 @@ class _BeginReshareConfigViewState
             const SizedBox(
               height: 16,
             ),
+            RoundedWhiteContainer(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Required members",
+                    style: STextStyles.w500_14(context).copyWith(
+                      color:
+                          Theme.of(context).extension<StackColors>()!.textDark3,
+                    ),
+                  ),
+                  Text(
+                    // +1 is included as the initiator who will also take part
+                    "${selectedParticipants.length + 1} / $currentThreshold",
+                    style: STextStyles.w500_14(context).copyWith(
+                      color: selectedParticipants.length + 1 >= currentThreshold
+                          ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorGreen
+                          : Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorRed,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(
+              height: 16,
+            ),
             PrimaryButton(
               label: "Continue",
-              enabled: pFrostResharersMap.length >= currentThreshold,
+              // +1 is included as the initiator who will also take part
+              enabled: selectedParticipants.length + 1 >= currentThreshold,
               onPressed: () async {
+                // include self now
+                selectedParticipants.add(myName);
+                final List<int> resharers = [];
+
+                for (final name in selectedParticipants) {
+                  resharers.add(originalParticipants.indexOf(name));
+                }
+
                 await Navigator.of(context).pushNamed(
                   CompleteReshareConfigView.routeName,
                   arguments: (
                     walletId: widget.walletId,
-                    resharers:
-                        pFrostResharersMap.values.toList(growable: false),
+                    resharers: resharers,
                   ),
                 );
               },
