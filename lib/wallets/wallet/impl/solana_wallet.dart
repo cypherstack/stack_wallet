@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
 import 'package:isar/isar.dart';
 import 'package:socks5_proxy/socks_client.dart';
 import 'package:solana/dto.dart';
+import 'package:solana/encoder.dart';
 import 'package:solana/solana.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart'
@@ -52,6 +54,21 @@ class SolanaWallet extends Bip39Wallet<Solana> {
     _checkClient();
     final balance = await _rpcClient?.getBalance((await _getKeyPair()).address);
     return balance!.value;
+  }
+  
+  Future<int?> _getEstimatedNetworkFee(Amount transferAmount) async {
+    final latestBlockhash = await _rpcClient?.getLatestBlockhash();
+
+    final compiledMessage = Message(instructions: [
+      SystemInstruction.transfer(
+          fundingAccount: (await _getKeyPair()).publicKey,
+          recipientAccount: (await _getKeyPair()).publicKey,
+          lamports: transferAmount.raw.toInt()),
+    ]).compile(recentBlockhash: latestBlockhash!.value.blockhash, feePayer: (await _getKeyPair()).publicKey);
+
+    return await _rpcClient?.getFeeForMessage(
+      base64Encode(compiledMessage.toByteArray().toList()),
+    );
   }
 
   @override
@@ -184,12 +201,14 @@ class SolanaWallet extends Bip39Wallet<Solana> {
         fractionDigits: cryptoCurrency.fractionDigits,
       );
     }
-
-    final fee = await _rpcClient?.getFees();
-    // TODO [prio=low]: handle null fee.
-
+    
+    final fee = await _getEstimatedNetworkFee(amount);
+    if (fee == null) {
+      throw Exception("Failed to get fees, please check your node connection.");
+    }
+    
     return Amount(
-      rawValue: BigInt.from(fee!.value.feeCalculator.lamportsPerSignature),
+      rawValue: BigInt.from(fee as num),
       fractionDigits: cryptoCurrency.fractionDigits,
     );
   }
@@ -197,16 +216,22 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<FeeObject> get fees async {
     _checkClient();
-
-    final fees = await _rpcClient?.getFees();
-    // TODO [prio=low]: handle null fees.
+    
+    final fee = await _getEstimatedNetworkFee(Amount(
+      rawValue: BigInt.from(1000000000), // 1 SOL
+      fractionDigits: cryptoCurrency.fractionDigits,
+    ));
+    if (fee == null) {
+      throw Exception("Failed to get fees, please check your node connection.");
+    }
+    
     return FeeObject(
         numberOfBlocksFast: 1,
         numberOfBlocksAverage: 1,
         numberOfBlocksSlow: 1,
-        fast: fees!.value.feeCalculator.lamportsPerSignature,
-        medium: fees!.value.feeCalculator.lamportsPerSignature,
-        slow: fees!.value.feeCalculator.lamportsPerSignature);
+        fast: fee,
+        medium: fee,
+        slow: fee);
   }
 
   @override
