@@ -84,6 +84,7 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/buy_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/coin_control_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/exchange_nav_icon.dart';
+import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/frost_sign_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/fusion_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/ordinals_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/paynym_nav_icon.dart';
@@ -356,7 +357,17 @@ class _WalletViewState extends ConsumerState<WalletView> {
     }
   }
 
-  void _onExchangePressed(BuildContext context) async {
+  Future<void> _onFrostSignPressed(BuildContext context) async {
+    // TODO
+    await showDialog(
+      context: context,
+      builder: (_) => StackOkDialog(
+        title: "TODO FROST SIGN TX",
+      ),
+    );
+  }
+
+  Future<void> _onExchangePressed(BuildContext context) async {
     final Coin coin = ref.read(pWalletCoin(walletId));
 
     if (coin.isTestNet) {
@@ -401,7 +412,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
     }
   }
 
-  void _onBuyPressed(BuildContext context) async {
+  Future<void> _onBuyPressed(BuildContext context) async {
     final Coin coin = ref.read(pWalletCoin(walletId));
 
     if (coin.isTestNet) {
@@ -976,6 +987,12 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       }
                     },
                   ),
+                  if (ref.watch(pWalletCoin(walletId)).isFrost)
+                    WalletNavigationBarItemData(
+                      label: "Sign",
+                      icon: const FrostSignNavIcon(),
+                      onTap: () => _onFrostSignPressed(context),
+                    ),
                   WalletNavigationBarItemData(
                     label: "Send",
                     icon: const SendNavIcon(),
@@ -1007,13 +1024,15 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       );
                     },
                   ),
-                  if (Constants.enableExchange)
+                  if (Constants.enableExchange &&
+                      !ref.watch(pWalletCoin(walletId)).isFrost)
                     WalletNavigationBarItemData(
                       label: "Swap",
                       icon: const ExchangeNavIcon(),
                       onTap: () => _onExchangePressed(context),
                     ),
-                  if (Constants.enableExchange)
+                  if (Constants.enableExchange &&
+                      !ref.watch(pWalletCoin(walletId)).isFrost)
                     WalletNavigationBarItemData(
                       label: "Buy",
                       icon: const BuyNavIcon(),
