@@ -21,7 +21,7 @@ import 'package:stackwallet/widgets/frost_step_user_steps.dart';
 class FrostCreateStep1a extends ConsumerStatefulWidget {
   const FrostCreateStep1a({super.key});
 
-  static const String routeName = "/frostCreateStep1";
+  static const String routeName = "/frostCreateStep1a";
   static const String title = "Multisig group info";
 
   @override

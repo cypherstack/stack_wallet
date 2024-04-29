@@ -1,8 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/import_new_frost_ms_wallet_view.dart';
+import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/frost_scaffold.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_route_generator.dart';
+import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/resharing/new/new_import_resharer_config_view.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
+import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -17,7 +25,7 @@ import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/dialogs/simple_mobile_dialog.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
-class SelectNewFrostImportTypeView extends StatefulWidget {
+class SelectNewFrostImportTypeView extends ConsumerStatefulWidget {
   const SelectNewFrostImportTypeView({
     super.key,
     required this.walletName,
@@ -30,12 +38,12 @@ class SelectNewFrostImportTypeView extends StatefulWidget {
   final FrostCurrency frostCurrency;
 
   @override
-  State<SelectNewFrostImportTypeView> createState() =>
+  ConsumerState<SelectNewFrostImportTypeView> createState() =>
       _SelectNewFrostImportTypeViewState();
 }
 
 class _SelectNewFrostImportTypeViewState
-    extends State<SelectNewFrostImportTypeView> {
+    extends ConsumerState<SelectNewFrostImportTypeView> {
   _ImportOption _selectedOption = _ImportOption.multisigNew;
 
   @override
@@ -133,18 +141,60 @@ class _SelectNewFrostImportTypeViewState
                 final String route;
                 switch (_selectedOption) {
                   case _ImportOption.multisigNew:
-                    route = ImportNewFrostMsWalletView.routeName;
-                  case _ImportOption.resharerExisting:
-                    route = NewImportResharerConfigView.routeName;
-                }
+                    ref.read(pFrostCreateNewArgs.state).state = (
+                      (
+                        walletName: widget.walletName,
+                        frostCurrency: widget.frostCurrency,
+                      ),
+                      FrostRouteGenerator.importNewConfigStepRoutes,
+                      () {
+                        // successful completion of steps
+                        if (Util.isDesktop) {
+                          Navigator.of(context).popUntil(
+                            ModalRoute.withName(
+                              DesktopHomeView.routeName,
+                            ),
+                          );
+                        } else {
+                          unawaited(
+                            Navigator.of(context).pushNamedAndRemoveUntil(
+                              HomeView.routeName,
+                              (route) => false,
+                            ),
+                          );
+                        }
 
-                await Navigator.of(context).pushNamed(
-                  route,
-                  arguments: (
-                    walletName: widget.walletName,
-                    frostCurrency: widget.frostCurrency,
-                  ),
-                );
+                        ref.read(pFrostMultisigConfig.state).state = null;
+                        ref.read(pFrostStartKeyGenData.state).state = null;
+                        ref.read(pFrostSecretSharesData.state).state = null;
+                        ref.read(pFrostCreateNewArgs.state).state = null;
+
+                        unawaited(
+                          showFloatingFlushBar(
+                            type: FlushBarType.success,
+                            message: "Your wallet is set up.",
+                            iconAsset: Assets.svg.check,
+                            context: context,
+                          ),
+                        );
+                      }
+                    );
+
+                    await Navigator.of(context).pushNamed(
+                      FrostStepScaffold.routeName,
+                    );
+                    break;
+
+                  case _ImportOption.resharerExisting:
+                    await Navigator.of(context).pushNamed(
+                      NewImportResharerConfigView.routeName,
+                      arguments: (
+                        walletName: widget.walletName,
+                        frostCurrency: widget.frostCurrency,
+                      ),
+                    );
+                    break;
+                }
               },
             )
           ],

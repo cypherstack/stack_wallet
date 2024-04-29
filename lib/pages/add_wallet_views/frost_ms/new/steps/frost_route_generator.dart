@@ -1,7 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_create_step_1.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_create_step_1a.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_create_step_1b.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_create_step_2.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_create_step_3.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_create_step_4.dart';
@@ -30,6 +31,14 @@ abstract class FrostRouteGenerator {
     (routeName: FrostCreateStep5.routeName, title: FrostCreateStep5.title),
   ];
 
+  static const List<FrostStepRoute> importNewConfigStepRoutes = [
+    (routeName: FrostCreateStep1b.routeName, title: FrostCreateStep1b.title),
+    (routeName: FrostCreateStep2.routeName, title: FrostCreateStep2.title),
+    (routeName: FrostCreateStep3.routeName, title: FrostCreateStep3.title),
+    (routeName: FrostCreateStep4.routeName, title: FrostCreateStep4.title),
+    (routeName: FrostCreateStep5.routeName, title: FrostCreateStep5.title),
+  ];
+
   static Route<dynamic> generateRoute(RouteSettings settings) {
     final args = settings.arguments;
 
@@ -38,6 +47,13 @@ abstract class FrostRouteGenerator {
         return RouteGenerator.getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
           builder: (_) => const FrostCreateStep1a(),
+          settings: settings,
+        );
+
+      case FrostCreateStep1b.routeName:
+        return RouteGenerator.getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const FrostCreateStep1b(),
           settings: settings,
         );
 
