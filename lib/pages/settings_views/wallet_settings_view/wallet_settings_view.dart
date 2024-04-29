@@ -195,21 +195,6 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                             padding: const EdgeInsets.all(4),
                             child: Column(
                               children: [
-                                if (coin == Coin.bitcoinFrost ||
-                                    coin == Coin.bitcoinFrostTestNet)
-                                  if (coin == Coin.bitcoinFrost ||
-                                      coin == Coin.bitcoinFrostTestNet)
-                                    SettingsListButton(
-                                      iconAssetName: Assets.svg.addressBook2,
-                                      iconSize: 16,
-                                      title: "FROST Multisig settings",
-                                      onPressed: () {
-                                        Navigator.of(context).pushNamed(
-                                          FrostMSWalletOptionsView.routeName,
-                                          arguments: walletId,
-                                        );
-                                      },
-                                    ),
                                 SettingsListButton(
                                   iconAssetName: Assets.svg.addressBook,
                                   iconSize: 16,
@@ -221,6 +206,22 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                     );
                                   },
                                 ),
+                                if (coin.isFrost)
+                                  const SizedBox(
+                                    height: 8,
+                                  ),
+                                if (coin.isFrost)
+                                  SettingsListButton(
+                                    iconAssetName: Assets.svg.addressBook2,
+                                    iconSize: 16,
+                                    title: "FROST Multisig settings",
+                                    onPressed: () {
+                                      Navigator.of(context).pushNamed(
+                                        FrostMSWalletOptionsView.routeName,
+                                        arguments: walletId,
+                                      );
+                                    },
+                                  ),
                                 const SizedBox(
                                   height: 8,
                                 ),
