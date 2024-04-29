@@ -64,8 +64,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
         fundingAccount: pubKey,
         recipientAccount: pubKey,
         lamports: transferAmount.raw.toInt(),
-      ),
-      ComputeBudgetInstruction.setComputeUnitPrice(microLamports: 6000),
+      )
     ]).compile(recentBlockhash: latestBlockhash!.value.blockhash, feePayer: (await _getKeyPair()).publicKey);
 
     return await _rpcClient?.getFeeForMessage(
@@ -167,7 +166,12 @@ class SolanaWallet extends Bip39Wallet<Solana> {
               recipientAccount: recipientPubKey,
               lamports: txData.amount!.raw.toInt()),
           ComputeBudgetInstruction.setComputeUnitPrice(
-              microLamports: txData.fee!.raw.toInt()),
+              microLamports: txData.fee!.raw.toInt() - 5000),
+          // 5000 lamports is the base fee for a transaction. This instruction adds the necessary fee on top of base fee if it is needed.
+          ComputeBudgetInstruction.setComputeUnitLimit(units: 1000000),
+          // 1000000 is the multiplication number to turn the compute unit price of microLamports to lamports.
+          // These instructions also help the user to not pay more than the shown fee.
+          // See: https://solanacookbook.com/references/basic-transactions.html#how-to-change-compute-budget-fee-priority-for-a-transaction
         ],
       );
 
@@ -367,7 +371,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
       for (final tx in transactionsList!) {
         final senderAddress =
             (tx.transaction as ParsedTransaction).message.accountKeys[0].pubkey;
-        final receiverAddress =
+        var receiverAddress =
             (tx.transaction as ParsedTransaction).message.accountKeys[1].pubkey;
         var txType = isar.TransactionType.unknown;
         final txAmount = Amount(
@@ -376,9 +380,10 @@ class SolanaWallet extends Bip39Wallet<Solana> {
           fractionDigits: cryptoCurrency.fractionDigits,
         );
 
-        if ((senderAddress == (await _getKeyPair()).address) &&
-            (receiverAddress == (await _getKeyPair()).address)) {
+        if ((senderAddress == (await _getKeyPair()).address) && (receiverAddress == "11111111111111111111111111111111")) {
+          // The account that is only 1's are System Program accounts which means there is no receiver except the sender, see: https://explorer.solana.com/address/11111111111111111111111111111111
           txType = isar.TransactionType.sentToSelf;
+          receiverAddress = senderAddress;
         } else if (senderAddress == (await _getKeyPair()).address) {
           txType = isar.TransactionType.outgoing;
         } else if (receiverAddress == (await _getKeyPair()).address) {
