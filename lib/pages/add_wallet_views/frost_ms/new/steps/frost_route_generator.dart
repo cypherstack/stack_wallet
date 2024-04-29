@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_create_step_1.dart';
-import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_create_step_2.dart';
-import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_create_step_3.dart';
-import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_create_step_4.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_create_step_11.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_create_step_22.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_create_step_33.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_create_step_5.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
 
