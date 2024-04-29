@@ -21,6 +21,7 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/frost_step_user_steps.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
@@ -45,12 +46,22 @@ class ImportReshareConfigView extends ConsumerStatefulWidget {
 
 class _ImportReshareConfigViewState
     extends ConsumerState<ImportReshareConfigView> {
+  static const info = [
+    "Scan the config QR code or paste the code provided by the group member who"
+        " is initiating resharing.",
+    "Wait for other participants to finish importing the config.",
+    "Verify that everyone has filled out their forms before continuing. If you "
+        "try to continue before everyone is ready, the process will be canceled.",
+    "Check the box and press “Start resharing”.",
+  ];
+
   late final TextEditingController configFieldController;
   late final FocusNode configFocusNode;
 
   bool _configEmpty = true;
 
   bool _buttonLock = false;
+  bool _userVerifyContinue = false;
 
   Future<void> _onPressed() async {
     if (_buttonLock) {
@@ -84,14 +95,14 @@ class _ImportReshareConfigViewState
       if (frostInfo.knownSalts.contains(salt)) {
         throw Exception("Duplicate config salt");
       } else {
-        final salts = frostInfo.knownSalts;
+        final salts = frostInfo.knownSalts.toList();
         salts.add(salt);
         final mainDB = ref.read(mainDBProvider);
         await mainDB.isar.writeTxn(() async {
-          final info = frostInfo;
-          await mainDB.isar.frostWalletInfo.delete(info.id);
+          final id = frostInfo.id;
+          await mainDB.isar.frostWalletInfo.delete(id);
           await mainDB.isar.frostWalletInfo.put(
-            info.copyWith(knownSalts: salts),
+            frostInfo.copyWith(knownSalts: salts),
           );
         });
       }
@@ -200,6 +211,20 @@ class _ImportReshareConfigViewState
           children: [
             const SizedBox(
               height: 16,
+            ),
+            const FrostStepUserSteps(
+              userSteps: info,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              "Enter config",
+              style: STextStyles.w500_14(context).copyWith(
+                color:
+                    Theme.of(context).extension<StackColors>()!.textSubtitle1,
+              ),
+            ),
+            const SizedBox(
+              height: 10,
             ),
             ClipRRect(
               borderRadius: BorderRadius.circular(
@@ -319,9 +344,47 @@ class _ImportReshareConfigViewState
             const SizedBox(
               height: 16,
             ),
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _userVerifyContinue = !_userVerifyContinue;
+                });
+              },
+              child: Container(
+                color: Colors.transparent,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 20,
+                      height: 26,
+                      child: Checkbox(
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        value: _userVerifyContinue,
+                        onChanged: (value) => setState(
+                          () => _userVerifyContinue = value == true,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 12,
+                    ),
+                    Expanded(
+                      child: Text(
+                        "I have verified that everyone has imported the config",
+                        style: STextStyles.w500_14(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(
+              height: 16,
+            ),
             PrimaryButton(
               label: "Start resharing",
-              enabled: !_configEmpty,
+              enabled: !_configEmpty && _userVerifyContinue,
               onPressed: () async {
                 if (FocusScope.of(context).hasFocus) {
                   FocusScope.of(context).unfocus();

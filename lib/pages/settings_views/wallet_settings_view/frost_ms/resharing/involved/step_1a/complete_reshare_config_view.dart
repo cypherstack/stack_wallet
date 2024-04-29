@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,6 +21,7 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 final class CompleteReshareConfigView extends ConsumerStatefulWidget {
@@ -45,9 +48,12 @@ class _CompleteReshareConfigViewState
 
   final List<TextEditingController> controllers = [];
 
+  late final String myName;
+
   int _participantsCount = 0;
 
   bool _buttonLock = false;
+  bool _includeMeInReshare = false;
 
   Future<void> _onPressed() async {
     if (_buttonLock) {
@@ -74,10 +80,16 @@ class _CompleteReshareConfigViewState
         );
       }
 
+      final List<String> newParticipants =
+          controllers.map((e) => e.text.trim()).toList();
+      if (_includeMeInReshare) {
+        newParticipants.insert(0, myName);
+      }
+
       final config = Frost.createResharerConfig(
         newThreshold: int.parse(_newThresholdController.text),
         resharers: widget.resharers,
-        newParticipants: controllers.map((e) => e.text).toList(),
+        newParticipants: newParticipants,
       );
 
       final salt = Format.uint8listToString(
@@ -105,7 +117,7 @@ class _CompleteReshareConfigViewState
         });
       }
 
-      ref.read(pFrostResharingData).myName = frostInfo.myName;
+      ref.read(pFrostResharingData).myName = myName;
       ref.read(pFrostResharingData).resharerConfig = config;
 
       if (mounted) {
@@ -152,18 +164,29 @@ class _CompleteReshareConfigViewState
       return "At least two participants required";
     }
 
-    if (controllers.length != partsCount) {
+    final newParticipants = controllers.map((e) => e.text.trim()).toList();
+
+    if (newParticipants.contains(myName)) {
+      return "Using your own name should be done using the checkbox to include"
+          " yourself";
+    }
+
+    if (_includeMeInReshare) {
+      newParticipants.add(myName);
+    }
+
+    if (newParticipants.length != partsCount) {
       return "Participants count error";
     }
 
-    final hasEmptyParticipants = controllers
-        .map((e) => e.text.isEmpty)
+    final hasEmptyParticipants = newParticipants
+        .map((e) => e.trim().isEmpty)
         .reduce((value, element) => value |= element);
     if (hasEmptyParticipants) {
       return "Participants must not be empty";
     }
 
-    if (controllers.length != controllers.map((e) => e.text).toSet().length) {
+    if (newParticipants.length != newParticipants.toSet().length) {
       return "Duplicate participant name found";
     }
 
@@ -171,8 +194,12 @@ class _CompleteReshareConfigViewState
   }
 
   void _participantsCountChanged(String newValue) {
-    final count = int.tryParse(newValue);
+    int? count = int.tryParse(newValue);
     if (count != null) {
+      if (_includeMeInReshare) {
+        count = max(0, count - 1);
+      }
+
       if (count > _participantsCount) {
         for (int i = _participantsCount; i < count; i++) {
           controllers.add(TextEditingController());
@@ -190,6 +217,17 @@ class _CompleteReshareConfigViewState
         setState(() {});
       }
     }
+  }
+
+  @override
+  void initState() {
+    final frostInfo = ref
+        .read(mainDBProvider)
+        .isar
+        .frostWalletInfo
+        .getByWalletIdSync(widget.walletId)!;
+    myName = frostInfo.myName;
+    super.initState();
   }
 
   @override
@@ -231,7 +269,7 @@ class _CompleteReshareConfigViewState
                 },
               ),
               title: Text(
-                "Modify Participants",
+                "Edit group details",
                 style: STextStyles.navBarTitle(context),
               ),
             ),
@@ -258,11 +296,62 @@ class _CompleteReshareConfigViewState
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: Util.isDesktop
+              ? CrossAxisAlignment.start
+              : CrossAxisAlignment.stretch,
           children: [
+            const SizedBox(
+              height: 8,
+            ),
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _includeMeInReshare = !_includeMeInReshare;
+                });
+                _participantsCountChanged(_newParticipantsCountController.text);
+              },
+              child: Container(
+                color: Colors.transparent,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 20,
+                      height: 26,
+                      child: Checkbox(
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        value: _includeMeInReshare,
+                        onChanged: (value) {
+                          setState(
+                            () => _includeMeInReshare = value == true,
+                          );
+                          _participantsCountChanged(
+                              _newParticipantsCountController.text);
+                        },
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 12,
+                    ),
+                    Expanded(
+                      child: Text(
+                        "I will be a signer in the new config",
+                        style: STextStyles.w500_14(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(
+              height: 20,
+            ),
             Text(
               "New threshold",
-              style: STextStyles.label(context),
+              style: STextStyles.w500_14(context).copyWith(
+                color:
+                    Theme.of(context).extension<StackColors>()!.textSubtitle1,
+              ),
             ),
             const SizedBox(
               height: 10,
@@ -271,13 +360,32 @@ class _CompleteReshareConfigViewState
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               controller: _newThresholdController,
+              decoration: InputDecoration(
+                hintText: "Enter number of signatures",
+                hintStyle: STextStyles.fieldLabel(context),
+              ),
+            ),
+            const SizedBox(
+              height: 6,
+            ),
+            RoundedWhiteContainer(
+              child: Text(
+                "Enter number of signatures required for fund management.",
+                style: STextStyles.w500_12(context).copyWith(
+                  color:
+                      Theme.of(context).extension<StackColors>()!.textSubtitle2,
+                ),
+              ),
             ),
             const SizedBox(
               height: 16,
             ),
             Text(
-              "Number of participants",
-              style: STextStyles.label(context),
+              "New number of participants",
+              style: STextStyles.w500_14(context).copyWith(
+                color:
+                    Theme.of(context).extension<StackColors>()!.textSubtitle1,
+              ),
             ),
             const SizedBox(
               height: 10,
@@ -287,6 +395,23 @@ class _CompleteReshareConfigViewState
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               controller: _newParticipantsCountController,
               onChanged: _participantsCountChanged,
+              decoration: InputDecoration(
+                hintText: "Enter number of participants",
+                hintStyle: STextStyles.fieldLabel(context),
+              ),
+            ),
+            const SizedBox(
+              height: 6,
+            ),
+            RoundedWhiteContainer(
+              child: Text(
+                "The number of participants must be equal to or less than the"
+                " number of required signatures.",
+                style: STextStyles.w500_12(context).copyWith(
+                  color:
+                      Theme.of(context).extension<StackColors>()!.textSubtitle2,
+                ),
+              ),
             ),
             const SizedBox(
               height: 16,
@@ -294,11 +419,25 @@ class _CompleteReshareConfigViewState
             if (controllers.isNotEmpty)
               Text(
                 "Participants",
-                style: STextStyles.label(context),
+                style: STextStyles.w500_14(context).copyWith(
+                  color:
+                      Theme.of(context).extension<StackColors>()!.textSubtitle1,
+                ),
               ),
             if (controllers.isNotEmpty)
               const SizedBox(
                 height: 10,
+              ),
+            if (controllers.isNotEmpty)
+              RoundedWhiteContainer(
+                child: Text(
+                  "Type each name in one word without spaces.",
+                  style: STextStyles.w500_12(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle2,
+                  ),
+                ),
               ),
             if (controllers.isNotEmpty)
               Column(
@@ -310,6 +449,10 @@ class _CompleteReshareConfigViewState
                       ),
                       child: TextField(
                         controller: controllers[i],
+                        decoration: InputDecoration(
+                          hintText: "Enter name",
+                          hintStyle: STextStyles.fieldLabel(context),
+                        ),
                       ),
                     ),
                 ],

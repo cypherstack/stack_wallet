@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/resharing/involved/step_2/begin_resharing_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
@@ -8,6 +9,7 @@ import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/frost.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -20,7 +22,10 @@ import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/detail_item.dart';
+import 'package:stackwallet/widgets/dialogs/simple_mobile_dialog.dart';
+import 'package:stackwallet/widgets/frost_step_user_steps.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class DisplayReshareConfigView extends ConsumerStatefulWidget {
@@ -40,9 +45,19 @@ class DisplayReshareConfigView extends ConsumerStatefulWidget {
 
 class _DisplayReshareConfigViewState
     extends ConsumerState<DisplayReshareConfigView> {
+  static const info = [
+    "Share this config with the signing group participants as well as any new "
+        "participant.",
+    "Wait for them to import the config.",
+    "Verify that everyone has imported the config. If you try to continue "
+        "before everyone is ready, the process will be canceled.",
+    "Check the box and press “Start resharing”.",
+  ];
+
   late final bool iAmInvolved;
 
   bool _buttonLock = false;
+  bool _userVerifyContinue = false;
 
   Future<void> _onPressed() async {
     if (_buttonLock) {
@@ -86,6 +101,111 @@ class _DisplayReshareConfigViewState
     } finally {
       _buttonLock = false;
     }
+  }
+
+  void _showParticipantsDialog() {
+    final participants =
+        ref.read(pFrostResharingData).configData!.newParticipants;
+
+    showDialog<void>(
+      context: context,
+      builder: (_) => SimpleMobileDialog(
+        showCloseButton: false,
+        padding: EdgeInsets.zero,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(
+              height: 24,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                "Group participants",
+                style: STextStyles.w600_20(context),
+              ),
+            ),
+            const SizedBox(
+              height: 12,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                "The names are case-sensitive and must be entered exactly.",
+                style: STextStyles.w400_16(context).copyWith(
+                  color: Theme.of(context).extension<StackColors>()!.textDark3,
+                ),
+              ),
+            ),
+            const SizedBox(
+              height: 12,
+            ),
+            for (final participant in participants)
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: double.infinity,
+                    height: 1.5,
+                    color:
+                        Theme.of(context).extension<StackColors>()!.background,
+                  ),
+                  const SizedBox(
+                    height: 12,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 26,
+                          height: 26,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFieldActiveBG,
+                            borderRadius: BorderRadius.circular(
+                              200,
+                            ),
+                          ),
+                          child: Center(
+                            child: SvgPicture.asset(
+                              Assets.svg.user,
+                              width: 16,
+                              height: 16,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 8,
+                        ),
+                        Expanded(
+                          child: Text(
+                            participant,
+                            style: STextStyles.w500_14(context),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 8,
+                        ),
+                        IconCopyButton(
+                          data: participant,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 12,
+                  ),
+                ],
+              ),
+            const SizedBox(
+              height: 24,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -162,7 +282,13 @@ class _DisplayReshareConfigViewState
         ),
         child: Column(
           children: [
-            if (!Util.isDesktop) const Spacer(),
+            const SizedBox(
+              height: 16,
+            ),
+            const FrostStepUserSteps(
+              userSteps: info,
+            ),
+            const SizedBox(height: 20),
             SizedBox(
               height: 220,
               child: Row(
@@ -197,13 +323,66 @@ class _DisplayReshareConfigViewState
             SizedBox(
               height: Util.isDesktop ? 64 : 16,
             ),
-            if (!Util.isDesktop)
-              const Spacer(
-                flex: 2,
+            Row(
+              children: [
+                Expanded(
+                  child: SecondaryButton(
+                    label: "Show group participants",
+                    onPressed: _showParticipantsDialog,
+                  ),
+                ),
+              ],
+            ),
+            if (iAmInvolved && !Util.isDesktop) const Spacer(),
+            if (iAmInvolved)
+              const SizedBox(
+                height: 16,
+              ),
+            if (iAmInvolved)
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _userVerifyContinue = !_userVerifyContinue;
+                  });
+                },
+                child: Container(
+                  color: Colors.transparent,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 20,
+                        height: 26,
+                        child: Checkbox(
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          value: _userVerifyContinue,
+                          onChanged: (value) => setState(
+                            () => _userVerifyContinue = value == true,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 12,
+                      ),
+                      Expanded(
+                        child: Text(
+                          "I have verified that everyone has imported the config",
+                          style: STextStyles.w500_14(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            if (iAmInvolved)
+              const SizedBox(
+                height: 16,
               ),
             if (iAmInvolved)
               PrimaryButton(
                 label: "Start resharing",
+                enabled: _userVerifyContinue,
                 onPressed: _onPressed,
               ),
           ],
