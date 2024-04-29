@@ -392,7 +392,7 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
       final mnemonic = await getMnemonic();
       final seedLength = mnemonic.trim().split(" ").length;
 
-      if (seedLength != 25) {
+      if (seedLength != 25 && seedLength != 16) {
         throw Exception("Invalid monero mnemonic length found: $seedLength");
       }
 
