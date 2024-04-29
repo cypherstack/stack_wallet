@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:decimal/decimal.dart';
 import 'package:isar/isar.dart';
 import 'package:socks5_proxy/socks_client.dart';
 import 'package:solana/dto.dart';
-import 'package:solana/encoder.dart';
 import 'package:solana/solana.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart'
@@ -55,16 +55,21 @@ class SolanaWallet extends Bip39Wallet<Solana> {
     final balance = await _rpcClient?.getBalance((await _getKeyPair()).address);
     return balance!.value;
   }
-  
+
   Future<int?> _getEstimatedNetworkFee(Amount transferAmount) async {
     final latestBlockhash = await _rpcClient?.getLatestBlockhash();
+    final pubKey = (await _getKeyPair()).publicKey;
 
     final compiledMessage = Message(instructions: [
       SystemInstruction.transfer(
-          fundingAccount: (await _getKeyPair()).publicKey,
-          recipientAccount: (await _getKeyPair()).publicKey,
-          lamports: transferAmount.raw.toInt()),
-    ]).compile(recentBlockhash: latestBlockhash!.value.blockhash, feePayer: (await _getKeyPair()).publicKey);
+        fundingAccount: pubKey,
+        recipientAccount: pubKey,
+        lamports: transferAmount.raw.toInt(),
+      ),
+    ]).compile(
+      recentBlockhash: latestBlockhash!.value.blockhash,
+      feePayer: pubKey,
+    );
 
     return await _rpcClient?.getFeeForMessage(
       base64Encode(compiledMessage.toByteArray().toList()),
@@ -201,14 +206,14 @@ class SolanaWallet extends Bip39Wallet<Solana> {
         fractionDigits: cryptoCurrency.fractionDigits,
       );
     }
-    
+
     final fee = await _getEstimatedNetworkFee(amount);
     if (fee == null) {
       throw Exception("Failed to get fees, please check your node connection.");
     }
-    
+
     return Amount(
-      rawValue: BigInt.from(fee as num),
+      rawValue: BigInt.from(fee),
       fractionDigits: cryptoCurrency.fractionDigits,
     );
   }
@@ -216,15 +221,17 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<FeeObject> get fees async {
     _checkClient();
-    
-    final fee = await _getEstimatedNetworkFee(Amount(
-      rawValue: BigInt.from(1000000000), // 1 SOL
-      fractionDigits: cryptoCurrency.fractionDigits,
-    ));
+
+    final fee = await _getEstimatedNetworkFee(
+      Amount.fromDecimal(
+        Decimal.one, // 1 SOL
+        fractionDigits: cryptoCurrency.fractionDigits,
+      ),
+    );
     if (fee == null) {
       throw Exception("Failed to get fees, please check your node connection.");
     }
-    
+
     return FeeObject(
         numberOfBlocksFast: 1,
         numberOfBlocksAverage: 1,
