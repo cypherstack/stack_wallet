@@ -18,7 +18,6 @@ import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/solana.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
@@ -66,10 +65,8 @@ class SolanaWallet extends Bip39Wallet<Solana> {
         recipientAccount: pubKey,
         lamports: transferAmount.raw.toInt(),
       ),
-    ]).compile(
-      recentBlockhash: latestBlockhash!.value.blockhash,
-      feePayer: pubKey,
-    );
+      ComputeBudgetInstruction.setComputeUnitPrice(microLamports: 6000),
+    ]).compile(recentBlockhash: latestBlockhash!.value.blockhash, feePayer: (await _getKeyPair()).publicKey);
 
     return await _rpcClient?.getFeeForMessage(
       base64Encode(compiledMessage.toByteArray().toList()),
@@ -118,19 +115,10 @@ class SolanaWallet extends Bip39Wallet<Solana> {
         throw Exception("Insufficient available balance");
       }
 
-      int feeAmount;
-      final currentFees = await fees;
-      switch (txData.feeRateType) {
-        case FeeRateType.fast:
-          feeAmount = currentFees.fast;
-          break;
-        case FeeRateType.slow:
-          feeAmount = currentFees.slow;
-          break;
-        case FeeRateType.average:
-        default:
-          feeAmount = currentFees.medium;
-          break;
+      final feeAmount = await _getEstimatedNetworkFee(sendAmount);
+      if (feeAmount == null) {
+        throw Exception(
+            "Failed to get fees, please check your node connection.");
       }
 
       // Rent exemption of Solana
