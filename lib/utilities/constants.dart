@@ -297,7 +297,7 @@ abstract class Constants {
         return 24;
 
       case Coin.monero:
-        return 25;
+        return 16;
 
       case Coin.bitcoinFrost:
       case Coin.bitcoinFrostTestNet:
