@@ -311,7 +311,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
               SizedBox(
                 height: isDesktop ? 40 : 24,
               ),
-              if (coin == Coin.monero ||
+              if ((coin == Coin.monero &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) ||
                   coin == Coin.epicCash ||
                   (coin == Coin.wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
@@ -327,7 +329,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                       : STextStyles.smallMed12(context),
                   textAlign: TextAlign.left,
                 ),
-              if (coin == Coin.monero ||
+              if ((coin == Coin.monero &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) ||
                   coin == Coin.epicCash ||
                   (coin == Coin.wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
@@ -335,7 +339,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 SizedBox(
                   height: isDesktop ? 16 : 8,
                 ),
-              if (coin == Coin.monero ||
+              if ((coin == Coin.monero &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) ||
                   coin == Coin.epicCash ||
                   (coin == Coin.wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
@@ -345,7 +351,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     onTap: chooseDate,
                     controller: _dateController,
                   ),
-              if (coin == Coin.monero ||
+              if ((coin == Coin.monero &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) ||
                   coin == Coin.epicCash ||
                   (coin == Coin.wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
@@ -356,7 +364,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     onTap: chooseDesktopDate,
                     controller: _dateController,
                   ),
-              if (coin == Coin.monero ||
+              if ((coin == Coin.monero &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) ||
                   coin == Coin.epicCash ||
                   (coin == Coin.wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
@@ -364,7 +374,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 const SizedBox(
                   height: 8,
                 ),
-              if (coin == Coin.monero ||
+              if ((coin == Coin.monero &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) ||
                   coin == Coin.epicCash ||
                   (coin == Coin.wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
@@ -385,7 +397,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     ),
                   ),
                 ),
-              if (coin == Coin.monero ||
+              if ((coin == Coin.monero &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) ||
                   coin == Coin.epicCash ||
                   (coin == Coin.wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==

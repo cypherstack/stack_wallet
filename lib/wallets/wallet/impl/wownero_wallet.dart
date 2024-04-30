@@ -149,6 +149,7 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
         type: WalletType.wownero,
         trusted: node.trusted ?? false,
       ),
+      socksProxyAddress: null,
     );
   }
 
@@ -331,7 +332,8 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
         //         days:
         //         2))); // subtract a couple days to ensure we have a buffer for SWB
         // TODO(mrcyjanek): implement
-        final bufferedCreateHeight = 1; //getSeedHeightSync(wallet!.seed.trim());
+        final bufferedCreateHeight =
+            1; //getSeedHeightSync(wallet!.seed.trim());
 
         await info.updateRestoreHeight(
           newRestoreHeight: bufferedCreateHeight,
