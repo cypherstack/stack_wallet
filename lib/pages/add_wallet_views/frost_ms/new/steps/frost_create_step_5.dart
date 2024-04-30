@@ -162,11 +162,11 @@ class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
                   ),
                 );
 
-                final data = ref.read(pFrostCreateNewArgs)!;
+                final data = ref.read(pFrostScaffoldArgs)!;
 
                 final info = WalletInfo.createNew(
-                  coin: data.$1.frostCurrency.coin,
-                  name: data.$1.walletName,
+                  coin: data.info.frostCurrency.coin,
+                  name: data.info.walletName,
                 );
 
                 final wallet = await Wallet.create(
@@ -206,7 +206,7 @@ class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
                 }
 
                 if (mounted) {
-                  ref.read(pFrostCreateNewArgs)!.$3();
+                  ref.read(pFrostScaffoldArgs)!.onSuccess();
                 }
               } catch (e, s) {
                 Logging.instance.log(

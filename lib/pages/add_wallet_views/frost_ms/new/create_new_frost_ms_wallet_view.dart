@@ -408,13 +408,14 @@ class _NewFrostMsWalletViewState
                     controllers.first.text.trim();
                 ref.read(pFrostMultisigConfig.notifier).state = config;
 
-                ref.read(pFrostCreateNewArgs.state).state = (
-                  (
+                ref.read(pFrostScaffoldArgs.state).state = (
+                  info: (
                     walletName: widget.walletName,
                     frostCurrency: widget.frostCurrency,
                   ),
-                  FrostRouteGenerator.createNewConfigStepRoutes,
-                  () {
+                  walletId: null,
+                  stepRoutes: FrostRouteGenerator.createNewConfigStepRoutes,
+                  onSuccess: () {
                     // successful completion of steps
                     if (Util.isDesktop) {
                       Navigator.of(context).popUntil(
@@ -434,7 +435,7 @@ class _NewFrostMsWalletViewState
                     ref.read(pFrostMultisigConfig.state).state = null;
                     ref.read(pFrostStartKeyGenData.state).state = null;
                     ref.read(pFrostSecretSharesData.state).state = null;
-                    ref.read(pFrostCreateNewArgs.state).state = null;
+                    ref.read(pFrostScaffoldArgs.state).state = null;
 
                     unawaited(
                       showFloatingFlushBar(

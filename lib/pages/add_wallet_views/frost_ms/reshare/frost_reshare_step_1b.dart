@@ -1,16 +1,20 @@
-import 'dart:async';
-
 import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frostdart/frostdart.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_route_generator.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
+import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/services/frost.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/isar/models/frost_wallet_info.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/frost_step_user_steps.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
@@ -20,46 +24,130 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
-class FrostCreateStep1b extends ConsumerStatefulWidget {
-  const FrostCreateStep1b({super.key});
+class FrostReshareStep1b extends ConsumerStatefulWidget {
+  const FrostReshareStep1b({
+    super.key,
+  });
 
-  static const String routeName = "/frostCreateStep1b";
-  static const String title = "Import group info";
+  static const String routeName = "/frostReshareStep1b";
+  static const String title = "Import reshare config";
 
   @override
-  ConsumerState<FrostCreateStep1b> createState() => _FrostCreateStep1bState();
+  ConsumerState<FrostReshareStep1b> createState() => _FrostReshareStep1bState();
 }
 
-class _FrostCreateStep1bState extends ConsumerState<FrostCreateStep1b> {
+class _FrostReshareStep1bState extends ConsumerState<FrostReshareStep1b> {
   static const info = [
-    "Scan the config QR code or paste the code provided by the group creator.",
-    "Enter your name EXACTLY as the group creator entered it. When in doubt, "
-        "double check with them. The names are case-sensitive.",
-    "Wait for other participants to finish entering their information.",
+    "Scan the config QR code or paste the code provided by the group member who"
+        " is initiating resharing.",
+    "Wait for other participants to finish importing the config.",
     "Verify that everyone has filled out their forms before continuing. If you "
         "try to continue before everyone is ready, the process will be canceled.",
-    "Check the box and press “Generate keys”.",
+    "Check the box and press “Start resharing”.",
   ];
 
-  late final TextEditingController myNameFieldController, configFieldController;
-  late final FocusNode myNameFocusNode, configFocusNode;
+  late final TextEditingController configFieldController;
+  late final FocusNode configFocusNode;
 
-  bool _nameEmpty = true, _configEmpty = true, _userVerifyContinue = false;
+  bool _configEmpty = true;
+
+  bool _buttonLock = false;
+  bool _userVerifyContinue = false;
+
+  Future<void> _onPressed() async {
+    if (_buttonLock) {
+      return;
+    }
+    _buttonLock = true;
+
+    try {
+      final walletId = ref.read(pFrostScaffoldArgs)!.walletId!;
+      // TODO: optimize this by creating watcher providers (similar to normal WalletInfo)
+      final frostInfo = ref
+          .read(mainDBProvider)
+          .isar
+          .frostWalletInfo
+          .getByWalletIdSync(walletId)!;
+
+      ref.read(pFrostResharingData).reset();
+      ref.read(pFrostResharingData).myName = frostInfo.myName;
+      ref.read(pFrostResharingData).resharerConfig = configFieldController.text;
+
+      String? salt;
+      try {
+        salt = Format.uint8listToString(
+          resharerSalt(
+            resharerConfig: ref.read(pFrostResharingData).resharerConfig!,
+          ),
+        );
+      } catch (_) {
+        throw Exception("Bad resharer config");
+      }
+
+      if (frostInfo.knownSalts.contains(salt)) {
+        throw Exception("Duplicate config salt");
+      } else {
+        final salts = frostInfo.knownSalts.toList();
+        salts.add(salt);
+        final mainDB = ref.read(mainDBProvider);
+        await mainDB.isar.writeTxn(() async {
+          final id = frostInfo.id;
+          await mainDB.isar.frostWalletInfo.delete(id);
+          await mainDB.isar.frostWalletInfo.put(
+            frostInfo.copyWith(knownSalts: salts),
+          );
+        });
+      }
+
+      final serializedKeys = await ref.read(secureStoreProvider).read(
+            key: "{$walletId}_serializedFROSTKeys",
+          );
+      if (mounted) {
+        final result = Frost.beginResharer(
+          serializedKeys: serializedKeys!,
+          config: ref.read(pFrostResharingData).resharerConfig!,
+        );
+
+        ref.read(pFrostResharingData).startResharerData = result;
+
+        ref.read(pFrostCreateCurrentStep.state).state = 2;
+        await Navigator.of(context).pushNamed(
+          ref
+              .read(pFrostScaffoldArgs)!
+              .stepRoutes[ref.read(pFrostCreateCurrentStep) - 1]
+              .routeName,
+        );
+      }
+    } catch (e, s) {
+      Logging.instance.log(
+        "$e\n$s",
+        level: LogLevel.Fatal,
+      );
+
+      if (mounted) {
+        await showDialog<void>(
+          context: context,
+          builder: (_) => StackOkDialog(
+            title: e.toString(),
+            desktopPopRootNavigator: Util.isDesktop,
+          ),
+        );
+      }
+    } finally {
+      _buttonLock = false;
+    }
+  }
 
   @override
   void initState() {
-    myNameFieldController = TextEditingController();
     configFieldController = TextEditingController();
-    myNameFocusNode = FocusNode();
     configFocusNode = FocusNode();
     super.initState();
   }
 
   @override
   void dispose() {
-    myNameFieldController.dispose();
     configFieldController.dispose();
-    myNameFocusNode.dispose();
     configFocusNode.dispose();
     super.dispose();
   }
@@ -69,95 +157,23 @@ class _FrostCreateStep1bState extends ConsumerState<FrostCreateStep1b> {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const SizedBox(
+            height: 16,
+          ),
           const FrostStepUserSteps(
             userSteps: info,
           ),
-          const SizedBox(
-            height: 16,
-          ),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(
-              Constants.size.circularBorderRadius,
-            ),
-            child: TextField(
-              key: const Key("frMyNameTextFieldKey"),
-              controller: myNameFieldController,
-              onChanged: (_) {
-                setState(() {
-                  _nameEmpty = myNameFieldController.text.isEmpty;
-                });
-              },
-              focusNode: myNameFocusNode,
-              readOnly: false,
-              autocorrect: false,
-              enableSuggestions: false,
-              style: STextStyles.field(context),
-              decoration: standardInputDecoration(
-                "My name",
-                myNameFocusNode,
-                context,
-              ).copyWith(
-                contentPadding: const EdgeInsets.only(
-                  left: 16,
-                  top: 6,
-                  bottom: 8,
-                  right: 5,
-                ),
-                suffixIcon: Padding(
-                  padding: _nameEmpty
-                      ? const EdgeInsets.only(right: 8)
-                      : const EdgeInsets.only(right: 0),
-                  child: UnconstrainedBox(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        !_nameEmpty
-                            ? TextFieldIconButton(
-                                semanticsLabel:
-                                    "Clear Button. Clears The Config Field.",
-                                key: const Key("frMyNameClearButtonKey"),
-                                onTap: () {
-                                  myNameFieldController.text = "";
-
-                                  setState(() {
-                                    _nameEmpty = true;
-                                  });
-                                },
-                                child: const XIcon(),
-                              )
-                            : TextFieldIconButton(
-                                semanticsLabel:
-                                    "Paste Button. Pastes From Clipboard To Name Field.",
-                                key: const Key("frMyNamePasteButtonKey"),
-                                onTap: () async {
-                                  final ClipboardData? data =
-                                      await Clipboard.getData(
-                                          Clipboard.kTextPlain);
-                                  if (data?.text != null &&
-                                      data!.text!.isNotEmpty) {
-                                    myNameFieldController.text =
-                                        data.text!.trim();
-                                  }
-
-                                  setState(() {
-                                    _nameEmpty =
-                                        myNameFieldController.text.isEmpty;
-                                  });
-                                },
-                                child: _nameEmpty
-                                    ? const ClipboardIcon()
-                                    : const XIcon(),
-                              ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+          const SizedBox(height: 20),
+          Text(
+            "Enter config",
+            style: STextStyles.w500_14(context).copyWith(
+              color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
             ),
           ),
           const SizedBox(
-            height: 16,
+            height: 10,
           ),
           ClipRRect(
             borderRadius: BorderRadius.circular(
@@ -304,7 +320,7 @@ class _FrostCreateStep1bState extends ConsumerState<FrostCreateStep1b> {
                   ),
                   Expanded(
                     child: Text(
-                      "I have verified that everyone has joined the group",
+                      "I have verified that everyone has imported the config",
                       style: STextStyles.w500_14(context),
                     ),
                   ),
@@ -316,53 +332,16 @@ class _FrostCreateStep1bState extends ConsumerState<FrostCreateStep1b> {
             height: 16,
           ),
           PrimaryButton(
-            label: "Start key generation",
-            enabled: _userVerifyContinue && !_nameEmpty && !_configEmpty,
+            label: "Start resharing",
+            enabled: !_configEmpty && _userVerifyContinue,
             onPressed: () async {
               if (FocusScope.of(context).hasFocus) {
                 FocusScope.of(context).unfocus();
               }
 
-              final config = configFieldController.text;
-
-              if (!Frost.validateEncodedMultisigConfig(encodedConfig: config)) {
-                return await showDialog<void>(
-                  context: context,
-                  builder: (_) => StackOkDialog(
-                    title: "Invalid config",
-                    desktopPopRootNavigator: Util.isDesktop,
-                  ),
-                );
-              }
-
-              if (!Frost.getParticipants(multisigConfig: config)
-                  .contains(myNameFieldController.text)) {
-                return await showDialog<void>(
-                  context: context,
-                  builder: (_) => StackOkDialog(
-                    title: "My name not found in config participants",
-                    desktopPopRootNavigator: Util.isDesktop,
-                  ),
-                );
-              }
-
-              ref.read(pFrostMyName.state).state = myNameFieldController.text;
-              ref.read(pFrostMultisigConfig.notifier).state = config;
-
-              ref.read(pFrostStartKeyGenData.state).state =
-                  Frost.startKeyGeneration(
-                multisigConfig: ref.read(pFrostMultisigConfig.state).state!,
-                myName: ref.read(pFrostMyName.state).state!,
-              );
-              ref.read(pFrostCreateCurrentStep.state).state = 2;
-              await Navigator.of(context).pushNamed(
-                ref
-                    .read(pFrostScaffoldArgs)!
-                    .stepRoutes[ref.read(pFrostCreateCurrentStep) - 1]
-                    .routeName,
-              );
+              await _onPressed();
             },
-          )
+          ),
         ],
       ),
     );

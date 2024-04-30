@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_create_step_2.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_route_generator.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
@@ -260,7 +259,10 @@ class _FrostCreateStep1aState extends ConsumerState<FrostCreateStep1a> {
 
               ref.read(pFrostCreateCurrentStep.state).state = 2;
               await Navigator.of(context).pushNamed(
-                FrostCreateStep2.routeName,
+                ref
+                    .read(pFrostScaffoldArgs)!
+                    .stepRoutes[ref.read(pFrostCreateCurrentStep) - 1]
+                    .routeName,
                 // FrostShareCommitmentsView.routeName,
               );
             },

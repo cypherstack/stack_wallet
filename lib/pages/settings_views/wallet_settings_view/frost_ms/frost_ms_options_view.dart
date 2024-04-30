@@ -10,18 +10,21 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/frost_scaffold.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_route_generator.dart';
 import 'package:stackwallet/pages/settings_views/sub_widgets/settings_list_button.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/frost_participants_view.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/resharing/involved/step_1a/initiate_resharing_view.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/resharing/involved/step_1b/import_reshare_config_view.dart';
+import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/initiate_resharing/initiate_resharing_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/models/frost_wallet_info.dart';
+import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -146,9 +149,26 @@ class FrostMSWalletOptionsView extends ConsumerWidget {
 
                       ref.read(pFrostMyName.state).state = frostInfo.myName;
 
+                      final wallet = ref.read(pWallets).getWallet(walletId)
+                          as BitcoinFrostWallet;
+
+                      ref.read(pFrostScaffoldArgs.state).state = (
+                        info: (
+                          walletName: wallet.info.name,
+                          frostCurrency: wallet.cryptoCurrency,
+                        ),
+                        walletId: null, // no wallet id yet
+                        stepRoutes: FrostRouteGenerator.joinReshareStepRoutes,
+                        onSuccess: () {
+                          // successful completion of steps
+                          // TODO
+
+                          ref.read(pFrostScaffoldArgs.state).state = null;
+                        }
+                      );
+
                       Navigator.of(context).pushNamed(
-                        ImportReshareConfigView.routeName,
-                        arguments: walletId,
+                        FrostStepScaffold.routeName,
                       );
                     },
                   ),

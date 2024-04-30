@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frostdart/frostdart.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/resharing/involved/step_1a/display_reshare_config_view.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/frost_scaffold.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_route_generator.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/frost.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/format.dart';
@@ -15,6 +17,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/models/frost_wallet_info.dart';
+import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -120,10 +123,25 @@ class _CompleteReshareConfigViewState
       ref.read(pFrostResharingData).myName = myName;
       ref.read(pFrostResharingData).resharerConfig = config;
 
+      final wallet =
+          ref.read(pWallets).getWallet(widget.walletId) as BitcoinFrostWallet;
+
+      ref.read(pFrostScaffoldArgs.state).state = (
+        info: (
+          walletName: wallet.info.name,
+          frostCurrency: wallet.cryptoCurrency,
+        ),
+        walletId: wallet.walletId,
+        stepRoutes: FrostRouteGenerator.initiateReshareStepRoutes,
+        onSuccess: () {
+          // successful completion of steps
+          // TODO
+        }
+      );
+
       if (mounted) {
         await Navigator.of(context).pushNamed(
-          DisplayReshareConfigView.routeName,
-          arguments: widget.walletId,
+          FrostStepScaffold.routeName,
         );
       }
     } catch (e, s) {

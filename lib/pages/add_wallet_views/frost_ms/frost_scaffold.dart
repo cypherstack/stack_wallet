@@ -38,7 +38,7 @@ class _FrostScaffoldState extends ConsumerState<FrostStepScaffold> {
 
     if (context.mounted) {
       Navigator.of(context).pop();
-      ref.read(pFrostCreateNewArgs.state).state = null;
+      ref.read(pFrostScaffoldArgs.state).state = null;
     }
 
     _requestPopLock = false;
@@ -46,7 +46,7 @@ class _FrostScaffoldState extends ConsumerState<FrostStepScaffold> {
 
   @override
   void initState() {
-    _routes = ref.read(pFrostCreateNewArgs)!.$2;
+    _routes = ref.read(pFrostScaffoldArgs)!.stepRoutes;
     super.initState();
   }
 

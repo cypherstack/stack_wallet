@@ -2,7 +2,6 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_create_step_5.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_route_generator.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
@@ -62,9 +61,12 @@ class _FrostCreateStep4State extends ConsumerState<FrostCreateStep4> {
           PrimaryButton(
             label: "Confirm",
             onPressed: () {
-              ref.read(pFrostCreateCurrentStep.state).state = 4;
+              ref.read(pFrostCreateCurrentStep.state).state = 5;
               Navigator.of(context).pushNamed(
-                FrostCreateStep5.routeName,
+                ref
+                    .read(pFrostScaffoldArgs)!
+                    .stepRoutes[ref.read(pFrostCreateCurrentStep) - 1]
+                    .routeName,
               );
             },
           )

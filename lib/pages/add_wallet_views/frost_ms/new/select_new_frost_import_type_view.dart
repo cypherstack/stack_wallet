@@ -7,7 +7,6 @@ import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/frost_scaffold.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_route_generator.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/resharing/new/new_import_resharer_config_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
@@ -141,13 +140,14 @@ class _SelectNewFrostImportTypeViewState
                 final String route;
                 switch (_selectedOption) {
                   case _ImportOption.multisigNew:
-                    ref.read(pFrostCreateNewArgs.state).state = (
-                      (
+                    ref.read(pFrostScaffoldArgs.state).state = (
+                      info: (
                         walletName: widget.walletName,
                         frostCurrency: widget.frostCurrency,
                       ),
-                      FrostRouteGenerator.importNewConfigStepRoutes,
-                      () {
+                      walletId: null, // no wallet id yet
+                      stepRoutes: FrostRouteGenerator.importNewConfigStepRoutes,
+                      onSuccess: () {
                         // successful completion of steps
                         if (Util.isDesktop) {
                           Navigator.of(context).popUntil(
@@ -167,7 +167,7 @@ class _SelectNewFrostImportTypeViewState
                         ref.read(pFrostMultisigConfig.state).state = null;
                         ref.read(pFrostStartKeyGenData.state).state = null;
                         ref.read(pFrostSecretSharesData.state).state = null;
-                        ref.read(pFrostCreateNewArgs.state).state = null;
+                        ref.read(pFrostScaffoldArgs.state).state = null;
 
                         unawaited(
                           showFloatingFlushBar(
@@ -179,22 +179,26 @@ class _SelectNewFrostImportTypeViewState
                         );
                       }
                     );
-
-                    await Navigator.of(context).pushNamed(
-                      FrostStepScaffold.routeName,
-                    );
                     break;
 
                   case _ImportOption.resharerExisting:
-                    await Navigator.of(context).pushNamed(
-                      NewImportResharerConfigView.routeName,
-                      arguments: (
+                    ref.read(pFrostScaffoldArgs.state).state = (
+                      info: (
                         walletName: widget.walletName,
                         frostCurrency: widget.frostCurrency,
                       ),
+                      walletId: null, // no wallet id yet
+                      stepRoutes: FrostRouteGenerator.joinReshareStepRoutes,
+                      onSuccess: () {
+                        // successful completion of steps
+                      }
                     );
                     break;
                 }
+
+                await Navigator.of(context).pushNamed(
+                  FrostStepScaffold.routeName,
+                );
               },
             )
           ],
