@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:cw_core/monero_transaction_priority.dart';
@@ -21,6 +22,7 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -153,12 +155,18 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
     final node = getCurrentNode();
 
     final host = Uri.parse(node.host).host;
+    ({InternetAddress host, int port})? proxy;
+    if (prefs.useTor) {
+      proxy = TorService.sharedInstance.getProxyInfo();
+    }
     await CwBasedInterface.cwWalletBase?.connectToNode(
       node: Node(
         uri: "$host:${node.port}",
         type: WalletType.monero,
         trusted: node.trusted ?? false,
       ),
+      socksProxyAddress:
+          proxy == null ? null : "${proxy.host.address}:${proxy.port}",
     );
   }
 
