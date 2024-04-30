@@ -157,8 +157,8 @@ class FrostMSWalletOptionsView extends ConsumerWidget {
                           walletName: wallet.info.name,
                           frostCurrency: wallet.cryptoCurrency,
                         ),
-                        walletId: null, // no wallet id yet
-                        stepRoutes: FrostRouteGenerator.joinReshareStepRoutes,
+                        walletId: wallet.walletId,
+                        stepRoutes: FrostRouteGenerator.importReshareStepRoutes,
                         onSuccess: () {
                           // successful completion of steps
                           // TODO

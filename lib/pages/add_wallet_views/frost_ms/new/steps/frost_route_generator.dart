@@ -169,14 +169,14 @@ abstract class FrostRouteGenerator {
       case FrostReshareStep3abd.routeName:
         return RouteGenerator.getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
-          builder: (_) => const FrostReshareStep2abd(),
+          builder: (_) => const FrostReshareStep3abd(),
           settings: settings,
         );
 
       case FrostReshareStep3c.routeName:
         return RouteGenerator.getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
-          builder: (_) => const FrostReshareStep2c(),
+          builder: (_) => const FrostReshareStep3c(),
           settings: settings,
         );
 
