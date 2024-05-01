@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_route_generator.dart';
+import 'package:stackwallet/frost_route_generator.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
@@ -30,8 +30,7 @@ class FrostReshareStep5 extends ConsumerStatefulWidget {
   static const String title = "Verify";
 
   @override
-  ConsumerState<FrostReshareStep5> createState() =>
-      _FrostReshareStep5State();
+  ConsumerState<FrostReshareStep5> createState() => _FrostReshareStep5State();
 }
 
 class _FrostReshareStep5State extends ConsumerState<FrostReshareStep5> {

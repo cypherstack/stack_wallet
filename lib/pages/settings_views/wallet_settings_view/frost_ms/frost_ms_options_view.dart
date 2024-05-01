@@ -10,8 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/add_wallet_views/frost_ms/frost_scaffold.dart';
-import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_route_generator.dart';
+import 'package:stackwallet/frost_route_generator.dart';
 import 'package:stackwallet/pages/settings_views/sub_widgets/settings_list_button.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/frost_participants_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/initiate_resharing/initiate_resharing_view.dart';
@@ -30,6 +29,7 @@ import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import 'package:stackwallet/widgets/frost_scaffold.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class FrostMSWalletOptionsView extends ConsumerWidget {

@@ -16,6 +16,11 @@ import 'package:stackwallet/pages/add_wallet_views/frost_ms/reshare/frost_reshar
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/reshare/frost_reshare_step_3c.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/reshare/frost_reshare_step_4.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/reshare/frost_reshare_step_5.dart';
+import 'package:stackwallet/pages/send_view/frost_ms/send_steps/frost_send_step_1a.dart';
+import 'package:stackwallet/pages/send_view/frost_ms/send_steps/frost_send_step_1b.dart';
+import 'package:stackwallet/pages/send_view/frost_ms/send_steps/frost_send_step_2.dart';
+import 'package:stackwallet/pages/send_view/frost_ms/send_steps/frost_send_step_3.dart';
+import 'package:stackwallet/pages/send_view/frost_ms/send_steps/frost_send_step_4.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
 
@@ -83,6 +88,20 @@ abstract class FrostRouteGenerator {
     (routeName: FrostReshareStep3c.routeName, title: FrostReshareStep3c.title),
     (routeName: FrostReshareStep4.routeName, title: FrostReshareStep4.title),
     (routeName: FrostReshareStep5.routeName, title: FrostReshareStep5.title),
+  ];
+
+  static const List<FrostStepRoute> sendFrostTxStepRoutes = [
+    (routeName: FrostSendStep1a.routeName, title: FrostSendStep1a.title),
+    (routeName: FrostSendStep2.routeName, title: FrostSendStep2.title),
+    (routeName: FrostSendStep3.routeName, title: FrostSendStep3.title),
+    (routeName: FrostSendStep4.routeName, title: FrostSendStep4.title),
+  ];
+
+  static const List<FrostStepRoute> signFrostTxStepRoutes = [
+    (routeName: FrostSendStep1b.routeName, title: FrostSendStep1b.title),
+    (routeName: FrostSendStep2.routeName, title: FrostSendStep2.title),
+    (routeName: FrostSendStep3.routeName, title: FrostSendStep3.title),
+    (routeName: FrostSendStep4.routeName, title: FrostSendStep4.title),
   ];
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -191,6 +210,41 @@ abstract class FrostRouteGenerator {
         return RouteGenerator.getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
           builder: (_) => const FrostReshareStep5(),
+          settings: settings,
+        );
+
+      case FrostSendStep1a.routeName:
+        return RouteGenerator.getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const FrostSendStep1a(),
+          settings: settings,
+        );
+
+      case FrostSendStep1b.routeName:
+        return RouteGenerator.getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const FrostSendStep1b(),
+          settings: settings,
+        );
+
+      case FrostSendStep2.routeName:
+        return RouteGenerator.getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const FrostSendStep2(),
+          settings: settings,
+        );
+
+      case FrostSendStep3.routeName:
+        return RouteGenerator.getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const FrostSendStep3(),
+          settings: settings,
+        );
+
+      case FrostSendStep4.routeName:
+        return RouteGenerator.getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const FrostSendStep4(),
           settings: settings,
         );
 

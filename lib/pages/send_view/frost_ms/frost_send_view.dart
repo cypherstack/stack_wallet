@@ -14,9 +14,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:stackwallet/frost_route_generator.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/coin_control/coin_control_view.dart';
-import 'package:stackwallet/pages/send_view/frost_ms/frost_create_sign_config_view.dart';
 import 'package:stackwallet/pages/send_view/frost_ms/recipient.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/providers/providers.dart';
@@ -38,6 +38,7 @@ import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/fee_slider.dart';
+import 'package:stackwallet/widgets/frost_scaffold.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -120,12 +121,29 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
         );
       }
 
+      final wallet =
+          ref.read(pWallets).getWallet(walletId) as BitcoinFrostWallet;
+
       if (mounted && txData != null) {
         ref.read(pFrostTxData.notifier).state = txData;
 
+        ref.read(pFrostScaffoldArgs.state).state = (
+          info: (
+            walletName: wallet.info.name,
+            frostCurrency: wallet.cryptoCurrency,
+          ),
+          walletId: walletId,
+          stepRoutes: FrostRouteGenerator.sendFrostTxStepRoutes,
+          onSuccess: () {
+            // successful completion of steps
+            // TODO ?
+
+            ref.read(pFrostScaffoldArgs.state).state = null;
+          }
+        );
+
         await Navigator.of(context).pushNamed(
-          FrostCreateSignConfigView.routeName,
-          arguments: widget.walletId,
+          FrostStepScaffold.routeName,
         );
       }
     } catch (e) {

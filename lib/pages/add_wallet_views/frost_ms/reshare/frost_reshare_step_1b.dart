@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frostdart/frostdart.dart';
-import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_route_generator.dart';
+import 'package:stackwallet/frost_route_generator.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';

@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
+import 'package:stackwallet/frost_route_generator.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/buy_view/buy_in_wallet_view.dart';
@@ -29,7 +30,6 @@ import 'package:stackwallet/pages/ordinals/ordinals_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages/receive_view/receive_view.dart';
-import 'package:stackwallet/pages/send_view/frost_ms/frost_import_sign_config_view.dart';
 import 'package:stackwallet/pages/send_view/frost_ms/frost_send_view.dart';
 import 'package:stackwallet/pages/send_view/send_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
@@ -79,6 +79,7 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/frost_scaffold.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/small_tor_icon.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -359,9 +360,24 @@ class _WalletViewState extends ConsumerState<WalletView> {
   }
 
   Future<void> _onFrostSignPressed(BuildContext context) async {
+    final wallet = ref.read(pWallets).getWallet(walletId) as BitcoinFrostWallet;
+    ref.read(pFrostScaffoldArgs.state).state = (
+      info: (
+        walletName: wallet.info.name,
+        frostCurrency: wallet.cryptoCurrency,
+      ),
+      walletId: walletId,
+      stepRoutes: FrostRouteGenerator.signFrostTxStepRoutes,
+      onSuccess: () {
+        // successful completion of steps
+        // TODO ?
+
+        ref.read(pFrostScaffoldArgs.state).state = null;
+      }
+    );
+
     await Navigator.of(context).pushNamed(
-      FrostImportSignConfigView.routeName,
-      arguments: walletId,
+      FrostStepScaffold.routeName,
     );
   }
 
