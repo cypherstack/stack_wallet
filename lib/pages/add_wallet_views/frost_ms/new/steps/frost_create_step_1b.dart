@@ -7,6 +7,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/frost_step_user_steps.dart';
+import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/textfields/frost_step_field.dart';
 
@@ -67,6 +68,21 @@ class _FrostCreateStep1bState extends ConsumerState<FrostCreateStep1b> {
             height: 16,
           ),
           FrostStepField(
+            controller: configFieldController,
+            focusNode: configFocusNode,
+            showQrScanOption: true,
+            label: "Enter config",
+            hint: "Enter config",
+            onChanged: (_) {
+              setState(() {
+                _configEmpty = configFieldController.text.isEmpty;
+              });
+            },
+          ),
+          const SizedBox(
+            height: 16,
+          ),
+          FrostStepField(
             controller: myNameFieldController,
             focusNode: myNameFocusNode,
             showQrScanOption: false,
@@ -79,19 +95,20 @@ class _FrostCreateStep1bState extends ConsumerState<FrostCreateStep1b> {
             },
           ),
           const SizedBox(
-            height: 16,
+            height: 6,
           ),
-          FrostStepField(
-            controller: configFieldController,
-            focusNode: configFocusNode,
-            showQrScanOption: true,
-            label: "Enter config",
-            hint: "Enter config",
-            onChanged: (_) {
-              setState(() {
-                _configEmpty = configFieldController.text.isEmpty;
-              });
-            },
+          Row(
+            children: [
+              Expanded(
+                child: RoundedWhiteContainer(
+                  child: Text(
+                    "Enter your name EXACTLY as the group creator entered it. "
+                    "The names are case-sensitive.",
+                    style: STextStyles.label(context),
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(
             height: 16,
