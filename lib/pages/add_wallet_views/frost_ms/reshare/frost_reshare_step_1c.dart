@@ -1,12 +1,9 @@
 import 'dart:async';
 
-import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_route_generator.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
-import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -15,12 +12,8 @@ import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/models/incomplete_frost_wallet.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/frost_step_user_steps.dart';
-import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
-import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+import 'package:stackwallet/widgets/textfields/frost_step_field.dart';
 
 class FrostReshareStep1c extends ConsumerStatefulWidget {
   const FrostReshareStep1c({super.key});
@@ -95,199 +88,32 @@ class _FrostReshareStep1cState extends ConsumerState<FrostReshareStep1c> {
           const SizedBox(
             height: 16,
           ),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(
-              Constants.size.circularBorderRadius,
-            ),
-            child: TextField(
-              key: const Key("frMyNameTextFieldKey"),
-              controller: myNameFieldController,
-              onChanged: (_) {
-                setState(() {
-                  _nameEmpty = myNameFieldController.text.isEmpty;
-                });
-              },
-              focusNode: myNameFocusNode,
-              readOnly: false,
-              autocorrect: false,
-              enableSuggestions: false,
-              style: STextStyles.field(context),
-              decoration: standardInputDecoration(
-                "My name",
-                myNameFocusNode,
-                context,
-              ).copyWith(
-                contentPadding: const EdgeInsets.only(
-                  left: 16,
-                  top: 6,
-                  bottom: 8,
-                  right: 5,
-                ),
-                suffixIcon: Padding(
-                  padding: _nameEmpty
-                      ? const EdgeInsets.only(right: 8)
-                      : const EdgeInsets.only(right: 0),
-                  child: UnconstrainedBox(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        !_nameEmpty
-                            ? TextFieldIconButton(
-                                semanticsLabel:
-                                    "Clear Button. Clears The Config Field.",
-                                key: const Key("frMyNameClearButtonKey"),
-                                onTap: () {
-                                  myNameFieldController.text = "";
-
-                                  setState(() {
-                                    _nameEmpty = true;
-                                  });
-                                },
-                                child: const XIcon(),
-                              )
-                            : TextFieldIconButton(
-                                semanticsLabel:
-                                    "Paste Button. Pastes From Clipboard To Name Field.",
-                                key: const Key("frMyNamePasteButtonKey"),
-                                onTap: () async {
-                                  final ClipboardData? data =
-                                      await Clipboard.getData(
-                                          Clipboard.kTextPlain);
-                                  if (data?.text != null &&
-                                      data!.text!.isNotEmpty) {
-                                    myNameFieldController.text =
-                                        data.text!.trim();
-                                  }
-
-                                  setState(() {
-                                    _nameEmpty =
-                                        myNameFieldController.text.isEmpty;
-                                  });
-                                },
-                                child: _nameEmpty
-                                    ? const ClipboardIcon()
-                                    : const XIcon(),
-                              ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
+          FrostStepField(
+            controller: myNameFieldController,
+            focusNode: myNameFocusNode,
+            showQrScanOption: false,
+            label: "My name",
+            hint: "Enter your name",
+            onChanged: (_) {
+              setState(() {
+                _nameEmpty = myNameFieldController.text.isEmpty;
+              });
+            },
           ),
           const SizedBox(
             height: 16,
           ),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(
-              Constants.size.circularBorderRadius,
-            ),
-            child: TextField(
-              key: const Key("frConfigTextFieldKey"),
-              controller: configFieldController,
-              onChanged: (_) {
-                setState(() {
-                  _configEmpty = configFieldController.text.isEmpty;
-                });
-              },
-              focusNode: configFocusNode,
-              readOnly: false,
-              autocorrect: false,
-              enableSuggestions: false,
-              style: STextStyles.field(context),
-              decoration: standardInputDecoration(
-                "Enter config",
-                configFocusNode,
-                context,
-              ).copyWith(
-                contentPadding: const EdgeInsets.only(
-                  left: 16,
-                  top: 6,
-                  bottom: 8,
-                  right: 5,
-                ),
-                suffixIcon: Padding(
-                  padding: _configEmpty
-                      ? const EdgeInsets.only(right: 8)
-                      : const EdgeInsets.only(right: 0),
-                  child: UnconstrainedBox(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        !_configEmpty
-                            ? TextFieldIconButton(
-                                semanticsLabel:
-                                    "Clear Button. Clears The Config Field.",
-                                key: const Key("frConfigClearButtonKey"),
-                                onTap: () {
-                                  configFieldController.text = "";
-
-                                  setState(() {
-                                    _configEmpty = true;
-                                  });
-                                },
-                                child: const XIcon(),
-                              )
-                            : TextFieldIconButton(
-                                semanticsLabel:
-                                    "Paste Button. Pastes From Clipboard To Config Field Input.",
-                                key: const Key("frConfigPasteButtonKey"),
-                                onTap: () async {
-                                  final ClipboardData? data =
-                                      await Clipboard.getData(
-                                          Clipboard.kTextPlain);
-                                  if (data?.text != null &&
-                                      data!.text!.isNotEmpty) {
-                                    configFieldController.text =
-                                        data.text!.trim();
-                                  }
-
-                                  setState(() {
-                                    _configEmpty =
-                                        configFieldController.text.isEmpty;
-                                  });
-                                },
-                                child: _configEmpty
-                                    ? const ClipboardIcon()
-                                    : const XIcon(),
-                              ),
-                        if (_configEmpty)
-                          TextFieldIconButton(
-                            semanticsLabel:
-                                "Scan QR Button. Opens Camera For Scanning QR Code.",
-                            key: const Key("frConfigScanQrButtonKey"),
-                            onTap: () async {
-                              try {
-                                if (FocusScope.of(context).hasFocus) {
-                                  FocusScope.of(context).unfocus();
-                                  await Future<void>.delayed(
-                                      const Duration(milliseconds: 75));
-                                }
-
-                                final qrResult = await BarcodeScanner.scan();
-
-                                configFieldController.text =
-                                    qrResult.rawContent;
-
-                                setState(() {
-                                  _configEmpty =
-                                      configFieldController.text.isEmpty;
-                                });
-                              } on PlatformException catch (e, s) {
-                                Logging.instance.log(
-                                  "Failed to get camera permissions while trying to scan qr code: $e\n$s",
-                                  level: LogLevel.Warning,
-                                );
-                              }
-                            },
-                            child: const QrCodeIcon(),
-                          )
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
+          FrostStepField(
+            controller: configFieldController,
+            focusNode: configFocusNode,
+            showQrScanOption: true,
+            label: "Enter config",
+            hint: "Enter config",
+            onChanged: (_) {
+              setState(() {
+                _configEmpty = configFieldController.text.isEmpty;
+              });
+            },
           ),
           const SizedBox(
             height: 16,

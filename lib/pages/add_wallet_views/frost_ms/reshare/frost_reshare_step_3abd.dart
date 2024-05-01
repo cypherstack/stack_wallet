@@ -1,8 +1,6 @@
 import 'dart:ffi';
 
-import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_route_generator.dart';
@@ -10,19 +8,13 @@ import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_deta
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/services/frost.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/detail_item.dart';
-import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
-import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+import 'package:stackwallet/widgets/textfields/frost_step_field.dart';
 
 class FrostReshareStep3abd extends ConsumerStatefulWidget {
   const FrostReshareStep3abd({super.key});
@@ -182,136 +174,22 @@ class _FrostReshareStep3abdState extends ConsumerState<FrostReshareStep3abd> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               for (int i = 0; i < newParticipants.length; i++)
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
-                        ),
-                        child: TextField(
-                          key: Key("frostEncryptionKeyTextFieldKey_$i"),
-                          controller: controllers[i],
-                          focusNode: focusNodes[i],
-                          readOnly: false,
-                          autocorrect: false,
-                          enableSuggestions: false,
-                          style: STextStyles.field(context),
-                          onChanged: (_) {
-                            setState(() {
-                              fieldIsEmptyFlags[i] =
-                                  controllers[i].text.isEmpty;
-                            });
-                          },
-                          decoration: standardInputDecoration(
-                            "Enter "
-                            "${newParticipants[i]}"
-                            "'s encryption key",
-                            focusNodes[i],
-                            context,
-                          ).copyWith(
-                            contentPadding: const EdgeInsets.only(
-                              left: 16,
-                              top: 6,
-                              bottom: 8,
-                              right: 5,
-                            ),
-                            suffixIcon: Padding(
-                              padding: fieldIsEmptyFlags[i]
-                                  ? const EdgeInsets.only(right: 8)
-                                  : const EdgeInsets.only(right: 0),
-                              child: UnconstrainedBox(
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceAround,
-                                  children: [
-                                    !fieldIsEmptyFlags[i]
-                                        ? TextFieldIconButton(
-                                            semanticsLabel:
-                                                "Clear Button. Clears The Encryption Key Field Input.",
-                                            key: Key(
-                                                "frostEncryptionKeyClearButtonKey_$i"),
-                                            onTap: () {
-                                              controllers[i].text = "";
-
-                                              setState(() {
-                                                fieldIsEmptyFlags[i] = true;
-                                              });
-                                            },
-                                            child: const XIcon(),
-                                          )
-                                        : TextFieldIconButton(
-                                            semanticsLabel:
-                                                "Paste Button. Pastes From Clipboard To Encryption Key Field Input.",
-                                            key: Key(
-                                                "frostEncryptionKeyPasteButtonKey_$i"),
-                                            onTap: () async {
-                                              final ClipboardData? data =
-                                                  await Clipboard.getData(
-                                                      Clipboard.kTextPlain);
-                                              if (data?.text != null &&
-                                                  data!.text!.isNotEmpty) {
-                                                controllers[i].text =
-                                                    data.text!.trim();
-                                              }
-
-                                              setState(() {
-                                                fieldIsEmptyFlags[i] =
-                                                    controllers[i].text.isEmpty;
-                                              });
-                                            },
-                                            child: fieldIsEmptyFlags[i]
-                                                ? const ClipboardIcon()
-                                                : const XIcon(),
-                                          ),
-                                    if (fieldIsEmptyFlags[i])
-                                      TextFieldIconButton(
-                                        semanticsLabel: "Scan QR Button. "
-                                            "Opens Camera For Scanning QR Code.",
-                                        key: Key(
-                                            "frostCommitmentsScanQrButtonKey_$i"),
-                                        onTap: () async {
-                                          try {
-                                            if (FocusScope.of(context)
-                                                .hasFocus) {
-                                              FocusScope.of(context).unfocus();
-                                              await Future<void>.delayed(
-                                                  const Duration(
-                                                      milliseconds: 75));
-                                            }
-
-                                            final qrResult =
-                                                await BarcodeScanner.scan();
-
-                                            controllers[i].text =
-                                                qrResult.rawContent;
-
-                                            setState(() {
-                                              fieldIsEmptyFlags[i] =
-                                                  controllers[i].text.isEmpty;
-                                            });
-                                          } on PlatformException catch (e, s) {
-                                            Logging.instance.log(
-                                              "Failed to get camera permissions "
-                                              "while trying to scan qr code: $e\n$s",
-                                              level: LogLevel.Warning,
-                                            );
-                                          }
-                                        },
-                                        child: const QrCodeIcon(),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: FrostStepField(
+                    controller: controllers[i],
+                    focusNode: focusNodes[i],
+                    showQrScanOption: true,
+                    label: newParticipants[i],
+                    hint: "Enter "
+                        "${newParticipants[i]}"
+                        "'s encryption key",
+                    onChanged: (_) {
+                      setState(() {
+                        fieldIsEmptyFlags[i] = controllers[i].text.isEmpty;
+                      });
+                    },
+                  ),
                 ),
             ],
           ),

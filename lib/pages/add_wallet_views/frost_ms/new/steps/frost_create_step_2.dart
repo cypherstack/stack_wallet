@@ -1,6 +1,4 @@
-import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_route_generator.dart';
@@ -9,7 +7,6 @@ import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/services/frost.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -19,12 +16,8 @@ import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/detail_item.dart';
 import 'package:stackwallet/widgets/dialogs/frost/frost_step_qr_dialog.dart';
 import 'package:stackwallet/widgets/frost_step_user_steps.dart';
-import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
-import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+import 'package:stackwallet/widgets/textfields/frost_step_field.dart';
 
 class FrostCreateStep2 extends ConsumerStatefulWidget {
   const FrostCreateStep2({
@@ -135,135 +128,20 @@ class _FrostCreateStep2State extends ConsumerState<FrostCreateStep2> {
           ),
           const SizedBox(height: 12),
           for (int i = 0; i < participants.length; i++)
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(
-                  height: 12,
-                ),
-                Text(
-                  participants[i],
-                  style: STextStyles.w500_14(context),
-                ),
-                const SizedBox(
-                  height: 4,
-                ),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
-                  ),
-                  child: TextField(
-                    key: Key("frostCommitmentsTextFieldKey_$i"),
-                    controller: controllers[i],
-                    focusNode: focusNodes[i],
-                    readOnly: false,
-                    autocorrect: false,
-                    enableSuggestions: false,
-                    style: STextStyles.field(context),
-                    onChanged: (_) {
-                      setState(() {
-                        fieldIsEmptyFlags[i] = controllers[i].text.isEmpty;
-                      });
-                    },
-                    decoration: standardInputDecoration(
-                      "Enter ${participants[i]}'s commitment",
-                      focusNodes[i],
-                      context,
-                    ).copyWith(
-                      contentPadding: const EdgeInsets.only(
-                        left: 16,
-                        top: 6,
-                        bottom: 8,
-                        right: 5,
-                      ),
-                      suffixIcon: Padding(
-                        padding: fieldIsEmptyFlags[i]
-                            ? const EdgeInsets.only(right: 8)
-                            : const EdgeInsets.only(right: 0),
-                        child: UnconstrainedBox(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              !fieldIsEmptyFlags[i]
-                                  ? TextFieldIconButton(
-                                      semanticsLabel:
-                                          "Clear Button. Clears The Commitment Field Input.",
-                                      key: Key(
-                                          "frostCommitmentsClearButtonKey_$i"),
-                                      onTap: () {
-                                        controllers[i].text = "";
-
-                                        setState(() {
-                                          fieldIsEmptyFlags[i] = true;
-                                        });
-                                      },
-                                      child: const XIcon(),
-                                    )
-                                  : TextFieldIconButton(
-                                      semanticsLabel:
-                                          "Paste Button. Pastes From Clipboard To Commitment Field Input.",
-                                      key: Key(
-                                          "frostCommitmentsPasteButtonKey_$i"),
-                                      onTap: () async {
-                                        final ClipboardData? data =
-                                            await Clipboard.getData(
-                                                Clipboard.kTextPlain);
-                                        if (data?.text != null &&
-                                            data!.text!.isNotEmpty) {
-                                          controllers[i].text =
-                                              data.text!.trim();
-                                        }
-
-                                        setState(() {
-                                          fieldIsEmptyFlags[i] =
-                                              controllers[i].text.isEmpty;
-                                        });
-                                      },
-                                      child: fieldIsEmptyFlags[i]
-                                          ? const ClipboardIcon()
-                                          : const XIcon(),
-                                    ),
-                              if (fieldIsEmptyFlags[i])
-                                TextFieldIconButton(
-                                  semanticsLabel:
-                                      "Scan QR Button. Opens Camera For Scanning QR Code.",
-                                  key:
-                                      Key("frostCommitmentsScanQrButtonKey_$i"),
-                                  onTap: () async {
-                                    try {
-                                      if (FocusScope.of(context).hasFocus) {
-                                        FocusScope.of(context).unfocus();
-                                        await Future<void>.delayed(
-                                            const Duration(milliseconds: 75));
-                                      }
-
-                                      final qrResult =
-                                          await BarcodeScanner.scan();
-
-                                      controllers[i].text = qrResult.rawContent;
-
-                                      setState(() {
-                                        fieldIsEmptyFlags[i] =
-                                            controllers[i].text.isEmpty;
-                                      });
-                                    } on PlatformException catch (e, s) {
-                                      Logging.instance.log(
-                                        "Failed to get camera permissions while trying to scan qr code: $e\n$s",
-                                        level: LogLevel.Warning,
-                                      );
-                                    }
-                                  },
-                                  child: const QrCodeIcon(),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: FrostStepField(
+                controller: controllers[i],
+                focusNode: focusNodes[i],
+                showQrScanOption: true,
+                label: participants[i],
+                hint: "Enter ${participants[i]}'s commitment",
+                onChanged: (_) {
+                  setState(() {
+                    fieldIsEmptyFlags[i] = controllers[i].text.isEmpty;
+                  });
+                },
+              ),
             ),
           if (!Util.isDesktop) const Spacer(),
           const SizedBox(height: 12),

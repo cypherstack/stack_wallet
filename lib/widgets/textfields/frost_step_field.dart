@@ -19,7 +19,7 @@ class FrostStepField extends StatefulWidget {
     required this.focusNode,
     this.label,
     this.hint,
-    // this.onChanged,
+    required this.onChanged,
     required this.showQrScanOption,
   });
 
@@ -27,7 +27,7 @@ class FrostStepField extends StatefulWidget {
   final FocusNode focusNode;
   final String? label;
   final String? hint;
-  // final void Function(String)? onChanged;
+  final void Function(String) onChanged;
   final bool showQrScanOption;
 
   @override
@@ -51,10 +51,22 @@ class _FrostStepFieldState extends State<FrostStepField> {
     ),
   );
 
+  late final void Function(String) _changed;
+
   @override
   void initState() {
     _qrKey = widget.showQrScanOption ? UniqueKey() : null;
     _isEmpty = widget.controller.text.isEmpty;
+
+    _changed = (value) {
+      if (context.mounted) {
+        widget.onChanged.call(value);
+        setState(() {
+          _isEmpty = widget.controller.text.isEmpty;
+        });
+      }
+    };
+
     super.initState();
   }
 
@@ -82,12 +94,7 @@ class _FrostStepFieldState extends State<FrostStepField> {
         autocorrect: false,
         enableSuggestions: false,
         style: STextStyles.field(context),
-        // onChanged: widget.onChanged,
-        onChanged: (_) {
-          setState(() {
-            _isEmpty = widget.controller.text.isEmpty;
-          });
-        },
+        onChanged: _changed,
         decoration: InputDecoration(
           hintText: widget.hint,
           fillColor: widget.focusNode.hasFocus
@@ -117,9 +124,7 @@ class _FrostStepFieldState extends State<FrostStepField> {
                           onTap: () {
                             widget.controller.text = "";
 
-                            setState(() {
-                              _isEmpty = true;
-                            });
+                            _changed(widget.controller.text);
                           },
                           child: const XIcon(),
                         )
@@ -134,9 +139,7 @@ class _FrostStepFieldState extends State<FrostStepField> {
                               widget.controller.text = data.text!.trim();
                             }
 
-                            setState(() {
-                              _isEmpty = widget.controller.text.isEmpty;
-                            });
+                            _changed(widget.controller.text);
                           },
                           child:
                               _isEmpty ? const ClipboardIcon() : const XIcon(),
@@ -158,9 +161,7 @@ class _FrostStepFieldState extends State<FrostStepField> {
 
                           widget.controller.text = qrResult.rawContent;
 
-                          setState(() {
-                            _isEmpty = widget.controller.text.isEmpty;
-                          });
+                          _changed(widget.controller.text);
                         } on PlatformException catch (e, s) {
                           Logging.instance.log(
                             "Failed to get camera permissions while trying to scan qr code: $e\n$s",
