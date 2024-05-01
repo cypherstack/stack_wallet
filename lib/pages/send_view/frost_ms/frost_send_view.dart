@@ -17,7 +17,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/coin_control/coin_control_view.dart';
 import 'package:stackwallet/pages/send_view/frost_ms/frost_create_sign_config_view.dart';
-import 'package:stackwallet/pages/send_view/frost_ms/frost_import_sign_config_view.dart';
 import 'package:stackwallet/pages/send_view/frost_ms/recipient.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/providers/providers.dart';
@@ -25,7 +24,6 @@ import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
@@ -49,10 +47,10 @@ import 'package:tuple/tuple.dart';
 
 class FrostSendView extends ConsumerStatefulWidget {
   const FrostSendView({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.coin,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/frostSendView";
 
@@ -172,11 +170,11 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
     for (final i in recipientWidgetIndexes) {
       final state = ref.read(pRecipient(i).state).state;
       if (state?.amount == null || state?.address == null) {
-        ref.read(previewTxButtonStateProvider.notifier).state = false;
+        ref.read(_previewTxButtonStateProvider.notifier).state = false;
         return;
       }
     }
-    ref.read(previewTxButtonStateProvider.notifier).state = true;
+    ref.read(_previewTxButtonStateProvider.notifier).state = true;
     return;
   }
 
@@ -223,7 +221,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                   FocusScope.of(context).unfocus();
                   await Future<void>.delayed(const Duration(milliseconds: 50));
                 }
-                if (mounted) {
+                if (context.mounted) {
                   Navigator.of(context).pop();
                 }
               },
@@ -232,40 +230,6 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
               "Send ${coin.ticker}",
               style: STextStyles.navBarTitle(context),
             ),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
-                  right: 10,
-                ),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: AppBarIconButton(
-                    semanticsLabel: "Import sign config Button.",
-                    key: const Key("importSignConfigButtonKey"),
-                    size: 36,
-                    shadows: const [],
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                    icon: SvgPicture.asset(
-                      Assets.svg.circlePlus,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark,
-                      width: 20,
-                      height: 20,
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pushNamed(
-                        FrostImportSignConfigView.routeName,
-                        arguments: walletId,
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ],
           ),
           body: LayoutBuilder(
             builder: (builderContext, constraints) {
@@ -349,14 +313,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                             )
                           : const Spacer(),
                       GestureDetector(
-                        onTap: () {
-                          // cryptoAmountController.text = ref
-                          //     .read(pAmountFormatter(coin))
-                          //     .format(
-                          //       _cachedBalance!,
-                          //       withUnitName: false,
-                          //     );
-                        },
+                        onTap: () {},
                         child: Container(
                           color: Colors.transparent,
                           child: Column(
@@ -372,24 +329,6 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                                 ),
                                 textAlign: TextAlign.right,
                               ),
-                              // Text(
-                              //   "${(manager.balance.spendable.decimal * ref.watch(
-                              //             priceAnd24hChangeNotifierProvider.select(
-                              //               (value) => value.getPrice(coin).item1,
-                              //             ),
-                              //           )).toAmount(
-                              //         fractionDigits: 2,
-                              //       ).fiatString(
-                              //         locale: locale,
-                              //       )} ${ref.watch(
-                              //     prefsChangeNotifierProvider
-                              //         .select((value) => value.currency),
-                              //   )}",
-                              //   style: STextStyles.subtitle(context).copyWith(
-                              //     fontSize: 8,
-                              //   ),
-                              //   textAlign: TextAlign.right,
-                              // )
                             ],
                           ),
                         ),
@@ -481,12 +420,6 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                         }
 
                         if (mounted) {
-                          // finally spendable = ref
-                          //     .read(walletsChangeNotifierProvider)
-                          //     .getManager(widget.walletId)
-                          //     .balance
-                          //     .spendable;
-
                           // TODO: [prio=high] make sure this coincontrol works correctly
 
                           Amount? amount;
@@ -585,10 +518,10 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
               height: 12,
             ),
             TextButton(
-              onPressed: ref.watch(previewTxButtonStateProvider.state).state
+              onPressed: ref.watch(_previewTxButtonStateProvider.state).state
                   ? _createSignConfig
                   : null,
-              style: ref.watch(previewTxButtonStateProvider.state).state
+              style: ref.watch(_previewTxButtonStateProvider.state).state
                   ? Theme.of(context)
                       .extension<StackColors>()!
                       .getPrimaryEnabledButtonStyle(context)
@@ -610,4 +543,4 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
   }
 }
 
-final previewTxButtonStateProvider = StateProvider((_) => false);
+final _previewTxButtonStateProvider = StateProvider((_) => false);

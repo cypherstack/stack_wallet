@@ -29,6 +29,7 @@ import 'package:stackwallet/pages/ordinals/ordinals_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages/receive_view/receive_view.dart';
+import 'package:stackwallet/pages/send_view/frost_ms/frost_import_sign_config_view.dart';
 import 'package:stackwallet/pages/send_view/frost_ms/frost_send_view.dart';
 import 'package:stackwallet/pages/send_view/send_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
@@ -358,12 +359,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
   }
 
   Future<void> _onFrostSignPressed(BuildContext context) async {
-    // TODO
-    await showDialog(
-      context: context,
-      builder: (_) => StackOkDialog(
-        title: "TODO FROST SIGN TX",
-      ),
+    await Navigator.of(context).pushNamed(
+      FrostImportSignConfigView.routeName,
+      arguments: walletId,
     );
   }
 
