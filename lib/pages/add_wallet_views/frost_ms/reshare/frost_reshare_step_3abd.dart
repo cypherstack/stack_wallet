@@ -10,6 +10,7 @@ import 'package:stackwallet/services/frost.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/custom_buttons/checkbox_text_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/detail_item.dart';
@@ -37,6 +38,8 @@ class _FrostReshareStep3abdState extends ConsumerState<FrostReshareStep3abd> {
   late final bool amOutgoingParticipant;
 
   final List<bool> fieldIsEmptyFlags = [];
+
+  bool _userVerifyContinue = false;
 
   bool _buttonLock = false;
   Future<void> _onPressed() async {
@@ -197,9 +200,21 @@ class _FrostReshareStep3abdState extends ConsumerState<FrostReshareStep3abd> {
           const SizedBox(
             height: 12,
           ),
+          CheckboxTextButton(
+            label: "I have verified that everyone has my encryption key",
+            onChanged: (value) {
+              setState(() {
+                _userVerifyContinue = value;
+              });
+            },
+          ),
+          const SizedBox(
+            height: 16,
+          ),
           PrimaryButton(
             label: "Continue",
-            enabled: !fieldIsEmptyFlags.reduce((v, e) => v |= e),
+            enabled: _userVerifyContinue &&
+                !fieldIsEmptyFlags.reduce((v, e) => v |= e),
             onPressed: _onPressed,
           ),
         ],

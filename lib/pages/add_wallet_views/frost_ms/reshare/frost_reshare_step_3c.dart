@@ -6,6 +6,7 @@ import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_deta
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/custom_buttons/checkbox_text_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/detail_item.dart';
@@ -17,10 +18,12 @@ class FrostReshareStep3c extends ConsumerStatefulWidget {
   static const String title = "Encryption keys";
 
   @override
-  ConsumerState<FrostReshareStep3c> createState() => _FrostReshareStep3bState();
+  ConsumerState<FrostReshareStep3c> createState() => _FrostReshareStep3cState();
 }
 
-class _FrostReshareStep3bState extends ConsumerState<FrostReshareStep3c> {
+class _FrostReshareStep3cState extends ConsumerState<FrostReshareStep3c> {
+  bool _userVerifyContinue = false;
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -72,8 +75,20 @@ class _FrostReshareStep3bState extends ConsumerState<FrostReshareStep3c> {
           const SizedBox(
             height: 16,
           ),
+          CheckboxTextButton(
+            label: "I have verified that everyone has my encryption key",
+            onChanged: (value) {
+              setState(() {
+                _userVerifyContinue = value;
+              });
+            },
+          ),
+          const SizedBox(
+            height: 16,
+          ),
           PrimaryButton(
             label: "Continue",
+            enabled: _userVerifyContinue,
             onPressed: () {
               ref.read(pFrostCreateCurrentStep.state).state = 4;
               Navigator.of(context).pushNamed(

@@ -6,10 +6,10 @@ import 'package:stackwallet/frost_route_generator.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/models/incomplete_frost_wallet.dart';
+import 'package:stackwallet/widgets/custom_buttons/checkbox_text_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/frost_step_user_steps.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -122,40 +122,13 @@ class _FrostReshareStep1cState extends ConsumerState<FrostReshareStep1c> {
           const SizedBox(
             height: 16,
           ),
-          GestureDetector(
-            onTap: () {
+          CheckboxTextButton(
+            label: "I have verified that everyone has joined the group",
+            onChanged: (value) {
               setState(() {
-                _userVerifyContinue = !_userVerifyContinue;
+                _userVerifyContinue = value;
               });
             },
-            child: Container(
-              color: Colors.transparent,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 20,
-                    height: 26,
-                    child: Checkbox(
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      value: _userVerifyContinue,
-                      onChanged: (value) => setState(
-                        () => _userVerifyContinue = value == true,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 12,
-                  ),
-                  Expanded(
-                    child: Text(
-                      "I have verified that everyone has joined the group",
-                      style: STextStyles.w500_14(context),
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ),
           const SizedBox(
             height: 16,

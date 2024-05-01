@@ -10,6 +10,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/custom_buttons/checkbox_text_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
@@ -209,40 +210,13 @@ class _FrostCreateStep1aState extends ConsumerState<FrostCreateStep1a> {
           const SizedBox(
             height: 16,
           ),
-          GestureDetector(
-            onTap: () {
+          CheckboxTextButton(
+            label: "I have verified that everyone has joined the group",
+            onChanged: (value) {
               setState(() {
-                _userVerifyContinue = !_userVerifyContinue;
+                _userVerifyContinue = value;
               });
             },
-            child: Container(
-              color: Colors.transparent,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 20,
-                    height: 26,
-                    child: Checkbox(
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      value: _userVerifyContinue,
-                      onChanged: (value) => setState(
-                        () => _userVerifyContinue = value == true,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 12,
-                  ),
-                  Expanded(
-                    child: Text(
-                      "I have verified that everyone has joined the group",
-                      style: STextStyles.w500_14(context),
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ),
           const SizedBox(
             height: 16,

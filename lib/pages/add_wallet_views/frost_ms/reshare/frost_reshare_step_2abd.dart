@@ -12,6 +12,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/models/frost_wallet_info.dart';
+import 'package:stackwallet/widgets/custom_buttons/checkbox_text_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/detail_item.dart';
@@ -41,6 +42,8 @@ class _FrostReshareStep2abdState extends ConsumerState<FrostReshareStep2abd> {
   final List<bool> fieldIsEmptyFlags = [];
 
   bool _buttonLock = false;
+
+  bool _userVerifyContinue = false;
 
   Future<void> _onPressed() async {
     if (_buttonLock) {
@@ -207,10 +210,22 @@ class _FrostReshareStep2abdState extends ConsumerState<FrostReshareStep2abd> {
           const SizedBox(
             height: 12,
           ),
+          CheckboxTextButton(
+            label: "I have verified that everyone has my resharer",
+            onChanged: (value) {
+              setState(() {
+                _userVerifyContinue = value;
+              });
+            },
+          ),
+          const SizedBox(
+            height: 16,
+          ),
           PrimaryButton(
             label: "Continue",
-            enabled: amOutgoingParticipant ||
-                !fieldIsEmptyFlags.reduce((v, e) => v |= e),
+            enabled: _userVerifyContinue &&
+                (amOutgoingParticipant ||
+                    !fieldIsEmptyFlags.reduce((v, e) => v |= e)),
             onPressed: _onPressed,
           ),
         ],

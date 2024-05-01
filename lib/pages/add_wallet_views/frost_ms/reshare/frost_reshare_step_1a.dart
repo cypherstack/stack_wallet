@@ -15,6 +15,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/models/frost_wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
+import 'package:stackwallet/widgets/custom_buttons/checkbox_text_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
@@ -283,40 +284,13 @@ class _FrostReshareStep1aState extends ConsumerState<FrostReshareStep1a> {
               height: 16,
             ),
           if (iAmInvolved)
-            GestureDetector(
-              onTap: () {
+            CheckboxTextButton(
+              label: "I have verified that everyone has imported the config",
+              onChanged: (value) {
                 setState(() {
-                  _userVerifyContinue = !_userVerifyContinue;
+                  _userVerifyContinue = value;
                 });
               },
-              child: Container(
-                color: Colors.transparent,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: 20,
-                      height: 26,
-                      child: Checkbox(
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        value: _userVerifyContinue,
-                        onChanged: (value) => setState(
-                          () => _userVerifyContinue = value == true,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 12,
-                    ),
-                    Expanded(
-                      child: Text(
-                        "I have verified that everyone has imported the config",
-                        style: STextStyles.w500_14(context),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ),
           if (iAmInvolved)
             const SizedBox(

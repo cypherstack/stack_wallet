@@ -19,6 +19,7 @@ import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
+import 'package:stackwallet/widgets/custom_buttons/checkbox_text_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/detail_item.dart';
@@ -104,40 +105,13 @@ class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
           ),
           if (!Util.isDesktop) const Spacer(),
           const SizedBox(height: 12),
-          GestureDetector(
-            onTap: () {
+          CheckboxTextButton(
+            label: "I have backed up my keys and the config",
+            onChanged: (value) {
               setState(() {
-                _userVerifyContinue = !_userVerifyContinue;
+                _userVerifyContinue = value;
               });
             },
-            child: Container(
-              color: Colors.transparent,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 20,
-                    height: 26,
-                    child: Checkbox(
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      value: _userVerifyContinue,
-                      onChanged: (value) => setState(
-                        () => _userVerifyContinue = value == true,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 12,
-                  ),
-                  Expanded(
-                    child: Text(
-                      "I have backed up my keys and the config",
-                      style: STextStyles.w500_14(context),
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ),
           const SizedBox(height: 12),
           PrimaryButton(
