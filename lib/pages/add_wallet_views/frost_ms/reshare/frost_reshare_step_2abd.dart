@@ -2,17 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/frost_route_generator.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/services/frost.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/models/frost_wallet_info.dart';
 import 'package:stackwallet/widgets/custom_buttons/checkbox_text_button.dart';
+import 'package:stackwallet/widgets/custom_buttons/frost_qr_dialog_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/detail_item.dart';
@@ -151,26 +150,6 @@ class _FrostReshareStep2abdState extends ConsumerState<FrostReshareStep2abd> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          SizedBox(
-            height: 220,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                QrImageView(
-                  data: myResharerStart,
-                  size: 220,
-                  backgroundColor:
-                      Theme.of(context).extension<StackColors>()!.background,
-                  foregroundColor: Theme.of(context)
-                      .extension<StackColors>()!
-                      .accentColorDark,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(
-            height: 12,
-          ),
           DetailItem(
             title: "My resharer",
             detail: myResharerStart,
@@ -181,6 +160,10 @@ class _FrostReshareStep2abdState extends ConsumerState<FrostReshareStep2abd> {
                 : SimpleCopyButton(
                     data: myResharerStart,
                   ),
+          ),
+          const SizedBox(height: 12),
+          FrostQrDialogPopupButton(
+            data: myResharerStart,
           ),
           const SizedBox(
             height: 12,

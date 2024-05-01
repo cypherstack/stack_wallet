@@ -2,15 +2,14 @@ import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/frost_route_generator.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/services/frost.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/checkbox_text_button.dart';
+import 'package:stackwallet/widgets/custom_buttons/frost_qr_dialog_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/detail_item.dart';
@@ -135,28 +134,6 @@ class _FrostReshareStep3abdState extends ConsumerState<FrostReshareStep3abd> {
       child: Column(
         children: [
           if (!amOutgoingParticipant)
-            SizedBox(
-              height: 220,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  QrImageView(
-                    data: myEncryptionKey!,
-                    size: 220,
-                    backgroundColor:
-                        Theme.of(context).extension<StackColors>()!.background,
-                    foregroundColor: Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorDark,
-                  ),
-                ],
-              ),
-            ),
-          if (!amOutgoingParticipant)
-            const SizedBox(
-              height: 12,
-            ),
-          if (!amOutgoingParticipant)
             DetailItem(
               title: "My encryption key",
               detail: myEncryptionKey!,
@@ -167,6 +144,11 @@ class _FrostReshareStep3abdState extends ConsumerState<FrostReshareStep3abd> {
                   : SimpleCopyButton(
                       data: myEncryptionKey!,
                     ),
+            ),
+          if (!amOutgoingParticipant) const SizedBox(height: 12),
+          if (!amOutgoingParticipant)
+            FrostQrDialogPopupButton(
+              data: myEncryptionKey!,
             ),
           if (!amOutgoingParticipant)
             const SizedBox(

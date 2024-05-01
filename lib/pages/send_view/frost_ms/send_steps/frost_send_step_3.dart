@@ -2,18 +2,17 @@ import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/frost_route_generator.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/frost.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
+import 'package:stackwallet/widgets/custom_buttons/frost_qr_dialog_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/detail_item.dart';
@@ -94,26 +93,6 @@ class _FrostSendStep3State extends ConsumerState<FrostSendStep3> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SizedBox(
-            height: 220,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                QrImageView(
-                  data: myShare,
-                  size: 220,
-                  backgroundColor:
-                      Theme.of(context).extension<StackColors>()!.background,
-                  foregroundColor: Theme.of(context)
-                      .extension<StackColors>()!
-                      .accentColorDark,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(
-            height: 12,
-          ),
           DetailItem(
             title: "My name",
             detail: myName,
@@ -131,6 +110,12 @@ class _FrostSendStep3State extends ConsumerState<FrostSendStep3> {
                 : SimpleCopyButton(
                     data: myShare,
                   ),
+          ),
+          const SizedBox(
+            height: 12,
+          ),
+          FrostQrDialogPopupButton(
+            data: myShare,
           ),
           const SizedBox(
             height: 12,

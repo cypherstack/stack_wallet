@@ -1,20 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/frost_route_generator.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/services/frost.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/custom_buttons/checkbox_text_button.dart';
+import 'package:stackwallet/widgets/custom_buttons/frost_qr_dialog_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/detail_item.dart';
-import 'package:stackwallet/widgets/dialogs/frost/frost_step_qr_dialog.dart';
 import 'package:stackwallet/widgets/frost_step_user_steps.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/textfields/frost_step_field.dart';
@@ -46,17 +42,6 @@ class _FrostCreateStep2State extends ConsumerState<FrostCreateStep2> {
 
   final List<bool> fieldIsEmptyFlags = [];
   bool _userVerifyContinue = false;
-
-  Future<void> _showQrCodeDialog() async {
-    await showDialog<void>(
-      context: context,
-      builder: (_) => FrostStepQrDialog(
-        myName: ref.read(pFrostMyName)!,
-        title: "Step 2 of 5 - ${FrostCreateStep2.title}",
-        data: myCommitment,
-      ),
-    );
-  }
 
   @override
   void initState() {
@@ -115,16 +100,8 @@ class _FrostCreateStep2State extends ConsumerState<FrostCreateStep2> {
                   ),
           ),
           const SizedBox(height: 12),
-          SecondaryButton(
-            label: "View QR code",
-            icon: SvgPicture.asset(
-              Assets.svg.qrcode,
-              colorFilter: ColorFilter.mode(
-                Theme.of(context).extension<StackColors>()!.buttonTextSecondary,
-                BlendMode.srcIn,
-              ),
-            ),
-            onPressed: _showQrCodeDialog,
+          FrostQrDialogPopupButton(
+            data: myCommitment,
           ),
           const SizedBox(height: 12),
           for (int i = 0; i < participants.length; i++)
