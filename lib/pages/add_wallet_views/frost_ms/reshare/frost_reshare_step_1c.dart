@@ -215,6 +215,8 @@ class _FrostReshareStep1cState extends ConsumerState<FrostReshareStep1c> {
                     walletId: wallet.walletId,
                     stepRoutes: data.stepRoutes,
                     onSuccess: data.onSuccess,
+                    frostInterruptionDialogType:
+                        FrostInterruptionDialogType.resharing,
                   );
                   ref.read(pFrostCreateCurrentStep.state).state = 2;
                   await Navigator.of(context).pushNamed(

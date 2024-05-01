@@ -26,6 +26,12 @@ import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.
 
 typedef FrostStepRoute = ({String routeName, String title});
 
+enum FrostInterruptionDialogType {
+  walletCreation,
+  resharing,
+  transactionCreation;
+}
+
 final pFrostCreateCurrentStep = StateProvider.autoDispose((ref) => 1);
 final pFrostScaffoldArgs = StateProvider<
     ({
@@ -33,6 +39,7 @@ final pFrostScaffoldArgs = StateProvider<
       String? walletId,
       List<FrostStepRoute> stepRoutes,
       VoidCallback onSuccess,
+      FrostInterruptionDialogType frostInterruptionDialogType,
     })?>((ref) => null);
 
 abstract class FrostRouteGenerator {

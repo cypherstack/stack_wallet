@@ -7,7 +7,10 @@ import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/progress_bar.dart';
+import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class FrostStepScaffold extends ConsumerStatefulWidget {
   const FrostStepScaffold({super.key});
@@ -25,18 +28,60 @@ class _FrostScaffoldState extends ConsumerState<FrostStepScaffold> {
   late final List<FrostStepRoute> _routes;
 
   bool _requestPopLock = false;
+
+  String get _message {
+    switch (ref.read(pFrostScaffoldArgs)!.frostInterruptionDialogType) {
+      case FrostInterruptionDialogType.walletCreation:
+        return "wallet creation";
+      case FrostInterruptionDialogType.resharing:
+        return "resharing";
+      case FrostInterruptionDialogType.transactionCreation:
+        return "transaction signing";
+    }
+  }
+
   Future<void> _requestPop(BuildContext context) async {
     if (_requestPopLock) {
       return;
     }
     _requestPopLock = true;
 
-    //  TODO: dialog to confirm exit
+    final resultFuture = showDialog<String?>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => StackDialog(
+        title: "Cancel $_message process",
+        message: "Are you sure you want to cancel the $_message process?",
+        leftButton: SecondaryButton(
+          label: "No",
+          onPressed: () {
+            // pop dialog
+            Navigator.of(
+              context,
+              rootNavigator: Util.isDesktop,
+            ).pop("no");
+          },
+        ),
+        rightButton: PrimaryButton(
+          label: "Yes",
+          onPressed: () {
+            // pop dialog
+            Navigator.of(
+              context,
+              rootNavigator: Util.isDesktop,
+            ).pop("yes");
+          },
+        ),
+      ),
+    );
 
     // make sure to at least delay some time otherwise flutter pops back more than a single route lol...
-    await Future<void>.delayed(const Duration(milliseconds: 200));
+    final minTimeFuture =
+        Future<void>.delayed(const Duration(milliseconds: 200));
 
-    if (context.mounted) {
+    final result = await Future.wait<dynamic>([resultFuture, minTimeFuture]);
+
+    if (context.mounted && result[0] == "yes") {
       Navigator.of(context).pop();
       ref.read(pFrostScaffoldArgs.state).state = null;
     }

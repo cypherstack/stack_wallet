@@ -373,7 +373,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
         // TODO ?
 
         ref.read(pFrostScaffoldArgs.state).state = null;
-      }
+      },
+      frostInterruptionDialogType:
+          FrostInterruptionDialogType.transactionCreation,
     );
 
     await Navigator.of(context).pushNamed(

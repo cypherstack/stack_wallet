@@ -107,7 +107,10 @@ class _MyWalletState extends ConsumerState<MyWallet> {
                                           ref
                                               .read(pFrostScaffoldArgs.state)
                                               .state = null;
-                                        }
+                                        },
+                                        frostInterruptionDialogType:
+                                            FrostInterruptionDialogType
+                                                .transactionCreation,
                                       );
 
                                       await Navigator.of(context).pushNamed(

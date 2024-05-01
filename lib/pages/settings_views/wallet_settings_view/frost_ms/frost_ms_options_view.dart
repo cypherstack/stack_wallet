@@ -164,7 +164,9 @@ class FrostMSWalletOptionsView extends ConsumerWidget {
                           // TODO
 
                           ref.read(pFrostScaffoldArgs.state).state = null;
-                        }
+                        },
+                        frostInterruptionDialogType:
+                            FrostInterruptionDialogType.resharing,
                       );
 
                       Navigator.of(context).pushNamed(

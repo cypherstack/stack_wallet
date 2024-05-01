@@ -139,7 +139,9 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
             // TODO ?
 
             ref.read(pFrostScaffoldArgs.state).state = null;
-          }
+          },
+          frostInterruptionDialogType:
+              FrostInterruptionDialogType.transactionCreation,
         );
 
         await Navigator.of(context).pushNamed(

@@ -445,7 +445,9 @@ class _NewFrostMsWalletViewState
                         context: context,
                       ),
                     );
-                  }
+                  },
+                  frostInterruptionDialogType:
+                      FrostInterruptionDialogType.walletCreation,
                 );
 
                 await Navigator.of(context).pushNamed(

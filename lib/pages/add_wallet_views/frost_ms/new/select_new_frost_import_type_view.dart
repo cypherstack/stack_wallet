@@ -177,7 +177,9 @@ class _SelectNewFrostImportTypeViewState
                             context: context,
                           ),
                         );
-                      }
+                      },
+                      frostInterruptionDialogType:
+                          FrostInterruptionDialogType.walletCreation,
                     );
                     break;
 
@@ -191,7 +193,9 @@ class _SelectNewFrostImportTypeViewState
                       stepRoutes: FrostRouteGenerator.joinReshareStepRoutes,
                       onSuccess: () {
                         // successful completion of steps
-                      }
+                      },
+                      frostInterruptionDialogType:
+                          FrostInterruptionDialogType.resharing,
                     );
                     break;
                 }

@@ -139,7 +139,8 @@ class _CompleteReshareConfigViewState
         onSuccess: () {
           // successful completion of steps
           // TODO
-        }
+        },
+        frostInterruptionDialogType: FrostInterruptionDialogType.resharing,
       );
 
       if (mounted) {
