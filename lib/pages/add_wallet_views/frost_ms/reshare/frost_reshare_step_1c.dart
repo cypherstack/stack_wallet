@@ -176,7 +176,7 @@ class _FrostReshareStep1cState extends ConsumerState<FrostReshareStep1c> {
                 ref.read(pFrostResharingData).reset();
                 ref.read(pFrostResharingData).myName =
                     myNameFieldController.text;
-                ref.read(pFrostResharingData).resharerConfig =
+                ref.read(pFrostResharingData).resharerRConfig =
                     configFieldController.text;
 
                 if (!ref

@@ -1,8 +1,6 @@
 import 'dart:async';
 
-import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/steps/frost_route_generator.dart';
@@ -11,20 +9,14 @@ import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/services/frost.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/models/frost_wallet_info.dart';
 import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/detail_item.dart';
-import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
-import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+import 'package:stackwallet/widgets/textfields/frost_step_field.dart';
 
 class FrostReshareStep2abd extends ConsumerStatefulWidget {
   const FrostReshareStep2abd({super.key});
@@ -41,7 +33,7 @@ class _FrostReshareStep2abdState extends ConsumerState<FrostReshareStep2abd> {
   final List<TextEditingController> controllers = [];
   final List<FocusNode> focusNodes = [];
 
-  late final List<int> resharerIndexes;
+  late final Map<String, int> resharers;
   late final int myResharerIndexIndex;
   late final String myResharerStart;
   late final bool amOutgoingParticipant;
@@ -67,7 +59,9 @@ class _FrostReshareStep2abdState extends ConsumerState<FrostReshareStep2abd> {
 
         final result = Frost.beginReshared(
           myName: ref.read(pFrostResharingData).myName!,
-          resharerConfig: ref.read(pFrostResharingData).resharerConfig!,
+          resharerConfig: Frost.decodeRConfig(
+            ref.read(pFrostResharingData).resharerRConfig!,
+          ),
           resharerStarts: resharerStarts,
         );
 
@@ -116,11 +110,11 @@ class _FrostReshareStep2abdState extends ConsumerState<FrostReshareStep2abd> {
     myResharerStart =
         ref.read(pFrostResharingData).startResharerData!.resharerStart;
 
-    resharerIndexes = ref.read(pFrostResharingData).configData!.resharers;
-    myResharerIndexIndex = resharerIndexes.indexOf(myOldIndex);
+    resharers = ref.read(pFrostResharingData).configData!.resharers;
+    myResharerIndexIndex = resharers.values.toList().indexOf(myOldIndex);
     if (myResharerIndexIndex >= 0) {
       // remove my name for now as we don't need a text field for it
-      resharerIndexes.removeAt(myResharerIndexIndex);
+      resharers.remove(ref.read(pFrostResharingData).myName!);
     }
 
     amOutgoingParticipant = !ref
@@ -129,7 +123,7 @@ class _FrostReshareStep2abdState extends ConsumerState<FrostReshareStep2abd> {
         .newParticipants
         .contains(ref.read(pFrostResharingData).myName!);
 
-    for (int i = 0; i < resharerIndexes.length; i++) {
+    for (int i = 0; i < resharers.length; i++) {
       controllers.add(TextEditingController());
       focusNodes.add(FocusNode());
       fieldIsEmptyFlags.add(true);
@@ -192,137 +186,20 @@ class _FrostReshareStep2abdState extends ConsumerState<FrostReshareStep2abd> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              for (int i = 0; i < resharerIndexes.length; i++)
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
-                        ),
-                        child: TextField(
-                          key: Key("frostResharerTextFieldKey_$i"),
-                          controller: controllers[i],
-                          focusNode: focusNodes[i],
-                          readOnly: false,
-                          autocorrect: false,
-                          enableSuggestions: false,
-                          style: STextStyles.field(context),
-                          onChanged: (_) {
-                            setState(() {
-                              fieldIsEmptyFlags[i] =
-                                  controllers[i].text.isEmpty;
-                            });
-                          },
-                          decoration: standardInputDecoration(
-                            "Enter index "
-                            "${resharerIndexes[i]}"
-                            "'s resharer",
-                            focusNodes[i],
-                            context,
-                          ).copyWith(
-                            contentPadding: const EdgeInsets.only(
-                              left: 16,
-                              top: 6,
-                              bottom: 8,
-                              right: 5,
-                            ),
-                            suffixIcon: Padding(
-                              padding: fieldIsEmptyFlags[i]
-                                  ? const EdgeInsets.only(right: 8)
-                                  : const EdgeInsets.only(right: 0),
-                              child: UnconstrainedBox(
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceAround,
-                                  children: [
-                                    !fieldIsEmptyFlags[i]
-                                        ? TextFieldIconButton(
-                                            semanticsLabel:
-                                                "Clear Button. Clears The Resharer Field Input.",
-                                            key: Key(
-                                                "frostResharerClearButtonKey_$i"),
-                                            onTap: () {
-                                              controllers[i].text = "";
-
-                                              setState(() {
-                                                fieldIsEmptyFlags[i] = true;
-                                              });
-                                            },
-                                            child: const XIcon(),
-                                          )
-                                        : TextFieldIconButton(
-                                            semanticsLabel:
-                                                "Paste Button. Pastes From Clipboard To Resharer Field Input.",
-                                            key: Key(
-                                                "frostResharerPasteButtonKey_$i"),
-                                            onTap: () async {
-                                              final ClipboardData? data =
-                                                  await Clipboard.getData(
-                                                      Clipboard.kTextPlain);
-                                              if (data?.text != null &&
-                                                  data!.text!.isNotEmpty) {
-                                                controllers[i].text =
-                                                    data.text!.trim();
-                                              }
-
-                                              setState(() {
-                                                fieldIsEmptyFlags[i] =
-                                                    controllers[i].text.isEmpty;
-                                              });
-                                            },
-                                            child: fieldIsEmptyFlags[i]
-                                                ? const ClipboardIcon()
-                                                : const XIcon(),
-                                          ),
-                                    if (fieldIsEmptyFlags[i])
-                                      TextFieldIconButton(
-                                        semanticsLabel: "Scan QR Button. "
-                                            "Opens Camera For Scanning QR Code.",
-                                        key: Key(
-                                            "frostCommitmentsScanQrButtonKey_$i"),
-                                        onTap: () async {
-                                          try {
-                                            if (FocusScope.of(context)
-                                                .hasFocus) {
-                                              FocusScope.of(context).unfocus();
-                                              await Future<void>.delayed(
-                                                  const Duration(
-                                                      milliseconds: 75));
-                                            }
-
-                                            final qrResult =
-                                                await BarcodeScanner.scan();
-
-                                            controllers[i].text =
-                                                qrResult.rawContent;
-
-                                            setState(() {
-                                              fieldIsEmptyFlags[i] =
-                                                  controllers[i].text.isEmpty;
-                                            });
-                                          } on PlatformException catch (e, s) {
-                                            Logging.instance.log(
-                                              "Failed to get camera permissions "
-                                              "while trying to scan qr code: $e\n$s",
-                                              level: LogLevel.Warning,
-                                            );
-                                          }
-                                        },
-                                        child: const QrCodeIcon(),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+              for (int i = 0; i < resharers.length; i++)
+                FrostStepField(
+                  controller: controllers[i],
+                  focusNode: focusNodes[i],
+                  showQrScanOption: true,
+                  label: resharers.keys.elementAt(i),
+                  hint: "Enter "
+                      "${resharers.keys.elementAt(i)}"
+                      "'s resharer",
+                  onChanged: (_) {
+                    setState(() {
+                      fieldIsEmptyFlags[i] = controllers[i].text.isEmpty;
+                    });
+                  },
                 ),
             ],
           ),

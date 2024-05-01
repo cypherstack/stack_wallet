@@ -63,7 +63,9 @@ class _FrostReshareStep1aState extends ConsumerState<FrostReshareStep1a> {
       if (mounted) {
         final result = Frost.beginResharer(
           serializedKeys: serializedKeys!,
-          config: ref.read(pFrostResharingData).resharerConfig!,
+          config: Frost.decodeRConfig(
+            ref.read(pFrostResharingData).resharerRConfig!,
+          ),
         );
 
         ref.read(pFrostResharingData).startResharerData = result;
@@ -216,6 +218,7 @@ class _FrostReshareStep1aState extends ConsumerState<FrostReshareStep1a> {
         .read(pFrostResharingData)
         .configData!
         .resharers
+        .values
         .contains(myOldIndex);
     super.initState();
   }
@@ -236,7 +239,7 @@ class _FrostReshareStep1aState extends ConsumerState<FrostReshareStep1a> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 QrImageView(
-                  data: ref.watch(pFrostResharingData).resharerConfig!,
+                  data: ref.watch(pFrostResharingData).resharerRConfig!,
                   size: 220,
                   backgroundColor:
                       Theme.of(context).extension<StackColors>()!.background,
@@ -252,13 +255,13 @@ class _FrostReshareStep1aState extends ConsumerState<FrostReshareStep1a> {
           ),
           DetailItem(
             title: "Config",
-            detail: ref.watch(pFrostResharingData).resharerConfig!,
+            detail: ref.watch(pFrostResharingData).resharerRConfig!,
             button: Util.isDesktop
                 ? IconCopyButton(
-                    data: ref.watch(pFrostResharingData).resharerConfig!,
+                    data: ref.watch(pFrostResharingData).resharerRConfig!,
                   )
                 : SimpleCopyButton(
-                    data: ref.watch(pFrostResharingData).resharerConfig!,
+                    data: ref.watch(pFrostResharingData).resharerRConfig!,
                   ),
           ),
           SizedBox(

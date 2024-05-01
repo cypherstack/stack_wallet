@@ -63,13 +63,16 @@ class _FrostReshareStep1bState extends ConsumerState<FrostReshareStep1b> {
 
       ref.read(pFrostResharingData).reset();
       ref.read(pFrostResharingData).myName = frostInfo.myName;
-      ref.read(pFrostResharingData).resharerConfig = configFieldController.text;
+      ref.read(pFrostResharingData).resharerRConfig =
+          configFieldController.text;
 
       String? salt;
       try {
         salt = Format.uint8listToString(
           resharerSalt(
-            resharerConfig: ref.read(pFrostResharingData).resharerConfig!,
+            resharerConfig: Frost.decodeRConfig(
+              ref.read(pFrostResharingData).resharerRConfig!,
+            ),
           ),
         );
       } catch (_) {
@@ -97,7 +100,9 @@ class _FrostReshareStep1bState extends ConsumerState<FrostReshareStep1b> {
       if (mounted) {
         final result = Frost.beginResharer(
           serializedKeys: serializedKeys!,
-          config: ref.read(pFrostResharingData).resharerConfig!,
+          config: Frost.decodeRConfig(
+            ref.read(pFrostResharingData).resharerRConfig!,
+          ),
         );
 
         ref.read(pFrostResharingData).startResharerData = result;

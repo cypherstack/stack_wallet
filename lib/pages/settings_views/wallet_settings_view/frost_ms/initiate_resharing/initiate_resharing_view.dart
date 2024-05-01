@@ -234,10 +234,11 @@ class _BeginReshareConfigViewState
               onPressed: () async {
                 // include self now
                 selectedParticipants.add(myName);
-                final List<int> resharers = [];
+
+                final Map<String, int> resharers = {};
 
                 for (final name in selectedParticipants) {
-                  resharers.add(originalParticipants.indexOf(name));
+                  resharers[name] = originalParticipants.indexOf(name);
                 }
 
                 await Navigator.of(context).pushNamed(

@@ -37,7 +37,7 @@ final class CompleteReshareConfigView extends ConsumerStatefulWidget {
   static const String routeName = "/completeReshareConfigView";
 
   final String walletId;
-  final List<int> resharers;
+  final Map<String, int> resharers;
 
   @override
   ConsumerState<CompleteReshareConfigView> createState() =>
@@ -91,7 +91,7 @@ class _CompleteReshareConfigViewState
 
       final config = Frost.createResharerConfig(
         newThreshold: int.parse(_newThresholdController.text),
-        resharers: widget.resharers,
+        resharers: widget.resharers.values.toList(),
         newParticipants: newParticipants,
       );
 
@@ -121,7 +121,10 @@ class _CompleteReshareConfigViewState
       }
 
       ref.read(pFrostResharingData).myName = myName;
-      ref.read(pFrostResharingData).resharerConfig = config;
+      ref.read(pFrostResharingData).resharerRConfig = Frost.encodeRConfig(
+        config,
+        widget.resharers,
+      );
 
       final wallet =
           ref.read(pWallets).getWallet(widget.walletId) as BitcoinFrostWallet;

@@ -542,7 +542,7 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case CompleteReshareConfigView.routeName:
-        if (args is ({String walletId, List<int> resharers})) {
+        if (args is ({String walletId, Map<String, int> resharers})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => CompleteReshareConfigView(

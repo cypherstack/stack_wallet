@@ -60,13 +60,14 @@ class _ResharingData {
   IncompleteFrostWallet? incompleteWallet;
 
   // resharer encoded config string
-  String? resharerConfig;
+  String? resharerRConfig;
+
   ({
     int newThreshold,
-    List<int> resharers,
+    Map<String, int> resharers,
     List<String> newParticipants,
-  })? get configData => resharerConfig != null
-      ? Frost.extractResharerConfigData(resharerConfig: resharerConfig!)
+  })? get configData => resharerRConfig != null
+      ? Frost.extractResharerConfigData(rConfig: resharerRConfig!)
       : null;
 
   // resharer start string (for sharing) and machine
@@ -93,7 +94,7 @@ class _ResharingData {
 
   // reset/clear all data
   void reset() {
-    resharerConfig = null;
+    resharerRConfig = null;
     startResharerData = null;
     startResharedData = null;
     resharerComplete = null;
