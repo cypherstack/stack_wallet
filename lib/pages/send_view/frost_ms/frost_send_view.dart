@@ -37,6 +37,7 @@ import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/fee_slider.dart';
 import 'package:stackwallet/widgets/frost_scaffold.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
@@ -357,30 +358,8 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                   ),
                 ),
               ),
-            const SizedBox(
-              height: 16,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Recipients",
-                  style: STextStyles.smallMed12(context),
-                  textAlign: TextAlign.left,
-                ),
-                CustomTextButton(
-                  text: "Add",
-                  onTap: () {
-                    // used for tracking recipient forms
-                    _greatestWidgetIndex++;
-                    recipientWidgetIndexes.add(_greatestWidgetIndex);
-                    setState(() {});
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(
-              height: 8,
+            SizedBox(
+              height: recipientWidgetIndexes.length > 1 ? 8 : 16,
             ),
             Column(
               children: [
@@ -396,6 +375,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                         "recipientKey_${recipientWidgetIndexes[i]}",
                       ),
                       index: recipientWidgetIndexes[i],
+                      displayNumber: i + 1,
                       coin: coin,
                       onChanged: () {
                         _validateRecipientFormStates();
@@ -403,13 +383,44 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                       remove: i == 0 && recipientWidgetIndexes.length == 1
                           ? null
                           : () {
+                              ref
+                                  .read(pRecipient(recipientWidgetIndexes[i])
+                                      .notifier)
+                                  .state = null;
                               recipientWidgetIndexes.removeAt(i);
                               setState(() {});
                             },
+                      addAnotherRecipientTapped: () {
+                        // used for tracking recipient forms
+                        _greatestWidgetIndex++;
+                        recipientWidgetIndexes.add(_greatestWidgetIndex);
+                        setState(() {});
+                      },
+                      sendAllTapped: () {
+                        return ref.read(pAmountFormatter(coin)).format(
+                              ref.read(pWalletBalance(walletId)).spendable,
+                              withUnitName: false,
+                            );
+                      },
                     ),
                   ),
               ],
             ),
+            if (recipientWidgetIndexes.length > 1)
+              const SizedBox(
+                height: 12,
+              ),
+            if (recipientWidgetIndexes.length > 1)
+              SecondaryButton(
+                width: double.infinity,
+                label: "Add recipient",
+                onPressed: () {
+                  // used for tracking recipient forms
+                  _greatestWidgetIndex++;
+                  recipientWidgetIndexes.add(_greatestWidgetIndex);
+                  setState(() {});
+                },
+              ),
             if (showCoinControl)
               const SizedBox(
                 height: 8,
