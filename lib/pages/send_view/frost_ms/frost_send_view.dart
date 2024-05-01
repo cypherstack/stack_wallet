@@ -524,6 +524,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
               ),
               child: FeeSlider(
                 coin: coin,
+                showWU: true,
                 onSatVByteChanged: (rate) {
                   customFeeRate = rate;
                 },
