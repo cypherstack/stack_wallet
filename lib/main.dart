@@ -212,12 +212,8 @@ void main(List<String> args) async {
     }
   }
 
-  if (!Platform.isWindows) {
-    monero.onStartup();
-  }
-  if (!Platform.isLinux && !Platform.isWindows) {
-    wownero.onStartup();
-  }
+  monero.onStartup();
+  wownero.onStartup();
 
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
   //     overlays: [SystemUiOverlay.bottom]);

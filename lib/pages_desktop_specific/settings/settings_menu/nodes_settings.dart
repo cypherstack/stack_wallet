@@ -65,12 +65,6 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
   void initState() {
     _coins = _coins.toList();
     _coins.remove(Coin.firoTestNet);
-    if (Platform.isWindows) {
-      _coins.remove(Coin.monero);
-      _coins.remove(Coin.wownero);
-    } else if (Platform.isLinux) {
-      // _coins.remove(Coin.wownero);
-    }
 
     searchNodeController = TextEditingController();
     searchNodeFocusNode = FocusNode();
