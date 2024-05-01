@@ -37,6 +37,7 @@ import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/fee_slider.dart';
 import 'package:stackwallet/widgets/frost_scaffold.dart';
@@ -187,16 +188,24 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
 
   int customFeeRate = 1;
 
-  void _validateRecipientFormStates() {
+  bool _buttonEnabled = false;
+
+  bool _validateRecipientFormStatesHelper() {
     for (final i in recipientWidgetIndexes) {
-      final state = ref.read(pRecipient(i).state).state;
-      if (state?.amount == null || state?.address == null) {
-        ref.read(_previewTxButtonStateProvider.notifier).state = false;
-        return;
+      final state = ref.read(pRecipient(i));
+      if (state?.amount == null ||
+          state?.address == null ||
+          state!.address.isEmpty) {
+        return false;
       }
     }
-    ref.read(_previewTxButtonStateProvider.notifier).state = true;
-    return;
+    return true;
+  }
+
+  void _validateRecipientFormStates() {
+    setState(() {
+      _buttonEnabled = _validateRecipientFormStatesHelper();
+    });
   }
 
   @override
@@ -389,12 +398,14 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                                   .state = null;
                               recipientWidgetIndexes.removeAt(i);
                               setState(() {});
+                              _validateRecipientFormStates();
                             },
                       addAnotherRecipientTapped: () {
                         // used for tracking recipient forms
                         _greatestWidgetIndex++;
                         recipientWidgetIndexes.add(_greatestWidgetIndex);
                         setState(() {});
+                        _validateRecipientFormStates();
                       },
                       sendAllTapped: () {
                         return ref.read(pAmountFormatter(coin)).format(
@@ -549,21 +560,10 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
             const SizedBox(
               height: 12,
             ),
-            TextButton(
-              onPressed: ref.watch(_previewTxButtonStateProvider.state).state
-                  ? _createSignConfig
-                  : null,
-              style: ref.watch(_previewTxButtonStateProvider.state).state
-                  ? Theme.of(context)
-                      .extension<StackColors>()!
-                      .getPrimaryEnabledButtonStyle(context)
-                  : Theme.of(context)
-                      .extension<StackColors>()!
-                      .getPrimaryDisabledButtonStyle(context),
-              child: Text(
-                "Create config",
-                style: STextStyles.button(context),
-              ),
+            PrimaryButton(
+              label: "Create multisig transaction",
+              enabled: _buttonEnabled,
+              onPressed: _createSignConfig,
             ),
             const SizedBox(
               height: 16,
@@ -574,5 +574,3 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
     );
   }
 }
-
-final _previewTxButtonStateProvider = StateProvider((_) => false);

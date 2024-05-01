@@ -204,6 +204,7 @@ class _RecipientState extends ConsumerState<Recipient> {
               focusNode: addressFocusNode,
               style: STextStyles.field(context),
               onChanged: (_) {
+                _updateRecipientData();
                 setState(() {
                   _addressIsEmpty = addressController.text.isEmpty;
                 });
@@ -394,6 +395,9 @@ class _RecipientState extends ConsumerState<Recipient> {
             key: const Key("amountInputFieldCryptoTextFieldKey"),
             controller: amountController,
             focusNode: amountFocusNode,
+            onChanged: (_) {
+              _updateRecipientData();
+            },
             keyboardType: Util.isDesktop
                 ? null
                 : const TextInputType.numberWithOptions(
