@@ -33,6 +33,7 @@ enum FrostInterruptionDialogType {
 }
 
 final pFrostCreateCurrentStep = StateProvider.autoDispose((ref) => 1);
+final pFrostScaffoldCanPopDesktop = StateProvider.autoDispose((_) => false);
 final pFrostScaffoldArgs = StateProvider<
     ({
       ({String walletName, FrostCurrency frostCurrency}) info,

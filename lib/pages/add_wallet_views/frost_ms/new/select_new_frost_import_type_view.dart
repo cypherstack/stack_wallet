@@ -193,6 +193,10 @@ class _SelectNewFrostImportTypeViewState
                       stepRoutes: FrostRouteGenerator.joinReshareStepRoutes,
                       onSuccess: () {
                         // successful completion of steps
+                        ref.read(pFrostMultisigConfig.state).state = null;
+                        ref.read(pFrostStartKeyGenData.state).state = null;
+                        ref.read(pFrostSecretSharesData.state).state = null;
+                        ref.read(pFrostScaffoldArgs.state).state = null;
                       },
                       frostInterruptionDialogType:
                           FrostInterruptionDialogType.resharing,

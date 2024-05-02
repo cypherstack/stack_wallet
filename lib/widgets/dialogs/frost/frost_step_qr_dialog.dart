@@ -14,6 +14,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/dialogs/simple_mobile_dialog.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
@@ -137,18 +138,27 @@ class _FrostStepQrDialogState extends State<FrostStepQrDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: AspectRatio(
-                            aspectRatio: 1,
-                            child: QrImageView(
-                              data: widget.data,
-                              padding: EdgeInsets.zero,
-                              dataModuleStyle: QrDataModuleStyle(
-                                dataModuleShape: QrDataModuleShape.square,
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorDark,
+                        ConditionalParent(
+                          condition: Util.isDesktop,
+                          builder: (child) => ConstrainedBox(
+                            constraints: const BoxConstraints(
+                              maxWidth: 360,
+                            ),
+                            child: child,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: AspectRatio(
+                              aspectRatio: 1,
+                              child: QrImageView(
+                                data: widget.data,
+                                padding: EdgeInsets.zero,
+                                dataModuleStyle: QrDataModuleStyle(
+                                  dataModuleShape: QrDataModuleShape.square,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorDark,
+                                ),
                               ),
                             ),
                           ),

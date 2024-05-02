@@ -180,6 +180,7 @@ class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
                 }
 
                 if (mounted) {
+                  ref.read(pFrostScaffoldCanPopDesktop.notifier).state = true;
                   ref.read(pFrostScaffoldArgs)!.onSuccess();
                 }
               } catch (e, s) {
