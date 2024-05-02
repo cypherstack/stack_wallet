@@ -373,13 +373,15 @@ class _RecipientState extends ConsumerState<Recipient> {
                   style: STextStyles.smallMed12(context),
                   textAlign: TextAlign.left,
                 ),
-                CustomTextButton(
-                  text: "Send all ${widget.coin.ticker.toUpperCase()}",
-                  onTap: () {
-                    amountController.text = widget.sendAllTapped();
-                    _cryptoAmountChanged();
-                  },
-                ),
+                // disable send all since the frost tx creation logic isn't there (yet?)
+                const Spacer(),
+                // CustomTextButton(
+                //   text: "Send all ${widget.coin.ticker}",
+                //   onTap: () {
+                //     amountController.text = widget.sendAllTapped();
+                //     _cryptoAmountChanged();
+                //   },
+                // ),
               ],
             ),
           if (isSingle)
