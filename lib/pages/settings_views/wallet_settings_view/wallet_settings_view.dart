@@ -53,13 +53,13 @@ import 'package:tuple/tuple.dart';
 /// [eventBus] should only be set during testing
 class WalletSettingsView extends ConsumerStatefulWidget {
   const WalletSettingsView({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.coin,
     required this.initialSyncStatus,
     required this.initialNodeStatus,
     this.eventBus,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/walletSettings";
 
@@ -267,31 +267,27 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                           })? prevGen,
                                         })? frostWalletData;
                                         if (wallet is BitcoinFrostWallet) {
-                                          List<Future<dynamic>> futures = [];
-
-                                          futures.addAll(
-                                            [
-                                              wallet.getSerializedKeys(),
-                                              wallet.getMultisigConfig(),
-                                              wallet.getSerializedKeysPrevGen(),
-                                              wallet.getMultisigConfigPrevGen(),
-                                            ],
-                                          );
+                                          final futures = [
+                                            wallet.getSerializedKeys(),
+                                            wallet.getMultisigConfig(),
+                                            wallet.getSerializedKeysPrevGen(),
+                                            wallet.getMultisigConfigPrevGen(),
+                                          ];
 
                                           final results =
                                               await Future.wait(futures);
 
-                                          if (results.length == 5) {
+                                          if (results.length == 4) {
                                             frostWalletData = (
                                               myName: wallet.frostInfo.myName,
-                                              config: results[1],
-                                              keys: results[0],
+                                              config: results[1]!,
+                                              keys: results[0]!,
                                               prevGen: results[2] == null ||
                                                       results[3] == null
                                                   ? null
                                                   : (
-                                                      config: results[3],
-                                                      keys: results[2],
+                                                      config: results[3]!,
+                                                      keys: results[2]!,
                                                     ),
                                             );
                                           }
@@ -301,7 +297,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                               await wallet.getMnemonicAsWords();
                                         }
 
-                                        if (mounted) {
+                                        if (context.mounted) {
                                           await Navigator.push(
                                             context,
                                             RouteGenerator.getRoute(
