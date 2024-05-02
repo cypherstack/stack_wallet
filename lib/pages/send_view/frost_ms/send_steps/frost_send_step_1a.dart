@@ -10,6 +10,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
+import 'package:stackwallet/widgets/custom_buttons/checkbox_text_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/detail_item.dart';
@@ -34,6 +35,9 @@ class _FrostSendStep1aState extends ConsumerState<FrostSendStep1a> {
     "Check the box and press “Attempt sign”.",
   ];
 
+  late final int _threshold;
+
+  bool _userVerifyContinue = false;
   bool _attemptSignLock = false;
 
   Future<void> _attemptSign() async {
@@ -72,9 +76,19 @@ class _FrostSendStep1aState extends ConsumerState<FrostSendStep1a> {
   }
 
   @override
+  void initState() {
+    final wallet = ref.read(pWallets).getWallet(
+          ref.read(pFrostScaffoldArgs)!.walletId!,
+        ) as BitcoinFrostWallet;
+
+    _threshold = wallet.frostInfo.threshold;
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final double qrImageSize =
-        Util.isDesktop ? 360 : MediaQuery.of(context).size.width - 32;
+        Util.isDesktop ? 360 : MediaQuery.of(context).size.width / 1.67;
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -120,23 +134,26 @@ class _FrostSendStep1aState extends ConsumerState<FrostSendStep1a> {
                   ],
                 ),
                 for (int i = 0; i < steps2to4.length; i++)
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "${i + 2}.",
-                        style: STextStyles.w500_12(context),
-                      ),
-                      const SizedBox(
-                        width: 4,
-                      ),
-                      Expanded(
-                        child: Text(
-                          steps2to4[i],
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "${i + 2}.",
                           style: STextStyles.w500_12(context),
                         ),
-                      ),
-                    ],
+                        const SizedBox(
+                          width: 4,
+                        ),
+                        Expanded(
+                          child: Text(
+                            steps2to4[i],
+                            style: STextStyles.w500_12(context),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
               ],
             ),
@@ -161,12 +178,11 @@ class _FrostSendStep1aState extends ConsumerState<FrostSendStep1a> {
               ],
             ),
           ),
-          if (!Util.isDesktop)
-            const SizedBox(
-              height: 32,
-            ),
+          SizedBox(
+            height: Util.isDesktop ? 20 : 16,
+          ),
           DetailItem(
-            title: "Encoded config",
+            title: "Encoded transaction config",
             detail: ref.watch(pFrostTxData.state).state!.frostMSConfig!,
             button: Util.isDesktop
                 ? IconCopyButton(
@@ -179,12 +195,33 @@ class _FrostSendStep1aState extends ConsumerState<FrostSendStep1a> {
           SizedBox(
             height: Util.isDesktop ? 20 : 16,
           ),
+          DetailItem(
+            title: "Threshold",
+            detail: "$_threshold signatures",
+            horizontal: true,
+          ),
+          SizedBox(
+            height: Util.isDesktop ? 20 : 16,
+          ),
           if (!Util.isDesktop)
             const Spacer(
               flex: 2,
             ),
+          CheckboxTextButton(
+            label: "I have verified that everyone has imported the config and "
+                "is ready to sign",
+            onChanged: (value) {
+              setState(() {
+                _userVerifyContinue = value;
+              });
+            },
+          ),
+          SizedBox(
+            height: Util.isDesktop ? 20 : 16,
+          ),
           PrimaryButton(
             label: "Attempt sign",
+            enabled: _userVerifyContinue,
             onPressed: () {
               _attemptSign();
             },
