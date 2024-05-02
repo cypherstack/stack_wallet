@@ -82,6 +82,9 @@ class _FrostSendStep1aState extends ConsumerState<FrostSendStep1a> {
         ) as BitcoinFrostWallet;
 
     _threshold = wallet.frostInfo.threshold;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(pFrostMyName.state).state = wallet.frostInfo.myName;
+    });
     super.initState();
   }
 
@@ -116,7 +119,7 @@ class _FrostSendStep1aState extends ConsumerState<FrostSendStep1a> {
                             TextSpan(
                               text:
                                   "Share this config with the group members. ",
-                              style: STextStyles.w600_12(context),
+                              style: STextStyles.w500_12(context),
                             ),
                             TextSpan(
                               text:
@@ -159,7 +162,7 @@ class _FrostSendStep1aState extends ConsumerState<FrostSendStep1a> {
             ),
           ),
           SizedBox(
-            height: Util.isDesktop ? 20 : 16,
+            height: Util.isDesktop ? 20 : 12,
           ),
           SizedBox(
             height: qrImageSize,
@@ -179,7 +182,7 @@ class _FrostSendStep1aState extends ConsumerState<FrostSendStep1a> {
             ),
           ),
           SizedBox(
-            height: Util.isDesktop ? 20 : 16,
+            height: Util.isDesktop ? 20 : 12,
           ),
           DetailItem(
             title: "Encoded transaction config",
@@ -193,7 +196,7 @@ class _FrostSendStep1aState extends ConsumerState<FrostSendStep1a> {
                   ),
           ),
           SizedBox(
-            height: Util.isDesktop ? 20 : 16,
+            height: Util.isDesktop ? 20 : 12,
           ),
           DetailItem(
             title: "Threshold",
@@ -201,7 +204,7 @@ class _FrostSendStep1aState extends ConsumerState<FrostSendStep1a> {
             horizontal: true,
           ),
           SizedBox(
-            height: Util.isDesktop ? 20 : 16,
+            height: Util.isDesktop ? 20 : 12,
           ),
           if (!Util.isDesktop)
             const Spacer(
@@ -217,7 +220,7 @@ class _FrostSendStep1aState extends ConsumerState<FrostSendStep1a> {
             },
           ),
           SizedBox(
-            height: Util.isDesktop ? 20 : 16,
+            height: Util.isDesktop ? 20 : 12,
           ),
           PrimaryButton(
             label: "Attempt sign",

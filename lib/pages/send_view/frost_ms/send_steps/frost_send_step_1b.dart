@@ -12,6 +12,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
+import 'package:stackwallet/widgets/custom_buttons/checkbox_text_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/frost_step_user_steps.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -41,7 +42,7 @@ class _FrostSendStep1bState extends ConsumerState<FrostSendStep1b> {
   late final TextEditingController configFieldController;
   late final FocusNode configFocusNode;
 
-  bool _configEmpty = true;
+  bool _configEmpty = true, _userVerifyContinue = false;
 
   bool _attemptSignLock = false;
 
@@ -125,6 +126,12 @@ class _FrostSendStep1bState extends ConsumerState<FrostSendStep1b> {
   void initState() {
     configFieldController = TextEditingController();
     configFocusNode = FocusNode();
+    final wallet = ref.read(pWallets).getWallet(
+          ref.read(pFrostScaffoldArgs)!.walletId!,
+        ) as BitcoinFrostWallet;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(pFrostMyName.state).state = wallet.frostInfo.myName;
+    });
     super.initState();
   }
 
@@ -146,7 +153,7 @@ class _FrostSendStep1bState extends ConsumerState<FrostSendStep1b> {
           const FrostStepUserSteps(
             userSteps: info,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 20),
           FrostStepField(
             controller: configFieldController,
             focusNode: configFocusNode,
@@ -159,16 +166,25 @@ class _FrostSendStep1bState extends ConsumerState<FrostSendStep1b> {
               });
             },
           ),
-          const SizedBox(
-            height: 16,
-          ),
           if (!Util.isDesktop) const Spacer(),
           const SizedBox(
-            height: 16,
+            height: 12,
+          ),
+          CheckboxTextButton(
+            label: "I have verified that everyone has imported he config and"
+                " is ready to sign",
+            onChanged: (value) {
+              setState(() {
+                _userVerifyContinue = value;
+              });
+            },
+          ),
+          const SizedBox(
+            height: 12,
           ),
           PrimaryButton(
             label: "Start signing",
-            enabled: !_configEmpty,
+            enabled: !_configEmpty && _userVerifyContinue,
             onPressed: () {
               _attemptSign();
             },
