@@ -303,6 +303,7 @@ class EpiccashWallet extends Bip39Wallet {
   Future<Address> _generateAndStoreReceivingAddressForIndex(
     int index,
   ) async {
+
     Address? address = await getCurrentReceivingAddress();
     final EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
 
@@ -311,12 +312,20 @@ class EpiccashWallet extends Bip39Wallet {
       //Check if the address is the same as the current epicbox domain
       //Since we're only using one epicbpox now this doesn't apply but will be
       // useful in the future
+      final encodedConfig = jsonEncode(epicboxConfig);
       if (splitted[1] != epicboxConfig.host) {
         //Update the address
         address = await thisWalletAddress(index, epicboxConfig);
       }
     } else {
       address = await thisWalletAddress(index, epicboxConfig);
+    }
+
+    if (info.cachedReceivingAddress != address.value) {
+      await info.updateReceivingAddress(
+        newAddress: address.value,
+        isar: mainDB.isar,
+      );
     }
     return address;
   }
@@ -347,7 +356,6 @@ class EpiccashWallet extends Bip39Wallet {
       subType: AddressSubType.receiving,
       publicKey: [], // ??
     );
-
     await mainDB.updateOrPutAddresses([address]);
     return address;
   }

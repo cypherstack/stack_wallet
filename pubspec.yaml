@@ -156,11 +156,10 @@ dependencies:
   desktop_drop: ^0.4.1
   nanodart: ^2.0.0
   basic_utils: ^5.5.4
-  stellar_flutter_sdk: ^1.5.3
-  socks_socket:
-    git:
-      url: https://github.com/cypherstack/socks_socket.git
-      ref: master
+  stellar_flutter_sdk: # ^1.5.3
+    git: # TODO [prio=low]: Revert to official package once Tor support is merged upstream.
+      url: https://github.com/cypherstack/stellar_flutter_sdk.git
+      ref: eca1d730e952cf6a6d64502f977cfc03876b75d4 # tor-backport branch (based on 1.5.3).
   bip340: ^0.2.0
 #  tezart: ^2.0.5
   tezart:
@@ -180,7 +179,7 @@ dependencies:
   solana:
     git: # TODO [prio=low]: Revert to official package once Tor support is merged upstream.
       url: https://github.com/cypherstack/espresso-cash-public.git
-      ref: 0ada1f775c2a2c815de640424270a229f5e91e2f
+      ref: a83e375678eb22fe544dc125d29bbec0fb833882
       path: packages/solana
 
 dev_dependencies:
