@@ -70,7 +70,6 @@ After installing the prerequisites listed above, download the code and init the 
 git clone https://github.com/cypherstack/stack_wallet.git
 cd stack_wallet
 git submodule update --init --recursive
-
 ```
 
 Remove pre-installed system libraries for the following packages built by cryptography plugins in the crypto_plugins folder: `boost iconv libjson-dev libsecret openssl sodium unbound zmq`.  You can use
