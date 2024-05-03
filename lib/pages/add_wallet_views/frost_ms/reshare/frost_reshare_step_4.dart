@@ -56,12 +56,14 @@ class _FrostReshareStep4State extends ConsumerState<FrostReshareStep4> {
     try {
       if (amOutgoingParticipant) {
         ref.read(pFrostResharingData).reset();
-        // nav broken on desktop
-        Navigator.of(context, rootNavigator: !Util.isDesktop).popUntil(
-          ModalRoute.withName(
-            Util.isDesktop ? DesktopWalletView.routeName : WalletView.routeName,
-          ),
-        );
+        ref.read(pFrostScaffoldCanPopDesktop.notifier).state = true;
+        ref.read(pFrostScaffoldArgs)?.parentNav.popUntil(
+              ModalRoute.withName(
+                Util.isDesktop
+                    ? DesktopWalletView.routeName
+                    : WalletView.routeName,
+              ),
+            );
       } else {
         // collect resharer completes strings and insert my own at the correct index
         final resharerCompletes = controllers.map((e) => e.text).toList();

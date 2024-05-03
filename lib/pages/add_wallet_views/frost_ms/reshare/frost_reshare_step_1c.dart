@@ -187,7 +187,7 @@ class _FrostReshareStep1cState extends ConsumerState<FrostReshareStep1c> {
                     info: data.info,
                     walletId: wallet.walletId,
                     stepRoutes: data.stepRoutes,
-                    onSuccess: data.onSuccess,
+                    parentNav: data.parentNav,
                     frostInterruptionDialogType:
                         FrostInterruptionDialogType.resharing,
                   );

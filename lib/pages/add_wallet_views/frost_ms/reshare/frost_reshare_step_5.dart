@@ -94,12 +94,12 @@ class _FrostReshareStep5State extends ConsumerState<FrostReshareStep5> {
 
         if (mounted) {
           ref.read(pFrostResharingData).reset();
-
-          Navigator.of(context).popUntil(
-            ModalRoute.withName(
-              _popUntilPath,
-            ),
-          );
+          ref.read(pFrostScaffoldCanPopDesktop.notifier).state = true;
+          ref.read(pFrostScaffoldArgs)?.parentNav.popUntil(
+                ModalRoute.withName(
+                  _popUntilPath,
+                ),
+              );
         }
       }
     } catch (e, s) {

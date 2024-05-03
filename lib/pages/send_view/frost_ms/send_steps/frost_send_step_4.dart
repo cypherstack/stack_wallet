@@ -224,14 +224,15 @@ class _FrostSendStep4State extends ConsumerState<FrostSendStep4> {
 
                 if (context.mounted) {
                   if (txData != null) {
+                    ref.read(pFrostScaffoldCanPopDesktop.notifier).state = true;
                     ref.read(pFrostTxData.state).state = txData;
-                    Navigator.of(context).popUntil(
-                      ModalRoute.withName(
-                        Util.isDesktop
-                            ? MyStackView.routeName
-                            : WalletView.routeName,
-                      ),
-                    );
+                    ref.read(pFrostScaffoldArgs)!.parentNav.popUntil(
+                          ModalRoute.withName(
+                            Util.isDesktop
+                                ? MyStackView.routeName
+                                : WalletView.routeName,
+                          ),
+                        );
                   }
                 }
               } catch (e, s) {

@@ -136,10 +136,7 @@ class _CompleteReshareConfigViewState
         ),
         walletId: wallet.walletId,
         stepRoutes: FrostRouteGenerator.initiateReshareStepRoutes,
-        onSuccess: () {
-          // successful completion of steps
-          // TODO
-        },
+        parentNav: Navigator.of(context),
         frostInterruptionDialogType: FrostInterruptionDialogType.resharing,
       );
 

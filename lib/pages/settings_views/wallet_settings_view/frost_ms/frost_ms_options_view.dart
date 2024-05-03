@@ -159,12 +159,7 @@ class FrostMSWalletOptionsView extends ConsumerWidget {
                         ),
                         walletId: wallet.walletId,
                         stepRoutes: FrostRouteGenerator.importReshareStepRoutes,
-                        onSuccess: () {
-                          // successful completion of steps
-                          // TODO
-
-                          ref.read(pFrostScaffoldArgs.state).state = null;
-                        },
+                        parentNav: Navigator.of(context),
                         frostInterruptionDialogType:
                             FrostInterruptionDialogType.resharing,
                       );

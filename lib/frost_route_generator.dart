@@ -39,8 +39,8 @@ final pFrostScaffoldArgs = StateProvider<
       ({String walletName, FrostCurrency frostCurrency}) info,
       String? walletId,
       List<FrostStepRoute> stepRoutes,
-      VoidCallback onSuccess,
       FrostInterruptionDialogType frostInterruptionDialogType,
+      NavigatorState parentNav,
     })?>((ref) => null);
 
 abstract class FrostRouteGenerator {

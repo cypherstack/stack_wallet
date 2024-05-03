@@ -136,12 +136,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
           ),
           walletId: walletId,
           stepRoutes: FrostRouteGenerator.sendFrostTxStepRoutes,
-          onSuccess: () {
-            // successful completion of steps
-            // TODO ?
-
-            ref.read(pFrostScaffoldArgs.state).state = null;
-          },
+          parentNav: Navigator.of(context),
           frostInterruptionDialogType:
               FrostInterruptionDialogType.transactionCreation,
         );

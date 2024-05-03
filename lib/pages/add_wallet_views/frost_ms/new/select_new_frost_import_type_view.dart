@@ -1,14 +1,8 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/frost_route_generator.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/home_view/home_view.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
-import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -147,37 +141,7 @@ class _SelectNewFrostImportTypeViewState
                       ),
                       walletId: null, // no wallet id yet
                       stepRoutes: FrostRouteGenerator.importNewConfigStepRoutes,
-                      onSuccess: () {
-                        // successful completion of steps
-                        if (Util.isDesktop) {
-                          Navigator.of(context).popUntil(
-                            ModalRoute.withName(
-                              DesktopHomeView.routeName,
-                            ),
-                          );
-                        } else {
-                          unawaited(
-                            Navigator.of(context).pushNamedAndRemoveUntil(
-                              HomeView.routeName,
-                              (route) => false,
-                            ),
-                          );
-                        }
-
-                        ref.read(pFrostMultisigConfig.state).state = null;
-                        ref.read(pFrostStartKeyGenData.state).state = null;
-                        ref.read(pFrostSecretSharesData.state).state = null;
-                        ref.read(pFrostScaffoldArgs.state).state = null;
-
-                        unawaited(
-                          showFloatingFlushBar(
-                            type: FlushBarType.success,
-                            message: "Your wallet is set up.",
-                            iconAsset: Assets.svg.check,
-                            context: context,
-                          ),
-                        );
-                      },
+                      parentNav: Navigator.of(context),
                       frostInterruptionDialogType:
                           FrostInterruptionDialogType.walletCreation,
                     );
@@ -191,13 +155,7 @@ class _SelectNewFrostImportTypeViewState
                       ),
                       walletId: null, // no wallet id yet
                       stepRoutes: FrostRouteGenerator.joinReshareStepRoutes,
-                      onSuccess: () {
-                        // successful completion of steps
-                        ref.read(pFrostMultisigConfig.state).state = null;
-                        ref.read(pFrostStartKeyGenData.state).state = null;
-                        ref.read(pFrostSecretSharesData.state).state = null;
-                        ref.read(pFrostScaffoldArgs.state).state = null;
-                      },
+                      parentNav: Navigator.of(context),
                       frostInterruptionDialogType:
                           FrostInterruptionDialogType.resharing,
                     );

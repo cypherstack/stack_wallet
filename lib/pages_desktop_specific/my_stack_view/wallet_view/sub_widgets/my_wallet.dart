@@ -100,14 +100,7 @@ class _MyWalletState extends ConsumerState<MyWallet> {
                                         walletId: widget.walletId,
                                         stepRoutes: FrostRouteGenerator
                                             .signFrostTxStepRoutes,
-                                        onSuccess: () {
-                                          // successful completion of steps
-                                          // TODO ?
-
-                                          ref
-                                              .read(pFrostScaffoldArgs.state)
-                                              .state = null;
-                                        },
+                                        parentNav: Navigator.of(context),
                                         frostInterruptionDialogType:
                                             FrostInterruptionDialogType
                                                 .transactionCreation,

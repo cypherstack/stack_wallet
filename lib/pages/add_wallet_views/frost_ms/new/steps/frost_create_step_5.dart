@@ -4,7 +4,10 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/frost_route_generator.dart';
+import 'package:stackwallet/notifications/show_flush_bar.dart';
+import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/providers/global/node_service_provider.dart';
@@ -13,6 +16,7 @@ import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/frost.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -181,7 +185,36 @@ class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
 
                 if (mounted) {
                   ref.read(pFrostScaffoldCanPopDesktop.notifier).state = true;
-                  ref.read(pFrostScaffoldArgs)!.onSuccess();
+                  final nav = ref.read(pFrostScaffoldArgs)!.parentNav;
+
+                  if (Util.isDesktop) {
+                    nav.popUntil(
+                      ModalRoute.withName(
+                        DesktopHomeView.routeName,
+                      ),
+                    );
+                  } else {
+                    unawaited(
+                      nav.pushNamedAndRemoveUntil(
+                        HomeView.routeName,
+                        (route) => false,
+                      ),
+                    );
+                  }
+
+                  ref.read(pFrostMultisigConfig.state).state = null;
+                  ref.read(pFrostStartKeyGenData.state).state = null;
+                  ref.read(pFrostSecretSharesData.state).state = null;
+                  ref.read(pFrostScaffoldArgs.state).state = null;
+
+                  unawaited(
+                    showFloatingFlushBar(
+                      type: FlushBarType.success,
+                      message: "Your wallet is set up.",
+                      iconAsset: Assets.svg.check,
+                      context: nav.context,
+                    ),
+                  );
                 }
               } catch (e, s) {
                 Logging.instance.log(
