@@ -45,4 +45,12 @@ class Banano extends NanoCurrency {
         throw UnimplementedError();
     }
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is Banano && other.network == network;
+  }
+
+  @override
+  int get hashCode => Object.hash(Banano, network);
 }

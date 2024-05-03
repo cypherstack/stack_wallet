@@ -35,6 +35,9 @@ class Bitcoincash extends Bip39HDCurrency {
   int get minConfirms => 0; // bch zeroconf
 
   @override
+  bool get torSupport => true;
+
+  @override
   List<DerivePathType> get supportedDerivationPathTypes => [
         DerivePathType.bip44,
         if (coin != Coin.bitcoincashTestnet) DerivePathType.bch44,
@@ -59,10 +62,10 @@ class Bitcoincash extends Bip39HDCurrency {
       );
 
   @override
-  coinlib.NetworkParams get networkParams {
+  coinlib.Network get networkParams {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return const coinlib.NetworkParams(
+        return coinlib.Network(
           wifPrefix: 0x80,
           p2pkhPrefix: 0x00,
           p2shPrefix: 0x05,
@@ -70,9 +73,12 @@ class Bitcoincash extends Bip39HDCurrency {
           pubHDPrefix: 0x0488b21e,
           bech32Hrp: "bc",
           messagePrefix: '\x18Bitcoin Signed Message:\n',
+          minFee: BigInt.from(1), // TODO [prio=high].
+          minOutput: dustLimit.raw, // TODO.
+          feePerKb: BigInt.from(1), // TODO.
         );
       case CryptoCurrencyNetwork.test:
-        return const coinlib.NetworkParams(
+        return coinlib.Network(
           wifPrefix: 0xef,
           p2pkhPrefix: 0x6f,
           p2shPrefix: 0xc4,
@@ -80,6 +86,9 @@ class Bitcoincash extends Bip39HDCurrency {
           pubHDPrefix: 0x043587cf,
           bech32Hrp: "tb",
           messagePrefix: "\x18Bitcoin Signed Message:\n",
+          minFee: BigInt.from(1), // TODO [prio=high].
+          minOutput: dustLimit.raw, // TODO.
+          feePerKb: BigInt.from(1), // TODO.
         );
       default:
         throw Exception("Unsupported network: $network");
@@ -280,4 +289,12 @@ class Bitcoincash extends Bip39HDCurrency {
         throw UnimplementedError();
     }
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is Bitcoincash && other.network == network;
+  }
+
+  @override
+  int get hashCode => Object.hash(Bitcoincash, network);
 }

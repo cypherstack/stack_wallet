@@ -20,6 +20,9 @@ abstract class CryptoCurrency {
   // (used for eth currently)
   bool get hasTokenSupport => false;
 
+  // Override in subclass if the currency has Tor support:
+  bool get torSupport => false;
+
   // TODO: [prio=low] require these be overridden in concrete implementations to remove reliance on [coin]
   int get fractionDigits => coin.decimals;
   BigInt get satsPerCoin => Constants.satsPerCoin(coin);

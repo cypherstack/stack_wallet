@@ -101,7 +101,7 @@ class PriceAPI {
           "https://api.coingecko.com/api/v3/coins/markets?vs_currency"
           "=${baseCurrency.toLowerCase()}"
           "&ids=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
-          "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano,stellar,tezos"
+          "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano,stellar,tezos,solana"
           "&order=market_cap_desc&per_page=50&page=1&sparkline=false");
 
       final coinGeckoResponse = await client.get(
@@ -187,34 +187,39 @@ class PriceAPI {
     }
 
     try {
-      final contractAddressesString =
-          contractAddresses.reduce((value, element) => "$value,$element");
-      final uri = Uri.parse(
-          "https://api.coingecko.com/api/v3/simple/token_price/ethereum"
-          "?vs_currencies=${baseCurrency.toLowerCase()}&contract_addresses"
-          "=$contractAddressesString&include_24hr_change=true");
-
-      final coinGeckoResponse = await client.get(
-        url: uri,
-        headers: {'Content-Type': 'application/json'},
-        proxyInfo: Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
-      );
-
-      final coinGeckoData = jsonDecode(coinGeckoResponse.body) as Map;
-
-      for (final key in coinGeckoData.keys) {
-        final contractAddress = key as String;
-
-        final map = coinGeckoData[contractAddress] as Map;
-
-        final price = Decimal.parse(map[baseCurrency.toLowerCase()].toString());
-        final change24h = double.parse(
-            map["${baseCurrency.toLowerCase()}_24h_change"].toString());
-
-        tokenPrices[contractAddress] = Tuple2(price, change24h);
-      }
+      //   for (final contractAddress in contractAddresses) {
+      //     final uri = Uri.parse(
+      //         "https://api.coingecko.com/api/v3/simple/token_price/ethereum"
+      //         "?vs_currencies=${baseCurrency.toLowerCase()}&contract_addresses"
+      //         "=$contractAddress&include_24hr_change=true");
+      //
+      //     final coinGeckoResponse = await client.get(
+      //       url: uri,
+      //       headers: {'Content-Type': 'application/json'},
+      //       proxyInfo: Prefs.instance.useTor
+      //           ? TorService.sharedInstance.getProxyInfo()
+      //           : null,
+      //     );
+      //
+      //     try {
+      //       final coinGeckoData = jsonDecode(coinGeckoResponse.body) as Map;
+      //
+      //       final map = coinGeckoData[contractAddress] as Map;
+      //
+      //       final price =
+      //           Decimal.parse(map[baseCurrency.toLowerCase()].toString());
+      //       final change24h = double.parse(
+      //           map["${baseCurrency.toLowerCase()}_24h_change"].toString());
+      //
+      //       tokenPrices[contractAddress] = Tuple2(price, change24h);
+      //     } catch (e, s) {
+      //       // only log the error as we don't want to interrupt the rest of the loop
+      //       Logging.instance.log(
+      //         "getPricesAnd24hChangeForEthTokens($baseCurrency,$contractAddress): $e\n$s\nRESPONSE: ${coinGeckoResponse.body}",
+      //         level: LogLevel.Warning,
+      //       );
+      //     }
+      //   }
 
       return tokenPrices;
     } catch (e, s) {

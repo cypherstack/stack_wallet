@@ -11,6 +11,9 @@ Here you will find instructions on how to install the necessary tools for buildi
 ## Linux host
 The following instructions are for building and running on a Linux host.  Alternatively, see the [Mac](#mac-host) and/or [Windows](#windows-host) section.  This entire section (except for the Android Studio section) needs to be completed in WSL if building on a Windows host.
 
+### Flutter
+Install Flutter 3.19 beta (3.19.0-0.1.pre) by following these instructions: https://docs.flutter.dev/get-started/install/linux/desktop?tab=download#install-the-flutter-sdk.  You can also clone https://github.com/flutter/flutter, check out the `3.19.0-0.1.pre` tag, and add its `flutter/bin` folder to your PATH.  Run `flutter doctor` in a terminal to confirm its installation.
+
 ### Android Studio
 Install Android Studio.  Follow instructions here [https://developer.android.com/studio/install#linux](https://developer.android.com/studio/install#linux) or install via snap:
 ```
@@ -277,12 +280,8 @@ Copy the resulting `dll`s to their respective positions on the Windows host:
 -->
 <!-- TODO: script the copying or installation of libraries from WSL2 to the parent Windows host -->
 
-### Flutter
-Install Flutter 3.16.0 on the Windows host (not in WSL2) by following [Flutter's Windows install guide](https://docs.flutter.dev/get-started/install/windows), by running `scripts/windows/deps.ps1`, or by
- - `git clone https://github.com/flutter/flutter` somewhere it can live (`C:`, **avoid** anywhere in `C:/Users/`),
- - `git checkout 3.16.9` (after navigating into the `flutter` folder),
- - adding `flutter\bin`'s full absolute path to your PATH environment variable (search "environment variables" in the Start menu.  If you ran `deps.ps1`, use `C:\development\flutter\bin`.  You may also need to open a new terminal),
- - and running `flutter doctor` in PowerShell to confirm its installation.  You may need to resolve any issues which `flutter doctor` might raise.
+### Install Flutter on Windows host
+Install Flutter 3.19.5 on your Windows host (not in WSL2) by following these instructions: https://docs.flutter.dev/get-started/install/windows/desktop?tab=download#install-the-flutter-sdk.  You can also clone https://github.com/flutter/flutter, check out the `3.19.5` tag, and add its `flutter/bin` folder to your PATH.  Run `flutter doctor` in PowerShell to confirm its installation.
 
 ### Rust
 Install [Rust](https://www.rust-lang.org/tools/install) on the Windows host (not in WSL2).  Download the installer from [rustup.rs](https://rustup.rs), make sure it works on the commandline (you may need to open a new terminal), and install the following versions:
@@ -333,3 +332,11 @@ Run the following commands:
 flutter pub get
 flutter run -d windows
 ```
+
+# Troubleshooting
+
+Run with `-v` or `--verbose` to see a more detailed error.  Certain exceptions (like missing a plugin library) may not report quality errors without `verbose`, especially on Windows.
+
+## Tor
+
+To test Tor usage, run Stack Wallet from Android Studio.  Click the Flutter DevTools icon in the Run tab (next to the Hot Reload and Hot Restart buttons) and navigate to the Network tab.  Connections using Tor will show as `GET InternetAddress('127.0.0.1', IPv4) 101 ws`.  Connections outside of Tor will show the destination address directly (although some Tor requests may also show the destination address directly, check the Headers take for *eg.* `{localPort: 59940, remoteAddress: 127.0.0.1, remotePort: 6725}`.  `localPort` should match your Tor port.

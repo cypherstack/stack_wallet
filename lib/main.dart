@@ -687,6 +687,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         appBarTheme: AppBarTheme(
           centerTitle: false,
           color: colorScheme.background,
+          surfaceTintColor: colorScheme.background,
           elevation: 0,
         ),
         inputDecorationTheme: InputDecorationTheme(

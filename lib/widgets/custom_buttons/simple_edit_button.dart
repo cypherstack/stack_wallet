@@ -15,29 +15,31 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+import 'package:stackwallet/widgets/icon_widgets/pencil_icon.dart';
 import 'package:tuple/tuple.dart';
-
-import '../desktop/desktop_dialog.dart';
-import '../icon_widgets/pencil_icon.dart';
 
 class SimpleEditButton extends StatelessWidget {
   const SimpleEditButton({
-    Key? key,
+    super.key,
     this.editValue,
     this.editLabel,
+    this.overrideTitle,
+    this.disableIcon = false,
     this.onValueChanged,
     this.onPressedOverride,
-  })  : assert(
+  }) : assert(
           (editLabel != null && editValue != null && onValueChanged != null) ||
               (editLabel == null &&
                   editValue == null &&
                   onValueChanged == null &&
                   onPressedOverride != null),
-        ),
-        super(key: key);
+        );
 
   final String? editValue;
   final String? editLabel;
+  final String? overrideTitle;
+  final bool disableIcon;
   final void Function(String)? onValueChanged;
   final VoidCallback? onPressedOverride;
 
@@ -101,17 +103,20 @@ class SimpleEditButton extends StatelessWidget {
             },
         child: Row(
           children: [
-            SvgPicture.asset(
-              Assets.svg.pencil,
-              width: 10,
-              height: 10,
-              color: Theme.of(context).extension<StackColors>()!.infoItemIcons,
-            ),
-            const SizedBox(
-              width: 4,
-            ),
+            if (!disableIcon)
+              SvgPicture.asset(
+                Assets.svg.pencil,
+                width: 10,
+                height: 10,
+                color:
+                    Theme.of(context).extension<StackColors>()!.infoItemIcons,
+              ),
+            if (!disableIcon)
+              const SizedBox(
+                width: 4,
+              ),
             Text(
-              "Edit",
+              overrideTitle ?? "Edit",
               style: STextStyles.link2(context),
             ),
           ],

@@ -1,14 +1,11 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:typed_data';
 
-import 'package:bip47/src/util.dart';
-import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
-import 'package:electrum_adapter/electrum_adapter.dart' as electrum_adapter;
-import 'package:electrum_adapter/electrum_adapter.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx_chain_height_service.dart';
+import 'package:stackwallet/electrumx_rpc/client_manager.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
@@ -16,29 +13,23 @@ import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/models/signing_data.dart';
-import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
+import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/paynym_is_api.dart';
-import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
-import 'package:stream_channel/stream_channel.dart';
 
 mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   late ElectrumXClient electrumXClient;
-  late StreamChannel electrumAdapterChannel;
-  late ElectrumClient electrumAdapterClient;
   late CachedElectrumXClient electrumXCachedClient;
-  // late SubscribableElectrumXClient subscribableElectrumXClient;
-  late ChainHeightServiceManager chainHeightServiceManager;
 
   int? get maximumFeerate => null;
 
@@ -246,6 +237,13 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       }
 
       final int amount = satoshiAmountToSend - feeForOneOutput;
+
+      if (amount < 0) {
+        throw Exception(
+          "Estimated fee ($feeForOneOutput sats) is greater than balance!",
+        );
+      }
+
       final data = await buildTransaction(
         txData: txData.copyWith(
           recipients: await _helperRecipientsConvert(
@@ -544,18 +542,6 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         );
       }
 
-      final convertedNetwork = bitcoindart.NetworkType(
-        messagePrefix: cryptoCurrency.networkParams.messagePrefix,
-        bech32: cryptoCurrency.networkParams.bech32Hrp,
-        bip32: bitcoindart.Bip32Type(
-          public: cryptoCurrency.networkParams.pubHDPrefix,
-          private: cryptoCurrency.networkParams.privHDPrefix,
-        ),
-        pubKeyHash: cryptoCurrency.networkParams.p2pkhPrefix,
-        scriptHash: cryptoCurrency.networkParams.p2shPrefix,
-        wif: cryptoCurrency.networkParams.wifPrefix,
-      );
-
       final root = await getRootHDNode();
 
       for (final sd in signingData) {
@@ -596,72 +582,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
               "Failed to fetch signing data. Local db corrupt. Rescan wallet.");
         }
 
-        // final coinlib.Input input;
-
-        final pubKey = keys.publicKey.data;
-        final bitcoindart.PaymentData data;
-
-        switch (sd.derivePathType) {
-          case DerivePathType.bip44:
-            // input = coinlib.P2PKHInput(
-            //   prevOut: coinlib.OutPoint.fromHex(sd.utxo.txid, sd.utxo.vout),
-            //   publicKey: keys.publicKey,
-            // );
-
-            data = bitcoindart
-                .P2PKH(
-                  data: bitcoindart.PaymentData(
-                    pubkey: pubKey,
-                  ),
-                  network: convertedNetwork,
-                )
-                .data;
-            break;
-
-          case DerivePathType.bip49:
-            final p2wpkh = bitcoindart
-                .P2WPKH(
-                  data: bitcoindart.PaymentData(
-                    pubkey: pubKey,
-                  ),
-                  network: convertedNetwork,
-                )
-                .data;
-            sd.redeemScript = p2wpkh.output;
-            data = bitcoindart
-                .P2SH(
-                  data: bitcoindart.PaymentData(redeem: p2wpkh),
-                  network: convertedNetwork,
-                )
-                .data;
-            break;
-
-          case DerivePathType.bip84:
-            // input = coinlib.P2WPKHInput(
-            //   prevOut: coinlib.OutPoint.fromHex(sd.utxo.txid, sd.utxo.vout),
-            //   publicKey: keys.publicKey,
-            // );
-            data = bitcoindart
-                .P2WPKH(
-                  data: bitcoindart.PaymentData(
-                    pubkey: pubKey,
-                  ),
-                  network: convertedNetwork,
-                )
-                .data;
-            break;
-
-          default:
-            throw Exception("DerivePathType unsupported");
-        }
-
-        // sd.output = input.script!.compiled;
-        sd.output = data.output!;
-        sd.keyPair = bitcoindart.ECPair.fromPrivateKey(
-          keys.privateKey.data,
-          compressed: keys.privateKey.compressed,
-          network: convertedNetwork,
-        );
+        sd.keyPair = keys;
       }
 
       return signingData;
@@ -680,43 +601,84 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     Logging.instance
         .log("Starting buildTransaction ----------", level: LogLevel.Info);
 
-    // TODO: use coinlib
-
-    final txb = bitcoindart.TransactionBuilder(
-      network: bitcoindart.NetworkType(
-        messagePrefix: cryptoCurrency.networkParams.messagePrefix,
-        bech32: cryptoCurrency.networkParams.bech32Hrp,
-        bip32: bitcoindart.Bip32Type(
-          public: cryptoCurrency.networkParams.pubHDPrefix,
-          private: cryptoCurrency.networkParams.privHDPrefix,
-        ),
-        pubKeyHash: cryptoCurrency.networkParams.p2pkhPrefix,
-        scriptHash: cryptoCurrency.networkParams.p2shPrefix,
-        wif: cryptoCurrency.networkParams.wifPrefix,
-      ),
-      maximumFeeRate: maximumFeerate,
-    );
-    const version = 1; // TODO possibly override this for certain coins?
-    txb.setVersion(version);
-
     // temp tx data to show in gui while waiting for real data from server
     final List<InputV2> tempInputs = [];
     final List<OutputV2> tempOutputs = [];
 
+    final List<coinlib.Output> prevOuts = [];
+
+    coinlib.Transaction clTx = coinlib.Transaction(
+      version: 1, // TODO: check if we can use 3 (as is default in coinlib)
+      inputs: [],
+      outputs: [],
+    );
+
     // Add transaction inputs
     for (var i = 0; i < utxoSigningData.length; i++) {
       final txid = utxoSigningData[i].utxo.txid;
-      txb.addInput(
-        txid,
-        utxoSigningData[i].utxo.vout,
-        null,
-        utxoSigningData[i].output!,
-        cryptoCurrency.networkParams.bech32Hrp,
+
+      final hash = Uint8List.fromList(
+        txid.toUint8ListFromHex.reversed.toList(),
       );
+
+      final prevOutpoint = coinlib.OutPoint(
+        hash,
+        utxoSigningData[i].utxo.vout,
+      );
+
+      final prevOutput = coinlib.Output.fromAddress(
+        BigInt.from(utxoSigningData[i].utxo.value),
+        coinlib.Address.fromString(
+          utxoSigningData[i].utxo.address!,
+          cryptoCurrency.networkParams,
+        ),
+      );
+
+      prevOuts.add(prevOutput);
+
+      final coinlib.Input input;
+
+      switch (utxoSigningData[i].derivePathType) {
+        case DerivePathType.bip44:
+        case DerivePathType.bch44:
+          input = coinlib.P2PKHInput(
+            prevOut: prevOutpoint,
+            publicKey: utxoSigningData[i].keyPair!.publicKey,
+            sequence: 0xffffffff - 1,
+          );
+
+        // TODO: fix this as it is (probably) wrong!
+        case DerivePathType.bip49:
+          throw Exception("TODO p2sh");
+        // input = coinlib.P2SHMultisigInput(
+        //   prevOut: prevOutpoint,
+        //   program: coinlib.MultisigProgram.decompile(
+        //     utxoSigningData[i].redeemScript!,
+        //   ),
+        //   sequence: 0xffffffff - 1,
+        // );
+
+        case DerivePathType.bip84:
+          input = coinlib.P2WPKHInput(
+            prevOut: prevOutpoint,
+            publicKey: utxoSigningData[i].keyPair!.publicKey,
+            sequence: 0xffffffff - 1,
+          );
+
+        case DerivePathType.bip86:
+          input = coinlib.TaprootKeyInput(prevOut: prevOutpoint);
+
+        default:
+          throw UnsupportedError(
+            "Unknown derivation path type found: ${utxoSigningData[i].derivePathType}",
+          );
+      }
+
+      clTx = clTx.addInput(input);
 
       tempInputs.add(
         InputV2.isarCantDoRequiredInDefaultConstructor(
-          scriptSigHex: txb.inputs.first.script?.toHex,
+          scriptSigHex: input.scriptSig.toHex,
           scriptSigAsm: null,
           sequence: 0xffffffff - 1,
           outpoint: OutpointV2.isarCantDoRequiredInDefaultConstructor(
@@ -737,11 +699,17 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
     // Add transaction output
     for (var i = 0; i < txData.recipients!.length; i++) {
-      txb.addOutput(
+      final address = coinlib.Address.fromString(
         normalizeAddress(txData.recipients![i].address),
-        txData.recipients![i].amount.raw.toInt(),
-        cryptoCurrency.networkParams.bech32Hrp,
+        cryptoCurrency.networkParams,
       );
+
+      final output = coinlib.Output.fromAddress(
+        txData.recipients![i].amount.raw,
+        address,
+      );
+
+      clTx = clTx.addOutput(output);
 
       tempOutputs.add(
         OutputV2.isarCantDoRequiredInDefaultConstructor(
@@ -765,12 +733,22 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     try {
       // Sign the transaction accordingly
       for (var i = 0; i < utxoSigningData.length; i++) {
-        txb.sign(
-          vin: i,
-          keyPair: utxoSigningData[i].keyPair!,
-          witnessValue: utxoSigningData[i].utxo.value,
-          redeemScript: utxoSigningData[i].redeemScript,
-          overridePrefix: cryptoCurrency.networkParams.bech32Hrp,
+        final value = BigInt.from(utxoSigningData[i].utxo.value);
+        coinlib.ECPrivateKey key = utxoSigningData[i].keyPair!.privateKey;
+
+        if (clTx.inputs[i] is coinlib.TaprootKeyInput) {
+          final taproot = coinlib.Taproot(
+            internalKey: utxoSigningData[i].keyPair!.publicKey,
+          );
+
+          key = taproot.tweakPrivateKey(key);
+        }
+
+        clTx = clTx.sign(
+          inputN: i,
+          value: value,
+          key: key,
+          prevOuts: prevOuts,
         );
       }
     } catch (e, s) {
@@ -779,22 +757,19 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       rethrow;
     }
 
-    final builtTx = txb.build(cryptoCurrency.networkParams.bech32Hrp);
-    final vSize = builtTx.virtualSize();
-
     return txData.copyWith(
-      raw: builtTx.toHex(),
-      vSize: vSize,
+      raw: clTx.toHex(),
+      vSize: clTx.size,
       tempTx: TransactionV2(
         walletId: walletId,
         blockHash: null,
-        hash: builtTx.getId(),
-        txid: builtTx.getId(),
+        hash: clTx.hashHex,
+        txid: clTx.txid,
         height: null,
         timestamp: DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
         inputs: List.unmodifiable(tempInputs),
         outputs: List.unmodifiable(tempOutputs),
-        version: version,
+        version: clTx.version,
         type:
             tempOutputs.map((e) => e.walletOwns).fold(true, (p, e) => p &= e) &&
                     txData.paynymAccountLite == null
@@ -808,24 +783,9 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
   Future<int> fetchChainHeight() async {
     try {
-      // Get the chain height service for the current coin.
-      ChainHeightService? service = ChainHeightServiceManager.getService(
-        cryptoCurrency.coin,
+      return await ClientManager.sharedInstance.getChainHeightFor(
+        cryptoCurrency,
       );
-
-      // ... or create a new one if it doesn't exist.
-      if (service == null) {
-        service = ChainHeightService(client: electrumAdapterClient);
-        ChainHeightServiceManager.add(service, cryptoCurrency.coin);
-      }
-
-      // If the service hasn't been started, start it and fetch the chain height.
-      if (!service.started) {
-        return await service.fetchHeightAndStartListenForUpdates();
-      }
-
-      // Return the height as per the service if available or the cached height.
-      return service.height ?? info.cachedChainHeight;
     } catch (e, s) {
       Logging.instance.log(
           "Exception rethrown in fetchChainHeight\nError: $e\nStack trace: $s",
@@ -891,8 +851,8 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
     final newNode = await _getCurrentElectrumXNode();
     try {
-      await electrumXClient.electrumAdapterClient?.close();
-    } catch (e, s) {
+      await electrumXClient.closeAdapter();
+    } catch (e) {
       if (e.toString().contains("initialized")) {
         // Ignore.  This should happen every first time the wallet is opened.
       } else {
@@ -904,50 +864,11 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       node: newNode,
       prefs: prefs,
       failovers: failovers,
-      coin: cryptoCurrency.coin,
+      cryptoCurrency: cryptoCurrency,
     );
-    electrumAdapterChannel = await electrum_adapter.connect(
-      newNode.address,
-      port: newNode.port,
-      acceptUnverified: true,
-      useSSL: newNode.useSSL,
-      proxyInfo: Prefs.instance.useTor
-          ? TorService.sharedInstance.getProxyInfo()
-          : null,
-    );
-    if (electrumXClient.coin == Coin.firo ||
-        electrumXClient.coin == Coin.firoTestNet) {
-      electrumAdapterClient = FiroElectrumClient(
-          electrumAdapterChannel,
-          newNode.address,
-          newNode.port,
-          newNode.useSSL,
-          Prefs.instance.useTor
-              ? TorService.sharedInstance.getProxyInfo()
-              : null);
-    } else {
-      electrumAdapterClient = ElectrumClient(
-          electrumAdapterChannel,
-          newNode.address,
-          newNode.port,
-          newNode.useSSL,
-          Prefs.instance.useTor
-              ? TorService.sharedInstance.getProxyInfo()
-              : null);
-    }
     electrumXCachedClient = CachedElectrumXClient.from(
       electrumXClient: electrumXClient,
-      electrumAdapterClient: electrumAdapterClient,
-      electrumAdapterUpdateCallback: updateClient,
     );
-    // Replaced using electrum_adapters' SubscribableClient in fetchChainHeight.
-    // subscribableElectrumXClient = SubscribableElectrumXClient.from(
-    //   node: newNode,
-    //   prefs: prefs,
-    //   failovers: failovers,
-    // );
-    // await subscribableElectrumXClient.connect(
-    //     host: newNode.address, port: newNode.port);
   }
 
   //============================================================================
@@ -1175,8 +1096,6 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       coin: cryptoCurrency.coin,
     );
 
-    print("txn: $txn");
-
     final vout = jsonUTXO["tx_pos"] as int;
 
     final outputs = txn["vout"] as List;
@@ -1242,13 +1161,6 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   @override
   Future<void> updateNode() async {
     await updateElectrumX();
-  }
-
-  Future<ElectrumClient> updateClient() async {
-    Logging.instance.log("Updating electrum node and ElectrumAdapterClient.",
-        level: LogLevel.Info);
-    await updateNode();
-    return electrumAdapterClient;
   }
 
   FeeObject? _cachedFees;
@@ -1777,9 +1689,6 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       rethrow;
     }
   }
-
-  @override
-  Future<void> checkSaveInitialReceivingAddress() async {}
 
   @override
   Future<void> init() async {

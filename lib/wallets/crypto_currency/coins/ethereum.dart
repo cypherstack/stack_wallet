@@ -34,4 +34,12 @@ class Ethereum extends Bip39Currency {
   bool validateAddress(String address) {
     return isValidEthereumAddress(address);
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is Ethereum && other.network == network;
+  }
+
+  @override
+  int get hashCode => Object.hash(Ethereum, network);
 }

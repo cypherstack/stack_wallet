@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:ffi';
 
-import 'package:electrum_adapter/electrum_adapter.dart' as electrum_adapter;
-import 'package:electrum_adapter/electrum_adapter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:frostdart/frostdart.dart' as frost;
 import 'package:frostdart/frostdart_bindings_generated.dart';
@@ -20,19 +18,15 @@ import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/frost.dart';
-import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin_frost.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/private_key_currency.dart';
 import 'package:stackwallet/wallets/isar/models/frost_wallet_info.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
-import 'package:stream_channel/stream_channel.dart';
 
 class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
   BitcoinFrostWallet(CryptoCurrencyNetwork network)
@@ -44,8 +38,6 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
       .findFirstSync()!;
 
   late ElectrumXClient electrumXClient;
-  late StreamChannel electrumAdapterChannel;
-  late ElectrumClient electrumAdapterClient;
   late CachedElectrumXClient electrumXCachedClient;
 
   Future<void> initializeNewFrost({
@@ -1102,64 +1094,27 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
 
     final newNode = await _getCurrentElectrumXNode();
     try {
-      await electrumXClient.electrumAdapterClient?.close();
-    } catch (e, s) {
+      await electrumXClient.closeAdapter();
+    } catch (e) {
       if (e.toString().contains("initialized")) {
         // Ignore.  This should happen every first time the wallet is opened.
       } else {
-        Logging.instance
-            .log("Error closing electrumXClient: $e", level: LogLevel.Error);
+        Logging.instance.log(
+          "Error closing electrumXClient: $e",
+          level: LogLevel.Error,
+        );
       }
     }
     electrumXClient = ElectrumXClient.from(
       node: newNode,
       prefs: prefs,
       failovers: failovers,
-      coin: cryptoCurrency.coin,
+      cryptoCurrency: cryptoCurrency,
     );
-    electrumAdapterChannel = await electrum_adapter.connect(
-      newNode.address,
-      port: newNode.port,
-      acceptUnverified: true,
-      useSSL: newNode.useSSL,
-      proxyInfo: Prefs.instance.useTor
-          ? TorService.sharedInstance.getProxyInfo()
-          : null,
-    );
-    if (electrumXClient.coin == Coin.firo ||
-        electrumXClient.coin == Coin.firoTestNet) {
-      electrumAdapterClient = FiroElectrumClient(
-          electrumAdapterChannel,
-          newNode.address,
-          newNode.port,
-          newNode.useSSL,
-          Prefs.instance.useTor
-              ? TorService.sharedInstance.getProxyInfo()
-              : null);
-    } else {
-      electrumAdapterClient = ElectrumClient(
-          electrumAdapterChannel,
-          newNode.address,
-          newNode.port,
-          newNode.useSSL,
-          Prefs.instance.useTor
-              ? TorService.sharedInstance.getProxyInfo()
-              : null);
-    }
+
     electrumXCachedClient = CachedElectrumXClient.from(
       electrumXClient: electrumXClient,
-      electrumAdapterClient: electrumAdapterClient,
-      electrumAdapterUpdateCallback: updateClient,
     );
-  }
-
-  // TODO [prio=low]: Use ElectrumXInterface method.
-  Future<ElectrumClient> updateClient() async {
-    Logging.instance.log(
-        "Updating electrum node and ElectrumAdapterClient from Frost wallet.",
-        level: LogLevel.Info);
-    await updateNode();
-    return electrumAdapterClient;
   }
 
   bool _duplicateTxCheck(

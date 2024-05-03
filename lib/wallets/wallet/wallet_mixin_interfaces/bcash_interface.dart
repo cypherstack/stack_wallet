@@ -1,4 +1,5 @@
 import 'package:bitbox/bitbox.dart' as bitbox;
+import 'package:bitbox/src/utils/network.dart' as bitbox_utils;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
@@ -89,8 +90,17 @@ mixin BCashInterface on Bip39HDWallet, ElectrumXInterface {
     try {
       // Sign the transaction accordingly
       for (int i = 0; i < utxoSigningData.length; i++) {
-        final bitboxEC = bitbox.ECPair.fromWIF(
-          utxoSigningData[i].keyPair!.toWIF(),
+        final bitboxEC = bitbox.ECPair.fromPrivateKey(
+          utxoSigningData[i].keyPair!.privateKey.data,
+          network: bitbox_utils.Network(
+            cryptoCurrency.networkParams.privHDPrefix,
+            cryptoCurrency.networkParams.pubHDPrefix,
+            cryptoCurrency.network == CryptoCurrencyNetwork.test,
+            cryptoCurrency.networkParams.p2pkhPrefix,
+            cryptoCurrency.networkParams.wifPrefix,
+            cryptoCurrency.networkParams.p2pkhPrefix,
+          ),
+          compressed: utxoSigningData[i].keyPair!.privateKey.compressed,
         );
 
         builder.sign(

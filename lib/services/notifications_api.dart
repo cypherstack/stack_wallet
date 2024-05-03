@@ -1,4 +1,4 @@
-/* 
+/*
  * This file is part of Stack Wallet.
  * 
  * Copyright (c) 2023 Cypher Stack
@@ -9,14 +9,13 @@
  */
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:stackwallet/models/notification_model.dart';
 import 'package:stackwallet/services/notifications_service.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 
 class NotificationApi {
   static final _notifications = FlutterLocalNotificationsPlugin();
-  static final onNotifications = BehaviorSubject<String?>();
+  // static final onNotifications = BehaviorSubject<String?>();
 
   static Future<NotificationDetails> _notificationDetails() async {
     return const NotificationDetails(
@@ -25,17 +24,17 @@ class NotificationApi {
           // importance: Importance.max,
           priority: Priority.high,
           ticker: 'ticker'),
-      iOS: IOSNotificationDetails(),
-      macOS: MacOSNotificationDetails(),
+      iOS: DarwinNotificationDetails(),
+      macOS: DarwinNotificationDetails(),
     );
   }
 
   static Future<void> init({bool initScheduled = false}) async {
     const android = AndroidInitializationSettings('app_icon_alpha');
-    const iOS = IOSInitializationSettings();
+    const iOS = DarwinInitializationSettings();
     const linux = LinuxInitializationSettings(
         defaultActionName: "temporary_stack_wallet");
-    const macOS = MacOSInitializationSettings();
+    const macOS = DarwinInitializationSettings();
     const settings = InitializationSettings(
       android: android,
       iOS: iOS,
@@ -44,9 +43,12 @@ class NotificationApi {
     );
     await _notifications.initialize(
       settings,
-      onSelectNotification: (payload) async {
-        onNotifications.add(payload);
-      },
+      // onDidReceiveNotificationResponse: (payload) async {
+      //   onNotifications.add(payload.payload);
+      // },
+      // onDidReceiveBackgroundNotificationResponse: (payload) async {
+      //   onNotifications.add(payload.payload);
+      // },
     );
   }
 
