@@ -46,7 +46,6 @@ class StellarWallet extends Bip39Wallet<Stellar> {
   // ============== Private ====================================================
 
   stellar.StellarSDK? _stellarSdk;
-  HttpClient? _httpClient;
 
   Future<int> _getBaseFee() async {
     final fees = await stellarSdk.feeStats.execute();
@@ -55,6 +54,7 @@ class StellarWallet extends Bip39Wallet<Stellar> {
 
   void _updateSdk() {
     final currentNode = getCurrentNode();
+    HttpClient? _httpClient;
 
     // TODO [prio=med]: refactor out and call before requests in case Tor is enabled/disabled, listen to prefs change, or similar.
     if (prefs.useTor) {
@@ -63,13 +63,21 @@ class StellarWallet extends Bip39Wallet<Stellar> {
 
       _httpClient = HttpClient();
       SocksTCPClient.assignToHttpClient(
-          _httpClient!, [ProxySettings(proxyInfo.host, proxyInfo.port)]);
-    } else {
-      _httpClient = null;
+        _httpClient,
+        [
+          ProxySettings(
+            proxyInfo.host,
+            proxyInfo.port,
+          ),
+        ],
+      );
     }
 
-    _stellarSdk = stellar.StellarSDK("${currentNode.host}:${currentNode.port}",
-        httpClient: _httpClient);
+    _stellarSdk?.httpClient.close();
+    _stellarSdk = stellar.StellarSDK(
+      "${currentNode.host}:${currentNode.port}",
+      httpClient: _httpClient,
+    );
   }
 
   Future<bool> _accountExists(String accountId) async {
