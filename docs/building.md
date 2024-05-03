@@ -103,11 +103,11 @@ Coinlib's native secp256k1 library must be built prior to running Stack Wallet. 
  - Linux host for Windows targets: `dart run coinlib:build_windows_crosscompile`
  - Windows host: `dart run coinlib:build_windows`
  - WSL2 host: `dart run coinlib:build_wsl`
-<!-- - macOS host: `dart run coinlib:build_macos` -->
+ - macOS host: `dart run coinlib:build_macos`
 
 To build coinlib on Linux, you will need `docker` (see [installation instructions](https://docs.docker.com/engine/install/ubuntu/)) or [`podman`](https://podman.io/docs/installation) (`sudo apt-get -y install podman`)
 
-For Windows targets, you can use a `secp256k1.dll` produced by any of the three bottom<!--^H^H^H^H^H^Hmiddle--> options if the first attempt doesn't succeed!
+For Windows targets, you can use a `secp256k1.dll` produced by any of the three middle options if the first attempt doesn't succeed!
 
 ### Run prebuild script
 
@@ -280,6 +280,8 @@ Copy the resulting `dll`s to their respective positions on the Windows host:
 -->
 <!-- TODO: script the copying or installation of libraries from WSL2 to the parent Windows host -->
 
+Frostdart will be built by the Windows host later.
+
 ### Install Flutter on Windows host
 Install Flutter 3.19.5 on your Windows host (not in WSL2) by following these instructions: https://docs.flutter.dev/get-started/install/windows/desktop?tab=download#install-the-flutter-sdk.  You can also clone https://github.com/flutter/flutter, check out the `3.19.5` tag, and add its `flutter/bin` folder to your PATH.  Run `flutter doctor` in PowerShell to confirm its installation.
 
@@ -316,14 +318,22 @@ or [download the package](https://www.nuget.org/packages/Microsoft.Windows.CppWi
 
 ### Run prebuild script
 
-Certain test wallet parameter and API key template files must be created in order to run Stack Wallet on Windows.  These can be created by script as in
+Certain test wallet parameter and API key template files must be created in order to run Stack Wallet on Windows.  These can be created by script using PowerShell on the Windows host as in
 ```
 cd scripts
 ./prebuild.ps1
-// when finished go back to the root directory
-cd ..
+cd .. // When finished go back to the root directory.
 ```
 or manually by creating the files referenced in that script with the specified content. 
+
+### Build frostdart
+
+In PowerShell on the Windows host, navigate to the `stack_wallet` folder:
+```
+cd crypto_plugins/frostdart
+./build_all.bat
+cd .. // When finished go back to the root directory.
+```
 
 ### Running
 
