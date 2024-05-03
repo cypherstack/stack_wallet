@@ -116,7 +116,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
           whileFuture: _loadingFuture(),
           context: context,
           message: "Generating sign config",
-          isDesktop: Util.isDesktop,
+          rootNavigator: Util.isDesktop,
           onException: (e) {
             throw e;
           },

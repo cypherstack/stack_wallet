@@ -179,23 +179,25 @@ class _FrostReshareStep3abdState extends ConsumerState<FrostReshareStep3abd> {
             ],
           ),
           if (!Util.isDesktop) const Spacer(),
-          const SizedBox(
-            height: 12,
-          ),
-          CheckboxTextButton(
-            label: "I have verified that everyone has my encryption key",
-            onChanged: (value) {
-              setState(() {
-                _userVerifyContinue = value;
-              });
-            },
-          ),
+          if (!amOutgoingParticipant)
+            const SizedBox(
+              height: 12,
+            ),
+          if (!amOutgoingParticipant)
+            CheckboxTextButton(
+              label: "I have verified that everyone has my encryption key",
+              onChanged: (value) {
+                setState(() {
+                  _userVerifyContinue = value;
+                });
+              },
+            ),
           const SizedBox(
             height: 16,
           ),
           PrimaryButton(
             label: "Continue",
-            enabled: _userVerifyContinue &&
+            enabled: (amOutgoingParticipant || _userVerifyContinue) &&
                 !fieldIsEmptyFlags.reduce((v, e) => v |= e),
             onPressed: _onPressed,
           ),

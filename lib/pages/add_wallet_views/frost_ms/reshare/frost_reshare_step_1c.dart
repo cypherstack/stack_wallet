@@ -172,7 +172,7 @@ class _FrostReshareStep1cState extends ConsumerState<FrostReshareStep1c> {
                   whileFuture: _createWallet(),
                   context: context,
                   message: "Setting up wallet",
-                  isDesktop: Util.isDesktop,
+                  rootNavigator: true,
                   onException: (e) => ex = e,
                 );
 
@@ -191,6 +191,8 @@ class _FrostReshareStep1cState extends ConsumerState<FrostReshareStep1c> {
                     frostInterruptionDialogType:
                         FrostInterruptionDialogType.resharing,
                   );
+                  ref.read(pFrostMyName.state).state =
+                      ref.read(pFrostResharingData).myName!;
                   ref.read(pFrostCreateCurrentStep.state).state = 2;
                   await Navigator.of(context).pushNamed(
                     ref

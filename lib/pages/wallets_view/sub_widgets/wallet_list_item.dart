@@ -95,7 +95,7 @@ class WalletListItem extends ConsumerWidget {
               whileFuture: loadFuture,
               context: context,
               message: 'Opening ${wallet.info.name}',
-              isDesktop: Util.isDesktop,
+              rootNavigator: Util.isDesktop,
             );
             if (context.mounted) {
               unawaited(

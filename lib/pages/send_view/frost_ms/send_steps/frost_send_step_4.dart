@@ -212,7 +212,7 @@ class _FrostSendStep4State extends ConsumerState<FrostSendStep4> {
                       ),
                   context: context,
                   message: "Broadcasting transaction to network",
-                  isDesktop: true, // used to pop using root nav
+                  rootNavigator: true, // used to pop using root nav
                   onException: (e) {
                     ex = e;
                   },

@@ -84,7 +84,7 @@ class _FrostReshareStep5State extends ConsumerState<FrostReshareStep5> {
           ),
           context: context,
           message: isNew ? "Creating wallet" : "Updating wallet data",
-          isDesktop: Util.isDesktop,
+          rootNavigator: true,
           onException: (e) => ex = e,
         );
 

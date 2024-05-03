@@ -137,7 +137,7 @@ class SimpleWalletCard extends ConsumerWidget {
         whileFuture: loadFuture,
         context: context,
         message: 'Opening ${wallet.info.name}',
-        isDesktop: Util.isDesktop,
+        rootNavigator: Util.isDesktop,
       );
       if (popPrevious) nav.pop();
 
@@ -167,7 +167,7 @@ class SimpleWalletCard extends ConsumerWidget {
           context: desktopNavigatorState?.context ?? context,
           opaqueBG: true,
           message: "Loading ${contract.name}",
-          isDesktop: Util.isDesktop,
+          rootNavigator: Util.isDesktop,
         );
 
         if (!success!) {

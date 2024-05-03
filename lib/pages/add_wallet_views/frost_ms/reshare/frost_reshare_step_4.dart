@@ -40,6 +40,7 @@ class _FrostReshareStep4State extends ConsumerState<FrostReshareStep4> {
   late final int? myResharerIndexIndex;
   late final String? myResharerComplete;
   late final bool amOutgoingParticipant;
+  late final bool amNewParticipant;
 
   final List<bool> fieldIsEmptyFlags = [];
 
@@ -55,7 +56,8 @@ class _FrostReshareStep4State extends ConsumerState<FrostReshareStep4> {
     try {
       if (amOutgoingParticipant) {
         ref.read(pFrostResharingData).reset();
-        Navigator.of(context).popUntil(
+        // nav broken on desktop
+        Navigator.of(context, rootNavigator: !Util.isDesktop).popUntil(
           ModalRoute.withName(
             Util.isDesktop ? DesktopWalletView.routeName : WalletView.routeName,
           ),
@@ -104,7 +106,7 @@ class _FrostReshareStep4State extends ConsumerState<FrostReshareStep4> {
 
   @override
   void initState() {
-    final amNewParticipant =
+    amNewParticipant =
         ref.read(pFrostResharingData).startResharerData == null &&
             ref.read(pFrostResharingData).incompleteWallet != null &&
             ref.read(pFrostResharingData).incompleteWallet?.walletId ==
@@ -217,20 +219,22 @@ class _FrostReshareStep4State extends ConsumerState<FrostReshareStep4> {
           const SizedBox(
             height: 16,
           ),
-          CheckboxTextButton(
-            label: "I have verified that everyone has my resharer complete",
-            onChanged: (value) {
-              setState(() {
-                _userVerifyContinue = value;
-              });
-            },
-          ),
-          const SizedBox(
-            height: 16,
-          ),
+          if (!amNewParticipant)
+            CheckboxTextButton(
+              label: "I have verified that everyone has my resharer complete",
+              onChanged: (value) {
+                setState(() {
+                  _userVerifyContinue = value;
+                });
+              },
+            ),
+          if (!amNewParticipant)
+            const SizedBox(
+              height: 16,
+            ),
           PrimaryButton(
-            label: amOutgoingParticipant ? "Exit" : "Complete",
-            enabled: _userVerifyContinue &&
+            label: amOutgoingParticipant ? "Done" : "Complete",
+            enabled: (amNewParticipant || _userVerifyContinue) &&
                 (amOutgoingParticipant ||
                     !fieldIsEmptyFlags.reduce((v, e) => v |= e)),
             onPressed: _onPressed,

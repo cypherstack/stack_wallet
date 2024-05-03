@@ -130,7 +130,7 @@ class _RestoreFrostMsWalletViewState
         whileFuture: _createWalletAndRecover(),
         context: context,
         message: "Restoring wallet...",
-        isDesktop: Util.isDesktop,
+        rootNavigator: Util.isDesktop,
         onException: (e) {
           ex = e;
         },

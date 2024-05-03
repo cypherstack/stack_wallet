@@ -321,7 +321,7 @@ class _OrdinalImageGroup extends ConsumerWidget {
                   final filePath = await showLoading<String>(
                     whileFuture: _savePngToFile(ref),
                     context: context,
-                    isDesktop: true,
+                    rootNavigator: true,
                     message: "Saving ordinal image",
                     onException: (e) {
                       didError = true;
