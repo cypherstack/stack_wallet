@@ -34,7 +34,7 @@ Make a Pixel 4 (API 30) x86_64 emulator with 2GB of storage space for emulation
 
 Install basic dependencies
 ```
-sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm python3-distutils
+sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm python3-distutils g++ gcc gperf
 ```
 
 The following *may* be needed for Android studio:
