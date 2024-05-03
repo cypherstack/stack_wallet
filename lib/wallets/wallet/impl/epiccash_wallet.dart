@@ -303,21 +303,20 @@ class EpiccashWallet extends Bip39Wallet {
   Future<Address> _generateAndStoreReceivingAddressForIndex(
     int index,
   ) async {
-
     Address? address = await getCurrentReceivingAddress();
-    final EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
 
     if (address != null) {
       final splitted = address.value.split('@');
       //Check if the address is the same as the current epicbox domain
       //Since we're only using one epicbpox now this doesn't apply but will be
       // useful in the future
-      final encodedConfig = jsonEncode(epicboxConfig);
+      final epicboxConfig = await getEpicBoxConfig();
       if (splitted[1] != epicboxConfig.host) {
         //Update the address
         address = await thisWalletAddress(index, epicboxConfig);
       }
     } else {
+      final epicboxConfig = await getEpicBoxConfig();
       address = await thisWalletAddress(index, epicboxConfig);
     }
 
