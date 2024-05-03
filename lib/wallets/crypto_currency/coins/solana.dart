@@ -40,6 +40,9 @@ class Solana extends Bip39Currency {
   int get minConfirms => 21;
 
   @override
+  bool get torSupport => true;
+
+  @override
   bool validateAddress(String address) {
     return isPointOnEd25519Curve(
         Ed25519HDPublicKey.fromBase58(address).toByteArray());

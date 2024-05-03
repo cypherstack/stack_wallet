@@ -30,7 +30,6 @@ import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/dialogs/basic_dialog.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/wallet_info_row/wallet_info_row.dart';
@@ -94,37 +93,6 @@ class SimpleWalletCard extends ConsumerWidget {
     final nav = Navigator.of(context);
 
     final wallet = ref.read(pWallets).getWallet(walletId);
-
-    // If Tor enabled, show a warning if opening a wallet incompatible with Tor.
-    if (ref.read(prefsChangeNotifierProvider).useTor) {
-      if (!wallet.cryptoCurrency.torSupport) {
-        final shouldContinue = await showDialog<bool>(
-                context: context,
-                builder: (context) => BasicDialog(
-                      title: "Warning!  Tor not supported.",
-                      message: "Stacky is not compatible with Tor."
-                          "\n\nBy using it, you will leak your IP address.  Are you sure you "
-                          "want to continue?",
-                      // A PrimaryButton widget:
-                      leftButton: PrimaryButton(
-                        label: "Cancel",
-                        onPressed: () {
-                          Navigator.of(context).pop(false);
-                        },
-                      ),
-                      rightButton: SecondaryButton(
-                        label: "Continue",
-                        onPressed: () {
-                          Navigator.of(context).pop(true);
-                        },
-                      ),
-                    )) ??
-            false;
-        if (!shouldContinue) {
-          return;
-        }
-      }
-    }
 
     if (context.mounted) {
       final Future<void> loadFuture;
