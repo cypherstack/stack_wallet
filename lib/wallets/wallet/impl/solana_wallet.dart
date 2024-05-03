@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:decimal/decimal.dart';
 import 'package:isar/isar.dart';
 import 'package:socks5_proxy/socks_client.dart';
 import 'package:solana/dto.dart';
@@ -16,7 +18,6 @@ import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/solana.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
@@ -27,24 +28,30 @@ import 'package:tuple/tuple.dart';
 class SolanaWallet extends Bip39Wallet<Solana> {
   SolanaWallet(CryptoCurrencyNetwork network) : super(Solana(network));
 
+  static const String _addressDerivationPath = "m/44'/501'/0'/0'";
+
   NodeModel? _solNode;
 
   RpcClient? _rpcClient; // The Solana RpcClient.
 
   Future<Ed25519HDKeyPair> _getKeyPair() async {
-    return Ed25519HDKeyPair.fromMnemonic(await getMnemonic(),
-        account: 0, change: 0);
+    return Ed25519HDKeyPair.fromMnemonic(
+      await getMnemonic(),
+      account: 0,
+      change: 0,
+    );
   }
 
-  Future<Address> _getCurrentAddress() async {
+  Future<Address> _generateAddress() async {
     final addressStruct = Address(
-        walletId: walletId,
-        value: (await _getKeyPair()).address,
-        publicKey: List<int>.empty(),
-        derivationIndex: 0,
-        derivationPath: DerivationPath()..value = "m/44'/501'/0'/0'",
-        type: cryptoCurrency.coin.primaryAddressType,
-        subType: AddressSubType.unknown);
+      walletId: walletId,
+      value: (await _getKeyPair()).address,
+      publicKey: List<int>.empty(),
+      derivationIndex: 0,
+      derivationPath: DerivationPath()..value = _addressDerivationPath,
+      type: cryptoCurrency.coin.primaryAddressType,
+      subType: AddressSubType.receiving,
+    );
     return addressStruct;
   }
 
@@ -54,6 +61,26 @@ class SolanaWallet extends Bip39Wallet<Solana> {
     return balance!.value;
   }
 
+  Future<int?> _getEstimatedNetworkFee(Amount transferAmount) async {
+    final latestBlockhash = await _rpcClient?.getLatestBlockhash();
+    final pubKey = (await _getKeyPair()).publicKey;
+
+    final compiledMessage = Message(instructions: [
+      SystemInstruction.transfer(
+        fundingAccount: pubKey,
+        recipientAccount: pubKey,
+        lamports: transferAmount.raw.toInt(),
+      )
+    ]).compile(
+      recentBlockhash: latestBlockhash!.value.blockhash,
+      feePayer: pubKey,
+    );
+
+    return await _rpcClient?.getFeeForMessage(
+      base64Encode(compiledMessage.toByteArray().toList()),
+    );
+  }
+
   @override
   FilterOperation? get changeAddressFilterOperation =>
       throw UnimplementedError();
@@ -61,18 +88,13 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<void> checkSaveInitialReceivingAddress() async {
     try {
-      final address = (await _getKeyPair()).address;
+      Address? address = await getCurrentReceivingAddress();
 
-      await mainDB.updateOrPutAddresses([
-        Address(
-            walletId: walletId,
-            value: address,
-            publicKey: List<int>.empty(),
-            derivationIndex: 0,
-            derivationPath: DerivationPath()..value = "m/44'/501'/0'/0'",
-            type: cryptoCurrency.coin.primaryAddressType,
-            subType: AddressSubType.unknown)
-      ]);
+      if (address == null) {
+        address = await _generateAddress();
+
+        await mainDB.updateOrPutAddresses([address]);
+      }
     } catch (e, s) {
       Logging.instance.log(
         "$runtimeType  checkSaveInitialReceivingAddress() failed: $e\n$s",
@@ -96,24 +118,16 @@ class SolanaWallet extends Bip39Wallet<Solana> {
         throw Exception("Insufficient available balance");
       }
 
-      int feeAmount;
-      final currentFees = await fees;
-      switch (txData.feeRateType) {
-        case FeeRateType.fast:
-          feeAmount = currentFees.fast;
-          break;
-        case FeeRateType.slow:
-          feeAmount = currentFees.slow;
-          break;
-        case FeeRateType.average:
-        default:
-          feeAmount = currentFees.medium;
-          break;
+      final feeAmount = await _getEstimatedNetworkFee(sendAmount);
+      if (feeAmount == null) {
+        throw Exception(
+            "Failed to get fees, please check your node connection.");
       }
 
+      final address = await getCurrentReceivingAddress();
+
       // Rent exemption of Solana
-      final accInfo =
-          await _rpcClient?.getAccountInfo((await _getKeyPair()).address);
+      final accInfo = await _rpcClient?.getAccountInfo(address!.value);
       final int minimumRent =
           await _rpcClient?.getMinimumBalanceForRentExemption(
                   accInfo!.value!.data.toString().length) ??
@@ -123,7 +137,9 @@ class SolanaWallet extends Bip39Wallet<Solana> {
               txData.amount!.raw.toInt() -
               feeAmount)) {
         throw Exception(
-            "Insufficient remaining balance for rent exemption, minimum rent: ${minimumRent / pow(10, cryptoCurrency.fractionDigits)}");
+          "Insufficient remaining balance for rent exemption, minimum rent: "
+          "${minimumRent / pow(10, cryptoCurrency.fractionDigits)}",
+        );
       }
 
       return txData.copyWith(
@@ -157,7 +173,12 @@ class SolanaWallet extends Bip39Wallet<Solana> {
               recipientAccount: recipientPubKey,
               lamports: txData.amount!.raw.toInt()),
           ComputeBudgetInstruction.setComputeUnitPrice(
-              microLamports: txData.fee!.raw.toInt()),
+              microLamports: txData.fee!.raw.toInt() - 5000),
+          // 5000 lamports is the base fee for a transaction. This instruction adds the necessary fee on top of base fee if it is needed.
+          ComputeBudgetInstruction.setComputeUnitLimit(units: 1000000),
+          // 1000000 is the multiplication number to turn the compute unit price of microLamports to lamports.
+          // These instructions also help the user to not pay more than the shown fee.
+          // See: https://solanacookbook.com/references/basic-transactions.html#how-to-change-compute-budget-fee-priority-for-a-transaction
         ],
       );
 
@@ -185,11 +206,13 @@ class SolanaWallet extends Bip39Wallet<Solana> {
       );
     }
 
-    final fee = await _rpcClient?.getFees();
-    // TODO [prio=low]: handle null fee.
+    final fee = await _getEstimatedNetworkFee(amount);
+    if (fee == null) {
+      throw Exception("Failed to get fees, please check your node connection.");
+    }
 
     return Amount(
-      rawValue: BigInt.from(fee!.value.feeCalculator.lamportsPerSignature),
+      rawValue: BigInt.from(fee),
       fractionDigits: cryptoCurrency.fractionDigits,
     );
   }
@@ -198,15 +221,23 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   Future<FeeObject> get fees async {
     _checkClient();
 
-    final fees = await _rpcClient?.getFees();
-    // TODO [prio=low]: handle null fees.
+    final fee = await _getEstimatedNetworkFee(
+      Amount.fromDecimal(
+        Decimal.one, // 1 SOL
+        fractionDigits: cryptoCurrency.fractionDigits,
+      ),
+    );
+    if (fee == null) {
+      throw Exception("Failed to get fees, please check your node connection.");
+    }
+
     return FeeObject(
         numberOfBlocksFast: 1,
         numberOfBlocksAverage: 1,
         numberOfBlocksSlow: 1,
-        fast: fees!.value.feeCalculator.lamportsPerSignature,
-        medium: fees!.value.feeCalculator.lamportsPerSignature,
-        slow: fees!.value.feeCalculator.lamportsPerSignature);
+        fast: fee,
+        medium: fee,
+        slow: fee);
   }
 
   @override
@@ -231,7 +262,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<void> recover({required bool isRescan}) async {
     await refreshMutex.protect(() async {
-      final addressStruct = await _getCurrentAddress();
+      final addressStruct = await _generateAddress();
 
       await mainDB.updateOrPutAddresses([addressStruct]);
 
@@ -253,13 +284,13 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<void> updateBalance() async {
     try {
+      final address = await getCurrentReceivingAddress();
       _checkClient();
 
-      final balance = await _rpcClient?.getBalance(info.cachedReceivingAddress);
+      final balance = await _rpcClient?.getBalance(address!.value);
 
       // Rent exemption of Solana
-      final accInfo =
-          await _rpcClient?.getAccountInfo((await _getKeyPair()).address);
+      final accInfo = await _rpcClient?.getAccountInfo(address!.value);
       // TODO [prio=low]: handle null account info.
       final int minimumRent =
           await _rpcClient?.getMinimumBalanceForRentExemption(
@@ -342,12 +373,14 @@ class SolanaWallet extends Bip39Wallet<Solana> {
       final txsList =
           List<Tuple2<isar.Transaction, Address>>.empty(growable: true);
 
+      final myAddress = (await getCurrentReceivingAddress())!;
+
       // TODO [prio=low]: Revisit null assertion below.
 
       for (final tx in transactionsList!) {
         final senderAddress =
             (tx.transaction as ParsedTransaction).message.accountKeys[0].pubkey;
-        final receiverAddress =
+        var receiverAddress =
             (tx.transaction as ParsedTransaction).message.accountKeys[1].pubkey;
         var txType = isar.TransactionType.unknown;
         final txAmount = Amount(
@@ -356,12 +389,16 @@ class SolanaWallet extends Bip39Wallet<Solana> {
           fractionDigits: cryptoCurrency.fractionDigits,
         );
 
-        if ((senderAddress == (await _getKeyPair()).address) &&
-            (receiverAddress == (await _getKeyPair()).address)) {
+        if ((senderAddress == myAddress.value) &&
+            (receiverAddress == "11111111111111111111111111111111")) {
+          // The account that is only 1's are System Program accounts which
+          // means there is no receiver except the sender,
+          // see: https://explorer.solana.com/address/11111111111111111111111111111111
           txType = isar.TransactionType.sentToSelf;
-        } else if (senderAddress == (await _getKeyPair()).address) {
+          receiverAddress = senderAddress;
+        } else if (senderAddress == myAddress.value) {
           txType = isar.TransactionType.outgoing;
-        } else if (receiverAddress == (await _getKeyPair()).address) {
+        } else if (receiverAddress == myAddress.value) {
           txType = isar.TransactionType.incoming;
         }
 
@@ -386,15 +423,16 @@ class SolanaWallet extends Bip39Wallet<Solana> {
         );
 
         final txAddress = Address(
-            walletId: walletId,
-            value: receiverAddress,
-            publicKey: List<int>.empty(),
-            derivationIndex: 0,
-            derivationPath: DerivationPath()..value = "m/44'/501'/0'/0'",
-            type: AddressType.solana,
-            subType: txType == isar.TransactionType.outgoing
-                ? AddressSubType.unknown
-                : AddressSubType.receiving);
+          walletId: walletId,
+          value: receiverAddress,
+          publicKey: List<int>.empty(),
+          derivationIndex: 0,
+          derivationPath: DerivationPath()..value = _addressDerivationPath,
+          type: AddressType.solana,
+          subType: txType == isar.TransactionType.outgoing
+              ? AddressSubType.unknown
+              : AddressSubType.receiving,
+        );
 
         txsList.add(Tuple2(transaction, txAddress));
       }

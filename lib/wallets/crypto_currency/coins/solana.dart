@@ -50,4 +50,12 @@ class Solana extends Bip39Currency {
 
   @override
   String get genesisHash => throw UnimplementedError();
+
+  @override
+  bool operator ==(Object other) {
+    return other is Solana && other.network == network;
+  }
+
+  @override
+  int get hashCode => Object.hash(Solana, network);
 }
