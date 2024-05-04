@@ -23,7 +23,7 @@ import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin_frost.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/private_key_currency.dart';
+import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
 import 'package:stackwallet/wallets/isar/models/frost_wallet_info.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
@@ -41,7 +41,6 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
   late CachedElectrumXClient electrumXCachedClient;
 
   Future<void> initializeNewFrost({
-    required String mnemonic,
     required String multisigConfig,
     required String recoveryString,
     required String serializedKeys,
@@ -70,14 +69,6 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
         threshold: threshold,
       );
 
-      await secureStorageInterface.write(
-        key: Wallet.mnemonicKey(walletId: info.walletId),
-        value: mnemonic,
-      );
-      await secureStorageInterface.write(
-        key: Wallet.mnemonicPassphraseKey(walletId: info.walletId),
-        value: "",
-      );
       await _saveSerializedKeys(serializedKeys);
       await _saveRecoveryString(recoveryString);
       await _saveMultisigId(multisigId);

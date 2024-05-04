@@ -51,12 +51,12 @@ class ClientManager {
 
     if (_map[key] == null) {
       throw Exception(
-        "No managed ElectrumClient for $cryptoCurrency found.",
+        "No managed ElectrumClient for $key found.",
       );
     }
     if (_heightCompleters[key] == null) {
       throw Exception(
-        "No managed _heightCompleters for $cryptoCurrency found.",
+        "No managed _heightCompleters for $key found.",
       );
     }
 

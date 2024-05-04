@@ -8,7 +8,6 @@ import 'package:frostdart/frostdart.dart' as frost;
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/home_view/home_view.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/node_service_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
@@ -18,11 +17,11 @@ import 'package:stackwallet/services/frost.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
 import 'package:stackwallet/wallets/isar/models/frost_wallet_info.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
@@ -33,6 +32,7 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/frost_mascot.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
@@ -40,19 +40,17 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
-import 'package:stackwallet/pages/frost_mascot.dart';
-
 class RestoreFrostMsWalletView extends ConsumerStatefulWidget {
   const RestoreFrostMsWalletView({
     super.key,
     required this.walletName,
-    required this.coin,
+    required this.frostCurrency,
   });
 
   static const String routeName = "/restoreFrostMsWalletView";
 
   final String walletName;
-  final Coin coin;
+  final FrostCurrency frostCurrency;
 
   @override
   ConsumerState<RestoreFrostMsWalletView> createState() =>
@@ -77,7 +75,7 @@ class _RestoreFrostMsWalletViewState
     final myName = participants[myNameIndex];
 
     final info = WalletInfo.createNew(
-      coin: widget.coin,
+      coin: widget.frostCurrency.coin,
       name: widget.walletName,
     );
 
@@ -132,7 +130,7 @@ class _RestoreFrostMsWalletViewState
         whileFuture: _createWalletAndRecover(),
         context: context,
         message: "Restoring wallet...",
-        isDesktop: Util.isDesktop,
+        rootNavigator: Util.isDesktop,
         onException: (e) {
           ex = e;
         },
@@ -214,13 +212,15 @@ class _RestoreFrostMsWalletViewState
       condition: Util.isDesktop,
       builder: (child) => DesktopScaffold(
         background: Theme.of(context).extension<StackColors>()!.background,
-        appBar: DesktopAppBar(
+        appBar: const DesktopAppBar(
           isCompactHeight: false,
           leading: AppBarBackButton(),
+          // TODO: [prio=high] get rid of placeholder text??
           trailing: FrostMascot(
             title: 'Lorem ipsum',
-            body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam est justo, ',
-          )
+            body:
+                'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam est justo, ',
+          ),
         ),
         body: SizedBox(
           width: 480,

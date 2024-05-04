@@ -92,8 +92,6 @@ class _UnlockWalletKeysDesktopState
             keys: (await wallet.getSerializedKeys())!,
             config: (await wallet.getMultisigConfig())!,
           );
-          print(1111111);
-          print(frostData);
         } else {
           throw Exception("FIXME ~= see todo in code");
         }

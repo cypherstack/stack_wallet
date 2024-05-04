@@ -20,7 +20,7 @@ Future<T?> showLoading<T>({
   required BuildContext context,
   required String message,
   String? subMessage,
-  bool isDesktop = false,
+  bool rootNavigator = false,
   bool opaqueBG = false,
   void Function(Exception)? onException,
 }) async {
@@ -59,7 +59,7 @@ Future<T?> showLoading<T>({
   }
 
   if (context.mounted) {
-    Navigator.of(context, rootNavigator: isDesktop).pop();
+    Navigator.of(context, rootNavigator: rootNavigator).pop();
     if (ex != null) {
       onException?.call(ex);
     }

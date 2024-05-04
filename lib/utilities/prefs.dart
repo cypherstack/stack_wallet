@@ -69,7 +69,6 @@ class Prefs extends ChangeNotifier {
       _useTor = await _getUseTor();
       _fusionServerInfo = await _getFusionServerInfo();
       _solanaEnabled = await _getSolanaEnabled();
-      _frostEnabled = await _getFrostEnabled();
 
       _initialized = true;
     }
@@ -1029,27 +1028,6 @@ class Prefs extends ChangeNotifier {
   Future<bool> _getSolanaEnabled() async {
     return await DB.instance.get<dynamic>(
             boxName: DB.boxNamePrefs, key: "solanaEnabled") as bool? ??
-        false;
-  }
-
-  // FROST multisig
-
-  bool _frostEnabled = false;
-
-  bool get frostEnabled => _frostEnabled;
-
-  set frostEnabled(bool frostEnabled) {
-    if (_frostEnabled != frostEnabled) {
-      DB.instance.put<dynamic>(
-          boxName: DB.boxNamePrefs, key: "frostEnabled", value: frostEnabled);
-      _frostEnabled = frostEnabled;
-      notifyListeners();
-    }
-  }
-
-  Future<bool> _getFrostEnabled() async {
-    return await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "frostEnabled") as bool? ??
         false;
   }
 }

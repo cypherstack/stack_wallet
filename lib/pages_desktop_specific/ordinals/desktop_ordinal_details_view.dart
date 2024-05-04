@@ -234,7 +234,7 @@ class _DesktopOrdinalDetailsViewState
                                 final path = await showLoading<String>(
                                   whileFuture: _savePngToFile(),
                                   context: context,
-                                  isDesktop: true,
+                                  rootNavigator: true,
                                   message: "Saving ordinal image",
                                   onException: (e) {
                                     didError = true;

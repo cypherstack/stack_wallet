@@ -16,17 +16,19 @@ import 'package:stackwallet/utilities/text_styles.dart';
 
 class SettingsListButton extends StatelessWidget {
   const SettingsListButton({
-    Key? key,
+    super.key,
     required this.iconAssetName,
     required this.title,
     this.onPressed,
     this.iconSize = 20.0,
-  }) : super(key: key);
+    this.padding = const EdgeInsets.all(8.0),
+  });
 
   final String iconAssetName;
   final String title;
   final VoidCallback? onPressed;
   final double iconSize;
+  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +46,7 @@ class SettingsListButton extends StatelessWidget {
       ),
       onPressed: onPressed,
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: padding,
         child: Row(
           children: [
             Container(

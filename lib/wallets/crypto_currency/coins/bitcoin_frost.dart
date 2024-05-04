@@ -6,15 +6,15 @@ import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/private_key_currency.dart';
+import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
 
 class BitcoinFrost extends FrostCurrency {
   BitcoinFrost(super.network) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        coin = Coin.bitcoin;
+        coin = Coin.bitcoinFrost;
       case CryptoCurrencyNetwork.test:
-        coin = Coin.bitcoinTestNet;
+        coin = Coin.bitcoinFrostTestNet;
       default:
         throw Exception("Unsupported network: $network");
     }
