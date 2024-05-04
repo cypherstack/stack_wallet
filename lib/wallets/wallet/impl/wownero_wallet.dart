@@ -20,9 +20,13 @@ import 'package:flutter_libmonero/view_model/send/output.dart'
     as wownero_output;
 import 'package:flutter_libmonero/wownero/wownero.dart' as wow_dart;
 import 'package:isar/isar.dart';
+import 'package:mutex/mutex.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
+import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/events/global/tor_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
@@ -36,7 +40,38 @@ import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_inte
 import 'package:tuple/tuple.dart';
 
 class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
-  WowneroWallet(CryptoCurrencyNetwork network) : super(Wownero(network));
+  WowneroWallet(CryptoCurrencyNetwork network) : super(Wownero(network)) {
+    final bus = GlobalEventBus.instance;
+
+    // Listen for tor status changes.
+    _torStatusListener = bus.on<TorConnectionStatusChangedEvent>().listen(
+      (event) async {
+        switch (event.newStatus) {
+          case TorConnectionStatus.connecting:
+            if (!_torConnectingLock.isLocked) {
+              await _torConnectingLock.acquire();
+            }
+            _requireMutex = true;
+            break;
+
+          case TorConnectionStatus.connected:
+          case TorConnectionStatus.disconnected:
+            if (_torConnectingLock.isLocked) {
+              _torConnectingLock.release();
+            }
+            _requireMutex = false;
+            break;
+        }
+      },
+    );
+
+    // Listen for tor preference changes.
+    _torPreferenceListener = bus.on<TorPreferenceChangedEvent>().listen(
+      (event) async {
+        await updateNode();
+      },
+    );
+  }
 
   @override
   Address addressFor({required int index, int account = 0}) {
@@ -148,15 +183,31 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
     if (prefs.useTor) {
       proxy = TorService.sharedInstance.getProxyInfo();
     }
-    await CwBasedInterface.cwWalletBase?.connectToNode(
-      node: Node(
-        uri: "$host:${node.port}",
-        type: WalletType.wownero,
-        trusted: node.trusted ?? false,
-      ),
-      socksProxyAddress:
-          proxy == null ? null : "${proxy.host.address}:${proxy.port}",
-    );
+    if (_requireMutex) {
+      await _torConnectingLock.protect(() async {
+        await CwBasedInterface.cwWalletBase?.connectToNode(
+          node: Node(
+            uri: "$host:${node.port}",
+            type: WalletType.wownero,
+            trusted: node.trusted ?? false,
+          ),
+          socksProxyAddress:
+              proxy == null ? null : "${proxy.host.address}:${proxy.port}",
+        );
+      });
+    } else {
+      await CwBasedInterface.cwWalletBase?.connectToNode(
+        node: Node(
+          uri: "$host:${node.port}",
+          type: WalletType.wownero,
+          trusted: node.trusted ?? false,
+        ),
+        socksProxyAddress:
+            proxy == null ? null : "${proxy.host.address}:${proxy.port}",
+      );
+    }
+
+    return;
   }
 
   @override
@@ -703,4 +754,12 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
       return info.cachedBalance.total;
     }
   }
+
+  // ============== Private ====================================================
+
+  StreamSubscription<TorConnectionStatusChangedEvent>? _torStatusListener;
+  StreamSubscription<TorPreferenceChangedEvent>? _torPreferenceListener;
+
+  final Mutex _torConnectingLock = Mutex();
+  bool _requireMutex = false;
 }
