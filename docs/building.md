@@ -12,7 +12,7 @@ Here you will find instructions on how to install the necessary tools for buildi
 The following instructions are for building and running on a Linux host.  Alternatively, see the [Mac](#mac-host) and/or [Windows](#windows-host) section.  This entire section (except for the Android Studio section) needs to be completed in WSL if building on a Windows host.
 
 ### Flutter
-Install Flutter 3.19 beta (3.19.0-0.1.pre) by following these instructions: https://docs.flutter.dev/get-started/install/linux/desktop?tab=download#install-the-flutter-sdk.  You can also clone https://github.com/flutter/flutter, check out the `3.19.0-0.1.pre` tag, and add its `flutter/bin` folder to your PATH.  Run `flutter doctor` in a terminal to confirm its installation.
+Install Flutter 3.19.5 by following these instructions: https://docs.flutter.dev/get-started/install/linux/desktop?tab=download#install-the-flutter-sdk.  You can also clone https://github.com/flutter/flutter, check out the `3.19.5` tag, and add its `flutter/bin` folder to your PATH.  Run `flutter doctor` in a terminal to confirm its installation.
 
 ### Android Studio
 Install Android Studio.  Follow instructions here [https://developer.android.com/studio/install#linux](https://developer.android.com/studio/install#linux) or install via snap:
