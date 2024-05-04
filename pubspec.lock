@@ -1740,8 +1740,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: f31f8f857665d85338824ae171aba4c629c3ba6f
-      resolved-ref: f31f8f857665d85338824ae171aba4c629c3ba6f
+      ref: "13fa937ea9a9fc34caf047e068df9535f65c27ad"
+      resolved-ref: "13fa937ea9a9fc34caf047e068df9535f65c27ad"
       url: "https://github.com/cypherstack/tezart.git"
     source: git
     version: "2.0.5"
