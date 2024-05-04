@@ -74,7 +74,7 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
 
   @override
   Address addressFor({required int index, int account = 0}) {
-    String address = (CwBasedInterface.cwWalletBase as MoneroWalletBase)
+    final String address = (CwBasedInterface.cwWalletBase as MoneroWalletBase)
         .getTransactionAddress(account, index);
 
     final newReceivingAddress = Address(
@@ -438,7 +438,7 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
         // clear blockchain info
         await mainDB.deleteWalletBlockchainData(walletId);
 
-        var restoreHeight =
+        final restoreHeight =
             CwBasedInterface.cwWalletBase?.walletInfo.restoreHeight;
         highestPercentCached = 0;
         await CwBasedInterface.cwWalletBase?.rescan(height: restoreHeight ?? 0);
@@ -467,7 +467,7 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
             .createMoneroWalletService(DB.instance.moneroWalletInfoBox);
         WalletInfo walletInfo;
         WalletCredentials credentials;
-        String name = walletId;
+        final String name = walletId;
         final dirPath =
             await pathForWalletDir(name: name, type: WalletType.monero);
         final path = await pathForWallet(name: name, type: WalletType.monero);
@@ -569,12 +569,12 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
             isSendAll = true;
           }
 
-          List<monero_output.Output> outputs = [];
+          final List<monero_output.Output> outputs = [];
           for (final recipient in txData.recipients!) {
             final output = monero_output.Output(CwBasedInterface.cwWalletBase!);
             output.address = recipient.address;
             output.sendAll = isSendAll;
-            String amountToSend = recipient.amount.decimal.toString();
+            final String amountToSend = recipient.amount.decimal.toString();
             output.setCryptoAmount(amountToSend);
             outputs.add(output);
           }
@@ -594,7 +594,7 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
               level: LogLevel.Warning);
         }
 
-        PendingMoneroTransaction pendingMoneroTransaction =
+        final PendingMoneroTransaction pendingMoneroTransaction =
             await (awaitPendingTransaction!) as PendingMoneroTransaction;
         final realFee = Amount.fromDecimal(
           Decimal.parse(pendingMoneroTransaction.feeFormatted),
@@ -676,7 +676,7 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
               ?.entries;
       if (balanceEntries != null) {
         int bal = 0;
-        for (var element in balanceEntries) {
+        for (final element in balanceEntries) {
           bal = bal + element.value.fullBalance;
         }
         return Amount(
@@ -689,7 +689,7 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
                 .transactionHistory!
                 .transactions;
         int transactionBalance = 0;
-        for (var tx in transactions!.entries) {
+        for (final tx in transactions!.entries) {
           if (tx.value.direction == TransactionDirection.incoming) {
             transactionBalance += tx.value.amount!;
           } else {
