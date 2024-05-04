@@ -383,6 +383,28 @@ class STextStyles {
     }
   }
 
+  static TextStyle w400_16(BuildContext context) {
+    switch (_theme(context).themeId) {
+      default:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w400,
+          fontSize: 16,
+        );
+    }
+  }
+
+  static TextStyle w400_14(BuildContext context) {
+    switch (_theme(context).themeId) {
+      default:
+        return GoogleFonts.inter(
+          color: _theme(context).textDark,
+          fontWeight: FontWeight.w400,
+          fontSize: 14,
+        );
+    }
+  }
+
   static TextStyle w600_20(BuildContext context) {
     switch (_theme(context).themeId) {
       default:

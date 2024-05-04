@@ -46,7 +46,7 @@ import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
 class AddWalletView extends ConsumerStatefulWidget {
-  const AddWalletView({Key? key}) : super(key: key);
+  const AddWalletView({super.key});
 
   static const routeName = "/addWallet";
 
@@ -134,11 +134,6 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
       _coins.remove(Coin.wownero);
     }
 
-    // Remove FROST from the list of coins based on our frostEnabled preference.
-    if (!ref.read(prefsChangeNotifierProvider).frostEnabled) {
-      _coins.remove(Coin.bitcoinFrost);
-    }
-
     // Remove Solana from the list of coins based on our frostEnabled preference.
     if (!ref.read(prefsChangeNotifierProvider).solanaEnabled) {
       _coins.remove(Coin.solana);
@@ -147,10 +142,6 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
     coinEntities.addAll(_coins.map((e) => CoinEntity(e)));
 
     if (ref.read(prefsChangeNotifierProvider).showTestNetCoins) {
-      if (!ref.read(prefsChangeNotifierProvider).frostEnabled) {
-        _coinsTestnet.remove(Coin.bitcoinFrostTestNet);
-      }
-
       coinEntities.addAll(_coinsTestnet.map((e) => CoinEntity(e)));
     }
 

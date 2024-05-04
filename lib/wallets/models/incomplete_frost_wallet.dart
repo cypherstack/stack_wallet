@@ -35,7 +35,9 @@ class IncompleteFrostWallet {
       threshold: -1,
     );
 
-    await mainDB.isar.frostWalletInfo.put(frostInfo);
+    await mainDB.isar.writeTxn(() async {
+      await mainDB.isar.frostWalletInfo.put(frostInfo);
+    });
 
     return wallet as BitcoinFrostWallet;
   }

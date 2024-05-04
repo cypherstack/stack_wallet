@@ -10,33 +10,39 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/frost_route_generator.dart';
+import 'package:stackwallet/pages/settings_views/sub_widgets/settings_list_button.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/frost_participants_view.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/resharing/involved/step_1a/begin_reshare_config_view.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/resharing/involved/step_1b/import_reshare_config_view.dart';
+import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/initiate_resharing/initiate_resharing_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
+import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/models/frost_wallet_info.dart';
+import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import 'package:stackwallet/widgets/frost_scaffold.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class FrostMSWalletOptionsView extends ConsumerWidget {
   const FrostMSWalletOptionsView({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/frostMSWalletOptionsView";
 
   final String walletId;
+
+  static const _padding = 12.0;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -83,101 +89,89 @@ class FrostMSWalletOptionsView extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _OptionButton(
-                  label: "Show participants",
-                  onPressed: () {
-                    Navigator.of(context).pushNamed(
-                      FrostParticipantsView.routeName,
-                      arguments: walletId,
-                    );
-                  },
+                RoundedWhiteContainer(
+                  padding: EdgeInsets.zero,
+                  child: SettingsListButton(
+                    padding: const EdgeInsets.all(_padding),
+                    title: "Show participants",
+                    iconAssetName: Assets.svg.peers,
+                    onPressed: () {
+                      Navigator.of(context).pushNamed(
+                        FrostParticipantsView.routeName,
+                        arguments: walletId,
+                      );
+                    },
+                  ),
                 ),
                 const SizedBox(
                   height: 8,
                 ),
-                _OptionButton(
-                  label: "Initiate resharing",
-                  onPressed: () {
-                    // TODO: optimize this by creating watcher providers (similar to normal WalletInfo)
-                    final frostInfo = ref
-                        .read(mainDBProvider)
-                        .isar
-                        .frostWalletInfo
-                        .getByWalletIdSync(walletId)!;
+                RoundedWhiteContainer(
+                  padding: EdgeInsets.zero,
+                  child: SettingsListButton(
+                    padding: const EdgeInsets.all(_padding),
+                    title: "Initiate resharing",
+                    iconAssetName: Assets.svg.swap2,
+                    onPressed: () {
+                      // TODO: optimize this by creating watcher providers (similar to normal WalletInfo)
+                      final frostInfo = ref
+                          .read(mainDBProvider)
+                          .isar
+                          .frostWalletInfo
+                          .getByWalletIdSync(walletId)!;
 
-                    ref.read(pFrostMyName.state).state = frostInfo.myName;
+                      ref.read(pFrostMyName.state).state = frostInfo.myName;
 
-                    Navigator.of(context).pushNamed(
-                      BeginReshareConfigView.routeName,
-                      arguments: walletId,
-                    );
-                  },
+                      Navigator.of(context).pushNamed(
+                        InitiateResharingView.routeName,
+                        arguments: walletId,
+                      );
+                    },
+                  ),
                 ),
                 const SizedBox(
                   height: 8,
                 ),
-                _OptionButton(
-                  label: "Import reshare config",
-                  onPressed: () {
-                    // TODO: optimize this by creating watcher providers (similar to normal WalletInfo)
-                    final frostInfo = ref
-                        .read(mainDBProvider)
-                        .isar
-                        .frostWalletInfo
-                        .getByWalletIdSync(walletId)!;
+                RoundedWhiteContainer(
+                  padding: EdgeInsets.zero,
+                  child: SettingsListButton(
+                    padding: const EdgeInsets.all(_padding),
+                    title: "Import reshare config",
+                    iconAssetName: Assets.svg.downloadFolder,
+                    iconSize: 16,
+                    onPressed: () {
+                      // TODO: optimize this by creating watcher providers (similar to normal WalletInfo)
+                      final frostInfo = ref
+                          .read(mainDBProvider)
+                          .isar
+                          .frostWalletInfo
+                          .getByWalletIdSync(walletId)!;
 
-                    ref.read(pFrostMyName.state).state = frostInfo.myName;
+                      ref.read(pFrostMyName.state).state = frostInfo.myName;
 
-                    Navigator.of(context).pushNamed(
-                      ImportReshareConfigView.routeName,
-                      arguments: walletId,
-                    );
-                  },
+                      final wallet = ref.read(pWallets).getWallet(walletId)
+                          as BitcoinFrostWallet;
+
+                      ref.read(pFrostScaffoldArgs.state).state = (
+                        info: (
+                          walletName: wallet.info.name,
+                          frostCurrency: wallet.cryptoCurrency,
+                        ),
+                        walletId: wallet.walletId,
+                        stepRoutes: FrostRouteGenerator.importReshareStepRoutes,
+                        parentNav: Navigator.of(context),
+                        frostInterruptionDialogType:
+                            FrostInterruptionDialogType.resharing,
+                      );
+
+                      Navigator.of(context).pushNamed(
+                        FrostStepScaffold.routeName,
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _OptionButton extends StatelessWidget {
-  const _OptionButton({
-    super.key,
-    required this.label,
-    required this.onPressed,
-  });
-
-  final String label;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return RoundedWhiteContainer(
-      padding: const EdgeInsets.all(0),
-      child: RawMaterialButton(
-        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(
-            Constants.size.circularBorderRadius,
-          ),
-        ),
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        onPressed: onPressed,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 12.0,
-            vertical: 20,
-          ),
-          child: Row(
-            children: [
-              Text(
-                label,
-                style: STextStyles.titleBold12(context),
-              ),
-            ],
           ),
         ),
       ),
