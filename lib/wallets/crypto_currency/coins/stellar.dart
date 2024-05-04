@@ -20,6 +20,9 @@ class Stellar extends Bip39Currency {
   int get minConfirms => 1;
 
   @override
+  bool get torSupport => true;
+
+  @override
   String get genesisHash => throw UnimplementedError(
         "Not used for stellar",
       );

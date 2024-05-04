@@ -1,9 +1,9 @@
 import 'package:solana/solana.dart';
 import 'package:stackwallet/models/node_model.dart';
+import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_currency.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
 
 class Solana extends Bip39Currency {
   Solana(super.network) {
@@ -20,7 +20,8 @@ class Solana extends Bip39Currency {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
-          host: "https://api.mainnet-beta.solana.com/", // TODO: Change this to stack wallet one
+          host:
+              "https://api.mainnet-beta.solana.com/", // TODO: Change this to stack wallet one
           port: 443,
           name: DefaultNodes.defaultName,
           id: DefaultNodes.buildId(Coin.solana),
@@ -39,10 +40,22 @@ class Solana extends Bip39Currency {
   int get minConfirms => 21;
 
   @override
+  bool get torSupport => true;
+
+  @override
   bool validateAddress(String address) {
-    return isPointOnEd25519Curve(Ed25519HDPublicKey.fromBase58(address).toByteArray());
+    return isPointOnEd25519Curve(
+        Ed25519HDPublicKey.fromBase58(address).toByteArray());
   }
 
   @override
   String get genesisHash => throw UnimplementedError();
+
+  @override
+  bool operator ==(Object other) {
+    return other is Solana && other.network == network;
+  }
+
+  @override
+  int get hashCode => Object.hash(Solana, network);
 }

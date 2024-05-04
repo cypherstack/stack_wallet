@@ -1576,7 +1576,7 @@ packages:
     source: hosted
     version: "1.0.4"
   socks_socket:
-    dependency: "direct main"
+    dependency: transitive
     description:
       path: "."
       ref: master
@@ -1588,8 +1588,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/solana"
-      ref: "0ada1f775c2a2c815de640424270a229f5e91e2f"
-      resolved-ref: "0ada1f775c2a2c815de640424270a229f5e91e2f"
+      ref: a83e375678eb22fe544dc125d29bbec0fb833882
+      resolved-ref: a83e375678eb22fe544dc125d29bbec0fb833882
       url: "https://github.com/cypherstack/espresso-cash-public.git"
     source: git
     version: "0.30.4"
@@ -1661,10 +1661,11 @@ packages:
   stellar_flutter_sdk:
     dependency: "direct main"
     description:
-      name: stellar_flutter_sdk
-      sha256: "4c55b1b6dfbde7f89bba59a422754280715fa3b5726cff5e7eeaed454d2c4b89"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: eca1d730e952cf6a6d64502f977cfc03876b75d4
+      resolved-ref: eca1d730e952cf6a6d64502f977cfc03876b75d4
+      url: "https://github.com/cypherstack/stellar_flutter_sdk.git"
+    source: git
     version: "1.5.3"
   stream_channel:
     dependency: "direct main"
