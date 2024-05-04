@@ -182,7 +182,7 @@ Download and install [Homebrew](https://brew.sh/).  The following command can in
 
 After installing Homebrew, install the following packages:
 ```
-brew install autoconf automake boost berkeley-db ca-certificates cbindgen cmake cmake cocoapods curl git libssh2 make openssl@1.1 openssl@3 perl pkg-config rustup-init sodium unbound unzip xz zmq
+brew install autoconf automake boost berkeley-db ca-certificates cbindgen cmake cocoapods curl git libssh2 libsodium make openssl@1.1 openssl@3 perl pkg-config rustup-init unbound unzip xz zmq
 ```
 
 The following brew formula *may* be needed:
