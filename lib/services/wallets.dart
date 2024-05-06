@@ -156,10 +156,11 @@ class Wallets {
       return;
     }
 
-    List<Future<void>> walletInitFutures = [];
-    List<({Wallet wallet, bool shouldAutoSync})> walletsToInitLinearly = [];
+    final List<Future<void>> walletInitFutures = [];
+    final List<({Wallet wallet, bool shouldAutoSync})> walletsToInitLinearly =
+        [];
 
-    List<String> walletIdsToEnableAutoSync = [];
+    final List<String> walletIdsToEnableAutoSync = [];
     bool shouldAutoSyncAll = false;
     switch (prefs.syncType) {
       case SyncingType.currentWalletOnly:
@@ -238,10 +239,11 @@ class Wallets {
     List<Wallet> wallets,
     bool isDesktop,
   ) async {
-    List<Future<void>> walletInitFutures = [];
-    List<({Wallet wallet, bool shouldAutoSync})> walletsToInitLinearly = [];
+    final List<Future<void>> walletInitFutures = [];
+    final List<({Wallet wallet, bool shouldAutoSync})> walletsToInitLinearly =
+        [];
 
-    List<String> walletIdsToEnableAutoSync = [];
+    final List<String> walletIdsToEnableAutoSync = [];
     bool shouldAutoSyncAll = false;
     switch (prefs.syncType) {
       case SyncingType.currentWalletOnly:
