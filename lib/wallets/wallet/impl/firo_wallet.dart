@@ -549,39 +549,39 @@ class FiroWallet extends Bip39HDWallet
   }
 
   @override
-  Future<({String? blockedReason, bool blocked, String? utxoLabel})>
-      checkBlockUTXO(
+  Future<
+      ({
+        String? blockedReason,
+        bool blocked,
+        String? utxoLabel,
+      })> checkBlockUTXO(
     Map<String, dynamic> jsonUTXO,
     String? scriptPubKeyHex,
     Map<String, dynamic>? jsonTX,
     String? utxoOwnerAddress,
   ) async {
-    final bool blocked = false;
+    bool blocked = false;
     String? blockedReason;
-    //
-    // if (jsonTX != null) {
-    //   // check for bip47 notification
-    //   final outputs = jsonTX["vout"] as List;
-    //   for (final output in outputs) {
-    //     List<String>? scriptChunks =
-    //     (output['scriptPubKey']?['asm'] as String?)?.split(" ");
-    //     if (scriptChunks?.length == 2 && scriptChunks?[0] == "OP_RETURN") {
-    //       final blindedPaymentCode = scriptChunks![1];
-    //       final bytes = blindedPaymentCode.toUint8ListFromHex;
-    //
-    //       // https://en.bitcoin.it/wiki/BIP_0047#Sending
-    //       if (bytes.length == 80 && bytes.first == 1) {
-    //         blocked = true;
-    //         blockedReason = "Paynym notification output. Incautious "
-    //             "handling of outputs from notification transactions "
-    //             "may cause unintended loss of privacy.";
-    //         break;
-    //       }
-    //     }
-    //   }
-    // }
-    //
-    return (blockedReason: blockedReason, blocked: blocked, utxoLabel: null);
+    String? label;
+
+    if (jsonUTXO["value"] is int) {
+      // TODO: [prio=med] use special electrumx call to verify the 1000 Firo output is masternode
+      blocked = Amount.fromDecimal(
+            Decimal.fromInt(
+              1000, // 1000 firo output is a possible master node
+            ),
+            fractionDigits: cryptoCurrency.fractionDigits,
+          ).raw ==
+          BigInt.from(jsonUTXO["value"] as int);
+
+      if (blocked) {
+        blockedReason = "Possible masternode output. "
+            "Unlock and spend at your own risk.";
+        label = "Possible masternode";
+      }
+    }
+
+    return (blockedReason: blockedReason, blocked: blocked, utxoLabel: label);
   }
 
   @override
