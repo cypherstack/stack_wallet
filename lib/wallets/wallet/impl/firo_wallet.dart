@@ -62,14 +62,15 @@ class FiroWallet extends Bip39HDWallet
 
   @override
   Future<void> updateTransactions() async {
-    List<Address> allAddressesOld = await fetchAddressesForElectrumXScan();
+    final List<Address> allAddressesOld =
+        await fetchAddressesForElectrumXScan();
 
-    Set<String> receivingAddresses = allAddressesOld
+    final Set<String> receivingAddresses = allAddressesOld
         .where((e) => e.subType == AddressSubType.receiving)
         .map((e) => convertAddressString(e.value))
         .toSet();
 
-    Set<String> changeAddresses = allAddressesOld
+    final Set<String> changeAddresses = allAddressesOld
         .where((e) => e.subType == AddressSubType.change)
         .map((e) => convertAddressString(e.value))
         .toSet();
@@ -98,7 +99,7 @@ class FiroWallet extends Bip39HDWallet
       }
     }
 
-    List<Map<String, dynamic>> allTransactions = [];
+    final List<Map<String, dynamic>> allTransactions = [];
 
     // some lelantus transactions aren't fetched via wallet addresses so they
     // will never show as confirmed in the gui.
@@ -177,7 +178,7 @@ class FiroWallet extends Bip39HDWallet
       bool isMint = false;
       bool isJMint = false;
       bool isSparkMint = false;
-      bool isMasterNodePayment = false;
+      final bool isMasterNodePayment = false;
       final bool isSparkSpend = txData["type"] == 9 && txData["version"] == 3;
       final bool isMySpark = sparkTxids.contains(txData["txid"] as String);
 
@@ -555,7 +556,7 @@ class FiroWallet extends Bip39HDWallet
     Map<String, dynamic>? jsonTX,
     String? utxoOwnerAddress,
   ) async {
-    bool blocked = false;
+    final bool blocked = false;
     String? blockedReason;
     //
     // if (jsonTX != null) {
