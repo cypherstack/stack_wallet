@@ -906,6 +906,10 @@ class _SendViewState extends ConsumerState<SendView> {
       sendToController.text = _data!.contactLabel;
       _address = _data!.address.trim();
       _addressToggleFlag = true;
+
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        _setValidAddressProviders(_address);
+      });
     }
 
     if (isPaynymSend) {
