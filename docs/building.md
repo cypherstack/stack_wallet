@@ -12,7 +12,7 @@ Here you will find instructions on how to install the necessary tools for buildi
 The following instructions are for building and running on a Linux host.  Alternatively, see the [Mac](#mac-host) and/or [Windows](#windows-host) section.  This entire section (except for the Android Studio section) needs to be completed in WSL if building on a Windows host.
 
 ### Flutter
-Install Flutter 3.19 beta (3.19.0-0.1.pre) by following these instructions: https://docs.flutter.dev/get-started/install/linux/desktop?tab=download#install-the-flutter-sdk.  You can also clone https://github.com/flutter/flutter, check out the `3.19.0-0.1.pre` tag, and add its `flutter/bin` folder to your PATH.  Run `flutter doctor` in a terminal to confirm its installation.
+Install Flutter 3.19.6 by following these instructions: https://docs.flutter.dev/get-started/install/linux/desktop?tab=download#install-the-flutter-sdk.  You can also clone https://github.com/flutter/flutter, check out the `3.19.6` tag, and add its `flutter/bin` folder to your PATH.  Run `flutter doctor` in a terminal to confirm its installation.
 
 ### Android Studio
 Install Android Studio.  Follow instructions here [https://developer.android.com/studio/install#linux](https://developer.android.com/studio/install#linux) or install via snap:
@@ -58,10 +58,7 @@ Install [Rust](https://www.rust-lang.org/tools/install) with command:
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source ~/.bashrc 
-rustup install 1.73.0 # For cargo-ndk.
-rustup install 1.72.0 # For frostdart & tor.
-rustup install 1.73.0 # For cargo-ndk.
-rustup install 1.67.1 # For flutter_libepiccash.
+rustup install 1.67.1 1.72.0 1.73.0
 rustup default 1.67.1
 ```
 
@@ -107,7 +104,7 @@ Coinlib's native secp256k1 library must be built prior to running Stack Wallet. 
 
 To build coinlib on Linux, you will need `docker` (see [installation instructions](https://docs.docker.com/engine/install/ubuntu/)) or [`podman`](https://podman.io/docs/installation) (`sudo apt-get -y install podman`)
 
-For Windows targets, you can use a `secp256k1.dll` produced by any of the three middle options if the first attempt doesn't succeed!
+For Windows targets, you can use a `secp256k1.dll` produced by any of the three middle options if the first attempt doesn't succeed.
 
 ### Run prebuild script
 
@@ -283,7 +280,7 @@ Copy the resulting `dll`s to their respective positions on the Windows host:
 Frostdart will be built by the Windows host later.
 
 ### Install Flutter on Windows host
-Install Flutter 3.19.5 on your Windows host (not in WSL2) by following these instructions: https://docs.flutter.dev/get-started/install/windows/desktop?tab=download#install-the-flutter-sdk.  You can also clone https://github.com/flutter/flutter, check out the `3.19.5` tag, and add its `flutter/bin` folder to your PATH.  Run `flutter doctor` in PowerShell to confirm its installation.
+Install Flutter 3.19.6 on your Windows host (not in WSL2) by following these instructions: https://docs.flutter.dev/get-started/install/windows/desktop?tab=download#install-the-flutter-sdk.  You can also clone https://github.com/flutter/flutter, check out the `3.19.6` tag, and add its `flutter/bin` folder to your PATH.  Run `flutter doctor` in PowerShell to confirm its installation.
 
 ### Rust
 Install [Rust](https://www.rust-lang.org/tools/install) on the Windows host (not in WSL2).  Download the installer from [rustup.rs](https://rustup.rs), make sure it works on the commandline (you may need to open a new terminal), and install the following versions:
