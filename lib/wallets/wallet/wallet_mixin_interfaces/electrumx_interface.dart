@@ -1089,7 +1089,10 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
       return allTxHashes;
     } catch (e, s) {
-      Logging.instance.log("_fetchHistory: $e\n$s", level: LogLevel.Error);
+      Logging.instance.log(
+        "$runtimeType._fetchHistory: $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }
