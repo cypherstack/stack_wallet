@@ -11,6 +11,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -134,9 +135,9 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
       _coins.remove(Coin.wownero);
     }
 
-    // Remove Solana from the list of coins based on our frostEnabled preference.
-    if (!ref.read(prefsChangeNotifierProvider).solanaEnabled) {
-      _coins.remove(Coin.solana);
+    if (Util.isDesktop && !kDebugMode) {
+      _coins.remove(Coin.bitcoinFrost);
+      _coins.remove(Coin.bitcoinFrostTestNet);
     }
 
     coinEntities.addAll(_coins.map((e) => CoinEntity(e)));
