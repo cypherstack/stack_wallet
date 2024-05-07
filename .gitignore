@@ -68,3 +68,5 @@ android/app/src/main/jniLibs/armeabi-v7a/libmonero_wallet2_api_c.so
 android/app/src/main/jniLibs/armeabi-v7a/libwownero_wallet2_api_c.so
 android/app/src/main/jniLibs/x86_64/libmonero_wallet2_api_c.so
 android/app/src/main/jniLibs/x86_64/libwownero_wallet2_api_c.so
+macos/monero_wallet2_api_c.dylib
+macos/wownero_wallet2_api_c.dylib
