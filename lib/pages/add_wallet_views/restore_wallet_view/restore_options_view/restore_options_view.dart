@@ -11,9 +11,7 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_rounded_date_picker/flutter_rounded_date_picker.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/coin_image.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/mobile_mnemonic_length_selector.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/restore_from_date_picker.dart';
@@ -24,7 +22,6 @@ import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widge
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
@@ -33,6 +30,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/date_picker/date_picker.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/expandable.dart';
@@ -42,10 +40,10 @@ import 'package:tuple/tuple.dart';
 
 class RestoreOptionsView extends ConsumerStatefulWidget {
   const RestoreOptionsView({
-    Key? key,
+    super.key,
     required this.walletName,
     required this.coin,
-  }) : super(key: key);
+  });
 
   static const routeName = "/restoreOptions";
 
@@ -68,7 +66,6 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
 
   final bool _nextEnabled = true;
   DateTime _restoreFromDate = DateTime.fromMillisecondsSinceEpoch(0);
-  late final Color baseColor;
   bool hidePassword = true;
   bool _expandedAdavnced = false;
 
@@ -77,7 +74,6 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
 
   @override
   void initState() {
-    baseColor = ref.read(themeProvider.state).state.textSubtitle2;
     walletName = widget.walletName;
     coin = widget.coin;
     isDesktop = Util.isDesktop;
@@ -97,52 +93,6 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
     passwordController.dispose();
     passwordFocusNode.dispose();
     super.dispose();
-  }
-
-  MaterialRoundedDatePickerStyle _buildDatePickerStyle() {
-    return MaterialRoundedDatePickerStyle(
-      paddingMonthHeader: const EdgeInsets.only(top: 11),
-      colorArrowNext: Theme.of(context).extension<StackColors>()!.textSubtitle1,
-      colorArrowPrevious:
-          Theme.of(context).extension<StackColors>()!.textSubtitle1,
-      textStyleButtonNegative: STextStyles.datePicker600(context).copyWith(
-        color: baseColor,
-      ),
-      textStyleButtonPositive: STextStyles.datePicker600(context).copyWith(
-        color: baseColor,
-      ),
-      textStyleCurrentDayOnCalendar: STextStyles.datePicker400(context),
-      textStyleDayHeader: STextStyles.datePicker600(context),
-      textStyleDayOnCalendar: STextStyles.datePicker400(context).copyWith(
-        color: baseColor,
-      ),
-      textStyleDayOnCalendarDisabled:
-          STextStyles.datePicker400(context).copyWith(
-        color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
-      ),
-      textStyleDayOnCalendarSelected:
-          STextStyles.datePicker400(context).copyWith(
-        color: Theme.of(context).extension<StackColors>()!.popupBG,
-      ),
-      textStyleMonthYearHeader: STextStyles.datePicker600(context).copyWith(
-        color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
-      ),
-      textStyleYearButton: STextStyles.datePicker600(context).copyWith(
-        color: Theme.of(context).extension<StackColors>()!.textWhite,
-      ),
-      textStyleButtonAction: GoogleFonts.inter(),
-    );
-  }
-
-  MaterialRoundedYearPickerStyle _buildYearPickerStyle() {
-    return MaterialRoundedYearPickerStyle(
-      textStyleYear: STextStyles.datePicker600(context).copyWith(
-        color: Theme.of(context).extension<StackColors>()!.textSubtitle2,
-      ),
-      textStyleYearSelected: STextStyles.datePicker600(context).copyWith(
-        fontSize: 18,
-      ),
-    );
   }
 
   Future<void> nextPressed() async {
@@ -169,67 +119,23 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
   }
 
   Future<void> chooseDate() async {
-    final height = MediaQuery.of(context).size.height;
-    final fetchedColor =
-        Theme.of(context).extension<StackColors>()!.accentColorDark;
     // check and hide keyboard
     if (FocusScope.of(context).hasFocus) {
       FocusScope.of(context).unfocus();
       await Future<void>.delayed(const Duration(milliseconds: 125));
     }
 
-    final date = await showRoundedDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      height: height / 3.0,
-      theme: ThemeData(
-        primarySwatch: Util.createMaterialColor(fetchedColor),
-      ),
-      //TODO pick a better initial date
-      // 2007 chosen as that is just before bitcoin launched
-      firstDate: DateTime(2007),
-      lastDate: DateTime.now(),
-      borderRadius: Constants.size.circularBorderRadius * 2,
-
-      textPositiveButton: "SELECT",
-
-      styleDatePicker: _buildDatePickerStyle(),
-      styleYearPicker: _buildYearPickerStyle(),
-    );
-    if (date != null) {
-      _restoreFromDate = date;
-      _dateController.text = Format.formatDate(date);
+    if (mounted) {
+      final date = await showSWDatePicker(context);
+      if (date != null) {
+        _restoreFromDate = date;
+        _dateController.text = Format.formatDate(date);
+      }
     }
   }
 
   Future<void> chooseDesktopDate() async {
-    final height = MediaQuery.of(context).size.height;
-    final fetchedColor =
-        Theme.of(context).extension<StackColors>()!.accentColorDark;
-    // check and hide keyboard
-    if (FocusScope.of(context).hasFocus) {
-      FocusScope.of(context).unfocus();
-      await Future<void>.delayed(const Duration(milliseconds: 125));
-    }
-
-    final date = await showRoundedDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      height: height / 3.0,
-      theme: ThemeData(
-        primarySwatch: Util.createMaterialColor(fetchedColor),
-      ),
-      //TODO pick a better initial date
-      // 2007 chosen as that is just before bitcoin launched
-      firstDate: DateTime(2007),
-      lastDate: DateTime.now(),
-      borderRadius: Constants.size.circularBorderRadius * 2,
-
-      textPositiveButton: "SELECT",
-
-      styleDatePicker: _buildDatePickerStyle(),
-      styleYearPicker: _buildYearPickerStyle(),
-    );
+    final date = await showSWDatePicker(context);
     if (date != null) {
       _restoreFromDate = date;
       _dateController.text = Format.formatDate(date);

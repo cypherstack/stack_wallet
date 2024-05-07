@@ -11,7 +11,6 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_rounded_date_picker/flutter_rounded_date_picker.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/transaction_filter.dart';
 import 'package:stackwallet/providers/global/locale_provider.dart';
@@ -29,6 +28,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import 'package:stackwallet/widgets/date_picker/date_picker.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -40,9 +40,9 @@ import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
 class TransactionSearchFilterView extends ConsumerStatefulWidget {
   const TransactionSearchFilterView({
-    Key? key,
+    super.key,
     required this.coin,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/transactionSearchFilter";
 
@@ -137,56 +137,6 @@ class _TransactionSearchViewState
   DateTime? _selectedFromDate = DateTime(2007);
   DateTime? _selectedToDate = DateTime.now();
 
-  MaterialRoundedDatePickerStyle _buildDatePickerStyle() {
-    return MaterialRoundedDatePickerStyle(
-      backgroundPicker: Theme.of(context).extension<StackColors>()!.popupBG,
-      // backgroundHeader: Theme.of(context).extension<StackColors>()!.textSubtitle2,
-      paddingMonthHeader: const EdgeInsets.only(top: 11),
-      colorArrowNext: Theme.of(context).extension<StackColors>()!.textSubtitle1,
-      colorArrowPrevious:
-          Theme.of(context).extension<StackColors>()!.textSubtitle1,
-      textStyleButtonNegative: STextStyles.datePicker600(context).copyWith(
-        color: baseColor,
-      ),
-      textStyleButtonPositive: STextStyles.datePicker600(context).copyWith(
-        color: baseColor,
-      ),
-      textStyleCurrentDayOnCalendar: STextStyles.datePicker400(context),
-      textStyleDayHeader: STextStyles.datePicker600(context),
-      textStyleDayOnCalendar: STextStyles.datePicker400(context).copyWith(
-        color: baseColor,
-      ),
-      textStyleDayOnCalendarDisabled:
-          STextStyles.datePicker400(context).copyWith(
-        color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
-      ),
-      textStyleDayOnCalendarSelected:
-          STextStyles.datePicker400(context).copyWith(
-        color: Theme.of(context).extension<StackColors>()!.textWhite,
-      ),
-      textStyleMonthYearHeader: STextStyles.datePicker600(context).copyWith(
-        color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
-      ),
-      textStyleYearButton: STextStyles.datePicker600(context).copyWith(
-        color: Theme.of(context).extension<StackColors>()!.textWhite,
-      ),
-      // textStyleButtonAction: GoogleFonts.inter(),
-    );
-  }
-
-  MaterialRoundedYearPickerStyle _buildYearPickerStyle() {
-    return MaterialRoundedYearPickerStyle(
-      backgroundPicker: Theme.of(context).extension<StackColors>()!.popupBG,
-      textStyleYear: STextStyles.datePicker600(context).copyWith(
-        color: Theme.of(context).extension<StackColors>()!.textSubtitle2,
-        fontSize: 16,
-      ),
-      textStyleYearSelected: STextStyles.datePicker600(context).copyWith(
-        fontSize: 18,
-      ),
-    );
-  }
-
   Widget _buildDateRangePicker() {
     const middleSeparatorPadding = 2.0;
     const middleSeparatorWidth = 12.0;
@@ -207,58 +157,36 @@ class _TransactionSearchViewState
           child: GestureDetector(
             key: const Key("transactionSearchViewFromDatePickerKey"),
             onTap: () async {
-              final color =
-                  Theme.of(context).extension<StackColors>()!.accentColorDark;
-              final height = MediaQuery.of(context).size.height;
               // check and hide keyboard
               if (FocusScope.of(context).hasFocus) {
                 FocusScope.of(context).unfocus();
                 await Future<void>.delayed(const Duration(milliseconds: 125));
               }
 
-              final date = await showRoundedDatePicker(
-                // This doesn't change statusbar color...
-                // background: CFColors.starryNight.withOpacity(0.8),
-                context: context,
-                initialDate: DateTime.now(),
-                height: height * 0.5,
-                theme: ThemeData(
-                  primarySwatch: Util.createMaterialColor(
-                    color,
-                  ),
-                ),
-                //TODO pick a better initial date
-                // 2007 chosen as that is just before bitcoin launched
-                firstDate: DateTime(2007),
-                lastDate: DateTime.now(),
-                borderRadius: Constants.size.circularBorderRadius * 2,
+              if (mounted) {
+                final date = await showSWDatePicker(context);
+                if (date != null) {
+                  _selectedFromDate = date;
 
-                textPositiveButton: "SELECT",
-
-                styleDatePicker: _buildDatePickerStyle(),
-                styleYearPicker: _buildYearPickerStyle(),
-              );
-              if (date != null) {
-                _selectedFromDate = date;
-
-                // flag to adjust date so from date is always before to date
-                final flag = _selectedToDate != null &&
-                    !_selectedFromDate!.isBefore(_selectedToDate!);
-                if (flag) {
-                  _selectedToDate = DateTime.fromMillisecondsSinceEpoch(
-                      _selectedFromDate!.millisecondsSinceEpoch);
-                }
-
-                setState(() {
+                  // flag to adjust date so from date is always before to date
+                  final flag = _selectedToDate != null &&
+                      !_selectedFromDate!.isBefore(_selectedToDate!);
                   if (flag) {
-                    _toDateString = _selectedToDate == null
-                        ? ""
-                        : Format.formatDate(_selectedToDate!);
+                    _selectedToDate = DateTime.fromMillisecondsSinceEpoch(
+                        _selectedFromDate!.millisecondsSinceEpoch);
                   }
-                  _fromDateString = _selectedFromDate == null
-                      ? ""
-                      : Format.formatDate(_selectedFromDate!);
-                });
+
+                  setState(() {
+                    if (flag) {
+                      _toDateString = _selectedToDate == null
+                          ? ""
+                          : Format.formatDate(_selectedToDate!);
+                    }
+                    _fromDateString = _selectedFromDate == null
+                        ? ""
+                        : Format.formatDate(_selectedFromDate!);
+                  });
+                }
               }
             },
             child: Container(
@@ -319,58 +247,36 @@ class _TransactionSearchViewState
           child: GestureDetector(
             key: const Key("transactionSearchViewToDatePickerKey"),
             onTap: () async {
-              final color =
-                  Theme.of(context).extension<StackColors>()!.accentColorDark;
-              final height = MediaQuery.of(context).size.height;
               // check and hide keyboard
               if (FocusScope.of(context).hasFocus) {
                 FocusScope.of(context).unfocus();
                 await Future<void>.delayed(const Duration(milliseconds: 125));
               }
 
-              final date = await showRoundedDatePicker(
-                // This doesn't change statusbar color...
-                // background: CFColors.starryNight.withOpacity(0.8),
-                context: context,
-                height: height * 0.5,
-                theme: ThemeData(
-                  primarySwatch: Util.createMaterialColor(
-                    color,
-                  ),
-                ),
-                //TODO pick a better initial date
-                // 2007 chosen as that is just before bitcoin launched
-                initialDate: DateTime.now(),
-                firstDate: DateTime(2007),
-                lastDate: DateTime.now(),
-                borderRadius: Constants.size.circularBorderRadius * 2,
+              if (mounted) {
+                final date = await showSWDatePicker(context);
+                if (date != null) {
+                  _selectedToDate = date;
 
-                textPositiveButton: "SELECT",
-
-                styleDatePicker: _buildDatePickerStyle(),
-                styleYearPicker: _buildYearPickerStyle(),
-              );
-              if (date != null) {
-                _selectedToDate = date;
-
-                // flag to adjust date so from date is always before to date
-                final flag = _selectedFromDate != null &&
-                    !_selectedToDate!.isAfter(_selectedFromDate!);
-                if (flag) {
-                  _selectedFromDate = DateTime.fromMillisecondsSinceEpoch(
-                      _selectedToDate!.millisecondsSinceEpoch);
-                }
-
-                setState(() {
+                  // flag to adjust date so from date is always before to date
+                  final flag = _selectedFromDate != null &&
+                      !_selectedToDate!.isAfter(_selectedFromDate!);
                   if (flag) {
-                    _fromDateString = _selectedFromDate == null
-                        ? ""
-                        : Format.formatDate(_selectedFromDate!);
+                    _selectedFromDate = DateTime.fromMillisecondsSinceEpoch(
+                        _selectedToDate!.millisecondsSinceEpoch);
                   }
-                  _toDateString = _selectedToDate == null
-                      ? ""
-                      : Format.formatDate(_selectedToDate!);
-                });
+
+                  setState(() {
+                    if (flag) {
+                      _fromDateString = _selectedFromDate == null
+                          ? ""
+                          : Format.formatDate(_selectedFromDate!);
+                    }
+                    _toDateString = _selectedToDate == null
+                        ? ""
+                        : Format.formatDate(_selectedToDate!);
+                  });
+                }
               }
             },
             child: Container(
@@ -454,7 +360,7 @@ class _TransactionSearchViewState
                   FocusScope.of(context).unfocus();
                   await Future<void>.delayed(const Duration(milliseconds: 75));
                 }
-                if (mounted) {
+                if (context.mounted) {
                   Navigator.of(context).pop();
                 }
               },
@@ -908,7 +814,7 @@ class _TransactionSearchViewState
                       );
                     }
                   }
-                  if (mounted) {
+                  if (context.mounted) {
                     Navigator.of(context).pop();
                   }
                 },
