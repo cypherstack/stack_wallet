@@ -1,78 +1,108 @@
+import 'dart:math';
+
+import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_rounded_date_picker/flutter_rounded_date_picker.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/conditional_parent.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+
+part 'sw_date_picker.dart';
 
 Future<DateTime?> showSWDatePicker(BuildContext context) async {
-  final date = await showRoundedDatePicker(
+  final Size size;
+  if (Util.isDesktop) {
+    size = const Size(450, 450);
+  } else {
+    final _size = MediaQuery.of(context).size;
+    size = Size(
+      _size.width - 32,
+      _size.height >= 550 ? 450 : _size.height - 32,
+    );
+  }
+  print("=====================================");
+  print(size);
+
+  final now = DateTime.now();
+
+  final date = await _showDatePickerDialog(
     context: context,
-    initialDate: DateTime.now(),
-    height: MediaQuery.of(context).size.height / 3.0,
-    theme: ThemeData(
-      primarySwatch: Util.createMaterialColor(
-          Theme.of(context).extension<StackColors>()!.accentColorDark),
+    value: [now],
+    dialogSize: size,
+    config: CalendarDatePicker2WithActionButtonsConfig(
+      firstDate: DateTime(2007),
+      lastDate: now,
+      currentDate: now,
+      buttonPadding: const EdgeInsets.only(
+        right: 16,
+      ),
+      centerAlignModePicker: true,
+      selectedDayHighlightColor:
+          Theme.of(context).extension<StackColors>()!.accentColorDark,
+      daySplashColor: Theme.of(context)
+          .extension<StackColors>()!
+          .accentColorDark
+          .withOpacity(0.6),
     ),
-    //TODO pick a better initial date
-    // 2007 chosen as that is just before bitcoin launched
-    firstDate: DateTime(2007),
-    lastDate: DateTime.now(),
-    borderRadius: Constants.size.circularBorderRadius * 2,
-
-    textPositiveButton: "SELECT",
-
-    styleDatePicker: _buildDatePickerStyle(context),
-    styleYearPicker: _buildYearPickerStyle(context),
   );
-  return date;
+  return date?.first;
 }
 
-MaterialRoundedDatePickerStyle _buildDatePickerStyle(BuildContext context) {
-  final baseColor = Theme.of(context).extension<StackColors>()!.textSubtitle2;
-  return MaterialRoundedDatePickerStyle(
-    backgroundPicker: Theme.of(context).extension<StackColors>()!.popupBG,
-    paddingMonthHeader: const EdgeInsets.only(top: 11),
-    colorArrowNext: Theme.of(context).extension<StackColors>()!.textSubtitle1,
-    colorArrowPrevious:
-        Theme.of(context).extension<StackColors>()!.textSubtitle1,
-    textStyleButtonNegative: STextStyles.datePicker600(context).copyWith(
-      color: baseColor,
+Future<List<DateTime?>?> _showDatePickerDialog({
+  required BuildContext context,
+  required CalendarDatePicker2WithActionButtonsConfig config,
+  required Size dialogSize,
+  List<DateTime?> value = const [],
+  bool useRootNavigator = true,
+  bool barrierDismissible = true,
+  Color? barrierColor = Colors.black54,
+  bool useSafeArea = true,
+  RouteSettings? routeSettings,
+  String? barrierLabel,
+  TransitionBuilder? builder,
+}) {
+  final dialog = Dialog(
+    insetPadding: const EdgeInsets.symmetric(
+      horizontal: 16,
+      vertical: 16,
     ),
-    textStyleButtonPositive: STextStyles.datePicker600(context).copyWith(
-      color: baseColor,
+    backgroundColor: Theme.of(context).extension<StackColors>()!.popupBG,
+    surfaceTintColor: Colors.transparent,
+    shadowColor: Colors.transparent,
+    elevation: 0,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(
+        Constants.size.circularBorderRadius * 2,
+      ),
     ),
-    textStyleCurrentDayOnCalendar: STextStyles.datePicker400(context),
-    textStyleDayHeader: STextStyles.datePicker600(context),
-    textStyleDayOnCalendar: STextStyles.datePicker400(context).copyWith(
-      color: baseColor,
+    clipBehavior: Clip.antiAlias,
+    child: SizedBox(
+      width: dialogSize.width,
+      height: max(dialogSize.height, 410),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _SWDatePicker(
+            value: value,
+            config: config.copyWith(openedFromDialog: true),
+          ),
+        ],
+      ),
     ),
-    textStyleDayOnCalendarDisabled: STextStyles.datePicker400(context).copyWith(
-      color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
-    ),
-    textStyleDayOnCalendarSelected: STextStyles.datePicker400(context).copyWith(
-      color: Theme.of(context).extension<StackColors>()!.textWhite,
-    ),
-    textStyleMonthYearHeader: STextStyles.datePicker600(context).copyWith(
-      color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
-    ),
-    textStyleYearButton: STextStyles.datePicker600(context).copyWith(
-      color: Theme.of(context).extension<StackColors>()!.textWhite,
-    ),
-    textStyleButtonAction: GoogleFonts.inter(),
   );
-}
 
-MaterialRoundedYearPickerStyle _buildYearPickerStyle(BuildContext context) {
-  return MaterialRoundedYearPickerStyle(
-    backgroundPicker: Theme.of(context).extension<StackColors>()!.popupBG,
-    textStyleYear: STextStyles.datePicker600(context).copyWith(
-      color: Theme.of(context).extension<StackColors>()!.textSubtitle2,
-      fontSize: 16,
-    ),
-    textStyleYearSelected: STextStyles.datePicker600(context).copyWith(
-      fontSize: 18,
-    ),
+  return showDialog<List<DateTime?>>(
+    context: context,
+    useRootNavigator: useRootNavigator,
+    routeSettings: routeSettings,
+    builder: (BuildContext context) {
+      return builder == null ? dialog : builder(context, dialog);
+    },
+    barrierDismissible: barrierDismissible,
+    barrierColor: barrierColor,
+    barrierLabel: barrierLabel,
+    useSafeArea: useSafeArea,
   );
 }

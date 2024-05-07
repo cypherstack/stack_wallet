@@ -238,6 +238,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "8.6.2"
+  calendar_date_picker2:
+    dependency: "direct main"
+    description:
+      name: calendar_date_picker2
+      sha256: "7ff3f372faff6814a2ba69427d116fb9a3d52e28644b9de4b06db6638fdac798"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.2"
   characters:
     dependency: transitive
     description:
@@ -757,14 +765,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.4"
-  flutter_rounded_date_picker:
-    dependency: "direct main"
-    description:
-      name: flutter_rounded_date_picker
-      sha256: e6aa2dc5d3b44e8bbe85ef901be69eac59ba4136427f11f4c8b2a303e1e774e7
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.4"
   flutter_secure_storage:
     dependency: "direct main"
     description:

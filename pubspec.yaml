@@ -124,7 +124,6 @@ dependencies:
   decimal: ^2.1.0
   event_bus: ^2.0.0
   uuid: ^3.0.5
-  flutter_rounded_date_picker: ^3.0.1
   crypto: ^3.0.2
   barcode_scan2: ^4.2.3
   wakelock: ^0.6.2
@@ -178,6 +177,7 @@ dependencies:
       url: https://github.com/cypherstack/espresso-cash-public.git
       ref: a83e375678eb22fe544dc125d29bbec0fb833882
       path: packages/solana
+  calendar_date_picker2: ^1.0.2
 
 dev_dependencies:
   flutter_test:
