@@ -633,9 +633,11 @@ class FiroWallet extends Bip39HDWallet
           level: LogLevel.Info,
         );
 
+        final canBatch = await serverCanBatch;
+
         for (final type in cryptoCurrency.supportedDerivationPathTypes) {
           receiveFutures.add(
-            serverCanBatch
+            canBatch
                 ? checkGapsBatched(
                     txCountBatchSize,
                     root,
@@ -657,7 +659,7 @@ class FiroWallet extends Bip39HDWallet
         );
         for (final type in cryptoCurrency.supportedDerivationPathTypes) {
           changeFutures.add(
-            serverCanBatch
+            canBatch
                 ? checkGapsBatched(
                     txCountBatchSize,
                     root,

@@ -35,11 +35,20 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
   static const _kServerBatchCutoffVersion = [1, 6];
   List<int>? _serverVersion;
-  bool get serverCanBatch {
+  Future<bool> get serverCanBatch async {
     // Firo server added batching without incrementing version number...
     if (cryptoCurrency is Firo) {
       return true;
     }
+
+    try {
+      _serverVersion ??= _parseServerVersion((await electrumXClient
+          .getServerFeatures()
+          .timeout(const Duration(seconds: 2)))["server_version"] as String);
+    } catch (_) {
+      // ignore failure as it doesn't matter
+    }
+
     if (_serverVersion != null && _serverVersion!.length > 2) {
       if (_serverVersion![0] > _kServerBatchCutoffVersion[0]) {
         return true;
@@ -1025,7 +1034,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     try {
       final List<Map<String, dynamic>> allTxHashes = [];
 
-      if (serverCanBatch) {
+      if (await serverCanBatch) {
         final Map<int, List<List<dynamic>>> batches = {};
         final Map<int, List<String>> batchIndexToAddressListMap = {};
         const batchSizeMax = 100;
@@ -1363,9 +1372,11 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
           level: LogLevel.Info,
         );
 
+        final canBatch = await serverCanBatch;
+
         for (final type in cryptoCurrency.supportedDerivationPathTypes) {
           receiveFutures.add(
-            serverCanBatch
+            canBatch
                 ? checkGapsBatched(
                     txCountBatchSize,
                     root,
@@ -1387,7 +1398,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         );
         for (final type in cryptoCurrency.supportedDerivationPathTypes) {
           changeFutures.add(
-            serverCanBatch
+            canBatch
                 ? checkGapsBatched(
                     txCountBatchSize,
                     root,
@@ -1510,7 +1521,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     try {
       final fetchedUtxoList = <List<Map<String, dynamic>>>[];
 
-      if (serverCanBatch) {
+      if (await serverCanBatch) {
         final Map<int, List<List<dynamic>>> batchArgs = {};
         const batchSizeMax = 10;
         int batchNumber = 0;
