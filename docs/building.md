@@ -12,7 +12,7 @@ Here you will find instructions on how to install the necessary tools for buildi
 The following instructions are for building and running on a Linux host.  Alternatively, see the [Mac](#mac-host) and/or [Windows](#windows-host) section.  This entire section (except for the Android Studio section) needs to be completed in WSL if building on a Windows host.
 
 ### Flutter
-Install Flutter 3.19 beta (3.19.0-0.1.pre) by following these instructions: https://docs.flutter.dev/get-started/install/linux/desktop?tab=download#install-the-flutter-sdk.  You can also clone https://github.com/flutter/flutter, check out the `3.19.0-0.1.pre` tag, and add its `flutter/bin` folder to your PATH.  Run `flutter doctor` in a terminal to confirm its installation.
+Install Flutter 3.19.6 by following these instructions: https://docs.flutter.dev/get-started/install/linux/desktop?tab=download#install-the-flutter-sdk.  You can also clone https://github.com/flutter/flutter, check out the `3.19.6` tag, and add its `flutter/bin` folder to your PATH.  Run `flutter doctor` in a terminal to confirm its installation.
 
 ### Android Studio
 Install Android Studio.  Follow instructions here [https://developer.android.com/studio/install#linux](https://developer.android.com/studio/install#linux) or install via snap:
@@ -42,7 +42,7 @@ sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-
 
 Flutter and the Dart SDK should have been set up by Android studio, but if running `flutter` doesn't work (try `flutter doctor`, too), follow the [guide to install Flutter on any of their supported platforms](https://docs.flutter.dev/get-started/install) or:
  - `git clone https://github.com/flutter/flutter` somewhere it can live (`/var`, `/opt`, `~`)
- - `git checkout 3.16.0` after navigating into the `flutter` directory, and 
+ - `git checkout 3.19.6` after navigating into the `flutter` directory, and 
  - add `flutter/bin` to your PATH (on Ubuntu, add `PATH=$PATH:path/to/flutter/bin` to `~/.profile`).
 
 Run `flutter doctor` to install any missing dependencies and review and agree to any license agreements.
@@ -283,7 +283,7 @@ Copy the resulting `dll`s to their respective positions on the Windows host:
 Frostdart will be built by the Windows host later.
 
 ### Install Flutter on Windows host
-Install Flutter 3.19.5 on your Windows host (not in WSL2) by following these instructions: https://docs.flutter.dev/get-started/install/windows/desktop?tab=download#install-the-flutter-sdk.  You can also clone https://github.com/flutter/flutter, check out the `3.19.5` tag, and add its `flutter/bin` folder to your PATH.  Run `flutter doctor` in PowerShell to confirm its installation.
+Install Flutter 3.19.6 on your Windows host (not in WSL2) by following these instructions: https://docs.flutter.dev/get-started/install/windows/desktop?tab=download#install-the-flutter-sdk.  You can also clone https://github.com/flutter/flutter, check out the `3.19.6` tag, and add its `flutter/bin` folder to your PATH.  Run `flutter doctor` in PowerShell to confirm its installation.
 
 ### Rust
 Install [Rust](https://www.rust-lang.org/tools/install) on the Windows host (not in WSL2).  Download the installer from [rustup.rs](https://rustup.rs), make sure it works on the commandline (you may need to open a new terminal), and install the following versions:
