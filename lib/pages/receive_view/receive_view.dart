@@ -33,6 +33,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/impl/bitcoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/bcash_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
@@ -196,6 +197,10 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
             .supportedAddressTypes
             .where((e) => e != coin.primaryAddressType));
       }
+    }
+
+    if (_walletAddressTypes.length > 1 && wallet is BitcoinWallet) {
+      _walletAddressTypes.removeWhere((e) => e == AddressType.p2pkh);
     }
 
     _addressMap[_walletAddressTypes[_currentIndex]] =
