@@ -35,11 +35,20 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
   static const _kServerBatchCutoffVersion = [1, 6];
   List<int>? _serverVersion;
-  bool get serverCanBatch {
+  Future<bool> get serverCanBatch async {
     // Firo server added batching without incrementing version number...
     if (cryptoCurrency is Firo) {
       return true;
     }
+
+    try {
+      _serverVersion ??= _parseServerVersion((await electrumXClient
+          .getServerFeatures()
+          .timeout(const Duration(seconds: 2)))["server_version"] as String);
+    } catch (_) {
+      // ignore failure as it doesn't matter
+    }
+
     if (_serverVersion != null && _serverVersion!.length > 2) {
       if (_serverVersion![0] > _kServerBatchCutoffVersion[0]) {
         return true;
@@ -193,8 +202,8 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         .log('utxoObjectsToUse: $utxoObjectsToUse', level: LogLevel.Info);
 
     // numberOfOutputs' length must always be equal to that of recipientsArray and recipientsAmtArray
-    List<String> recipientsArray = [recipientAddress];
-    List<int> recipientsAmtArray = [satoshiAmountToSend];
+    final List<String> recipientsArray = [recipientAddress];
+    final List<int> recipientsAmtArray = [satoshiAmountToSend];
 
     // gather required signing data
     final utxoSigningData = await fetchBuildTxData(utxoObjectsToUse);
@@ -325,7 +334,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
           feeForOneOutput + cryptoCurrency.dustLimit.raw.toInt()) {
         // Here, we know that theoretically, we may be able to include another output(change) but we first need to
         // factor in the value of this output in satoshis.
-        int changeOutputSize =
+        final int changeOutputSize =
             satoshisBeingUsed - satoshiAmountToSend - feeForTwoOutputs;
         // We check to see if the user can pay for the new transaction with 2 outputs instead of one. If they can and
         // the second output's size > cryptoCurrency.dustLimit satoshis, we perform the mechanics required to properly generate and use a new
@@ -370,7 +379,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
           // make sure minimum fee is accurate if that is being used
           if (txn.vSize! - feeBeingPaid == 1) {
-            int changeOutputSize =
+            final int changeOutputSize =
                 satoshisBeingUsed - satoshiAmountToSend - txn.vSize!;
             feeBeingPaid =
                 satoshisBeingUsed - satoshiAmountToSend - changeOutputSize;
@@ -526,7 +535,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     List<UTXO> utxosToUse,
   ) async {
     // return data
-    List<SigningData> signingData = [];
+    final List<SigningData> signingData = [];
 
     try {
       // Populating the addresses to check
@@ -879,7 +888,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     DerivePathType type,
     int chain,
   ) async {
-    List<Address> addressArray = [];
+    final List<Address> addressArray = [];
     int gapCounter = 0;
     int highestIndexWithHistory = 0;
 
@@ -891,7 +900,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
           "index: $index, \t GapCounter $chain ${type.name}: $gapCounter",
           level: LogLevel.Info);
 
-      List<String> txCountCallArgs = [];
+      final List<String> txCountCallArgs = [];
 
       for (int j = 0; j < txCountBatchSize; j++) {
         final derivePath = cryptoCurrency.constructDerivePath(
@@ -960,7 +969,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     DerivePathType type,
     int chain,
   ) async {
-    List<Address> addressArray = [];
+    final List<Address> addressArray = [];
     int gapCounter = 0;
     int index = 0;
     for (;
@@ -1023,9 +1032,9 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     Iterable<String> allAddresses,
   ) async {
     try {
-      List<Map<String, dynamic>> allTxHashes = [];
+      final List<Map<String, dynamic>> allTxHashes = [];
 
-      if (serverCanBatch) {
+      if (await serverCanBatch) {
         final Map<int, List<List<dynamic>>> batches = {};
         final Map<int, List<String>> batchIndexToAddressListMap = {};
         const batchSizeMax = 100;
@@ -1080,7 +1089,10 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
       return allTxHashes;
     } catch (e, s) {
-      Logging.instance.log("_fetchHistory: $e\n$s", level: LogLevel.Error);
+      Logging.instance.log(
+        "$runtimeType._fetchHistory: $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }
@@ -1363,9 +1375,11 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
           level: LogLevel.Info,
         );
 
+        final canBatch = await serverCanBatch;
+
         for (final type in cryptoCurrency.supportedDerivationPathTypes) {
           receiveFutures.add(
-            serverCanBatch
+            canBatch
                 ? checkGapsBatched(
                     txCountBatchSize,
                     root,
@@ -1387,7 +1401,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         );
         for (final type in cryptoCurrency.supportedDerivationPathTypes) {
           changeFutures.add(
-            serverCanBatch
+            canBatch
                 ? checkGapsBatched(
                     txCountBatchSize,
                     root,
@@ -1510,7 +1524,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     try {
       final fetchedUtxoList = <List<Map<String, dynamic>>>[];
 
-      if (serverCanBatch) {
+      if (await serverCanBatch) {
         final Map<int, List<List<dynamic>>> batchArgs = {};
         const batchSizeMax = 10;
         int batchNumber = 0;

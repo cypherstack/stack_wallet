@@ -8,29 +8,36 @@
 *
 */
 
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/utilities/assets.dart';
 
 class FrostSignNavIcon extends ConsumerWidget {
   const FrostSignNavIcon({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return SvgPicture.file(
-      File(
-        ref.watch(
-          themeProvider.select(
-            // TODO: [prio=high] update themes with icon asset
-            (value) => value.assets.stackIcon,
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context)
+            .extension<StackColors>()!
+            .bottomNavIconIcon
+            .withOpacity(0.4),
+        borderRadius: BorderRadius.circular(
+          24,
         ),
       ),
-      width: 24,
-      height: 24,
+      child: Padding(
+        padding: const EdgeInsets.all(6.0),
+        child: SvgPicture.asset(
+          Assets.svg.pencil,
+          width: 12,
+          height: 12,
+          color: Theme.of(context).extension<StackColors>()!.bottomNavIconIcon,
+        ),
+      ),
     );
   }
 }
