@@ -394,7 +394,11 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                                 DropdownMenuItem(
                                   value: i,
                                   child: Text(
-                                    "${_walletAddressTypes[i].readableName} address",
+                                    _supportsSpark &&
+                                            _walletAddressTypes[i] ==
+                                                AddressType.p2pkh
+                                        ? "Transparent address"
+                                        : "${_walletAddressTypes[i].readableName} address",
                                     style: STextStyles.w500_14(context),
                                   ),
                                 ),
