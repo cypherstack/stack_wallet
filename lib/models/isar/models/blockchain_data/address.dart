@@ -170,11 +170,11 @@ enum AddressType {
   String get readableName {
     switch (this) {
       case AddressType.p2pkh:
-        return "Legacy";
+        return "P2PKH";
       case AddressType.p2sh:
         return "Wrapped segwit";
       case AddressType.p2wpkh:
-        return "Segwit";
+        return "P2WPKH (segwit)";
       case AddressType.cryptonote:
         return "Cryptonote";
       case AddressType.mimbleWimble:
@@ -200,7 +200,7 @@ enum AddressType {
       case AddressType.solana:
         return "Solana";
       case AddressType.p2tr:
-        return "Taproot"; // Why not use P2TR, P2PKH, etc.?
+        return "P2TR (taproot)";
     }
   }
 }

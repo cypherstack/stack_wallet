@@ -170,7 +170,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
     final wallet = ref.read(pWallets).getWallet(walletId);
     coin = wallet.info.coin;
 
-    ref.read(currentWalletIdProvider.notifier).state = wallet.walletId;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(currentWalletIdProvider.notifier).state = wallet.walletId;
+    });
 
     if (!wallet.shouldAutoSync) {
       // enable auto sync if it wasn't enabled when loading wallet

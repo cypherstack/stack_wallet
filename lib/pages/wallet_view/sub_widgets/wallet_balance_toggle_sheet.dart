@@ -33,9 +33,9 @@ enum _BalanceType {
 
 class WalletBalanceToggleSheet extends ConsumerWidget {
   const WalletBalanceToggleSheet({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 
@@ -46,7 +46,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
     final coin = ref.watch(pWalletCoin(walletId));
     final isFiro = coin == Coin.firo || coin == Coin.firoTestNet;
 
-    Balance balance = ref.watch(pWalletBalance(walletId));
+    final balance = ref.watch(pWalletBalance(walletId));
 
     _BalanceType _bal =
         ref.watch(walletBalanceToggleStateProvider.state).state ==
@@ -76,6 +76,11 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
         case FiroType.public:
           // already set above
           break;
+      }
+
+      // hack to not show lelantus balance in ui if zero
+      if (balanceSecondary?.spendable.raw == BigInt.zero) {
+        balanceSecondary = null;
       }
     }
 
@@ -289,7 +294,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
 
 class BalanceSelector<T> extends ConsumerWidget {
   const BalanceSelector({
-    Key? key,
+    super.key,
     required this.title,
     required this.coin,
     required this.balance,
@@ -297,7 +302,7 @@ class BalanceSelector<T> extends ConsumerWidget {
     required this.onChanged,
     required this.value,
     required this.groupValue,
-  }) : super(key: key);
+  });
 
   final String title;
   final Coin coin;
