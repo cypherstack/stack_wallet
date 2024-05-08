@@ -768,7 +768,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
     return txData.copyWith(
       raw: clTx.toHex(),
-      vSize: clTx.size,
+      vSize: clTx.vSize(),
       tempTx: TransactionV2(
         walletId: walletId,
         blockHash: null,

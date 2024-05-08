@@ -866,7 +866,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         );
       }
 
-      return Tuple2(clTx.toHex(), clTx.size);
+      return Tuple2(clTx.toHex(), clTx.vSize());
     } catch (e, s) {
       Logging.instance.log(
         "_createNotificationTx(): $e\n$s",
