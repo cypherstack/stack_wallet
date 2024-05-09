@@ -602,9 +602,6 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     }
   }
 
-  // TODO lots of room for performance improvements here. Should be similar to
-  // recoverSparkWallet but only fetch and check anonymity set data that we
-  // have not yet parsed.
   Future<void> refreshSparkData() async {
     final sparkAddresses = await mainDB.isar.addresses
         .where()
@@ -620,6 +617,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       final latestSparkCoinId = await electrumXClient.getSparkLatestCoinId();
 
       final blockHash = await _getCachedSparkBlockHash();
+      final startNumber = await _getSparkCoinsStartNumber();
 
       final anonymitySetFuture = blockHash == null
           ? electrumXCachedClient.getSparkAnonymitySet(
@@ -630,9 +628,10 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
               coinGroupId: latestSparkCoinId.toString(),
               startBlockHash: blockHash,
             );
-      final spentCoinTagsFuture =
-          electrumXClient.getSparkUsedCoinsTags(startNumber: 0);
-      // electrumXCachedClient.getSparkUsedCoinsTags(coin: info.coin);
+
+      final spentCoinTagsFuture = startNumber == null
+          ? electrumXCachedClient.getSparkUsedCoinsTags(coin: info.coin)
+          : electrumXClient.getSparkUsedCoinsTags(startNumber: startNumber);
 
       final futureResults = await Future.wait([
         anonymitySetFuture,
@@ -670,7 +669,11 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         // update blockHash in cache
         final String newBlockHash =
             base64ToReverseHex(anonymitySet["blockHash"] as String);
-        await _setCachedSparkBlockHash(newBlockHash);
+
+        await Future.wait([
+          _setCachedSparkBlockHash(newBlockHash),
+          _setSparkCoinsStartNumber(spentCoinTags.length - 1),
+        ]);
       }
 
       // check current coins
@@ -692,8 +695,10 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       // refresh spark balance
       await refreshSparkBalance();
     } catch (e, s) {
-      // todo logging
-
+      Logging.instance.log(
+        "$runtimeType $walletId ${info.name}: $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }
@@ -790,8 +795,10 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       // refresh spark balance
       await refreshSparkBalance();
     } catch (e, s) {
-      // todo logging
-
+      Logging.instance.log(
+        "$runtimeType $walletId ${info.name}: $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }
@@ -1154,7 +1161,6 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
             generate: true,
           );
 
-          final int i = 0;
           for (int i = 0; i < recipients.length; i++) {
             final recipient = recipients[i];
             final out = (
@@ -1597,6 +1603,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
   // ====================== Private ============================================
 
   final _kSparkAnonSetCachedBlockHashKey = "SparkAnonSetCachedBlockHashKey";
+  final _kSparkCoinsStartNumberKey = "SparkCoinsStartNumberKey";
 
   Future<String?> _getCachedSparkBlockHash() async {
     return info.otherData[_kSparkAnonSetCachedBlockHashKey] as String?;
@@ -1605,6 +1612,17 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
   Future<void> _setCachedSparkBlockHash(String blockHash) async {
     await info.updateOtherData(
       newEntries: {_kSparkAnonSetCachedBlockHashKey: blockHash},
+      isar: mainDB.isar,
+    );
+  }
+
+  Future<int?> _getSparkCoinsStartNumber() async {
+    return info.otherData[_kSparkCoinsStartNumberKey] as int?;
+  }
+
+  Future<void> _setSparkCoinsStartNumber(int startNumber) async {
+    await info.updateOtherData(
+      newEntries: {_kSparkCoinsStartNumberKey: startNumber},
       isar: mainDB.isar,
     );
   }
