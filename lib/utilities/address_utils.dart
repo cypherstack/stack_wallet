@@ -32,6 +32,8 @@ import 'package:stackwallet/wallets/crypto_currency/coins/tezos.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
+import '../wallets/crypto_currency/coins/peercoin.dart';
+
 class AddressUtils {
   static String condenseAddress(String address) {
     return '${address.substring(0, 5)}...${address.substring(address.length - 5)}';
@@ -68,6 +70,8 @@ class AddressUtils {
         return Namecoin(CryptoCurrencyNetwork.main).validateAddress(address);
       case Coin.particl:
         return Particl(CryptoCurrencyNetwork.main).validateAddress(address);
+      case Coin.peercoin:
+        return Peercoin(CryptoCurrencyNetwork.main).validateAddress(address);
       case Coin.solana:
         return Solana(CryptoCurrencyNetwork.main).validateAddress(address);
       case Coin.stellar:
@@ -91,6 +95,8 @@ class AddressUtils {
         return Firo(CryptoCurrencyNetwork.test).validateAddress(address);
       case Coin.dogecoinTestNet:
         return Dogecoin(CryptoCurrencyNetwork.test).validateAddress(address);
+      case Coin.peercoinTestNet:
+        return Peercoin(CryptoCurrencyNetwork.test).validateAddress(address);
       case Coin.stellarTestnet:
         return Stellar(CryptoCurrencyNetwork.test).validateAddress(address);
     }

@@ -63,6 +63,8 @@ extension DerivePathTypeExt on DerivePathType {
       case Coin.litecoinTestNet:
       case Coin.namecoin:
       case Coin.particl:
+      case Coin.peercoin:
+      case Coin.peercoinTestNet:
         return DerivePathType.bip84;
 
       case Coin.eCash:

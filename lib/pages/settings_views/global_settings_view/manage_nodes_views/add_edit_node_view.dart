@@ -169,6 +169,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
       case Coin.firo:
       case Coin.namecoin:
       case Coin.particl:
+      case Coin.peercoin:
+      case Coin.peercoinTestNet:
       case Coin.bitcoinFrost:
       case Coin.bitcoinFrostTestNet:
       case Coin.bitcoinTestNet:
@@ -221,7 +223,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
       case Coin.solana:
         try {
           RpcClient rpcClient;
-          if (formData.host!.startsWith("http") || formData.host!.startsWith("https")) {
+          if (formData.host!.startsWith("http") ||
+              formData.host!.startsWith("https")) {
             rpcClient = RpcClient("${formData.host}:${formData.port}");
           } else {
             rpcClient = RpcClient("http://${formData.host}:${formData.port}");
@@ -761,6 +764,8 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       case Coin.namecoin:
       case Coin.bitcoincash:
       case Coin.particl:
+      case Coin.peercoin:
+      case Coin.peercoinTestNet:
       case Coin.tezos:
       case Coin.bitcoinTestNet:
       case Coin.litecoinTestNet:
