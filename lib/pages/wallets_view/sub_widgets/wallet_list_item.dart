@@ -63,8 +63,8 @@ class WalletListItem extends ConsumerWidget {
           // Check if Tor is enabled...
           if (ref.read(prefsChangeNotifierProvider).useTor) {
             // ... and if the coin supports Tor.
-            final cryptocurrency = SupportedCoins.coins[coin];
-            if (cryptocurrency != null && !cryptocurrency!.torSupport) {
+            final cryptocurrency = SupportedCoins.getCryptoCurrencyFor(coin);
+            if (!cryptocurrency.torSupport) {
               // If not, show a Tor warning dialog.
               final shouldContinue = await showDialog<bool>(
                     context: context,

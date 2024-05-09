@@ -29,7 +29,7 @@ import 'package:stackwallet/widgets/dialogs/tor_warning_dialog.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class WalletSummaryTable extends ConsumerStatefulWidget {
-  const WalletSummaryTable({Key? key}) : super(key: key);
+  const WalletSummaryTable({super.key});
 
   @override
   ConsumerState<WalletSummaryTable> createState() => _WalletTableState();
@@ -70,10 +70,10 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
 
 class DesktopWalletSummaryRow extends ConsumerStatefulWidget {
   const DesktopWalletSummaryRow({
-    Key? key,
+    super.key,
     required this.coin,
     required this.walletCount,
-  }) : super(key: key);
+  });
 
   final Coin coin;
   final int walletCount;
@@ -91,8 +91,8 @@ class _DesktopWalletSummaryRowState
     // Check if Tor is enabled...
     if (ref.read(prefsChangeNotifierProvider).useTor) {
       // ... and if the coin supports Tor.
-      final cryptocurrency = SupportedCoins.coins[widget.coin];
-      if (cryptocurrency != null && !cryptocurrency!.torSupport) {
+      final cryptocurrency = SupportedCoins.getCryptoCurrencyFor(widget.coin);
+      if (!cryptocurrency.torSupport) {
         // If not, show a Tor warning dialog.
         final shouldContinue = await showDialog<bool>(
               context: context,
