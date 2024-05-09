@@ -154,8 +154,10 @@ class _SendViewState extends ConsumerState<SendView> {
       //       .state = true,
       // );
 
-      Logging.instance.log("qrResult content: ${qrResult.rawContent}",
-          level: LogLevel.Info);
+      Logging.instance.log(
+        "qrResult content: ${qrResult.rawContent}",
+        level: LogLevel.Info,
+      );
 
       final results = AddressUtils.parseUri(qrResult.rawContent);
 
@@ -213,8 +215,9 @@ class _SendViewState extends ConsumerState<SendView> {
       // here we ignore the exception caused by not giving permission
       // to use the camera to scan a qr code
       Logging.instance.log(
-          "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
-          level: LogLevel.Warning);
+        "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
+        level: LogLevel.Warning,
+      );
     }
   }
 
@@ -280,8 +283,10 @@ class _SendViewState extends ConsumerState<SendView> {
           return;
         }
         _cachedAmountToSend = amount;
-        Logging.instance.log("it changed $amount $_cachedAmountToSend",
-            level: LogLevel.Info);
+        Logging.instance.log(
+          "it changed $amount $_cachedAmountToSend",
+          level: LogLevel.Info,
+        );
 
         final price =
             ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
@@ -572,9 +577,10 @@ class _SendViewState extends ConsumerState<SendView> {
                   child: Text(
                     "Cancel",
                     style: STextStyles.button(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark),
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
+                    ),
                   ),
                   onPressed: () {
                     Navigator.of(context).pop(false);
@@ -616,6 +622,9 @@ class _SendViewState extends ConsumerState<SendView> {
             builder: (context) {
               return BuildingTransactionDialog(
                 coin: wallet.info.coin,
+                isSpark: wallet is FiroWallet &&
+                    ref.read(publicPrivateBalanceStateProvider.state).state ==
+                        FiroType.spark,
                 onCancel: () {
                   wasCancelled = true;
 
@@ -645,7 +654,7 @@ class _SendViewState extends ConsumerState<SendView> {
                 address: widget.accountLite!.code,
                 amount: amount,
                 isChange: false,
-              )
+              ),
             ],
             satsPerVByte: isCustomFee ? customFeeRate : null,
             feeRateType: feeRate,
@@ -668,7 +677,7 @@ class _SendViewState extends ConsumerState<SendView> {
                       amount: amount,
                       memo: memoController.text,
                       isChange: false,
-                    )
+                    ),
                   ],
                   feeRateType: ref.read(feeRateTypeStateProvider),
                   satsPerVByte: isCustomFee ? customFeeRate : null,
@@ -687,7 +696,7 @@ class _SendViewState extends ConsumerState<SendView> {
                       address: _address!,
                       amount: amount,
                       isChange: false,
-                    )
+                    ),
                   ],
                   feeRateType: ref.read(feeRateTypeStateProvider),
                   satsPerVByte: isCustomFee ? customFeeRate : null,
@@ -709,7 +718,7 @@ class _SendViewState extends ConsumerState<SendView> {
                     address: _address!,
                     amount: amount,
                     isChange: false,
-                  )
+                  ),
                 ],
               ),
             );
@@ -725,7 +734,7 @@ class _SendViewState extends ConsumerState<SendView> {
                           address: _address!,
                           amount: amount,
                           isChange: false,
-                        )
+                        ),
                       ],
                 sparkRecipients: ref.read(pValidSparkSendToAddress)
                     ? [
@@ -734,7 +743,7 @@ class _SendViewState extends ConsumerState<SendView> {
                           amount: amount,
                           memo: memoController.text,
                           isChange: false,
-                        )
+                        ),
                       ]
                     : null,
               ),
@@ -752,7 +761,7 @@ class _SendViewState extends ConsumerState<SendView> {
                 address: _address!,
                 amount: amount,
                 isChange: false,
-              )
+              ),
             ],
             memo: memo,
             feeRateType: ref.read(feeRateTypeStateProvider),
@@ -827,9 +836,10 @@ class _SendViewState extends ConsumerState<SendView> {
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark),
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
+                    ),
                   ),
                   onPressed: () {
                     Navigator.of(context).pop();
@@ -981,7 +991,8 @@ class _SendViewState extends ConsumerState<SendView> {
     debugPrint("BUILD: $runtimeType");
     final wallet = ref.watch(pWallets).getWallet(walletId);
     final String locale = ref.watch(
-        localeServiceChangeNotifierProvider.select((value) => value.locale));
+      localeServiceChangeNotifierProvider.select((value) => value.locale),
+    );
 
     final showCoinControl = wallet is CoinControlInterface &&
         ref.watch(
@@ -1033,7 +1044,7 @@ class _SendViewState extends ConsumerState<SendView> {
                 FocusScope.of(context).unfocus();
                 await Future<void>.delayed(const Duration(milliseconds: 50));
               }
-              if (mounted) {
+              if (context.mounted) {
                 Navigator.of(context).pop();
               }
             },
@@ -1118,82 +1129,93 @@ class _SendViewState extends ConsumerState<SendView> {
                                     ],
                                   ),
                                   const Spacer(),
-                                  Builder(builder: (context) {
-                                    final Amount amount;
-                                    if (isFiro) {
-                                      switch (ref
-                                          .watch(
+                                  Builder(
+                                    builder: (context) {
+                                      final Amount amount;
+                                      if (isFiro) {
+                                        switch (ref
+                                            .watch(
                                               publicPrivateBalanceStateProvider
-                                                  .state)
-                                          .state) {
-                                        case FiroType.public:
-                                          amount = ref
-                                              .read(pWalletBalance(walletId))
-                                              .spendable;
-                                          break;
-                                        case FiroType.lelantus:
-                                          amount = ref
-                                              .read(pWalletBalanceSecondary(
-                                                  walletId))
-                                              .spendable;
-                                          break;
-                                        case FiroType.spark:
-                                          amount = ref
-                                              .read(pWalletBalanceTertiary(
-                                                  walletId))
-                                              .spendable;
-                                          break;
-                                      }
-                                    } else {
-                                      amount = ref
-                                          .read(pWalletBalance(walletId))
-                                          .spendable;
-                                    }
-
-                                    return GestureDetector(
-                                      onTap: () {
-                                        cryptoAmountController.text = ref
-                                            .read(pAmountFormatter(coin))
-                                            .format(
-                                              amount,
-                                              withUnitName: false,
-                                            );
-                                      },
-                                      child: Container(
-                                        color: Colors.transparent,
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.end,
-                                          children: [
-                                            Text(
-                                              ref
-                                                  .watch(pAmountFormatter(coin))
-                                                  .format(amount),
-                                              style: STextStyles.titleBold12(
-                                                      context)
-                                                  .copyWith(
-                                                fontSize: 10,
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            ),
-                                            Text(
-                                              "${(amount.decimal * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin).item1))).toAmount(
-                                                    fractionDigits: 2,
-                                                  ).fiatString(
-                                                    locale: locale,
-                                                  )} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
-                                              style:
-                                                  STextStyles.subtitle(context)
-                                                      .copyWith(
-                                                fontSize: 8,
-                                              ),
-                                              textAlign: TextAlign.right,
+                                                  .state,
                                             )
-                                          ],
+                                            .state) {
+                                          case FiroType.public:
+                                            amount = ref
+                                                .read(pWalletBalance(walletId))
+                                                .spendable;
+                                            break;
+                                          case FiroType.lelantus:
+                                            amount = ref
+                                                .read(
+                                                  pWalletBalanceSecondary(
+                                                    walletId,
+                                                  ),
+                                                )
+                                                .spendable;
+                                            break;
+                                          case FiroType.spark:
+                                            amount = ref
+                                                .read(
+                                                  pWalletBalanceTertiary(
+                                                    walletId,
+                                                  ),
+                                                )
+                                                .spendable;
+                                            break;
+                                        }
+                                      } else {
+                                        amount = ref
+                                            .read(pWalletBalance(walletId))
+                                            .spendable;
+                                      }
+
+                                      return GestureDetector(
+                                        onTap: () {
+                                          cryptoAmountController.text = ref
+                                              .read(pAmountFormatter(coin))
+                                              .format(
+                                                amount,
+                                                withUnitName: false,
+                                              );
+                                        },
+                                        child: Container(
+                                          color: Colors.transparent,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.end,
+                                            children: [
+                                              Text(
+                                                ref
+                                                    .watch(
+                                                      pAmountFormatter(coin),
+                                                    )
+                                                    .format(amount),
+                                                style: STextStyles.titleBold12(
+                                                  context,
+                                                ).copyWith(
+                                                  fontSize: 10,
+                                                ),
+                                                textAlign: TextAlign.right,
+                                              ),
+                                              Text(
+                                                "${(amount.decimal * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin).item1))).toAmount(
+                                                      fractionDigits: 2,
+                                                    ).fiatString(
+                                                      locale: locale,
+                                                    )} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
+                                                style: STextStyles.subtitle(
+                                                  context,
+                                                ).copyWith(
+                                                  fontSize: 8,
+                                                ),
+                                                textAlign: TextAlign.right,
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    );
-                                  }),
+                                      );
+                                    },
+                                  ),
                                 ],
                               ),
                             ),
@@ -1295,12 +1317,14 @@ class _SendViewState extends ConsumerState<SendView> {
                                                   semanticsLabel:
                                                       "Clear Button. Clears The Address Field Input.",
                                                   key: const Key(
-                                                      "sendViewClearAddressFieldButtonKey"),
+                                                    "sendViewClearAddressFieldButtonKey",
+                                                  ),
                                                   onTap: () {
                                                     sendToController.text = "";
                                                     _address = "";
                                                     _setValidAddressProviders(
-                                                        _address);
+                                                      _address,
+                                                    );
                                                     setState(() {
                                                       _addressToggleFlag =
                                                           false;
@@ -1312,12 +1336,13 @@ class _SendViewState extends ConsumerState<SendView> {
                                                   semanticsLabel:
                                                       "Paste Button. Pastes From Clipboard To Address Field Input.",
                                                   key: const Key(
-                                                      "sendViewPasteAddressFieldButtonKey"),
+                                                    "sendViewPasteAddressFieldButtonKey",
+                                                  ),
                                                   onTap: () async {
                                                     final ClipboardData? data =
                                                         await clipboard.getData(
-                                                            Clipboard
-                                                                .kTextPlain);
+                                                      Clipboard.kTextPlain,
+                                                    );
                                                     if (data?.text != null &&
                                                         data!
                                                             .text!.isNotEmpty) {
@@ -1327,23 +1352,27 @@ class _SendViewState extends ConsumerState<SendView> {
                                                           .contains("\n")) {
                                                         content =
                                                             content.substring(
-                                                                0,
-                                                                content.indexOf(
-                                                                    "\n"));
+                                                          0,
+                                                          content.indexOf(
+                                                            "\n",
+                                                          ),
+                                                        );
                                                       }
 
                                                       if (coin ==
                                                           Coin.epicCash) {
                                                         // strip http:// and https:// if content contains @
                                                         content = formatAddress(
-                                                            content);
+                                                          content,
+                                                        );
                                                       }
                                                       sendToController.text =
                                                           content.trim();
                                                       _address = content.trim();
 
                                                       _setValidAddressProviders(
-                                                          _address);
+                                                        _address,
+                                                      );
                                                       setState(() {
                                                         _addressToggleFlag =
                                                             sendToController
@@ -1362,7 +1391,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                               semanticsLabel:
                                                   "Address Book Button. Opens Address Book For Address Field.",
                                               key: const Key(
-                                                  "sendViewAddressBookButtonKey"),
+                                                "sendViewAddressBookButtonKey",
+                                              ),
                                               onTap: () {
                                                 Navigator.of(context).pushNamed(
                                                   AddressBookView.routeName,
@@ -1376,7 +1406,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                               semanticsLabel:
                                                   "Scan QR Button. Opens Camera For Scanning QR Code.",
                                               key: const Key(
-                                                  "sendViewScanQrButtonKey"),
+                                                "sendViewScanQrButtonKey",
+                                              ),
                                               onTap: _scanQr,
                                               child: const QrCodeIcon(),
                                             ),
@@ -1393,7 +1424,8 @@ class _SendViewState extends ConsumerState<SendView> {
                           if (isStellar ||
                               (ref.watch(pValidSparkSendToAddress) &&
                                   ref.watch(
-                                          publicPrivateBalanceStateProvider) !=
+                                        publicPrivateBalanceStateProvider,
+                                      ) !=
                                       FiroType.lelantus))
                             ClipRRect(
                               borderRadius: BorderRadius.circular(
@@ -1440,7 +1472,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                   semanticsLabel:
                                                       "Clear Button. Clears The Memo Field Input.",
                                                   key: const Key(
-                                                      "sendViewClearMemoFieldButtonKey"),
+                                                    "sendViewClearMemoFieldButtonKey",
+                                                  ),
                                                   onTap: () {
                                                     memoController.text = "";
                                                     setState(() {});
@@ -1451,16 +1484,17 @@ class _SendViewState extends ConsumerState<SendView> {
                                                   semanticsLabel:
                                                       "Paste Button. Pastes From Clipboard To Memo Field Input.",
                                                   key: const Key(
-                                                      "sendViewPasteMemoFieldButtonKey"),
+                                                    "sendViewPasteMemoFieldButtonKey",
+                                                  ),
                                                   onTap: () async {
                                                     final ClipboardData? data =
                                                         await clipboard.getData(
-                                                            Clipboard
-                                                                .kTextPlain);
+                                                      Clipboard.kTextPlain,
+                                                    );
                                                     if (data?.text != null &&
                                                         data!
                                                             .text!.isNotEmpty) {
-                                                      String content =
+                                                      final String content =
                                                           data.text!.trim();
 
                                                       memoController.text =
@@ -1486,13 +1520,15 @@ class _SendViewState extends ConsumerState<SendView> {
                                 error = null;
                               } else if (isFiro) {
                                 if (ref.watch(
-                                        publicPrivateBalanceStateProvider) ==
+                                      publicPrivateBalanceStateProvider,
+                                    ) ==
                                     FiroType.lelantus) {
                                   if (_data != null &&
                                       _data!.contactLabel == _address) {
                                     error = SparkInterface.validateSparkAddress(
-                                            address: _data!.address,
-                                            isTestNet: coin.isTestNet)
+                                      address: _data!.address,
+                                      isTestNet: coin.isTestNet,
+                                    )
                                         ? "Unsupported"
                                         : null;
                                   } else if (ref
@@ -1611,51 +1647,65 @@ class _SendViewState extends ConsumerState<SendView> {
                                             Text(
                                               "${ref.watch(publicPrivateBalanceStateProvider.state).state.name.capitalize()} balance",
                                               style: STextStyles.itemSubtitle12(
-                                                  context),
+                                                context,
+                                              ),
                                             ),
                                             const SizedBox(
                                               width: 10,
                                             ),
-                                            Builder(builder: (_) {
-                                              final Amount amount;
-                                              switch (ref
-                                                  .read(
+                                            Builder(
+                                              builder: (_) {
+                                                final Amount amount;
+                                                switch (ref
+                                                    .read(
                                                       publicPrivateBalanceStateProvider
-                                                          .state)
-                                                  .state) {
-                                                case FiroType.public:
-                                                  amount = ref
-                                                      .watch(pWalletBalance(
-                                                          walletId))
-                                                      .spendable;
-                                                  break;
-                                                case FiroType.lelantus:
-                                                  amount = ref
-                                                      .watch(
+                                                          .state,
+                                                    )
+                                                    .state) {
+                                                  case FiroType.public:
+                                                    amount = ref
+                                                        .watch(
+                                                          pWalletBalance(
+                                                            walletId,
+                                                          ),
+                                                        )
+                                                        .spendable;
+                                                    break;
+                                                  case FiroType.lelantus:
+                                                    amount = ref
+                                                        .watch(
                                                           pWalletBalanceSecondary(
-                                                              walletId))
-                                                      .spendable;
-                                                  break;
-                                                case FiroType.spark:
-                                                  amount = ref
-                                                      .watch(
+                                                            walletId,
+                                                          ),
+                                                        )
+                                                        .spendable;
+                                                    break;
+                                                  case FiroType.spark:
+                                                    amount = ref
+                                                        .watch(
                                                           pWalletBalanceTertiary(
-                                                              walletId))
-                                                      .spendable;
-                                                  break;
-                                              }
+                                                            walletId,
+                                                          ),
+                                                        )
+                                                        .spendable;
+                                                    break;
+                                                }
 
-                                              return Text(
-                                                ref
-                                                    .watch(
-                                                        pAmountFormatter(coin))
-                                                    .format(
-                                                      amount,
-                                                    ),
-                                                style: STextStyles.itemSubtitle(
-                                                    context),
-                                              );
-                                            }),
+                                                return Text(
+                                                  ref
+                                                      .watch(
+                                                        pAmountFormatter(coin),
+                                                      )
+                                                      .format(
+                                                        amount,
+                                                      ),
+                                                  style:
+                                                      STextStyles.itemSubtitle(
+                                                    context,
+                                                  ),
+                                                );
+                                              },
+                                            ),
                                           ],
                                         ),
                                         SvgPicture.asset(
@@ -1669,7 +1719,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                       ],
                                     ),
                                   ),
-                                )
+                                ),
                               ],
                             ),
                           const SizedBox(
@@ -1691,8 +1741,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                       final Amount amount;
                                       switch (ref
                                           .read(
-                                              publicPrivateBalanceStateProvider
-                                                  .state)
+                                            publicPrivateBalanceStateProvider
+                                                .state,
+                                          )
                                           .state) {
                                         case FiroType.public:
                                           amount = ref
@@ -1701,14 +1752,20 @@ class _SendViewState extends ConsumerState<SendView> {
                                           break;
                                         case FiroType.lelantus:
                                           amount = ref
-                                              .read(pWalletBalanceSecondary(
-                                                  walletId))
+                                              .read(
+                                                pWalletBalanceSecondary(
+                                                  walletId,
+                                                ),
+                                              )
                                               .spendable;
                                           break;
                                         case FiroType.spark:
                                           amount = ref
-                                              .read(pWalletBalanceTertiary(
-                                                  walletId))
+                                              .read(
+                                                pWalletBalanceTertiary(
+                                                  walletId,
+                                                ),
+                                              )
                                               .spendable;
                                           break;
                                       }
@@ -1793,9 +1850,10 @@ class _SendViewState extends ConsumerState<SendView> {
                                         .unitForCoin(coin),
                                     style: STextStyles.smallMed14(context)
                                         .copyWith(
-                                            color: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .accentColorDark),
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -1855,13 +1913,16 @@ class _SendViewState extends ConsumerState<SendView> {
                                   child: Padding(
                                     padding: const EdgeInsets.all(12),
                                     child: Text(
-                                      ref.watch(prefsChangeNotifierProvider
-                                          .select((value) => value.currency)),
+                                      ref.watch(
+                                        prefsChangeNotifierProvider
+                                            .select((value) => value.currency),
+                                      ),
                                       style: STextStyles.smallMed14(context)
                                           .copyWith(
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .accentColorDark),
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorDark,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -1898,7 +1959,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                         );
                                       }
 
-                                      if (mounted) {
+                                      if (context.mounted) {
                                         final spendable = ref
                                             .read(pWalletBalance(walletId))
                                             .spendable;
@@ -2096,8 +2157,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                     onPressed: isFiro &&
                                             ref
                                                     .watch(
-                                                        publicPrivateBalanceStateProvider
-                                                            .state)
+                                                      publicPrivateBalanceStateProvider
+                                                          .state,
+                                                    )
                                                     .state !=
                                                 FiroType.public
                                         ? null
@@ -2117,8 +2179,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                                   TransactionFeeSelectionSheet(
                                                 walletId: walletId,
                                                 amount: (Decimal.tryParse(
-                                                            cryptoAmountController
-                                                                .text) ??
+                                                          cryptoAmountController
+                                                              .text,
+                                                        ) ??
                                                         ref
                                                             .watch(pSendAmount)
                                                             ?.decimal ??
@@ -2154,8 +2217,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                     child: (isFiro &&
                                             ref
                                                     .watch(
-                                                        publicPrivateBalanceStateProvider
-                                                            .state)
+                                                      publicPrivateBalanceStateProvider
+                                                          .state,
+                                                    )
                                                     .state !=
                                                 FiroType.public)
                                         ? Row(
@@ -2175,7 +2239,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                       "~${snapshot.data!}",
                                                       style: STextStyles
                                                           .itemSubtitle(
-                                                              context),
+                                                        context,
+                                                      ),
                                                     );
                                                   } else {
                                                     return AnimatedText(
@@ -2187,7 +2252,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                       ],
                                                       style: STextStyles
                                                           .itemSubtitle(
-                                                              context),
+                                                        context,
+                                                      ),
                                                     );
                                                   }
                                                 },
@@ -2203,13 +2269,15 @@ class _SendViewState extends ConsumerState<SendView> {
                                                   Text(
                                                     ref
                                                         .watch(
-                                                            feeRateTypeStateProvider
-                                                                .state)
+                                                          feeRateTypeStateProvider
+                                                              .state,
+                                                        )
                                                         .state
                                                         .prettyName,
                                                     style: STextStyles
                                                         .itemSubtitle12(
-                                                            context),
+                                                      context,
+                                                    ),
                                                   ),
                                                   const SizedBox(
                                                     width: 10,
@@ -2233,7 +2301,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                               : "~${snapshot.data!}",
                                                           style: STextStyles
                                                               .itemSubtitle(
-                                                                  context),
+                                                            context,
+                                                          ),
                                                         );
                                                       } else {
                                                         return AnimatedText(
@@ -2245,7 +2314,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                           ],
                                                           style: STextStyles
                                                               .itemSubtitle(
-                                                                  context),
+                                                            context,
+                                                          ),
                                                         );
                                                       }
                                                     },
@@ -2263,7 +2333,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                             ],
                                           ),
                                   ),
-                                )
+                                ),
                               ],
                             ),
                           if (isCustomFee)

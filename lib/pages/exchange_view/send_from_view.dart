@@ -205,13 +205,13 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
 
 class SendFromCard extends ConsumerStatefulWidget {
   const SendFromCard({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.amount,
     required this.address,
     required this.trade,
     this.fromDesktopStep4 = false,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final Amount amount;
@@ -235,6 +235,8 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
     try {
       bool wasCancelled = false;
 
+      final wallet = ref.read(pWallets).getWallet(walletId);
+
       unawaited(
         showDialog<dynamic>(
           context: context,
@@ -253,6 +255,8 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
               ),
               child: BuildingTransactionDialog(
                 coin: coin,
+                isSpark:
+                    wallet is FiroWallet && shouldSendPublicFiroFunds != true,
                 onCancel: () {
                   wasCancelled = true;
 
@@ -272,8 +276,6 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
 
       TxData txData;
       Future<TxData> txDataFuture;
-
-      final wallet = ref.read(pWallets).getWallet(walletId);
 
       // if not firo then do normal send
       if (shouldSendPublicFiroFunds == null) {
@@ -371,38 +373,38 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
         }
       }
     } catch (e) {
-      // if (mounted) {
-      // pop building dialog
-      Navigator.of(context).pop();
+      if (mounted) {
+        // pop building dialog
+        Navigator.of(context).pop();
 
-      await showDialog<dynamic>(
-        context: context,
-        useSafeArea: false,
-        barrierDismissible: true,
-        builder: (context) {
-          return StackDialog(
-            title: "Transaction failed",
-            message: e.toString(),
-            rightButton: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getSecondaryEnabledButtonStyle(context),
-              child: Text(
-                "Ok",
-                style: STextStyles.button(context).copyWith(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .buttonTextSecondary,
+        await showDialog<dynamic>(
+          context: context,
+          useSafeArea: false,
+          barrierDismissible: true,
+          builder: (context) {
+            return StackDialog(
+              title: "Transaction failed",
+              message: e.toString(),
+              rightButton: TextButton(
+                style: Theme.of(context)
+                    .extension<StackColors>()!
+                    .getSecondaryEnabledButtonStyle(context),
+                child: Text(
+                  "Ok",
+                  style: STextStyles.button(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonTextSecondary,
+                  ),
                 ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
               ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          );
-        },
-      );
-      // }
+            );
+          },
+        );
+      }
     }
   }
 
@@ -420,7 +422,8 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
     final wallet = ref.watch(pWallets).getWallet(walletId);
 
     final locale = ref.watch(
-        localeServiceChangeNotifierProvider.select((value) => value.locale));
+      localeServiceChangeNotifierProvider.select((value) => value.locale),
+    );
 
     final coin = ref.watch(pWalletCoin(walletId));
 
@@ -483,9 +486,11 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                               style: STextStyles.itemSubtitle(context),
                             ),
                             Text(
-                              ref.watch(pAmountFormatter(coin)).format(ref
-                                  .watch(pWalletBalanceTertiary(walletId))
-                                  .spendable),
+                              ref.watch(pAmountFormatter(coin)).format(
+                                    ref
+                                        .watch(pWalletBalanceTertiary(walletId))
+                                        .spendable,
+                                  ),
                               style: STextStyles.itemSubtitle(context),
                             ),
                           ],
@@ -637,7 +642,8 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                     if (!isFiro)
                       Text(
                         ref.watch(pAmountFormatter(coin)).format(
-                            ref.watch(pWalletBalance(walletId)).spendable),
+                              ref.watch(pWalletBalance(walletId)).spendable,
+                            ),
                         style: STextStyles.itemSubtitle(context),
                       ),
                   ],

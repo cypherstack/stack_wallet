@@ -56,13 +56,13 @@ import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
 class DesktopTokenSend extends ConsumerStatefulWidget {
   const DesktopTokenSend({
-    Key? key,
+    super.key,
     required this.walletId,
     this.autoFillData,
     this.clipboard = const ClipboardWrapper(),
     this.barcodeScanner = const BarcodeScannerWrapper(),
     this.accountLite,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final SendViewAutoFillData? autoFillData;
@@ -108,10 +108,14 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
 
     final Amount amount = _amountToSend!;
     final Amount availableBalance = ref
-        .read(pTokenBalance((
-          walletId: walletId,
-          contractAddress: tokenWallet.tokenContract.address
-        )))
+        .read(
+          pTokenBalance(
+            (
+              walletId: walletId,
+              contractAddress: tokenWallet.tokenContract.address
+            ),
+          ),
+        )
         .spendable;
 
     // confirm send all
@@ -221,6 +225,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                   padding: const EdgeInsets.all(32),
                   child: BuildingTransactionDialog(
                     coin: tokenWallet.cryptoCurrency.coin,
+                    isSpark: false,
                     onCancel: () {
                       wasCancelled = true;
 
@@ -250,7 +255,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
               address: _address!,
               amount: amount,
               isChange: false,
-            )
+            ),
           ],
           feeRateType: ref.read(feeRateTypeStateProvider),
           nonce: int.tryParse(nonceController.text),
@@ -405,8 +410,10 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
             _cachedAmountToSend == _amountToSend) {
           return;
         }
-        Logging.instance.log("it changed $_amountToSend $_cachedAmountToSend",
-            level: LogLevel.Info);
+        Logging.instance.log(
+          "it changed $_amountToSend $_cachedAmountToSend",
+          level: LogLevel.Info,
+        );
         _cachedAmountToSend = _amountToSend;
 
         final price = ref
@@ -468,8 +475,10 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
 
       final qrResult = await scanner.scan();
 
-      Logging.instance.log("qrResult content: ${qrResult.rawContent}",
-          level: LogLevel.Info);
+      Logging.instance.log(
+        "qrResult content: ${qrResult.rawContent}",
+        level: LogLevel.Info,
+      );
 
       final results = AddressUtils.parseUri(qrResult.rawContent);
 
@@ -524,8 +533,9 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
       // here we ignore the exception caused by not giving permission
       // to use the camera to scan a qr code
       Logging.instance.log(
-          "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
-          level: LogLevel.Warning);
+        "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
+        level: LogLevel.Warning,
+      );
     }
   }
 
@@ -579,8 +589,10 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         return;
       }
       _cachedAmountToSend = _amountToSend;
-      Logging.instance.log("it changed $_amountToSend $_cachedAmountToSend",
-          level: LogLevel.Info);
+      Logging.instance.log(
+        "it changed $_amountToSend $_cachedAmountToSend",
+        level: LogLevel.Info,
+      );
 
       final amountString = ref.read(pAmountFormatter(coin)).format(
             _amountToSend!,
@@ -603,10 +615,15 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
 
   Future<void> sendAllTapped() async {
     cryptoAmountController.text = ref
-        .read(pTokenBalance((
-          walletId: walletId,
-          contractAddress: ref.read(pCurrentTokenWallet)!.tokenContract.address
-        )))
+        .read(
+          pTokenBalance(
+            (
+              walletId: walletId,
+              contractAddress:
+                  ref.read(pCurrentTokenWallet)!.tokenContract.address
+            ),
+          ),
+        )
         .spendable
         .decimal
         .toStringAsFixed(
@@ -788,9 +805,10 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                 child: Text(
                   tokenContract.symbol,
                   style: STextStyles.smallMed14(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark),
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
+                  ),
                 ),
               ),
             ),
@@ -850,12 +868,15 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: Text(
-                    ref.watch(prefsChangeNotifierProvider
-                        .select((value) => value.currency)),
+                    ref.watch(
+                      prefsChangeNotifierProvider
+                          .select((value) => value.currency),
+                    ),
                     style: STextStyles.smallMed14(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark),
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
+                    ),
                   ),
                 ),
               ),
@@ -936,12 +957,15 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                       _addressToggleFlag
                           ? TextFieldIconButton(
                               key: const Key(
-                                  "sendTokenViewClearAddressFieldButtonKey"),
+                                "sendTokenViewClearAddressFieldButtonKey",
+                              ),
                               onTap: () {
                                 sendToController.text = "";
                                 _address = "";
                                 _updatePreviewButtonState(
-                                    _address, _amountToSend);
+                                  _address,
+                                  _amountToSend,
+                                );
                                 setState(() {
                                   _addressToggleFlag = false;
                                 });
@@ -950,7 +974,8 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                             )
                           : TextFieldIconButton(
                               key: const Key(
-                                  "sendTokenViewPasteAddressFieldButtonKey"),
+                                "sendTokenViewPasteAddressFieldButtonKey",
+                              ),
                               onTap: pasteAddress,
                               child: sendToController.text.isEmpty
                                   ? const ClipboardIcon()
@@ -1129,7 +1154,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
           onPressed: ref.watch(previewTokenTxButtonStateProvider.state).state
               ? previewSend
               : null,
-        )
+        ),
       ],
     );
   }

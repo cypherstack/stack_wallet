@@ -12,8 +12,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/coin_image_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -23,13 +23,15 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class BuildingTransactionDialog extends ConsumerStatefulWidget {
   const BuildingTransactionDialog({
-    Key? key,
+    super.key,
     required this.onCancel,
     required this.coin,
-  }) : super(key: key);
+    required this.isSpark,
+  });
 
   final VoidCallback onCancel;
   final Coin coin;
+  final bool isSpark;
 
   @override
   ConsumerState<BuildingTransactionDialog> createState() =>
@@ -62,13 +64,24 @@ class _RestoringDialogState extends ConsumerState<BuildingTransactionDialog> {
             "Generating transaction",
             style: STextStyles.desktopH3(context),
           ),
+          if (widget.isSpark)
+            const SizedBox(
+              height: 16,
+            ),
+          if (widget.isSpark)
+            Text(
+              "This may take a few minutes...",
+              style: STextStyles.desktopSubtitleH2(context),
+            ),
           const SizedBox(
             height: 40,
           ),
           assetPath.endsWith(".gif")
-              ? Image.file(File(
-                  assetPath,
-                ))
+              ? Image.file(
+                  File(
+                    assetPath,
+                  ),
+                )
               : const RotatingArrows(
                   width: 40,
                   height: 40,
@@ -82,7 +95,7 @@ class _RestoringDialogState extends ConsumerState<BuildingTransactionDialog> {
             onPressed: () {
               onCancel.call();
             },
-          )
+          ),
         ],
       );
     } else {
@@ -96,14 +109,26 @@ class _RestoringDialogState extends ConsumerState<BuildingTransactionDialog> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.file(File(
-                      assetPath,
-                    )),
+                    Image.file(
+                      File(
+                        assetPath,
+                      ),
+                    ),
                     Text(
                       "Generating transaction",
                       textAlign: TextAlign.center,
                       style: STextStyles.pageTitleH2(context),
                     ),
+                    if (widget.isSpark)
+                      const SizedBox(
+                        height: 12,
+                      ),
+                    if (widget.isSpark)
+                      Text(
+                        "This may take a few minutes...",
+                        textAlign: TextAlign.center,
+                        style: STextStyles.w500_16(context),
+                      ),
                     const SizedBox(
                       height: 32,
                     ),
@@ -124,7 +149,7 @@ class _RestoringDialogState extends ConsumerState<BuildingTransactionDialog> {
                               onCancel.call();
                             },
                           ),
-                        )
+                        ),
                       ],
                     ),
                   ],
@@ -132,6 +157,8 @@ class _RestoringDialogState extends ConsumerState<BuildingTransactionDialog> {
               )
             : StackDialog(
                 title: "Generating transaction",
+                message:
+                    widget.isSpark ? "This may take a few minutes..." : null,
                 icon: const RotatingArrows(
                   width: 24,
                   height: 24,
