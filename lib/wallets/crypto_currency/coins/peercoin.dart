@@ -28,11 +28,12 @@ class Peercoin extends Bip39HDCurrency {
   bool get torSupport => true;
 
   @override
-  String constructDerivePath(
-      {required DerivePathType derivePathType,
-      int account = 0,
-      required int chain,
-      required int index}) {
+  String constructDerivePath({
+    required DerivePathType derivePathType,
+    int account = 0,
+    required int chain,
+    required int index,
+  }) {
     String coinType;
     switch (networkParams.wifPrefix) {
       case 183: // PPC mainnet wif.
@@ -164,6 +165,7 @@ class Peercoin extends Bip39HDCurrency {
   @override
   List<DerivePathType> get supportedDerivationPathTypes => [
         DerivePathType.bip44,
+        DerivePathType.bip84,
       ];
 
   @override
