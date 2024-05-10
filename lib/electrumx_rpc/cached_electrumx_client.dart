@@ -109,6 +109,7 @@ class CachedElectrumXClient {
     required String groupId,
     String blockhash = "",
     required Coin coin,
+    required bool useOnlyCacheIfNotEmpty,
   }) async {
     try {
       final box = await DB.instance.getSparkAnonymitySetCacheBox(coin: coin);
@@ -126,6 +127,9 @@ class CachedElectrumXClient {
         };
       } else {
         set = Map<String, dynamic>.from(cachedSet);
+        if (useOnlyCacheIfNotEmpty) {
+          return set;
+        }
       }
 
       final newSet = await electrumXClient.getSparkAnonymitySet(

@@ -621,6 +621,7 @@ class FiroWallet extends Bip39HDWallet
         final sparkAnonSetFuture = electrumXCachedClient.getSparkAnonymitySet(
           groupId: latestSparkCoinId.toString(),
           coin: info.coin,
+          useOnlyCacheIfNotEmpty: false,
         );
         final sparkUsedCoinTagsFuture =
             electrumXCachedClient.getSparkUsedCoinsTags(
