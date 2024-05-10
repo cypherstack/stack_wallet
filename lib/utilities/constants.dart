@@ -46,6 +46,8 @@ abstract class Constants {
       10000000); // https://developers.stellar.org/docs/fundamentals-and-concepts/stellar-data-structures/assets#amount-precision
   static final BigInt _satsPerCoin = BigInt.from(100000000);
   static final BigInt _satsPerCoinTezos = BigInt.from(1000000);
+  static final BigInt _satsPerCoinSolana = BigInt.from(1000000000);
+  static final BigInt _satsPerCoinPeercoin = BigInt.from(1000000); // 1*10^6.
   static const int _decimalPlaces = 8;
   static const int _decimalPlacesNano = 30;
   static const int _decimalPlacesBanano = 29;
@@ -55,6 +57,8 @@ abstract class Constants {
   static const int _decimalPlacesECash = 2;
   static const int _decimalPlacesStellar = 7;
   static const int _decimalPlacesTezos = 6;
+  static const int _decimalPlacesSolana = 9;
+  static const int _decimalPlacesPeercoin = 6;
 
   static const int notificationsMax = 0xFFFFFFFF;
   static const Duration networkAliveTimerDuration = Duration(seconds: 10);
@@ -109,6 +113,13 @@ abstract class Constants {
 
       case Coin.tezos:
         return _satsPerCoinTezos;
+
+      case Coin.solana:
+        return _satsPerCoinSolana;
+
+      case Coin.peercoin:
+      case Coin.peercoinTestNet:
+        return _satsPerCoinPeercoin;
     }
   }
 
@@ -155,6 +166,13 @@ abstract class Constants {
 
       case Coin.tezos:
         return _decimalPlacesTezos;
+
+      case Coin.solana:
+        return _decimalPlacesSolana;
+
+      case Coin.peercoin:
+      case Coin.peercoinTestNet:
+        return _decimalPlacesPeercoin;
     }
   }
 
@@ -176,6 +194,9 @@ abstract class Constants {
       case Coin.ethereum:
       case Coin.namecoin:
       case Coin.particl:
+        values.addAll([12, 24]);
+        break;
+      case Coin.solana:
       case Coin.nano:
       case Coin.stellar:
       case Coin.stellarTestnet:
@@ -197,6 +218,10 @@ abstract class Constants {
       case Coin.bitcoinFrost:
       case Coin.bitcoinFrostTestNet:
         throw ArgumentError("Frost mnemonic lengths unsupported");
+      case Coin.peercoin:
+      case Coin.peercoinTestNet:
+        values.addAll([12, /*15, 18, 21,*/ 24]); // TODO [prio=low]: Test rest.
+        break;
     }
     return values;
   }
@@ -211,6 +236,8 @@ abstract class Constants {
       case Coin.bitcoincash:
       case Coin.bitcoincashTestnet:
       case Coin.eCash:
+      case Coin.peercoin:
+      case Coin.peercoinTestNet:
         return 600;
 
       case Coin.dogecoin:
@@ -245,6 +272,7 @@ abstract class Constants {
 
       case Coin.nano: // TODO: Verify this
       case Coin.banano: // TODO: Verify this
+      case Coin.solana:
         return 1;
 
       case Coin.stellar:
@@ -272,6 +300,7 @@ abstract class Constants {
       case Coin.namecoin:
       case Coin.particl:
       case Coin.ethereum:
+      case Coin.solana:
         return 12;
 
       case Coin.wownero:
@@ -280,6 +309,8 @@ abstract class Constants {
       case Coin.nano:
       case Coin.banano:
       case Coin.epicCash:
+      case Coin.peercoin: // TODO [prio=low]: Verify default seed length.
+      case Coin.peercoinTestNet:
       case Coin.stellar:
       case Coin.stellarTestnet:
       case Coin.tezos:

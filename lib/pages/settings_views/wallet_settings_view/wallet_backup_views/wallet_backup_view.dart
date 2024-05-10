@@ -35,12 +35,12 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class WalletBackupView extends ConsumerWidget {
   const WalletBackupView({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.mnemonic,
     this.frostWalletData,
     this.clipboardInterface = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   static const String routeName = "/walletBackup";
 

@@ -11,11 +11,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/add_address_book_entry_view.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/address_book_filter_view.dart';
 import 'package:stackwallet/pages_desktop_specific/address_book_view/subwidgets/desktop_address_book_scaffold.dart';
 import 'package:stackwallet/pages_desktop_specific/address_book_view/subwidgets/desktop_contact_details.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/address_book_providers/address_book_filter_provider.dart';
@@ -25,6 +27,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'package:stackwallet/widgets/address_book_card.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -38,7 +41,7 @@ import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
 class DesktopAddressBook extends ConsumerStatefulWidget {
-  const DesktopAddressBook({Key? key}) : super(key: key);
+  const DesktopAddressBook({super.key});
 
   static const String routeName = "/desktopAddressBook";
 
@@ -93,10 +96,11 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
     ref.refresh(addressBookFilterProvider);
 
     // if (widget.coin == null) {
-    List<Coin> coins = Coin.values.toList();
+    final List<Coin> coins = Coin.values.toList();
     coins.remove(Coin.firoTestNet);
 
-    bool showTestNet = ref.read(prefsChangeNotifierProvider).showTestNetCoins;
+    final bool showTestNet =
+        ref.read(prefsChangeNotifierProvider).showTestNetCoins;
 
     if (showTestNet) {
       ref.read(addressBookFilterProvider).addAll(coins, false);
@@ -110,13 +114,26 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
     // }
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      List<ContactAddressEntry> addresses = [];
+      final List<ContactAddressEntry> addresses = [];
       final wallets = ref.read(pWallets).wallets;
       for (final wallet in wallets) {
+        final String addressString;
+        if (wallet is SparkInterface) {
+          Address? address = await wallet.getCurrentReceivingSparkAddress();
+          if (address == null) {
+            address = await wallet.generateNextSparkAddress();
+            await ref.read(mainDBProvider).updateOrPutAddresses([address]);
+          }
+          addressString = address.value;
+        } else {
+          final address = await wallet.getCurrentReceivingAddress();
+          addressString = address?.value ?? wallet.info.cachedReceivingAddress;
+        }
+
         addresses.add(
           ContactAddressEntry()
             ..coinName = wallet.info.coin.name
-            ..address = wallet.info.cachedReceivingAddress
+            ..address = addressString
             ..label = "Current Receiving"
             ..other = wallet.info.name,
         );
@@ -148,26 +165,41 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
         ref.watch(addressBookServiceProvider.select((value) => value.contacts));
 
     final allContacts = contacts
-        .where((element) =>
-            element.addresses.isEmpty ||
-            element.addresses
-                .where((e) => ref.watch(addressBookFilterProvider
-                    .select((value) => value.coins.contains(e.coin))))
-                .isNotEmpty)
         .where(
-            (e) => ref.read(addressBookServiceProvider).matches(_searchTerm, e))
+          (element) =>
+              element.addresses.isEmpty ||
+              element.addresses
+                  .where(
+                    (e) => ref.watch(
+                      addressBookFilterProvider
+                          .select((value) => value.coins.contains(e.coin)),
+                    ),
+                  )
+                  .isNotEmpty,
+        )
+        .where(
+          (e) => ref.read(addressBookServiceProvider).matches(_searchTerm, e),
+        )
         .toList();
 
     final favorites = contacts
-        .where((element) =>
-            element.addresses.isEmpty ||
-            element.addresses
-                .where((e) => ref.watch(addressBookFilterProvider
-                    .select((value) => value.coins.contains(e.coin))))
-                .isNotEmpty)
-        .where((e) =>
-            e.isFavorite &&
-            ref.read(addressBookServiceProvider).matches(_searchTerm, e))
+        .where(
+          (element) =>
+              element.addresses.isEmpty ||
+              element.addresses
+                  .where(
+                    (e) => ref.watch(
+                      addressBookFilterProvider
+                          .select((value) => value.coins.contains(e.coin)),
+                    ),
+                  )
+                  .isNotEmpty,
+        )
+        .where(
+          (e) =>
+              e.isFavorite &&
+              ref.read(addressBookServiceProvider).matches(_searchTerm, e),
+        )
         .where((element) => element.isFavorite)
         .toList();
 
@@ -182,7 +214,7 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
             Text(
               "Address Book",
               style: STextStyles.desktopH3(context),
-            )
+            ),
           ],
         ),
       ),
@@ -354,7 +386,8 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                                   ),
                                   child: AddressBookCard(
                                     key: Key(
-                                        "favContactCard_${favorites[i].customId}_key"),
+                                      "favContactCard_${favorites[i].customId}_key",
+                                    ),
                                     contactId: favorites[i].customId,
                                     desktopSendFrom: false,
                                   ),
@@ -426,7 +459,8 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                                       ),
                                       child: AddressBookCard(
                                         key: Key(
-                                            "favContactCard_${allContacts[i].customId}_key"),
+                                          "favContactCard_${allContacts[i].customId}_key",
+                                        ),
                                         contactId: allContacts[i].customId,
                                         desktopSendFrom: false,
                                       ),

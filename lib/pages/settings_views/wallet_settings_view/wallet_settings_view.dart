@@ -53,13 +53,13 @@ import 'package:tuple/tuple.dart';
 /// [eventBus] should only be set during testing
 class WalletSettingsView extends ConsumerStatefulWidget {
   const WalletSettingsView({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.coin,
     required this.initialSyncStatus,
     required this.initialNodeStatus,
     this.eventBus,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/walletSettings";
 
@@ -195,21 +195,6 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                             padding: const EdgeInsets.all(4),
                             child: Column(
                               children: [
-                                if (coin == Coin.bitcoinFrost ||
-                                    coin == Coin.bitcoinFrostTestNet)
-                                  if (coin == Coin.bitcoinFrost ||
-                                      coin == Coin.bitcoinFrostTestNet)
-                                    SettingsListButton(
-                                      iconAssetName: Assets.svg.addressBook2,
-                                      iconSize: 16,
-                                      title: "FROST Multisig settings",
-                                      onPressed: () {
-                                        Navigator.of(context).pushNamed(
-                                          FrostMSWalletOptionsView.routeName,
-                                          arguments: walletId,
-                                        );
-                                      },
-                                    ),
                                 SettingsListButton(
                                   iconAssetName: Assets.svg.addressBook,
                                   iconSize: 16,
@@ -221,6 +206,22 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                     );
                                   },
                                 ),
+                                if (coin.isFrost)
+                                  const SizedBox(
+                                    height: 8,
+                                  ),
+                                if (coin.isFrost)
+                                  SettingsListButton(
+                                    iconAssetName: Assets.svg.addressBook2,
+                                    iconSize: 16,
+                                    title: "FROST Multisig settings",
+                                    onPressed: () {
+                                      Navigator.of(context).pushNamed(
+                                        FrostMSWalletOptionsView.routeName,
+                                        arguments: walletId,
+                                      );
+                                    },
+                                  ),
                                 const SizedBox(
                                   height: 8,
                                 ),
@@ -266,31 +267,27 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                           })? prevGen,
                                         })? frostWalletData;
                                         if (wallet is BitcoinFrostWallet) {
-                                          List<Future<dynamic>> futures = [];
-
-                                          futures.addAll(
-                                            [
-                                              wallet.getSerializedKeys(),
-                                              wallet.getMultisigConfig(),
-                                              wallet.getSerializedKeysPrevGen(),
-                                              wallet.getMultisigConfigPrevGen(),
-                                            ],
-                                          );
+                                          final futures = [
+                                            wallet.getSerializedKeys(),
+                                            wallet.getMultisigConfig(),
+                                            wallet.getSerializedKeysPrevGen(),
+                                            wallet.getMultisigConfigPrevGen(),
+                                          ];
 
                                           final results =
                                               await Future.wait(futures);
 
-                                          if (results.length == 5) {
+                                          if (results.length == 4) {
                                             frostWalletData = (
                                               myName: wallet.frostInfo.myName,
-                                              config: results[1],
-                                              keys: results[0],
+                                              config: results[1]!,
+                                              keys: results[0]!,
                                               prevGen: results[2] == null ||
                                                       results[3] == null
                                                   ? null
                                                   : (
-                                                      config: results[3],
-                                                      keys: results[2],
+                                                      config: results[3]!,
+                                                      keys: results[2]!,
                                                     ),
                                             );
                                           }
@@ -300,7 +297,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                               await wallet.getMnemonicAsWords();
                                         }
 
-                                        if (mounted) {
+                                        if (context.mounted) {
                                           await Navigator.push(
                                             context,
                                             RouteGenerator.getRoute(

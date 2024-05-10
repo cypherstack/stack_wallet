@@ -22,10 +22,10 @@ import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 
 class WalletInfoRowBalance extends ConsumerWidget {
   const WalletInfoRowBalance({
-    Key? key,
+    super.key,
     required this.walletId,
     this.contractAddress,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final String? contractAddress;
@@ -45,8 +45,11 @@ class WalletInfoRowBalance extends ConsumerWidget {
     } else {
       contract = MainDB.instance.getEthContractSync(contractAddress!)!;
       totalBalance = ref
-          .watch(pTokenBalance(
-              (contractAddress: contractAddress!, walletId: walletId)))
+          .watch(
+            pTokenBalance(
+              (walletId: walletId, contractAddress: contractAddress!),
+            ),
+          )
           .total;
     }
 

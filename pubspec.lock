@@ -158,6 +158,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+  borsh_annotation:
+    dependency: transitive
+    description:
+      name: borsh_annotation
+      sha256: "4a226cf8b7a165ecf8020c0c8d366b2728167fd102ef9b9e89d94d86f89ac57b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.1+5"
   bs58check:
     dependency: "direct main"
     description:
@@ -230,6 +238,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "8.6.2"
+  calendar_date_picker2:
+    dependency: "direct main"
+    description:
+      name: calendar_date_picker2
+      sha256: "7ff3f372faff6814a2ba69427d116fb9a3d52e28644b9de4b06db6638fdac798"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.2"
   characters:
     dependency: transitive
     description:
@@ -271,23 +287,21 @@ packages:
     source: hosted
     version: "4.6.0"
   coinlib:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: coinlib
-      ref: "376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7"
-      resolved-ref: "376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7"
-      url: "https://github.com/cypherstack/coinlib.git"
-    source: git
-    version: "1.1.0"
+      name: coinlib
+      sha256: "44aa3f7b07d3b03d58353e7657f43cdaf76a70ad2cce5bdac9306208099d8df5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   coinlib_flutter:
     dependency: "direct main"
     description:
-      path: coinlib_flutter
-      ref: "376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7"
-      resolved-ref: "376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7"
-      url: "https://github.com/cypherstack/coinlib.git"
-    source: git
-    version: "1.1.0"
+      name: coinlib_flutter
+      sha256: b352378773158dbaec37bd542c297682f3812f9881acb676971f0f4c5893631f
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   collection:
     dependency: transitive
     description:
@@ -324,10 +338,10 @@ packages:
     dependency: transitive
     description:
       name: coverage
-      sha256: "2fb815080e44a09b85e0f2ca8a820b15053982b2e714b59267719e8a9ff17097"
+      sha256: "8acabb8306b57a409bf4c83522065672ee13179297a6bb0cb9ead73948df7c76"
       url: "https://pub.dev"
     source: hosted
-    version: "1.6.3"
+    version: "1.7.2"
   cross_file:
     dependency: transitive
     description:
@@ -496,10 +510,10 @@ packages:
     dependency: transitive
     description:
       name: dio
-      sha256: "7d328c4d898a61efc3cd93655a0955858e29a0aa647f0f9e02d59b3bb275e2e8"
+      sha256: "11e40df547d418cc0c4900a9318b26304e665da6fa4755399a9ff9efd09034b5"
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.6"
+    version: "5.4.3+1"
   dropdown_button2:
     dependency: "direct main"
     description:
@@ -508,6 +522,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.9"
+  ed25519_hd_key:
+    dependency: transitive
+    description:
+      name: ed25519_hd_key
+      sha256: c5c9f11a03f5789bf9dcd9ae88d641571c802640851f1cacdb13123f171b3a26
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.1"
   eip1559:
     dependency: transitive
     description:
@@ -593,10 +615,10 @@ packages:
     dependency: transitive
     description:
       name: file
-      sha256: "1b92bec4fc2a72f59a8e15af5f52cd441e4a7860b49499d69dfa817af20e925d"
+      sha256: "5fc22d7c25582e38ad9a8515372cd9a93834027aacf1801cf01164dac0ffa08c"
       url: "https://pub.dev"
     source: hosted
-    version: "6.1.4"
+    version: "7.0.0"
   file_picker:
     dependency: "direct main"
     description:
@@ -674,8 +696,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "3f986ca1a94bdac5d31373454c989cc2f5842de8"
-      resolved-ref: "3f986ca1a94bdac5d31373454c989cc2f5842de8"
+      ref: "439727b278250c61a291f5335c298c0f2d952517"
+      resolved-ref: "439727b278250c61a291f5335c298c0f2d952517"
       url: "https://github.com/cypherstack/flutter_libsparkmobile.git"
     source: git
     version: "0.0.1"
@@ -691,26 +713,26 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_local_notifications
-      sha256: "57d0012730780fe137260dd180e072c18a73fbeeb924cdc029c18aaa0f338d64"
+      sha256: f9a05409385b77b06c18f200a41c7c2711ebf7415669350bb0f8474c07bd40d1
       url: "https://pub.dev"
     source: hosted
-    version: "9.9.1"
+    version: "17.0.0"
   flutter_local_notifications_linux:
     dependency: transitive
     description:
       name: flutter_local_notifications_linux
-      sha256: b472bfc173791b59ede323661eae20f7fff0b6908fea33dd720a6ef5d576bae8
+      sha256: "33f741ef47b5f63cc7f78fe75eeeac7e19f171ff3c3df054d84c1e38bedb6a03"
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.1"
+    version: "4.0.0+1"
   flutter_local_notifications_platform_interface:
     dependency: transitive
     description:
       name: flutter_local_notifications_platform_interface
-      sha256: "21bceee103a66a53b30ea9daf677f990e5b9e89b62f222e60dd241cd08d63d3a"
+      sha256: "7cf643d6d5022f3baed0be777b0662cce5919c0a7b86e700299f22dc4ae660ef"
       url: "https://pub.dev"
     source: hosted
-    version: "5.0.0"
+    version: "7.0.0+1"
   flutter_mobx:
     dependency: transitive
     description:
@@ -743,14 +765,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.4"
-  flutter_rounded_date_picker:
-    dependency: "direct main"
-    description:
-      name: flutter_rounded_date_picker
-      sha256: e6aa2dc5d3b44e8bbe85ef901be69eac59ba4136427f11f4c8b2a303e1e774e7
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.4"
   flutter_secure_storage:
     dependency: "direct main"
     description:
@@ -817,6 +831,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  freezed_annotation:
+    dependency: transitive
+    description:
+      name: freezed_annotation
+      sha256: c3fd9336eb55a38cc1bbd79ab17573113a8deccd0ecbbf926cca3c62803b5c2d
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.1"
   frontend_server_client:
     dependency: transitive
     description:
@@ -841,8 +863,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: df8f7c627cfc77eaa3e364c0d166f3d04169ae05
-      resolved-ref: df8f7c627cfc77eaa3e364c0d166f3d04169ae05
+      ref: "7dd8ff0dc9cb0caaac795fa44841a26437edfec3"
+      resolved-ref: "7dd8ff0dc9cb0caaac795fa44841a26437edfec3"
       url: "https://github.com/cypherstack/fusiondart.git"
     source: git
     version: "1.0.0"
@@ -1043,6 +1065,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.0"
+  leak_tracker:
+    dependency: transitive
+    description:
+      name: leak_tracker
+      sha256: "78eb209deea09858f5269f5a5b02be4049535f568c07b275096836f01ea323fa"
+      url: "https://pub.dev"
+    source: hosted
+    version: "10.0.0"
+  leak_tracker_flutter_testing:
+    dependency: transitive
+    description:
+      name: leak_tracker_flutter_testing
+      sha256: b46c5e37c19120a8a01918cfaf293547f47269f7cb4b0058f21531c2465d6ef0
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
+  leak_tracker_testing:
+    dependency: transitive
+    description:
+      name: leak_tracker_testing
+      sha256: a597f72a664dbd293f3bfc51f9ba69816f84dcd403cdac7066cb3f6003f3ab47
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
   lelantus:
     dependency: "direct main"
     description:
@@ -1086,18 +1132,18 @@ packages:
     dependency: transitive
     description:
       name: matcher
-      sha256: "1803e76e6653768d64ed8ff2e1e67bea3ad4b923eb5c56a295c3e634bad5960e"
+      sha256: d2323aa2060500f906aa31a895b4030b6da3ebdcc5619d14ce1aada65cd161cb
       url: "https://pub.dev"
     source: hosted
-    version: "0.12.16"
+    version: "0.12.16+1"
   material_color_utilities:
     dependency: transitive
     description:
       name: material_color_utilities
-      sha256: "9528f2f296073ff54cb9fee677df673ace1218163c3bc7628093e7eed5203d41"
+      sha256: "0e0a020085b65b6083975e499759762399b4475f766c21668c4ecca34ea74e5a"
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.0"
+    version: "0.8.0"
   memoize:
     dependency: transitive
     description:
@@ -1110,10 +1156,10 @@ packages:
     dependency: "direct main"
     description:
       name: meta
-      sha256: a6e590c838b18133bb482a2745ad77c5bb7715fb0451209e1a7567d416678b8e
+      sha256: d584fa6707a52763a52446f02cc621b077888fb63b93bbcb1143a7be5a0c0c04
       url: "https://pub.dev"
     source: hosted
-    version: "1.10.0"
+    version: "1.11.0"
   mime:
     dependency: transitive
     description:
@@ -1214,10 +1260,10 @@ packages:
     dependency: transitive
     description:
       name: path
-      sha256: "8829d8a55c13fc0e37127c29fedf290c102f4e40ae94ada574091fe0ff96c917"
+      sha256: "087ce49c3f0dc39180befefc60fdb4acd8f8620e5682fe2476afd0b3688bb4af"
       url: "https://pub.dev"
     source: hosted
-    version: "1.8.3"
+    version: "1.9.0"
   path_parsing:
     dependency: transitive
     description:
@@ -1334,10 +1380,10 @@ packages:
     dependency: transitive
     description:
       name: platform
-      sha256: ae68c7bfcd7383af3629daafb32fb4e8681c7154428da4febcff06200585f102
+      sha256: "12220bb4b65720483f8fa9450b4332347737cf8213dd2840d8b2c823e47243ec"
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.2"
+    version: "3.1.4"
   plugin_platform_interface:
     dependency: transitive
     description:
@@ -1366,18 +1412,18 @@ packages:
     dependency: transitive
     description:
       name: pretty_dio_logger
-      sha256: "948f7eeb36e7aa0760b51c1a8e3331d4b21e36fabd39efca81f585ed93893544"
+      sha256: "00b80053063935cf9a6190da344c5373b9d0e92da4c944c878ff2fbef0ef6dc2"
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.0-beta-1"
+    version: "1.3.1"
   process:
     dependency: transitive
     description:
       name: process
-      sha256: "53fd8db9cec1d37b0574e12f07520d582019cb6c44abf5479a01505099a34a09"
+      sha256: "21e54fd2faf1b5bdd5102afd25012184a6793927648ea81eea80552ac9405b32"
       url: "https://pub.dev"
     source: hosted
-    version: "4.2.4"
+    version: "5.0.2"
   protobuf:
     dependency: transitive
     description:
@@ -1523,12 +1569,12 @@ packages:
     dependency: "direct main"
     description:
       name: socks5_proxy
-      sha256: e0cba6917cd374de6f6cb0ce081e50e6efc24c61644b8e9f20c8bf8b91bb0b75
+      sha256: "1d21b5606169654bbf4cfb904e8e6ed897e9f763358709f87310c757096d909a"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.3+dev.3"
+    version: "1.0.4"
   socks_socket:
-    dependency: "direct main"
+    dependency: transitive
     description:
       path: "."
       ref: master
@@ -1536,6 +1582,15 @@ packages:
       url: "https://github.com/cypherstack/socks_socket.git"
     source: git
     version: "0.1.0"
+  solana:
+    dependency: "direct main"
+    description:
+      path: "packages/solana"
+      ref: a83e375678eb22fe544dc125d29bbec0fb833882
+      resolved-ref: a83e375678eb22fe544dc125d29bbec0fb833882
+      url: "https://github.com/cypherstack/espresso-cash-public.git"
+    source: git
+    version: "0.30.4"
   source_gen:
     dependency: transitive
     description:
@@ -1605,10 +1660,10 @@ packages:
     dependency: "direct main"
     description:
       name: stellar_flutter_sdk
-      sha256: "4c55b1b6dfbde7f89bba59a422754280715fa3b5726cff5e7eeaed454d2c4b89"
+      sha256: "574e8f40a1a1a9b18a735272196c8d3c8168a669efc8460a4d5d6f45151e8dce"
       url: "https://pub.dev"
     source: hosted
-    version: "1.5.3"
+    version: "1.7.8"
   stream_channel:
     dependency: "direct main"
     description:
@@ -1685,8 +1740,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "8a7070f533e63dd150edae99476f6853bfb25913"
-      resolved-ref: "8a7070f533e63dd150edae99476f6853bfb25913"
+      ref: "13fa937ea9a9fc34caf047e068df9535f65c27ad"
+      resolved-ref: "13fa937ea9a9fc34caf047e068df9535f65c27ad"
       url: "https://github.com/cypherstack/tezart.git"
     source: git
     version: "2.0.5"
@@ -1702,10 +1757,10 @@ packages:
     dependency: transitive
     description:
       name: timezone
-      sha256: "57b35f6e8ef731f18529695bffc62f92c6189fac2e52c12d478dec1931afb66e"
+      sha256: "1cfd8ddc2d1cfd836bc93e67b9be88c3adaeca6f40a00ca999104c30693cdca0"
       url: "https://pub.dev"
     source: hosted
-    version: "0.8.0"
+    version: "0.9.2"
   timing:
     dependency: transitive
     description:
@@ -1879,10 +1934,10 @@ packages:
     dependency: transitive
     description:
       name: vm_service
-      sha256: c538be99af830f478718b51630ec1b6bee5e74e52c8a802d328d9e71d35d2583
+      sha256: b3d56ff4341b8f182b96aceb2fa20e3dcb336b9f867bc0eafc0de10f1048e957
       url: "https://pub.dev"
     source: hosted
-    version: "11.10.0"
+    version: "13.0.0"
   wakelock:
     dependency: "direct main"
     description:
@@ -1952,10 +2007,10 @@ packages:
     dependency: transitive
     description:
       name: web
-      sha256: afe077240a270dcfd2aafe77602b4113645af95d0ad31128cc02bce5ac5d5152
+      sha256: "97da13628db363c635202ad97068d47c5b8aa555808e7a9411963c533b449b27"
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.0"
+    version: "0.5.1"
   web3dart:
     dependency: "direct main"
     description:
@@ -1965,21 +2020,21 @@ packages:
     source: hosted
     version: "2.6.1"
   web_socket_channel:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: web_socket_channel
-      sha256: d88238e5eac9a42bb43ca4e721edba3c08c6354d4a53063afaa568516217621b
+      sha256: "58c6666b342a38816b2e7e50ed0f1e261959630becd4c879c4f26bfa14aa5a42"
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.0"
+    version: "2.4.5"
   webdriver:
     dependency: transitive
     description:
       name: webdriver
-      sha256: "3c923e918918feeb90c4c9fdf1fe39220fa4c0e8e2c0fffaded174498ef86c49"
+      sha256: "003d7da9519e1e5f329422b36c4dcdf18d7d2978d1ba099ea4e45ba490ed845e"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.2"
+    version: "3.0.3"
   webkit_inspection_protocol:
     dependency: transitive
     description:
@@ -1988,14 +2043,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.1"
-  websocket_universal:
-    dependency: "direct main"
-    description:
-      name: websocket_universal
-      sha256: "681e3050bd70b9c94617394f87a021746d24d4b3c8302be8c6b0b2a3e4209d7f"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.5.2"
   win32:
     dependency: transitive
     description:
@@ -2025,10 +2072,10 @@ packages:
     dependency: transitive
     description:
       name: xdg_directories
-      sha256: bd512f03919aac5f1313eb8249f223bacf4927031bf60b02601f81f687689e86
+      sha256: faea9dee56b520b55a566385b84f2e8de55e7496104adada9962e0bd11bcff1d
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.0+3"
+    version: "1.0.4"
   xml:
     dependency: transitive
     description:
@@ -2062,5 +2109,5 @@ packages:
     source: hosted
     version: "1.0.0"
 sdks:
-  dart: ">=3.2.0-194.0.dev <4.0.0"
-  flutter: ">=3.16.0"
+  dart: ">=3.3.4 <4.0.0"
+  flutter: ">=3.19.6"

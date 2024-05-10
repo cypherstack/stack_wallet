@@ -36,7 +36,7 @@ import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_wallet.dart';
 import 'package:stackwallet/wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
-import 'package:websocket_universal/websocket_universal.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 //
 // refactor of https://github.com/cypherstack/stack_wallet/blob/1d9fb4cd069f22492ece690ac788e05b8f8b1209/lib/services/coins/epiccash/epiccash_wallet.dart
@@ -50,9 +50,9 @@ class EpiccashWallet extends Bip39Wallet {
 
   double highestPercent = 0;
   Future<double> get getSyncPercent async {
-    int lastScannedBlock = info.epicData?.lastScannedBlock ?? 0;
+    final int lastScannedBlock = info.epicData?.lastScannedBlock ?? 0;
     final _chainHeight = await chainHeight;
-    double restorePercent = lastScannedBlock / _chainHeight;
+    final double restorePercent = lastScannedBlock / _chainHeight;
     GlobalEventBus.instance
         .fire(RefreshPercentChangedEvent(highestPercent, walletId));
     if (restorePercent > highestPercent) {
@@ -67,7 +67,7 @@ class EpiccashWallet extends Bip39Wallet {
   }
 
   Future<void> updateEpicboxConfig(String host, int port) async {
-    String stringConfig = jsonEncode({
+    final String stringConfig = jsonEncode({
       "epicbox_domain": host,
       "epicbox_port": port,
       "epicbox_protocol_unsecure": false,
@@ -103,15 +103,16 @@ class EpiccashWallet extends Bip39Wallet {
   }
 
   Future<EpicBoxConfigModel> getEpicBoxConfig() async {
-    EpicBoxConfigModel? _epicBoxConfig =
-    EpicBoxConfigModel.fromServer(DefaultEpicBoxes.defaultEpicBoxServer);
+    final EpicBoxConfigModel _epicBoxConfig = EpicBoxConfigModel.fromServer(
+      DefaultEpicBoxes.defaultEpicBoxServer,
+    );
 
     //Get the default Epicbox server and check if it's conected
     // bool isEpicboxConnected = await _testEpicboxServer(
     //     DefaultEpicBoxes.defaultEpicBoxServer.host, DefaultEpicBoxes.defaultEpicBoxServer.port ?? 443);
 
     // if (isEpicboxConnected) {
-      //Use default server for as Epicbox config
+    //Use default server for as Epicbox config
 
     // }
     // else {
@@ -155,12 +156,12 @@ class EpiccashWallet extends Bip39Wallet {
     config["api_listen_port"] = port;
     config["api_listen_interface"] =
         nodeApiAddress.replaceFirst(uri.scheme, "");
-    String stringConfig = jsonEncode(config);
+    final String stringConfig = jsonEncode(config);
     return stringConfig;
   }
 
   Future<String> _currentWalletDirPath() async {
-    Directory appDir = await StackFileSystem.applicationRootDirectory();
+    final Directory appDir = await StackFileSystem.applicationRootDirectory();
 
     final path = "${appDir.path}/epiccash";
     final String name = walletId.trim();
@@ -175,7 +176,7 @@ class EpiccashWallet extends Bip39Wallet {
     try {
       final available = info.cachedBalance.spendable.raw.toInt();
 
-      var transactionFees = await epiccash.LibEpiccash.getTransactionFees(
+      final transactionFees = await epiccash.LibEpiccash.getTransactionFees(
         wallet: wallet!,
         amount: satoshiAmount,
         minimumConfirmations: cryptoCurrency.minConfirms,
@@ -231,48 +232,33 @@ class EpiccashWallet extends Bip39Wallet {
     );
   }
 
-  Future<bool> _testEpicboxServer(String host, int port) async {
-    // TODO use an EpicBoxServerModel as the only param
-    final websocketConnectionUri = 'wss://$host:$port';
-    const connectionOptions = SocketConnectionOptions(
-      pingIntervalMs: 3000,
-      timeoutConnectionMs: 4000,
+  Future<bool> _testEpicboxServer(EpicBoxConfigModel epicboxConfig) async {
+    final host = epicboxConfig.host;
+    final port = epicboxConfig.port ?? 443;
+    WebSocketChannel? channel;
+    try {
+      final uri = Uri.parse('wss://$host:$port');
 
-      /// see ping/pong messages in [logEventStream] stream
-      skipPingMessages: true,
+      channel = WebSocketChannel.connect(
+        uri,
+      );
 
-      /// Set this attribute to `true` if do not need any ping/pong
-      /// messages and ping measurement. Default is `false`
-      pingRestrictionForce: true,
-    );
+      await channel.ready;
 
-    final IMessageProcessor<String, String> textSocketProcessor =
-        SocketSimpleTextProcessor();
-    final textSocketHandler = IWebSocketHandler<String, String>.createClient(
-      websocketConnectionUri,
-      textSocketProcessor,
-      connectionOptions: connectionOptions,
-    );
+      final response = await channel.stream.first.timeout(
+        const Duration(seconds: 2),
+      );
 
-    // Listening to server responses:
-    bool isConnected = true;
-    textSocketHandler.incomingMessagesStream.listen((inMsg) {
+      return response is String && response.contains("Challenge");
+    } catch (_) {
       Logging.instance.log(
-          '> webSocket  got text message from server: "$inMsg" '
-          '[ping: ${textSocketHandler.pingDelayMs}]',
-          level: LogLevel.Info);
-    });
-
-    // Connecting to server:
-    final isTextSocketConnected = await textSocketHandler.connect();
-    if (!isTextSocketConnected) {
-      // ignore: avoid_print
-      Logging.instance.log(
-          'Connection to [$websocketConnectionUri] failed for some reason!',
-          level: LogLevel.Error);
-      isConnected = false;
+        "_testEpicBoxConnection failed on \"$host:$port\"",
+        level: LogLevel.Info,
+      );
+      return false;
+    } finally {
+      await channel?.sink.close();
     }
-    return isConnected;
   }
 
   Future<bool> _putSendToAddresses(
@@ -317,21 +303,20 @@ class EpiccashWallet extends Bip39Wallet {
   Future<Address> _generateAndStoreReceivingAddressForIndex(
     int index,
   ) async {
-
     Address? address = await getCurrentReceivingAddress();
-    EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
 
     if (address != null) {
       final splitted = address.value.split('@');
       //Check if the address is the same as the current epicbox domain
       //Since we're only using one epicbpox now this doesn't apply but will be
       // useful in the future
-      final encodedConfig = jsonEncode(epicboxConfig);
+      final epicboxConfig = await getEpicBoxConfig();
       if (splitted[1] != epicboxConfig.host) {
         //Update the address
         address = await thisWalletAddress(index, epicboxConfig);
       }
     } else {
+      final epicboxConfig = await getEpicBoxConfig();
       address = await thisWalletAddress(index, epicboxConfig);
     }
 
@@ -344,10 +329,11 @@ class EpiccashWallet extends Bip39Wallet {
     return address;
   }
 
-  Future<Address> thisWalletAddress(int index, EpicBoxConfigModel epicboxConfig) async {
-    final wallet =
-        await secureStorageInterface.read(key: '${walletId}_wallet');
-    // EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
+  Future<Address> thisWalletAddress(
+    int index,
+    EpicBoxConfigModel epicboxConfig,
+  ) async {
+    final wallet = await secureStorageInterface.read(key: '${walletId}_wallet');
 
     final walletAddress = await epiccash.LibEpiccash.getAddressInfo(
       wallet: wallet!,
@@ -398,7 +384,7 @@ class EpiccashWallet extends Bip39Wallet {
           level: LogLevel.Info,
         );
 
-        int nextScannedBlock = await epiccash.LibEpiccash.scanOutputs(
+        final int nextScannedBlock = await epiccash.LibEpiccash.scanOutputs(
           wallet: wallet!,
           startHeight: lastScannedBlock,
           numberOfBlocks: scanChunkSize,
@@ -438,7 +424,7 @@ class EpiccashWallet extends Bip39Wallet {
   Future<void> _listenToEpicbox() async {
     Logging.instance.log("STARTING WALLET LISTENER ....", level: LogLevel.Info);
     final wallet = await secureStorageInterface.read(key: '${walletId}_wallet');
-    EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
+    final EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
     epiccash.LibEpiccash.startEpicboxListener(
       wallet: wallet!,
       epicboxConfig: epicboxConfig.toString(),
@@ -452,7 +438,7 @@ class EpiccashWallet extends Bip39Wallet {
     );
     if (Platform.isIOS) {
       final walletDir = await _currentWalletDirPath();
-      var editConfig = jsonDecode(config as String);
+      final editConfig = jsonDecode(config as String);
 
       editConfig["wallet_dir"] = walletDir;
       config = jsonEncode(editConfig);
@@ -462,14 +448,11 @@ class EpiccashWallet extends Bip39Wallet {
 
   // TODO: make more robust estimate of date maybe using https://explorer.epic.tech/api-index
   int _calculateRestoreHeightFrom({required DateTime date}) {
-    int secondsSinceEpoch = date.millisecondsSinceEpoch ~/ 1000;
+    final int secondsSinceEpoch = date.millisecondsSinceEpoch ~/ 1000;
     const int epicCashFirstBlock = 1565370278;
     const double overestimateSecondsPerBlock = 61;
-    int chosenSeconds = secondsSinceEpoch - epicCashFirstBlock;
-    int approximateHeight = chosenSeconds ~/ overestimateSecondsPerBlock;
-    //todo: check if print needed
-    // debugPrint(
-    //     "approximate height: $approximateHeight chosen_seconds: $chosenSeconds");
+    final int chosenSeconds = secondsSinceEpoch - epicCashFirstBlock;
+    final int approximateHeight = chosenSeconds ~/ overestimateSecondsPerBlock;
     int height = approximateHeight;
     if (height < 0) {
       height = 0;
@@ -517,7 +500,7 @@ class EpiccashWallet extends Bip39Wallet {
         await secureStorageInterface.write(
             key: '${walletId}_epicboxConfig', value: epicboxConfig.toString());
 
-        String name = walletId;
+        final String name = walletId;
 
         await epiccash.LibEpiccash.initializeNewWallet(
           config: stringConfig,
@@ -601,8 +584,9 @@ class EpiccashWallet extends Bip39Wallet {
 
       if (!receiverAddress.startsWith("http://") ||
           !receiverAddress.startsWith("https://")) {
-        bool isEpicboxConnected = await _testEpicboxServer(
-            epicboxConfig.host, epicboxConfig.port ?? 443);
+        final bool isEpicboxConnected = await _testEpicboxServer(
+          epicboxConfig,
+        );
         if (!isEpicboxConnected) {
           throw Exception("Failed to send TX : Unable to reach epicbox server");
         }
@@ -942,7 +926,6 @@ class EpiccashWallet extends Bip39Wallet {
           .findAll();
       final myAddressesSet = myAddresses.toSet();
 
-
       final transactions = await epiccash.LibEpiccash.getTransactions(
         wallet: wallet!,
         refreshFromNode: refreshFromNode,
@@ -983,7 +966,7 @@ class EpiccashWallet extends Bip39Wallet {
           ],
           walletOwns: true,
         );
-        InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
+        final InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
           scriptSigHex: null,
           scriptSigAsm: null,
           sequence: null,
@@ -1120,7 +1103,7 @@ class EpiccashWallet extends Bip39Wallet {
   @override
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
     // setting ifErrorEstimateFee doesn't do anything as its not used in the nativeFee function?????
-    int currentFee = await _nativeFee(
+    final int currentFee = await _nativeFee(
       amount.raw.toInt(),
       ifErrorEstimateFee: true,
     );
@@ -1165,13 +1148,13 @@ Future<String> deleteEpicWallet({
   final wallet = await secureStore.read(key: '${walletId}_wallet');
   String? config = await secureStore.read(key: '${walletId}_config');
   if (Platform.isIOS) {
-    Directory appDir = await StackFileSystem.applicationRootDirectory();
+    final Directory appDir = await StackFileSystem.applicationRootDirectory();
 
     final path = "${appDir.path}/epiccash";
     final String name = walletId.trim();
     final walletDir = '$path/$name';
 
-    var editConfig = jsonDecode(config as String);
+    final editConfig = jsonDecode(config as String);
 
     editConfig["wallet_dir"] = walletDir;
     config = jsonEncode(editConfig);

@@ -11,18 +11,18 @@ description: Stack Wallet
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.10.4+217
+version: 2.0.0+220
 
 environment:
-  sdk: ">=3.0.2 <4.0.0"
-  flutter: ^3.16.0
+  sdk: ">=3.3.4 <4.0.0"
+  flutter: ^3.19.6
 
 dependencies:
   flutter:
     sdk: flutter
   ffi: ^2.0.1
   mutex: ^3.0.0
-  websocket_universal: ^0.5.1
+  web_socket_channel: ^2.4.5
 
   lelantus:
     path: ./crypto_plugins/flutter_liblelantus
@@ -33,7 +33,7 @@ dependencies:
   flutter_libsparkmobile:
     git:
       url: https://github.com/cypherstack/flutter_libsparkmobile.git
-      ref: 3f986ca1a94bdac5d31373454c989cc2f5842de8
+      ref: 439727b278250c61a291f5335c298c0f2d952517
 
   flutter_libmonero:
     path: ./crypto_plugins/flutter_libmonero
@@ -73,13 +73,13 @@ dependencies:
   fusiondart:
     git:
       url: https://github.com/cypherstack/fusiondart.git
-      ref: df8f7c627cfc77eaa3e364c0d166f3d04169ae05
+      ref: 7dd8ff0dc9cb0caaac795fa44841a26437edfec3
 
   # Utility plugins
   http: ^0.13.0
   local_auth: ^1.1.10
   permission_handler: ^11.0.0
-  flutter_local_notifications: ^9.4.0
+  flutter_local_notifications: ^17.0.0
   rxdart: ^0.27.3
   zxcvbn: ^1.0.0
   dart_numerics: ^0.0.6
@@ -124,7 +124,6 @@ dependencies:
   decimal: ^2.1.0
   event_bus: ^2.0.0
   uuid: ^3.0.5
-  flutter_rounded_date_picker: ^3.0.1
   crypto: ^3.0.2
   barcode_scan2: ^4.2.3
   wakelock: ^0.6.2
@@ -156,31 +155,29 @@ dependencies:
   desktop_drop: ^0.4.1
   nanodart: ^2.0.0
   basic_utils: ^5.5.4
-  stellar_flutter_sdk: ^1.5.3
-  socks_socket:
-    git:
-      url: https://github.com/cypherstack/socks_socket.git
-      ref: master
+  stellar_flutter_sdk: ^1.7.8
   bip340: ^0.2.0
 #  tezart: ^2.0.5
   tezart:
     git:
       url: https://github.com/cypherstack/tezart.git
-      ref: 8a7070f533e63dd150edae99476f6853bfb25913
+      ref: 13fa937ea9a9fc34caf047e068df9535f65c27ad
   socks5_proxy: ^1.0.3+dev.3
   convert: ^3.1.1
   flutter_hooks: ^0.20.3
   meta: ^1.9.1
-  coinlib_flutter:
-    git:
-      url: https://github.com/cypherstack/coinlib.git
-      path: coinlib_flutter
-      ref: 376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7
+  coinlib_flutter: ^2.0.0
   electrum_adapter:
     git:
       url: https://github.com/cypherstack/electrum_adapter.git
       ref: 9e9441fc1e9ace8907256fff05fe2c607b0933b6
   stream_channel: ^2.1.0
+  solana:
+    git: # TODO [prio=low]: Revert to official package once Tor support is merged upstream.
+      url: https://github.com/cypherstack/espresso-cash-public.git
+      ref: a83e375678eb22fe544dc125d29bbec0fb833882
+      path: packages/solana
+  calendar_date_picker2: ^1.0.2
 
 dev_dependencies:
   flutter_test:
@@ -227,17 +224,6 @@ dependency_overrides:
       url: https://github.com/cypherstack/bip47.git
       ref: a6e7941b98a43a613708b1a12564bc17e712cfc7
 
-  coinlib_flutter:
-    git:
-      url: https://github.com/cypherstack/coinlib.git
-      path: coinlib_flutter
-      ref: 376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7
-  coinlib:
-    git:
-      url: https://github.com/cypherstack/coinlib.git
-      path: coinlib
-      ref: 376d520b4516d4eb7c3f0bd4b1522f7769f3f2a7
-
   # required for dart 3, at least until a fix is merged upstream
   wakelock_windows:
     git:
@@ -266,6 +252,8 @@ dependency_overrides:
   crypto: 3.0.2
   analyzer: ^5.2.0
   pinenacl: ^0.3.3
+  http: ^0.13.0
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

@@ -68,7 +68,6 @@ class Prefs extends ChangeNotifier {
       await _setMaxDecimals();
       _useTor = await _getUseTor();
       _fusionServerInfo = await _getFusionServerInfo();
-      _frostEnabled = await _getFrostEnabled();
 
       _initialized = true;
     }
@@ -1008,26 +1007,5 @@ class Prefs extends ChangeNotifier {
     }
 
     return actualMap;
-  }
-
-  // FROST multisig
-
-  bool _frostEnabled = false;
-
-  bool get frostEnabled => _frostEnabled;
-
-  set frostEnabled(bool frostEnabled) {
-    if (_frostEnabled != frostEnabled) {
-      DB.instance.put<dynamic>(
-          boxName: DB.boxNamePrefs, key: "frostEnabled", value: frostEnabled);
-      _frostEnabled = frostEnabled;
-      notifyListeners();
-    }
-  }
-
-  Future<bool> _getFrostEnabled() async {
-    return await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "frostEnabled") as bool? ??
-        false;
   }
 }

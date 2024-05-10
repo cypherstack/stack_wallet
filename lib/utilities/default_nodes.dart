@@ -17,30 +17,9 @@ abstract class DefaultNodes {
   static const String defaultName = "Stack Default";
 
   @Deprecated("old and decrepit")
-  static List<NodeModel> get all => [
-        bitcoin,
-        litecoin,
-        dogecoin,
-        firo,
-        monero,
-        eCash,
-        epicCash,
-        ethereum,
-        bitcoincash,
-        namecoin,
-        wownero,
-        particl,
-        stellar,
-        nano,
-        banano,
-        tezos,
-        bitcoinTestnet,
-        litecoinTestNet,
-        bitcoincashTestnet,
-        dogecoinTestnet,
-        firoTestnet,
-        stellarTestnet,
-      ];
+  static List<NodeModel> get all => Coin.values
+      .map((e) => DefaultNodes.getNodeFor(e))
+      .toList(growable: false);
 
   static NodeModel get bitcoin => NodeModel(
         host: "bitcoin.stackwallet.com",
@@ -188,6 +167,31 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
+  static NodeModel get peercoin => NodeModel(
+        host: "electrum.peercoinexplorer.net",
+        port: 50002,
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(Coin.peercoin),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.peercoin.name,
+        isFailover: true,
+        isDown: false,
+      );
+
+  static NodeModel get solana => NodeModel(
+        host:
+            "https://api.mainnet-beta.solana.com", // TODO: Change this to stack wallet one
+        port: 443,
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(Coin.solana),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.solana.name,
+        isFailover: true,
+        isDown: false,
+      );
+
   static NodeModel get stellar => NodeModel(
         host: "https://horizon.stellar.org",
         port: 443,
@@ -297,6 +301,18 @@ abstract class DefaultNodes {
         isDown: false,
       );
 
+  static NodeModel get peercoinTestNet => NodeModel(
+        host: "testnet-electrum.peercoinexplorer.net",
+        port: 50002,
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(Coin.peercoinTestNet),
+        useSSL: true,
+        enabled: true,
+        coinName: Coin.peercoinTestNet.name,
+        isFailover: true,
+        isDown: false,
+      );
+
   static NodeModel get stellarTestnet => NodeModel(
         host: "https://horizon-testnet.stellar.org/",
         port: 50022,
@@ -347,6 +363,15 @@ abstract class DefaultNodes {
 
       case Coin.particl:
         return particl;
+
+      case Coin.peercoin:
+        return peercoin;
+
+      case Coin.peercoinTestNet:
+        return peercoinTestNet;
+
+      case Coin.solana:
+        return solana;
 
       case Coin.stellar:
         return stellar;

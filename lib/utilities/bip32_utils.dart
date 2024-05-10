@@ -10,7 +10,6 @@
 
 import 'package:bip32/bip32.dart' as bip32;
 import 'package:bip39/bip39.dart' as bip39;
-import 'package:bitcoindart/bitcoindart.dart';
 import 'package:flutter/foundation.dart';
 import 'package:tuple/tuple.dart';
 
@@ -19,25 +18,17 @@ abstract class Bip32Utils {
   static bip32.BIP32 getBip32RootSync(
     String mnemonic,
     String mnemonicPassphrase,
-    NetworkType networkType,
+    bip32.NetworkType networkType,
   ) {
     final seed = bip39.mnemonicToSeed(mnemonic, passphrase: mnemonicPassphrase);
-    final _networkType = bip32.NetworkType(
-      wif: networkType.wif,
-      bip32: bip32.Bip32Type(
-        public: networkType.bip32.public,
-        private: networkType.bip32.private,
-      ),
-    );
-
-    final root = bip32.BIP32.fromSeed(seed, _networkType);
+    final root = bip32.BIP32.fromSeed(seed, networkType);
     return root;
   }
 
   static Future<bip32.BIP32> getBip32Root(
     String mnemonic,
     String mnemonicPassphrase,
-    NetworkType networkType,
+    bip32.NetworkType networkType,
   ) async {
     final root = await compute(
       _getBip32RootWrapper,
@@ -52,7 +43,7 @@ abstract class Bip32Utils {
 
   /// wrapper for compute()
   static bip32.BIP32 _getBip32RootWrapper(
-    Tuple3<String, String, NetworkType> args,
+    Tuple3<String, String, bip32.NetworkType> args,
   ) {
     return getBip32RootSync(
       args.item1,
@@ -97,7 +88,7 @@ abstract class Bip32Utils {
   static bip32.BIP32 getBip32NodeSync(
     String mnemonic,
     String mnemonicPassphrase,
-    NetworkType network,
+    bip32.NetworkType network,
     String derivePath,
   ) {
     final root = getBip32RootSync(mnemonic, mnemonicPassphrase, network);
@@ -109,7 +100,7 @@ abstract class Bip32Utils {
   static Future<bip32.BIP32> getBip32Node(
     String mnemonic,
     String mnemonicPassphrase,
-    NetworkType networkType,
+    bip32.NetworkType networkType,
     String derivePath,
   ) async {
     final node = await compute(
@@ -126,7 +117,7 @@ abstract class Bip32Utils {
 
   /// wrapper for compute()
   static bip32.BIP32 _getBip32NodeWrapper(
-    Tuple4<String, String, NetworkType, String> args,
+    Tuple4<String, String, bip32.NetworkType, String> args,
   ) {
     return getBip32NodeSync(
       args.item1,

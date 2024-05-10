@@ -20,6 +20,9 @@ class Stellar extends Bip39Currency {
   int get minConfirms => 1;
 
   @override
+  bool get torSupport => true;
+
+  @override
   String get genesisHash => throw UnimplementedError(
         "Not used for stellar",
       );
@@ -39,4 +42,12 @@ class Stellar extends Bip39Currency {
   @override
   bool validateAddress(String address) =>
       RegExp(r"^[G][A-Z0-9]{55}$").hasMatch(address);
+
+  @override
+  bool operator ==(Object other) {
+    return other is Stellar && other.network == network;
+  }
+
+  @override
+  int get hashCode => Object.hash(Stellar, network);
 }

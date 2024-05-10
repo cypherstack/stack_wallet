@@ -11,6 +11,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -46,7 +47,7 @@ import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
 class AddWalletView extends ConsumerStatefulWidget {
-  const AddWalletView({Key? key}) : super(key: key);
+  const AddWalletView({super.key});
 
   static const routeName = "/addWallet";
 
@@ -134,18 +135,14 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
       _coins.remove(Coin.wownero);
     }
 
-    // Remove FROST from the list of coins based on our frostEnabled preference.
-    if (!ref.read(prefsChangeNotifierProvider).frostEnabled) {
+    if (Util.isDesktop && !kDebugMode) {
       _coins.remove(Coin.bitcoinFrost);
+      _coins.remove(Coin.bitcoinFrostTestNet);
     }
 
     coinEntities.addAll(_coins.map((e) => CoinEntity(e)));
 
     if (ref.read(prefsChangeNotifierProvider).showTestNetCoins) {
-      if (!ref.read(prefsChangeNotifierProvider).frostEnabled) {
-        _coinsTestnet.remove(Coin.bitcoinFrostTestNet);
-      }
-
       coinEntities.addAll(_coinsTestnet.map((e) => CoinEntity(e)));
     }
 

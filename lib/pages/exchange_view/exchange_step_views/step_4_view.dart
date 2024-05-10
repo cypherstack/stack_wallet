@@ -225,6 +225,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
           builder: (context) {
             return BuildingTransactionDialog(
               coin: wallet.info.coin,
+              isSpark: wallet is FiroWallet && !firoPublicSend,
               onCancel: () {
                 wasCancelled = true;
               },
@@ -249,7 +250,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                 address: address,
                 amount: amount,
                 isChange: false,
-              )
+              ),
             ],
             note: "${model.trade!.payInCurrency.toUpperCase()}/"
                 "${model.trade!.payOutCurrency.toUpperCase()} exchange",
@@ -472,10 +473,10 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                       GestureDetector(
                                         onTap: () async {
                                           final data = ClipboardData(
-                                              text:
-                                                  model.sendAmount.toString());
+                                            text: model.sendAmount.toString(),
+                                          );
                                           await clipboard.setData(data);
-                                          if (mounted) {
+                                          if (context.mounted) {
                                             unawaited(
                                               showFloatingFlushBar(
                                                 type: FlushBarType.info,
@@ -535,9 +536,10 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                       GestureDetector(
                                         onTap: () async {
                                           final data = ClipboardData(
-                                              text: model.trade!.payInAddress);
+                                            text: model.trade!.payInAddress,
+                                          );
                                           await clipboard.setData(data);
-                                          if (mounted) {
+                                          if (context.mounted) {
                                             unawaited(
                                               showFloatingFlushBar(
                                                 type: FlushBarType.info,
@@ -598,10 +600,10 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                         GestureDetector(
                                           onTap: () async {
                                             final data = ClipboardData(
-                                                text:
-                                                    model.trade!.payInExtraId);
+                                              text: model.trade!.payInExtraId,
+                                            );
                                             await clipboard.setData(data);
-                                            if (mounted) {
+                                            if (context.mounted) {
                                               unawaited(
                                                 showFloatingFlushBar(
                                                   type: FlushBarType.info,
@@ -670,9 +672,10 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                       GestureDetector(
                                         onTap: () async {
                                           final data = ClipboardData(
-                                              text: model.trade!.tradeId);
+                                            text: model.trade!.tradeId,
+                                          );
                                           await clipboard.setData(data);
-                                          if (mounted) {
+                                          if (context.mounted) {
                                             unawaited(
                                               showFloatingFlushBar(
                                                 type: FlushBarType.info,
@@ -689,9 +692,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                               .infoItemIcons,
                                           width: 12,
                                         ),
-                                      )
+                                      ),
                                     ],
-                                  )
+                                  ),
                                 ],
                               ),
                             ),
@@ -739,7 +742,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                             child: Text(
                                               "Send ${model.sendTicker} to this address",
                                               style: STextStyles.pageTitleH2(
-                                                  context),
+                                                context,
+                                              ),
                                             ),
                                           ),
                                           const SizedBox(
@@ -773,12 +777,13 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                   style: Theme.of(context)
                                                       .extension<StackColors>()!
                                                       .getSecondaryEnabledButtonStyle(
-                                                          context),
+                                                        context,
+                                                      ),
                                                   child: Text(
                                                     "Cancel",
                                                     style: STextStyles.button(
-                                                            context)
-                                                        .copyWith(
+                                                      context,
+                                                    ).copyWith(
                                                       color: Theme.of(context)
                                                           .extension<
                                                               StackColors>()!
@@ -788,7 +793,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                 ),
                                               ),
                                             ],
-                                          )
+                                          ),
                                         ],
                                       ),
                                     );
@@ -814,8 +819,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
 
                                   final tuple = ref
                                       .read(
-                                          exchangeSendFromWalletIdStateProvider
-                                              .state)
+                                        exchangeSendFromWalletIdStateProvider
+                                            .state,
+                                      )
                                       .state;
                                   if (tuple != null &&
                                       model.sendTicker.toLowerCase() ==
@@ -845,8 +851,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                     (BuildContext context) {
                                                   final coin =
                                                       coinFromTickerCaseInsensitive(
-                                                          model.trade!
-                                                              .payInCurrency);
+                                                    model.trade!.payInCurrency,
+                                                  );
                                                   return SendFromView(
                                                     coin: coin,
                                                     amount: model.sendAmount
@@ -868,7 +874,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                     style: Theme.of(context)
                                         .extension<StackColors>()!
                                         .getSecondaryEnabledButtonStyle(
-                                            context),
+                                          context,
+                                        ),
                                     child: Text(
                                       buttonTitle,
                                       style:

@@ -9,7 +9,22 @@ Here you will find instructions on how to install the necessary tools for buildi
 - 100 GB of storage
 
 ## Linux host
+
 The following instructions are for building and running on a Linux host.  Alternatively, see the [Mac](#mac-host) and/or [Windows](#windows-host) section.  This entire section (except for the Android Studio section) needs to be completed in WSL if building on a Windows host.
+
+### Flutter
+Install Flutter 3.19.6 by [following their guide](https://docs.flutter.dev/get-started/install/linux/desktop?tab=download#install-the-flutter-sdk).  You can also clone https://github.com/flutter/flutter, check out the `3.19.6` tag, and add its `flutter/bin` folder to your PATH as in
+```sh
+FLUTTER_DIR="$HOME/development/flutter"
+git clone https://github.com/flutter/flutter.git "$FLUTTER_DIR"
+cd "$FLUTTER_DIR"
+git checkout 3.16.9
+echo 'export PATH="$PATH:'"$FLUTTER_DIR"'/bin"' >> "$HOME/.profile"
+source "$HOME/.profile"
+flutter precache
+```
+
+Run `flutter doctor` in a terminal to confirm its installation.
 
 ### Android Studio
 Install Android Studio.  Follow instructions here [https://developer.android.com/studio/install#linux](https://developer.android.com/studio/install#linux) or install via snap:
@@ -35,17 +50,7 @@ The following *may* be needed for Android studio:
 sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-1.0:i386
 ```
 
-### Flutter
-
-Flutter and the Dart SDK should have been set up by Android studio, but if running `flutter` doesn't work (try `flutter doctor`, too), follow the [guide to install Flutter on any of their supported platforms](https://docs.flutter.dev/get-started/install) or:
- - `git clone https://github.com/flutter/flutter` somewhere it can live (`/var`, `/opt`, `~`)
- - `git checkout 3.16.0` after navigating into the `flutter` directory, and 
- - add `flutter/bin` to your PATH (on Ubuntu, add `PATH=$PATH:path/to/flutter/bin` to `~/.profile`).
-
-Run `flutter doctor` to install any missing dependencies and review and agree to any license agreements.
-
 ### Build dependencies
-
 Install basic dependencies
 ```
 sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm python3-distutils
@@ -55,10 +60,7 @@ Install [Rust](https://www.rust-lang.org/tools/install) with command:
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source ~/.bashrc 
-rustup install 1.73.0 # For cargo-ndk.
-rustup install 1.72.0 # For frostdart & tor.
-rustup install 1.73.0 # For cargo-ndk.
-rustup install 1.67.1 # For flutter_libepiccash.
+rustup install 1.67.1 1.72.0 1.73.0
 rustup default 1.67.1
 ```
 
@@ -100,11 +102,11 @@ Coinlib's native secp256k1 library must be built prior to running Stack Wallet. 
  - Linux host for Windows targets: `dart run coinlib:build_windows_crosscompile`
  - Windows host: `dart run coinlib:build_windows`
  - WSL2 host: `dart run coinlib:build_wsl`
-<!-- - macOS host: `dart run coinlib:build_macos` -->
+ - macOS host: `dart run coinlib:build_macos`
 
 To build coinlib on Linux, you will need `docker` (see [installation instructions](https://docs.docker.com/engine/install/ubuntu/)) or [`podman`](https://podman.io/docs/installation) (`sudo apt-get -y install podman`)
 
-For Windows targets, you can use a `secp256k1.dll` produced by any of the three bottom<!--^H^H^H^H^H^Hmiddle--> options if the first attempt doesn't succeed!
+For Windows targets, you can use a `secp256k1.dll` produced by any of the three middle options if the first attempt doesn't succeed.
 
 ### Run prebuild script
 
@@ -221,7 +223,6 @@ cd scripts/macos
 ```
 
 ### Run prebuild script
-
 Certain test wallet parameter and API key template files must be created in order to run Stack Wallet.  These can be created by script as in
 ```
 cd scripts
@@ -247,6 +248,7 @@ flutter run macos
 ```
 
 ## Windows host
+
 ### Visual Studio
 Visual Studio is required for Windows development with the Flutter SDK.  Download it at https://visualstudio.microsoft.com/downloads/ and install the "Desktop development with C++", "Linux development with C++", and "Visual C++ build tools" workloads.  You may also need the Windows 10, 11, and/or Universal SDK workloads depending on your Windows version.
 
@@ -277,12 +279,21 @@ Copy the resulting `dll`s to their respective positions on the Windows host:
 -->
 <!-- TODO: script the copying or installation of libraries from WSL2 to the parent Windows host -->
 
-### Flutter
-Install Flutter 3.16.0 on the Windows host (not in WSL2) by following [Flutter's Windows install guide](https://docs.flutter.dev/get-started/install/windows), by running `scripts/windows/deps.ps1`, or by
- - `git clone https://github.com/flutter/flutter` somewhere it can live (`C:`, **avoid** anywhere in `C:/Users/`),
- - `git checkout 3.16.9` (after navigating into the `flutter` folder),
- - adding `flutter\bin`'s full absolute path to your PATH environment variable (search "environment variables" in the Start menu.  If you ran `deps.ps1`, use `C:\development\flutter\bin`.  You may also need to open a new terminal),
- - and running `flutter doctor` in PowerShell to confirm its installation.  You may need to resolve any issues which `flutter doctor` might raise.
+Frostdart will be built by the Windows host later.
+
+### Install Flutter on Windows host
+Install Flutter 3.19.6 on your Windows host (not in WSL2) by [following their guide](https://docs.flutter.dev/get-started/install/windows/desktop?tab=download#install-the-flutter-sdk) or by cloning https://github.com/flutter/flutter, checking out the `3.19.6` tag, and adding its `flutter/bin` folder to your PATH as in
+```bat
+@echo off
+set "FLUTTER_DIR=%USERPROFILE%\development\flutter"
+git clone https://github.com/flutter/flutter.git "%FLUTTER_DIR%"
+cd /d "%FLUTTER_DIR%"
+git checkout 3.16.9
+setx PATH "%PATH%;%FLUTTER_DIR%\bin"
+echo Flutter setup completed. Please restart your command prompt.
+```
+
+Run `flutter doctor` in PowerShell to confirm its installation.
 
 ### Rust
 Install [Rust](https://www.rust-lang.org/tools/install) on the Windows host (not in WSL2).  Download the installer from [rustup.rs](https://rustup.rs), make sure it works on the commandline (you may need to open a new terminal), and install the following versions:
@@ -317,14 +328,22 @@ or [download the package](https://www.nuget.org/packages/Microsoft.Windows.CppWi
 
 ### Run prebuild script
 
-Certain test wallet parameter and API key template files must be created in order to run Stack Wallet on Windows.  These can be created by script as in
+Certain test wallet parameter and API key template files must be created in order to run Stack Wallet on Windows.  These can be created by script using PowerShell on the Windows host as in
 ```
 cd scripts
 ./prebuild.ps1
-// when finished go back to the root directory
-cd ..
+cd .. // When finished go back to the root directory.
 ```
 or manually by creating the files referenced in that script with the specified content. 
+
+### Build frostdart
+
+In PowerShell on the Windows host, navigate to the `stack_wallet` folder:
+```
+cd crypto_plugins/frostdart
+./build_all.bat
+cd .. // When finished go back to the root directory.
+```
 
 ### Running
 
@@ -333,3 +352,11 @@ Run the following commands:
 flutter pub get
 flutter run -d windows
 ```
+
+# Troubleshooting
+
+Run with `-v` or `--verbose` to see a more detailed error.  Certain exceptions (like missing a plugin library) may not report quality errors without `verbose`, especially on Windows.
+
+## Tor
+
+To test Tor usage, run Stack Wallet from Android Studio.  Click the Flutter DevTools icon in the Run tab (next to the Hot Reload and Hot Restart buttons) and navigate to the Network tab.  Connections using Tor will show as `GET InternetAddress('127.0.0.1', IPv4) 101 ws`.  Connections outside of Tor will show the destination address directly (although some Tor requests may also show the destination address directly, check the Headers take for *eg.* `{localPort: 59940, remoteAddress: 127.0.0.1, remotePort: 6725}`.  `localPort` should match your Tor port.

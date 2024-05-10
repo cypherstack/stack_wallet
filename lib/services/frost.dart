@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:typed_data';
 
@@ -551,11 +552,14 @@ abstract class Frost {
 
   static ({
     int newThreshold,
-    List<int> resharers,
+    Map<String, int> resharers,
     List<String> newParticipants,
   }) extractResharerConfigData({
-    required String resharerConfig,
+    required String rConfig,
   }) {
+    final decoded = _decodeRConfigWithResharers(rConfig);
+    final resharerConfig = decoded.config;
+
     try {
       final newThreshold = resharerNewThreshold(
         resharerConfigPointer: decodedResharerConfig(
@@ -597,9 +601,17 @@ abstract class Frost {
         );
       }
 
+      final Map<String, int> resharersMap = {};
+
+      for (final resharer in resharers) {
+        resharersMap[decoded.resharers.entries
+            .firstWhere((e) => e.value == resharer)
+            .key] = resharer;
+      }
+
       return (
         newThreshold: newThreshold,
-        resharers: resharers,
+        resharers: resharersMap,
         newParticipants: newParticipants,
       );
     } catch (e, s) {
@@ -609,5 +621,30 @@ abstract class Frost {
       );
       rethrow;
     }
+  }
+
+  static String encodeRConfig(
+    String config,
+    Map<String, int> resharers,
+  ) {
+    return base64Encode("$config@${jsonEncode(resharers)}".toUint8ListFromUtf8);
+  }
+
+  static String decodeRConfig(
+    String rConfig,
+  ) {
+    return base64Decode(rConfig).toUtf8String.split("@").first;
+  }
+
+  static ({Map<String, int> resharers, String config})
+      _decodeRConfigWithResharers(
+    String rConfig,
+  ) {
+    final parts = base64Decode(rConfig).toUtf8String.split("@");
+
+    final config = parts[0];
+    final resharers = Map<String, int>.from(jsonDecode(parts[1]) as Map);
+
+    return (resharers: resharers, config: config);
   }
 }

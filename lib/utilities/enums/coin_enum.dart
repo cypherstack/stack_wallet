@@ -26,6 +26,8 @@ enum Coin {
   namecoin,
   nano,
   particl,
+  peercoin,
+  solana,
   stellar,
   tezos,
   wownero,
@@ -41,6 +43,7 @@ enum Coin {
   dogecoinTestNet,
   firoTestNet,
   litecoinTestNet,
+  peercoinTestNet,
   stellarTestnet,
 }
 
@@ -69,6 +72,10 @@ extension CoinExt on Coin {
         return "Monero";
       case Coin.particl:
         return "Particl";
+      case Coin.peercoin:
+        return "Peercoin";
+      case Coin.solana:
+        return "Solana";
       case Coin.stellar:
         return "Stellar";
       case Coin.tezos:
@@ -93,6 +100,8 @@ extension CoinExt on Coin {
         return "tFiro";
       case Coin.dogecoinTestNet:
         return "tDogecoin";
+      case Coin.peercoinTestNet:
+        return "tPeercoin";
       case Coin.stellarTestnet:
         return "tStellar";
     }
@@ -121,6 +130,10 @@ extension CoinExt on Coin {
         return "XMR";
       case Coin.particl:
         return "PART";
+      case Coin.peercoin:
+        return "PPC";
+      case Coin.solana:
+        return "SOL";
       case Coin.stellar:
         return "XLM";
       case Coin.tezos:
@@ -144,6 +157,8 @@ extension CoinExt on Coin {
         return "tFIRO";
       case Coin.dogecoinTestNet:
         return "tDOGE";
+      case Coin.peercoinTestNet:
+        return "tPPC";
       case Coin.stellarTestnet:
         return "tXLM";
     }
@@ -173,6 +188,10 @@ extension CoinExt on Coin {
         return "monero";
       case Coin.particl:
         return "particl";
+      case Coin.peercoin:
+        return "peercoin";
+      case Coin.solana:
+        return "solana";
       case Coin.stellar:
         return "stellar";
       case Coin.tezos:
@@ -196,6 +215,8 @@ extension CoinExt on Coin {
         return "firo";
       case Coin.dogecoinTestNet:
         return "dogecoin";
+      case Coin.peercoinTestNet:
+        return "peercoin";
       case Coin.stellarTestnet:
         return "stellar";
     }
@@ -215,6 +236,8 @@ extension CoinExt on Coin {
       case Coin.firoTestNet:
       case Coin.namecoin:
       case Coin.particl:
+      case Coin.peercoin:
+      case Coin.peercoinTestNet:
       case Coin.ethereum:
       case Coin.eCash:
       case Coin.stellar:
@@ -229,6 +252,7 @@ extension CoinExt on Coin {
       case Coin.nano:
       case Coin.banano:
       case Coin.tezos:
+      case Coin.solana:
         return false;
     }
   }
@@ -247,6 +271,8 @@ extension CoinExt on Coin {
       case Coin.firo:
       case Coin.namecoin:
       case Coin.particl:
+      case Coin.peercoin:
+      case Coin.peercoinTestNet:
       case Coin.eCash:
       case Coin.epicCash:
       case Coin.monero:
@@ -259,6 +285,7 @@ extension CoinExt on Coin {
       case Coin.firoTestNet:
       case Coin.nano:
       case Coin.banano:
+      case Coin.solana:
       case Coin.stellar:
       case Coin.stellarTestnet:
         return false;
@@ -275,6 +302,7 @@ extension CoinExt on Coin {
       case Coin.firo:
       case Coin.namecoin:
       case Coin.particl:
+      case Coin.peercoin:
       case Coin.epicCash:
       case Coin.ethereum:
       case Coin.monero:
@@ -284,6 +312,7 @@ extension CoinExt on Coin {
       case Coin.banano:
       case Coin.eCash:
       case Coin.stellar:
+      case Coin.solana:
         return false;
 
       case Coin.dogecoinTestNet:
@@ -292,6 +321,7 @@ extension CoinExt on Coin {
       case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
+      case Coin.peercoinTestNet:
       case Coin.stellarTestnet:
         return true;
     }
@@ -318,6 +348,7 @@ extension CoinExt on Coin {
       case Coin.firo:
       case Coin.namecoin:
       case Coin.particl:
+      case Coin.peercoin:
       case Coin.epicCash:
       case Coin.ethereum:
       case Coin.monero:
@@ -327,6 +358,7 @@ extension CoinExt on Coin {
       case Coin.banano:
       case Coin.eCash:
       case Coin.stellar:
+      case Coin.solana:
         return this;
 
       case Coin.dogecoinTestNet:
@@ -347,6 +379,9 @@ extension CoinExt on Coin {
       case Coin.firoTestNet:
         return Coin.firo;
 
+      case Coin.peercoinTestNet:
+        return Coin.peercoin;
+
       case Coin.stellarTestnet:
         return Coin.stellar;
     }
@@ -363,6 +398,8 @@ extension CoinExt on Coin {
       case Coin.litecoinTestNet:
       case Coin.namecoin:
       case Coin.particl:
+      case Coin.peercoin:
+      case Coin.peercoinTestNet:
         return AddressType.p2wpkh;
 
       case Coin.bitcoinFrost:
@@ -400,6 +437,9 @@ extension CoinExt on Coin {
       case Coin.stellar:
       case Coin.stellarTestnet:
         return AddressType.stellar;
+
+      case Coin.solana:
+        return AddressType.solana;
     }
   }
 }
@@ -447,6 +487,19 @@ Coin coinFromPrettyName(String name) {
     case "Particl":
     case "particl":
       return Coin.particl;
+
+    case "Peercoin":
+    case "peercoin":
+      return Coin.peercoin;
+
+    case "tPeercoin":
+    case "Peercoin Testnet":
+    case "peercoinTestNet":
+      return Coin.peercoinTestNet;
+
+    case "Solana":
+    case "solana":
+      return Coin.solana;
 
     case "Stellar":
     case "stellar":
@@ -548,6 +601,8 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
       return Coin.namecoin;
     case "part":
       return Coin.particl;
+    case "sol":
+      return Coin.solana;
     case "xlm":
       return Coin.stellar;
     case "xtz":

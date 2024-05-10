@@ -62,14 +62,15 @@ class FiroWallet extends Bip39HDWallet
 
   @override
   Future<void> updateTransactions() async {
-    List<Address> allAddressesOld = await fetchAddressesForElectrumXScan();
+    final List<Address> allAddressesOld =
+        await fetchAddressesForElectrumXScan();
 
-    Set<String> receivingAddresses = allAddressesOld
+    final Set<String> receivingAddresses = allAddressesOld
         .where((e) => e.subType == AddressSubType.receiving)
         .map((e) => convertAddressString(e.value))
         .toSet();
 
-    Set<String> changeAddresses = allAddressesOld
+    final Set<String> changeAddresses = allAddressesOld
         .where((e) => e.subType == AddressSubType.change)
         .map((e) => convertAddressString(e.value))
         .toSet();
@@ -98,7 +99,7 @@ class FiroWallet extends Bip39HDWallet
       }
     }
 
-    List<Map<String, dynamic>> allTransactions = [];
+    final List<Map<String, dynamic>> allTransactions = [];
 
     // some lelantus transactions aren't fetched via wallet addresses so they
     // will never show as confirmed in the gui.
@@ -177,7 +178,7 @@ class FiroWallet extends Bip39HDWallet
       bool isMint = false;
       bool isJMint = false;
       bool isSparkMint = false;
-      bool isMasterNodePayment = false;
+      final bool isMasterNodePayment = false;
       final bool isSparkSpend = txData["type"] == 9 && txData["version"] == 3;
       final bool isMySpark = sparkTxids.contains(txData["txid"] as String);
 
@@ -548,8 +549,12 @@ class FiroWallet extends Bip39HDWallet
   }
 
   @override
-  Future<({String? blockedReason, bool blocked, String? utxoLabel})>
-      checkBlockUTXO(
+  Future<
+      ({
+        String? blockedReason,
+        bool blocked,
+        String? utxoLabel,
+      })> checkBlockUTXO(
     Map<String, dynamic> jsonUTXO,
     String? scriptPubKeyHex,
     Map<String, dynamic>? jsonTX,
@@ -557,30 +562,26 @@ class FiroWallet extends Bip39HDWallet
   ) async {
     bool blocked = false;
     String? blockedReason;
-    //
-    // if (jsonTX != null) {
-    //   // check for bip47 notification
-    //   final outputs = jsonTX["vout"] as List;
-    //   for (final output in outputs) {
-    //     List<String>? scriptChunks =
-    //     (output['scriptPubKey']?['asm'] as String?)?.split(" ");
-    //     if (scriptChunks?.length == 2 && scriptChunks?[0] == "OP_RETURN") {
-    //       final blindedPaymentCode = scriptChunks![1];
-    //       final bytes = blindedPaymentCode.toUint8ListFromHex;
-    //
-    //       // https://en.bitcoin.it/wiki/BIP_0047#Sending
-    //       if (bytes.length == 80 && bytes.first == 1) {
-    //         blocked = true;
-    //         blockedReason = "Paynym notification output. Incautious "
-    //             "handling of outputs from notification transactions "
-    //             "may cause unintended loss of privacy.";
-    //         break;
-    //       }
-    //     }
-    //   }
-    // }
-    //
-    return (blockedReason: blockedReason, blocked: blocked, utxoLabel: null);
+    String? label;
+
+    if (jsonUTXO["value"] is int) {
+      // TODO: [prio=med] use special electrumx call to verify the 1000 Firo output is masternode
+      blocked = Amount.fromDecimal(
+            Decimal.fromInt(
+              1000, // 1000 firo output is a possible master node
+            ),
+            fractionDigits: cryptoCurrency.fractionDigits,
+          ).raw ==
+          BigInt.from(jsonUTXO["value"] as int);
+
+      if (blocked) {
+        blockedReason = "Possible masternode output. "
+            "Unlock and spend at your own risk.";
+        label = "Possible masternode";
+      }
+    }
+
+    return (blockedReason: blockedReason, blocked: blocked, utxoLabel: label);
   }
 
   @override
@@ -620,6 +621,7 @@ class FiroWallet extends Bip39HDWallet
         final sparkAnonSetFuture = electrumXCachedClient.getSparkAnonymitySet(
           groupId: latestSparkCoinId.toString(),
           coin: info.coin,
+          useOnlyCacheIfNotEmpty: false,
         );
         final sparkUsedCoinTagsFuture =
             electrumXCachedClient.getSparkUsedCoinsTags(
@@ -632,9 +634,11 @@ class FiroWallet extends Bip39HDWallet
           level: LogLevel.Info,
         );
 
+        final canBatch = await serverCanBatch;
+
         for (final type in cryptoCurrency.supportedDerivationPathTypes) {
           receiveFutures.add(
-            serverCanBatch
+            canBatch
                 ? checkGapsBatched(
                     txCountBatchSize,
                     root,
@@ -656,7 +660,7 @@ class FiroWallet extends Bip39HDWallet
         );
         for (final type in cryptoCurrency.supportedDerivationPathTypes) {
           changeFutures.add(
-            serverCanBatch
+            canBatch
                 ? checkGapsBatched(
                     txCountBatchSize,
                     root,

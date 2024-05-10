@@ -20,7 +20,7 @@ import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
@@ -45,16 +45,22 @@ class Recipient extends ConsumerStatefulWidget {
   const Recipient({
     super.key,
     required this.index,
+    required this.displayNumber,
     required this.coin,
     this.remove,
     this.onChanged,
+    required this.addAnotherRecipientTapped,
+    required this.sendAllTapped,
   });
 
   final int index;
+  final int displayNumber;
   final Coin coin;
 
   final VoidCallback? remove;
   final VoidCallback? onChanged;
+  final VoidCallback addAnotherRecipientTapped;
+  final String Function() sendAllTapped;
 
   @override
   ConsumerState<Recipient> createState() => _RecipientState();
@@ -65,7 +71,9 @@ class _RecipientState extends ConsumerState<Recipient> {
   late final FocusNode addressFocusNode, amountFocusNode;
 
   bool _addressIsEmpty = true;
-  bool _cryptoAmountChangeLock = false;
+  final bool _cryptoAmountChangeLock = false;
+
+  bool get isSingle => widget.remove == null;
 
   void _updateRecipientData() {
     final address = addressController.text;
@@ -116,6 +124,16 @@ class _RecipientState extends ConsumerState<Recipient> {
     amountController = TextEditingController();
     // baseController = TextEditingController();
 
+    final amount = ref.read(pRecipient(widget.index))?.amount;
+    if (amount != null) {
+      amountController.text = ref
+          .read(pAmountFormatter(widget.coin))
+          .format(amount, withUnitName: false);
+    }
+    addressController.text = ref.read(pRecipient(widget.index))?.address ?? "";
+
+    _addressIsEmpty = addressController.text.isEmpty;
+
     addressFocusNode = FocusNode();
     amountFocusNode = FocusNode();
     // baseFocusNode = FocusNode();
@@ -148,12 +166,31 @@ class _RecipientState extends ConsumerState<Recipient> {
       ),
     );
 
-    return RoundedWhiteContainer(
+    return RoundedContainer(
+      color: Colors.transparent,
       padding: const EdgeInsets.all(0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                isSingle ? "Send to" : "Recipient ${widget.displayNumber}",
+                style: STextStyles.smallMed12(context),
+                textAlign: TextAlign.left,
+              ),
+              CustomTextButton(
+                text: isSingle ? "Add another recipient" : "Remove",
+                onTap:
+                    isSingle ? widget.addAnotherRecipientTapped : widget.remove,
+              ),
+            ],
+          ),
+          const SizedBox(
+            height: 8,
+          ),
           ClipRRect(
             borderRadius: BorderRadius.circular(
               Constants.size.circularBorderRadius,
@@ -167,6 +204,7 @@ class _RecipientState extends ConsumerState<Recipient> {
               focusNode: addressFocusNode,
               style: STextStyles.field(context),
               onChanged: (_) {
+                _updateRecipientData();
                 setState(() {
                   _addressIsEmpty = addressController.text.isEmpty;
                 });
@@ -323,9 +361,33 @@ class _RecipientState extends ConsumerState<Recipient> {
               ),
             ),
           ),
-          const SizedBox(
-            height: 12,
+          SizedBox(
+            height: isSingle ? 12 : 8,
           ),
+          if (isSingle)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Amount",
+                  style: STextStyles.smallMed12(context),
+                  textAlign: TextAlign.left,
+                ),
+                // disable send all since the frost tx creation logic isn't there (yet?)
+                const Spacer(),
+                // CustomTextButton(
+                //   text: "Send all ${widget.coin.ticker}",
+                //   onTap: () {
+                //     amountController.text = widget.sendAllTapped();
+                //     _cryptoAmountChanged();
+                //   },
+                // ),
+              ],
+            ),
+          if (isSingle)
+            const SizedBox(
+              height: 8,
+            ),
           TextField(
             autocorrect: false,
             enableSuggestions: false,
@@ -335,6 +397,9 @@ class _RecipientState extends ConsumerState<Recipient> {
             key: const Key("amountInputFieldCryptoTextFieldKey"),
             controller: amountController,
             focusNode: amountFocusNode,
+            onChanged: (_) {
+              _updateRecipientData();
+            },
             keyboardType: Util.isDesktop
                 ? null
                 : const TextInputType.numberWithOptions(
@@ -375,126 +440,6 @@ class _RecipientState extends ConsumerState<Recipient> {
               ),
             ),
           ),
-          // if (ref.watch(prefsChangeNotifierProvider
-          //     .select((value) => value.externalCalls)))
-          //   const SizedBox(
-          //     height: 8,
-          //   ),
-          // if (ref.watch(prefsChangeNotifierProvider
-          //     .select((value) => value.externalCalls)))
-          //   TextField(
-          //     autocorrect: Util.isDesktop ? false : true,
-          //     enableSuggestions: Util.isDesktop ? false : true,
-          //     style: STextStyles.smallMed14(context).copyWith(
-          //       color: Theme.of(context).extension<StackColors>()!.textDark,
-          //     ),
-          //     key: const Key("amountInputFieldFiatTextFieldKey"),
-          //     controller: baseController,
-          //     focusNode: baseFocusNode,
-          //     keyboardType: Util.isDesktop
-          //         ? null
-          //         : const TextInputType.numberWithOptions(
-          //             signed: false,
-          //             decimal: true,
-          //           ),
-          //     textAlign: TextAlign.right,
-          //     inputFormatters: [
-          //       AmountInputFormatter(
-          //         decimals: 2,
-          //         locale: locale,
-          //       ),
-          //     ],
-          //     onChanged: (baseAmountString) {
-          //       final baseAmount = Amount.tryParseFiatString(
-          //         baseAmountString,
-          //         locale: locale,
-          //       );
-          //       Amount? cryptoAmount;
-          //       final int decimals = widget.coin.decimals;
-          //       if (baseAmount != null) {
-          //         final _price = ref.read(_pPrice(widget.coin));
-          //
-          //         if (_price == Decimal.zero) {
-          //           cryptoAmount = 0.toAmountAsRaw(
-          //             fractionDigits: decimals,
-          //           );
-          //         } else {
-          //           cryptoAmount = baseAmount <= Amount.zero
-          //               ? 0.toAmountAsRaw(fractionDigits: decimals)
-          //               : (baseAmount.decimal / _price)
-          //                   .toDecimal(
-          //                     scaleOnInfinitePrecision: decimals,
-          //                   )
-          //                   .toAmount(fractionDigits: decimals);
-          //         }
-          //         if (ref.read(pRecipient(widget.index))?.amount != null &&
-          //             ref.read(pRecipient(widget.index))?.amount ==
-          //                 cryptoAmount) {
-          //           return;
-          //         }
-          //
-          //         final amountString =
-          //             ref.read(pAmountFormatter(widget.coin)).format(
-          //                   cryptoAmount,
-          //                   withUnitName: false,
-          //                 );
-          //
-          //         _cryptoAmountChangeLock = true;
-          //         amountController.text = amountString;
-          //         _cryptoAmountChangeLock = false;
-          //       } else {
-          //         cryptoAmount = 0.toAmountAsRaw(
-          //           fractionDigits: decimals,
-          //         );
-          //         _cryptoAmountChangeLock = true;
-          //         amountController.text = "";
-          //         _cryptoAmountChangeLock = false;
-          //       }
-          //
-          //       _updateRecipientData();
-          //     },
-          //     decoration: InputDecoration(
-          //       contentPadding: const EdgeInsets.only(
-          //         top: 12,
-          //         right: 12,
-          //       ),
-          //       hintText: "0",
-          //       hintStyle: STextStyles.fieldLabel(context).copyWith(
-          //         fontSize: 14,
-          //       ),
-          //       prefixIcon: FittedBox(
-          //         fit: BoxFit.scaleDown,
-          //         child: Padding(
-          //           padding: const EdgeInsets.all(12),
-          //           child: Text(
-          //             ref.watch(prefsChangeNotifierProvider
-          //                 .select((value) => value.currency)),
-          //             style: STextStyles.smallMed14(context).copyWith(
-          //                 color: Theme.of(context)
-          //                     .extension<StackColors>()!
-          //                     .accentColorDark),
-          //           ),
-          //         ),
-          //       ),
-          //     ),
-          //   ),
-          if (widget.remove != null)
-            const SizedBox(
-              height: 6,
-            ),
-          if (widget.remove != null)
-            Row(
-              children: [
-                const Spacer(),
-                CustomTextButton(
-                  text: "Remove",
-                  onTap: () {
-                    ref.read(pRecipient(widget.index).notifier).state = null;
-                    widget.remove?.call();
-                  },
-                ),
-              ],
-            ),
         ],
       ),
     );

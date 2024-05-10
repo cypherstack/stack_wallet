@@ -14,10 +14,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:stackwallet/frost_route_generator.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/coin_control/coin_control_view.dart';
-import 'package:stackwallet/pages/send_view/frost_ms/frost_create_sign_config_view.dart';
-import 'package:stackwallet/pages/send_view/frost_ms/frost_import_sign_config_view.dart';
 import 'package:stackwallet/pages/send_view/frost_ms/recipient.dart';
 import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
 import 'package:stackwallet/providers/providers.dart';
@@ -25,7 +24,6 @@ import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
@@ -39,7 +37,10 @@ import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/fee_slider.dart';
+import 'package:stackwallet/widgets/frost_scaffold.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
@@ -49,10 +50,10 @@ import 'package:tuple/tuple.dart';
 
 class FrostSendView extends ConsumerStatefulWidget {
   const FrostSendView({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.coin,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/frostSendView";
 
@@ -115,19 +116,33 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
           whileFuture: _loadingFuture(),
           context: context,
           message: "Generating sign config",
-          isDesktop: Util.isDesktop,
+          rootNavigator: Util.isDesktop,
           onException: (e) {
             throw e;
           },
         );
       }
 
+      final wallet =
+          ref.read(pWallets).getWallet(walletId) as BitcoinFrostWallet;
+
       if (mounted && txData != null) {
         ref.read(pFrostTxData.notifier).state = txData;
 
+        ref.read(pFrostScaffoldArgs.state).state = (
+          info: (
+            walletName: wallet.info.name,
+            frostCurrency: wallet.cryptoCurrency,
+          ),
+          walletId: walletId,
+          stepRoutes: FrostRouteGenerator.sendFrostTxStepRoutes,
+          parentNav: Navigator.of(context),
+          frostInterruptionDialogType:
+              FrostInterruptionDialogType.transactionCreation,
+        );
+
         await Navigator.of(context).pushNamed(
-          FrostCreateSignConfigView.routeName,
-          arguments: widget.walletId,
+          FrostStepScaffold.routeName,
         );
       }
     } catch (e) {
@@ -168,16 +183,24 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
 
   int customFeeRate = 1;
 
-  void _validateRecipientFormStates() {
+  bool _buttonEnabled = false;
+
+  bool _validateRecipientFormStatesHelper() {
     for (final i in recipientWidgetIndexes) {
-      final state = ref.read(pRecipient(i).state).state;
-      if (state?.amount == null || state?.address == null) {
-        ref.read(previewTxButtonStateProvider.notifier).state = false;
-        return;
+      final state = ref.read(pRecipient(i));
+      if (state?.amount == null ||
+          state?.address == null ||
+          state!.address.isEmpty) {
+        return false;
       }
     }
-    ref.read(previewTxButtonStateProvider.notifier).state = true;
-    return;
+    return true;
+  }
+
+  void _validateRecipientFormStates() {
+    setState(() {
+      _buttonEnabled = _validateRecipientFormStatesHelper();
+    });
   }
 
   @override
@@ -223,7 +246,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                   FocusScope.of(context).unfocus();
                   await Future<void>.delayed(const Duration(milliseconds: 50));
                 }
-                if (mounted) {
+                if (context.mounted) {
                   Navigator.of(context).pop();
                 }
               },
@@ -232,40 +255,6 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
               "Send ${coin.ticker}",
               style: STextStyles.navBarTitle(context),
             ),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
-                  right: 10,
-                ),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: AppBarIconButton(
-                    semanticsLabel: "Import sign config Button.",
-                    key: const Key("importSignConfigButtonKey"),
-                    size: 36,
-                    shadows: const [],
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                    icon: SvgPicture.asset(
-                      Assets.svg.circlePlus,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark,
-                      width: 20,
-                      height: 20,
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pushNamed(
-                        FrostImportSignConfigView.routeName,
-                        arguments: walletId,
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ],
           ),
           body: LayoutBuilder(
             builder: (builderContext, constraints) {
@@ -349,14 +338,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                             )
                           : const Spacer(),
                       GestureDetector(
-                        onTap: () {
-                          // cryptoAmountController.text = ref
-                          //     .read(pAmountFormatter(coin))
-                          //     .format(
-                          //       _cachedBalance!,
-                          //       withUnitName: false,
-                          //     );
-                        },
+                        onTap: () {},
                         child: Container(
                           color: Colors.transparent,
                           child: Column(
@@ -372,24 +354,6 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                                 ),
                                 textAlign: TextAlign.right,
                               ),
-                              // Text(
-                              //   "${(manager.balance.spendable.decimal * ref.watch(
-                              //             priceAnd24hChangeNotifierProvider.select(
-                              //               (value) => value.getPrice(coin).item1,
-                              //             ),
-                              //           )).toAmount(
-                              //         fractionDigits: 2,
-                              //       ).fiatString(
-                              //         locale: locale,
-                              //       )} ${ref.watch(
-                              //     prefsChangeNotifierProvider
-                              //         .select((value) => value.currency),
-                              //   )}",
-                              //   style: STextStyles.subtitle(context).copyWith(
-                              //     fontSize: 8,
-                              //   ),
-                              //   textAlign: TextAlign.right,
-                              // )
                             ],
                           ),
                         ),
@@ -398,30 +362,8 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                   ),
                 ),
               ),
-            const SizedBox(
-              height: 16,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Recipients",
-                  style: STextStyles.smallMed12(context),
-                  textAlign: TextAlign.left,
-                ),
-                CustomTextButton(
-                  text: "Add",
-                  onTap: () {
-                    // used for tracking recipient forms
-                    _greatestWidgetIndex++;
-                    recipientWidgetIndexes.add(_greatestWidgetIndex);
-                    setState(() {});
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(
-              height: 8,
+            SizedBox(
+              height: recipientWidgetIndexes.length > 1 ? 8 : 16,
             ),
             Column(
               children: [
@@ -437,6 +379,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                         "recipientKey_${recipientWidgetIndexes[i]}",
                       ),
                       index: recipientWidgetIndexes[i],
+                      displayNumber: i + 1,
                       coin: coin,
                       onChanged: () {
                         _validateRecipientFormStates();
@@ -444,13 +387,46 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                       remove: i == 0 && recipientWidgetIndexes.length == 1
                           ? null
                           : () {
+                              ref
+                                  .read(pRecipient(recipientWidgetIndexes[i])
+                                      .notifier)
+                                  .state = null;
                               recipientWidgetIndexes.removeAt(i);
                               setState(() {});
+                              _validateRecipientFormStates();
                             },
+                      addAnotherRecipientTapped: () {
+                        // used for tracking recipient forms
+                        _greatestWidgetIndex++;
+                        recipientWidgetIndexes.add(_greatestWidgetIndex);
+                        setState(() {});
+                        _validateRecipientFormStates();
+                      },
+                      sendAllTapped: () {
+                        return ref.read(pAmountFormatter(coin)).format(
+                              ref.read(pWalletBalance(walletId)).spendable,
+                              withUnitName: false,
+                            );
+                      },
                     ),
                   ),
               ],
             ),
+            if (recipientWidgetIndexes.length > 1)
+              const SizedBox(
+                height: 12,
+              ),
+            if (recipientWidgetIndexes.length > 1)
+              SecondaryButton(
+                width: double.infinity,
+                label: "Add recipient",
+                onPressed: () {
+                  // used for tracking recipient forms
+                  _greatestWidgetIndex++;
+                  recipientWidgetIndexes.add(_greatestWidgetIndex);
+                  setState(() {});
+                },
+              ),
             if (showCoinControl)
               const SizedBox(
                 height: 8,
@@ -481,12 +457,6 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                         }
 
                         if (mounted) {
-                          // finally spendable = ref
-                          //     .read(walletsChangeNotifierProvider)
-                          //     .getManager(widget.walletId)
-                          //     .balance
-                          //     .spendable;
-
                           // TODO: [prio=high] make sure this coincontrol works correctly
 
                           Amount? amount;
@@ -571,6 +541,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
               ),
               child: FeeSlider(
                 coin: coin,
+                showWU: true,
                 onSatVByteChanged: (rate) {
                   customFeeRate = rate;
                 },
@@ -584,21 +555,10 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
             const SizedBox(
               height: 12,
             ),
-            TextButton(
-              onPressed: ref.watch(previewTxButtonStateProvider.state).state
-                  ? _createSignConfig
-                  : null,
-              style: ref.watch(previewTxButtonStateProvider.state).state
-                  ? Theme.of(context)
-                      .extension<StackColors>()!
-                      .getPrimaryEnabledButtonStyle(context)
-                  : Theme.of(context)
-                      .extension<StackColors>()!
-                      .getPrimaryDisabledButtonStyle(context),
-              child: Text(
-                "Create config",
-                style: STextStyles.button(context),
-              ),
+            PrimaryButton(
+              label: "Create multisig transaction",
+              enabled: _buttonEnabled,
+              onPressed: _createSignConfig,
             ),
             const SizedBox(
               height: 16,
@@ -609,5 +569,3 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
     );
   }
 }
-
-final previewTxButtonStateProvider = StateProvider((_) => false);

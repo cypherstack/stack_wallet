@@ -143,6 +143,7 @@ class _SVG {
   String get chevronDown => "assets/svg/chevron-down.svg";
   String get chevronUp => "assets/svg/chevron-up.svg";
   String get swap => "assets/svg/swap.svg";
+  String get swap2 => "assets/svg/swap2.svg";
   String get downloadFolder => "assets/svg/folder-down.svg";
   String get lock => "assets/svg/lock-keyhole.svg";
   String get lockOpen => "assets/svg/lock-open.svg";

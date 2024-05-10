@@ -132,7 +132,7 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
             Future<void>.delayed(const Duration(seconds: 2)),
           ]),
           context: context,
-          isDesktop: true,
+          rootNavigator: true,
           message: "Stopping fusion",
         );
 

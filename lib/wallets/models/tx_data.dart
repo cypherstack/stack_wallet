@@ -33,7 +33,9 @@ class TxData {
 
   final String? changeAddress;
 
+  // frost specific
   final String? frostMSConfig;
+  final List<String>? frostSigners;
 
   // paynym specific
   final PaynymAccountLite? paynymAccountLite;
@@ -91,6 +93,7 @@ class TxData {
     this.usedUTXOs,
     this.changeAddress,
     this.frostMSConfig,
+    this.frostSigners,
     this.paynymAccountLite,
     this.web3dartTransaction,
     this.nonce,
@@ -166,6 +169,7 @@ class TxData {
             })>?
         recipients,
     String? frostMSConfig,
+    List<String>? frostSigners,
     String? changeAddress,
     PaynymAccountLite? paynymAccountLite,
     web3dart.Transaction? web3dartTransaction,
@@ -209,6 +213,7 @@ class TxData {
       usedUTXOs: usedUTXOs ?? this.usedUTXOs,
       recipients: recipients ?? this.recipients,
       frostMSConfig: frostMSConfig ?? this.frostMSConfig,
+      frostSigners: frostSigners ?? this.frostSigners,
       changeAddress: changeAddress ?? this.changeAddress,
       paynymAccountLite: paynymAccountLite ?? this.paynymAccountLite,
       web3dartTransaction: web3dartTransaction ?? this.web3dartTransaction,
@@ -249,7 +254,7 @@ class TxData {
       'recipients: $recipients, '
       'utxos: $utxos, '
       'usedUTXOs: $usedUTXOs, '
-      'frostMSConfig: $frostMSConfig, '
+      'frostSigners: $frostSigners, '
       'changeAddress: $changeAddress, '
       'paynymAccountLite: $paynymAccountLite, '
       'web3dartTransaction: $web3dartTransaction, '
