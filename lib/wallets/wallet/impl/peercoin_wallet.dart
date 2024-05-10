@@ -49,18 +49,22 @@ class PeercoinWallet extends Bip39HDWallet
 
   @override
   Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
-    return Amount(
-      rawValue: BigInt.from(
-        ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
-            (feeRatePerKB / 1000).ceil(),
-      ),
-      fractionDigits: cryptoCurrency.fractionDigits,
-    );
+    // TODO: check ppc fee stuff
+    throw Exception("TODO");
+    // return Amount(
+    //   rawValue: BigInt.from(
+    //     ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
+    //         (feeRatePerKB / 1000).ceil(),
+    //   ),
+    //   fractionDigits: cryptoCurrency.fractionDigits,
+    // );
   }
 
   @override
   int estimateTxFee({required int vSize, required int feeRatePerKB}) {
-    return vSize * (feeRatePerKB / 1000).ceil();
+    // TODO: check ppc fee stuff
+    throw Exception("TODO");
+    // return vSize * (feeRatePerKB / 1000).ceil();
   }
 
   // ===========================================================================
