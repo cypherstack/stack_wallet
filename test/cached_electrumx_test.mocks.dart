@@ -884,32 +884,6 @@ class MockPrefs extends _i1.Mock implements _i7.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  bool get solanaEnabled => (super.noSuchMethod(
-        Invocation.getter(#solanaEnabled),
-        returnValue: false,
-      ) as bool);
-  @override
-  set solanaEnabled(bool? solanaEnabled) => super.noSuchMethod(
-        Invocation.setter(
-          #solanaEnabled,
-          solanaEnabled,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  bool get frostEnabled => (super.noSuchMethod(
-        Invocation.getter(#frostEnabled),
-        returnValue: false,
-      ) as bool);
-  @override
-  set frostEnabled(bool? frostEnabled) => super.noSuchMethod(
-        Invocation.setter(
-          #frostEnabled,
-          frostEnabled,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,

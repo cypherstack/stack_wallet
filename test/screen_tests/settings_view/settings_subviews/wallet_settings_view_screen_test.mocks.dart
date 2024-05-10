@@ -78,6 +78,7 @@ class MockCachedElectrumXClient extends _i1.Mock
     required String? groupId,
     String? blockhash = r'',
     required _i5.Coin? coin,
+    required bool? useOnlyCacheIfNotEmpty,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -87,6 +88,7 @@ class MockCachedElectrumXClient extends _i1.Mock
             #groupId: groupId,
             #blockhash: blockhash,
             #coin: coin,
+            #useOnlyCacheIfNotEmpty: useOnlyCacheIfNotEmpty,
           },
         ),
         returnValue:
