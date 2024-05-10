@@ -191,7 +191,7 @@ abstract class DefaultNodes {
 
   static NodeModel get peercoin => NodeModel(
         host: "electrum.peercoinexplorer.net",
-        port: 50004,
+        port: 50002,
         name: DefaultNodes.defaultName,
         id: DefaultNodes.buildId(Coin.peercoin),
         useSSL: true,

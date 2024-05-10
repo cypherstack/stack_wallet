@@ -37,9 +37,12 @@ class Peercoin extends Bip39HDCurrency {
     String coinType;
     switch (networkParams.wifPrefix) {
       case 183: // PPC mainnet wif.
-        coinType = "10"; // PPC mainnet.
+        coinType =
+            "6"; // according to https://github.com/satoshilabs/slips/blob/master/slip-0044.md
         break;
-      // TODO: [prio=low] Add testnet.
+      case 239: // PPC testnet wif.
+        coinType = "1";
+        break;
       default:
         throw Exception("Invalid Peercoin network wif used!");
     }
@@ -63,29 +66,9 @@ class Peercoin extends Bip39HDCurrency {
   NodeModel get defaultNode {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return NodeModel(
-          host: "electrum.peercoinexplorer.net",
-          port: 50004,
-          name: DefaultNodes.defaultName,
-          id: DefaultNodes.buildId(Coin.peercoin),
-          useSSL: true,
-          enabled: true,
-          coinName: Coin.peercoin.name,
-          isFailover: true,
-          isDown: false,
-        );
+        return DefaultNodes.peercoin;
       case CryptoCurrencyNetwork.test:
-        return NodeModel(
-          host: "testnet-electrum.peercoinexplorer.net",
-          port: 50009,
-          name: DefaultNodes.defaultName,
-          id: DefaultNodes.buildId(Coin.peercoinTestNet),
-          useSSL: false, // TODO [prio=med]: Is this safe?
-          enabled: true,
-          coinName: Coin.peercoinTestNet.name,
-          isFailover: true,
-          isDown: false,
-        );
+        return DefaultNodes.peercoinTestNet;
       default:
         throw UnimplementedError();
     }
