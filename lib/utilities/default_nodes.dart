@@ -17,31 +17,9 @@ abstract class DefaultNodes {
   static const String defaultName = "Stack Default";
 
   @Deprecated("old and decrepit")
-  static List<NodeModel> get all => [
-        bitcoin,
-        litecoin,
-        dogecoin,
-        firo,
-        monero,
-        eCash,
-        epicCash,
-        ethereum,
-        bitcoincash,
-        namecoin,
-        wownero,
-        particl,
-        peercoin,
-        stellar,
-        nano,
-        banano,
-        tezos,
-        bitcoinTestnet,
-        litecoinTestNet,
-        bitcoincashTestnet,
-        dogecoinTestnet,
-        firoTestnet,
-        stellarTestnet,
-      ];
+  static List<NodeModel> get all => Coin.values
+      .map((e) => DefaultNodes.getNodeFor(e))
+      .toList(growable: false);
 
   static NodeModel get bitcoin => NodeModel(
         host: "bitcoin.stackwallet.com",
@@ -325,7 +303,7 @@ abstract class DefaultNodes {
 
   static NodeModel get peercoinTestNet => NodeModel(
         host: "testnet-electrum.peercoinexplorer.net",
-        port: 50009,
+        port: 50002,
         name: DefaultNodes.defaultName,
         id: DefaultNodes.buildId(Coin.peercoinTestNet),
         useSSL: true,
