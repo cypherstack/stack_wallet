@@ -6,19 +6,15 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Prepare repository
-        uses: actions/checkout@v3
-        with:
-          flutter-version: '3.10.6'
-          channel: 'stable'
+        uses: actions/checkout@v4
       - name: Install Flutter 
         uses: subosito/flutter-action@v2 
         with:
-          flutter-version: '3.16.0'
+          flutter-version: '3.19.6'
           channel: 'stable'
       - name: Setup | Rust
-        uses: ATiltedTree/setup-rust@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          rust-version: stable
           components: clippy
       - name: Checkout submodules
         run: git submodule update --init --recursive
@@ -28,12 +24,7 @@ jobs:
           rustup target add x86_64-unknown-linux-gnu
           sudo apt clean
           sudo apt update
-          sudo apt install -y unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake openjdk-8-jre-headless libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm
-          sudo apt install -y debhelper libclang-dev cargo rustc opencl-headers libssl-dev ocl-icd-opencl-dev
-          sudo apt install -y libc6-dev-i386
-          sudo apt install -y build-essential cmake git libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev pkg-config llvm
-          sudo apt install -y build-essential debhelper cmake libclang-dev libncurses5-dev clang libncursesw5-dev cargo rustc opencl-headers libssl-dev pkg-config ocl-icd-opencl-dev
-          sudo apt install -y unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake openjdk-8-jre-headless
+          sudo apt install -y unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake openjdk-8-jre-headless libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm debhelper libclang-dev opencl-headers libssl-dev ocl-icd-opencl-dev libc6-dev-i386
       - name: Build Lelantus
         run: |
          cd crypto_plugins/flutter_liblelantus/scripts/linux/
