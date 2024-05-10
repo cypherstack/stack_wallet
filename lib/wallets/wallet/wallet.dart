@@ -39,6 +39,7 @@ import 'package:stackwallet/wallets/wallet/impl/monero_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/namecoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/nano_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/particl_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/peercoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/solana_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/stellar_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/sub_wallets/eth_token_wallet.dart';
@@ -362,6 +363,11 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       case Coin.particl:
         return ParticlWallet(CryptoCurrencyNetwork.main);
+
+      case Coin.peercoin:
+        return PeercoinWallet(CryptoCurrencyNetwork.main);
+      case Coin.peercoinTestNet:
+        return PeercoinWallet(CryptoCurrencyNetwork.test);
 
       case Coin.solana:
         return SolanaWallet(CryptoCurrencyNetwork.main);

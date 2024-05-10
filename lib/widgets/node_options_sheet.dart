@@ -154,6 +154,8 @@ class NodeOptionsSheet extends ConsumerWidget {
       case Coin.eCash:
       case Coin.bitcoinFrost:
       case Coin.bitcoinFrostTestNet:
+      case Coin.peercoin:
+      case Coin.peercoinTestNet:
         try {
           testPassed = await checkElectrumServer(
             host: node.host,

@@ -24,6 +24,7 @@ import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/peercoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 
@@ -768,7 +769,8 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
     return txData.copyWith(
       raw: clTx.toHex(),
-      vSize: clTx.vSize(),
+      // dirty shortcut for peercoin's weirdness
+      vSize: this is PeercoinWallet ? clTx.size : clTx.vSize(),
       tempTx: TransactionV2(
         walletId: walletId,
         blockHash: null,

@@ -13,6 +13,7 @@ import 'package:stackwallet/wallets/crypto_currency/coins/monero.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/namecoin.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/nano.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/particl.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/peercoin.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/solana.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/stellar.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/tezos.dart';
@@ -52,6 +53,8 @@ class SupportedCoins {
         return Monero(CryptoCurrencyNetwork.main);
       case Coin.particl:
         return Particl(CryptoCurrencyNetwork.main);
+      case Coin.peercoin:
+        return Peercoin(CryptoCurrencyNetwork.main);
       case Coin.solana:
         return Solana(CryptoCurrencyNetwork.main);
       case Coin.stellar:
@@ -80,6 +83,8 @@ class SupportedCoins {
         return Dogecoin(CryptoCurrencyNetwork.test);
       case Coin.stellarTestnet:
         return Stellar(CryptoCurrencyNetwork.test);
+      case Coin.peercoinTestNet:
+        return Peercoin(CryptoCurrencyNetwork.test);
     }
   }
 }
