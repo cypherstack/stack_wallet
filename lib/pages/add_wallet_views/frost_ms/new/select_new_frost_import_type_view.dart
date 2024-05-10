@@ -292,7 +292,6 @@ class _FrostJoinInfoDialog extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // TODO: [prio=high] need text from designers!
           Text(
             "Join a group",
             style: STextStyles.w600_20(context),
@@ -301,57 +300,17 @@ class _FrostJoinInfoDialog extends StatelessWidget {
             height: 12,
           ),
           Text(
-            "Text here",
-            style: STextStyles.w400_16(context),
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-          Text(
-            "What is resharing?",
+            "You should select 'Join a new group' if you are creating a brand "
+            "new wallet with other people.",
             style: STextStyles.w600_16(context),
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-          Text(
-            "In cryptocurrency, you are your own bank."
-            " Imagine keeping cash at home. If that cash"
-            " burns down or gets stolen, you lose it and"
-            " nobody will help you get your money back.",
-            style: STextStyles.w400_16(context),
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-          Text(
-            "Since cryptocurrency is digital money, your "
-            "wallet key is like that “cash” you keep at "
-            "home. If you lose your phone or if you "
-            "forget your wallet PIN, but you have your "
-            "wallet key, your crypto money will be safe. "
-            "That is why you should keep your wallet key "
-            "safe.",
-            style: STextStyles.w400_16(context),
           ),
           const SizedBox(
             height: 12,
           ),
           Text(
-            "Why write it down?",
+            "You should select 'Join an existing group' if you an existing "
+            "group is being edited and you are being added as a participant.",
             style: STextStyles.w600_16(context),
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-          Text(
-            "You do not put your cash on display, do you?"
-            " Keeping your wallet key on a digital device"
-            " is like having it on display for thieves - "
-            "malicious software and hackers. Write your "
-            "wallet key down on paper in multiple copies "
-            "and keep them in a real, physical safe.",
-            style: STextStyles.w400_16(context),
           ),
         ],
       ),

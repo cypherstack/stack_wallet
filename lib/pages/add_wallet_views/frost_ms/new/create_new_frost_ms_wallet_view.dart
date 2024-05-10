@@ -114,7 +114,6 @@ class _NewFrostMsWalletViewState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // TODO: [prio=high] need text from designers!
             Text(
               "What is a threshold?",
               style: STextStyles.w600_20(context),
@@ -123,7 +122,27 @@ class _NewFrostMsWalletViewState
               height: 12,
             ),
             Text(
-              "Text here",
+              "A threshold is the amount of people required to perform an "
+              "action. This does not have to be the same number as the "
+              "total number in the group.",
+              style: STextStyles.w400_16(context),
+            ),
+            const SizedBox(
+              height: 6,
+            ),
+            Text(
+              "For example, if you have 3 people in the group, but a threshold "
+              "of 2, then you only need 2 out of the 3 people to sign for an "
+              "action to take place.",
+              style: STextStyles.w400_16(context),
+            ),
+            const SizedBox(
+              height: 6,
+            ),
+            Text(
+              "Conversely if you have a group of 3 AND a threshold of 3, you "
+              "will need all 3 people in the group to sign to approve any "
+              "action.",
               style: STextStyles.w400_16(context),
             ),
           ],
