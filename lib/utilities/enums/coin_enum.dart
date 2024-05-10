@@ -398,6 +398,8 @@ extension CoinExt on Coin {
       case Coin.litecoinTestNet:
       case Coin.namecoin:
       case Coin.particl:
+      case Coin.peercoin:
+      case Coin.peercoinTestNet:
         return AddressType.p2wpkh;
 
       case Coin.bitcoinFrost:
@@ -411,8 +413,6 @@ extension CoinExt on Coin {
       case Coin.firo:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
-      case Coin.peercoin:
-      case Coin.peercoinTestNet:
         return AddressType.p2pkh;
 
       case Coin.monero:
