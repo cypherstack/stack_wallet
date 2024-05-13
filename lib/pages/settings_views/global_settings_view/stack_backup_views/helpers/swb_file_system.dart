@@ -79,11 +79,16 @@ class SWBFileSystem {
   }
 
   Future<void> pickDir(BuildContext context) async {
-    final String? path = await FilePicker.platform.getDirectoryPath(
-      dialogTitle: "Choose Backup location",
-      initialDirectory: startPath!.path,
-      lockParentWindow: true,
-    );
+    final String? path;
+    if (Platform.isIOS) {
+      path = startPath?.path;
+    } else {
+      path = await FilePicker.platform.getDirectoryPath(
+        dialogTitle: "Choose Backup location",
+        initialDirectory: startPath!.path,
+        lockParentWindow: true,
+      );
+    }
     dirPath = path;
   }
 
