@@ -124,7 +124,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
   late final bool isSparkWallet;
 
-  late final bool _shouldDisableAutoSyncOnLogOut;
+  // late final bool _shouldDisableAutoSyncOnLogOut;
 
   late WalletSyncStatus _currentSyncStatus;
   late NodeConnectionStatus _currentNodeStatus;
@@ -177,9 +177,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
     if (!wallet.shouldAutoSync) {
       // enable auto sync if it wasn't enabled when loading wallet
       wallet.shouldAutoSync = true;
-      _shouldDisableAutoSyncOnLogOut = true;
-    } else {
-      _shouldDisableAutoSyncOnLogOut = false;
+      //   _shouldDisableAutoSyncOnLogOut = true;
+      // } else {
+      //   _shouldDisableAutoSyncOnLogOut = false;
     }
 
     isSparkWallet = wallet is SparkInterface;
@@ -303,10 +303,10 @@ class _WalletViewState extends ConsumerState<WalletView> {
   }
 
   void _logout() async {
-    if (_shouldDisableAutoSyncOnLogOut) {
-      // disable auto sync if it was enabled only when loading wallet
-      ref.read(pWallets).getWallet(walletId).shouldAutoSync = false;
-    }
+    // if (_shouldDisableAutoSyncOnLogOut) {
+    //   // disable auto sync if it was enabled only when loading wallet
+    ref.read(pWallets).getWallet(walletId).shouldAutoSync = false;
+    // }
 
     ref.read(currentWalletIdProvider.notifier).state = null;
     ref.read(transactionFilterProvider.state).state = null;

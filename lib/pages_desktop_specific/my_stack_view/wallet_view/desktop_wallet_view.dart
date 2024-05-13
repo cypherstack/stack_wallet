@@ -72,7 +72,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
   late final TextEditingController controller;
   late final EventBus eventBus;
 
-  late final bool _shouldDisableAutoSyncOnLogOut;
+  // late final bool _shouldDisableAutoSyncOnLogOut;
 
   Future<void> onBackPressed() async {
     await _logout();
@@ -83,10 +83,10 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
 
   Future<void> _logout() async {
     final wallet = ref.read(pWallets).getWallet(widget.walletId);
-    if (_shouldDisableAutoSyncOnLogOut) {
-      // disable auto sync if it was enabled only when loading wallet
-      wallet.shouldAutoSync = false;
-    }
+    // if (_shouldDisableAutoSyncOnLogOut) {
+    //   // disable auto sync if it was enabled only when loading wallet
+    wallet.shouldAutoSync = false;
+    // }
     ref.read(transactionFilterProvider.state).state = null;
     if (ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled &&
         ref.read(prefsChangeNotifierProvider).backupFrequencyType ==
@@ -131,11 +131,11 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
         ref.read(currentWalletIdProvider.notifier).state = wallet.walletId);
 
     if (!wallet.shouldAutoSync) {
-      // enable auto sync if it wasn't enabled when loading wallet
+      //   // enable auto sync if it wasn't enabled when loading wallet
       wallet.shouldAutoSync = true;
-      _shouldDisableAutoSyncOnLogOut = true;
-    } else {
-      _shouldDisableAutoSyncOnLogOut = false;
+      //   _shouldDisableAutoSyncOnLogOut = true;
+      // } else {
+      //   _shouldDisableAutoSyncOnLogOut = false;
     }
 
     wallet.refresh();
