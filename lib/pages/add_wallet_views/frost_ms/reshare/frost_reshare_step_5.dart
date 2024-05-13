@@ -20,7 +20,7 @@ import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/detail_item.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+import 'package:stackwallet/widgets/dialogs/frost/frost_error_dialog.dart';
 
 // was VerifyUpdatedWalletView
 class FrostReshareStep5 extends ConsumerStatefulWidget {
@@ -110,10 +110,9 @@ class _FrostReshareStep5State extends ConsumerState<FrostReshareStep5> {
       if (mounted) {
         await showDialog<void>(
           context: context,
-          builder: (_) => StackOkDialog(
+          builder: (_) => FrostErrorDialog(
             title: "Error",
             message: e.toString(),
-            desktopPopRootNavigator: Util.isDesktop,
           ),
         );
       }

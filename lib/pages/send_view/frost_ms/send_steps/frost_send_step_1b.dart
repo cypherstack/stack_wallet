@@ -109,14 +109,16 @@ class _FrostSendStep1bState extends ConsumerState<FrostSendStep1b> {
         "$e\n$s",
         level: LogLevel.Error,
       );
-      await showDialog<void>(
-        context: context,
-        builder: (_) => StackOkDialog(
-          title: "Import and attempt sign config failed",
-          message: e.toString(),
-          desktopPopRootNavigator: Util.isDesktop,
-        ),
-      );
+      if (mounted) {
+        await showDialog<void>(
+          context: context,
+          builder: (_) => StackOkDialog(
+            title: "Import and attempt sign config failed",
+            message: e.toString(),
+            desktopPopRootNavigator: Util.isDesktop,
+          ),
+        );
+      }
     } finally {
       _attemptSignLock = false;
     }

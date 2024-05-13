@@ -15,7 +15,7 @@ import 'package:stackwallet/widgets/custom_buttons/frost_qr_dialog_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/detail_item.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+import 'package:stackwallet/widgets/dialogs/frost/frost_error_dialog.dart';
 import 'package:stackwallet/widgets/textfields/frost_step_field.dart';
 
 class FrostReshareStep2abd extends ConsumerStatefulWidget {
@@ -86,10 +86,9 @@ class _FrostReshareStep2abdState extends ConsumerState<FrostReshareStep2abd> {
       if (mounted) {
         await showDialog<void>(
           context: context,
-          builder: (_) => StackOkDialog(
+          builder: (_) => FrostErrorDialog(
             title: "Error",
             message: e.toString(),
-            desktopPopRootNavigator: Util.isDesktop,
           ),
         );
       }

@@ -41,6 +41,7 @@ final pFrostScaffoldArgs = StateProvider<
       List<FrostStepRoute> stepRoutes,
       FrostInterruptionDialogType frostInterruptionDialogType,
       NavigatorState parentNav,
+      String callerRouteName,
     })?>((ref) => null);
 
 abstract class FrostRouteGenerator {

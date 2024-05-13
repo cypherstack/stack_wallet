@@ -136,7 +136,8 @@ class Wallets {
 
   Future<void> load(Prefs prefs, MainDB mainDB) async {
     // return await _loadV1(prefs, mainDB);
-    return await _loadV2(prefs, mainDB);
+    // return await _loadV2(prefs, mainDB);
+    return await _loadV3(prefs, mainDB);
   }
 
   Future<void> _loadV1(Prefs prefs, MainDB mainDB) async {
@@ -240,6 +241,7 @@ class Wallets {
     }
   }
 
+  /// should be fastest but big ui performance hit
   Future<void> _loadV2(Prefs prefs, MainDB mainDB) async {
     if (hasLoaded) {
       return;
@@ -358,6 +360,160 @@ class Wallets {
     await Future.wait(deleteFutures);
   }
 
+  /// should be best performance
+  Future<void> _loadV3(Prefs prefs, MainDB mainDB) async {
+    if (hasLoaded) {
+      return;
+    }
+    hasLoaded = true;
+
+    // clear out any wallet hive boxes where the wallet was deleted in previous app run
+    for (final walletId in DB.instance
+        .values<String>(boxName: DB.boxNameWalletsToDeleteOnStart)) {
+      await mainDB.isar.writeTxn(() async => await mainDB.isar.walletInfo
+          .where()
+          .walletIdEqualTo(walletId)
+          .deleteAll());
+    }
+    // clear list
+    await DB.instance
+        .deleteAll<String>(boxName: DB.boxNameWalletsToDeleteOnStart);
+
+    final walletInfoList = await mainDB.isar.walletInfo.where().findAll();
+    if (walletInfoList.isEmpty) {
+      return;
+    }
+
+    final List<Future<String>> walletIDInitFutures = [];
+    final List<Future<void>> deleteFutures = [];
+    final List<({Wallet wallet, bool shouldAutoSync})> walletsToInitLinearly =
+        [];
+
+    final List<String> walletIdsToSyncOnceOnStartup = [];
+    bool shouldSyncAllOnceOnStartup = false;
+    switch (prefs.syncType) {
+      case SyncingType.currentWalletOnly:
+        // do nothing as this will be set when going into a wallet from the main screen
+        break;
+      case SyncingType.selectedWalletsAtStartup:
+        walletIdsToSyncOnceOnStartup.addAll(prefs.walletIdsSyncOnStartup);
+        break;
+      case SyncingType.allWalletsOnStartup:
+        shouldSyncAllOnceOnStartup = true;
+        break;
+    }
+
+    for (final walletInfo in walletInfoList) {
+      try {
+        final isVerified = await walletInfo.isMnemonicVerified(mainDB.isar);
+        Logging.instance.log(
+          "LOADING WALLET: ${walletInfo.name}:${walletInfo.walletId} "
+          "IS VERIFIED: $isVerified",
+          level: LogLevel.Info,
+        );
+
+        if (isVerified) {
+          // TODO: integrate this into the new wallets somehow?
+          // requires some thinking
+          // final txTracker =
+          //     TransactionNotificationTracker(walletId: walletInfo.walletId);
+
+          final walletIdCompleter = Completer<String>();
+
+          walletIDInitFutures.add(walletIdCompleter.future);
+
+          await Wallet.load(
+            walletId: walletInfo.walletId,
+            mainDB: mainDB,
+            secureStorageInterface: nodeService.secureStorageInterface,
+            nodeService: nodeService,
+            prefs: prefs,
+          ).then((wallet) {
+            if (wallet is CwBasedInterface) {
+              // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
+
+              walletIdCompleter.complete("dummy_ignore");
+            } else {
+              walletIdCompleter.complete(wallet.walletId);
+            }
+
+            _wallets[wallet.walletId] = wallet;
+          });
+        } else {
+          // wallet creation was not completed by user so we remove it completely
+          deleteFutures.add(_deleteWallet(walletInfo.walletId));
+        }
+      } catch (e, s) {
+        Logging.instance.log("$e $s", level: LogLevel.Fatal);
+        continue;
+      }
+    }
+
+    final asyncWalletIds = await Future.wait(walletIDInitFutures);
+    asyncWalletIds.removeWhere((e) => e == "dummy_ignore");
+
+    final List<String> idsToRefresh = [];
+    final List<Future<void>> walletInitFutures = asyncWalletIds
+        .map(
+          (id) => _wallets[id]!.init().then(
+            (_) {
+              if (shouldSyncAllOnceOnStartup ||
+                  walletIdsToSyncOnceOnStartup.contains(id)) {
+                idsToRefresh.add(id);
+              }
+            },
+          ),
+        )
+        .toList();
+
+    Future<void> _refreshFutures(List<String> idsToRefresh) async {
+      final start = DateTime.now();
+      Logging.instance.log(
+        "Initial refresh start: ${start.toUtc()}",
+        level: LogLevel.Warning,
+      );
+      const groupCount = 3;
+      for (int i = 0; i < idsToRefresh.length; i += groupCount) {
+        final List<Future<void>> futures = [];
+        for (int j = 0; j < groupCount; j++) {
+          if (i + j >= idsToRefresh.length) {
+            break;
+          }
+          futures.add(
+            _wallets[idsToRefresh[i + j]]!.refresh(),
+          );
+        }
+        await Future.wait(futures);
+      }
+      Logging.instance.log(
+        "Initial refresh duration: ${DateTime.now().difference(start)}",
+        level: LogLevel.Warning,
+      );
+    }
+
+    if (walletInitFutures.isNotEmpty && walletsToInitLinearly.isNotEmpty) {
+      unawaited(
+        Future.wait([
+          _initLinearly(walletsToInitLinearly),
+          ...walletInitFutures,
+        ]).then(
+          (value) => _refreshFutures(idsToRefresh),
+        ),
+      );
+    } else if (walletInitFutures.isNotEmpty) {
+      unawaited(
+        Future.wait(walletInitFutures).then(
+          (value) => _refreshFutures(idsToRefresh),
+        ),
+      );
+    } else if (walletsToInitLinearly.isNotEmpty) {
+      unawaited(_initLinearly(walletsToInitLinearly));
+    }
+
+    // finally await any deletions that haven't completed yet
+    await Future.wait(deleteFutures);
+  }
+
   Future<void> loadAfterStackRestore(
     Prefs prefs,
     List<Wallet> wallets,
@@ -396,10 +552,10 @@ class Wallets {
           if (wallet is CwBasedInterface) {
             // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
           } else {
-            walletInitFutures.add(wallet.init().then((value) {
-              if (shouldSetAutoSync) {
-                wallet.shouldAutoSync = true;
-              }
+            walletInitFutures.add(wallet.init().then((_) {
+              // if (shouldSetAutoSync) {
+              //   wallet.shouldAutoSync = true;
+              // }
             }));
           }
         }

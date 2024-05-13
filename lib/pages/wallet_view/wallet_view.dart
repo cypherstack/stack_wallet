@@ -124,7 +124,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
   late final bool isSparkWallet;
 
-  late final bool _shouldDisableAutoSyncOnLogOut;
+  // late final bool _shouldDisableAutoSyncOnLogOut;
 
   late WalletSyncStatus _currentSyncStatus;
   late NodeConnectionStatus _currentNodeStatus;
@@ -177,9 +177,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
     if (!wallet.shouldAutoSync) {
       // enable auto sync if it wasn't enabled when loading wallet
       wallet.shouldAutoSync = true;
-      _shouldDisableAutoSyncOnLogOut = true;
-    } else {
-      _shouldDisableAutoSyncOnLogOut = false;
+      //   _shouldDisableAutoSyncOnLogOut = true;
+      // } else {
+      //   _shouldDisableAutoSyncOnLogOut = false;
     }
 
     isSparkWallet = wallet is SparkInterface;
@@ -277,34 +277,36 @@ class _WalletViewState extends ConsumerState<WalletView> {
     const timeout = Duration(milliseconds: 1500);
     if (_cachedTime == null || now.difference(_cachedTime!) > timeout) {
       _cachedTime = now;
-      unawaited(showDialog<dynamic>(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => WillPopScope(
-          onWillPop: () async {
-            Navigator.of(context).popUntil(
-              ModalRoute.withName(HomeView.routeName),
-            );
-            _logout();
-            return false;
-          },
-          child: const StackDialog(title: "Tap back again to exit wallet"),
+      unawaited(
+        showDialog<dynamic>(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => WillPopScope(
+            onWillPop: () async {
+              Navigator.of(context).popUntil(
+                ModalRoute.withName(HomeView.routeName),
+              );
+              _logout();
+              return false;
+            },
+            child: const StackDialog(title: "Tap back again to exit wallet"),
+          ),
+        ).timeout(
+          timeout,
+          onTimeout: () => Navigator.of(context).popUntil(
+            ModalRoute.withName(WalletView.routeName),
+          ),
         ),
-      ).timeout(
-        timeout,
-        onTimeout: () => Navigator.of(context).popUntil(
-          ModalRoute.withName(WalletView.routeName),
-        ),
-      ));
+      );
     }
     return false;
   }
 
   void _logout() async {
-    if (_shouldDisableAutoSyncOnLogOut) {
-      // disable auto sync if it was enabled only when loading wallet
-      ref.read(pWallets).getWallet(walletId).shouldAutoSync = false;
-    }
+    // if (_shouldDisableAutoSyncOnLogOut) {
+    //   // disable auto sync if it was enabled only when loading wallet
+    ref.read(pWallets).getWallet(walletId).shouldAutoSync = false;
+    // }
 
     ref.read(currentWalletIdProvider.notifier).state = null;
     ref.read(transactionFilterProvider.state).state = null;
@@ -373,6 +375,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
       parentNav: Navigator.of(context),
       frostInterruptionDialogType:
           FrostInterruptionDialogType.transactionCreation,
+      callerRouteName: WalletView.routeName,
     );
 
     await Navigator.of(context).pushNamed(
@@ -398,11 +401,12 @@ class _WalletViewState extends ConsumerState<WalletView> {
             .tickerEqualToAnyExchangeNameName(coin.ticker)
             .findFirst();
       } catch (_) {
-        _future = ExchangeDataLoadingService.instance.loadAll().then((_) =>
-            ExchangeDataLoadingService.instance.isar.currencies
-                .where()
-                .tickerEqualToAnyExchangeNameName(coin.ticker)
-                .findFirst());
+        _future = ExchangeDataLoadingService.instance.loadAll().then(
+              (_) => ExchangeDataLoadingService.instance.isar.currencies
+                  .where()
+                  .tickerEqualToAnyExchangeNameName(coin.ticker)
+                  .findFirst(),
+            );
       }
 
       final currency = await showLoading(
@@ -411,7 +415,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
         message: "Loading...",
       );
 
-      if (mounted) {
+      if (context.mounted) {
         unawaited(
           Navigator.of(context).pushNamed(
             WalletInitiatedExchangeView.routeName,
@@ -568,7 +572,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           },
                         ),
                 ),
-              )
+              ),
             ],
           ),
         );
@@ -607,7 +611,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           style: STextStyles.navBarTitle(context),
                           overflow: TextOverflow.ellipsis,
                         ),
-                      )
+                      ),
                     ],
                   ),
                   actions: [
@@ -670,9 +674,12 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           color: Theme.of(context)
                               .extension<StackColors>()!
                               .background,
-                          icon: ref.watch(notificationsProvider.select(
-                                  (value) => value
-                                      .hasUnreadNotificationsFor(walletId)))
+                          icon: ref.watch(
+                            notificationsProvider.select(
+                              (value) =>
+                                  value.hasUnreadNotificationsFor(walletId),
+                            ),
+                          )
                               ? SvgPicture.file(
                                   File(
                                     ref.watch(
@@ -683,10 +690,14 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                   ),
                                   width: 20,
                                   height: 20,
-                                  color: ref.watch(notificationsProvider.select(
-                                          (value) =>
-                                              value.hasUnreadNotificationsFor(
-                                                  walletId)))
+                                  color: ref.watch(
+                                    notificationsProvider.select(
+                                      (value) =>
+                                          value.hasUnreadNotificationsFor(
+                                        walletId,
+                                      ),
+                                    ),
+                                  )
                                       ? null
                                       : Theme.of(context)
                                           .extension<StackColors>()!
@@ -696,10 +707,14 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                   Assets.svg.bell,
                                   width: 20,
                                   height: 20,
-                                  color: ref.watch(notificationsProvider.select(
-                                          (value) =>
-                                              value.hasUnreadNotificationsFor(
-                                                  walletId)))
+                                  color: ref.watch(
+                                    notificationsProvider.select(
+                                      (value) =>
+                                          value.hasUnreadNotificationsFor(
+                                        walletId,
+                                      ),
+                                    ),
+                                  )
                                       ? null
                                       : Theme.of(context)
                                           .extension<StackColors>()!
@@ -720,22 +735,25 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                   .state;
                               if (unreadNotificationIds.isEmpty) return;
 
-                              List<Future<dynamic>> futures = [];
+                              final List<Future<dynamic>> futures = [];
                               for (int i = 0;
                                   i < unreadNotificationIds.length - 1;
                                   i++) {
-                                futures.add(ref
-                                    .read(notificationsProvider)
-                                    .markAsRead(
+                                futures.add(
+                                  ref.read(notificationsProvider).markAsRead(
                                         unreadNotificationIds.elementAt(i),
-                                        false));
+                                        false,
+                                      ),
+                                );
                               }
 
                               // wait for multiple to update if any
                               Future.wait(futures).then((_) {
                                 // only notify listeners once
                                 ref.read(notificationsProvider).markAsRead(
-                                    unreadNotificationIds.last, true);
+                                      unreadNotificationIds.last,
+                                      true,
+                                    );
                               });
                             });
                           },
@@ -824,7 +842,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                     style: Theme.of(context)
                                         .extension<StackColors>()!
                                         .getSecondaryEnabledButtonStyle(
-                                            context),
+                                          context,
+                                        ),
                                     onPressed: () async {
                                       await showDialog<void>(
                                         context: context,
@@ -855,7 +874,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                             style: Theme.of(context)
                                                 .extension<StackColors>()!
                                                 .getPrimaryEnabledButtonStyle(
-                                                    context),
+                                                  context,
+                                                ),
                                             child: Text(
                                               "Continue",
                                               style:
@@ -1073,21 +1093,22 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     ),
                   if (coin == Coin.banano)
                     WalletNavigationBarItemData(
-                        icon: SvgPicture.asset(
-                          Assets.svg.monkey,
-                          height: 20,
-                          width: 20,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .bottomNavIconIcon,
-                        ),
-                        label: "MonKey",
-                        onTap: () {
-                          Navigator.of(context).pushNamed(
-                            MonkeyView.routeName,
-                            arguments: widget.walletId,
-                          );
-                        }),
+                      icon: SvgPicture.asset(
+                        Assets.svg.monkey,
+                        height: 20,
+                        width: 20,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .bottomNavIconIcon,
+                      ),
+                      label: "MonKey",
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          MonkeyView.routeName,
+                          arguments: widget.walletId,
+                        );
+                      },
+                    ),
                   if (ref.watch(
                         pWallets.select(
                           (value) => value.getWallet(widget.walletId)
@@ -1112,8 +1133,12 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         );
                       },
                     ),
-                  if (ref.watch(pWallets.select((value) =>
-                      value.getWallet(widget.walletId) is PaynymInterface)))
+                  if (ref.watch(
+                    pWallets.select(
+                      (value) =>
+                          value.getWallet(widget.walletId) is PaynymInterface,
+                    ),
+                  ))
                     WalletNavigationBarItemData(
                       label: "PayNym",
                       icon: const PaynymNavIcon(),
@@ -1145,7 +1170,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           level: LogLevel.Info,
                         );
 
-                        if (mounted) {
+                        if (context.mounted) {
                           Navigator.of(context).pop();
 
                           // check if account exists and for matching code to see if claimed

@@ -162,6 +162,7 @@ class FrostMSWalletOptionsView extends ConsumerWidget {
                         parentNav: Navigator.of(context),
                         frostInterruptionDialogType:
                             FrostInterruptionDialogType.resharing,
+                        callerRouteName: FrostMSWalletOptionsView.routeName,
                       );
 
                       Navigator.of(context).pushNamed(

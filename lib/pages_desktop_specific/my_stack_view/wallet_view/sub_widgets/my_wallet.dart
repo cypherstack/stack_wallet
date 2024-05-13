@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/frost_route_generator.dart';
 import 'package:stackwallet/pages/send_view/frost_ms/frost_send_view.dart';
 import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_list.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/my_stack_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_receive.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_send.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_token_send.dart';
@@ -104,6 +105,7 @@ class _MyWalletState extends ConsumerState<MyWallet> {
                                         frostInterruptionDialogType:
                                             FrostInterruptionDialogType
                                                 .transactionCreation,
+                                        callerRouteName: MyStackView.routeName,
                                       );
 
                                       await Navigator.of(context).pushNamed(
@@ -111,7 +113,7 @@ class _MyWalletState extends ConsumerState<MyWallet> {
                                       );
                                     },
                                   ),
-                                )
+                                ),
                               ],
                             ),
                             FrostSendView(

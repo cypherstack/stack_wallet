@@ -180,10 +180,12 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
       final config = Frost.createSignConfig(
         network: network,
         inputs: utxosToUse
-            .map((e) => (
-                  utxo: e,
-                  scriptPubKey: publicKey,
-                ))
+            .map(
+              (e) => (
+                utxo: e,
+                scriptPubKey: publicKey,
+              ),
+            )
             .toList(),
         outputs: txData.recipients!,
         changeAddress: (await getCurrentReceivingAddress())!.value,
@@ -278,8 +280,9 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
   Amount _roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
     return Amount(
       rawValue: BigInt.from(
-          ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
-              (feeRatePerKB / 1000).ceil()),
+        ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
+            (feeRatePerKB / 1000).ceil(),
+      ),
       fractionDigits: cryptoCurrency.fractionDigits,
     );
   }
@@ -333,7 +336,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
     final currentHeight = await chainHeight;
     final coin = info.coin;
 
-    List<Map<String, dynamic>> allTransactions = [];
+    final List<Map<String, dynamic>> allTransactions = [];
 
     for (final txHash in allTxHashes) {
       final storedTx = await mainDB.isar.transactionV2s
@@ -390,8 +393,8 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
           );
 
           final prevOutJson = Map<String, dynamic>.from(
-              (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout)
-                  as Map);
+            (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout) as Map,
+          );
 
           final prevOut = OutputV2.fromElectrumXJson(
             prevOutJson,
@@ -456,7 +459,8 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
       TransactionSubType subType = TransactionSubType.none;
       if (outputs.length > 1 && inputs.isNotEmpty) {
         for (int i = 0; i < outputs.length; i++) {
-          List<String>? scriptChunks = outputs[i].scriptPubKeyAsm?.split(" ");
+          final List<String>? scriptChunks =
+              outputs[i].scriptPubKeyAsm?.split(" ");
           if (scriptChunks?.length == 2 && scriptChunks?[0] == "OP_RETURN") {
             final blindedPaymentCode = scriptChunks![1];
             final bytes = blindedPaymentCode.toUint8ListFromHex;
@@ -575,8 +579,10 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
 
       return txData;
     } catch (e, s) {
-      Logging.instance.log("Exception rethrown from confirmSend(): $e\n$s",
-          level: LogLevel.Error);
+      Logging.instance.log(
+        "Exception rethrown from confirmSend(): $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }
@@ -685,7 +691,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
       multisigConfig = await getMultisigConfig();
     }
     if (serializedKeys == null || multisigConfig == null) {
-      String err = "${info.coinName} wallet ${info.walletId} had null keys/cfg";
+      final err = "${info.coinName} wallet ${info.walletId} had null keys/cfg";
       Logging.instance.log(err, level: LogLevel.Fatal);
       throw Exception(err);
       // TODO [prio=low]: handle null keys or config.  This should not happen.
@@ -713,7 +719,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
           if (knownSalts.contains(salt)) {
             throw Exception("Known frost multisig salt found!");
           }
-          List<String> updatedKnownSalts = List<String>.from(knownSalts);
+          final List<String> updatedKnownSalts = List<String>.from(knownSalts);
           updatedKnownSalts.add(salt);
           await _updateKnownSalts(updatedKnownSalts);
         } else {
@@ -1015,8 +1021,9 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
       .findFirstSync()!;
 
   Future<void> _updateParticipants(List<String> participants) async {
+    final info = frostInfo;
+
     await mainDB.isar.writeTxn(() async {
-      final info = frostInfo;
       await mainDB.isar.frostWalletInfo.delete(info.id);
       await mainDB.isar.frostWalletInfo.put(
         info.copyWith(participants: participants),
@@ -1031,8 +1038,9 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
       .findFirstSync()!;
 
   Future<void> _updateThreshold(int threshold) async {
+    final info = frostInfo;
+
     await mainDB.isar.writeTxn(() async {
-      final info = frostInfo;
       await mainDB.isar.frostWalletInfo.delete(info.id);
       await mainDB.isar.frostWalletInfo.put(
         info.copyWith(threshold: threshold),
@@ -1047,8 +1055,9 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
       .findFirstSync()!;
 
   Future<void> _updateMyName(String myName) async {
+    final info = frostInfo;
+
     await mainDB.isar.writeTxn(() async {
-      final info = frostInfo;
       await mainDB.isar.frostWalletInfo.delete(info.id);
       await mainDB.isar.frostWalletInfo.put(
         info.copyWith(myName: myName),
@@ -1074,13 +1083,15 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
   Future<void> _updateElectrumX() async {
     final failovers = nodeService
         .failoverNodesFor(coin: cryptoCurrency.coin)
-        .map((e) => ElectrumXNode(
-              address: e.host,
-              port: e.port,
-              name: e.name,
-              id: e.id,
-              useSSL: e.useSSL,
-            ))
+        .map(
+          (e) => ElectrumXNode(
+            address: e.host,
+            port: e.port,
+            name: e.name,
+            id: e.id,
+            useSSL: e.useSSL,
+          ),
+        )
         .toList();
 
     final newNode = await _getCurrentElectrumXNode();
@@ -1109,7 +1120,9 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
   }
 
   bool _duplicateTxCheck(
-      List<Map<String, dynamic>> allTransactions, String txid) {
+    List<Map<String, dynamic>> allTransactions,
+    String txid,
+  ) {
     for (int i = 0; i < allTransactions.length; i++) {
       if (allTransactions[i]["txid"] == txid) {
         return true;

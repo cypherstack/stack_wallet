@@ -131,7 +131,6 @@ class _SelectNewFrostImportTypeViewState
             PrimaryButton(
               label: "Continue",
               onPressed: () async {
-                final String route;
                 switch (_selectedOption) {
                   case _ImportOption.multisigNew:
                     ref.read(pFrostScaffoldArgs.state).state = (
@@ -144,6 +143,7 @@ class _SelectNewFrostImportTypeViewState
                       parentNav: Navigator.of(context),
                       frostInterruptionDialogType:
                           FrostInterruptionDialogType.walletCreation,
+                      callerRouteName: SelectNewFrostImportTypeView.routeName,
                     );
                     break;
 
@@ -158,6 +158,7 @@ class _SelectNewFrostImportTypeViewState
                       parentNav: Navigator.of(context),
                       frostInterruptionDialogType:
                           FrostInterruptionDialogType.resharing,
+                      callerRouteName: SelectNewFrostImportTypeView.routeName,
                     );
                     break;
                 }
