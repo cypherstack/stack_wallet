@@ -201,7 +201,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                   height: 42,
                 ),
                 Text(
-                  "{$WhiteLabel.appName}",
+                  WhiteLabel.appName,
                   style: STextStyles.desktopH1(context),
                 ),
                 const SizedBox(

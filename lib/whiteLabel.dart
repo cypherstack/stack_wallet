@@ -1,7 +1,9 @@
 abstract class WhiteLabel {
-  String get appName => appNamePrefix + appNameSuffix;
+  static String get appName => prefix + separator + suffix;
 
-  String get appNamePrefix => "Stack";
+  static String get prefix => "Stack";
 
-  String get appNameSuffix => "Wallet";
+  static String get separator => " ";
+
+  static String get suffix => "Wallet";
 }
