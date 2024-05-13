@@ -139,6 +139,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
           parentNav: Navigator.of(context),
           frostInterruptionDialogType:
               FrostInterruptionDialogType.transactionCreation,
+          callerRouteName: FrostSendView.routeName,
         );
 
         await Navigator.of(context).pushNamed(

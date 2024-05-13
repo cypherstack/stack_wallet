@@ -11,6 +11,7 @@ import 'package:stackwallet/widgets/custom_buttons/frost_qr_dialog_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/detail_item.dart';
+import 'package:stackwallet/widgets/dialogs/frost/frost_error_dialog.dart';
 import 'package:stackwallet/widgets/frost_step_user_steps.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/textfields/frost_step_field.dart';
@@ -184,9 +185,8 @@ class _FrostCreateStep3State extends ConsumerState<FrostCreateStep3> {
                 if (context.mounted) {
                   return await showDialog<void>(
                     context: context,
-                    builder: (_) => StackOkDialog(
+                    builder: (_) => const FrostErrorDialog(
                       title: "Failed to complete key generation",
-                      desktopPopRootNavigator: Util.isDesktop,
                     ),
                   );
                 }

@@ -190,6 +190,7 @@ class _FrostReshareStep1cState extends ConsumerState<FrostReshareStep1c> {
                     parentNav: data.parentNav,
                     frostInterruptionDialogType:
                         FrostInterruptionDialogType.resharing,
+                    callerRouteName: data.callerRouteName,
                   );
                   ref.read(pFrostMyName.state).state =
                       ref.read(pFrostResharingData).myName!;

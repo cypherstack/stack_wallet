@@ -129,18 +129,19 @@ class _CompleteReshareConfigViewState
       final wallet =
           ref.read(pWallets).getWallet(widget.walletId) as BitcoinFrostWallet;
 
-      ref.read(pFrostScaffoldArgs.state).state = (
-        info: (
-          walletName: wallet.info.name,
-          frostCurrency: wallet.cryptoCurrency,
-        ),
-        walletId: wallet.walletId,
-        stepRoutes: FrostRouteGenerator.initiateReshareStepRoutes,
-        parentNav: Navigator.of(context),
-        frostInterruptionDialogType: FrostInterruptionDialogType.resharing,
-      );
-
       if (mounted) {
+        ref.read(pFrostScaffoldArgs.state).state = (
+          info: (
+            walletName: wallet.info.name,
+            frostCurrency: wallet.cryptoCurrency,
+          ),
+          walletId: wallet.walletId,
+          stepRoutes: FrostRouteGenerator.initiateReshareStepRoutes,
+          parentNav: Navigator.of(context),
+          frostInterruptionDialogType: FrostInterruptionDialogType.resharing,
+          callerRouteName: CompleteReshareConfigView.routeName,
+        );
+
         await Navigator.of(context).pushNamed(
           FrostStepScaffold.routeName,
         );
@@ -345,7 +346,8 @@ class _CompleteReshareConfigViewState
                             () => _includeMeInReshare = value == true,
                           );
                           _participantsCountChanged(
-                              _newParticipantsCountController.text);
+                            _newParticipantsCountController.text,
+                          );
                         },
                       ),
                     ),

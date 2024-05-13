@@ -431,6 +431,7 @@ class _NewFrostMsWalletViewState
                   frostInterruptionDialogType:
                       FrostInterruptionDialogType.walletCreation,
                   parentNav: Navigator.of(context),
+                  callerRouteName: CreateNewFrostMsWalletView.routeName,
                 );
 
                 await Navigator.of(context).pushNamed(
