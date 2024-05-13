@@ -140,7 +140,7 @@ dependencies:
   pointycastle: ^3.6.0
   package_info_plus: ^4.0.2
   lottie: ^2.3.2
-  file_picker: ^5.5.0
+  file_picker: ^8.0.3
   connectivity_plus: ^4.0.1
   isar: 3.0.5
   isar_flutter_libs: 3.0.5 # contains the binaries

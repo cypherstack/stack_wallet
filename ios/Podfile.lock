@@ -117,8 +117,7 @@ PODS:
     - Flutter
   - flutter_secure_storage (6.0.0):
     - Flutter
-  - frostdart (0.0.1):
-    - Flutter
+  - frostdart (0.0.1)
   - integration_test (0.0.1):
     - Flutter
   - isar_flutter_libs (1.0.0):
@@ -272,7 +271,7 @@ SPEC CHECKSUMS:
   flutter_local_notifications: 4cde75091f6327eb8517fa068a0a5950212d2086
   flutter_native_splash: 52501b97d1c0a5f898d687f1646226c1f93c56ef
   flutter_secure_storage: 23fc622d89d073675f2eaa109381aefbcf5a49be
-  frostdart: ed3dc4e5dce431a1a8791dd7ddba472a05ea626d
+  frostdart: 4c72b69ccac2f13ede744107db046a125acce597
   integration_test: 13825b8a9334a850581300559b8839134b124670
   isar_flutter_libs: b69f437aeab9c521821c3f376198c4371fa21073
   lelantus: 417f0221260013dfc052cae9cf4b741b6479edba
@@ -293,4 +292,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 57c8aed26fba39d3ec9424816221f294a07c58eb
 
-COCOAPODS: 1.14.3
+COCOAPODS: 1.15.2
