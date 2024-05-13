@@ -15,6 +15,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/whiteLabel.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -88,7 +89,7 @@ class SupportView extends StatelessWidget {
           AboutItem(
             linkUrl: "https://discord.com/invite/mRPZuXx3At",
             label: "Discord",
-            buttonText: "Stack Wallet",
+            buttonText: "{$WhiteLabel.appName}",
             iconAsset: Assets.socials.discord,
             isDesktop: isDesktop,
           ),
