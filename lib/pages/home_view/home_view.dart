@@ -30,6 +30,7 @@ import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/whiteLabel.dart';
 import 'package:stackwallet/widgets/animated_widgets/rotate_icon.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -202,7 +203,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   width: 16,
                 ),
                 Text(
-                  "My Stack",
+                  "My ${WhiteLabel.prefix}",
                   style: STextStyles.navBarTitle(context),
                 )
               ],

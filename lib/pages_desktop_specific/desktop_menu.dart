@@ -181,7 +181,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                     DesktopMenuItem(
                       duration: duration,
                       icon: const DesktopMyStackIcon(),
-                      label: "My Stack",
+                      label: "My ${WhiteLabel.prefix}",
                       value: DesktopMenuItemId.myStack,
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[0],

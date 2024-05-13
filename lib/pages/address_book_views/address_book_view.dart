@@ -26,6 +26,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
+import 'package:stackwallet/whiteLabel.dart';
 import 'package:stackwallet/widgets/address_book_card.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -107,7 +108,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
         );
       }
       final self = ContactEntry(
-        name: "My Stack",
+        name: "My ${WhiteLabel.prefix}",
         addresses: addresses,
         isFavorite: true,
         customId: "default",
