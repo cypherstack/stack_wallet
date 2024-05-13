@@ -37,6 +37,7 @@ import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
+import 'package:stackwallet/whiteLabel.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
@@ -815,7 +816,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                             if (isWalletCoin)
                               Builder(
                                 builder: (context) {
-                                  String buttonTitle = "Send from Stack Wallet";
+                                  String buttonTitle =
+                                      "Send from {$WhiteLabel.appName}";
 
                                   final tuple = ref
                                       .read(

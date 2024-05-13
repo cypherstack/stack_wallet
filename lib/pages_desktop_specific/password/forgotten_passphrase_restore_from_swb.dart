@@ -30,6 +30,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/whiteLabel.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -154,7 +155,7 @@ class _ForgottenPassphraseRestoreFromSWBState
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "Restoring Stack wallet",
+                        "Restoring {$WhiteLabel.appName}",
                         style: STextStyles.desktopH3(context),
                       ),
                     ],

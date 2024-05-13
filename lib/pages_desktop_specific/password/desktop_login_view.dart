@@ -29,6 +29,7 @@ import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/whiteLabel.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -200,7 +201,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                   height: 42,
                 ),
                 Text(
-                  "Stack Wallet",
+                  "{$WhiteLabel.appName}",
                   style: STextStyles.desktopH1(context),
                 ),
                 const SizedBox(

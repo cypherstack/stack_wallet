@@ -21,6 +21,7 @@ import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/whiteLabel.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -199,7 +200,7 @@ class AppNameText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      "Stack Wallet",
+      "{$WhiteLabel.appName}",
       textAlign: TextAlign.center,
       style: !isDesktop
           ? STextStyles.pageTitleH1(context)
