@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/whiteLabel.dart';
+import 'package:stackwallet/white_label.dart';
 
 class ExitToMyStackButton extends StatelessWidget {
   const ExitToMyStackButton({
@@ -45,7 +45,7 @@ class ExitToMyStackButton extends StatelessWidget {
               horizontal: 30,
             ),
             child: Text(
-              "Exit to My ${WhiteLabel.prefix}",
+              "Exit to My ${AppConfig.prefix}",
               style: STextStyles.desktopButtonSmallSecondaryEnabled(context),
             ),
           ),

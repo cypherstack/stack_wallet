@@ -19,7 +19,7 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/my_wallets.dart
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/wallets/isar/providers/all_wallets_info_provider.dart';
-import 'package:stackwallet/whiteLabel.dart';
+import 'package:stackwallet/white_label.dart';
 import 'package:stackwallet/widgets/animated_widgets/rotate_icon.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -132,7 +132,7 @@ class _DesktopMyStackTitleState extends ConsumerState<DesktopMyStackTitle> {
           width: 12,
         ),
         Text(
-          "My ${WhiteLabel.prefix}",
+          "My ${AppConfig.prefix}",
           style: STextStyles.desktopH3(context),
         )
       ],

@@ -73,7 +73,7 @@ import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/providers/all_wallets_info_provider.dart';
-import 'package:stackwallet/whiteLabel.dart';
+import 'package:stackwallet/white_label.dart';
 import 'package:stackwallet/widgets/crypto_notifications.dart';
 import 'package:window_size/window_size.dart';
 
@@ -103,7 +103,7 @@ void main(List<String> args) async {
   }
 
   if (Util.isDesktop && !Platform.isIOS) {
-    setWindowTitle(WhiteLabel.appName);
+    setWindowTitle(AppConfig.appName);
     setWindowMinSize(const Size(1220, 100));
     setWindowMaxSize(Size.infinite);
 
@@ -618,7 +618,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     return MaterialApp(
       key: GlobalKey(),
       navigatorKey: navigatorKey,
-      title: WhiteLabel.appName,
+      title: AppConfig.appName,
       onGenerateRoute: RouteGenerator.generateRoute,
       theme: ThemeData(
         extensions: [colorScheme],

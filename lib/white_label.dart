@@ -1,4 +1,4 @@
-abstract class WhiteLabel {
+abstract class AppConfig {
   static String get appName => prefix + separator + suffix;
 
   static String get prefix => "Stack";

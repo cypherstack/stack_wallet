@@ -33,7 +33,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/whiteLabel.dart';
+import 'package:stackwallet/white_label.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -317,7 +317,7 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
                     onPressed: onBack,
                   ),
                   secondChild: SecondaryButton(
-                    label: "Send from {$WhiteLabel.appName}",
+                    label: "Send from {$AppConfig.appName}",
                     buttonHeight: ButtonHeight.l,
                     onPressed: sendFromStack,
                   ),
