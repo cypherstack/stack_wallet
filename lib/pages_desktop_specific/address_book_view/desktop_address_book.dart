@@ -1,4 +1,4 @@
-/* 
+/*
  * This file is part of Stack Wallet.
  * 
  * Copyright (c) 2023 Cypher Stack
@@ -28,6 +28,7 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
+import 'package:stackwallet/whiteLabel.dart';
 import 'package:stackwallet/widgets/address_book_card.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -139,7 +140,7 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
         );
       }
       final self = ContactEntry(
-        name: "My Stack",
+        name: "My ${WhiteLabel.prefix}",
         addresses: addresses,
         isFavorite: true,
         customId: "default",

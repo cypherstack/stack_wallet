@@ -166,7 +166,7 @@ class DesktopAboutView extends ConsumerWidget {
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               Text(
-                                oWhiteLabel.appName,
+                                WhiteLabel.appName,
                                 style: STextStyles.desktopH3(context),
                                 textAlign: TextAlign.start,
                               ),
