@@ -89,7 +89,7 @@ class SupportView extends StatelessWidget {
           AboutItem(
             linkUrl: "https://discord.com/invite/mRPZuXx3At",
             label: "Discord",
-            buttonText: "{$WhiteLabel.appName}",
+            buttonText: WhiteLabel.appName,
             iconAsset: Assets.socials.discord,
             isDesktop: isDesktop,
           ),

@@ -200,8 +200,10 @@ class AppNameText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      "{$WhiteLabel.appName}",
-      // TODO [prio=high]: `'appName' can't be accessed using static access.`",
+      WhiteLabel.appName,
+      // TODO [prio=high]: appName is now static due to `'appName' can't be
+      // accessed using static access.`", check that that doesn't cause issues
+      // elsewhere.
       textAlign: TextAlign.center,
       style: !isDesktop
           ? STextStyles.pageTitleH1(context)
