@@ -79,7 +79,7 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
           Future<void>.delayed(const Duration(seconds: 2)),
         ]),
         context: context,
-        isDesktop: Util.isDesktop,
+        rootNavigator: Util.isDesktop,
         message: "Stopping fusion",
       );
 

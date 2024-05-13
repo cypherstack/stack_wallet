@@ -83,7 +83,7 @@ class _ChangeRepresentativeViewState
         whileFuture: changeFuture(_textController.text),
         context: context,
         message: "Updating representative...",
-        isDesktop: Util.isDesktop,
+        rootNavigator: Util.isDesktop,
         onException: (ex) {
           String msg = ex.toString();
           while (msg.isNotEmpty && msg.startsWith("Exception:")) {

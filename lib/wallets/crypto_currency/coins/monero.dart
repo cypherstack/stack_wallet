@@ -45,4 +45,12 @@ class Monero extends CryptonoteCurrency {
         throw UnimplementedError();
     }
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is Monero && other.network == network;
+  }
+
+  @override
+  int get hashCode => Object.hash(Monero, network);
 }

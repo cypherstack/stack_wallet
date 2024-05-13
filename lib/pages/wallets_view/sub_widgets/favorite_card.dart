@@ -127,7 +127,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
             whileFuture: loadFuture,
             context: context,
             message: 'Opening ${wallet.info.name}',
-            isDesktop: Util.isDesktop,
+            rootNavigator: Util.isDesktop,
           );
 
           if (mounted) {

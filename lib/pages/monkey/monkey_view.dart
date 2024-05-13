@@ -349,7 +349,7 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                                 ),
                               ]),
                               context: context,
-                              isDesktop: Util.isDesktop,
+                              rootNavigator: Util.isDesktop,
                               message: "Saving MonKey svg",
                               onException: (e) {
                                 didError = true;
@@ -402,7 +402,7 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                                     const Duration(seconds: 2)),
                               ]),
                               context: context,
-                              isDesktop: Util.isDesktop,
+                              rootNavigator: Util.isDesktop,
                               message: "Downloading MonKey png",
                               onException: (e) {
                                 didError = true;
@@ -500,7 +500,7 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                             Future<void>.delayed(const Duration(seconds: 2)),
                           ]),
                           context: context,
-                          isDesktop: Util.isDesktop,
+                          rootNavigator: Util.isDesktop,
                           message: "Fetching MonKey",
                           subMessage: "We are fetching your MonKey",
                           onException: (e) {

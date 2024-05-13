@@ -14,18 +14,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
+import 'package:solana/solana.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
+import 'package:stackwallet/utilities/connection_check/electrum_connection_check.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
+import 'package:stackwallet/utilities/test_eth_node_connection.dart';
 import 'package:stackwallet/utilities/test_monero_node_connection.dart';
 import 'package:stackwallet/utilities/test_stellar_node_connection.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -166,22 +169,23 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
       case Coin.firo:
       case Coin.namecoin:
       case Coin.particl:
+      case Coin.peercoin:
+      case Coin.peercoinTestNet:
+      case Coin.bitcoinFrost:
+      case Coin.bitcoinFrostTestNet:
       case Coin.bitcoinTestNet:
       case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
       case Coin.dogecoinTestNet:
-        final client = ElectrumXClient(
-          host: formData.host!,
-          port: formData.port!,
-          useSSL: formData.useSSL!,
-          failovers: [],
-          prefs: ref.read(prefsChangeNotifierProvider),
-          coin: coin,
-        );
-
         try {
-          testPassed = await client.ping();
+          testPassed = await checkElectrumServer(
+            host: formData.host!,
+            port: formData.port!,
+            useSSL: formData.useSSL!,
+            overridePrefs: ref.read(prefsChangeNotifierProvider),
+            overrideTorService: ref.read(pTorService),
+          );
         } catch (_) {
           testPassed = false;
         }
@@ -189,14 +193,13 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         break;
 
       case Coin.ethereum:
-        // TODO fix this
-        // final client = Web3Client(
-        //     "https://mainnet.infura.io/v3/22677300bf774e49a458b73313ee56ba",
-        //     Client());
         try {
-          // await client.getSyncStatus();
-        } catch (_) {}
+          testPassed = await testEthNodeConnection(formData.host!);
+        } catch (_) {
+          testPassed = false;
+        }
         break;
+
       case Coin.stellar:
       case Coin.stellarTestnet:
         try {
@@ -215,6 +218,21 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
             nodeInfo: (host: formData.host!, port: formData.port!),
           );
         } catch (_) {}
+        break;
+
+      case Coin.solana:
+        try {
+          RpcClient rpcClient;
+          if (formData.host!.startsWith("http") ||
+              formData.host!.startsWith("https")) {
+            rpcClient = RpcClient("${formData.host}:${formData.port}");
+          } else {
+            rpcClient = RpcClient("http://${formData.host}:${formData.port}");
+          }
+          await rpcClient.getEpochInfo().then((value) => testPassed = true);
+        } catch (_) {
+          testPassed = false;
+        }
         break;
     }
 
@@ -746,6 +764,8 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       case Coin.namecoin:
       case Coin.bitcoincash:
       case Coin.particl:
+      case Coin.peercoin:
+      case Coin.peercoinTestNet:
       case Coin.tezos:
       case Coin.bitcoinTestNet:
       case Coin.litecoinTestNet:
@@ -756,8 +776,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       case Coin.nano:
       case Coin.banano:
       case Coin.eCash:
+      case Coin.solana:
       case Coin.stellar:
       case Coin.stellarTestnet:
+      case Coin.bitcoinFrost:
+      case Coin.bitcoinFrostTestNet:
         return false;
 
       case Coin.ethereum:

@@ -26,9 +26,9 @@ import 'package:stackwallet/widgets/stack_text_field.dart';
 
 class DesktopAuthSend extends ConsumerStatefulWidget {
   const DesktopAuthSend({
-    Key? key,
+    super.key,
     required this.coin,
-  }) : super(key: key);
+  });
 
   final Coin coin;
 
@@ -43,11 +43,52 @@ class _DesktopAuthSendState extends ConsumerState<DesktopAuthSend> {
   bool hidePassword = true;
 
   bool _confirmEnabled = false;
+  bool _lock = false;
 
-  Future<bool> verifyPassphrase() async {
-    return await ref
-        .read(storageCryptoHandlerProvider)
-        .verifyPassphrase(passwordController.text);
+  Future<void> _confirmPressed() async {
+    if (_lock) {
+      return;
+    }
+    _lock = true;
+
+    try {
+      unawaited(
+        showDialog<void>(
+          context: context,
+          builder: (context) => const Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              LoadingIndicator(
+                width: 200,
+                height: 200,
+              ),
+            ],
+          ),
+        ),
+      );
+
+      await Future<void>.delayed(const Duration(seconds: 1));
+
+      final passwordIsValid = await ref
+          .read(storageCryptoHandlerProvider)
+          .verifyPassphrase(passwordController.text);
+
+      if (mounted) {
+        Navigator.of(context).pop();
+        Navigator.of(
+          context,
+          rootNavigator: true,
+        ).pop(passwordIsValid);
+        await Future<void>.delayed(
+          const Duration(
+            milliseconds: 100,
+          ),
+        );
+      }
+    } finally {
+      _lock = false;
+    }
   }
 
   @override
@@ -108,6 +149,12 @@ class _DesktopAuthSendState extends ConsumerState<DesktopAuthSend> {
             obscureText: hidePassword,
             enableSuggestions: false,
             autocorrect: false,
+            autofocus: true,
+            onSubmitted: (_) {
+              if (_confirmEnabled) {
+                _confirmPressed();
+              }
+            },
             decoration: standardInputDecoration(
               "Enter password",
               passwordFocusNode,
@@ -173,38 +220,7 @@ class _DesktopAuthSendState extends ConsumerState<DesktopAuthSend> {
                 enabled: _confirmEnabled,
                 label: "Confirm",
                 buttonHeight: ButtonHeight.l,
-                onPressed: () async {
-                  unawaited(
-                    showDialog<void>(
-                      context: context,
-                      builder: (context) => Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: const [
-                          LoadingIndicator(
-                            width: 200,
-                            height: 200,
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-
-                  await Future<void>.delayed(const Duration(seconds: 1));
-
-                  final passwordIsValid = await verifyPassphrase();
-
-                  if (mounted) {
-                    Navigator.of(context).pop();
-                    Navigator.of(
-                      context,
-                      rootNavigator: true,
-                    ).pop(passwordIsValid);
-                    await Future<void>.delayed(const Duration(
-                      milliseconds: 100,
-                    ));
-                  }
-                },
+                onPressed: _confirmPressed,
               ),
             ),
           ],

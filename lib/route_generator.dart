@@ -26,6 +26,9 @@ import 'package:stackwallet/pages/add_wallet_views/add_token_view/add_custom_tok
 import 'package:stackwallet/pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/create_new_frost_ms_wallet_view.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/new/select_new_frost_import_type_view.dart';
+import 'package:stackwallet/pages/add_wallet_views/frost_ms/restore/restore_frost_ms_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/name_your_wallet_view/name_your_wallet_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_options/new_wallet_options_view.dart';
 import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/new_wallet_recovery_phrase_view.dart';
@@ -76,6 +79,7 @@ import 'package:stackwallet/pages/receive_view/addresses/wallet_addresses_view.d
 import 'package:stackwallet/pages/receive_view/generate_receiving_uri_qr_code_view.dart';
 import 'package:stackwallet/pages/receive_view/receive_view.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
+import 'package:stackwallet/pages/send_view/frost_ms/frost_send_view.dart';
 import 'package:stackwallet/pages/send_view/send_view.dart';
 import 'package:stackwallet/pages/send_view/token_send_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/about_view.dart';
@@ -113,6 +117,10 @@ import 'package:stackwallet/pages/settings_views/global_settings_view/syncing_pr
 import 'package:stackwallet/pages/settings_views/global_settings_view/syncing_preferences_views/syncing_preferences_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/syncing_preferences_views/wallet_syncing_options_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/tor_settings/tor_settings_view.dart';
+import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/frost_ms_options_view.dart';
+import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/frost_participants_view.dart';
+import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/initiate_resharing/complete_reshare_config_view.dart';
+import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/initiate_resharing/initiate_resharing_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_backup_views/wallet_backup_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_view.dart';
@@ -181,9 +189,11 @@ import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/widgets/choose_coin_view.dart';
+import 'package:stackwallet/widgets/frost_scaffold.dart';
 import 'package:tuple/tuple.dart';
 
 /*
@@ -415,6 +425,144 @@ class RouteGenerator {
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => MonkeyView(
               walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case CreateNewFrostMsWalletView.routeName:
+        if (args is ({
+          String walletName,
+          FrostCurrency frostCurrency,
+        })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => CreateNewFrostMsWalletView(
+              walletName: args.walletName,
+              frostCurrency: args.frostCurrency,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case RestoreFrostMsWalletView.routeName:
+        if (args is ({
+          String walletName,
+          FrostCurrency frostCurrency,
+        })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => RestoreFrostMsWalletView(
+              walletName: args.walletName,
+              frostCurrency: args.frostCurrency,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case SelectNewFrostImportTypeView.routeName:
+        if (args is ({
+          String walletName,
+          FrostCurrency frostCurrency,
+        })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SelectNewFrostImportTypeView(
+              walletName: args.walletName,
+              frostCurrency: args.frostCurrency,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case FrostStepScaffold.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const FrostStepScaffold(),
+          settings: RouteSettings(
+            name: settings.name,
+          ),
+        );
+
+      case FrostMSWalletOptionsView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => FrostMSWalletOptionsView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case FrostParticipantsView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => FrostParticipantsView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case InitiateResharingView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => InitiateResharingView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case CompleteReshareConfigView.routeName:
+        if (args is ({String walletId, Map<String, int> resharers})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => CompleteReshareConfigView(
+              walletId: args.walletId,
+              resharers: args.resharers,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case FrostSendView.routeName:
+        if (args is ({
+          String walletId,
+          Coin coin,
+        })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => FrostSendView(
+              walletId: args.walletId,
+              coin: args.coin,
             ),
             settings: RouteSettings(
               name: settings.name,
@@ -1051,12 +1199,33 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case WalletBackupView.routeName:
-        if (args is Tuple2<String, List<String>>) {
+        if (args is ({String walletId, List<String> mnemonic})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => WalletBackupView(
-              walletId: args.item1,
-              mnemonic: args.item2,
+              walletId: args.walletId,
+              mnemonic: args.mnemonic,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        } else if (args is ({
+          String walletId,
+          List<String> mnemonic,
+          ({
+            String myName,
+            String config,
+            String keys,
+            ({String config, String keys})? prevGen,
+          })? frostWalletData,
+        })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => WalletBackupView(
+              walletId: args.walletId,
+              mnemonic: args.mnemonic,
+              frostWalletData: args.frostWalletData,
             ),
             settings: RouteSettings(
               name: settings.name,
@@ -1443,7 +1612,19 @@ class RouteGenerator {
               name: settings.name,
             ),
           );
+        } else if (args is ({Coin coin, String walletId})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SendView(
+              walletId: args.walletId,
+              coin: args.coin,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
         }
+
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case TokenSendView.routeName:
@@ -1961,10 +2142,14 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name));
 
       case WalletKeysDesktopPopup.routeName:
-        if (args is List<String>) {
+        if (args is ({
+          List<String> mnemonic,
+          ({String keys, String config})? frostData
+        })) {
           return FadePageRoute(
             WalletKeysDesktopPopup(
-              words: args,
+              words: args.mnemonic,
+              frostData: args.frostData,
             ),
             RouteSettings(
               name: settings.name,

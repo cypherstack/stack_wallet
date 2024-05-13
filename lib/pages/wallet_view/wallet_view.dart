@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
+import 'package:stackwallet/frost_route_generator.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/buy_view/buy_in_wallet_view.dart';
@@ -29,6 +30,7 @@ import 'package:stackwallet/pages/ordinals/ordinals_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
 import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
 import 'package:stackwallet/pages/receive_view/receive_view.dart';
+import 'package:stackwallet/pages/send_view/frost_ms/frost_send_view.dart';
 import 'package:stackwallet/pages/send_view/send_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_view.dart';
@@ -64,6 +66,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
@@ -76,12 +79,14 @@ import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import 'package:stackwallet/widgets/frost_scaffold.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 import 'package:stackwallet/widgets/small_tor_icon.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/buy_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/coin_control_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/exchange_nav_icon.dart';
+import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/frost_sign_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/fusion_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/ordinals_nav_icon.dart';
 import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/paynym_nav_icon.dart';
@@ -165,7 +170,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
     final wallet = ref.read(pWallets).getWallet(walletId);
     coin = wallet.info.coin;
 
-    ref.read(currentWalletIdProvider.notifier).state = wallet.walletId;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(currentWalletIdProvider.notifier).state = wallet.walletId;
+    });
 
     if (!wallet.shouldAutoSync) {
       // enable auto sync if it wasn't enabled when loading wallet
@@ -354,7 +361,26 @@ class _WalletViewState extends ConsumerState<WalletView> {
     }
   }
 
-  void _onExchangePressed(BuildContext context) async {
+  Future<void> _onFrostSignPressed(BuildContext context) async {
+    final wallet = ref.read(pWallets).getWallet(walletId) as BitcoinFrostWallet;
+    ref.read(pFrostScaffoldArgs.state).state = (
+      info: (
+        walletName: wallet.info.name,
+        frostCurrency: wallet.cryptoCurrency,
+      ),
+      walletId: walletId,
+      stepRoutes: FrostRouteGenerator.signFrostTxStepRoutes,
+      parentNav: Navigator.of(context),
+      frostInterruptionDialogType:
+          FrostInterruptionDialogType.transactionCreation,
+    );
+
+    await Navigator.of(context).pushNamed(
+      FrostStepScaffold.routeName,
+    );
+  }
+
+  Future<void> _onExchangePressed(BuildContext context) async {
     final Coin coin = ref.read(pWalletCoin(walletId));
 
     if (coin.isTestNet) {
@@ -399,7 +425,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
     }
   }
 
-  void _onBuyPressed(BuildContext context) async {
+  Future<void> _onBuyPressed(BuildContext context) async {
     final Coin coin = ref.read(pWalletCoin(walletId));
 
     if (coin.isTestNet) {
@@ -974,6 +1000,12 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       }
                     },
                   ),
+                  if (ref.watch(pWalletCoin(walletId)).isFrost)
+                    WalletNavigationBarItemData(
+                      label: "Sign",
+                      icon: const FrostSignNavIcon(),
+                      onTap: () => _onFrostSignPressed(context),
+                    ),
                   WalletNavigationBarItemData(
                     label: "Send",
                     icon: const SendNavIcon(),
@@ -994,21 +1026,26 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       //     break;
                       // }
                       Navigator.of(context).pushNamed(
-                        SendView.routeName,
-                        arguments: Tuple2(
-                          walletId,
-                          coin,
+                        ref.read(pWallets).getWallet(walletId)
+                                is BitcoinFrostWallet
+                            ? FrostSendView.routeName
+                            : SendView.routeName,
+                        arguments: (
+                          walletId: walletId,
+                          coin: coin,
                         ),
                       );
                     },
                   ),
-                  if (Constants.enableExchange)
+                  if (Constants.enableExchange &&
+                      !ref.watch(pWalletCoin(walletId)).isFrost)
                     WalletNavigationBarItemData(
                       label: "Swap",
                       icon: const ExchangeNavIcon(),
                       onTap: () => _onExchangePressed(context),
                     ),
-                  if (Constants.enableExchange)
+                  if (Constants.enableExchange &&
+                      !ref.watch(pWalletCoin(walletId)).isFrost)
                     WalletNavigationBarItemData(
                       label: "Buy",
                       icon: const BuyNavIcon(),

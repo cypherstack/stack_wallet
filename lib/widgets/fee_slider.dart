@@ -9,9 +9,11 @@ class FeeSlider extends StatefulWidget {
     super.key,
     required this.onSatVByteChanged,
     required this.coin,
+    this.showWU = false,
   });
 
   final Coin coin;
+  final bool showWU;
   final void Function(int) onSatVByteChanged;
 
   @override
@@ -34,7 +36,7 @@ class _FeeSliderState extends State<FeeSlider> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              "sat/vByte",
+              widget.showWU ? "sat/WU" : "sat/vByte",
               style: STextStyles.smallMed12(context),
             ),
             Text(

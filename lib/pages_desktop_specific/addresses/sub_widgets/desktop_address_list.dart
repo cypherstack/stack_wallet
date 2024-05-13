@@ -29,10 +29,10 @@ import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
 class DesktopAddressList extends ConsumerStatefulWidget {
   const DesktopAddressList({
-    Key? key,
+    super.key,
     required this.walletId,
     this.searchHeight,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final double? searchHeight;

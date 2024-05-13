@@ -173,85 +173,91 @@ class _FiroBalanceSelectionSheetState
                     ),
                   ),
                 ),
-                const SizedBox(
-                  height: 16,
-                ),
-                GestureDetector(
-                  onTap: () {
-                    final state =
-                        ref.read(publicPrivateBalanceStateProvider.state).state;
-                    if (state != FiroType.lelantus) {
-                      ref.read(publicPrivateBalanceStateProvider.state).state =
-                          FiroType.lelantus;
-                    }
-                    Navigator.of(context).pop();
-                  },
-                  child: Container(
-                    color: Colors.transparent,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: Radio(
-                                activeColor: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .radioButtonIconEnabled,
-                                value: FiroType.lelantus,
-                                groupValue: ref
-                                    .watch(
-                                        publicPrivateBalanceStateProvider.state)
-                                    .state,
-                                onChanged: (x) {
-                                  ref
-                                      .read(publicPrivateBalanceStateProvider
-                                          .state)
-                                      .state = FiroType.lelantus;
-
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(
-                          width: 12,
-                        ),
-                        Flexible(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                if (firoWallet.info.cachedBalanceSecondary.spendable.raw >
+                    BigInt.zero)
+                  const SizedBox(
+                    height: 16,
+                  ),
+                if (firoWallet.info.cachedBalanceSecondary.spendable.raw >
+                    BigInt.zero)
+                  GestureDetector(
+                    onTap: () {
+                      final state = ref
+                          .read(publicPrivateBalanceStateProvider.state)
+                          .state;
+                      if (state != FiroType.lelantus) {
+                        ref
+                            .read(publicPrivateBalanceStateProvider.state)
+                            .state = FiroType.lelantus;
+                      }
+                      Navigator.of(context).pop();
+                    },
+                    child: Container(
+                      color: Colors.transparent,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              // Row(
-                              //   children: [
-                              Text(
-                                "Lelantus balance",
-                                style: STextStyles.titleBold12(context),
-                                textAlign: TextAlign.left,
-                              ),
-                              const SizedBox(
-                                width: 2,
-                              ),
-                              Text(
-                                ref.watch(pAmountFormatter(coin)).format(
-                                      firoWallet.info.cachedBalanceSecondary
-                                          .spendable,
-                                    ),
-                                style: STextStyles.itemSubtitle(context),
-                                textAlign: TextAlign.left,
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: Radio(
+                                  activeColor: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .radioButtonIconEnabled,
+                                  value: FiroType.lelantus,
+                                  groupValue: ref
+                                      .watch(publicPrivateBalanceStateProvider
+                                          .state)
+                                      .state,
+                                  onChanged: (x) {
+                                    ref
+                                        .read(publicPrivateBalanceStateProvider
+                                            .state)
+                                        .state = FiroType.lelantus;
+
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
                               ),
                             ],
                           ),
-                          //   ],
-                          // ),
-                        )
-                      ],
+                          const SizedBox(
+                            width: 12,
+                          ),
+                          Flexible(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Row(
+                                //   children: [
+                                Text(
+                                  "Lelantus balance",
+                                  style: STextStyles.titleBold12(context),
+                                  textAlign: TextAlign.left,
+                                ),
+                                const SizedBox(
+                                  width: 2,
+                                ),
+                                Text(
+                                  ref.watch(pAmountFormatter(coin)).format(
+                                        firoWallet.info.cachedBalanceSecondary
+                                            .spendable,
+                                      ),
+                                  style: STextStyles.itemSubtitle(context),
+                                  textAlign: TextAlign.left,
+                                ),
+                              ],
+                            ),
+                            //   ],
+                            // ),
+                          )
+                        ],
+                      ),
                     ),
                   ),
-                ),
                 const SizedBox(
                   height: 16,
                 ),

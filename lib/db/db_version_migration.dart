@@ -33,6 +33,8 @@ import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:tuple/tuple.dart';
 
 class DbVersionMigrator with WalletDB {
@@ -85,7 +87,7 @@ class DbVersionMigrator with WalletDB {
                 useSSL: node.useSSL),
             prefs: prefs,
             failovers: failovers,
-            coin: Coin.firo,
+            cryptoCurrency: Firo(CryptoCurrencyNetwork.main),
           );
 
           try {

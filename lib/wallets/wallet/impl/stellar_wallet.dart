@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:isar/isar.dart';
+import 'package:mutex/mutex.dart';
+import 'package:socks5_proxy/socks.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
@@ -9,6 +12,10 @@ import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart'
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
+import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/events/global/tor_status_changed_event.dart';
+import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -20,11 +27,47 @@ import 'package:stackwallet/wallets/wallet/intermediate/bip39_wallet.dart';
 import 'package:stellar_flutter_sdk/stellar_flutter_sdk.dart' as stellar;
 
 class StellarWallet extends Bip39Wallet<Stellar> {
-  StellarWallet(CryptoCurrencyNetwork network) : super(Stellar(network));
+  StellarWallet(CryptoCurrencyNetwork network) : super(Stellar(network)) {
+    final bus = GlobalEventBus.instance;
 
-  stellar.StellarSDK get stellarSdk {
-    if (_stellarSdk == null) {
-      _updateSdk();
+    // Listen for tor status changes.
+    _torStatusListener = bus.on<TorConnectionStatusChangedEvent>().listen(
+      (event) async {
+        switch (event.newStatus) {
+          case TorConnectionStatus.connecting:
+            if (!_torConnectingLock.isLocked) {
+              await _torConnectingLock.acquire();
+            }
+            _requireMutex = true;
+            break;
+
+          case TorConnectionStatus.connected:
+          case TorConnectionStatus.disconnected:
+            if (_torConnectingLock.isLocked) {
+              _torConnectingLock.release();
+            }
+            _requireMutex = false;
+            break;
+        }
+      },
+    );
+
+    // Listen for tor preference changes.
+    _torPreferenceListener = bus.on<TorPreferenceChangedEvent>().listen(
+      (event) async {
+        _stellarSdk?.httpClient.close();
+        _stellarSdk = null;
+      },
+    );
+  }
+
+  Future<stellar.StellarSDK> get stellarSdk async {
+    if (_requireMutex) {
+      await _torConnectingLock.protect(() async {
+        _stellarSdk ??= _getFreshSdk();
+      });
+    } else {
+      _stellarSdk ??= _getFreshSdk();
     }
     return _stellarSdk!;
   }
@@ -41,24 +84,60 @@ class StellarWallet extends Bip39Wallet<Stellar> {
   }
 
   // ============== Private ====================================================
+  // add finalizer to cancel stream subscription when all references to an
+  // instance of this becomes inaccessible
+  final _ = Finalizer<StellarWallet>(
+    (p0) {
+      p0._torPreferenceListener?.cancel();
+      p0._torStatusListener?.cancel();
+    },
+  );
+
+  StreamSubscription<TorConnectionStatusChangedEvent>? _torStatusListener;
+  StreamSubscription<TorPreferenceChangedEvent>? _torPreferenceListener;
+
+  final Mutex _torConnectingLock = Mutex();
+  bool _requireMutex = false;
 
   stellar.StellarSDK? _stellarSdk;
 
   Future<int> _getBaseFee() async {
-    final fees = await stellarSdk.feeStats.execute();
+    final fees = await (await stellarSdk).feeStats.execute();
     return int.parse(fees.lastLedgerBaseFee);
   }
 
-  void _updateSdk() {
+  stellar.StellarSDK _getFreshSdk() {
     final currentNode = getCurrentNode();
-    _stellarSdk = stellar.StellarSDK("${currentNode.host}:${currentNode.port}");
+    HttpClient? _httpClient;
+
+    if (prefs.useTor) {
+      final ({InternetAddress host, int port}) proxyInfo =
+          TorService.sharedInstance.getProxyInfo();
+
+      _httpClient = HttpClient();
+      SocksTCPClient.assignToHttpClient(
+        _httpClient,
+        [
+          ProxySettings(
+            proxyInfo.host,
+            proxyInfo.port,
+          ),
+        ],
+      );
+    }
+
+    return stellar.StellarSDK(
+      "${currentNode.host}:${currentNode.port}",
+      httpClient: _httpClient,
+    );
   }
 
   Future<bool> _accountExists(String accountId) async {
     bool exists = false;
 
     try {
-      final receiverAccount = await stellarSdk.accounts.account(accountId);
+      final receiverAccount =
+          await (await stellarSdk).accounts.account(accountId);
       if (receiverAccount.accountId != "") {
         exists = true;
       }
@@ -165,7 +244,8 @@ class StellarWallet extends Bip39Wallet<Stellar> {
   @override
   Future<TxData> confirmSend({required TxData txData}) async {
     final senderKeyPair = await _getSenderKeyPair(index: 0);
-    final sender = await stellarSdk.accounts.account(senderKeyPair.accountId);
+    final sender =
+        await (await stellarSdk).accounts.account(senderKeyPair.accountId);
 
     final address = txData.recipients!.first.address;
     final amountToSend = txData.recipients!.first.amount;
@@ -203,7 +283,7 @@ class StellarWallet extends Bip39Wallet<Stellar> {
 
     transaction.sign(senderKeyPair, stellarNetwork);
     try {
-      final response = await stellarSdk.submitTransaction(transaction);
+      final response = await (await stellarSdk).submitTransaction(transaction);
       if (!response.success) {
         throw Exception("${response.extras?.resultCodes?.transactionResultCode}"
             " ::: ${response.extras?.resultCodes?.operationsResultCodes}");
@@ -230,7 +310,7 @@ class StellarWallet extends Bip39Wallet<Stellar> {
 
   @override
   Future<FeeObject> get fees async {
-    int fee = await _getBaseFee();
+    final int fee = await _getBaseFee();
     return FeeObject(
       numberOfBlocksFast: 1,
       numberOfBlocksAverage: 1,
@@ -268,7 +348,8 @@ class StellarWallet extends Bip39Wallet<Stellar> {
       stellar.AccountResponse accountResponse;
 
       try {
-        accountResponse = await stellarSdk.accounts
+        accountResponse = await (await stellarSdk)
+            .accounts
             .account((await getCurrentReceivingAddress())!.value)
             .onError((error, stackTrace) => throw error!);
       } catch (e) {
@@ -289,7 +370,7 @@ class StellarWallet extends Bip39Wallet<Stellar> {
         }
       }
 
-      for (stellar.Balance balance in accountResponse.balances) {
+      for (final stellar.Balance balance in accountResponse.balances) {
         switch (balance.assetType) {
           case stellar.Asset.TYPE_NATIVE:
             final swBalance = Balance(
@@ -326,7 +407,8 @@ class StellarWallet extends Bip39Wallet<Stellar> {
   @override
   Future<void> updateChainHeight() async {
     try {
-      final height = await stellarSdk.ledgers
+      final height = await (await stellarSdk)
+          .ledgers
           .order(stellar.RequestBuilderOrder.DESC)
           .limit(1)
           .execute()
@@ -344,7 +426,8 @@ class StellarWallet extends Bip39Wallet<Stellar> {
 
   @override
   Future<void> updateNode() async {
-    _updateSdk();
+    _stellarSdk?.httpClient.close();
+    _stellarSdk = _getFreshSdk();
   }
 
   @override
@@ -352,10 +435,11 @@ class StellarWallet extends Bip39Wallet<Stellar> {
     try {
       final myAddress = (await getCurrentReceivingAddress())!;
 
-      List<TransactionV2> transactionList = [];
+      final List<TransactionV2> transactionList = [];
       stellar.Page<stellar.OperationResponse> payments;
       try {
-        payments = await stellarSdk.payments
+        payments = await (await stellarSdk)
+            .payments
             .forAccount(myAddress.value)
             .order(stellar.RequestBuilderOrder.DESC)
             .execute();
@@ -375,7 +459,7 @@ class StellarWallet extends Bip39Wallet<Stellar> {
           rethrow;
         }
       }
-      for (stellar.OperationResponse response in payments.records!) {
+      for (final stellar.OperationResponse response in payments.records!) {
         // PaymentOperationResponse por;
         if (response is stellar.PaymentOperationResponse) {
           final por = response;
@@ -405,7 +489,8 @@ class StellarWallet extends Bip39Wallet<Stellar> {
           final List<OutputV2> outputs = [];
           final List<InputV2> inputs = [];
 
-          OutputV2 output = OutputV2.isarCantDoRequiredInDefaultConstructor(
+          final OutputV2 output =
+              OutputV2.isarCantDoRequiredInDefaultConstructor(
             scriptPubKeyHex: "00",
             valueStringSats: amount.raw.toString(),
             addresses: [
@@ -413,7 +498,7 @@ class StellarWallet extends Bip39Wallet<Stellar> {
             ],
             walletOwns: addressTo == myAddress.value,
           );
-          InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
+          final InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
             scriptSigHex: null,
             scriptSigAsm: null,
             sequence: null,
@@ -433,8 +518,9 @@ class StellarWallet extends Bip39Wallet<Stellar> {
           int height = 0;
           //Query the transaction linked to the payment,
           // por.transaction returns a null sometimes
-          stellar.TransactionResponse tx =
-              await stellarSdk.transactions.transaction(por.transactionHash!);
+          final stellar.TransactionResponse tx = await (await stellarSdk)
+              .transactions
+              .transaction(por.transactionHash!);
 
           if (tx.hash.isNotEmpty) {
             fee = tx.feeCharged!;
@@ -485,7 +571,8 @@ class StellarWallet extends Bip39Wallet<Stellar> {
           final List<OutputV2> outputs = [];
           final List<InputV2> inputs = [];
 
-          OutputV2 output = OutputV2.isarCantDoRequiredInDefaultConstructor(
+          final OutputV2 output =
+              OutputV2.isarCantDoRequiredInDefaultConstructor(
             scriptPubKeyHex: "00",
             valueStringSats: amount.raw.toString(),
             addresses: [
@@ -494,7 +581,7 @@ class StellarWallet extends Bip39Wallet<Stellar> {
             ],
             walletOwns: caor.sourceAccount! == myAddress.value,
           );
-          InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
+          final InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
             scriptSigHex: null,
             scriptSigAsm: null,
             sequence: null,
@@ -515,8 +602,9 @@ class StellarWallet extends Bip39Wallet<Stellar> {
 
           int fee = 0;
           int height = 0;
-          final tx =
-              await stellarSdk.transactions.transaction(caor.transactionHash!);
+          final tx = await (await stellarSdk)
+              .transactions
+              .transaction(caor.transactionHash!);
           if (tx.hash.isNotEmpty) {
             fee = tx.feeCharged!;
             height = tx.ledger;

@@ -17,6 +17,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/pages/wallets_view/wallets_overview.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -26,6 +27,7 @@ import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
+import 'package:stackwallet/widgets/dialogs/tor_warning_dialog.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class WalletListItem extends ConsumerWidget {
@@ -58,6 +60,25 @@ class WalletListItem extends ConsumerWidget {
               BorderRadius.circular(Constants.size.circularBorderRadius),
         ),
         onPressed: () async {
+          // Check if Tor is enabled...
+          if (ref.read(prefsChangeNotifierProvider).useTor) {
+            // ... and if the coin supports Tor.
+            final cryptocurrency = SupportedCoins.getCryptoCurrencyFor(coin);
+            if (!cryptocurrency.torSupport) {
+              // If not, show a Tor warning dialog.
+              final shouldContinue = await showDialog<bool>(
+                    context: context,
+                    builder: (_) => TorWarningDialog(
+                      coin: coin,
+                    ),
+                  ) ??
+                  false;
+              if (!shouldContinue) {
+                return;
+              }
+            }
+          }
+
           if (walletCount == 1 && coin != Coin.ethereum) {
             final wallet = ref
                 .read(pWallets)
@@ -74,7 +95,7 @@ class WalletListItem extends ConsumerWidget {
               whileFuture: loadFuture,
               context: context,
               message: 'Opening ${wallet.info.name}',
-              isDesktop: Util.isDesktop,
+              rootNavigator: Util.isDesktop,
             );
             if (context.mounted) {
               unawaited(
