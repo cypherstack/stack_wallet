@@ -26,7 +26,7 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/whiteLabel.dart';
+import 'package:stackwallet/white_label.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -537,7 +537,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                                                         .all(
                                                                         32),
                                                                 child: Text(
-                                                                  "Restore {$WhiteLabel.appName}",
+                                                                  "Restore {$AppConfig.appName}",
                                                                   style: STextStyles
                                                                       .desktopH3(
                                                                           context),

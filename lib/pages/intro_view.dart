@@ -21,7 +21,7 @@ import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/whiteLabel.dart';
+import 'package:stackwallet/white_label.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -200,7 +200,7 @@ class AppNameText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      WhiteLabel.appName,
+      AppConfig.appName,
       // TODO [prio=high]: appName is now static due to `'appName' can't be
       // accessed using static access.`", check that that doesn't cause issues
       // elsewhere.
@@ -247,7 +247,7 @@ class PrivacyAndTOSText extends StatelessWidget {
       text: TextSpan(
         style: STextStyles.label(context).copyWith(fontSize: fontSize),
         children: [
-          TextSpan(text: "By using ${WhiteLabel.appName}, you agree to the "),
+          TextSpan(text: "By using ${AppConfig.appName}, you agree to the "),
           TextSpan(
             text: "Terms of service",
             style: STextStyles.richLink(context).copyWith(fontSize: fontSize),

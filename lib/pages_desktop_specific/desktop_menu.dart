@@ -20,7 +20,7 @@ import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/whiteLabel.dart';
+import 'package:stackwallet/white_label.dart';
 import 'package:stackwallet/widgets/desktop/desktop_tor_status_button.dart';
 import 'package:stackwallet/widgets/desktop/living_stack_icon.dart';
 
@@ -139,7 +139,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
               child: SizedBox(
                 height: 28,
                 child: Text(
-                  WhiteLabel.appName,
+                  AppConfig.appName,
                   style: STextStyles.desktopH2(context).copyWith(
                     fontSize: 18,
                     height: 23.4 / 18,
@@ -181,7 +181,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                     DesktopMenuItem(
                       duration: duration,
                       icon: const DesktopMyStackIcon(),
-                      label: "My ${WhiteLabel.prefix}",
+                      label: "My ${AppConfig.prefix}",
                       value: DesktopMenuItemId.myStack,
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[0],

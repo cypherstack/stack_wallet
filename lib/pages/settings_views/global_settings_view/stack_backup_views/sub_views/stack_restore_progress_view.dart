@@ -32,7 +32,7 @@ import 'package:stackwallet/utilities/enums/stack_restoring_status.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/whiteLabel.dart';
+import 'package:stackwallet/white_label.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -264,7 +264,7 @@ class _StackRestoreProgressViewState
                 },
               ),
               title: Text(
-                "Restoring {$WhiteLabel.appName}",
+                "Restoring {$AppConfig.appName}",
                 style: STextStyles.navBarTitle(context),
               ),
             ),
