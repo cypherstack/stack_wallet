@@ -122,9 +122,10 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                             child: Text(
                               "Cancel",
                               style: STextStyles.button(context).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .accentColorDark),
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorDark,
+                              ),
                             ),
                           ),
                           rightButton: TextButton(
@@ -150,7 +151,8 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                                         "Delete wallet",
                                   ),
                                   settings: const RouteSettings(
-                                      name: "/deleteWalletLockscreen"),
+                                    name: "/deleteWalletLockscreen",
+                                  ),
                                 ),
                               );
                             },
