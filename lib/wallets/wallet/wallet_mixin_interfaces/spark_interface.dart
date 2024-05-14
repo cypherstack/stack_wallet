@@ -13,6 +13,7 @@ import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/signing_data.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
@@ -187,11 +188,12 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
 
     final transparentSumOut =
         (txData.recipients ?? []).map((e) => e.amount).fold(
-            Amount(
-              rawValue: BigInt.zero,
-              fractionDigits: cryptoCurrency.fractionDigits,
-            ),
-            (p, e) => p + e);
+              Amount(
+                rawValue: BigInt.zero,
+                fractionDigits: cryptoCurrency.fractionDigits,
+              ),
+              (p, e) => p + e,
+            );
 
     // See SPARK_VALUE_SPEND_LIMIT_PER_TRANSACTION at https://github.com/firoorg/sparkmobile/blob/ef2e39aae18ecc49e0ddc63a3183e9764b96012e/include/spark.h#L17
     // and COIN https://github.com/firoorg/sparkmobile/blob/ef2e39aae18ecc49e0ddc63a3183e9764b96012e/bitcoin/amount.h#L17
@@ -202,16 +204,18 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
           fractionDigits: cryptoCurrency.fractionDigits,
         )) {
       throw Exception(
-          "Spend to transparent address limit exceeded (10,000 Firo per transaction).");
+        "Spend to transparent address limit exceeded (10,000 Firo per transaction).",
+      );
     }
 
     final sparkSumOut =
         (txData.sparkRecipients ?? []).map((e) => e.amount).fold(
-            Amount(
-              rawValue: BigInt.zero,
-              fractionDigits: cryptoCurrency.fractionDigits,
-            ),
-            (p, e) => p + e);
+              Amount(
+                rawValue: BigInt.zero,
+                fractionDigits: cryptoCurrency.fractionDigits,
+              ),
+              (p, e) => p + e,
+            );
 
     final txAmount = transparentSumOut + sparkSumOut;
 
@@ -238,12 +242,14 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
 
     // prepare coin data for ffi
     final serializedCoins = coins
-        .map((e) => (
-              serializedCoin: e.serializedCoinB64!,
-              serializedCoinContext: e.contextB64!,
-              groupId: e.groupId,
-              height: e.height!,
-            ))
+        .map(
+          (e) => (
+            serializedCoin: e.serializedCoinB64!,
+            serializedCoinContext: e.contextB64!,
+            groupId: e.groupId,
+            height: e.height!,
+          ),
+        )
         .toList();
 
     final currentId = await electrumXClient.getSparkLatestCoinId();
@@ -253,6 +259,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       final set = await electrumXCachedClient.getSparkAnonymitySet(
         groupId: i.toString(),
         coin: info.coin,
+        useOnlyCacheIfNotEmpty: true,
       );
       set["coinGroupID"] = i;
       setMaps.add(set);
@@ -265,16 +272,20 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     }
 
     final allAnonymitySets = setMaps
-        .map((e) => (
-              setId: e["coinGroupID"] as int,
-              setHash: e["setHash"] as String,
-              set: (e["coins"] as List)
-                  .map((e) => (
-                        serializedCoin: e[0] as String,
-                        txHash: e[1] as String,
-                      ))
-                  .toList(),
-            ))
+        .map(
+          (e) => (
+            setId: e["coinGroupID"] as int,
+            setHash: e["setHash"] as String,
+            set: (e["coins"] as List)
+                .map(
+                  (e) => (
+                    serializedCoin: e[0] as String,
+                    txHash: e[1] as String,
+                  ),
+                )
+                .toList(),
+          ),
+        )
         .toList();
 
     final root = await getRootHDNode();
@@ -436,27 +447,32 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         privateKeyHex: privateKey.toHex,
         index: kDefaultSparkIndex,
         recipients: txData.recipients
-                ?.map((e) => (
-                      address: e.address,
-                      amount: e.amount.raw.toInt(),
-                      subtractFeeFromAmount: isSendAll,
-                    ))
+                ?.map(
+                  (e) => (
+                    address: e.address,
+                    amount: e.amount.raw.toInt(),
+                    subtractFeeFromAmount: isSendAll,
+                  ),
+                )
                 .toList() ??
             [],
         privateRecipients: txData.sparkRecipients
-                ?.map((e) => (
-                      sparkAddress: e.address,
-                      amount: e.amount.raw.toInt(),
-                      subtractFeeFromAmount: isSendAll,
-                      memo: e.memo,
-                    ))
+                ?.map(
+                  (e) => (
+                    sparkAddress: e.address,
+                    amount: e.amount.raw.toInt(),
+                    subtractFeeFromAmount: isSendAll,
+                    memo: e.memo,
+                  ),
+                )
                 .toList() ??
             [],
         serializedCoins: serializedCoins,
         allAnonymitySets: allAnonymitySets,
         idAndBlockHashes: idAndBlockHashes
             .map(
-                (e) => (setId: e.groupId, blockHash: base64Decode(e.blockHash)))
+              (e) => (setId: e.groupId, blockHash: base64Decode(e.blockHash)),
+            )
             .toList(),
         txHash: extractedTx.getHash(),
       ),
@@ -503,16 +519,20 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
 
     for (final usedCoin in spend.usedCoins) {
       try {
-        usedSparkCoins.add(coins
-            .firstWhere((e) =>
-                usedCoin.height == e.height &&
-                usedCoin.groupId == e.groupId &&
-                base64Decode(e.serializedCoinB64!)
-                    .toHex
-                    .startsWith(base64Decode(usedCoin.serializedCoin).toHex))
-            .copyWith(
-              isUsed: true,
-            ));
+        usedSparkCoins.add(
+          coins
+              .firstWhere(
+                (e) =>
+                    usedCoin.height == e.height &&
+                    usedCoin.groupId == e.groupId &&
+                    base64Decode(e.serializedCoinB64!).toHex.startsWith(
+                          base64Decode(usedCoin.serializedCoin).toHex,
+                        ),
+              )
+              .copyWith(
+                isUsed: true,
+              ),
+        );
       } catch (_) {
         throw Exception(
           "Unexpectedly did not find used spark coin. This should never happen.",
@@ -575,15 +595,14 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
 
       return await updateSentCachedTxData(txData: txData);
     } catch (e, s) {
-      Logging.instance.log("Exception rethrown from confirmSend(): $e\n$s",
-          level: LogLevel.Error);
+      Logging.instance.log(
+        "Exception rethrown from confirmSend(): $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }
 
-  // TODO lots of room for performance improvements here. Should be similar to
-  // recoverSparkWallet but only fetch and check anonymity set data that we
-  // have not yet parsed.
   Future<void> refreshSparkData() async {
     final sparkAddresses = await mainDB.isar.addresses
         .where()
@@ -598,20 +617,14 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     try {
       final latestSparkCoinId = await electrumXClient.getSparkLatestCoinId();
 
-      final blockHash = await _getCachedSparkBlockHash();
+      final anonymitySetFuture = electrumXCachedClient.getSparkAnonymitySet(
+        groupId: latestSparkCoinId.toString(),
+        coin: info.coin,
+        useOnlyCacheIfNotEmpty: false,
+      );
 
-      final anonymitySetFuture = blockHash == null
-          ? electrumXCachedClient.getSparkAnonymitySet(
-              groupId: latestSparkCoinId.toString(),
-              coin: info.coin,
-            )
-          : electrumXClient.getSparkAnonymitySet(
-              coinGroupId: latestSparkCoinId.toString(),
-              startBlockHash: blockHash,
-            );
       final spentCoinTagsFuture =
-          electrumXClient.getSparkUsedCoinsTags(startNumber: 0);
-      // electrumXCachedClient.getSparkUsedCoinsTags(coin: info.coin);
+          electrumXCachedClient.getSparkUsedCoinsTags(coin: info.coin);
 
       final futureResults = await Future.wait([
         anonymitySetFuture,
@@ -645,11 +658,6 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         );
 
         myCoins.addAll(identifiedCoins);
-
-        // update blockHash in cache
-        final String newBlockHash =
-            base64ToReverseHex(anonymitySet["blockHash"] as String);
-        await _setCachedSparkBlockHash(newBlockHash);
       }
 
       // check current coins
@@ -671,8 +679,10 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       // refresh spark balance
       await refreshSparkBalance();
     } catch (e, s) {
-      // todo logging
-
+      Logging.instance.log(
+        "$runtimeType $walletId ${info.name}: $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }
@@ -694,9 +704,11 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     );
     final spendable = Amount(
       rawValue: unusedCoins
-          .where((e) =>
-              e.height != null &&
-              e.height! + cryptoCurrency.minConfirms <= currentHeight)
+          .where(
+            (e) =>
+                e.height != null &&
+                e.height! + cryptoCurrency.minConfirms <= currentHeight,
+          )
           .map((e) => e.value)
           .fold(BigInt.zero, (prev, e) => prev + e),
       fractionDigits: cryptoCurrency.fractionDigits,
@@ -760,15 +772,13 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       // update wallet spark coins in isar
       await _addOrUpdateSparkCoins(myCoins);
 
-      // update blockHash in cache
-      final String newBlockHash = anonymitySet["blockHash"] as String;
-      await _setCachedSparkBlockHash(newBlockHash);
-
       // refresh spark balance
       await refreshSparkBalance();
     } catch (e, s) {
-      // todo logging
-
+      Logging.instance.log(
+        "$runtimeType $walletId ${info.name}: $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }
@@ -801,7 +811,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     }
 
     // organise utxos
-    Map<String, List<UTXO>> utxosByAddress = {};
+    final Map<String, List<UTXO>> utxosByAddress = {};
     for (final utxo in availableUtxos) {
       utxosByAddress[utxo.address!] ??= [];
       utxosByAddress[utxo.address!]!.add(utxo);
@@ -810,7 +820,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
 
     // setup some vars
     int nChangePosInOut = -1;
-    int nChangePosRequest = nChangePosInOut;
+    final int nChangePosRequest = nChangePosInOut;
     List<MutableSparkRecipient> outputs_ = outputs
         .map((e) => MutableSparkRecipient(e.address, e.value, e.memo))
         .toList(); // deep copy
@@ -933,11 +943,13 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         // Generate dummy mint coins to save time
         final dummyRecipients = LibSpark.createSparkMintRecipients(
           outputs: singleTxOutputs
-              .map((e) => (
-                    sparkAddress: e.address,
-                    value: e.value.toInt(),
-                    memo: "",
-                  ))
+              .map(
+                (e) => (
+                  sparkAddress: e.address,
+                  value: e.value.toInt(),
+                  memo: "",
+                ),
+              )
               .toList(),
           serialContext: Uint8List(0),
           generate: false,
@@ -951,11 +963,13 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
           if (recipient.amount < cryptoCurrency.dustLimit.raw.toInt()) {
             throw Exception("Output amount too small");
           }
-          vout.add((
-            recipient.scriptPubKey,
-            recipient.amount,
-            singleTxOutputs[i].address,
-          ));
+          vout.add(
+            (
+              recipient.scriptPubKey,
+              recipient.amount,
+              singleTxOutputs[i].address,
+            ),
+          );
         }
 
         // Choose coins to use
@@ -972,7 +986,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
 
         // priority stuff???
 
-        BigInt nChange = nValueIn - nValueToSelect;
+        final BigInt nChange = nValueIn - nValueToSelect;
         if (nChange > BigInt.zero) {
           if (nChange < cryptoCurrency.dustLimit.raw) {
             nChangePosInOut = -1;
@@ -1001,13 +1015,64 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         for (final sd in setCoins) {
           vin.add(sd);
 
+          final pubKey = sd.keyPair!.publicKey.data;
+          final btc.PaymentData? data;
+
+          switch (sd.derivePathType) {
+            case DerivePathType.bip44:
+              data = btc
+                  .P2PKH(
+                    data: btc.PaymentData(
+                      pubkey: pubKey,
+                    ),
+                    network: _bitcoinDartNetwork,
+                  )
+                  .data;
+              break;
+
+            case DerivePathType.bip49:
+              final p2wpkh = btc
+                  .P2WPKH(
+                    data: btc.PaymentData(
+                      pubkey: pubKey,
+                    ),
+                    network: _bitcoinDartNetwork,
+                  )
+                  .data;
+              data = btc
+                  .P2SH(
+                    data: btc.PaymentData(redeem: p2wpkh),
+                    network: _bitcoinDartNetwork,
+                  )
+                  .data;
+              break;
+
+            case DerivePathType.bip84:
+              data = btc
+                  .P2WPKH(
+                    data: btc.PaymentData(
+                      pubkey: pubKey,
+                    ),
+                    network: _bitcoinDartNetwork,
+                  )
+                  .data;
+              break;
+
+            case DerivePathType.bip86:
+              data = null;
+              break;
+
+            default:
+              throw Exception("DerivePathType unsupported");
+          }
+
           // add to dummy tx
           dummyTxb.addInput(
             sd.utxo.txid,
             sd.utxo.vout,
             0xffffffff -
                 1, // minus 1 is important. 0xffffffff on its own will burn funds
-            sd.output,
+            data!.output!,
           );
         }
 
@@ -1015,9 +1080,15 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         for (var i = 0; i < setCoins.length; i++) {
           dummyTxb.sign(
             vin: i,
-            keyPair: setCoins[i].keyPair!,
+            keyPair: btc.ECPair.fromPrivateKey(
+              setCoins[i].keyPair!.privateKey.data,
+              network: _bitcoinDartNetwork,
+              compressed: setCoins[i].keyPair!.privateKey.compressed,
+            ),
             witnessValue: setCoins[i].utxo.value,
-            redeemScript: setCoins[i].redeemScript,
+
+            // maybe not needed here as this was originally copied from btc? We'll find out...
+            // redeemScript: setCoins[i].redeemScript,
           );
         }
 
@@ -1048,10 +1119,12 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
           // Generate real mint coins
           final serialContext = LibSpark.serializeMintContext(
             inputs: setCoins
-                .map((e) => (
-                      e.utxo.txid,
-                      e.utxo.vout,
-                    ))
+                .map(
+                  (e) => (
+                    e.utxo.txid,
+                    e.utxo.vout,
+                  ),
+                )
                 .toList(),
           );
           final recipients = LibSpark.createSparkMintRecipients(
@@ -1068,7 +1141,6 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
             generate: true,
           );
 
-          int i = 0;
           for (int i = 0; i < recipients.length; i++) {
             final recipient = recipients[i];
             final out = (
@@ -1114,12 +1186,63 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
       txb.setVersion(txVersion);
       txb.setLockTime(lockTime);
       for (final input in vin) {
+        final pubKey = input.keyPair!.publicKey.data;
+        final btc.PaymentData? data;
+
+        switch (input.derivePathType) {
+          case DerivePathType.bip44:
+            data = btc
+                .P2PKH(
+                  data: btc.PaymentData(
+                    pubkey: pubKey,
+                  ),
+                  network: _bitcoinDartNetwork,
+                )
+                .data;
+            break;
+
+          case DerivePathType.bip49:
+            final p2wpkh = btc
+                .P2WPKH(
+                  data: btc.PaymentData(
+                    pubkey: pubKey,
+                  ),
+                  network: _bitcoinDartNetwork,
+                )
+                .data;
+            data = btc
+                .P2SH(
+                  data: btc.PaymentData(redeem: p2wpkh),
+                  network: _bitcoinDartNetwork,
+                )
+                .data;
+            break;
+
+          case DerivePathType.bip84:
+            data = btc
+                .P2WPKH(
+                  data: btc.PaymentData(
+                    pubkey: pubKey,
+                  ),
+                  network: _bitcoinDartNetwork,
+                )
+                .data;
+            break;
+
+          case DerivePathType.bip86:
+            data = null;
+            break;
+
+          default:
+            throw Exception("DerivePathType unsupported");
+        }
+
         txb.addInput(
           input.utxo.txid,
           input.utxo.vout,
           0xffffffff -
               1, // minus 1 is important. 0xffffffff on its own will burn funds
-          input.output,
+          data!.output!,
         );
 
         tempInputs.add(
@@ -1158,9 +1281,11 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
                     .where()
                     .walletIdEqualTo(walletId)
                     .filter()
-                    .valueEqualTo(addressOrScript is Uint8List
-                        ? output.$3!
-                        : addressOrScript as String)
+                    .valueEqualTo(
+                      addressOrScript is Uint8List
+                          ? output.$3!
+                          : addressOrScript as String,
+                    )
                     .valueProperty()
                     .findFirst()) !=
                 null,
@@ -1172,9 +1297,15 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
         for (var i = 0; i < vin.length; i++) {
           txb.sign(
             vin: i,
-            keyPair: vin[i].keyPair!,
+            keyPair: btc.ECPair.fromPrivateKey(
+              vin[i].keyPair!.privateKey.data,
+              network: _bitcoinDartNetwork,
+              compressed: vin[i].keyPair!.privateKey.compressed,
+            ),
             witnessValue: vin[i].utxo.value,
-            redeemScript: vin[i].redeemScript,
+
+            // maybe not needed here as this was originally copied from btc? We'll find out...
+            // redeemScript: setCoins[i].redeemScript,
           );
         }
       } catch (e, s) {
@@ -1451,19 +1582,6 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
 
   // ====================== Private ============================================
 
-  final _kSparkAnonSetCachedBlockHashKey = "SparkAnonSetCachedBlockHashKey";
-
-  Future<String?> _getCachedSparkBlockHash() async {
-    return info.otherData[_kSparkAnonSetCachedBlockHashKey] as String?;
-  }
-
-  Future<void> _setCachedSparkBlockHash(String blockHash) async {
-    await info.updateOtherData(
-      newEntries: {_kSparkAnonSetCachedBlockHashKey: blockHash},
-      isar: mainDB.isar,
-    );
-  }
-
   Future<void> _addOrUpdateSparkCoins(List<SparkCoin> coins) async {
     if (coins.isNotEmpty) {
       await mainDB.isar.writeTxn(() async {
@@ -1528,42 +1646,38 @@ Future<
             String serializedCoinContext
           })> usedCoins,
     })> _createSparkSend(
-    ({
-      String privateKeyHex,
-      int index,
-      List<
-          ({
-            String address,
-            int amount,
-            bool subtractFeeFromAmount
-          })> recipients,
-      List<
-          ({
-            String sparkAddress,
-            int amount,
-            bool subtractFeeFromAmount,
-            String memo
-          })> privateRecipients,
-      List<
-          ({
-            String serializedCoin,
-            String serializedCoinContext,
-            int groupId,
-            int height,
-          })> serializedCoins,
-      List<
-          ({
-            int setId,
-            String setHash,
-            List<({String serializedCoin, String txHash})> set
-          })> allAnonymitySets,
-      List<
-          ({
-            int setId,
-            Uint8List blockHash,
-          })> idAndBlockHashes,
-      Uint8List txHash,
-    }) args) async {
+  ({
+    String privateKeyHex,
+    int index,
+    List<({String address, int amount, bool subtractFeeFromAmount})> recipients,
+    List<
+        ({
+          String sparkAddress,
+          int amount,
+          bool subtractFeeFromAmount,
+          String memo
+        })> privateRecipients,
+    List<
+        ({
+          String serializedCoin,
+          String serializedCoinContext,
+          int groupId,
+          int height,
+        })> serializedCoins,
+    List<
+        ({
+          int setId,
+          String setHash,
+          List<({String serializedCoin, String txHash})> set
+        })> allAnonymitySets,
+    List<
+        ({
+          int setId,
+          Uint8List blockHash,
+        })> idAndBlockHashes,
+    Uint8List txHash,
+  }) args,
+) async {
   final spend = LibSpark.createSparkSendTransaction(
     privateKeyHex: args.privateKeyHex,
     index: args.index,
@@ -1580,14 +1694,15 @@ Future<
 
 /// Top level function which should be called wrapped in [compute]
 Future<List<SparkCoin>> _identifyCoins(
-    ({
-      List<dynamic> anonymitySetCoins,
-      int groupId,
-      Set<String> spentCoinTags,
-      Set<String> privateKeyHexSet,
-      String walletId,
-      bool isTestNet,
-    }) args) async {
+  ({
+    List<dynamic> anonymitySetCoins,
+    int groupId,
+    Set<String> spentCoinTags,
+    Set<String> privateKeyHexSet,
+    String walletId,
+    bool isTestNet,
+  }) args,
+) async {
   final List<SparkCoin> myCoins = [];
 
   for (final privateKeyHex in args.privateKeyHexSet) {

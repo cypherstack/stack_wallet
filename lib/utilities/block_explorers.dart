@@ -18,6 +18,7 @@ Uri getDefaultBlockExplorerUrlFor({
   required String txid,
 }) {
   switch (coin) {
+    case Coin.bitcoinFrost:
     case Coin.bitcoin:
       return Uri.parse("https://mempool.space/tx/$txid");
     case Coin.litecoin:
@@ -25,11 +26,12 @@ Uri getDefaultBlockExplorerUrlFor({
     case Coin.litecoinTestNet:
       return Uri.parse("https://chain.so/tx/LTCTEST/$txid");
     case Coin.bitcoinTestNet:
+    case Coin.bitcoinFrostTestNet:
       return Uri.parse("https://mempool.space/testnet/tx/$txid");
     case Coin.dogecoin:
       return Uri.parse("https://chain.so/tx/DOGE/$txid");
     case Coin.eCash:
-      return Uri.parse("https://explorer.bitcoinabc.org/tx/$txid");
+      return Uri.parse("https://explorer.e.cash/tx/$txid");
     case Coin.dogecoinTestNet:
       return Uri.parse("https://chain.so/tx/DOGETEST/$txid");
     case Coin.epicCash:
@@ -64,6 +66,13 @@ Uri getDefaultBlockExplorerUrlFor({
       return Uri.parse("https://testnet.stellarchain.io/transactions/$txid");
     case Coin.tezos:
       return Uri.parse("https://tzstats.com/$txid");
+    case Coin.solana:
+      return Uri.parse("https://explorer.solana.com/tx/$txid");
+    case Coin.peercoin:
+      return Uri.parse("https://chainz.cryptoid.info/ppc/tx.dws?$txid.htm");
+    case Coin.peercoinTestNet:
+      return Uri.parse(
+          "https://chainz.cryptoid.info/ppc-test/search.dws?q=$txid.htm");
   }
 }
 

@@ -29,6 +29,7 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -39,10 +40,10 @@ final exchangeFromAddressBookAddressStateProvider =
 
 class ContactPopUp extends ConsumerWidget {
   const ContactPopUp({
-    Key? key,
+    super.key,
     required this.contactId,
     this.clipboard = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   final String contactId;
   final ClipboardInterface clipboard;
@@ -384,13 +385,18 @@ class ContactPopUp extends ConsumerWidget {
                                                 color: Theme.of(context)
                                                     .extension<StackColors>()!
                                                     .textFieldDefaultBG,
-                                                padding:
-                                                    const EdgeInsets.all(4),
+                                                padding: EdgeInsets.all(
+                                                  Util.isDesktop ? 4 : 6,
+                                                ),
                                                 child: SvgPicture.asset(
                                                     Assets
                                                         .svg.circleArrowUpRight,
-                                                    width: 12,
-                                                    height: 12,
+                                                    width: Util.isDesktop
+                                                        ? 12
+                                                        : 16,
+                                                    height: Util.isDesktop
+                                                        ? 12
+                                                        : 16,
                                                     color: Theme.of(context)
                                                         .extension<
                                                             StackColors>()!

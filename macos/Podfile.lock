@@ -62,6 +62,8 @@ PODS:
   - flutter_secure_storage_macos (6.1.1):
     - FlutterMacOS
   - FlutterMacOS (1.0.0)
+  - frostdart (0.0.1):
+    - FlutterMacOS
   - isar_flutter_libs (1.0.0):
     - FlutterMacOS
   - lelantus (0.0.1):
@@ -98,6 +100,7 @@ DEPENDENCIES:
   - flutter_local_notifications (from `Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos`)
   - flutter_secure_storage_macos (from `Flutter/ephemeral/.symlinks/plugins/flutter_secure_storage_macos/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
+  - frostdart (from `Flutter/ephemeral/.symlinks/plugins/frostdart/macos`)
   - isar_flutter_libs (from `Flutter/ephemeral/.symlinks/plugins/isar_flutter_libs/macos`)
   - lelantus (from `Flutter/ephemeral/.symlinks/plugins/lelantus/macos`)
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
@@ -140,6 +143,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_secure_storage_macos/macos
   FlutterMacOS:
     :path: Flutter/ephemeral
+  frostdart:
+    :path: Flutter/ephemeral/.symlinks/plugins/frostdart/macos
   isar_flutter_libs:
     :path: Flutter/ephemeral/.symlinks/plugins/isar_flutter_libs/macos
   lelantus:
@@ -171,10 +176,11 @@ SPEC CHECKSUMS:
   device_info_plus: 5401765fde0b8d062a2f8eb65510fb17e77cf07f
   devicelocale: 9f0f36ac651cabae2c33f32dcff4f32b61c38225
   flutter_libepiccash: be1560a04150c5cc85bcf08d236ec2b3d1f5d8da
-  flutter_libsparkmobile: 8ae86b0ccc7e52c9db6b53e258ee2977deb184ab
+  flutter_libsparkmobile: df2d36af1691379c81249e7be7b68be3c81d388b
   flutter_local_notifications: 3805ca215b2fb7f397d78b66db91f6a747af52e4
   flutter_secure_storage_macos: d56e2d218c1130b262bef8b4a7d64f88d7f9c9ea
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
+  frostdart: e6bf3119527ccfbcec1b8767da6ede5bb4c4f716
   isar_flutter_libs: 43385c99864c168fadba7c9adeddc5d38838ca6a
   lelantus: 308e42c5a648598936a07a234471dd8cf8e687a0
   package_info_plus: 02d7a575e80f194102bef286361c6c326e4c29ce
@@ -189,4 +195,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 236401fc2c932af29a9fcf0e97baeeb2d750d367
 
-COCOAPODS: 1.11.3
+COCOAPODS: 1.14.3

@@ -210,7 +210,7 @@ class _DesktopOrdinals extends ConsumerState<DesktopOrdinalsView> {
                   onPressed: () async {
                     // show loading for a minimum of 2 seconds on refreshing
                     await showLoading(
-                        isDesktop: true,
+                        rootNavigator: true,
                         whileFuture: Future.wait<void>([
                           Future.delayed(const Duration(seconds: 2)),
                           (ref.read(pWallets).getWallet(widget.walletId)

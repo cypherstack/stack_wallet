@@ -21,6 +21,9 @@ class Dogecoin extends Bip39HDCurrency {
   }
 
   @override
+  bool get torSupport => true;
+
+  @override
   List<DerivePathType> get supportedDerivationPathTypes => [
         DerivePathType.bip44,
       ];
@@ -102,10 +105,10 @@ class Dogecoin extends Bip39HDCurrency {
   int get minConfirms => 1;
 
   @override
-  coinlib.NetworkParams get networkParams {
+  coinlib.Network get networkParams {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return const coinlib.NetworkParams(
+        return coinlib.Network(
           wifPrefix: 0x9e,
           p2pkhPrefix: 0x1e,
           p2shPrefix: 0x16,
@@ -113,9 +116,12 @@ class Dogecoin extends Bip39HDCurrency {
           pubHDPrefix: 0x02facafd,
           bech32Hrp: "doge",
           messagePrefix: '\x18Dogecoin Signed Message:\n',
+          minFee: BigInt.from(1), // TODO [prio=high].
+          minOutput: dustLimit.raw, // TODO.
+          feePerKb: BigInt.from(1), // TODO.
         );
       case CryptoCurrencyNetwork.test:
-        return const coinlib.NetworkParams(
+        return coinlib.Network(
           wifPrefix: 0xf1,
           p2pkhPrefix: 0x71,
           p2shPrefix: 0xc4,
@@ -123,6 +129,9 @@ class Dogecoin extends Bip39HDCurrency {
           pubHDPrefix: 0x043587cf,
           bech32Hrp: "tdge",
           messagePrefix: "\x18Dogecoin Signed Message:\n",
+          minFee: BigInt.from(1), // TODO [prio=high].
+          minOutput: dustLimit.raw, // TODO.
+          feePerKb: BigInt.from(1), // TODO.
         );
       default:
         throw Exception("Unsupported network: $network");
@@ -172,4 +181,12 @@ class Dogecoin extends Bip39HDCurrency {
         throw UnimplementedError();
     }
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is Dogecoin && other.network == network;
+  }
+
+  @override
+  int get hashCode => Object.hash(Dogecoin, network);
 }

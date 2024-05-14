@@ -1,6 +1,7 @@
 #!/bin/bash
 LINUX_DIRECTORY=$(pwd)
 JSONCPP_TAG=1.7.4
+LIBSECRET_TAG=0.21.4
 mkdir -p build
 
 # Build JsonCPP
@@ -24,8 +25,9 @@ cd "$LINUX_DIRECTORY" || exit 1
 #pip3 install --user meson markdown tomli --upgrade
 # pip3 install --user gi-docgen
 cd build || exit 1
-git -C libsecret pull || git clone https://gitlab.gnome.org/GNOME/libsecret.git libsecret
+git -C libsecret pull origin $LIBSECRET_TAG || git clone https://gitlab.gnome.org/GNOME/libsecret.git libsecret
 cd libsecret || exit 1
+git checkout $LIBSECRET_TAG
 if ! [ -x "$(command -v meson)" ]; then
   echo 'Error: meson is not installed.' >&2
   exit 1

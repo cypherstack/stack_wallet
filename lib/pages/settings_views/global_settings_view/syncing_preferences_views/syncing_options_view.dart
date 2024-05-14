@@ -11,7 +11,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/syncing_preferences_views/wallet_syncing_options_view.dart';
-import 'package:stackwallet/providers/global/active_wallet_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -95,12 +94,12 @@ class SyncingOptionsView extends ConsumerWidget {
                         ref.read(prefsChangeNotifierProvider).syncType =
                             SyncingType.currentWalletOnly;
 
-                        // disable auto sync on all wallets that aren't active/current
-                        ref.read(pWallets).wallets.forEach((e) {
-                          if (e.walletId != ref.read(currentWalletIdProvider)) {
-                            e.shouldAutoSync = false;
-                          }
-                        });
+                        // // disable auto sync on all wallets that aren't active/current
+                        // ref.read(pWallets).wallets.forEach((e) {
+                        //   if (e.walletId != ref.read(currentWalletIdProvider)) {
+                        //     e.shouldAutoSync = false;
+                        //   }
+                        // });
                       }
                     },
                     child: Container(
@@ -174,11 +173,11 @@ class SyncingOptionsView extends ConsumerWidget {
                         ref.read(prefsChangeNotifierProvider).syncType =
                             SyncingType.allWalletsOnStartup;
 
-                        // enable auto sync on all wallets
-                        ref
-                            .read(pWallets)
-                            .wallets
-                            .forEach((e) => e.shouldAutoSync = true);
+                        // // enable auto sync on all wallets
+                        // ref
+                        //     .read(pWallets)
+                        //     .wallets
+                        //     .forEach((e) => e.shouldAutoSync = true);
                       }
                     },
                     child: Container(
@@ -252,13 +251,13 @@ class SyncingOptionsView extends ConsumerWidget {
                         ref.read(prefsChangeNotifierProvider).syncType =
                             SyncingType.selectedWalletsAtStartup;
 
-                        final ids = ref
-                            .read(prefsChangeNotifierProvider)
-                            .walletIdsSyncOnStartup;
-
-                        // enable auto sync on selected wallets only
-                        ref.read(pWallets).wallets.forEach(
-                            (e) => e.shouldAutoSync = ids.contains(e.walletId));
+                        // final ids = ref
+                        //     .read(prefsChangeNotifierProvider)
+                        //     .walletIdsSyncOnStartup;
+                        //
+                        // // enable auto sync on selected wallets only
+                        // ref.read(pWallets).wallets.forEach(
+                        //     (e) => e.shouldAutoSync = ids.contains(e.walletId));
                       }
                     },
                     child: Container(

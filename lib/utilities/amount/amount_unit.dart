@@ -39,12 +39,16 @@ enum AmountUnit {
       case Coin.firo:
       case Coin.litecoin:
       case Coin.particl:
+      case Coin.peercoin:
       case Coin.namecoin:
+      case Coin.bitcoinFrost:
+      case Coin.bitcoinFrostTestNet:
       case Coin.bitcoinTestNet:
       case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:
       case Coin.dogecoinTestNet:
       case Coin.firoTestNet:
+      case Coin.peercoinTestNet:
       case Coin.bitcoin:
       case Coin.bitcoincash:
       case Coin.dogecoin:
@@ -53,6 +57,7 @@ enum AmountUnit {
       case Coin.stellar: // TODO: check if this is correct
       case Coin.stellarTestnet:
       case Coin.tezos:
+      case Coin.solana:
         return AmountUnit.values.sublist(0, 4);
 
       case Coin.monero:

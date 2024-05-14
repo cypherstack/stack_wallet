@@ -7,6 +7,7 @@ import 'package:bip47/bip47.dart';
 import 'package:bitcoindart/bitcoindart.dart' as btc_dart;
 import 'package:bitcoindart/src/utils/constants/op.dart' as op;
 import 'package:bitcoindart/src/utils/script.dart' as bscript;
+import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:isar/isar.dart';
 import 'package:pointycastle/digests/sha256.dart';
 import 'package:stackwallet/exceptions/wallet/insufficient_balance_exception.dart';
@@ -20,6 +21,7 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/bip32_utils.dart';
 import 'package:stackwallet/utilities/bip47_utils.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -290,7 +292,13 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
     return _cachedRootNode ??= await Bip32Utils.getBip32Root(
       (await getMnemonic()),
       (await getMnemonicPassphrase()),
-      networkType,
+      bip32.NetworkType(
+        wif: networkType.wif,
+        bip32: bip32.Bip32Type(
+          public: networkType.bip32.public,
+          private: networkType.bip32.private,
+        ),
+      ),
     );
   }
 
@@ -701,7 +709,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       final myKeyPair = utxoSigningData.first.keyPair!;
 
       final S = SecretPoint(
-        myKeyPair.privateKey!,
+        myKeyPair.privateKey.data,
         targetPaymentCode.notificationPublicKey(),
       );
 
@@ -719,63 +727,146 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       ]);
 
       // build a notification tx
-      final txb = btc_dart.TransactionBuilder(network: networkType);
-      txb.setVersion(1);
 
-      txb.addInput(
-        utxo.txid,
-        txPointIndex,
-        null,
-        utxoSigningData.first.output!,
+      final List<coinlib.Output> prevOuts = [];
+
+      coinlib.Transaction clTx = coinlib.Transaction(
+        version: 1,
+        inputs: [],
+        outputs: [],
       );
 
-      // add rest of possible inputs
-      for (var i = 1; i < utxoSigningData.length; i++) {
-        final utxo = utxoSigningData[i].utxo;
-        txb.addInput(
-          utxo.txid,
-          utxo.vout,
-          null,
-          utxoSigningData[i].output!,
+      for (var i = 0; i < utxoSigningData.length; i++) {
+        final txid = utxoSigningData[i].utxo.txid;
+
+        final hash = Uint8List.fromList(
+          txid.toUint8ListFromHex.reversed.toList(),
         );
+
+        final prevOutpoint = coinlib.OutPoint(
+          hash,
+          utxoSigningData[i].utxo.vout,
+        );
+
+        final prevOutput = coinlib.Output.fromAddress(
+          BigInt.from(utxoSigningData[i].utxo.value),
+          coinlib.Address.fromString(
+            utxoSigningData[i].utxo.address!,
+            cryptoCurrency.networkParams,
+          ),
+        );
+
+        prevOuts.add(prevOutput);
+
+        final coinlib.Input input;
+
+        switch (utxoSigningData[i].derivePathType) {
+          case DerivePathType.bip44:
+          case DerivePathType.bch44:
+            input = coinlib.P2PKHInput(
+              prevOut: prevOutpoint,
+              publicKey: utxoSigningData[i].keyPair!.publicKey,
+              sequence: 0xffffffff - 1,
+            );
+
+          // TODO: fix this as it is (probably) wrong! (unlikely used in paynyms)
+          case DerivePathType.bip49:
+            throw Exception("TODO p2sh");
+          // input = coinlib.P2SHMultisigInput(
+          //   prevOut: prevOutpoint,
+          //   program: coinlib.MultisigProgram.decompile(
+          //     utxoSigningData[i].redeemScript!,
+          //   ),
+          //   sequence: 0xffffffff - 1,
+          // );
+
+          case DerivePathType.bip84:
+            input = coinlib.P2WPKHInput(
+              prevOut: prevOutpoint,
+              publicKey: utxoSigningData[i].keyPair!.publicKey,
+              sequence: 0xffffffff - 1,
+            );
+
+          case DerivePathType.bip86:
+            input = coinlib.TaprootKeyInput(prevOut: prevOutpoint);
+
+          default:
+            throw UnsupportedError(
+              "Unknown derivation path type found: ${utxoSigningData[i].derivePathType}",
+            );
+        }
+
+        clTx = clTx.addInput(input);
       }
+
       final String notificationAddress =
           targetPaymentCode.notificationAddressP2PKH();
 
-      txb.addOutput(
-        notificationAddress,
-        (overrideAmountForTesting ?? cryptoCurrency.dustLimitP2PKH.raw).toInt(),
+      final address = coinlib.Address.fromString(
+        normalizeAddress(notificationAddress),
+        cryptoCurrency.networkParams,
       );
-      txb.addOutput(opReturnScript, 0);
+
+      final output = coinlib.Output.fromAddress(
+        overrideAmountForTesting ?? cryptoCurrency.dustLimitP2PKH.raw,
+        address,
+      );
+
+      clTx = clTx.addOutput(output);
+
+      clTx = clTx.addOutput(
+        coinlib.Output.fromScriptBytes(
+          BigInt.zero,
+          opReturnScript,
+        ),
+      );
 
       // TODO: add possible change output and mark output as dangerous
       if (change > BigInt.zero) {
         // generate new change address if current change address has been used
         await checkChangeAddressForTransactions();
         final String changeAddress = (await getCurrentChangeAddress())!.value;
-        txb.addOutput(changeAddress, change.toInt());
+
+        final output = coinlib.Output.fromAddress(
+          change,
+          coinlib.Address.fromString(
+            normalizeAddress(changeAddress),
+            cryptoCurrency.networkParams,
+          ),
+        );
+
+        clTx = clTx.addOutput(output);
       }
 
-      txb.sign(
-        vin: 0,
-        keyPair: myKeyPair,
-        witnessValue: utxo.value,
-        witnessScript: utxoSigningData.first.redeemScript,
+      clTx = clTx.sign(
+        inputN: 0,
+        value: BigInt.from(utxo.value),
+        key: myKeyPair.privateKey,
+        prevOuts: prevOuts,
       );
 
       // sign rest of possible inputs
-      for (var i = 1; i < utxoSigningData.length; i++) {
-        txb.sign(
-          vin: i,
-          keyPair: utxoSigningData[i].keyPair!,
-          witnessValue: utxoSigningData[i].utxo.value,
-          witnessScript: utxoSigningData[i].redeemScript,
+      for (int i = 1; i < utxoSigningData.length; i++) {
+        final value = BigInt.from(utxoSigningData[i].utxo.value);
+        coinlib.ECPrivateKey key = utxoSigningData[i].keyPair!.privateKey;
+
+        if (clTx.inputs[i] is coinlib.TaprootKeyInput) {
+          final taproot = coinlib.Taproot(
+            internalKey: utxoSigningData[i].keyPair!.publicKey,
+          );
+
+          key = taproot.tweakPrivateKey(key);
+        }
+
+        clTx = clTx.sign(
+          inputN: i,
+          value: value,
+          key: key,
+          prevOuts: prevOuts,
         );
       }
 
-      final builtTx = txb.build();
-
-      return Tuple2(builtTx.toHex(), builtTx.virtualSize());
+      return Tuple2(clTx.toHex(), clTx.vSize());
     } catch (e, s) {
       Logging.instance.log(
         "_createNotificationTx(): $e\n$s",

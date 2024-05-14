@@ -10,14 +10,11 @@
 
 import 'dart:convert';
 
-import 'package:bitcoindart/bitcoindart.dart';
-import 'package:crypto/crypto.dart';
 import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-
 import 'package:stackwallet/wallets/crypto_currency/coins/banano.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin_frost.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/bitcoincash.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/dogecoin.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/ecash.dart';
@@ -29,41 +26,17 @@ import 'package:stackwallet/wallets/crypto_currency/coins/monero.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/namecoin.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/nano.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/particl.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/solana.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/stellar.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/tezos.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+
+import '../wallets/crypto_currency/coins/peercoin.dart';
 
 class AddressUtils {
   static String condenseAddress(String address) {
     return '${address.substring(0, 5)}...${address.substring(address.length - 5)}';
-  }
-
-  /// attempts to convert a string to a valid scripthash
-  ///
-  /// Returns the scripthash or throws an exception on invalid firo address
-  static String convertToScriptHash(
-    String address,
-    NetworkType network, [
-    String overridePrefix = "",
-  ]) {
-    try {
-      final output =
-          Address.addressToOutputScript(address, network, overridePrefix);
-      final hash = sha256.convert(output.toList(growable: false)).toString();
-
-      final chars = hash.split("");
-      final reversedPairs = <String>[];
-      // TODO find a better/faster way to do this?
-      var i = chars.length - 1;
-      while (i > 0) {
-        reversedPairs.add(chars[i - 1]);
-        reversedPairs.add(chars[i]);
-        i -= 2;
-      }
-      return reversedPairs.join("");
-    } catch (e) {
-      rethrow;
-    }
   }
 
   static bool validateAddress(String address, Coin coin) {
@@ -72,6 +45,9 @@ class AddressUtils {
     switch (coin) {
       case Coin.bitcoin:
         return Bitcoin(CryptoCurrencyNetwork.main).validateAddress(address);
+      case Coin.bitcoinFrost:
+        return BitcoinFrost(CryptoCurrencyNetwork.main)
+            .validateAddress(address);
       case Coin.litecoin:
         return Litecoin(CryptoCurrencyNetwork.main).validateAddress(address);
       case Coin.bitcoincash:
@@ -94,6 +70,10 @@ class AddressUtils {
         return Namecoin(CryptoCurrencyNetwork.main).validateAddress(address);
       case Coin.particl:
         return Particl(CryptoCurrencyNetwork.main).validateAddress(address);
+      case Coin.peercoin:
+        return Peercoin(CryptoCurrencyNetwork.main).validateAddress(address);
+      case Coin.solana:
+        return Solana(CryptoCurrencyNetwork.main).validateAddress(address);
       case Coin.stellar:
         return Stellar(CryptoCurrencyNetwork.main).validateAddress(address);
       case Coin.nano:
@@ -104,6 +84,9 @@ class AddressUtils {
         return Tezos(CryptoCurrencyNetwork.main).validateAddress(address);
       case Coin.bitcoinTestNet:
         return Bitcoin(CryptoCurrencyNetwork.test).validateAddress(address);
+      case Coin.bitcoinFrostTestNet:
+        return BitcoinFrost(CryptoCurrencyNetwork.test)
+            .validateAddress(address);
       case Coin.litecoinTestNet:
         return Litecoin(CryptoCurrencyNetwork.test).validateAddress(address);
       case Coin.bitcoincashTestnet:
@@ -112,6 +95,8 @@ class AddressUtils {
         return Firo(CryptoCurrencyNetwork.test).validateAddress(address);
       case Coin.dogecoinTestNet:
         return Dogecoin(CryptoCurrencyNetwork.test).validateAddress(address);
+      case Coin.peercoinTestNet:
+        return Peercoin(CryptoCurrencyNetwork.test).validateAddress(address);
       case Coin.stellarTestnet:
         return Stellar(CryptoCurrencyNetwork.test).validateAddress(address);
     }

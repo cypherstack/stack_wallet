@@ -16,6 +16,7 @@ enum Coin {
   monero,
   banano,
   bitcoincash,
+  bitcoinFrost,
   dogecoin,
   eCash,
   epicCash,
@@ -25,6 +26,8 @@ enum Coin {
   namecoin,
   nano,
   particl,
+  peercoin,
+  solana,
   stellar,
   tezos,
   wownero,
@@ -36,9 +39,11 @@ enum Coin {
 
   bitcoinTestNet,
   bitcoincashTestnet,
+  bitcoinFrostTestNet,
   dogecoinTestNet,
   firoTestNet,
   litecoinTestNet,
+  peercoinTestNet,
   stellarTestnet,
 }
 
@@ -47,6 +52,8 @@ extension CoinExt on Coin {
     switch (this) {
       case Coin.bitcoin:
         return "Bitcoin";
+      case Coin.bitcoinFrost:
+        return "Bitcoin Frost";
       case Coin.litecoin:
         return "Litecoin";
       case Coin.bitcoincash:
@@ -65,6 +72,10 @@ extension CoinExt on Coin {
         return "Monero";
       case Coin.particl:
         return "Particl";
+      case Coin.peercoin:
+        return "Peercoin";
+      case Coin.solana:
+        return "Solana";
       case Coin.stellar:
         return "Stellar";
       case Coin.tezos:
@@ -79,6 +90,8 @@ extension CoinExt on Coin {
         return "Banano";
       case Coin.bitcoinTestNet:
         return "tBitcoin";
+      case Coin.bitcoinFrostTestNet:
+        return "tBitcoin Frost";
       case Coin.litecoinTestNet:
         return "tLitecoin";
       case Coin.bitcoincashTestnet:
@@ -87,6 +100,8 @@ extension CoinExt on Coin {
         return "tFiro";
       case Coin.dogecoinTestNet:
         return "tDogecoin";
+      case Coin.peercoinTestNet:
+        return "tPeercoin";
       case Coin.stellarTestnet:
         return "tStellar";
     }
@@ -95,6 +110,7 @@ extension CoinExt on Coin {
   String get ticker {
     switch (this) {
       case Coin.bitcoin:
+      case Coin.bitcoinFrost:
         return "BTC";
       case Coin.litecoin:
         return "LTC";
@@ -114,6 +130,10 @@ extension CoinExt on Coin {
         return "XMR";
       case Coin.particl:
         return "PART";
+      case Coin.peercoin:
+        return "PPC";
+      case Coin.solana:
+        return "SOL";
       case Coin.stellar:
         return "XLM";
       case Coin.tezos:
@@ -127,6 +147,7 @@ extension CoinExt on Coin {
       case Coin.banano:
         return "BAN";
       case Coin.bitcoinTestNet:
+      case Coin.bitcoinFrostTestNet:
         return "tBTC";
       case Coin.litecoinTestNet:
         return "tLTC";
@@ -136,6 +157,8 @@ extension CoinExt on Coin {
         return "tFIRO";
       case Coin.dogecoinTestNet:
         return "tDOGE";
+      case Coin.peercoinTestNet:
+        return "tPPC";
       case Coin.stellarTestnet:
         return "tXLM";
     }
@@ -144,6 +167,7 @@ extension CoinExt on Coin {
   String get uriScheme {
     switch (this) {
       case Coin.bitcoin:
+      case Coin.bitcoinFrost:
         return "bitcoin";
       case Coin.litecoin:
         return "litecoin";
@@ -164,6 +188,10 @@ extension CoinExt on Coin {
         return "monero";
       case Coin.particl:
         return "particl";
+      case Coin.peercoin:
+        return "peercoin";
+      case Coin.solana:
+        return "solana";
       case Coin.stellar:
         return "stellar";
       case Coin.tezos:
@@ -177,6 +205,7 @@ extension CoinExt on Coin {
       case Coin.banano:
         return "ban";
       case Coin.bitcoinTestNet:
+      case Coin.bitcoinFrostTestNet:
         return "bitcoin";
       case Coin.litecoinTestNet:
         return "litecoin";
@@ -186,38 +215,10 @@ extension CoinExt on Coin {
         return "firo";
       case Coin.dogecoinTestNet:
         return "dogecoin";
+      case Coin.peercoinTestNet:
+        return "peercoin";
       case Coin.stellarTestnet:
         return "stellar";
-    }
-  }
-
-  bool get isElectrumXCoin {
-    switch (this) {
-      case Coin.bitcoin:
-      case Coin.litecoin:
-      case Coin.bitcoincash:
-      case Coin.dogecoin:
-      case Coin.firo:
-      case Coin.namecoin:
-      case Coin.particl:
-      case Coin.bitcoinTestNet:
-      case Coin.litecoinTestNet:
-      case Coin.bitcoincashTestnet:
-      case Coin.firoTestNet:
-      case Coin.dogecoinTestNet:
-      case Coin.eCash:
-        return true;
-
-      case Coin.epicCash:
-      case Coin.ethereum:
-      case Coin.monero:
-      case Coin.tezos:
-      case Coin.wownero:
-      case Coin.nano:
-      case Coin.banano:
-      case Coin.stellar:
-      case Coin.stellarTestnet:
-        return false;
     }
   }
 
@@ -235,18 +236,23 @@ extension CoinExt on Coin {
       case Coin.firoTestNet:
       case Coin.namecoin:
       case Coin.particl:
+      case Coin.peercoin:
+      case Coin.peercoinTestNet:
       case Coin.ethereum:
       case Coin.eCash:
       case Coin.stellar:
       case Coin.stellarTestnet:
         return true;
 
+      case Coin.bitcoinFrost:
+      case Coin.bitcoinFrostTestNet:
       case Coin.epicCash:
       case Coin.monero:
       case Coin.wownero:
       case Coin.nano:
       case Coin.banano:
       case Coin.tezos:
+      case Coin.solana:
         return false;
     }
   }
@@ -260,9 +266,13 @@ extension CoinExt on Coin {
       case Coin.ethereum:
         return true;
 
+      case Coin.bitcoinFrost:
+      case Coin.bitcoinFrostTestNet:
       case Coin.firo:
       case Coin.namecoin:
       case Coin.particl:
+      case Coin.peercoin:
+      case Coin.peercoinTestNet:
       case Coin.eCash:
       case Coin.epicCash:
       case Coin.monero:
@@ -275,6 +285,7 @@ extension CoinExt on Coin {
       case Coin.firoTestNet:
       case Coin.nano:
       case Coin.banano:
+      case Coin.solana:
       case Coin.stellar:
       case Coin.stellarTestnet:
         return false;
@@ -284,12 +295,14 @@ extension CoinExt on Coin {
   bool get isTestNet {
     switch (this) {
       case Coin.bitcoin:
+      case Coin.bitcoinFrost:
       case Coin.litecoin:
       case Coin.bitcoincash:
       case Coin.dogecoin:
       case Coin.firo:
       case Coin.namecoin:
       case Coin.particl:
+      case Coin.peercoin:
       case Coin.epicCash:
       case Coin.ethereum:
       case Coin.monero:
@@ -299,27 +312,43 @@ extension CoinExt on Coin {
       case Coin.banano:
       case Coin.eCash:
       case Coin.stellar:
+      case Coin.solana:
         return false;
 
       case Coin.dogecoinTestNet:
       case Coin.bitcoinTestNet:
+      case Coin.bitcoinFrostTestNet:
       case Coin.litecoinTestNet:
       case Coin.bitcoincashTestnet:
       case Coin.firoTestNet:
+      case Coin.peercoinTestNet:
       case Coin.stellarTestnet:
         return true;
+    }
+  }
+
+  bool get isFrost {
+    switch (this) {
+      case Coin.bitcoinFrost:
+      case Coin.bitcoinFrostTestNet:
+        return true;
+
+      default:
+        return false;
     }
   }
 
   Coin get mainNetVersion {
     switch (this) {
       case Coin.bitcoin:
+      case Coin.bitcoinFrost:
       case Coin.litecoin:
       case Coin.bitcoincash:
       case Coin.dogecoin:
       case Coin.firo:
       case Coin.namecoin:
       case Coin.particl:
+      case Coin.peercoin:
       case Coin.epicCash:
       case Coin.ethereum:
       case Coin.monero:
@@ -329,6 +358,7 @@ extension CoinExt on Coin {
       case Coin.banano:
       case Coin.eCash:
       case Coin.stellar:
+      case Coin.solana:
         return this;
 
       case Coin.dogecoinTestNet:
@@ -336,6 +366,9 @@ extension CoinExt on Coin {
 
       case Coin.bitcoinTestNet:
         return Coin.bitcoin;
+
+      case Coin.bitcoinFrostTestNet:
+        return Coin.bitcoinFrost;
 
       case Coin.litecoinTestNet:
         return Coin.litecoin;
@@ -345,6 +378,9 @@ extension CoinExt on Coin {
 
       case Coin.firoTestNet:
         return Coin.firo;
+
+      case Coin.peercoinTestNet:
+        return Coin.peercoin;
 
       case Coin.stellarTestnet:
         return Coin.stellar;
@@ -362,7 +398,13 @@ extension CoinExt on Coin {
       case Coin.litecoinTestNet:
       case Coin.namecoin:
       case Coin.particl:
+      case Coin.peercoin:
+      case Coin.peercoinTestNet:
         return AddressType.p2wpkh;
+
+      case Coin.bitcoinFrost:
+      case Coin.bitcoinFrostTestNet:
+        return AddressType.frostMS;
 
       case Coin.eCash:
       case Coin.bitcoincash:
@@ -395,6 +437,9 @@ extension CoinExt on Coin {
       case Coin.stellar:
       case Coin.stellarTestnet:
         return AddressType.stellar;
+
+      case Coin.solana:
+        return AddressType.solana;
     }
   }
 }
@@ -442,6 +487,19 @@ Coin coinFromPrettyName(String name) {
     case "Particl":
     case "particl":
       return Coin.particl;
+
+    case "Peercoin":
+    case "peercoin":
+      return Coin.peercoin;
+
+    case "tPeercoin":
+    case "Peercoin Testnet":
+    case "peercoinTestNet":
+      return Coin.peercoinTestNet;
+
+    case "Solana":
+    case "solana":
+      return Coin.solana;
 
     case "Stellar":
     case "stellar":
@@ -501,6 +559,15 @@ Coin coinFromPrettyName(String name) {
     case "tStellar":
       return Coin.stellarTestnet;
 
+    case "Bitcoin Frost":
+    case "bitcoinFrost":
+      return Coin.bitcoinFrost;
+
+    case "Bitcoin Frost Testnet":
+    case "tBitcoin Frost":
+    case "bitcoinFrostTestNet":
+      return Coin.bitcoinFrostTestNet;
+
     default:
       throw ArgumentError.value(
         name,
@@ -534,6 +601,8 @@ Coin coinFromTickerCaseInsensitive(String ticker) {
       return Coin.namecoin;
     case "part":
       return Coin.particl;
+    case "sol":
+      return Coin.solana;
     case "xlm":
       return Coin.stellar;
     case "xtz":

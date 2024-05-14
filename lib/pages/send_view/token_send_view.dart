@@ -58,14 +58,14 @@ import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
 class TokenSendView extends ConsumerStatefulWidget {
   const TokenSendView({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.coin,
     required this.tokenContract,
     this.autoFillData,
     this.clipboard = const ClipboardWrapper(),
     this.barcodeScanner = const BarcodeScannerWrapper(),
-  }) : super(key: key);
+  });
 
   static const String routeName = "/tokenSendView";
 
@@ -156,8 +156,10 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
       //       .state = true,
       // );
 
-      Logging.instance.log("qrResult content: ${qrResult.rawContent}",
-          level: LogLevel.Info);
+      Logging.instance.log(
+        "qrResult content: ${qrResult.rawContent}",
+        level: LogLevel.Info,
+      );
 
       final results = AddressUtils.parseUri(qrResult.rawContent);
 
@@ -216,8 +218,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
       // here we ignore the exception caused by not giving permission
       // to use the camera to scan a qr code
       Logging.instance.log(
-          "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
-          level: LogLevel.Warning);
+        "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
+        level: LogLevel.Warning,
+      );
     }
   }
 
@@ -239,15 +242,19 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
             ? Amount.zero
             : Amount.fromDecimal(
                 (baseAmount.decimal / _price).toDecimal(
-                    scaleOnInfinitePrecision: tokenContract.decimals),
-                fractionDigits: tokenContract.decimals);
+                  scaleOnInfinitePrecision: tokenContract.decimals,
+                ),
+                fractionDigits: tokenContract.decimals,
+              );
       }
       if (_cachedAmountToSend != null && _cachedAmountToSend == _amountToSend) {
         return;
       }
       _cachedAmountToSend = _amountToSend;
-      Logging.instance.log("it changed $_amountToSend $_cachedAmountToSend",
-          level: LogLevel.Info);
+      Logging.instance.log(
+        "it changed $_amountToSend $_cachedAmountToSend",
+        level: LogLevel.Info,
+      );
 
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
@@ -282,8 +289,10 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
           return;
         }
         _cachedAmountToSend = _amountToSend;
-        Logging.instance.log("it changed $_amountToSend $_cachedAmountToSend",
-            level: LogLevel.Info);
+        Logging.instance.log(
+          "it changed $_amountToSend $_cachedAmountToSend",
+          level: LogLevel.Info,
+        );
 
         final price = ref
             .read(priceAnd24hChangeNotifierProvider)
@@ -457,6 +466,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
             builder: (context) {
               return BuildingTransactionDialog(
                 coin: wallet.info.coin,
+                isSpark: false,
                 onCancel: () {
                   wasCancelled = true;
 
@@ -484,7 +494,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
               address: _address!,
               amount: amount,
               isChange: false,
-            )
+            ),
           ],
           feeRateType: ref.read(feeRateTypeStateProvider),
           note: noteController.text,
@@ -502,20 +512,22 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
         // pop building dialog
         Navigator.of(context).pop();
 
-        unawaited(Navigator.of(context).push(
-          RouteGenerator.getRoute(
-            shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-            builder: (_) => ConfirmTransactionView(
-              txData: txData,
-              walletId: walletId,
-              isTokenTx: true,
-              onSuccess: clearSendForm,
-            ),
-            settings: const RouteSettings(
-              name: ConfirmTransactionView.routeName,
+        unawaited(
+          Navigator.of(context).push(
+            RouteGenerator.getRoute(
+              shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
+              builder: (_) => ConfirmTransactionView(
+                txData: txData,
+                walletId: walletId,
+                isTokenTx: true,
+                onSuccess: clearSendForm,
+              ),
+              settings: const RouteSettings(
+                name: ConfirmTransactionView.routeName,
+              ),
             ),
           ),
-        ));
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -538,9 +550,10 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark),
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
+                    ),
                   ),
                   onPressed: () {
                     Navigator.of(context).pop();
@@ -626,7 +639,8 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
     final String locale = ref.watch(
-        localeServiceChangeNotifierProvider.select((value) => value.locale));
+      localeServiceChangeNotifierProvider.select((value) => value.locale),
+    );
 
     return Background(
       child: Scaffold(
@@ -638,7 +652,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                 FocusScope.of(context).unfocus();
                 await Future<void>.delayed(const Duration(milliseconds: 50));
               }
-              if (mounted) {
+              if (context.mounted) {
                 Navigator.of(context).pop();
               }
             },
@@ -712,11 +726,15 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                           .watch(pAmountFormatter(coin))
                                           .format(
                                             ref
-                                                .read(pTokenBalance((
-                                                  walletId: widget.walletId,
-                                                  contractAddress:
-                                                      tokenContract.address,
-                                                )))
+                                                .read(
+                                                  pTokenBalance(
+                                                    (
+                                                      walletId: widget.walletId,
+                                                      contractAddress:
+                                                          tokenContract.address,
+                                                    ),
+                                                  ),
+                                                )
                                                 .spendable,
                                             ethContract: tokenContract,
                                             withUnitName: false,
@@ -734,13 +752,17 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                                 .watch(pAmountFormatter(coin))
                                                 .format(
                                                   ref
-                                                      .watch(pTokenBalance((
-                                                        walletId:
-                                                            widget.walletId,
-                                                        contractAddress:
-                                                            tokenContract
-                                                                .address,
-                                                      )))
+                                                      .watch(
+                                                        pTokenBalance(
+                                                          (
+                                                            walletId:
+                                                                widget.walletId,
+                                                            contractAddress:
+                                                                tokenContract
+                                                                    .address,
+                                                          ),
+                                                        ),
+                                                      )
                                                       .spendable,
                                                   ethContract: tokenContract,
                                                 ),
@@ -752,13 +774,17 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                             textAlign: TextAlign.right,
                                           ),
                                           Text(
-                                            "${(ref.watch(pTokenBalance((
+                                            "${(ref.watch(
+                                                      pTokenBalance(
+                                                        (
                                                           walletId:
                                                               widget.walletId,
                                                           contractAddress:
                                                               tokenContract
                                                                   .address,
-                                                        ))).spendable.decimal * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getTokenPrice(tokenContract.address).item1))).toAmount(
+                                                        ),
+                                                      ),
+                                                    ).spendable.decimal * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getTokenPrice(tokenContract.address).item1))).toAmount(
                                                   fractionDigits: 2,
                                                 ).fiatString(
                                                   locale: locale,
@@ -768,7 +794,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                               fontSize: 8,
                                             ),
                                             textAlign: TextAlign.right,
-                                          )
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -807,7 +833,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                               onChanged: (newValue) {
                                 _address = newValue.trim();
                                 _updatePreviewButtonState(
-                                    _address, _amountToSend);
+                                  _address,
+                                  _amountToSend,
+                                );
 
                                 setState(() {
                                   _addressToggleFlag = newValue.isNotEmpty;
@@ -838,12 +866,15 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                         _addressToggleFlag
                                             ? TextFieldIconButton(
                                                 key: const Key(
-                                                    "tokenSendViewClearAddressFieldButtonKey"),
+                                                  "tokenSendViewClearAddressFieldButtonKey",
+                                                ),
                                                 onTap: () {
                                                   sendToController.text = "";
                                                   _address = "";
                                                   _updatePreviewButtonState(
-                                                      _address, _amountToSend);
+                                                    _address,
+                                                    _amountToSend,
+                                                  );
                                                   setState(() {
                                                     _addressToggleFlag = false;
                                                   });
@@ -852,7 +883,8 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                               )
                                             : TextFieldIconButton(
                                                 key: const Key(
-                                                    "tokenSendViewPasteAddressFieldButtonKey"),
+                                                  "tokenSendViewPasteAddressFieldButtonKey",
+                                                ),
                                                 onTap:
                                                     _onTokenSendViewPasteAddressFieldButtonPressed,
                                                 child: sendToController
@@ -863,7 +895,8 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                         if (sendToController.text.isEmpty)
                                           TextFieldIconButton(
                                             key: const Key(
-                                                "sendViewAddressBookButtonKey"),
+                                              "sendViewAddressBookButtonKey",
+                                            ),
                                             onTap: () {
                                               Navigator.of(context).pushNamed(
                                                 AddressBookView.routeName,
@@ -875,11 +908,12 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                         if (sendToController.text.isEmpty)
                                           TextFieldIconButton(
                                             key: const Key(
-                                                "sendViewScanQrButtonKey"),
+                                              "sendViewScanQrButtonKey",
+                                            ),
                                             onTap:
                                                 _onTokenSendViewScanQrButtonPressed,
                                             child: const QrCodeIcon(),
-                                          )
+                                          ),
                                       ],
                                     ),
                                   ),
@@ -997,9 +1031,10 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                     tokenContract.symbol,
                                     style: STextStyles.smallMed14(context)
                                         .copyWith(
-                                            color: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .accentColorDark),
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -1058,13 +1093,16 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                   child: Padding(
                                     padding: const EdgeInsets.all(12),
                                     child: Text(
-                                      ref.watch(prefsChangeNotifierProvider
-                                          .select((value) => value.currency)),
+                                      ref.watch(
+                                        prefsChangeNotifierProvider
+                                            .select((value) => value.currency),
+                                      ),
                                       style: STextStyles.smallMed14(context)
                                           .copyWith(
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .accentColorDark),
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorDark,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -1169,8 +1207,8 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                         walletId: walletId,
                                         isToken: true,
                                         amount: (Decimal.tryParse(
-                                                    cryptoAmountController
-                                                        .text) ??
+                                                  cryptoAmountController.text,
+                                                ) ??
                                                 Decimal.zero)
                                             .toAmount(
                                           fractionDigits:
@@ -1193,12 +1231,15 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                         children: [
                                           Text(
                                             ref
-                                                .watch(feeRateTypeStateProvider
-                                                    .state)
+                                                .watch(
+                                                  feeRateTypeStateProvider
+                                                      .state,
+                                                )
                                                 .state
                                                 .prettyName,
                                             style: STextStyles.itemSubtitle12(
-                                                context),
+                                              context,
+                                            ),
                                           ),
                                           const SizedBox(
                                             width: 10,
@@ -1213,7 +1254,8 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                                   "~${snapshot.data!}",
                                                   style:
                                                       STextStyles.itemSubtitle(
-                                                          context),
+                                                    context,
+                                                  ),
                                                 );
                                               } else {
                                                 return AnimatedText(
@@ -1225,7 +1267,8 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                                   ],
                                                   style:
                                                       STextStyles.itemSubtitle(
-                                                          context),
+                                                    context,
+                                                  ),
                                                 );
                                               }
                                             },
@@ -1243,7 +1286,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                     ],
                                   ),
                                 ),
-                              )
+                              ),
                             ],
                           ),
                           const Spacer(),
@@ -1253,13 +1296,15 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                           TextButton(
                             onPressed: ref
                                     .watch(
-                                        previewTokenTxButtonStateProvider.state)
+                                      previewTokenTxButtonStateProvider.state,
+                                    )
                                     .state
                                 ? _previewTransaction
                                 : null,
                             style: ref
                                     .watch(
-                                        previewTokenTxButtonStateProvider.state)
+                                      previewTokenTxButtonStateProvider.state,
+                                    )
                                     .state
                                 ? Theme.of(context)
                                     .extension<StackColors>()!

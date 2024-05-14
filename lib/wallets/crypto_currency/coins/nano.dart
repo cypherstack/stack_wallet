@@ -45,4 +45,12 @@ class Nano extends NanoCurrency {
         throw UnimplementedError();
     }
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is Nano && other.network == network;
+  }
+
+  @override
+  int get hashCode => Object.hash(Nano, network);
 }

@@ -13,13 +13,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/providers/global/active_wallet_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
@@ -181,9 +179,9 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                                     .walletIdsSyncOnStartup))
                                             .contains(info.walletId),
                                         onValueChanged: (value) {
-                                          final syncType = ref
-                                              .read(prefsChangeNotifierProvider)
-                                              .syncType;
+                                          // final syncType = ref
+                                          //     .read(prefsChangeNotifierProvider)
+                                          //     .syncType;
                                           final ids = ref
                                               .read(prefsChangeNotifierProvider)
                                               .walletIdsSyncOnStartup
@@ -194,25 +192,25 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                             ids.remove(info.walletId);
                                           }
 
-                                          final wallet = ref
-                                              .read(pWallets)
-                                              .getWallet(info.walletId);
-
-                                          switch (syncType) {
-                                            case SyncingType.currentWalletOnly:
-                                              if (info.walletId ==
-                                                  ref.read(
-                                                      currentWalletIdProvider)) {
-                                                wallet.shouldAutoSync = value;
-                                              }
-                                              break;
-                                            case SyncingType
-                                                  .selectedWalletsAtStartup:
-                                            case SyncingType
-                                                  .allWalletsOnStartup:
-                                              wallet.shouldAutoSync = value;
-                                              break;
-                                          }
+                                          // final wallet = ref
+                                          //     .read(pWallets)
+                                          //     .getWallet(info.walletId);
+                                          //
+                                          // switch (syncType) {
+                                          //   case SyncingType.currentWalletOnly:
+                                          //     if (info.walletId ==
+                                          //         ref.read(
+                                          //             currentWalletIdProvider)) {
+                                          //       wallet.shouldAutoSync = value;
+                                          //     }
+                                          //     break;
+                                          //   case SyncingType
+                                          //         .selectedWalletsAtStartup:
+                                          //   case SyncingType
+                                          //         .allWalletsOnStartup:
+                                          //     wallet.shouldAutoSync = value;
+                                          //     break;
+                                          // }
 
                                           ref
                                               .read(prefsChangeNotifierProvider)

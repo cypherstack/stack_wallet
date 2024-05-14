@@ -98,7 +98,7 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
     final success = await showLoading<bool>(
       whileFuture: _loadTokenWallet(context, ref),
       context: context,
-      isDesktop: isDesktop,
+      rootNavigator: isDesktop,
       message: "Loading ${widget.token.name}",
     );
 

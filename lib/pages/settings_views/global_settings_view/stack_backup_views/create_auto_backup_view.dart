@@ -88,7 +88,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
     passwordFocusNode = FocusNode();
     passwordRepeatFocusNode = FocusNode();
 
-    if (Platform.isAndroid) {
+    if (Platform.isAndroid || Platform.isIOS) {
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
         final dir = await stackFileSystem.prepareStorage();
         if (mounted) {
@@ -151,11 +151,11 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                       const SizedBox(
                         height: 10,
                       ),
-                      if (!Platform.isAndroid)
+                      if (!Platform.isAndroid && !Platform.isIOS)
                         TextField(
                           autocorrect: Util.isDesktop ? false : true,
                           enableSuggestions: Util.isDesktop ? false : true,
-                          onTap: Platform.isAndroid
+                          onTap: Platform.isAndroid || Platform.isIOS
                               ? null
                               : () async {
                                   try {
@@ -213,7 +213,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                           ),
                           onChanged: (newValue) {},
                         ),
-                      if (!Platform.isAndroid)
+                      if (!Platform.isAndroid && !Platform.isIOS)
                         const SizedBox(
                           height: 10,
                         ),

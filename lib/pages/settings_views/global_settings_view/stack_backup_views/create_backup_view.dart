@@ -80,7 +80,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
     passwordFocusNode = FocusNode();
     passwordRepeatFocusNode = FocusNode();
 
-    if (Platform.isAndroid) {
+    if (Platform.isAndroid || Platform.isIOS) {
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
         final dir = await stackFileSystem.prepareStorage();
         if (mounted) {
@@ -179,14 +179,14 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (!Platform.isAndroid)
+            if (!Platform.isAndroid && !Platform.isIOS)
               Consumer(builder: (context, ref, __) {
                 return Container(
                   color: Colors.transparent,
                   child: TextField(
                     autocorrect: Util.isDesktop ? false : true,
                     enableSuggestions: Util.isDesktop ? false : true,
-                    onTap: Platform.isAndroid
+                    onTap: Platform.isAndroid || Platform.isIOS
                         ? null
                         : () async {
                             try {
@@ -248,7 +248,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                   ),
                 );
               }),
-            if (!Platform.isAndroid)
+            if (!Platform.isAndroid && !Platform.isIOS)
               SizedBox(
                 height: !isDesktop ? 8 : 24,
               ),

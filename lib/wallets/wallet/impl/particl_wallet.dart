@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
@@ -7,6 +9,7 @@ import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/signing_data.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/extensions/impl/uint8_list.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/particl.dart';
@@ -193,8 +196,8 @@ class ParticlWallet extends Bip39HDWallet
         OutpointV2? outpoint;
 
         final coinbase = map["coinbase"] as String?;
-
-        if (coinbase == null) {
+        final txType = map['type'] as String?;
+        if (coinbase == null && txType == null) {
           // Not a coinbase (ie a typical input).
           final txid = map["txid"] as String;
           final vout = map["vout"] as int;
@@ -340,20 +343,92 @@ class ParticlWallet extends Bip39HDWallet
     Logging.instance.log("Starting Particl buildTransaction ----------",
         level: LogLevel.Info);
 
-    // TODO: use coinlib
+    // TODO: use coinlib (For this we need coinlib to support particl)
+
+    final convertedNetwork = bitcoindart.NetworkType(
+      messagePrefix: cryptoCurrency.networkParams.messagePrefix,
+      bech32: cryptoCurrency.networkParams.bech32Hrp,
+      bip32: bitcoindart.Bip32Type(
+        public: cryptoCurrency.networkParams.pubHDPrefix,
+        private: cryptoCurrency.networkParams.privHDPrefix,
+      ),
+      pubKeyHash: cryptoCurrency.networkParams.p2pkhPrefix,
+      scriptHash: cryptoCurrency.networkParams.p2shPrefix,
+      wif: cryptoCurrency.networkParams.wifPrefix,
+    );
+
+    final List<({Uint8List? output, Uint8List? redeem})> extraData = [];
+    for (int i = 0; i < utxoSigningData.length; i++) {
+      final sd = utxoSigningData[i];
+
+      final pubKey = sd.keyPair!.publicKey.data;
+      final bitcoindart.PaymentData? data;
+      Uint8List? redeem, output;
+
+      switch (sd.derivePathType) {
+        case DerivePathType.bip44:
+          data = bitcoindart
+              .P2PKH(
+                data: bitcoindart.PaymentData(
+                  pubkey: pubKey,
+                ),
+                network: convertedNetwork,
+              )
+              .data;
+          break;
+
+        case DerivePathType.bip49:
+          final p2wpkh = bitcoindart
+              .P2WPKH(
+                data: bitcoindart.PaymentData(
+                  pubkey: pubKey,
+                ),
+                network: convertedNetwork,
+              )
+              .data;
+          redeem = p2wpkh.output;
+          data = bitcoindart
+              .P2SH(
+                data: bitcoindart.PaymentData(redeem: p2wpkh),
+                network: convertedNetwork,
+              )
+              .data;
+          break;
+
+        case DerivePathType.bip84:
+          // input = coinlib.P2WPKHInput(
+          //   prevOut: coinlib.OutPoint.fromHex(sd.utxo.txid, sd.utxo.vout),
+          //   publicKey: keys.publicKey,
+          // );
+          data = bitcoindart
+              .P2WPKH(
+                data: bitcoindart.PaymentData(
+                  pubkey: pubKey,
+                ),
+                network: convertedNetwork,
+              )
+              .data;
+          break;
+
+        case DerivePathType.bip86:
+          data = null;
+          break;
+
+        default:
+          throw Exception("DerivePathType unsupported");
+      }
+
+      // sd.output = input.script!.compiled;
+
+      if (sd.derivePathType != DerivePathType.bip86) {
+        output = data!.output!;
+      }
+
+      extraData.add((output: output, redeem: redeem));
+    }
 
     final txb = bitcoindart.TransactionBuilder(
-      network: bitcoindart.NetworkType(
-        messagePrefix: cryptoCurrency.networkParams.messagePrefix,
-        bech32: cryptoCurrency.networkParams.bech32Hrp,
-        bip32: bitcoindart.Bip32Type(
-          public: cryptoCurrency.networkParams.pubHDPrefix,
-          private: cryptoCurrency.networkParams.privHDPrefix,
-        ),
-        pubKeyHash: cryptoCurrency.networkParams.p2pkhPrefix,
-        scriptHash: cryptoCurrency.networkParams.p2shPrefix,
-        wif: cryptoCurrency.networkParams.wifPrefix,
-      ),
+      network: convertedNetwork,
     );
     const version = 160; // buildTransaction overridden for Particl to set this.
     // TODO: [prio=low] refactor overridden buildTransaction to use eg. cryptocurrency.networkParams.txVersion.
@@ -370,7 +445,7 @@ class ParticlWallet extends Bip39HDWallet
         txid,
         utxoSigningData[i].utxo.vout,
         null,
-        utxoSigningData[i].output!,
+        extraData[i].output!,
         cryptoCurrency.networkParams.bech32Hrp,
       );
 
@@ -427,9 +502,13 @@ class ParticlWallet extends Bip39HDWallet
       for (var i = 0; i < utxoSigningData.length; i++) {
         txb.sign(
           vin: i,
-          keyPair: utxoSigningData[i].keyPair!,
+          keyPair: bitcoindart.ECPair.fromPrivateKey(
+            utxoSigningData[i].keyPair!.privateKey.data,
+            network: convertedNetwork,
+            compressed: utxoSigningData[i].keyPair!.privateKey.compressed,
+          ),
           witnessValue: utxoSigningData[i].utxo.value,
-          redeemScript: utxoSigningData[i].redeemScript,
+          redeemScript: extraData[i].redeem,
           overridePrefix: cryptoCurrency.networkParams.bech32Hrp,
         );
       }
