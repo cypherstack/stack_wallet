@@ -18,6 +18,8 @@
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		B49D91439948369648AB0603 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51604430FD0FD1FA5C4767A0 /* Pods_Runner.framework */; };
+		CE6B5DF12BF26AAA00CF1F44 /* monero_libwallet2_api_c.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE6B5DEF2BF26AAA00CF1F44 /* monero_libwallet2_api_c.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		CE6B5DF22BF26AAA00CF1F44 /* wownero_libwallet2_api_c.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE6B5DF02BF26AAA00CF1F44 /* wownero_libwallet2_api_c.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -30,6 +32,17 @@
 				7E569F9A2798D47F00056D51 /* mobileliblelantus.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE6B5DEA2BF26A3300CF1F44 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				CE6B5DF12BF26AAA00CF1F44 /* monero_libwallet2_api_c.dylib in CopyFiles */,
+				CE6B5DF22BF26AAA00CF1F44 /* wownero_libwallet2_api_c.dylib in CopyFiles */,
+			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -62,6 +75,8 @@
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B999088F2ABE1E170012A442 /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
+		CE6B5DEF2BF26AAA00CF1F44 /* monero_libwallet2_api_c.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = monero_libwallet2_api_c.dylib; sourceTree = "<group>"; };
+		CE6B5DF02BF26AAA00CF1F44 /* wownero_libwallet2_api_c.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = wownero_libwallet2_api_c.dylib; sourceTree = "<group>"; };
 		E6F536731AC506735EB76340 /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -122,6 +137,8 @@
 		97C146E51CF9000F007C117D = {
 			isa = PBXGroup;
 			children = (
+				CE6B5DEF2BF26AAA00CF1F44 /* monero_libwallet2_api_c.dylib */,
+				CE6B5DF02BF26AAA00CF1F44 /* wownero_libwallet2_api_c.dylib */,
 				9740EEB11CF90186004384FC /* Flutter */,
 				97C146F01CF9000F007C117D /* Runner */,
 				97C146EF1CF9000F007C117D /* Products */,
@@ -177,6 +194,7 @@
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				FD1CA371131604E6658D4146 /* [CP] Embed Pods Frameworks */,
+				CE6B5DEA2BF26A3300CF1F44 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -193,7 +211,7 @@
 		97C146E61CF9000F007C117D /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1300;
+				LastUpgradeCheck = 1510;
 				ORGANIZATIONNAME = "The Chromium Authors";
 				TargetAttributes = {
 					97C146ED1CF9000F007C117D = {
@@ -307,9 +325,6 @@
 				"${BUILT_PRODUCTS_DIR}/barcode_scan2/barcode_scan2.framework",
 				"${BUILT_PRODUCTS_DIR}/coinlib_flutter/secp256k1.framework",
 				"${BUILT_PRODUCTS_DIR}/connectivity_plus/connectivity_plus.framework",
-				"${BUILT_PRODUCTS_DIR}/cw_monero/cw_monero.framework",
-				"${BUILT_PRODUCTS_DIR}/cw_shared_external/cw_shared_external.framework",
-				"${BUILT_PRODUCTS_DIR}/cw_wownero/cw_wownero.framework",
 				"${BUILT_PRODUCTS_DIR}/device_info_plus/device_info_plus.framework",
 				"${BUILT_PRODUCTS_DIR}/devicelocale/devicelocale.framework",
 				"${BUILT_PRODUCTS_DIR}/file_picker/file_picker.framework",
@@ -343,9 +358,6 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/barcode_scan2.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/secp256k1.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/connectivity_plus.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/cw_monero.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/cw_shared_external.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/cw_wownero.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/device_info_plus.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/devicelocale.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/file_picker.framework",
