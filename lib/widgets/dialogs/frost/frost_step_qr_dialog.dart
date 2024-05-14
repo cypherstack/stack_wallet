@@ -153,12 +153,15 @@ class _FrostStepQrDialogState extends State<FrostStepQrDialog> {
                               child: QrImageView(
                                 data: widget.data,
                                 padding: EdgeInsets.zero,
-                                dataModuleStyle: QrDataModuleStyle(
-                                  dataModuleShape: QrDataModuleShape.square,
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .accentColorDark,
-                                ),
+                                foregroundColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorDark,
+                                // dataModuleStyle: QrDataModuleStyle(
+                                //   dataModuleShape: QrDataModuleShape.square,
+                                //   color: Theme.of(context)
+                                //       .extension<StackColors>()!
+                                //       .accentColorDark,
+                                // ),
                               ),
                             ),
                           ),
