@@ -276,89 +276,6 @@ class _RestoreFrostMsWalletViewState
                 Constants.size.circularBorderRadius,
               ),
               child: TextField(
-                key: const Key("frMyNameTextFieldKey"),
-                controller: keysFieldController,
-                onChanged: (_) {
-                  setState(() {
-                    _keysEmpty = keysFieldController.text.isEmpty;
-                  });
-                },
-                focusNode: keysFocusNode,
-                readOnly: false,
-                autocorrect: false,
-                enableSuggestions: false,
-                style: STextStyles.field(context),
-                decoration: standardInputDecoration(
-                  "Keys",
-                  keysFocusNode,
-                  context,
-                ).copyWith(
-                  contentPadding: const EdgeInsets.only(
-                    left: 16,
-                    top: 6,
-                    bottom: 8,
-                    right: 5,
-                  ),
-                  suffixIcon: Padding(
-                    padding: _keysEmpty
-                        ? const EdgeInsets.only(right: 8)
-                        : const EdgeInsets.only(right: 0),
-                    child: UnconstrainedBox(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          !_keysEmpty
-                              ? TextFieldIconButton(
-                                  semanticsLabel:
-                                      "Clear Button. Clears The Keys Field.",
-                                  key: const Key("frMyNameClearButtonKey"),
-                                  onTap: () {
-                                    keysFieldController.text = "";
-
-                                    setState(() {
-                                      _keysEmpty = true;
-                                    });
-                                  },
-                                  child: const XIcon(),
-                                )
-                              : TextFieldIconButton(
-                                  semanticsLabel:
-                                      "Paste Button. Pastes From Clipboard To Keys Field.",
-                                  key: const Key("frKeysPasteButtonKey"),
-                                  onTap: () async {
-                                    final ClipboardData? data =
-                                        await Clipboard.getData(
-                                            Clipboard.kTextPlain);
-                                    if (data?.text != null &&
-                                        data!.text!.isNotEmpty) {
-                                      keysFieldController.text =
-                                          data.text!.trim();
-                                    }
-
-                                    setState(() {
-                                      _keysEmpty =
-                                          keysFieldController.text.isEmpty;
-                                    });
-                                  },
-                                  child: _keysEmpty
-                                      ? const ClipboardIcon()
-                                      : const XIcon(),
-                                ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(
-                Constants.size.circularBorderRadius,
-              ),
-              child: TextField(
                 key: const Key("frConfigTextFieldKey"),
                 controller: configFieldController,
                 onChanged: (_) {
@@ -411,7 +328,8 @@ class _RestoreFrostMsWalletViewState
                                   onTap: () async {
                                     final ClipboardData? data =
                                         await Clipboard.getData(
-                                            Clipboard.kTextPlain);
+                                      Clipboard.kTextPlain,
+                                    );
                                     if (data?.text != null &&
                                         data!.text!.isNotEmpty) {
                                       configFieldController.text =
@@ -437,7 +355,8 @@ class _RestoreFrostMsWalletViewState
                                   if (FocusScope.of(context).hasFocus) {
                                     FocusScope.of(context).unfocus();
                                     await Future<void>.delayed(
-                                        const Duration(milliseconds: 75));
+                                      const Duration(milliseconds: 75),
+                                    );
                                   }
 
                                   final qrResult = await BarcodeScanner.scan();
@@ -457,7 +376,91 @@ class _RestoreFrostMsWalletViewState
                                 }
                               },
                               child: const QrCodeIcon(),
-                            )
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(
+                Constants.size.circularBorderRadius,
+              ),
+              child: TextField(
+                key: const Key("frMyNameTextFieldKey"),
+                controller: keysFieldController,
+                onChanged: (_) {
+                  setState(() {
+                    _keysEmpty = keysFieldController.text.isEmpty;
+                  });
+                },
+                focusNode: keysFocusNode,
+                readOnly: false,
+                autocorrect: false,
+                enableSuggestions: false,
+                style: STextStyles.field(context),
+                decoration: standardInputDecoration(
+                  "Keys",
+                  keysFocusNode,
+                  context,
+                ).copyWith(
+                  contentPadding: const EdgeInsets.only(
+                    left: 16,
+                    top: 6,
+                    bottom: 8,
+                    right: 5,
+                  ),
+                  suffixIcon: Padding(
+                    padding: _keysEmpty
+                        ? const EdgeInsets.only(right: 8)
+                        : const EdgeInsets.only(right: 0),
+                    child: UnconstrainedBox(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          !_keysEmpty
+                              ? TextFieldIconButton(
+                                  semanticsLabel:
+                                      "Clear Button. Clears The Keys Field.",
+                                  key: const Key("frMyNameClearButtonKey"),
+                                  onTap: () {
+                                    keysFieldController.text = "";
+
+                                    setState(() {
+                                      _keysEmpty = true;
+                                    });
+                                  },
+                                  child: const XIcon(),
+                                )
+                              : TextFieldIconButton(
+                                  semanticsLabel:
+                                      "Paste Button. Pastes From Clipboard To Keys Field.",
+                                  key: const Key("frKeysPasteButtonKey"),
+                                  onTap: () async {
+                                    final ClipboardData? data =
+                                        await Clipboard.getData(
+                                      Clipboard.kTextPlain,
+                                    );
+                                    if (data?.text != null &&
+                                        data!.text!.isNotEmpty) {
+                                      keysFieldController.text =
+                                          data.text!.trim();
+                                    }
+
+                                    setState(() {
+                                      _keysEmpty =
+                                          keysFieldController.text.isEmpty;
+                                    });
+                                  },
+                                  child: _keysEmpty
+                                      ? const ClipboardIcon()
+                                      : const XIcon(),
+                                ),
                         ],
                       ),
                     ),
