@@ -1745,6 +1745,27 @@ class RouteGenerator {
               name: settings.name,
             ),
           );
+        } else if (args is ({
+          String walletId,
+          List<String> mnemonicWords,
+          ({
+            String myName,
+            String config,
+            String keys,
+            ({String config, String keys})? prevGen,
+          })? frostWalletData,
+        })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => DeleteWalletRecoveryPhraseView(
+              mnemonic: args.mnemonicWords,
+              walletId: args.walletId,
+              frostWalletData: args.frostWalletData,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
