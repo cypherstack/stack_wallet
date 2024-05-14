@@ -99,11 +99,11 @@ import 'package:tuple/tuple.dart';
 /// [eventBus] should only be set during testing
 class WalletView extends ConsumerStatefulWidget {
   const WalletView({
-    Key? key,
+    super.key,
     required this.walletId,
     this.eventBus,
     this.clipboardInterface = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   static const String routeName = "/wallet";
   static const double navBarHeight = 65.0;

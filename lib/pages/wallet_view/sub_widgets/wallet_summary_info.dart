@@ -63,18 +63,21 @@ class WalletSummaryInfo extends ConsumerWidget {
     debugPrint("BUILD: $runtimeType");
 
     final externalCalls = ref.watch(
-        prefsChangeNotifierProvider.select((value) => value.externalCalls));
+      prefsChangeNotifierProvider.select((value) => value.externalCalls),
+    );
     final coin = ref.watch(pWalletCoin(walletId));
     final balance = ref.watch(pWalletBalance(walletId));
 
     final locale = ref.watch(
-        localeServiceChangeNotifierProvider.select((value) => value.locale));
+      localeServiceChangeNotifierProvider.select((value) => value.locale),
+    );
 
     final baseCurrency = ref
         .watch(prefsChangeNotifierProvider.select((value) => value.currency));
 
-    final priceTuple = ref.watch(priceAnd24hChangeNotifierProvider
-        .select((value) => value.getPrice(coin)));
+    final priceTuple = ref.watch(
+      priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin)),
+    );
 
     final _showAvailable =
         ref.watch(walletBalanceToggleStateProvider.state).state ==
@@ -206,7 +209,7 @@ class WalletSummaryInfo extends ConsumerWidget {
                 initialSyncStatus: initialSyncStatus,
               ),
             ],
-          )
+          ),
         ],
       ),
     );
