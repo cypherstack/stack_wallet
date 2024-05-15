@@ -1,5 +1,6 @@
 # Configure files for Duo.
 sed -i 's/Wallet/Duo/g' ../lib/app_config.dart
+sed -i 's/Stack Wallet/Stack Duo/g' ../pubspec.yaml
 sed -i 's/com.cypherstack.stackwallet/com.cypherstack.stackduo/g' ../android/app/build.gradle
 sed -i 's/com.cypherstack.stackwallet/com.cypherstack.stackduo/g' ../android/app/src/debug/AndroidManifest.xml
 sed -i 's/com.cypherstack.stackwallet/com.cypherstack.stackduo/g' ../android/app/src/main/AndroidManifest.xml
