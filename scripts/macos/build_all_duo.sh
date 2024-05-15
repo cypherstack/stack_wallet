@@ -2,10 +2,12 @@
 
 set -e
 
-./configure_duo.sh
-cd ..
-./configure_duo.sh
-cd macos
+../app_config/configure_duo.sh
+
+# Configure macOS for Duo.
+sed -i '' 's/com.cypherstack.stackWallet/com.cypherstack.stackDuo/g' ../../macos/Runner.xcodeproj/project.pbxproj
+
+# todo: revisit following at some point
 
 # libepiccash requires old rust
 source ../rust_version.sh

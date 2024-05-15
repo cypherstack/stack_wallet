@@ -2,10 +2,12 @@
 
 set -e
 
-./configure_duo.sh
-cd ..
-./configure_duo.sh
-cd windows
+../app_config/configure_duo.sh
+
+# Configure Windows for Duo.
+sed -i 's/Stack Wallet/Stack Duo/g' ../../windows/runner/Runner.rc
+
+# todo: revisit following at some point
 
 # libepiccash requires old rust
 source ../rust_version.sh

@@ -2,10 +2,16 @@
 
 set -e
 
-./configure_duo.sh
-cd ..
-./configure_duo.sh
-cd android
+../app_config/configure_duo.sh
+
+sed -i "s/${ORIGINAL_APP_ID}/${NEW_APP_ID}/g" ../../android/app/build.gradle
+sed -i "s/${ORIGINAL_APP_ID}/${NEW_APP_ID}/g" ../../android/app/src/debug/AndroidManifest.xml
+sed -i "s/${ORIGINAL_APP_ID}/${NEW_APP_ID}/g" ../../android/app/src/main/AndroidManifest.xml
+sed -i "s/${ORIGINAL_APP_ID}/${NEW_APP_ID}/g" ../../android/app/src/main/kotlin/com/cypherstack/stackwallet/MainActivity.kt
+sed -i "s/${ORIGINAL_APP_ID}/${NEW_APP_ID}/g" ../../android/app/src/main/profile/AndroidManifest.xml
+sed -i "s/${ORIGINAL_APP_ID}/${NEW_APP_ID}/g" ../../android/app/src/profile/AndroidManifest.xml
+
+# todo: revisit following at some point
 
 # libepiccash requires old rust
 source ../rust_version.sh
