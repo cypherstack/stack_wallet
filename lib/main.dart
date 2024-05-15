@@ -586,8 +586,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
             routeOnSuccessArguments: encrypted,
             biometricsCancelButtonString: "CANCEL",
             biometricsLocalizedReason:
-                "Authenticate to restore Stack Wallet backup",
-            biometricsAuthenticationTitle: "Restore Stack backup",
+                "Authenticate to restore ${AppConfig.appName} backup",
+            biometricsAuthenticationTitle: "Restore ${AppConfig.prefix} backup",
           ),
           settings: const RouteSettings(name: "/swbrestorelockscreen"),
         ),
@@ -762,9 +762,10 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
                         isInitialAppLogin: true,
                         routeOnSuccess: HomeView.routeName,
                         routeOnSuccessArguments: startupWalletId,
-                        biometricsAuthenticationTitle: "Unlock Stack",
+                        biometricsAuthenticationTitle:
+                            "Unlock ${AppConfig.prefix}",
                         biometricsLocalizedReason:
-                            "Unlock your stack wallet using biometrics",
+                            "Unlock your ${AppConfig.appName} using biometrics",
                         biometricsCancelButtonString: "Cancel",
                       );
                     } else {
