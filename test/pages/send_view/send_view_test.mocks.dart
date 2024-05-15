@@ -4,22 +4,21 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i10;
-import 'dart:typed_data' as _i19;
-import 'dart:ui' as _i15;
+import 'dart:typed_data' as _i18;
+import 'dart:ui' as _i14;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/db/isar/main_db.dart' as _i3;
-import 'package:stackwallet/models/isar/stack_theme.dart' as _i18;
+import 'package:stackwallet/models/isar/stack_theme.dart' as _i17;
 import 'package:stackwallet/models/node_model.dart' as _i13;
 import 'package:stackwallet/networking/http.dart' as _i7;
-import 'package:stackwallet/services/locale_service.dart' as _i16;
+import 'package:stackwallet/services/locale_service.dart' as _i15;
 import 'package:stackwallet/services/node_service.dart' as _i2;
 import 'package:stackwallet/services/wallets.dart' as _i9;
-import 'package:stackwallet/themes/theme_service.dart' as _i17;
-import 'package:stackwallet/utilities/amount/amount_unit.dart' as _i22;
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i21;
-import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i14;
-import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i20;
+import 'package:stackwallet/themes/theme_service.dart' as _i16;
+import 'package:stackwallet/utilities/amount/amount_unit.dart' as _i21;
+import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i20;
+import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i19;
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart'
     as _i6;
 import 'package:stackwallet/utilities/prefs.dart' as _i12;
@@ -265,7 +264,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
       ) as _i10.Future<void>);
   @override
   _i10.Future<void> setPrimaryNodeFor({
-    required _i14.Coin? coin,
+    required _i4.CryptoCurrency? coin,
     required _i13.NodeModel? node,
     bool? shouldNotifyListeners = false,
   }) =>
@@ -283,14 +282,15 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         returnValueForMissingStub: _i10.Future<void>.value(),
       ) as _i10.Future<void>);
   @override
-  _i13.NodeModel? getPrimaryNodeFor({required _i14.Coin? coin}) =>
+  _i13.NodeModel? getPrimaryNodeFor({required _i4.CryptoCurrency? currency}) =>
       (super.noSuchMethod(Invocation.method(
         #getPrimaryNodeFor,
         [],
-        {#coin: coin},
+        {#currency: currency},
       )) as _i13.NodeModel?);
   @override
-  List<_i13.NodeModel> getNodesFor(_i14.Coin? coin) => (super.noSuchMethod(
+  List<_i13.NodeModel> getNodesFor(_i4.CryptoCurrency? coin) =>
+      (super.noSuchMethod(
         Invocation.method(
           #getNodesFor,
           [coin],
@@ -305,12 +305,13 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         {#id: id},
       )) as _i13.NodeModel?);
   @override
-  List<_i13.NodeModel> failoverNodesFor({required _i14.Coin? coin}) =>
+  List<_i13.NodeModel> failoverNodesFor(
+          {required _i4.CryptoCurrency? currency}) =>
       (super.noSuchMethod(
         Invocation.method(
           #failoverNodesFor,
           [],
-          {#coin: coin},
+          {#currency: currency},
         ),
         returnValue: <_i13.NodeModel>[],
       ) as List<_i13.NodeModel>);
@@ -394,7 +395,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         returnValueForMissingStub: _i10.Future<void>.value(),
       ) as _i10.Future<void>);
   @override
-  void addListener(_i15.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i14.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -402,7 +403,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         returnValueForMissingStub: null,
       );
   @override
-  void removeListener(_i15.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i14.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],
@@ -430,7 +431,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
 /// A class which mocks [LocaleService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockLocaleService extends _i1.Mock implements _i16.LocaleService {
+class MockLocaleService extends _i1.Mock implements _i15.LocaleService {
   MockLocaleService() {
     _i1.throwOnMissingStub(this);
   }
@@ -456,7 +457,7 @@ class MockLocaleService extends _i1.Mock implements _i16.LocaleService {
         returnValueForMissingStub: _i10.Future<void>.value(),
       ) as _i10.Future<void>);
   @override
-  void addListener(_i15.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i14.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -464,7 +465,7 @@ class MockLocaleService extends _i1.Mock implements _i16.LocaleService {
         returnValueForMissingStub: null,
       );
   @override
-  void removeListener(_i15.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i14.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],
@@ -492,7 +493,7 @@ class MockLocaleService extends _i1.Mock implements _i16.LocaleService {
 /// A class which mocks [ThemeService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockThemeService extends _i1.Mock implements _i17.ThemeService {
+class MockThemeService extends _i1.Mock implements _i16.ThemeService {
   MockThemeService() {
     _i1.throwOnMissingStub(this);
   }
@@ -522,10 +523,10 @@ class MockThemeService extends _i1.Mock implements _i17.ThemeService {
         ),
       ) as _i3.MainDB);
   @override
-  List<_i18.StackTheme> get installedThemes => (super.noSuchMethod(
+  List<_i17.StackTheme> get installedThemes => (super.noSuchMethod(
         Invocation.getter(#installedThemes),
-        returnValue: <_i18.StackTheme>[],
-      ) as List<_i18.StackTheme>);
+        returnValue: <_i17.StackTheme>[],
+      ) as List<_i17.StackTheme>);
   @override
   void init(_i3.MainDB? db) => super.noSuchMethod(
         Invocation.method(
@@ -535,7 +536,7 @@ class MockThemeService extends _i1.Mock implements _i17.ThemeService {
         returnValueForMissingStub: null,
       );
   @override
-  _i10.Future<void> install({required _i19.Uint8List? themeArchiveData}) =>
+  _i10.Future<void> install({required _i18.Uint8List? themeArchiveData}) =>
       (super.noSuchMethod(
         Invocation.method(
           #install,
@@ -575,33 +576,33 @@ class MockThemeService extends _i1.Mock implements _i17.ThemeService {
         returnValue: _i10.Future<bool>.value(false),
       ) as _i10.Future<bool>);
   @override
-  _i10.Future<List<_i17.StackThemeMetaData>> fetchThemes() =>
+  _i10.Future<List<_i16.StackThemeMetaData>> fetchThemes() =>
       (super.noSuchMethod(
         Invocation.method(
           #fetchThemes,
           [],
         ),
-        returnValue: _i10.Future<List<_i17.StackThemeMetaData>>.value(
-            <_i17.StackThemeMetaData>[]),
-      ) as _i10.Future<List<_i17.StackThemeMetaData>>);
+        returnValue: _i10.Future<List<_i16.StackThemeMetaData>>.value(
+            <_i16.StackThemeMetaData>[]),
+      ) as _i10.Future<List<_i16.StackThemeMetaData>>);
   @override
-  _i10.Future<_i19.Uint8List> fetchTheme(
-          {required _i17.StackThemeMetaData? themeMetaData}) =>
+  _i10.Future<_i18.Uint8List> fetchTheme(
+          {required _i16.StackThemeMetaData? themeMetaData}) =>
       (super.noSuchMethod(
         Invocation.method(
           #fetchTheme,
           [],
           {#themeMetaData: themeMetaData},
         ),
-        returnValue: _i10.Future<_i19.Uint8List>.value(_i19.Uint8List(0)),
-      ) as _i10.Future<_i19.Uint8List>);
+        returnValue: _i10.Future<_i18.Uint8List>.value(_i18.Uint8List(0)),
+      ) as _i10.Future<_i18.Uint8List>);
   @override
-  _i18.StackTheme? getTheme({required String? themeId}) =>
+  _i17.StackTheme? getTheme({required String? themeId}) =>
       (super.noSuchMethod(Invocation.method(
         #getTheme,
         [],
         {#themeId: themeId},
-      )) as _i18.StackTheme?);
+      )) as _i17.StackTheme?);
 }
 
 /// A class which mocks [Prefs].
@@ -663,12 +664,12 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i20.SyncingType get syncType => (super.noSuchMethod(
+  _i19.SyncingType get syncType => (super.noSuchMethod(
         Invocation.getter(#syncType),
-        returnValue: _i20.SyncingType.currentWalletOnly,
-      ) as _i20.SyncingType);
+        returnValue: _i19.SyncingType.currentWalletOnly,
+      ) as _i19.SyncingType);
   @override
-  set syncType(_i20.SyncingType? syncType) => super.noSuchMethod(
+  set syncType(_i19.SyncingType? syncType) => super.noSuchMethod(
         Invocation.setter(
           #syncType,
           syncType,
@@ -827,12 +828,12 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i21.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
+  _i20.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
         Invocation.getter(#backupFrequencyType),
-        returnValue: _i21.BackupFrequencyType.everyTenMinutes,
-      ) as _i21.BackupFrequencyType);
+        returnValue: _i20.BackupFrequencyType.everyTenMinutes,
+      ) as _i20.BackupFrequencyType);
   @override
-  set backupFrequencyType(_i21.BackupFrequencyType? backupFrequencyType) =>
+  set backupFrequencyType(_i20.BackupFrequencyType? backupFrequencyType) =>
       super.noSuchMethod(
         Invocation.setter(
           #backupFrequencyType,
@@ -1027,17 +1028,17 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
         returnValueForMissingStub: _i10.Future<void>.value(),
       ) as _i10.Future<void>);
   @override
-  _i22.AmountUnit amountUnit(_i14.Coin? coin) => (super.noSuchMethod(
+  _i21.AmountUnit amountUnit(_i4.CryptoCurrency? coin) => (super.noSuchMethod(
         Invocation.method(
           #amountUnit,
           [coin],
         ),
-        returnValue: _i22.AmountUnit.normal,
-      ) as _i22.AmountUnit);
+        returnValue: _i21.AmountUnit.normal,
+      ) as _i21.AmountUnit);
   @override
   void updateAmountUnit({
-    required _i14.Coin? coin,
-    required _i22.AmountUnit? amountUnit,
+    required _i4.CryptoCurrency? coin,
+    required _i21.AmountUnit? amountUnit,
   }) =>
       super.noSuchMethod(
         Invocation.method(
@@ -1051,7 +1052,7 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  int maxDecimals(_i14.Coin? coin) => (super.noSuchMethod(
+  int maxDecimals(_i4.CryptoCurrency? coin) => (super.noSuchMethod(
         Invocation.method(
           #maxDecimals,
           [coin],
@@ -1060,7 +1061,7 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
       ) as int);
   @override
   void updateMaxDecimals({
-    required _i14.Coin? coin,
+    required _i4.CryptoCurrency? coin,
     required int? maxDecimals,
   }) =>
       super.noSuchMethod(
@@ -1075,7 +1076,8 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i8.FusionInfo getFusionServerInfo(_i14.Coin? coin) => (super.noSuchMethod(
+  _i8.FusionInfo getFusionServerInfo(_i4.CryptoCurrency? coin) =>
+      (super.noSuchMethod(
         Invocation.method(
           #getFusionServerInfo,
           [coin],
@@ -1090,7 +1092,7 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
       ) as _i8.FusionInfo);
   @override
   void setFusionServerInfo(
-    _i14.Coin? coin,
+    _i4.CryptoCurrency? coin,
     _i8.FusionInfo? fusionServerInfo,
   ) =>
       super.noSuchMethod(
@@ -1104,7 +1106,7 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  void addListener(_i15.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i14.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -1112,7 +1114,7 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  void removeListener(_i15.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i14.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],

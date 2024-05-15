@@ -10,8 +10,7 @@ import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart' as _i6;
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart' as _i4;
 import 'package:stackwallet/services/transaction_notification_tracker.dart'
-    as _i8;
-import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i7;
+    as _i7;
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart'
     as _i2;
 
@@ -528,7 +527,7 @@ class MockCachedElectrumXClient extends _i1.Mock
   _i5.Future<Map<String, dynamic>> getAnonymitySet({
     required String? groupId,
     String? blockhash = r'',
-    required _i7.Coin? coin,
+    required _i2.CryptoCurrency? cryptoCurrency,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -537,7 +536,7 @@ class MockCachedElectrumXClient extends _i1.Mock
           {
             #groupId: groupId,
             #blockhash: blockhash,
-            #coin: coin,
+            #cryptoCurrency: cryptoCurrency,
           },
         ),
         returnValue:
@@ -547,7 +546,7 @@ class MockCachedElectrumXClient extends _i1.Mock
   _i5.Future<Map<String, dynamic>> getSparkAnonymitySet({
     required String? groupId,
     String? blockhash = r'',
-    required _i7.Coin? coin,
+    required _i2.CryptoCurrency? cryptoCurrency,
     required bool? useOnlyCacheIfNotEmpty,
   }) =>
       (super.noSuchMethod(
@@ -557,7 +556,7 @@ class MockCachedElectrumXClient extends _i1.Mock
           {
             #groupId: groupId,
             #blockhash: blockhash,
-            #coin: coin,
+            #cryptoCurrency: cryptoCurrency,
             #useOnlyCacheIfNotEmpty: useOnlyCacheIfNotEmpty,
           },
         ),
@@ -583,7 +582,7 @@ class MockCachedElectrumXClient extends _i1.Mock
   @override
   _i5.Future<Map<String, dynamic>> getTransaction({
     required String? txHash,
-    required _i7.Coin? coin,
+    required _i2.CryptoCurrency? cryptoCurrency,
     bool? verbose = true,
   }) =>
       (super.noSuchMethod(
@@ -592,7 +591,7 @@ class MockCachedElectrumXClient extends _i1.Mock
           [],
           {
             #txHash: txHash,
-            #coin: coin,
+            #cryptoCurrency: cryptoCurrency,
             #verbose: verbose,
           },
         ),
@@ -601,7 +600,7 @@ class MockCachedElectrumXClient extends _i1.Mock
       ) as _i5.Future<Map<String, dynamic>>);
   @override
   _i5.Future<List<String>> getUsedCoinSerials({
-    required _i7.Coin? coin,
+    required _i2.CryptoCurrency? cryptoCurrency,
     int? startNumber = 0,
   }) =>
       (super.noSuchMethod(
@@ -609,29 +608,31 @@ class MockCachedElectrumXClient extends _i1.Mock
           #getUsedCoinSerials,
           [],
           {
-            #coin: coin,
+            #cryptoCurrency: cryptoCurrency,
             #startNumber: startNumber,
           },
         ),
         returnValue: _i5.Future<List<String>>.value(<String>[]),
       ) as _i5.Future<List<String>>);
   @override
-  _i5.Future<Set<String>> getSparkUsedCoinsTags({required _i7.Coin? coin}) =>
+  _i5.Future<Set<String>> getSparkUsedCoinsTags(
+          {required _i2.CryptoCurrency? cryptoCurrency}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getSparkUsedCoinsTags,
           [],
-          {#coin: coin},
+          {#cryptoCurrency: cryptoCurrency},
         ),
         returnValue: _i5.Future<Set<String>>.value(<String>{}),
       ) as _i5.Future<Set<String>>);
   @override
-  _i5.Future<void> clearSharedTransactionCache({required _i7.Coin? coin}) =>
+  _i5.Future<void> clearSharedTransactionCache(
+          {required _i2.CryptoCurrency? cryptoCurrency}) =>
       (super.noSuchMethod(
         Invocation.method(
           #clearSharedTransactionCache,
           [],
-          {#coin: coin},
+          {#cryptoCurrency: cryptoCurrency},
         ),
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),
@@ -642,7 +643,7 @@ class MockCachedElectrumXClient extends _i1.Mock
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockTransactionNotificationTracker extends _i1.Mock
-    implements _i8.TransactionNotificationTracker {
+    implements _i7.TransactionNotificationTracker {
   MockTransactionNotificationTracker() {
     _i1.throwOnMissingStub(this);
   }
