@@ -341,49 +341,49 @@ abstract class Wallet<T extends CryptoCurrency> {
         return BitcoincashWallet(net);
 
       case const (Dogecoin):
-        return DogecoinWallet(CryptoCurrencyNetwork.main);
+        return DogecoinWallet(net);
 
       case const (Ecash):
-        return EcashWallet(CryptoCurrencyNetwork.main);
+        return EcashWallet(net);
 
       case const (Epiccash):
-        return EpiccashWallet(CryptoCurrencyNetwork.main);
+        return EpiccashWallet(net);
 
       case const (Ethereum):
-        return EthereumWallet(CryptoCurrencyNetwork.main);
+        return EthereumWallet(net);
 
       case const (Firo):
-        return FiroWallet(CryptoCurrencyNetwork.main);
+        return FiroWallet(net);
 
       case const (Litecoin):
-        return LitecoinWallet(CryptoCurrencyNetwork.main);
+        return LitecoinWallet(net);
 
       case const (Monero):
-        return MoneroWallet(CryptoCurrencyNetwork.main);
+        return MoneroWallet(net);
 
       case const (Namecoin):
-        return NamecoinWallet(CryptoCurrencyNetwork.main);
+        return NamecoinWallet(net);
 
       case const (Nano):
-        return NanoWallet(CryptoCurrencyNetwork.main);
+        return NanoWallet(net);
 
       case const (Particl):
-        return ParticlWallet(CryptoCurrencyNetwork.main);
+        return ParticlWallet(net);
 
       case const (Peercoin):
-        return PeercoinWallet(CryptoCurrencyNetwork.main);
+        return PeercoinWallet(net);
 
       case const (Solana):
-        return SolanaWallet(CryptoCurrencyNetwork.main);
+        return SolanaWallet(net);
 
       case const (Stellar):
-        return StellarWallet(CryptoCurrencyNetwork.main);
+        return StellarWallet(net);
 
       case const (Tezos):
-        return TezosWallet(CryptoCurrencyNetwork.main);
+        return TezosWallet(net);
 
       case const (Wownero):
-        return WowneroWallet(CryptoCurrencyNetwork.main);
+        return WowneroWallet(net);
 
       default:
         // should never hit in reality
