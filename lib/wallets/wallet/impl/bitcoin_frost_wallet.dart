@@ -351,7 +351,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
         final tx = await electrumXCachedClient.getTransaction(
           txHash: txHash["tx_hash"] as String,
           verbose: true,
-          coin: coin,
+          cryptoCurrency: coin,
         );
 
         if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
@@ -389,7 +389,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
 
           final inputTx = await electrumXCachedClient.getTransaction(
             txHash: txid,
-            coin: cryptoCurrency.coin,
+            cryptoCurrency: cryptoCurrency,
           );
 
           final prevOutJson = Map<String, dynamic>.from(
@@ -724,7 +724,9 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
           await _updateKnownSalts(updatedKnownSalts);
         } else {
           // clear cache
-          await electrumXCachedClient.clearSharedTransactionCache(coin: coin);
+          await electrumXCachedClient.clearSharedTransactionCache(
+            cryptoCurrency: coin,
+          );
           await mainDB.deleteWalletBlockchainData(walletId);
         }
 
@@ -1082,7 +1084,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
   // TODO [prio=low]: Use ElectrumXInterface method.
   Future<void> _updateElectrumX() async {
     final failovers = nodeService
-        .failoverNodesFor(coin: cryptoCurrency.coin)
+        .failoverNodesFor(currency: cryptoCurrency)
         .map(
           (e) => ElectrumXNode(
             address: e.host,
@@ -1137,7 +1139,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
     final txn = await electrumXCachedClient.getTransaction(
       txHash: jsonUTXO["tx_hash"] as String,
       verbose: true,
-      coin: cryptoCurrency.coin,
+      cryptoCurrency: cryptoCurrency,
     );
 
     final vout = jsonUTXO["tx_pos"] as int;

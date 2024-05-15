@@ -11,7 +11,8 @@
 import 'dart:convert';
 
 import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/ethereum.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 class EthTxDTO {
   EthTxDTO({
@@ -75,7 +76,7 @@ class EthTxDTO {
     }
     return Amount(
       rawValue: BigInt.parse(json.toString()),
-      fractionDigits: Coin.ethereum.decimals,
+      fractionDigits: Ethereum(CryptoCurrencyNetwork.main).fractionDigits,
     );
   }
 

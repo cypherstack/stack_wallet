@@ -34,9 +34,10 @@ import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/banano.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
@@ -50,9 +51,9 @@ import 'package:stackwallet/widgets/loading_indicator.dart';
 
 class DesktopWalletFeatures extends ConsumerStatefulWidget {
   const DesktopWalletFeatures({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 
@@ -357,10 +358,9 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
                 (value) => value.enableCoinControl,
               ),
             )) ||
-        coin == Coin.firo ||
-        coin == Coin.firoTestNet ||
+        coin is Firo ||
         // manager.hasWhirlpoolSupport ||
-        coin == Coin.banano ||
+        coin is Banano ||
         wallet is OrdinalsInterface ||
         wallet is CashFusionInterface;
 

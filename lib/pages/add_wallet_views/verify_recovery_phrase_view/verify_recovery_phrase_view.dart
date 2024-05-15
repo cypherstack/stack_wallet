@@ -30,9 +30,9 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/ethereum.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -44,10 +44,10 @@ final createSpecialEthWalletRoutingFlag = StateProvider((ref) => false);
 
 class VerifyRecoveryPhraseView extends ConsumerStatefulWidget {
   const VerifyRecoveryPhraseView({
-    Key? key,
+    super.key,
     required this.wallet,
     required this.mnemonic,
-  }) : super(key: key);
+  });
 
   static const routeName = "/verifyRecoveryPhrase";
 
@@ -154,7 +154,7 @@ class _VerifyRecoveryPhraseViewState
                 DesktopHomeView.routeName,
               ),
             );
-            if (widget.wallet.info.coin == Coin.ethereum) {
+            if (widget.wallet.info.coin is Ethereum) {
               unawaited(
                 Navigator.of(context).pushNamed(
                   EditWalletTokensView.routeName,
@@ -177,7 +177,7 @@ class _VerifyRecoveryPhraseViewState
                 (route) => false,
               ),
             );
-            if (widget.wallet.info.coin == Coin.ethereum) {
+            if (widget.wallet.info.coin is Ethereum) {
               unawaited(
                 Navigator.of(context).pushNamed(
                   EditWalletTokensView.routeName,
@@ -198,12 +198,14 @@ class _VerifyRecoveryPhraseViewState
         );
       }
     } else {
-      unawaited(showFloatingFlushBar(
-        type: FlushBarType.warning,
-        message: "Incorrect. Please try again.",
-        iconAsset: Assets.svg.circleX,
-        context: context,
-      ));
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.warning,
+          message: "Incorrect. Please try again.",
+          iconAsset: Assets.svg.circleX,
+          context: context,
+        ),
+      );
 
       final int next = Random().nextInt(_mnemonic.length);
       ref
@@ -221,7 +223,10 @@ class _VerifyRecoveryPhraseViewState
   }
 
   Tuple2<List<String>, String> randomize(
-      List<String> mnemonic, int chosenIndex, int wordsToShow) {
+    List<String> mnemonic,
+    int chosenIndex,
+    int wordsToShow,
+  ) {
     final List<String> remaining = [];
     final String chosenWord = mnemonic[chosenIndex];
 
@@ -354,7 +359,8 @@ class _VerifyRecoveryPhraseViewState
                         .extension<StackColors>()!
                         .textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius),
+                      Constants.size.circularBorderRadius,
+                    ),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
@@ -391,11 +397,13 @@ class _VerifyRecoveryPhraseViewState
                         builder: (_, ref, __) {
                           final selectedWord = ref
                               .watch(
-                                  verifyMnemonicSelectedWordStateProvider.state)
+                                verifyMnemonicSelectedWordStateProvider.state,
+                              )
                               .state;
                           final correctWord = ref
                               .watch(
-                                  verifyMnemonicCorrectWordStateProvider.state)
+                                verifyMnemonicCorrectWordStateProvider.state,
+                              )
                               .state;
 
                           return ConstrainedBox(
@@ -406,7 +414,8 @@ class _VerifyRecoveryPhraseViewState
                               onPressed: selectedWord.isNotEmpty
                                   ? () async {
                                       await _continue(
-                                          correctWord == selectedWord);
+                                        correctWord == selectedWord,
+                                      );
                                     }
                                   : null,
                               style: selectedWord.isNotEmpty
@@ -421,9 +430,11 @@ class _VerifyRecoveryPhraseViewState
                                       "Verify",
                                       style: selectedWord.isNotEmpty
                                           ? STextStyles.desktopButtonEnabled(
-                                              context)
+                                              context,
+                                            )
                                           : STextStyles.desktopButtonDisabled(
-                                              context),
+                                              context,
+                                            ),
                                     )
                                   : Text(
                                       "Continue",

@@ -6,7 +6,7 @@ import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_inte
 
 abstract class Bip39Wallet<T extends Bip39Currency> extends Wallet<T>
     with MnemonicInterface {
-  Bip39Wallet(T currency) : super(currency);
+  Bip39Wallet(super.currency);
 
   List<FilterOperation> get standardReceivingAddressFilters => [
         FilterCondition.equalTo(

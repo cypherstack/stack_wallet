@@ -26,7 +26,6 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -47,14 +46,14 @@ import 'package:uuid/uuid.dart';
 
 class ConfirmChangeNowSendView extends ConsumerStatefulWidget {
   const ConfirmChangeNowSendView({
-    Key? key,
+    super.key,
     required this.txData,
     required this.walletId,
     this.routeOnSuccessName = WalletView.routeName,
     required this.trade,
     this.shouldSendPublicFiroFunds,
     this.fromDesktopStep4 = false,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/confirmChangeNowSend";
 

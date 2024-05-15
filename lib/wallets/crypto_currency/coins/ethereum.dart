@@ -1,19 +1,44 @@
 import 'package:ethereum_addresses/ethereum_addresses.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_currency.dart';
 
 class Ethereum extends Bip39Currency {
   Ethereum(super.network) {
+    _idMain = "ethereum";
+    _uriScheme = "ethereum";
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        coin = Coin.ethereum;
+        _id = _idMain;
+        _name = "Ethereum";
+        _ticker = "ETH";
       default:
         throw Exception("Unsupported network: $network");
     }
   }
+
+  late final String _id;
+  @override
+  String get identifier => _id;
+
+  late final String _idMain;
+  @override
+  String get mainNetId => _idMain;
+
+  late final String _name;
+  @override
+  String get prettyName => _name;
+
+  late final String _uriScheme;
+  @override
+  String get uriScheme => _uriScheme;
+
+  late final String _ticker;
+  @override
+  String get ticker => _ticker;
 
   int get gasLimit => 21000;
 
@@ -21,11 +46,21 @@ class Ethereum extends Bip39Currency {
   bool get hasTokenSupport => true;
 
   @override
-  NodeModel get defaultNode => DefaultNodes.ethereum;
+  NodeModel get defaultNode => NodeModel(
+        host: "https://eth.stackwallet.com",
+        port: 443,
+        name: DefaultNodes.defaultName,
+        id: DefaultNodes.buildId(this),
+        useSSL: true,
+        enabled: true,
+        coinName: identifier,
+        isFailover: true,
+        isDown: false,
+      );
 
   @override
   // Not used for eth
-  String get genesisHash => throw UnimplementedError();
+  String get genesisHash => throw UnimplementedError("Not used for eth");
 
   @override
   int get minConfirms => 3;
@@ -36,10 +71,41 @@ class Ethereum extends Bip39Currency {
   }
 
   @override
-  bool operator ==(Object other) {
-    return other is Ethereum && other.network == network;
-  }
+  int get defaultSeedPhraseLength => 12;
 
   @override
-  int get hashCode => Object.hash(Ethereum, network);
+  int get fractionDigits => 18;
+
+  @override
+  bool get hasBuySupport => true;
+
+  @override
+  bool get hasMnemonicPassphraseSupport => true;
+
+  @override
+  List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 24];
+
+  @override
+  AddressType get primaryAddressType => AddressType.ethereum;
+
+  @override
+  BigInt get satsPerCoin => BigInt.from(1000000000000000000);
+
+  @override
+  int get targetBlockTimeSeconds => 15;
+
+  @override
+  DerivePathType get primaryDerivePathType => DerivePathType.eth;
+
+  @override
+  Uri defaultBlockExplorer(String txid) {
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        return Uri.parse("https://etherscan.io/tx/$txid");
+      default:
+        throw Exception(
+          "Unsupported network for defaultBlockExplorer(): $network",
+        );
+    }
+  }
 }

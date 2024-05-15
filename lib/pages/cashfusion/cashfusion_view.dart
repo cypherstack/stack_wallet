@@ -23,8 +23,8 @@ import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -56,7 +56,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
   late final FocusNode portFocusNode;
   late final TextEditingController fusionRoundController;
   late final FocusNode fusionRoundFocusNode;
-  late final Coin coin;
+  late final CryptoCurrency coin;
 
   bool _enableSSLCheckbox = false;
   bool _enableStartButton = false;

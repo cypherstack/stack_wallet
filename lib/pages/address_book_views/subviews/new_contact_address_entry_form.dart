@@ -19,6 +19,7 @@ import 'package:stackwallet/pages/address_book_views/subviews/coin_select_sheet.
 import 'package:stackwallet/providers/providers.dart';
 // import 'package:stackwallet/providers/global/should_show_lockscreen_on_resume_state_provider.dart';
 import 'package:stackwallet/providers/ui/address_book_providers/address_entry_data_provider.dart';
+import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
@@ -26,10 +27,11 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
@@ -62,7 +64,7 @@ class _NewContactAddressEntryFormState
   late final FocusNode addressLabelFocusNode;
   late final FocusNode addressFocusNode;
 
-  List<Coin> coins = [];
+  List<CryptoCurrency> coins = [];
 
   @override
   void initState() {
@@ -72,7 +74,7 @@ class _NewContactAddressEntryFormState
       ..text = ref.read(addressEntryDataProvider(widget.id)).address ?? "";
     addressLabelFocusNode = FocusNode();
     addressFocusNode = FocusNode();
-    coins = [...Coin.values];
+    coins = [...SupportedCoins.cryptocurrencies];
     super.initState();
   }
 
@@ -88,15 +90,20 @@ class _NewContactAddressEntryFormState
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
-    bool showTestNet = ref.watch(
-      prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
-    );
     if (isDesktop) {
-      coins = [...Coin.values];
+      coins = [...SupportedCoins.cryptocurrencies];
+      coins.removeWhere(
+        (e) => e is Firo && e.network == CryptoCurrencyNetwork.test,
+      );
 
-      coins.remove(Coin.firoTestNet);
+      final showTestNet =
+          ref.read(prefsChangeNotifierProvider).showTestNetCoins;
       if (showTestNet) {
-        coins = coins.where((e) => !e.isTestNet).toList();
+        coins = coins.toList();
+      } else {
+        coins = coins
+            .where((e) => e.network != CryptoCurrencyNetwork.test)
+            .toList();
       }
     }
 
@@ -104,7 +111,7 @@ class _NewContactAddressEntryFormState
       children: [
         if (isDesktop)
           DropdownButtonHideUnderline(
-            child: DropdownButton2<Coin>(
+            child: DropdownButton2<CryptoCurrency>(
               hint: Text(
                 "Select cryptocurrency",
                 style: STextStyles.fieldLabel(context),
@@ -128,10 +135,12 @@ class _NewContactAddressEntryFormState
                 ),
               ),
               isExpanded: true,
-              value: ref.watch(addressEntryDataProvider(widget.id)
-                  .select((value) => value.coin)),
+              value: ref.watch(
+                addressEntryDataProvider(widget.id)
+                    .select((value) => value.coin),
+              ),
               onChanged: (value) {
-                if (value is Coin) {
+                if (value is CryptoCurrency) {
                   ref.read(addressEntryDataProvider(widget.id)).coin = value;
                 }
               },
@@ -145,7 +154,7 @@ class _NewContactAddressEntryFormState
               ),
               items: [
                 ...coins.map(
-                  (coin) => DropdownMenuItem<Coin>(
+                  (coin) => DropdownMenuItem<CryptoCurrency>(
                     value: coin,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -205,7 +214,7 @@ class _NewContactAddressEntryFormState
                         context: context,
                         builder: (_) => const CoinSelectSheet(),
                       ).then((value) {
-                        if (value is Coin) {
+                        if (value is CryptoCurrency) {
                           ref.read(addressEntryDataProvider(widget.id)).coin =
                               value;
                         }
@@ -214,8 +223,10 @@ class _NewContactAddressEntryFormState
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        ref.watch(addressEntryDataProvider(widget.id)
-                                    .select((value) => value.coin)) ==
+                        ref.watch(
+                                  addressEntryDataProvider(widget.id)
+                                      .select((value) => value.coin),
+                                ) ==
                                 null
                             ? Text(
                                 "Select cryptocurrency",
@@ -245,8 +256,9 @@ class _NewContactAddressEntryFormState
                                   Text(
                                     ref
                                         .watch(
-                                            addressEntryDataProvider(widget.id)
-                                                .select((value) => value.coin))!
+                                          addressEntryDataProvider(widget.id)
+                                              .select((value) => value.coin),
+                                        )!
                                         .prettyName,
                                     style: STextStyles.itemSubtitle12(context),
                                   ),
@@ -335,8 +347,10 @@ class _NewContactAddressEntryFormState
               suffixIcon: UnconstrainedBox(
                 child: Row(
                   children: [
-                    if (ref.watch(addressEntryDataProvider(widget.id)
-                            .select((value) => value.address)) !=
+                    if (ref.watch(
+                          addressEntryDataProvider(widget.id)
+                              .select((value) => value.address),
+                        ) !=
                         null)
                       TextFieldIconButton(
                         key: const Key("addAddressBookClearAddressButtonKey"),
@@ -348,8 +362,10 @@ class _NewContactAddressEntryFormState
                         },
                         child: const XIcon(),
                       ),
-                    if (ref.watch(addressEntryDataProvider(widget.id)
-                            .select((value) => value.address)) ==
+                    if (ref.watch(
+                          addressEntryDataProvider(widget.id)
+                              .select((value) => value.address),
+                        ) ==
                         null)
                       TextFieldIconButton(
                         key: const Key("addAddressPasteAddressButtonKey"),
@@ -372,8 +388,10 @@ class _NewContactAddressEntryFormState
                         child: const ClipboardIcon(),
                       ),
                     if (!Util.isDesktop &&
-                        ref.watch(addressEntryDataProvider(widget.id)
-                                .select((value) => value.address)) ==
+                        ref.watch(
+                              addressEntryDataProvider(widget.id)
+                                  .select((value) => value.address),
+                            ) ==
                             null)
                       TextFieldIconButton(
                         key: const Key("addAddressBookEntryScanQrButtonKey"),
@@ -419,11 +437,12 @@ class _NewContactAddressEntryFormState
                                     .read(addressEntryDataProvider(widget.id))
                                     .coin !=
                                 null) {
-                              if (AddressUtils.validateAddress(
-                                  qrResult.rawContent,
-                                  ref
-                                      .read(addressEntryDataProvider(widget.id))
-                                      .coin!)) {
+                              if (ref
+                                  .read(addressEntryDataProvider(widget.id))
+                                  .coin!
+                                  .validateAddress(
+                                    qrResult.rawContent,
+                                  )) {
                                 addressController.text = qrResult.rawContent;
                                 ref
                                     .read(addressEntryDataProvider(widget.id))
@@ -436,8 +455,9 @@ class _NewContactAddressEntryFormState
                             //         .state)
                             //     .state = true;
                             Logging.instance.log(
-                                "Failed to get camera permissions to scan address qr code: $e\n$s",
-                                level: LogLevel.Warning);
+                              "Failed to get camera permissions to scan address qr code: $e\n$s",
+                              level: LogLevel.Warning,
+                            );
                           }
                         },
                         child: const QrCodeIcon(),
@@ -466,8 +486,10 @@ class _NewContactAddressEntryFormState
             },
           ),
         ),
-        if (!ref.watch(addressEntryDataProvider(widget.id)
-                .select((value) => value.isValidAddress)) &&
+        if (!ref.watch(
+              addressEntryDataProvider(widget.id)
+                  .select((value) => value.isValidAddress),
+            ) &&
             addressController.text.isNotEmpty)
           Row(
             children: [

@@ -17,10 +17,10 @@ import 'package:stackwallet/pages_desktop_specific/desktop_exchange/subwidgets/d
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/address_book_address_chooser/address_book_address_chooser.dart';
 import 'package:stackwallet/providers/exchange/exchange_send_from_wallet_id_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -59,7 +59,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
 
   bool isStackCoin(String ticker) {
     try {
-      coinFromTickerCaseInsensitive(ticker);
+      SupportedCoins.getCryptoCurrencyForTicker(ticker);
       return true;
     } on ArgumentError catch (_) {
       return false;
@@ -68,7 +68,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
 
   void selectRecipientAddressFromStack() async {
     try {
-      final coin = coinFromTickerCaseInsensitive(
+      final coin = SupportedCoins.getCryptoCurrencyForTicker(
         ref.read(desktopExchangeModelProvider)!.receiveTicker,
       );
 
@@ -101,7 +101,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
 
   void selectRefundAddressFromStack() async {
     try {
-      final coin = coinFromTickerCaseInsensitive(
+      final coin = SupportedCoins.getCryptoCurrencyForTicker(
         ref.read(desktopExchangeModelProvider)!.sendTicker,
       );
 
@@ -131,7 +131,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
   }
 
   void selectRecipientFromAddressBook() async {
-    final coin = coinFromTickerCaseInsensitive(
+    final coin = SupportedCoins.getCryptoCurrencyForTicker(
       ref.read(desktopExchangeModelProvider)!.receiveTicker,
     );
 
@@ -178,7 +178,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
   }
 
   void selectRefundFromAddressBook() async {
-    final coin = coinFromTickerCaseInsensitive(
+    final coin = SupportedCoins.getCryptoCurrencyForTicker(
       ref.read(desktopExchangeModelProvider)!.sendTicker,
     );
 

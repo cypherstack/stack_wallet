@@ -25,13 +25,14 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/transaction_notification_tracker.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/monero.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/tezos.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
@@ -45,14 +46,14 @@ import 'package:tuple/tuple.dart';
 
 class NewWalletRecoveryPhraseWarningView extends ConsumerStatefulWidget {
   const NewWalletRecoveryPhraseWarningView({
-    Key? key,
+    super.key,
     required this.coin,
     required this.walletName,
-  }) : super(key: key);
+  });
 
   static const routeName = "/newWalletRecoveryPhraseWarning";
 
-  final Coin coin;
+  final CryptoCurrency coin;
   final String walletName;
 
   @override
@@ -62,7 +63,7 @@ class NewWalletRecoveryPhraseWarningView extends ConsumerStatefulWidget {
 
 class _NewWalletRecoveryPhraseWarningViewState
     extends ConsumerState<NewWalletRecoveryPhraseWarningView> {
-  late final Coin coin;
+  late final CryptoCurrency coin;
   late final String walletName;
   late final bool isDesktop;
 
@@ -79,8 +80,8 @@ class _NewWalletRecoveryPhraseWarningViewState
     debugPrint("BUILD: $runtimeType");
     final options = ref.read(pNewWalletOptions.state).state;
 
-    final seedCount = options?.mnemonicWordsCount ??
-        Constants.defaultSeedPhraseLengthFor(coin: coin);
+    final seedCount =
+        options?.mnemonicWordsCount ?? coin.defaultSeedPhraseLength;
 
     return MasterScaffold(
       isDesktop: isDesktop,
@@ -118,7 +119,7 @@ class _NewWalletRecoveryPhraseWarningViewState
                       );
                     },
                   ),
-                )
+                ),
               ],
             ),
       body: SingleChildScrollView(
@@ -180,7 +181,8 @@ class _NewWalletRecoveryPhraseWarningViewState
                               "access to your wallet.",
                               style: isDesktop
                                   ? STextStyles.desktopTextMediumRegular(
-                                      context)
+                                      context,
+                                    )
                                   : STextStyles.subtitle(context).copyWith(
                                       fontSize: 12,
                                     ),
@@ -359,13 +361,14 @@ class _NewWalletRecoveryPhraseWarningViewState
                                           child: Text(
                                             "Do not show them to anyone.",
                                             style: STextStyles.navBarTitle(
-                                                context),
+                                              context,
+                                            ),
                                           ),
                                         ),
                                       ],
                                     ),
                                   ],
-                                )
+                                ),
                               ],
                             ),
                     ),
@@ -410,12 +413,14 @@ class _NewWalletRecoveryPhraseWarningViewState
                                               MaterialTapTargetSize.shrinkWrap,
                                           value: ref
                                               .watch(
-                                                  checkBoxStateProvider.state)
+                                                checkBoxStateProvider.state,
+                                              )
                                               .state,
                                           onChanged: (newValue) {
                                             ref
                                                 .read(
-                                                    checkBoxStateProvider.state)
+                                                  checkBoxStateProvider.state,
+                                                )
                                                 .state = newValue!;
                                           },
                                         ),
@@ -428,7 +433,8 @@ class _NewWalletRecoveryPhraseWarningViewState
                                           "I understand that Stack Wallet does not keep and cannot restore my recovery phrase, and If I lose my recovery phrase, I will not be able to access my funds.",
                                           style: isDesktop
                                               ? STextStyles.desktopTextMedium(
-                                                  context)
+                                                  context,
+                                                )
                                               : STextStyles.baseXS(context)
                                                   .copyWith(
                                                   height: 1.3,
@@ -452,21 +458,23 @@ class _NewWalletRecoveryPhraseWarningViewState
                                           .state
                                       ? () async {
                                           try {
-                                            unawaited(showDialog<dynamic>(
-                                              context: context,
-                                              barrierDismissible: false,
-                                              useSafeArea: true,
-                                              builder: (ctx) {
-                                                return const Center(
-                                                  child: LoadingIndicator(
-                                                    width: 50,
-                                                    height: 50,
-                                                  ),
-                                                );
-                                              },
-                                            ));
+                                            unawaited(
+                                              showDialog<dynamic>(
+                                                context: context,
+                                                barrierDismissible: false,
+                                                useSafeArea: true,
+                                                builder: (ctx) {
+                                                  return const Center(
+                                                    child: LoadingIndicator(
+                                                      width: 50,
+                                                      height: 50,
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            );
                                             String? otherDataJsonString;
-                                            if (widget.coin == Coin.tezos) {
+                                            if (widget.coin is Tezos) {
                                               otherDataJsonString = jsonEncode({
                                                 WalletInfoKeys
                                                         .tezosDerivationPath:
@@ -474,7 +482,7 @@ class _NewWalletRecoveryPhraseWarningViewState
                                                         .value,
                                               });
                                               //  }//todo: probably not needed (broken anyways)
-                                              // else if (widget.coin == Coin.epicCash) {
+                                              // else if (widget.coin is Epiccash) {
                                               //    final int secondsSinceEpoch =
                                               //        DateTime.now().millisecondsSinceEpoch ~/ 1000;
                                               //    const int epicCashFirstBlock = 1565370278;
@@ -504,8 +512,7 @@ class _NewWalletRecoveryPhraseWarningViewState
                                               //        ),
                                               //      },
                                               //    );
-                                            } else if (widget.coin ==
-                                                Coin.firo) {
+                                            } else if (widget.coin is Firo) {
                                               otherDataJsonString = jsonEncode(
                                                 {
                                                   WalletInfoKeys
@@ -524,15 +531,18 @@ class _NewWalletRecoveryPhraseWarningViewState
 
                                             var node = ref
                                                 .read(
-                                                    nodeServiceChangeNotifierProvider)
-                                                .getPrimaryNodeFor(coin: coin);
+                                                  nodeServiceChangeNotifierProvider,
+                                                )
+                                                .getPrimaryNodeFor(
+                                                  currency: coin,
+                                                );
 
                                             if (node == null) {
-                                              node =
-                                                  DefaultNodes.getNodeFor(coin);
+                                              node = coin.defaultNode;
                                               await ref
                                                   .read(
-                                                      nodeServiceChangeNotifierProvider)
+                                                    nodeServiceChangeNotifierProvider,
+                                                  )
                                                   .setPrimaryNodeFor(
                                                     coin: coin,
                                                     node: node,
@@ -549,34 +559,35 @@ class _NewWalletRecoveryPhraseWarningViewState
                                             String? mnemonic;
                                             String? privateKey;
 
-                                            wordCount = Constants
-                                                .defaultSeedPhraseLengthFor(
-                                              coin: info.coin,
-                                            );
+                                            wordCount = info
+                                                .coin.defaultSeedPhraseLength;
 
-                                            if (coin == Coin.monero ||
-                                                coin == Coin.wownero) {
+                                            if (coin is Monero ||
+                                                coin is Wownero) {
                                               // currently a special case due to the
                                               // xmr/wow libraries handling their
                                               // own mnemonic generation
                                             } else if (wordCount > 0) {
                                               if (ref
-                                                      .read(pNewWalletOptions
-                                                          .state)
+                                                      .read(
+                                                        pNewWalletOptions.state,
+                                                      )
                                                       .state !=
                                                   null) {
                                                 if (coin
                                                     .hasMnemonicPassphraseSupport) {
                                                   mnemonicPassphrase = ref
-                                                      .read(pNewWalletOptions
-                                                          .state)
+                                                      .read(
+                                                        pNewWalletOptions.state,
+                                                      )
                                                       .state!
                                                       .mnemonicPassphrase;
                                                 } else {}
 
                                                 wordCount = ref
                                                     .read(
-                                                        pNewWalletOptions.state)
+                                                      pNewWalletOptions.state,
+                                                    )
                                                     .state!
                                                     .mnemonicWordsCount;
                                               } else {
@@ -587,7 +598,8 @@ class _NewWalletRecoveryPhraseWarningViewState
                                                   24 < wordCount ||
                                                   wordCount % 3 != 0) {
                                                 throw Exception(
-                                                    "Invalid word count");
+                                                  "Invalid word count",
+                                                );
                                               }
 
                                               final strength =
@@ -604,9 +616,11 @@ class _NewWalletRecoveryPhraseWarningViewState
                                               secureStorageInterface:
                                                   ref.read(secureStoreProvider),
                                               nodeService: ref.read(
-                                                  nodeServiceChangeNotifierProvider),
+                                                nodeServiceChangeNotifierProvider,
+                                              ),
                                               prefs: ref.read(
-                                                  prefsChangeNotifierProvider),
+                                                prefsChangeNotifierProvider,
+                                              ),
                                               mnemonicPassphrase:
                                                   mnemonicPassphrase,
                                               mnemonic: mnemonic,
@@ -616,31 +630,36 @@ class _NewWalletRecoveryPhraseWarningViewState
                                             await wallet.init();
 
                                             // pop progress dialog
-                                            if (mounted) {
+                                            if (context.mounted) {
                                               Navigator.pop(context);
                                             }
                                             // set checkbox back to unchecked to annoy users to agree again :P
                                             ref
                                                 .read(
-                                                    checkBoxStateProvider.state)
+                                                  checkBoxStateProvider.state,
+                                                )
                                                 .state = false;
 
-                                            if (mounted) {
-                                              unawaited(Navigator.of(context)
-                                                  .pushNamed(
-                                                NewWalletRecoveryPhraseView
-                                                    .routeName,
-                                                arguments: Tuple2(
-                                                  wallet,
-                                                  await (wallet
-                                                          as MnemonicInterface)
-                                                      .getMnemonicAsWords(),
+                                            if (context.mounted) {
+                                              final nav = Navigator.of(context);
+                                              unawaited(
+                                                nav.pushNamed(
+                                                  NewWalletRecoveryPhraseView
+                                                      .routeName,
+                                                  arguments: Tuple2(
+                                                    wallet,
+                                                    await (wallet
+                                                            as MnemonicInterface)
+                                                        .getMnemonicAsWords(),
+                                                  ),
                                                 ),
-                                              ));
+                                              );
                                             }
                                           } catch (e, s) {
-                                            Logging.instance.log("$e\n$s",
-                                                level: LogLevel.Fatal);
+                                            Logging.instance.log(
+                                              "$e\n$s",
+                                              level: LogLevel.Fatal,
+                                            );
                                             // TODO: handle gracefully
                                             // any network/socket exception here will break new wallet creation
                                             rethrow;
@@ -656,18 +675,22 @@ class _NewWalletRecoveryPhraseWarningViewState
                                       : Theme.of(context)
                                           .extension<StackColors>()!
                                           .getPrimaryDisabledButtonStyle(
-                                              context),
+                                            context,
+                                          ),
                                   child: Text(
                                     "View recovery phrase",
                                     style: isDesktop
                                         ? ref
                                                 .read(
-                                                    checkBoxStateProvider.state)
+                                                  checkBoxStateProvider.state,
+                                                )
                                                 .state
                                             ? STextStyles.desktopButtonEnabled(
-                                                context)
+                                                context,
+                                              )
                                             : STextStyles.desktopButtonDisabled(
-                                                context)
+                                                context,
+                                              )
                                         : STextStyles.button(context),
                                   ),
                                 ),

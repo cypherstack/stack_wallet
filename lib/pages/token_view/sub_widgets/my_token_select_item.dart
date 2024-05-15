@@ -21,10 +21,11 @@ import 'package:stackwallet/services/ethereum/cached_eth_token_balance.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/ethereum.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import 'package:stackwallet/wallets/isar/providers/eth/token_balance_provider.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
@@ -178,7 +179,10 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
                           ),
                           const Spacer(),
                           Text(
-                            ref.watch(pAmountFormatter(Coin.ethereum)).format(
+                            ref
+                                .watch(pAmountFormatter(
+                                    Ethereum(CryptoCurrencyNetwork.main)))
+                                .format(
                                   ref
                                       .watch(pTokenBalance(
                                         (

@@ -33,11 +33,12 @@ import 'package:stackwallet/utilities/amount/amount_input_formatter.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import 'package:stackwallet/wallets/isar/providers/eth/token_balance_provider.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
@@ -76,7 +77,7 @@ class DesktopTokenSend extends ConsumerStatefulWidget {
 
 class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
   late final String walletId;
-  late final Coin coin;
+  late final CryptoCurrency coin;
   late final ClipboardInterface clipboard;
   late final BarcodeScannerInterface scanner;
 
@@ -224,7 +225,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                 child: Padding(
                   padding: const EdgeInsets.all(32),
                   child: BuildingTransactionDialog(
-                    coin: tokenWallet.cryptoCurrency.coin,
+                    coin: tokenWallet.cryptoCurrency,
                     isSpark: false,
                     onCancel: () {
                       wasCancelled = true;
@@ -719,7 +720,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         const SizedBox(
           height: 4,
         ),
-        if (coin == Coin.firo)
+        if (coin is Firo)
           Text(
             "Send from",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(

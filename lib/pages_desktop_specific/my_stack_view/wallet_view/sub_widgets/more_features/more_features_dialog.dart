@@ -15,8 +15,9 @@ import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/banano.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
@@ -85,8 +86,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               const DesktopDialogCloseButton(),
             ],
           ),
-          if (wallet.info.coin == Coin.firo ||
-              wallet.info.coin == Coin.firoTestNet)
+          if (wallet.info.coin is Firo)
             _MoreFeaturesItem(
               label: "Anonymize funds",
               detail: "Anonymize funds",
@@ -122,7 +122,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               iconAsset: Assets.svg.ordinal,
               onPressed: () => widget.onOrdinalsPressed?.call(),
             ),
-          if (wallet.info.coin == Coin.banano)
+          if (wallet.info.coin is Banano)
             _MoreFeaturesItem(
               label: "MonKey",
               detail: "Generate Banano MonKey",
@@ -147,12 +147,12 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
 
 class _MoreFeaturesItem extends StatelessWidget {
   const _MoreFeaturesItem({
-    Key? key,
+    super.key,
     required this.label,
     required this.detail,
     required this.iconAsset,
     this.onPressed,
-  }) : super(key: key);
+  });
 
   static const double iconSizeBG = 46;
   static const double iconSize = 24;
@@ -209,7 +209,7 @@ class _MoreFeaturesItem extends StatelessWidget {
                   style: STextStyles.desktopTextExtraExtraSmall(context),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),

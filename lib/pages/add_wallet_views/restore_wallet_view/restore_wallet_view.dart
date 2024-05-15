@@ -18,8 +18,8 @@ import 'package:bip39/bip39.dart' as bip39;
 import 'package:bip39/src/wordlists/english.dart' as bip39wordlist;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_libmonero/monero/monero.dart';
-import 'package:flutter_libmonero/wownero/wownero.dart';
+import 'package:flutter_libmonero/monero/monero.dart' as libxmr;
+import 'package:flutter_libmonero/wownero/wownero.dart' as libwow;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
@@ -44,12 +44,16 @@ import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/custom_text_selection_controls.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/form_input_status_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/epiccash.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/ethereum.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/monero.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/monero_wallet.dart';
@@ -69,7 +73,7 @@ import 'package:wakelock/wakelock.dart';
 
 class RestoreWalletView extends ConsumerStatefulWidget {
   const RestoreWalletView({
-    Key? key,
+    super.key,
     required this.walletName,
     required this.coin,
     required this.seedWordsLength,
@@ -77,12 +81,12 @@ class RestoreWalletView extends ConsumerStatefulWidget {
     required this.restoreFromDate,
     this.barcodeScanner = const BarcodeScannerWrapper(),
     this.clipboard = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   static const routeName = "/restoreWallet";
 
   final String walletName;
-  final Coin coin;
+  final CryptoCurrency coin;
   final String mnemonicPassphrase;
   final int seedWordsLength;
   final DateTime restoreFromDate;
@@ -166,7 +170,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
   @override
   void dispose() {
-    for (var element in _controllers) {
+    for (final element in _controllers) {
       element.dispose();
     }
 
@@ -176,13 +180,15 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
   // TODO: check for wownero wordlist?
   bool _isValidMnemonicWord(String word) {
     // TODO: get the actual language
-    if (widget.coin == Coin.monero) {
-      var moneroWordList = monero.getMoneroWordList("English");
+    if (widget.coin is Monero) {
+      final moneroWordList = libxmr.monero.getMoneroWordList("English");
       return moneroWordList.contains(word);
     }
-    if (widget.coin == Coin.wownero) {
-      var wowneroWordList = wownero.getWowneroWordList("English",
-          seedWordsLength: widget.seedWordsLength);
+    if (widget.coin is Wownero) {
+      final wowneroWordList = libwow.wownero.getWowneroWordList(
+        "English",
+        seedWordsLength: widget.seedWordsLength,
+      );
       return wowneroWordList.contains(word);
     }
     return _wordListHashSet.contains(word);
@@ -201,7 +207,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
   Future<void> attemptRestore() async {
     if (_formKey.currentState!.validate()) {
       String mnemonic = "";
-      for (var element in _controllers) {
+      for (final element in _controllers) {
         mnemonic += " ${element.text.trim().toLowerCase()}";
       }
       mnemonic = mnemonic.trim();
@@ -209,24 +215,25 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       int height = 0;
       String? otherDataJsonString;
 
-      if (widget.coin == Coin.monero) {
-        height = monero.getHeigthByDate(date: widget.restoreFromDate);
-      } else if (widget.coin == Coin.wownero) {
-        height = wownero.getHeightByDate(date: widget.restoreFromDate);
+      if (widget.coin is Monero) {
+        height = libxmr.monero.getHeigthByDate(date: widget.restoreFromDate);
+      } else if (widget.coin is Wownero) {
+        height = libwow.wownero.getHeightByDate(date: widget.restoreFromDate);
       }
       // todo: wait until this implemented
-      // else if (widget.coin == Coin.wownero) {
+      // else if (widget.coin is Wownero) {
       //   height = wownero.getHeightByDate(date: widget.restoreFromDate);
       // }
 
       // TODO: make more robust estimate of date maybe using https://explorer.epic.tech/api-index
-      if (widget.coin == Coin.epicCash) {
-        int secondsSinceEpoch =
+      if (widget.coin is Epiccash) {
+        final int secondsSinceEpoch =
             widget.restoreFromDate.millisecondsSinceEpoch ~/ 1000;
         const int epicCashFirstBlock = 1565370278;
         const double overestimateSecondsPerBlock = 61;
-        int chosenSeconds = secondsSinceEpoch - epicCashFirstBlock;
-        int approximateHeight = chosenSeconds ~/ overestimateSecondsPerBlock;
+        final int chosenSeconds = secondsSinceEpoch - epicCashFirstBlock;
+        final int approximateHeight =
+            chosenSeconds ~/ overestimateSecondsPerBlock;
         //todo: check if print needed
         // debugPrint(
         //     "approximate height: $approximateHeight chosen_seconds: $chosenSeconds");
@@ -250,7 +257,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             ),
           },
         );
-      } else if (widget.coin == Coin.firo) {
+      } else if (widget.coin is Firo) {
         otherDataJsonString = jsonEncode(
           {
             WalletInfoKeys.lelantusCoinIsarRescanRequired: false,
@@ -260,12 +267,14 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
       // TODO: do actual check to make sure it is a valid mnemonic for monero
       if (bip39.validateMnemonic(mnemonic) == false &&
-          !(widget.coin == Coin.monero || widget.coin == Coin.wownero)) {
-        unawaited(showFloatingFlushBar(
-          type: FlushBarType.warning,
-          message: "Invalid seed phrase!",
-          context: context,
-        ));
+          !(widget.coin is Monero || widget.coin is Wownero)) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: "Invalid seed phrase!",
+            context: context,
+          ),
+        );
       } else {
         if (!Platform.isLinux) await Wakelock.enable();
 
@@ -278,30 +287,35 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
         bool isRestoring = true;
         // show restoring in progress
-        unawaited(showDialog<dynamic>(
-          context: context,
-          useSafeArea: false,
-          barrierDismissible: false,
-          builder: (context) {
-            return RestoringDialog(
-              onCancel: () async {
-                isRestoring = false;
 
-                await ref.read(pWallets).deleteWallet(
-                      info,
-                      ref.read(secureStoreProvider),
-                    );
+        if (mounted) {
+          unawaited(
+            showDialog<dynamic>(
+              context: context,
+              useSafeArea: false,
+              barrierDismissible: false,
+              builder: (context) {
+                return RestoringDialog(
+                  onCancel: () async {
+                    isRestoring = false;
+
+                    await ref.read(pWallets).deleteWallet(
+                          info,
+                          ref.read(secureStoreProvider),
+                        );
+                  },
+                );
               },
-            );
-          },
-        ));
+            ),
+          );
+        }
 
         var node = ref
             .read(nodeServiceChangeNotifierProvider)
-            .getPrimaryNodeFor(coin: widget.coin);
+            .getPrimaryNodeFor(currency: widget.coin);
 
         if (node == null) {
-          node = DefaultNodes.getNodeFor(widget.coin);
+          node = widget.coin.defaultNode;
           await ref.read(nodeServiceChangeNotifierProvider).setPrimaryNodeFor(
                 coin: widget.coin,
                 node: node,
@@ -324,15 +338,15 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
           // TODO: extract interface with isRestore param
           switch (wallet.runtimeType) {
-            case EpiccashWallet:
+            case const (EpiccashWallet):
               await (wallet as EpiccashWallet).init(isRestore: true);
               break;
 
-            case MoneroWallet:
+            case const (MoneroWallet):
               await (wallet as MoneroWallet).init(isRestore: true);
               break;
 
-            case WowneroWallet:
+            case const (WowneroWallet):
               await (wallet as WowneroWallet).init(isRestore: true);
               break;
 
@@ -355,12 +369,11 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             if (isCreateSpecialEthWallet) {
               ref.read(createSpecialEthWalletRoutingFlag.notifier).state =
                   false;
-              ref
-                      .read(newEthWalletTriggerTempUntilHiveCompletelyDeleted.state)
-                      .state =
+              ref.read(newEthWalletTriggerTempUntilHiveCompletelyDeleted.state).state =
                   !ref
-                      .read(newEthWalletTriggerTempUntilHiveCompletelyDeleted
-                          .state)
+                      .read(
+                        newEthWalletTriggerTempUntilHiveCompletelyDeleted.state,
+                      )
                       .state;
             }
 
@@ -385,7 +398,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                       (route) => false,
                     ),
                   );
-                  if (info.coin == Coin.ethereum) {
+                  if (info.coin is Ethereum) {
                     unawaited(
                       Navigator.of(context).pushNamed(
                         EditWalletTokensView.routeName,
@@ -451,7 +464,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
   }
 
   InputDecoration _getInputDecorationFor(
-      FormInputStatus status, String prefix) {
+    FormInputStatus status,
+    String prefix,
+  ) {
     Color color;
     Color prefixColor;
     Color borderColor;
@@ -656,9 +671,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                   if (FocusScope.of(context).hasFocus) {
                     FocusScope.of(context).unfocus();
                     await Future<void>.delayed(
-                        const Duration(milliseconds: 50));
+                      const Duration(milliseconds: 50),
+                    );
                   }
-                  if (mounted) {
+                  if (context.mounted) {
                     Navigator.of(context).pop();
                   }
                 },
@@ -788,8 +804,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                 "Paste",
                                 style: STextStyles
                                     .desktopButtonSmallSecondaryEnabled(
-                                        context),
-                              )
+                                  context,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -836,12 +853,14 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                   textCapitalization:
                                                       TextCapitalization.none,
                                                   key: Key(
-                                                      "restoreMnemonicFormField_$i"),
+                                                    "restoreMnemonicFormField_$i",
+                                                  ),
                                                   decoration:
                                                       _getInputDecorationFor(
-                                                          _inputStatuses[
-                                                              i * 4 + j - 1],
-                                                          "${i * 4 + j}"),
+                                                    _inputStatuses[
+                                                        i * 4 + j - 1],
+                                                    "${i * 4 + j}",
+                                                  ),
                                                   autovalidateMode:
                                                       AutovalidateMode
                                                           .onUserInteraction,
@@ -861,9 +880,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                       formInputStatus =
                                                           FormInputStatus.empty;
                                                     } else if (_isValidMnemonicWord(
-                                                        value
-                                                            .trim()
-                                                            .toLowerCase())) {
+                                                      value
+                                                          .trim()
+                                                          .toLowerCase(),
+                                                    )) {
                                                       formInputStatus =
                                                           FormInputStatus.valid;
                                                     } else {
@@ -921,17 +941,18 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                             TextAlign.left,
                                                         style:
                                                             STextStyles.label(
-                                                                    context)
-                                                                .copyWith(
+                                                          context,
+                                                        ).copyWith(
                                                           color: Theme.of(
-                                                                  context)
+                                                            context,
+                                                          )
                                                               .extension<
                                                                   StackColors>()!
                                                               .textError,
                                                         ),
                                                       ),
                                                     ),
-                                                  )
+                                                  ),
                                               ],
                                             ),
                                           ),
@@ -945,7 +966,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                         for (int i = rows * cols;
                                             i < _seedWordCount - remainder;
                                             i++) ...[
-                                          TableViewCell(
+                                          const TableViewCell(
                                             flex: 1,
                                             child: Column(
                                                 // ... (existing code for input field)
@@ -965,11 +986,13 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                   textCapitalization:
                                                       TextCapitalization.none,
                                                   key: Key(
-                                                      "restoreMnemonicFormField_$i"),
+                                                    "restoreMnemonicFormField_$i",
+                                                  ),
                                                   decoration:
                                                       _getInputDecorationFor(
-                                                          _inputStatuses[i],
-                                                          "${i + 1}"),
+                                                    _inputStatuses[i],
+                                                    "${i + 1}",
+                                                  ),
                                                   autovalidateMode:
                                                       AutovalidateMode
                                                           .onUserInteraction,
@@ -984,9 +1007,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                       formInputStatus =
                                                           FormInputStatus.empty;
                                                     } else if (_isValidMnemonicWord(
-                                                        value
-                                                            .trim()
-                                                            .toLowerCase())) {
+                                                      value
+                                                          .trim()
+                                                          .toLowerCase(),
+                                                    )) {
                                                       formInputStatus =
                                                           FormInputStatus.valid;
                                                     } else {
@@ -1029,17 +1053,18 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                             TextAlign.left,
                                                         style:
                                                             STextStyles.label(
-                                                                    context)
-                                                                .copyWith(
+                                                          context,
+                                                        ).copyWith(
                                                           color: Theme.of(
-                                                                  context)
+                                                            context,
+                                                          )
                                                               .extension<
                                                                   StackColors>()!
                                                               .textError,
                                                         ),
                                                       ),
                                                     ),
-                                                  )
+                                                  ),
                                               ],
                                             ),
                                           ),
@@ -1095,7 +1120,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                     textCapitalization: TextCapitalization.none,
                                     key: Key("restoreMnemonicFormField_$i"),
                                     decoration: _getInputDecorationFor(
-                                        _inputStatuses[i - 1], "$i"),
+                                      _inputStatuses[i - 1],
+                                      "$i",
+                                    ),
                                     autovalidateMode:
                                         AutovalidateMode.onUserInteraction,
                                     selectionControls:
@@ -1107,7 +1134,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                       if (value.isEmpty) {
                                         formInputStatus = FormInputStatus.empty;
                                       } else if (_isValidMnemonicWord(
-                                          value.trim().toLowerCase())) {
+                                        value.trim().toLowerCase(),
+                                      )) {
                                         formInputStatus = FormInputStatus.valid;
                                       } else {
                                         formInputStatus =
@@ -1155,7 +1183,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                         ),
                                       ),
                                     ),
-                                  )
+                                  ),
                               ],
                             ),
                           Padding(

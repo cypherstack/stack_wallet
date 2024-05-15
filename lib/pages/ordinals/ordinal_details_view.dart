@@ -19,7 +19,6 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
@@ -30,10 +29,10 @@ import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class OrdinalDetailsView extends ConsumerStatefulWidget {
   const OrdinalDetailsView({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.ordinal,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final Ordinal ordinal;
@@ -113,7 +112,7 @@ class _OrdinalDetailsViewState extends ConsumerState<OrdinalDetailsView> {
                         : ref.watch(pAmountFormatter(coin)).format(
                               Amount(
                                 rawValue: BigInt.from(utxo!.value),
-                                fractionDigits: coin.decimals,
+                                fractionDigits: coin.fractionDigits,
                               ),
                             ),
                   ),

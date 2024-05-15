@@ -10,8 +10,7 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:stackwallet/models/isar/models/contact_entry.dart';
-import 'package:stackwallet/utilities/address_utils.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 class AddressEntryData extends ChangeNotifier {
   late int id;
@@ -20,7 +19,7 @@ class AddressEntryData extends ChangeNotifier {
 
   String? _addressLabel;
   String? _address;
-  Coin? _coin;
+  CryptoCurrency? _coin;
 
   String? get addressLabel => _addressLabel;
 
@@ -36,9 +35,9 @@ class AddressEntryData extends ChangeNotifier {
     notifyListeners();
   }
 
-  Coin? get coin => _coin;
+  CryptoCurrency? get coin => _coin;
 
-  set coin(Coin? coin) {
+  set coin(CryptoCurrency? coin) {
     _coin = coin;
     notifyListeners();
   }
@@ -73,12 +72,12 @@ class AddressEntryData extends ChangeNotifier {
     if (_address == null) {
       return false;
     }
-    return AddressUtils.validateAddress(_address!, _coin!);
+    return _coin!.validateAddress(_address!);
   }
 
   ContactAddressEntry buildAddressEntry() {
     return ContactAddressEntry()
-      ..coinName = coin!.name
+      ..coinName = coin!.identifier
       ..address = address!
       ..other = null
       ..label = addressLabel!;
@@ -86,6 +85,6 @@ class AddressEntryData extends ChangeNotifier {
 
   @override
   String toString() {
-    return "AddressEntryData: { addressLabel: $addressLabel, address: $address, coin: ${coin?.name} }";
+    return "AddressEntryData: { addressLabel: $addressLabel, address: $address, coin: ${coin?.identifier} }";
   }
 }

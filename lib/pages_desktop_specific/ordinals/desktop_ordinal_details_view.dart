@@ -18,7 +18,6 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -298,7 +297,7 @@ class _DesktopOrdinalDetailsViewState
                                     : ref.watch(pAmountFormatter(coin)).format(
                                           Amount(
                                             rawValue: BigInt.from(utxo!.value),
-                                            fractionDigits: coin.decimals,
+                                            fractionDigits: coin.fractionDigits,
                                           ),
                                         ),
                               );

@@ -15,19 +15,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/coin_nodes_view.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class ManageNodesView extends ConsumerStatefulWidget {
   const ManageNodesView({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   static const String routeName = "/manageNodes";
 
@@ -36,12 +38,14 @@ class ManageNodesView extends ConsumerStatefulWidget {
 }
 
 class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
-  List<Coin> _coins = [...Coin.values];
+  List<CryptoCurrency> _coins = [...SupportedCoins.cryptocurrencies];
 
   @override
   void initState() {
     _coins = _coins.toList();
-    _coins.remove(Coin.firoTestNet);
+    _coins.removeWhere(
+      (e) => e is Firo && e.network == CryptoCurrencyNetwork.test,
+    );
     super.initState();
   }
 
@@ -52,12 +56,13 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
 
   @override
   Widget build(BuildContext context) {
-    bool showTestNet = ref.watch(
+    final showTestNet = ref.watch(
       prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
     );
 
-    List<Coin> coins =
-        showTestNet ? _coins : _coins.where((e) => !e.isTestNet).toList();
+    final coins = showTestNet
+        ? _coins
+        : _coins.where((e) => e.network != CryptoCurrencyNetwork.test).toList();
 
     return Background(
       child: Scaffold(

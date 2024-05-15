@@ -20,8 +20,8 @@ import 'package:stackwallet/providers/stack_restore/stack_restoring_ui_state_pro
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/stack_restoring_status.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -89,9 +89,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
               height: 32,
               child: RoundedContainer(
                 padding: const EdgeInsets.all(0),
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .colorForCoin(coin),
+                color: ref.watch(pCoinColor(coin)),
                 child: Center(
                   child: SvgPicture.file(
                     File(
@@ -212,9 +210,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                 height: 32,
                 child: RoundedContainer(
                   padding: const EdgeInsets.all(0),
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .colorForCoin(coin),
+                  color: ref.watch(pCoinColor(coin)),
                   child: Center(
                     child: SvgPicture.file(
                       File(
@@ -239,7 +235,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                       try {
                         // final mnemonicList = await manager.mnemonic;
                         // int maxUnusedAddressGap = 20;
-                        // if (coin == Coin.firo) {
+                        // if (coin is Firo) {
                         //   maxUnusedAddressGap = 50;
                         // }
                         // const maxNumberOfIndexesToCheck = 1000;

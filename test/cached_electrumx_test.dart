@@ -4,7 +4,7 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+
 import 'package:stackwallet/utilities/prefs.dart';
 
 import 'cached_electrumx_test.mocks.dart';

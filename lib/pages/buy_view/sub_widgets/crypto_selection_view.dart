@@ -14,11 +14,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/buy/response_objects/crypto.dart';
+import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -53,9 +53,11 @@ class _CryptoSelectionViewState extends ConsumerState<CryptoSelectionView> {
   void filter(String text) {
     setState(() {
       _coins = [
-        ...coins.where((e) =>
-            e.name.toLowerCase().contains(text.toLowerCase()) ||
-            e.ticker.toLowerCase().contains(text.toLowerCase()))
+        ...coins.where(
+          (e) =>
+              e.name.toLowerCase().contains(text.toLowerCase()) ||
+              e.ticker.toLowerCase().contains(text.toLowerCase()),
+        ),
       ];
     });
   }
@@ -66,10 +68,12 @@ class _CryptoSelectionViewState extends ConsumerState<CryptoSelectionView> {
 
     coins = [...widget.coins];
     coins.sort(
-        (a, b) => a.ticker.toLowerCase().compareTo(b.ticker.toLowerCase()));
-    for (Coin coin in Coin.values.reversed) {
-      int index = coins.indexWhere((element) =>
-          element.ticker.toLowerCase() == coin.ticker.toLowerCase());
+      (a, b) => a.ticker.toLowerCase().compareTo(b.ticker.toLowerCase()),
+    );
+    for (final coin in SupportedCoins.cryptocurrencies.reversed) {
+      final index = coins.indexWhere(
+        (element) => element.ticker.toLowerCase() == coin.ticker.toLowerCase(),
+      );
       if (index > 0) {
         final currency = coins.removeAt(index);
         coins.insert(0, currency);
@@ -104,7 +108,8 @@ class _CryptoSelectionViewState extends ConsumerState<CryptoSelectionView> {
                   if (FocusScope.of(context).hasFocus) {
                     FocusScope.of(context).unfocus();
                     await Future<void>.delayed(
-                        const Duration(milliseconds: 50));
+                      const Duration(milliseconds: 50),
+                    );
                   }
                   if (mounted) {
                     Navigator.of(context).pop();
@@ -265,7 +270,7 @@ bool isStackCoin(String? ticker) {
   if (ticker == null) return false;
 
   try {
-    coinFromTickerCaseInsensitive(ticker);
+    SupportedCoins.getCryptoCurrencyForTicker(ticker);
     return true;
   } on ArgumentError catch (_) {
     return false;
@@ -289,10 +294,10 @@ bool isStackCoin(String? ticker) {
 /// caller must ensure [Coin] for ticker exists
 class CoinIconForTicker extends ConsumerWidget {
   const CoinIconForTicker({
-    Key? key,
+    super.key,
     required this.ticker,
     required this.size,
-  }) : super(key: key);
+  });
 
   final String ticker;
   final double size;
@@ -300,7 +305,7 @@ class CoinIconForTicker extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     try {
-      final coin = coinFromTickerCaseInsensitive(ticker);
+      final coin = SupportedCoins.getCryptoCurrencyForTicker(ticker);
       return SvgPicture.file(
         File(
           ref.watch(coinIconProvider(coin)),
@@ -321,7 +326,7 @@ class CoinIconForTicker extends ConsumerWidget {
 // }) {
 //   String? iconAsset = /*isStackCoin(ticker)
 //       ?*/
-//       Assets.svg.iconFor(coin: coinFromTickerCaseInsensitive(ticker));
+//       Assets.svg.iconFor(coin: SupportedCoins.getCryptoCurrencyForTicker(ticker));
 //   // : Assets.svg.buyIconFor(ticker);
 //   return (iconAsset != null)
 //       ? SvgPicture.asset(iconAsset, height: size, width: size)

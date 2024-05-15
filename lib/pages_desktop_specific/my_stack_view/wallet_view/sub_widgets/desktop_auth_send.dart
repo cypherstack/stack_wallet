@@ -17,8 +17,8 @@ import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.da
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
@@ -30,7 +30,7 @@ class DesktopAuthSend extends ConsumerStatefulWidget {
     required this.coin,
   });
 
-  final Coin coin;
+  final CryptoCurrency coin;
 
   @override
   ConsumerState<DesktopAuthSend> createState() => _DesktopAuthSendState();

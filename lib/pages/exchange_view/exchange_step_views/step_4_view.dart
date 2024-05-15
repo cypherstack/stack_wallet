@@ -26,15 +26,18 @@ import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dia
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
+import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/stellar.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
@@ -72,7 +75,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
 
   bool _isWalletCoinAndHasWallet(String ticker, WidgetRef ref) {
     try {
-      final coin = coinFromTickerCaseInsensitive(ticker);
+      final coin = SupportedCoins.getCryptoCurrencyForTicker(ticker);
       return ref
           .read(pWallets)
           .wallets
@@ -194,9 +197,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
     );
   }
 
-  Future<void> _confirmSend(Tuple2<String, Coin> tuple) async {
+  Future<void> _confirmSend(Tuple2<String, CryptoCurrency> tuple) async {
     final bool firoPublicSend;
-    if (tuple.item2 == Coin.firo) {
+    if (tuple.item2 is Firo) {
       final result = await _showSendFromFiroBalanceSelectSheet(tuple.item1);
       if (result == null) {
         return;
@@ -210,7 +213,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
     final wallet = ref.read(pWallets).getWallet(tuple.item1);
 
     final Amount amount = model.sendAmount.toAmount(
-      fractionDigits: wallet.info.coin.decimals,
+      fractionDigits: wallet.info.coin.fractionDigits,
     );
     final address = model.trade!.payInAddress;
 
@@ -258,8 +261,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
           ),
         );
       } else {
-        final memo = wallet.info.coin == Coin.stellar ||
-                wallet.info.coin == Coin.stellarTestnet
+        final memo = wallet.info.coin is Stellar
             ? model.trade!.payInExtraId.isNotEmpty
                 ? model.trade!.payInExtraId
                 : null
@@ -851,16 +853,23 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                         .useMaterialPageRoute,
                                                 builder:
                                                     (BuildContext context) {
-                                                  final coin =
-                                                      coinFromTickerCaseInsensitive(
-                                                    model.trade!.payInCurrency,
+                                                  final coin = SupportedCoins
+                                                      .cryptocurrencies
+                                                      .firstWhere(
+                                                    (e) =>
+                                                        e.ticker
+                                                            .toLowerCase() ==
+                                                        model.trade!
+                                                            .payInCurrency
+                                                            .toLowerCase(),
                                                   );
+
                                                   return SendFromView(
                                                     coin: coin,
                                                     amount: model.sendAmount
                                                         .toAmount(
                                                       fractionDigits:
-                                                          coin.decimals,
+                                                          coin.fractionDigits,
                                                     ),
                                                     address: model
                                                         .trade!.payInAddress,

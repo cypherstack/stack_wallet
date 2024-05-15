@@ -25,8 +25,10 @@ import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
+import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
+import 'package:stackwallet/wallets/crypto_currency/intermediate/nano_currency.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 
 enum _WalletOptions {
@@ -60,9 +62,9 @@ enum _WalletOptions {
 
 class WalletOptionsButton extends StatelessWidget {
   const WalletOptionsButton({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 
@@ -250,7 +252,7 @@ class WalletOptionsButton extends StatelessWidget {
 
 class WalletOptionsPopupMenu extends ConsumerWidget {
   const WalletOptionsPopupMenu({
-    Key? key,
+    super.key,
     required this.onDeletePressed,
     required this.onAddressListPressed,
     required this.onShowXpubPressed,
@@ -259,7 +261,7 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
     required this.onFiroShowSparkCoins,
     required this.onFrostMSWalletOptionsPressed,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final VoidCallback onDeletePressed;
   final VoidCallback onAddressListPressed;
@@ -274,17 +276,15 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final coin = ref.watch(pWalletCoin(walletId));
 
-    final firoDebug =
-        kDebugMode && (coin == Coin.firo || coin == Coin.firoTestNet);
+    final firoDebug = kDebugMode && (coin is Firo);
 
     // TODO: [prio=low]
     // final bool xpubEnabled = manager.hasXPub;
     final bool xpubEnabled = false;
 
-    final bool canChangeRep = coin == Coin.nano || coin == Coin.banano;
+    final bool canChangeRep = coin is NanoCurrency;
 
-    final bool isFrost =
-        coin == Coin.bitcoinFrost || coin == Coin.bitcoinFrostTestNet;
+    final bool isFrost = coin is FrostCurrency;
 
     return Stack(
       children: [

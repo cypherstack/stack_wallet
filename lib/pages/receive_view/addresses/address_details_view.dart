@@ -23,7 +23,6 @@ import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
@@ -40,10 +39,10 @@ import 'package:stackwallet/widgets/transaction_card.dart';
 
 class AddressDetailsView extends ConsumerStatefulWidget {
   const AddressDetailsView({
-    Key? key,
+    super.key,
     required this.addressId,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/addressDetailsView";
 
@@ -398,7 +397,11 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                     height: 12,
                   ),
                 if (!isDesktop)
-                  coin == Coin.bitcoincash || coin == Coin.bitcoincashTestnet
+                  ref
+                              .watch(pWallets)
+                              .getWallet(widget.walletId)
+                              .isarTransactionVersion ==
+                          2
                       ? _AddressDetailsTxV2List(
                           walletId: widget.walletId,
                           address: address,
@@ -418,10 +421,10 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
 
 class _AddressDetailsTxList extends StatelessWidget {
   const _AddressDetailsTxList({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.address,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final Address address;

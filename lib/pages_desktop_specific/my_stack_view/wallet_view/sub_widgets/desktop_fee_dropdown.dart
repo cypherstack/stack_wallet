@@ -23,9 +23,13 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/ethereum.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/monero.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
@@ -38,10 +42,10 @@ final tokenFeeSessionCacheProvider =
 
 class DesktopFeeDropDown extends ConsumerStatefulWidget {
   const DesktopFeeDropDown({
-    Key? key,
+    super.key,
     required this.walletId,
     this.isToken = false,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final bool isToken;
@@ -67,7 +71,7 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
     required Amount amount,
     required FeeRateType feeRateType,
     required int feeRate,
-    required Coin coin,
+    required CryptoCurrency coin,
   }) async {
     switch (feeRateType) {
       case FeeRateType.fast:
@@ -80,11 +84,11 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
           if (widget.isToken == false) {
             final wallet = ref.read(pWallets).getWallet(walletId);
 
-            if (coin == Coin.monero || coin == Coin.wownero) {
+            if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
                   amount, MoneroTransactionPriority.fast.raw!);
               ref.read(feeSheetSessionCacheProvider).fast[amount] = fee;
-            } else if (coin == Coin.firo || coin == Coin.firoTestNet) {
+            } else if (coin is Firo) {
               final Amount fee;
               switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
                 case FiroType.spark:
@@ -124,11 +128,11 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
           if (widget.isToken == false) {
             final wallet = ref.read(pWallets).getWallet(walletId);
 
-            if (coin == Coin.monero || coin == Coin.wownero) {
+            if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
                   amount, MoneroTransactionPriority.regular.raw!);
               ref.read(feeSheetSessionCacheProvider).average[amount] = fee;
-            } else if (coin == Coin.firo || coin == Coin.firoTestNet) {
+            } else if (coin is Firo) {
               final Amount fee;
               switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
                 case FiroType.spark:
@@ -168,11 +172,11 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
           if (widget.isToken == false) {
             final wallet = ref.read(pWallets).getWallet(walletId);
 
-            if (coin == Coin.monero || coin == Coin.wownero) {
+            if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
                   amount, MoneroTransactionPriority.slow.raw!);
               ref.read(feeSheetSessionCacheProvider).slow[amount] = fee;
-            } else if (coin == Coin.firo || coin == Coin.firoTestNet) {
+            } else if (coin is Firo) {
               final Amount fee;
               switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
                 case FiroType.spark:
@@ -306,7 +310,7 @@ class FeeDropDownChild extends ConsumerWidget {
     required Amount amount,
     required FeeRateType feeRateType,
     required int feeRate,
-    required Coin coin,
+    required CryptoCurrency coin,
   }) feeFor;
   final bool isSelected;
 
@@ -390,10 +394,10 @@ class FeeDropDownChild extends ConsumerWidget {
                 ),
                 if (feeObject != null)
                   Text(
-                    coin == Coin.ethereum
+                    coin is Ethereum
                         ? ""
                         : estimatedTimeToBeIncludedInNextBlock(
-                            Constants.targetBlockTimeInSeconds(coin),
+                            coin.targetBlockTimeSeconds,
                             feeRateType == FeeRateType.fast
                                 ? feeObject!.numberOfBlocksFast
                                 : feeRateType == FeeRateType.slow

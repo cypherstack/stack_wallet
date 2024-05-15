@@ -18,9 +18,9 @@ import 'package:stackwallet/pages/settings_views/sub_widgets/nodes_list.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
@@ -30,14 +30,14 @@ import 'package:tuple/tuple.dart';
 
 class CoinNodesView extends ConsumerStatefulWidget {
   const CoinNodesView({
-    Key? key,
+    super.key,
     required this.coin,
     this.rootNavigator = false,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/coinNodes";
 
-  final Coin coin;
+  final CryptoCurrency coin;
   final bool rootNavigator;
 
   @override

@@ -18,11 +18,11 @@ import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_service.dart';
 import 'package:stackwallet/services/trade_sent_from_stack_service.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/epiccash.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
@@ -79,19 +79,19 @@ class Wallets {
         key: Wallet.mnemonicPassphraseKey(walletId: walletId));
     await secureStorage.delete(key: Wallet.privateKeyKey(walletId: walletId));
 
-    if (info.coin == Coin.wownero) {
+    if (info.coin is Wownero) {
       final wowService =
           wownero.createWowneroWalletService(DB.instance.moneroWalletInfoBox);
       await wowService.remove(walletId);
       Logging.instance
           .log("monero wallet: $walletId deleted", level: LogLevel.Info);
-    } else if (info.coin == Coin.monero) {
+    } else if (info.coin is Monero) {
       final xmrService =
           monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
       await xmrService.remove(walletId);
       Logging.instance
           .log("monero wallet: $walletId deleted", level: LogLevel.Info);
-    } else if (info.coin == Coin.epicCash) {
+    } else if (info.coin is Epiccash) {
       final deleteResult = await deleteEpicWallet(
           walletId: walletId, secureStore: secureStorage);
       Logging.instance.log(

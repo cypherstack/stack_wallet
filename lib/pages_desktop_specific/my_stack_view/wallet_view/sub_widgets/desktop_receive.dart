@@ -28,9 +28,9 @@ import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
@@ -45,11 +45,11 @@ import 'package:tuple/tuple.dart';
 
 class DesktopReceive extends ConsumerStatefulWidget {
   const DesktopReceive({
-    Key? key,
+    super.key,
     required this.walletId,
     this.contractAddress,
     this.clipboard = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   final String walletId;
   final String? contractAddress;
@@ -60,7 +60,7 @@ class DesktopReceive extends ConsumerStatefulWidget {
 }
 
 class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
-  late final Coin coin;
+  late final CryptoCurrency coin;
   late final String walletId;
   late final ClipboardInterface clipboard;
   late final bool supportsSpark;

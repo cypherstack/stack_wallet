@@ -11,6 +11,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:solana/solana.dart';
@@ -26,13 +27,31 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/connection_check/electrum_connection_check.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/test_epic_box_connection.dart';
 import 'package:stackwallet/utilities/test_eth_node_connection.dart';
 import 'package:stackwallet/utilities/test_monero_node_connection.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/banano.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin_frost.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/bitcoincash.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/dogecoin.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/ecash.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/epiccash.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/ethereum.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/litecoin.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/monero.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/namecoin.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/nano.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/particl.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/peercoin.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/solana.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/stellar.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/tezos.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
 
@@ -45,7 +64,7 @@ class NodeOptionsSheet extends ConsumerWidget {
   }) : super(key: key);
 
   final String nodeId;
-  final Coin coin;
+  final CryptoCurrency coin;
   final String popBackToRoute;
 
   Future<void> _notifyWalletsOfUpdatedNode(WidgetRef ref) async {
@@ -85,8 +104,8 @@ class NodeOptionsSheet extends ConsumerWidget {
       NodeModel node, BuildContext context, WidgetRef ref) async {
     bool testPassed = false;
 
-    switch (coin) {
-      case Coin.epicCash:
+    switch (coin.runtimeType) {
+      case const (Epiccash):
         try {
           testPassed = await testEpicNodeConnection(
                 NodeFormData()
@@ -100,14 +119,15 @@ class NodeOptionsSheet extends ConsumerWidget {
         }
         break;
 
-      case Coin.monero:
-      case Coin.wownero:
+      case const (Monero):
+      case const (Wownero):
         try {
           final uri = Uri.parse(node.host);
           if (uri.scheme.startsWith("http")) {
             final String path = uri.path.isEmpty ? "/json_rpc" : uri.path;
 
-            String uriString = "${uri.scheme}://${uri.host}:${node.port}$path";
+            final String uriString =
+                "${uri.scheme}://${uri.host}:${node.port}$path";
 
             final response = await testMoneroNodeConnection(
               Uri.parse(uriString),
@@ -139,23 +159,16 @@ class NodeOptionsSheet extends ConsumerWidget {
 
         break;
 
-      case Coin.bitcoin:
-      case Coin.litecoin:
-      case Coin.dogecoin:
-      case Coin.firo:
-      case Coin.particl:
-      case Coin.bitcoinTestNet:
-      case Coin.firoTestNet:
-      case Coin.dogecoinTestNet:
-      case Coin.bitcoincash:
-      case Coin.litecoinTestNet:
-      case Coin.namecoin:
-      case Coin.bitcoincashTestnet:
-      case Coin.eCash:
-      case Coin.bitcoinFrost:
-      case Coin.bitcoinFrostTestNet:
-      case Coin.peercoin:
-      case Coin.peercoinTestNet:
+      case const (Bitcoin):
+      case const (Litecoin):
+      case const (Dogecoin):
+      case const (Firo):
+      case const (Particl):
+      case const (Bitcoincash):
+      case const (Namecoin):
+      case const (Ecash):
+      case const (BitcoinFrost):
+      case const (Peercoin):
         try {
           testPassed = await checkElectrumServer(
             host: node.host,
@@ -170,7 +183,7 @@ class NodeOptionsSheet extends ConsumerWidget {
 
         break;
 
-      case Coin.ethereum:
+      case (Ethereum):
         try {
           testPassed = await testEthNodeConnection(node.host);
         } catch (_) {
@@ -178,15 +191,14 @@ class NodeOptionsSheet extends ConsumerWidget {
         }
         break;
 
-      case Coin.nano:
-      case Coin.banano:
-      case Coin.tezos:
-      case Coin.stellar:
-      case Coin.stellarTestnet:
+      case const (Nano):
+      case const (Banano):
+      case const (Tezos):
+      case const (Stellar):
         throw UnimplementedError();
       //TODO: check network/node
 
-      case Coin.solana:
+      case const (Solana):
         try {
           RpcClient rpcClient;
           if (node.host.startsWith("http") || node.host.startsWith("https")) {
@@ -227,7 +239,7 @@ class NodeOptionsSheet extends ConsumerWidget {
 
     final status = ref
                 .watch(nodeServiceChangeNotifierProvider
-                    .select((value) => value.getPrimaryNodeFor(coin: coin)))
+                    .select((value) => value.getPrimaryNodeFor(currency: coin)))
                 ?.id !=
             nodeId
         ? "Disconnected"

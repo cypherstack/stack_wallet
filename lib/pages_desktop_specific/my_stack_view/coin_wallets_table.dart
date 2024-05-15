@@ -15,20 +15,20 @@ import 'package:stackwallet/providers/global/active_wallet_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/wallet_info_row/wallet_info_row.dart';
 
 class CoinWalletsTable extends ConsumerWidget {
   const CoinWalletsTable({
-    Key? key,
+    super.key,
     required this.coin,
-  }) : super(key: key);
+  });
 
-  final Coin coin;
+  final CryptoCurrency coin;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -57,7 +57,7 @@ class CoinWalletsTable extends ConsumerWidget {
           children: [
             for (int i = 0; i < walletIds.length; i++)
               Column(
-                key: Key("${coin.name}_$runtimeType${walletIds[i]}_key"),
+                key: Key("${coin.identifier}_$runtimeType${walletIds[i]}_key"),
                 children: [
                   if (i != 0)
                     const SizedBox(

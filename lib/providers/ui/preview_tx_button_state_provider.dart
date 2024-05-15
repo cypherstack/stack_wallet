@@ -11,18 +11,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 final pSendAmount = StateProvider.autoDispose<Amount?>((_) => null);
 final pValidSendToAddress = StateProvider.autoDispose<bool>((_) => false);
 final pValidSparkSendToAddress = StateProvider.autoDispose<bool>((_) => false);
 
 final pPreviewTxButtonEnabled =
-    Provider.autoDispose.family<bool, Coin>((ref, coin) {
+    Provider.autoDispose.family<bool, CryptoCurrency>((ref, coin) {
   final amount = ref.watch(pSendAmount) ?? Amount.zero;
 
-  // TODO [prio=low]: move away from Coin
-  if (coin == Coin.firo || coin == Coin.firoTestNet) {
+  if (coin is Firo) {
     if (ref.watch(publicPrivateBalanceStateProvider) == FiroType.lelantus) {
       return ref.watch(pValidSendToAddress) &&
           !ref.watch(pValidSparkSendToAddress) &&

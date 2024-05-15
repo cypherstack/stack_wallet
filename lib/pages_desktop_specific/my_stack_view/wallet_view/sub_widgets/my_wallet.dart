@@ -18,7 +18,8 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_send.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_token_send.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/ethereum.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import 'package:stackwallet/widgets/custom_tab_view.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
@@ -46,7 +47,7 @@ class _MyWalletState extends ConsumerState<MyWallet> {
   ];
 
   late final bool isEth;
-  late final Coin coin;
+  late final CryptoCurrency coin;
   late final bool isFrost;
 
   @override
@@ -54,7 +55,7 @@ class _MyWalletState extends ConsumerState<MyWallet> {
     final wallet = ref.read(pWallets).getWallet(widget.walletId);
     coin = wallet.info.coin;
     isFrost = wallet is BitcoinFrostWallet;
-    isEth = coin == Coin.ethereum;
+    isEth = coin is Ethereum;
 
     if (isEth && widget.contractAddress == null) {
       titles.add("Transactions");

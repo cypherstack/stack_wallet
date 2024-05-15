@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/supported_coins.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/isar_id_interface.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info_meta.dart';
 import 'package:uuid/uuid.dart';
@@ -76,9 +77,10 @@ class WalletInfo implements IsarId {
   @ignore
   Balance get cachedBalanceSecondary {
     if (cachedBalanceSecondaryString == null) {
-      return Balance.zeroForCoin(coin: coin);
+      return Balance.zeroFor(currency: coin);
     } else {
-      return Balance.fromJson(cachedBalanceSecondaryString!, coin.decimals);
+      return Balance.fromJson(
+          cachedBalanceSecondaryString!, coin.fractionDigits);
     }
   }
 
@@ -86,21 +88,22 @@ class WalletInfo implements IsarId {
   @ignore
   Balance get cachedBalanceTertiary {
     if (cachedBalanceTertiaryString == null) {
-      return Balance.zeroForCoin(coin: coin);
+      return Balance.zeroFor(currency: coin);
     } else {
-      return Balance.fromJson(cachedBalanceTertiaryString!, coin.decimals);
+      return Balance.fromJson(
+          cachedBalanceTertiaryString!, coin.fractionDigits);
     }
   }
 
   @ignore
-  Coin get coin => Coin.values.byName(coinName);
+  CryptoCurrency get coin => SupportedCoins.getCryptoCurrencyFor(coinName);
 
   @ignore
   Balance get cachedBalance {
     if (cachedBalanceString == null) {
-      return Balance.zeroForCoin(coin: coin);
+      return Balance.zeroFor(currency: coin);
     } else {
-      return Balance.fromJson(cachedBalanceString!, coin.decimals);
+      return Balance.fromJson(cachedBalanceString!, coin.fractionDigits);
     }
   }
 
@@ -404,7 +407,9 @@ class WalletInfo implements IsarId {
     this.cachedBalanceTertiaryString,
     this.otherDataJsonString,
   }) : assert(
-          Coin.values.map((e) => e.name).contains(coinName),
+          SupportedCoins.cryptocurrencies
+              .map((e) => e.identifier)
+              .contains(coinName),
         );
 
   WalletInfo copyWith({
@@ -440,14 +445,14 @@ class WalletInfo implements IsarId {
   }
 
   static WalletInfo createNew({
-    required Coin coin,
+    required CryptoCurrency coin,
     required String name,
     int restoreHeight = 0,
     String? walletIdOverride,
     String? otherDataJsonString,
   }) {
     return WalletInfo(
-      coinName: coin.name,
+      coinName: coin.identifier,
       walletId: walletIdOverride ?? const Uuid().v1(),
       name: name,
       mainAddressType: coin.primaryAddressType,
@@ -461,9 +466,11 @@ class WalletInfo implements IsarId {
     Map<String, dynamic> jsonObject,
     AddressType mainAddressType,
   ) {
-    final coin = Coin.values.byName(jsonObject["coin"] as String);
+    final coin = SupportedCoins.getCryptoCurrencyFor(
+      jsonObject["coin"] as String,
+    );
     return WalletInfo(
-      coinName: coin.name,
+      coinName: coin.identifier,
       walletId: jsonObject["id"] as String,
       name: jsonObject["name"] as String,
       mainAddressType: mainAddressType,
@@ -475,7 +482,7 @@ class WalletInfo implements IsarId {
     return {
       "name": name,
       "id": walletId,
-      "coin": coin.name,
+      "coin": coin.identifier,
     };
   }
 

@@ -4,16 +4,16 @@ import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
-final pAmountUnit = Provider.family<AmountUnit, Coin>(
+final pAmountUnit = Provider.family<AmountUnit, CryptoCurrency>(
   (ref, coin) => ref.watch(
     prefsChangeNotifierProvider.select(
       (value) => value.amountUnit(coin),
     ),
   ),
 );
-final pMaxDecimals = Provider.family<int, Coin>(
+final pMaxDecimals = Provider.family<int, CryptoCurrency>(
   (ref, coin) => ref.watch(
     prefsChangeNotifierProvider.select(
       (value) => value.maxDecimals(coin),
@@ -21,7 +21,8 @@ final pMaxDecimals = Provider.family<int, Coin>(
   ),
 );
 
-final pAmountFormatter = Provider.family<AmountFormatter, Coin>((ref, coin) {
+final pAmountFormatter =
+    Provider.family<AmountFormatter, CryptoCurrency>((ref, coin) {
   final locale = ref.watch(
     localeServiceChangeNotifierProvider.select((value) => value.locale),
   );
@@ -37,7 +38,7 @@ final pAmountFormatter = Provider.family<AmountFormatter, Coin>((ref, coin) {
 class AmountFormatter {
   final AmountUnit unit;
   final String locale;
-  final Coin coin;
+  final CryptoCurrency coin;
   final int maxDecimals;
 
   AmountFormatter({

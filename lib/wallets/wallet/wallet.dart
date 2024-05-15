@@ -15,13 +15,30 @@ import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/paynym_is_api.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/banano.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin_frost.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/bitcoincash.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/dogecoin.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/ecash.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/epiccash.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/ethereum.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/litecoin.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/monero.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/namecoin.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/nano.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/particl.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/peercoin.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/solana.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/stellar.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/tezos.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
@@ -309,78 +326,63 @@ abstract class Wallet<T extends CryptoCurrency> {
   static Wallet _loadWallet({
     required WalletInfo walletInfo,
   }) {
-    switch (walletInfo.coin) {
-      case Coin.banano:
-        return BananoWallet(CryptoCurrencyNetwork.main);
+    final net = walletInfo.coin.network;
+    switch (walletInfo.coin.runtimeType) {
+      case const (Banano):
+        return BananoWallet(net);
 
-      case Coin.bitcoin:
-        return BitcoinWallet(CryptoCurrencyNetwork.main);
-      case Coin.bitcoinTestNet:
-        return BitcoinWallet(CryptoCurrencyNetwork.test);
+      case const (Bitcoin):
+        return BitcoinWallet(net);
 
-      case Coin.bitcoinFrost:
-        return BitcoinFrostWallet(CryptoCurrencyNetwork.main);
-      case Coin.bitcoinFrostTestNet:
-        return BitcoinFrostWallet(CryptoCurrencyNetwork.test);
+      case const (BitcoinFrost):
+        return BitcoinFrostWallet(net);
 
-      case Coin.bitcoincash:
-        return BitcoincashWallet(CryptoCurrencyNetwork.main);
-      case Coin.bitcoincashTestnet:
-        return BitcoincashWallet(CryptoCurrencyNetwork.test);
+      case const (Bitcoincash):
+        return BitcoincashWallet(net);
 
-      case Coin.dogecoin:
+      case const (Dogecoin):
         return DogecoinWallet(CryptoCurrencyNetwork.main);
-      case Coin.dogecoinTestNet:
-        return DogecoinWallet(CryptoCurrencyNetwork.test);
 
-      case Coin.eCash:
+      case const (Ecash):
         return EcashWallet(CryptoCurrencyNetwork.main);
 
-      case Coin.epicCash:
+      case const (Epiccash):
         return EpiccashWallet(CryptoCurrencyNetwork.main);
 
-      case Coin.ethereum:
+      case const (Ethereum):
         return EthereumWallet(CryptoCurrencyNetwork.main);
 
-      case Coin.firo:
+      case const (Firo):
         return FiroWallet(CryptoCurrencyNetwork.main);
-      case Coin.firoTestNet:
-        return FiroWallet(CryptoCurrencyNetwork.test);
 
-      case Coin.litecoin:
+      case const (Litecoin):
         return LitecoinWallet(CryptoCurrencyNetwork.main);
-      case Coin.litecoinTestNet:
-        return LitecoinWallet(CryptoCurrencyNetwork.test);
 
-      case Coin.monero:
+      case const (Monero):
         return MoneroWallet(CryptoCurrencyNetwork.main);
 
-      case Coin.namecoin:
+      case const (Namecoin):
         return NamecoinWallet(CryptoCurrencyNetwork.main);
 
-      case Coin.nano:
+      case const (Nano):
         return NanoWallet(CryptoCurrencyNetwork.main);
 
-      case Coin.particl:
+      case const (Particl):
         return ParticlWallet(CryptoCurrencyNetwork.main);
 
-      case Coin.peercoin:
+      case const (Peercoin):
         return PeercoinWallet(CryptoCurrencyNetwork.main);
-      case Coin.peercoinTestNet:
-        return PeercoinWallet(CryptoCurrencyNetwork.test);
 
-      case Coin.solana:
+      case const (Solana):
         return SolanaWallet(CryptoCurrencyNetwork.main);
 
-      case Coin.stellar:
+      case const (Stellar):
         return StellarWallet(CryptoCurrencyNetwork.main);
-      case Coin.stellarTestnet:
-        return StellarWallet(CryptoCurrencyNetwork.test);
 
-      case Coin.tezos:
+      case const (Tezos):
         return TezosWallet(CryptoCurrencyNetwork.main);
 
-      case Coin.wownero:
+      case const (Wownero):
         return WowneroWallet(CryptoCurrencyNetwork.main);
 
       default:
@@ -413,7 +415,7 @@ abstract class Wallet<T extends CryptoCurrency> {
         NodeConnectionStatusChangedEvent(
           status,
           walletId,
-          cryptoCurrency.coin,
+          cryptoCurrency,
         ),
       );
 
@@ -475,8 +477,8 @@ abstract class Wallet<T extends CryptoCurrency> {
   }
 
   NodeModel getCurrentNode() {
-    final node = nodeService.getPrimaryNodeFor(coin: cryptoCurrency.coin) ??
-        DefaultNodes.getNodeFor(cryptoCurrency.coin);
+    final node = nodeService.getPrimaryNodeFor(currency: cryptoCurrency) ??
+        cryptoCurrency.defaultNode;
 
     return node;
   }
@@ -498,7 +500,7 @@ abstract class Wallet<T extends CryptoCurrency> {
         WalletSyncStatusChangedEvent(
           WalletSyncStatus.syncing,
           walletId,
-          cryptoCurrency.coin,
+          cryptoCurrency,
         ),
       );
 
@@ -584,7 +586,7 @@ abstract class Wallet<T extends CryptoCurrency> {
         WalletSyncStatusChangedEvent(
           WalletSyncStatus.synced,
           walletId,
-          cryptoCurrency.coin,
+          cryptoCurrency,
         ),
       );
 
@@ -607,14 +609,14 @@ abstract class Wallet<T extends CryptoCurrency> {
         NodeConnectionStatusChangedEvent(
           NodeConnectionStatus.disconnected,
           walletId,
-          cryptoCurrency.coin,
+          cryptoCurrency,
         ),
       );
       GlobalEventBus.instance.fire(
         WalletSyncStatusChangedEvent(
           WalletSyncStatus.unableToSync,
           walletId,
-          cryptoCurrency.coin,
+          cryptoCurrency,
         ),
       );
       Logging.instance.log(
@@ -637,7 +639,7 @@ abstract class Wallet<T extends CryptoCurrency> {
       case SyncingType.currentWalletOnly:
       // Close the subscription for this coin's chain height.
       // NOTE: This does not work now that the subscription is shared
-      // await  (await ChainHeightServiceManager.getService(cryptoCurrency.coin))
+      // await  (await ChainHeightServiceManager.getService(cryptoCurrency))
       //     ?.cancelListen();
       case SyncingType.selectedWalletsAtStartup:
         // Close the subscription if this wallet is not in the list to be synced.
@@ -650,7 +652,7 @@ abstract class Wallet<T extends CryptoCurrency> {
                 .walletIdEqualTo(id)
                 .findFirstSync()!;
 
-            if (wallet.coin == cryptoCurrency.coin) {
+            if (wallet.coin == cryptoCurrency) {
               walletIds.add(id);
             }
           }
@@ -660,7 +662,7 @@ abstract class Wallet<T extends CryptoCurrency> {
           if (walletIds.isEmpty) {
             // NOTE: This does not work now that the subscription is shared
             // await (await ChainHeightServiceManager.getService(
-            //         cryptoCurrency.coin))
+            //         cryptoCurrency))
             //     ?.cancelListen();
           }
         }

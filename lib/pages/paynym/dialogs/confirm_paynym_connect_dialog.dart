@@ -15,9 +15,9 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
@@ -26,19 +26,19 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 
 class ConfirmPaynymConnectDialog extends ConsumerWidget {
   const ConfirmPaynymConnectDialog({
-    Key? key,
+    super.key,
     required this.nymName,
     required this.locale,
     required this.onConfirmPressed,
     required this.amount,
     required this.coin,
-  }) : super(key: key);
+  });
 
   final String nymName;
   final String locale;
   final VoidCallback onConfirmPressed;
   final Amount amount;
-  final Coin coin;
+  final CryptoCurrency coin;
 
   String get title => "Connect to $nymName";
 

@@ -23,8 +23,8 @@ import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/loading_indicator.dart';
 
 class TransactionsV2List extends ConsumerStatefulWidget {
@@ -45,7 +45,7 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
 
   late final StreamSubscription<List<TransactionV2>> _subscription;
   late final Query<TransactionV2> _query;
-  late final Coin coin;
+  late final CryptoCurrency coin;
 
   BorderRadius get _borderRadiusFirst {
     return BorderRadius.only(

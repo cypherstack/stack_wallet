@@ -29,9 +29,9 @@ import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
@@ -66,7 +66,7 @@ class ReceiveView extends ConsumerStatefulWidget {
 }
 
 class _ReceiveViewState extends ConsumerState<ReceiveView> {
-  late final Coin coin;
+  late final CryptoCurrency coin;
   late final String walletId;
   late final ClipboardInterface clipboard;
   late final bool _supportsSpark;

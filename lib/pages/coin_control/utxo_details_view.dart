@@ -20,7 +20,6 @@ import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
@@ -37,10 +36,10 @@ import 'package:stackwallet/widgets/rounded_container.dart';
 
 class UtxoDetailsView extends ConsumerStatefulWidget {
   const UtxoDetailsView({
-    Key? key,
+    super.key,
     required this.utxoId,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   static const routeName = "/utxoDetails";
 
@@ -244,7 +243,7 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                           Text(
                             ref.watch(pAmountFormatter(coin)).format(
                                   utxo!.value.toAmountAsRaw(
-                                    fractionDigits: coin.decimals,
+                                    fractionDigits: coin.fractionDigits,
                                   ),
                                 ),
                             style: STextStyles.pageTitleH2(context),

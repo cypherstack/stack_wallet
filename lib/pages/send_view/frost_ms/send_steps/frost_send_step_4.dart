@@ -11,7 +11,6 @@ import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -93,7 +92,7 @@ class _FrostSendStep4State extends ConsumerState<FrostSendStep4> {
               height: 12,
             ),
           Text(
-            "Send ${cryptoCurrency.coin.ticker}",
+            "Send ${cryptoCurrency.ticker}",
             style: STextStyles.w600_20(context),
           ),
           const SizedBox(
@@ -103,7 +102,7 @@ class _FrostSendStep4State extends ConsumerState<FrostSendStep4> {
               ? _Recipient(
                   address: recipients[0].address,
                   amount: ref
-                      .watch(pAmountFormatter(cryptoCurrency.coin))
+                      .watch(pAmountFormatter(cryptoCurrency))
                       .format(recipients[0].amount),
                 )
               : Column(
@@ -143,7 +142,7 @@ class _FrostSendStep4State extends ConsumerState<FrostSendStep4> {
                           body: _Recipient(
                             address: recipients[i].address,
                             amount: ref
-                                .watch(pAmountFormatter(cryptoCurrency.coin))
+                                .watch(pAmountFormatter(cryptoCurrency))
                                 .format(recipients[i].amount),
                           ),
                         ),
@@ -156,7 +155,7 @@ class _FrostSendStep4State extends ConsumerState<FrostSendStep4> {
           DetailItem(
             title: "Transaction fee",
             detail: ref
-                .watch(pAmountFormatter(cryptoCurrency.coin))
+                .watch(pAmountFormatter(cryptoCurrency))
                 .format(ref.watch(pFrostTxData)!.fee!),
             horizontal: true,
           ),
@@ -165,7 +164,7 @@ class _FrostSendStep4State extends ConsumerState<FrostSendStep4> {
           ),
           DetailItem(
             title: "Total",
-            detail: ref.watch(pAmountFormatter(cryptoCurrency.coin)).format(
+            detail: ref.watch(pAmountFormatter(cryptoCurrency)).format(
                 ref.watch(pFrostTxData)!.fee! +
                     recipients.map((e) => e.amount).reduce((v, e) => v += e)),
             horizontal: true,

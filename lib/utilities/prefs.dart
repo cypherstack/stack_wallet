@@ -14,12 +14,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/services/event_bus/events/global/tor_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/languages_enum.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import 'package:uuid/uuid.dart';
 
@@ -847,15 +848,17 @@ class Prefs extends ChangeNotifier {
 
   // coin amount unit settings
 
-  final Map<Coin, AmountUnit> _amountUnits = {};
+  final Map<CryptoCurrency, AmountUnit> _amountUnits = {};
 
-  AmountUnit amountUnit(Coin coin) => _amountUnits[coin] ?? AmountUnit.normal;
+  AmountUnit amountUnit(CryptoCurrency coin) =>
+      _amountUnits[coin] ?? AmountUnit.normal;
 
-  void updateAmountUnit({required Coin coin, required AmountUnit amountUnit}) {
+  void updateAmountUnit(
+      {required CryptoCurrency coin, required AmountUnit amountUnit}) {
     if (this.amountUnit(coin) != amountUnit) {
       DB.instance.put<dynamic>(
         boxName: DB.boxNamePrefs,
-        key: "amountUnitFor${coin.name}",
+        key: "amountUnitFor${coin.identifier}",
         value: amountUnit.index,
       );
       _amountUnits[coin] = amountUnit;
@@ -864,10 +867,10 @@ class Prefs extends ChangeNotifier {
   }
 
   Future<void> _setAmountUnits() async {
-    for (final coin in Coin.values) {
+    for (final coin in SupportedCoins.cryptocurrencies) {
       final unitIndex = await DB.instance.get<dynamic>(
             boxName: DB.boxNamePrefs,
-            key: "amountUnitFor${coin.name}",
+            key: "amountUnitFor${coin.identifier}",
           ) as int? ??
           0; // 0 is "normal"
       _amountUnits[coin] = AmountUnit.values[unitIndex];
@@ -876,31 +879,35 @@ class Prefs extends ChangeNotifier {
 
   // coin precision setting (max decimal places to show)
 
-  final Map<Coin, int> _amountDecimals = {};
+  final Map<String, int> _amountDecimals = {};
 
-  int maxDecimals(Coin coin) => _amountDecimals[coin] ?? coin.decimals;
+  int maxDecimals(CryptoCurrency coin) =>
+      _amountDecimals[coin.identifier] ?? coin.fractionDigits;
 
-  void updateMaxDecimals({required Coin coin, required int maxDecimals}) {
+  void updateMaxDecimals({
+    required CryptoCurrency coin,
+    required int maxDecimals,
+  }) {
     if (this.maxDecimals(coin) != maxDecimals) {
       DB.instance.put<dynamic>(
         boxName: DB.boxNamePrefs,
-        key: "maxDecimalsFor${coin.name}",
+        key: "maxDecimalsFor${coin.identifier}",
         value: maxDecimals,
       );
-      _amountDecimals[coin] = maxDecimals;
+      _amountDecimals[coin.identifier] = maxDecimals;
       notifyListeners();
     }
   }
 
   Future<void> _setMaxDecimals() async {
-    for (final coin in Coin.values) {
+    for (final coin in SupportedCoins.cryptocurrencies) {
       final decimals = await DB.instance.get<dynamic>(
             boxName: DB.boxNamePrefs,
-            key: "maxDecimalsFor${coin.name}",
+            key: "maxDecimalsFor${coin.identifier}",
           ) as int? ??
-          (coin.decimals > 18 ? 18 : coin.decimals);
+          (coin.fractionDigits > 18 ? 18 : coin.fractionDigits);
       // use some sane max rather than up to 30 that nano uses
-      _amountDecimals[coin] = decimals;
+      _amountDecimals[coin.identifier] = decimals;
     }
   }
 
@@ -938,22 +945,23 @@ class Prefs extends ChangeNotifier {
 
   // fusion server info
 
-  Map<Coin, FusionInfo> _fusionServerInfo = {};
+  Map<String, FusionInfo> _fusionServerInfo = {};
 
-  FusionInfo getFusionServerInfo(Coin coin) {
-    return _fusionServerInfo[coin] ?? kFusionServerInfoDefaults[coin]!;
+  FusionInfo getFusionServerInfo(CryptoCurrency coin) {
+    return _fusionServerInfo[coin.identifier] ??
+        kFusionServerInfoDefaults[coin.identifier]!;
   }
 
-  void setFusionServerInfo(Coin coin, FusionInfo fusionServerInfo) {
-    if (_fusionServerInfo[coin] != fusionServerInfo) {
-      _fusionServerInfo[coin] = fusionServerInfo;
+  void setFusionServerInfo(CryptoCurrency coin, FusionInfo fusionServerInfo) {
+    if (_fusionServerInfo[coin.identifier] != fusionServerInfo) {
+      _fusionServerInfo[coin.identifier] = fusionServerInfo;
 
       DB.instance.put<dynamic>(
         boxName: DB.boxNamePrefs,
         key: "fusionServerInfoMap",
         value: _fusionServerInfo.map(
           (key, value) => MapEntry(
-            key.name,
+            key,
             value.toJsonString(),
           ),
         ),
@@ -962,7 +970,7 @@ class Prefs extends ChangeNotifier {
     }
   }
 
-  Future<Map<Coin, FusionInfo>> _getFusionServerInfo() async {
+  Future<Map<String, FusionInfo>> _getFusionServerInfo() async {
     final map = await DB.instance.get<dynamic>(
       boxName: DB.boxNamePrefs,
       key: "fusionServerInfoMap",
@@ -974,14 +982,14 @@ class Prefs extends ChangeNotifier {
 
     final actualMap = Map<String, String>.from(map).map(
       (key, value) => MapEntry(
-        coinFromPrettyName(key),
+        key,
         FusionInfo.fromJsonString(value),
       ),
     );
 
     // legacy bch check
-    if (actualMap[Coin.bitcoincash] == null ||
-        actualMap[Coin.bitcoincashTestnet] == null) {
+    if (actualMap["bitcoincash"] == null ||
+        actualMap["bitcoincashTestnet"] == null) {
       final saved = await DB.instance.get<dynamic>(
         boxName: DB.boxNamePrefs,
         key: "fusionServerInfo",
@@ -989,15 +997,15 @@ class Prefs extends ChangeNotifier {
 
       if (saved != null) {
         final bchInfo = FusionInfo.fromJsonString(saved);
-        actualMap[Coin.bitcoincash] = bchInfo;
-        actualMap[Coin.bitcoincashTestnet] = bchInfo;
+        actualMap["bitcoincash"] = bchInfo;
+        actualMap["bitcoincashTestnet"] = bchInfo;
         unawaited(
           DB.instance.put<dynamic>(
             boxName: DB.boxNamePrefs,
             key: "fusionServerInfoMap",
             value: actualMap.map(
               (key, value) => MapEntry(
-                key.name,
+                key,
                 value.toJsonString(),
               ),
             ),

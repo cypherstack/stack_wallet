@@ -7,9 +7,9 @@ import 'package:stackwallet/providers/cash_fusion/fusion_progress_ui_state_provi
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -30,9 +30,9 @@ class CashFusionState {
 
 class FusionDialogView extends ConsumerStatefulWidget {
   const FusionDialogView({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 
@@ -41,13 +41,13 @@ class FusionDialogView extends ConsumerStatefulWidget {
 }
 
 class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
-  late final Coin coin;
+  late final CryptoCurrency coin;
 
   Future<bool> _requestAndProcessCancel() async {
     if (!ref.read(fusionProgressUIStateProvider(widget.walletId)).running) {
       return true;
     } else {
-      bool? shouldCancel = await showDialog<bool?>(
+      final bool? shouldCancel = await showDialog<bool?>(
         context: context,
         barrierDismissible: false,
         builder: (_) => DesktopDialog(

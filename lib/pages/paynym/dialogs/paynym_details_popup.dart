@@ -28,7 +28,6 @@ import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
@@ -44,10 +43,10 @@ import 'package:tuple/tuple.dart';
 
 class PaynymDetailsPopup extends ConsumerStatefulWidget {
   const PaynymDetailsPopup({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.accountLite,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final PaynymAccountLite accountLite;

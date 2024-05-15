@@ -13,7 +13,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/utilities/extensions/impl/box_shadow.dart';
 import 'package:stackwallet/utilities/extensions/impl/gradient.dart';
 import 'package:stackwallet/utilities/extensions/impl/string.dart';
@@ -1482,10 +1482,10 @@ class StackTheme {
   // ==== coinColors =====================================================
 
   @ignore
-  Map<Coin, Color> get coinColors =>
+  Map<String, Color> get coinColors =>
       _coinColors ??= parseCoinColors(coinColorsJsonString);
   @ignore
-  Map<Coin, Color>? _coinColors;
+  Map<String, Color>? _coinColors;
   late final String coinColorsJsonString;
 
   // ==== assets =====================================================
@@ -1851,20 +1851,21 @@ class StackTheme {
   }
 
   /// parse coin colors json and fetch color or use default
-  static Map<Coin, Color> parseCoinColors(String jsonString) {
+  static Map<String, Color> parseCoinColors(String jsonString) {
     final json = jsonDecode(jsonString) as Map;
     final map = Map<String, dynamic>.from(json);
 
-    final Map<Coin, Color> result = {};
+    final Map<String, Color> result = {};
 
-    for (final coin in Coin.values.map((e) => e.mainNetVersion)) {
-      if (map[coin.name] is String) {
-        result[coin] = Color(
-          (map[coin.name] as String).toBigIntFromHex.toInt(),
+    for (final mainNetId
+        in SupportedCoins.cryptocurrencies.map((e) => e.mainNetId)) {
+      if (map[mainNetId] is String) {
+        result[mainNetId] = Color(
+          (map[mainNetId] as String).toBigIntFromHex.toInt(),
         );
       } else {
         Logging.instance.log(
-          "Color not found in theme for $coin",
+          "Color not found in theme for $mainNetId",
           level: LogLevel.Error,
         );
       }
@@ -2080,31 +2081,31 @@ class ThemeAssetsV2 implements IThemeAssets {
   late final String coinPlaceholder;
 
   @ignore
-  Map<Coin, String> get coinIcons => _coinIcons ??= parseCoinAssetsString(
+  Map<String, String> get coinIcons => _coinIcons ??= parseCoinAssetsString(
         coinIconsString,
         placeHolder: coinPlaceholder,
       );
   @ignore
-  Map<Coin, String>? _coinIcons;
+  Map<String, String>? _coinIcons;
   late final String coinIconsString;
 
   @ignore
-  Map<Coin, String> get coinImages => _coinImages ??= parseCoinAssetsString(
+  Map<String, String> get coinImages => _coinImages ??= parseCoinAssetsString(
         coinImagesString,
         placeHolder: coinPlaceholder,
       );
   @ignore
-  Map<Coin, String>? _coinImages;
+  Map<String, String>? _coinImages;
   late final String coinImagesString;
 
   @ignore
-  Map<Coin, String> get coinSecondaryImages =>
+  Map<String, String> get coinSecondaryImages =>
       _coinSecondaryImages ??= parseCoinAssetsString(
         coinSecondaryImagesString,
         placeHolder: coinPlaceholder,
       );
   @ignore
-  Map<Coin, String>? _coinSecondaryImages;
+  Map<String, String>? _coinSecondaryImages;
   late final String coinSecondaryImagesString;
 
   ThemeAssetsV2();
@@ -2166,17 +2167,17 @@ class ThemeAssetsV2 implements IThemeAssets {
     return jsonEncode(map);
   }
 
-  static Map<Coin, String> parseCoinAssetsString(
+  static Map<String, String> parseCoinAssetsString(
     String jsonString, {
     required String placeHolder,
   }) {
     final json = jsonDecode(jsonString) as Map;
     final map = Map<String, dynamic>.from(json);
 
-    final Map<Coin, String> result = {};
+    final Map<String, String> result = {};
 
-    for (final coin in Coin.values) {
-      result[coin] = map[coin.name] as String? ?? placeHolder;
+    for (final coin in SupportedCoins.cryptocurrencies) {
+      result[coin.mainNetId] = map[coin.mainNetId] as String? ?? placeHolder;
     }
 
     return result;
@@ -2350,35 +2351,35 @@ class ThemeAssetsV3 implements IThemeAssets {
   late final String? dummy3;
 
   @ignore
-  Map<Coin, String> get coinIcons => _coinIcons ??= parseCoinAssetsString(
+  Map<String, String> get coinIcons => _coinIcons ??= parseCoinAssetsString(
         coinIconsString,
         placeHolder: coinPlaceholder,
       );
   @ignore
-  Map<Coin, String>? _coinIcons;
+  Map<String, String>? _coinIcons;
   late final String coinIconsString;
 
   @ignore
-  Map<Coin, String> get coinImages => _coinImages ??= parseCoinAssetsString(
+  Map<String, String> get coinImages => _coinImages ??= parseCoinAssetsString(
         coinImagesString,
         placeHolder: coinPlaceholder,
       );
   @ignore
-  Map<Coin, String>? _coinImages;
+  Map<String, String>? _coinImages;
   late final String coinImagesString;
 
   @ignore
-  Map<Coin, String> get coinSecondaryImages =>
+  Map<String, String> get coinSecondaryImages =>
       _coinSecondaryImages ??= parseCoinAssetsString(
         coinSecondaryImagesString,
         placeHolder: coinPlaceholder,
       );
   @ignore
-  Map<Coin, String>? _coinSecondaryImages;
+  Map<String, String>? _coinSecondaryImages;
   late final String coinSecondaryImagesString;
 
   @ignore
-  Map<Coin, String>? get coinCardImages =>
+  Map<String, String>? get coinCardImages =>
       _coinCardImages ??= coinCardImagesString == null
           ? null
           : parseCoinAssetsString(
@@ -2386,11 +2387,11 @@ class ThemeAssetsV3 implements IThemeAssets {
               placeHolder: coinPlaceholder,
             );
   @ignore
-  Map<Coin, String>? _coinCardImages;
+  Map<String, String>? _coinCardImages;
   late final String? coinCardImagesString;
 
   @ignore
-  Map<Coin, String>? get coinCardFavoritesImages =>
+  Map<String, String>? get coinCardFavoritesImages =>
       _coinCardFavoritesImages ??= coinCardFavoritesImagesString == null
           ? null
           : parseCoinAssetsString(
@@ -2398,7 +2399,7 @@ class ThemeAssetsV3 implements IThemeAssets {
               placeHolder: coinPlaceholder,
             );
   @ignore
-  Map<Coin, String>? _coinCardFavoritesImages;
+  Map<String, String>? _coinCardFavoritesImages;
   @Name("otherStringParam1")
   late final String? coinCardFavoritesImagesString;
 
@@ -2501,19 +2502,18 @@ class ThemeAssetsV3 implements IThemeAssets {
     return jsonEncode(map);
   }
 
-  static Map<Coin, String> parseCoinAssetsString(
+  static Map<String, String> parseCoinAssetsString(
     String jsonString, {
     required String placeHolder,
   }) {
     final json = jsonDecode(jsonString) as Map;
     final map = Map<String, dynamic>.from(json);
 
-    final Map<Coin, String> result = {};
+    final Map<String, String> result = {};
 
-    for (final coin in Coin.values) {
-      result[coin] = map[coin.name] as String? ?? placeHolder;
-
-      result[coin] = prependIfNeeded(result[coin]!);
+    for (final coin in SupportedCoins.cryptocurrencies) {
+      result[coin.mainNetId] = map[coin.mainNetId] as String? ?? placeHolder;
+      result[coin.mainNetId] = prependIfNeeded(result[coin.mainNetId]!);
     }
 
     return result;

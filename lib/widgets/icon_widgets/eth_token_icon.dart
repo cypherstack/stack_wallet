@@ -15,14 +15,15 @@ import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/ethereum.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 class EthTokenIcon extends ConsumerStatefulWidget {
   const EthTokenIcon({
-    Key? key,
+    super.key,
     required this.contractAddress,
     this.size = 22,
-  }) : super(key: key);
+  });
 
   final String contractAddress;
   final double size;
@@ -49,7 +50,7 @@ class _EthTokenIconState extends ConsumerState<EthTokenIcon> {
   Widget build(BuildContext context) {
     if (imageUrl == null || imageUrl!.isEmpty) {
       return SvgPicture.asset(
-        ref.watch(coinIconProvider(Coin.ethereum)),
+        ref.watch(coinIconProvider(Ethereum(CryptoCurrencyNetwork.main))),
         width: widget.size,
         height: widget.size,
       );

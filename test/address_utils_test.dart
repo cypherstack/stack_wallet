@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 void main() {
   const String firoAddress = "a6ESWKz7szru5syLtYAPRhHLdKvMq3Yt1j";

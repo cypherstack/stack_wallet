@@ -10,7 +10,7 @@
 
 import 'package:isar/isar.dart';
 import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/supported_coins.dart';
 
 part 'currency.g.dart';
 
@@ -161,7 +161,7 @@ class Currency {
 
   static bool checkIsStackCoin(String ticker) {
     try {
-      coinFromTickerCaseInsensitive(ticker);
+      SupportedCoins.getCryptoCurrencyForTicker(ticker);
       return true;
     } catch (_) {
       return false;

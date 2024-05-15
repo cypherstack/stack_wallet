@@ -26,12 +26,11 @@ import 'package:stackwallet/providers/ui/verify_recovery_phrase/mnemonic_word_co
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/name_generator.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin_frost.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -48,15 +47,15 @@ import 'package:tuple/tuple.dart';
 
 class NameYourWalletView extends ConsumerStatefulWidget {
   const NameYourWalletView({
-    Key? key,
+    super.key,
     required this.addWalletType,
     required this.coin,
-  }) : super(key: key);
+  });
 
   static const routeName = "/nameYourWallet";
 
   final AddWalletType addWalletType;
-  final Coin coin;
+  final CryptoCurrency coin;
 
   @override
   ConsumerState<NameYourWalletView> createState() => _NameYourWalletViewState();
@@ -64,7 +63,7 @@ class NameYourWalletView extends ConsumerStatefulWidget {
 
 class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
   late final AddWalletType addWalletType;
-  late final Coin coin;
+  late final CryptoCurrency coin;
 
   late TextEditingController textEditingController;
   late FocusNode textFieldFocusNode;
@@ -96,7 +95,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
 
       if (mounted) {
         ref.read(mnemonicWordCountStateProvider.state).state =
-            Constants.possibleLengthsForCoin(coin).last;
+            coin.possibleMnemonicLengths.last;
         ref.read(pNewWalletOptions.notifier).state = null;
 
         switch (widget.addWalletType) {
@@ -244,7 +243,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
             height: isDesktop ? 0 : 16,
           ),
           Text(
-            "Name your ${coin.prettyName} ${coin.isFrost ? "multisig " : ""}wallet",
+            "Name your ${coin.prettyName} ${coin is FrostCurrency ? "multisig " : ""}wallet",
             textAlign: TextAlign.center,
             style: isDesktop
                 ? STextStyles.desktopH2(context)
@@ -254,7 +253,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
             height: isDesktop ? 16 : 8,
           ),
           Text(
-            "Enter a label for your wallet (e.g. ${coin.isFrost ? "Multisig" : "Savings"})",
+            "Enter a label for your wallet (e.g. ${coin is FrostCurrency ? "Multisig" : "Savings"})",
             textAlign: TextAlign.center,
             style: isDesktop
                 ? STextStyles.desktopSubtitleH2(context)
@@ -383,7 +382,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
             const SizedBox(
               height: 32,
             ),
-          if (widget.coin.isFrost)
+          if (widget.coin is FrostCurrency)
             if (widget.addWalletType == AddWalletType.Restore)
               PrimaryButton(
                 label: "Next",
@@ -395,15 +394,13 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
                     RestoreFrostMsWalletView.routeName,
                     arguments: (
                       walletName: name,
-                      // TODO: [prio=med] this will cause issues if frost is ever applied to other coins
-                      frostCurrency: coin.isTestNet
-                          ? BitcoinFrost(CryptoCurrencyNetwork.test)
-                          : BitcoinFrost(CryptoCurrencyNetwork.main),
+                      frostCurrency: coin,
                     ),
                   );
                 },
               ),
-          if (widget.coin.isFrost && widget.addWalletType == AddWalletType.New)
+          if (widget.coin is FrostCurrency &&
+              widget.addWalletType == AddWalletType.New)
             Column(
               children: [
                 PrimaryButton(
@@ -416,10 +413,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
                       CreateNewFrostMsWalletView.routeName,
                       arguments: (
                         walletName: name,
-                        // TODO: [prio=med] this will cause issues if frost is ever applied to other coins
-                        frostCurrency: coin.isTestNet
-                            ? BitcoinFrost(CryptoCurrencyNetwork.test)
-                            : BitcoinFrost(CryptoCurrencyNetwork.main),
+                        frostCurrency: coin,
                       ),
                     );
                   },
@@ -437,10 +431,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
                       SelectNewFrostImportTypeView.routeName,
                       arguments: (
                         walletName: name,
-                        // TODO: [prio=med] this will cause issues if frost is ever applied to other coins
-                        frostCurrency: coin.isTestNet
-                            ? BitcoinFrost(CryptoCurrencyNetwork.test)
-                            : BitcoinFrost(CryptoCurrencyNetwork.main),
+                        frostCurrency: coin,
                       ),
                     );
                   },
@@ -480,7 +471,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
                 // ),
               ],
             ),
-          if (!widget.coin.isFrost)
+          if (widget.coin is! FrostCurrency)
             ConstrainedBox(
               constraints: BoxConstraints(
                 minWidth: isDesktop ? 480 : 0,

@@ -21,10 +21,10 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import 'package:stackwallet/widgets/coin_card.dart';
@@ -32,11 +32,11 @@ import 'package:stackwallet/widgets/conditional_parent.dart';
 
 class FavoriteCard extends ConsumerStatefulWidget {
   const FavoriteCard({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.width,
     required this.height,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final double width;
@@ -192,7 +192,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                       );
 
                       Amount total = balance.total;
-                      if (coin == Coin.firo || coin == Coin.firoTestNet) {
+                      if (coin is Firo) {
                         total += ref
                             .watch(
                               pWalletBalanceSecondary(walletId),

@@ -17,8 +17,9 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
@@ -31,11 +32,11 @@ import 'package:tuple/tuple.dart';
 
 class DesktopChooseFromStack extends ConsumerStatefulWidget {
   const DesktopChooseFromStack({
-    Key? key,
+    super.key,
     required this.coin,
-  }) : super(key: key);
+  });
 
-  final Coin coin;
+  final CryptoCurrency coin;
 
   @override
   ConsumerState<DesktopChooseFromStack> createState() =>
@@ -282,9 +283,9 @@ class _DesktopChooseFromStackState
 
 class _BalanceDisplay extends ConsumerWidget {
   const _BalanceDisplay({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 
@@ -292,7 +293,7 @@ class _BalanceDisplay extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final coin = ref.watch(pWalletCoin(walletId));
     Amount total = ref.watch(pWalletBalance(walletId)).total;
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
+    if (coin is Firo) {
       total += ref.watch(pWalletBalanceSecondary(walletId)).total;
       total += ref.watch(pWalletBalanceTertiary(walletId)).total;
     }

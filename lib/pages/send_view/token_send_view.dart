@@ -34,12 +34,13 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/epiccash.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import 'package:stackwallet/wallets/isar/providers/eth/token_balance_provider.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
@@ -70,7 +71,7 @@ class TokenSendView extends ConsumerStatefulWidget {
   static const String routeName = "/tokenSendView";
 
   final String walletId;
-  final Coin coin;
+  final CryptoCurrency coin;
   final EthContract tokenContract;
   final SendViewAutoFillData? autoFillData;
   final ClipboardInterface clipboard;
@@ -82,7 +83,7 @@ class TokenSendView extends ConsumerStatefulWidget {
 
 class _TokenSendViewState extends ConsumerState<TokenSendView> {
   late final String walletId;
-  late final Coin coin;
+  late final CryptoCurrency coin;
   late final EthContract tokenContract;
   late final ClipboardInterface clipboard;
   late final BarcodeScannerInterface scanner;
@@ -317,7 +318,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
       _cryptoAmountChangedFeeUpdateTimer?.cancel();
       _cryptoAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
-        if (coin != Coin.epicCash && !_baseFocus.hasFocus) {
+        if (coin is! Epiccash && !_baseFocus.hasFocus) {
           setState(() {
             _calculateFeesFuture = calculateFees();
           });
@@ -329,7 +330,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
   void _baseAmountChanged() {
     _baseAmountChangedFeeUpdateTimer?.cancel();
     _baseAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
-      if (coin != Coin.epicCash && !_cryptoFocus.hasFocus) {
+      if (coin is! Epiccash && !_cryptoFocus.hasFocus) {
         setState(() {
           _calculateFeesFuture = calculateFees();
         });
@@ -1161,7 +1162,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                           const SizedBox(
                             height: 12,
                           ),
-                          if (coin != Coin.epicCash)
+                          if (coin is! Epiccash)
                             Text(
                               "Transaction fee (estimated)",
                               style: STextStyles.smallMed12(context),

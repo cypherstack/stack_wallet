@@ -29,9 +29,9 @@ import 'package:stackwallet/utilities/util.dart';
 
 class CoinSelectItem extends ConsumerWidget {
   const CoinSelectItem({
-    Key? key,
+    super.key,
     required this.entity,
-  }) : super(key: key);
+  });
 
   final AddWalletListEntity entity;
 
@@ -90,7 +90,7 @@ class CoinSelectItem extends ConsumerWidget {
                     )
                   : SvgPicture.file(
                       File(
-                        ref.watch(coinIconProvider(entity.coin)),
+                        ref.watch(coinIconProvider(entity.cryptoCurrency)),
                       ),
                       width: 26,
                       height: 26,

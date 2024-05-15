@@ -19,19 +19,19 @@ import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 class TxIcon extends ConsumerWidget {
   const TxIcon({
-    Key? key,
+    super.key,
     required this.transaction,
     required this.currentHeight,
     required this.coin,
-  }) : super(key: key);
+  });
 
   final Object transaction;
   final int currentHeight;
-  final Coin coin;
+  final CryptoCurrency coin;
 
   static const Size size = Size(32, 32);
 

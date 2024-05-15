@@ -143,7 +143,7 @@ class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
                 final data = ref.read(pFrostScaffoldArgs)!;
 
                 final info = WalletInfo.createNew(
-                  coin: data.info.frostCurrency.coin,
+                  coin: data.info.frostCurrency,
                   name: data.info.walletName,
                 );
 

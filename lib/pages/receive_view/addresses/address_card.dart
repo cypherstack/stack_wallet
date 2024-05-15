@@ -30,9 +30,9 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_buttons/simple_edit_button.dart';
@@ -53,7 +53,7 @@ class AddressCard extends ConsumerStatefulWidget {
 
   final int addressId;
   final String walletId;
-  final Coin coin;
+  final CryptoCurrency coin;
   final ClipboardInterface clipboard;
   final VoidCallback? onPressed;
 

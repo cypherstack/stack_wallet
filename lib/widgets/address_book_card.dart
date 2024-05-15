@@ -16,13 +16,14 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/contact_popup.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
+import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/expandable.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -69,9 +70,9 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
 
     final contact = _contact!;
 
-    final List<Coin> coins = [];
+    final List<CryptoCurrency> coins = [];
 
-    for (final coin in Coin.values) {
+    for (final coin in SupportedCoins.cryptocurrencies) {
       if (contact.addresses.where((e) => e.coin == coin).isNotEmpty) {
         coins.add(coin);
       }

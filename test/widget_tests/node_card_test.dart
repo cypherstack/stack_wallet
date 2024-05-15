@@ -9,7 +9,7 @@ import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/widgets/node_card.dart';
 import 'package:stackwallet/widgets/node_options_sheet.dart';

@@ -14,9 +14,9 @@ import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2
 import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_list_item.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
@@ -24,17 +24,17 @@ import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class FusionGroupDetailsView extends ConsumerStatefulWidget {
   const FusionGroupDetailsView({
-    Key? key,
+    super.key,
     required this.transactions,
     required this.walletId,
     required this.coin,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/fusionGroupDetailsView";
 
   final List<TransactionV2> transactions;
   final String walletId;
-  final Coin coin;
+  final CryptoCurrency coin;
 
   @override
   ConsumerState<FusionGroupDetailsView> createState() =>

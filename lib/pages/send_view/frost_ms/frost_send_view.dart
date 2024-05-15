@@ -25,10 +25,10 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
@@ -58,7 +58,7 @@ class FrostSendView extends ConsumerStatefulWidget {
   static const String routeName = "/frostSendView";
 
   final String walletId;
-  final Coin coin;
+  final CryptoCurrency coin;
 
   @override
   ConsumerState<FrostSendView> createState() => _FrostSendViewState();
@@ -69,7 +69,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
   int _greatestWidgetIndex = 0;
 
   late final String walletId;
-  late final Coin coin;
+  late final CryptoCurrency coin;
 
   late TextEditingController noteController;
   late TextEditingController onChainNoteController;

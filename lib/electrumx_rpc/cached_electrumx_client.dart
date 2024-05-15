@@ -13,8 +13,8 @@ import 'dart:math';
 
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:string_validator/string_validator.dart';
 
 class CachedElectrumXClient {
@@ -34,10 +34,11 @@ class CachedElectrumXClient {
   Future<Map<String, dynamic>> getAnonymitySet({
     required String groupId,
     String blockhash = "",
-    required Coin coin,
+    required CryptoCurrency cryptoCurrency,
   }) async {
     try {
-      final box = await DB.instance.getAnonymitySetCacheBox(coin: coin);
+      final box =
+          await DB.instance.getAnonymitySetCacheBox(currency: cryptoCurrency);
       final cachedSet = box.get(groupId) as Map?;
 
       Map<String, dynamic> set;
@@ -68,30 +69,38 @@ class CachedElectrumXClient {
             ? base64ToReverseHex(newSet["blockHash"] as String)
             : newSet["blockHash"];
         for (int i = (newSet["coins"] as List).length - 1; i >= 0; i--) {
-          dynamic newCoin = newSet["coins"][i];
-          List<dynamic> translatedCoin = [];
-          translatedCoin.add(!isHexadecimal(newCoin[0] as String)
-              ? base64ToHex(newCoin[0] as String)
-              : newCoin[0]);
-          translatedCoin.add(!isHexadecimal(newCoin[1] as String)
-              ? base64ToReverseHex(newCoin[1] as String)
-              : newCoin[1]);
+          final dynamic newCoin = newSet["coins"][i];
+          final List<dynamic> translatedCoin = [];
+          translatedCoin.add(
+            !isHexadecimal(newCoin[0] as String)
+                ? base64ToHex(newCoin[0] as String)
+                : newCoin[0],
+          );
+          translatedCoin.add(
+            !isHexadecimal(newCoin[1] as String)
+                ? base64ToReverseHex(newCoin[1] as String)
+                : newCoin[1],
+          );
           try {
-            translatedCoin.add(!isHexadecimal(newCoin[2] as String)
-                ? base64ToHex(newCoin[2] as String)
-                : newCoin[2]);
+            translatedCoin.add(
+              !isHexadecimal(newCoin[2] as String)
+                  ? base64ToHex(newCoin[2] as String)
+                  : newCoin[2],
+            );
           } catch (e) {
             translatedCoin.add(newCoin[2]);
           }
-          translatedCoin.add(!isHexadecimal(newCoin[3] as String)
-              ? base64ToReverseHex(newCoin[3] as String)
-              : newCoin[3]);
+          translatedCoin.add(
+            !isHexadecimal(newCoin[3] as String)
+                ? base64ToReverseHex(newCoin[3] as String)
+                : newCoin[3],
+          );
           set["coins"].insert(0, translatedCoin);
         }
         // save set to db
         await box.put(groupId, set);
         Logging.instance.log(
-          "Updated current anonymity set for ${coin.name} with group ID $groupId",
+          "Updated current anonymity set for ${cryptoCurrency.identifier} with group ID $groupId",
           level: LogLevel.Info,
         );
       }
@@ -99,8 +108,9 @@ class CachedElectrumXClient {
       return set;
     } catch (e, s) {
       Logging.instance.log(
-          "Failed to process CachedElectrumX.getAnonymitySet(): $e\n$s",
-          level: LogLevel.Error);
+        "Failed to process CachedElectrumX.getAnonymitySet(): $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }
@@ -108,11 +118,13 @@ class CachedElectrumXClient {
   Future<Map<String, dynamic>> getSparkAnonymitySet({
     required String groupId,
     String blockhash = "",
-    required Coin coin,
+    required CryptoCurrency cryptoCurrency,
     required bool useOnlyCacheIfNotEmpty,
   }) async {
     try {
-      final box = await DB.instance.getSparkAnonymitySetCacheBox(coin: coin);
+      final box = await DB.instance.getSparkAnonymitySetCacheBox(
+        currency: cryptoCurrency,
+      );
       final cachedSet = box.get(groupId) as Map?;
 
       Map<String, dynamic> set;
@@ -152,7 +164,7 @@ class CachedElectrumXClient {
         // save set to db
         await box.put(groupId, set);
         Logging.instance.log(
-          "Updated current anonymity set for ${coin.name} with group ID $groupId",
+          "Updated current anonymity set for ${cryptoCurrency.identifier} with group ID $groupId",
           level: LogLevel.Info,
         );
       }
@@ -160,8 +172,9 @@ class CachedElectrumXClient {
       return set;
     } catch (e, s) {
       Logging.instance.log(
-          "Failed to process CachedElectrumX.getSparkAnonymitySet(): $e\n$s",
-          level: LogLevel.Error);
+        "Failed to process CachedElectrumX.getSparkAnonymitySet(): $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }
@@ -182,11 +195,11 @@ class CachedElectrumXClient {
   /// ElectrumX api only called if the tx does not exist in local db
   Future<Map<String, dynamic>> getTransaction({
     required String txHash,
-    required Coin coin,
+    required CryptoCurrency cryptoCurrency,
     bool verbose = true,
   }) async {
     try {
-      final box = await DB.instance.getTxCacheBox(coin: coin);
+      final box = await DB.instance.getTxCacheBox(currency: cryptoCurrency);
 
       final cachedTx = box.get(txHash) as Map?;
       if (cachedTx == null) {
@@ -213,22 +226,24 @@ class CachedElectrumXClient {
       }
     } catch (e, s) {
       Logging.instance.log(
-          "Failed to process CachedElectrumX.getTransaction(): $e\n$s",
-          level: LogLevel.Error);
+        "Failed to process CachedElectrumX.getTransaction(): $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }
 
   Future<List<String>> getUsedCoinSerials({
-    required Coin coin,
+    required CryptoCurrency cryptoCurrency,
     int startNumber = 0,
   }) async {
     try {
-      final box = await DB.instance.getUsedSerialsCacheBox(coin: coin);
+      final box =
+          await DB.instance.getUsedSerialsCacheBox(currency: cryptoCurrency);
 
       final _list = box.get("serials") as List?;
 
-      Set<String> cachedSerials =
+      final Set<String> cachedSerials =
           _list == null ? {} : List<String>.from(_list).toSet();
 
       startNumber = max(
@@ -269,14 +284,16 @@ class CachedElectrumXClient {
   }
 
   Future<Set<String>> getSparkUsedCoinsTags({
-    required Coin coin,
+    required CryptoCurrency cryptoCurrency,
   }) async {
     try {
-      final box = await DB.instance.getSparkUsedCoinsTagsCacheBox(coin: coin);
+      final box = await DB.instance.getSparkUsedCoinsTagsCacheBox(
+        currency: cryptoCurrency,
+      );
 
       final _list = box.get("tags") as List?;
 
-      Set<String> cachedTags =
+      final Set<String> cachedTags =
           _list == null ? {} : List<String>.from(_list).toSet();
 
       final startNumber = max(
@@ -314,8 +331,9 @@ class CachedElectrumXClient {
   }
 
   /// Clear all cached transactions for the specified coin
-  Future<void> clearSharedTransactionCache({required Coin coin}) async {
-    await DB.instance.clearSharedTransactionCache(coin: coin);
-    await DB.instance.closeAnonymitySetCacheBox(coin: coin);
+  Future<void> clearSharedTransactionCache(
+      {required CryptoCurrency cryptoCurrency}) async {
+    await DB.instance.clearSharedTransactionCache(currency: cryptoCurrency);
+    await DB.instance.closeAnonymitySetCacheBox(currency: cryptoCurrency);
   }
 }

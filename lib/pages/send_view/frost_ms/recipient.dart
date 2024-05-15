@@ -12,10 +12,10 @@ import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
@@ -55,7 +55,7 @@ class Recipient extends ConsumerStatefulWidget {
 
   final int index;
   final int displayNumber;
-  final Coin coin;
+  final CryptoCurrency coin;
 
   final VoidCallback? remove;
   final VoidCallback? onChanged;
@@ -324,7 +324,8 @@ class _RecipientState extends ConsumerState<Recipient> {
                                     final Amount amount =
                                         Decimal.parse(results["amount"]!)
                                             .toAmount(
-                                      fractionDigits: widget.coin.decimals,
+                                      fractionDigits:
+                                          widget.coin.fractionDigits,
                                     );
                                     amountController.text = ref
                                         .read(pAmountFormatter(widget.coin))
@@ -409,7 +410,7 @@ class _RecipientState extends ConsumerState<Recipient> {
             textAlign: TextAlign.right,
             inputFormatters: [
               AmountInputFormatter(
-                decimals: widget.coin.decimals,
+                decimals: widget.coin.fractionDigits,
                 unit: ref.watch(pAmountUnit(widget.coin)),
                 locale: locale,
               ),

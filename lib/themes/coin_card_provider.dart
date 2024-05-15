@@ -11,24 +11,25 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
-final coinCardProvider = Provider.family<String?, Coin>((ref, coin) {
+final coinCardProvider = Provider.family<String?, CryptoCurrency>((ref, coin) {
   final assets = ref.watch(themeAssetsProvider);
 
   if (assets is ThemeAssetsV3) {
-    return assets.coinCardImages?[coin.mainNetVersion];
+    return assets.coinCardImages?[coin.mainNetId];
   } else {
     return null;
   }
 });
 
-final coinCardFavoritesProvider = Provider.family<String?, Coin>((ref, coin) {
+final coinCardFavoritesProvider =
+    Provider.family<String?, CryptoCurrency>((ref, coin) {
   final assets = ref.watch(themeAssetsProvider);
 
   if (assets is ThemeAssetsV3) {
-    return assets.coinCardFavoritesImages?[coin.mainNetVersion] ??
-        assets.coinCardImages?[coin.mainNetVersion];
+    return assets.coinCardFavoritesImages?[coin.mainNetId] ??
+        assets.coinCardImages?[coin.mainNetId];
   } else {
     return null;
   }

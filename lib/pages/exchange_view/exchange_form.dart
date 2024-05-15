@@ -40,10 +40,11 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -59,14 +60,14 @@ import 'package:uuid/uuid.dart';
 
 class ExchangeForm extends ConsumerStatefulWidget {
   const ExchangeForm({
-    Key? key,
+    super.key,
     this.walletId,
     this.coin,
     this.contract,
-  }) : super(key: key);
+  });
 
   final String? walletId;
-  final Coin? coin;
+  final CryptoCurrency? coin;
   final EthContract? contract;
 
   @override
@@ -75,7 +76,7 @@ class ExchangeForm extends ConsumerStatefulWidget {
 
 class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   late final String? walletId;
-  late final Coin? coin;
+  late final CryptoCurrency? coin;
   late final bool walletInitiated;
 
   List<Exchange> get usableExchanges {
@@ -172,7 +173,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         .tryParse(
           value,
           locale: ref.read(localeServiceChangeNotifierProvider).locale,
-          coin: Coin.bitcoin, // dummy value (not used due to override)
+          coin: Bitcoin(CryptoCurrencyNetwork
+              .main), // dummy value (not used due to override)
           overrideWithDecimalPlacesFromString: true,
         )
         ?.decimal;
@@ -607,12 +609,12 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     }
   }
 
-  bool isWalletCoin(Coin? coin, bool isSend) {
+  bool isWalletCoin(CryptoCurrency? coin, bool isSend) {
     if (coin == null) {
       return false;
     }
 
-    String? ticker = isSend
+    final String? ticker = isSend
         ? ref.read(efCurrencyPairProvider).send?.ticker
         : ref.read(efCurrencyPairProvider).receive?.ticker;
 

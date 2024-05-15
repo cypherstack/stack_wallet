@@ -9,46 +9,46 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 class AddressBookFilter extends ChangeNotifier {
-  AddressBookFilter(Set<Coin> coins) {
+  AddressBookFilter(Set<CryptoCurrency> coins) {
     _coins = coins;
   }
 
-  Set<Coin> _coins = {};
+  Set<CryptoCurrency> _coins = {};
 
-  Set<Coin> get coins => _coins;
+  Set<CryptoCurrency> get coins => _coins;
 
-  set coins(Set<Coin> coins) {
+  set coins(Set<CryptoCurrency> coins) {
     _coins = coins;
     notifyListeners();
   }
 
-  void add(Coin coin, bool shouldNotifyListeners) {
+  void add(CryptoCurrency coin, bool shouldNotifyListeners) {
     _coins.add(coin);
     if (shouldNotifyListeners) {
       notifyListeners();
     }
   }
 
-  void addAll(Iterable<Coin> coins, bool shouldNotifyListeners) {
+  void addAll(Iterable<CryptoCurrency> coins, bool shouldNotifyListeners) {
     _coins.addAll(coins);
     if (shouldNotifyListeners) {
       notifyListeners();
     }
   }
 
-  void remove(Coin coin, bool shouldNotifyListeners) {
-    _coins.removeWhere((e) => e.name == coin.name);
+  void remove(CryptoCurrency coin, bool shouldNotifyListeners) {
+    _coins.removeWhere((e) => e.identifier == coin.identifier);
     if (shouldNotifyListeners) {
       notifyListeners();
     }
   }
 
-  void removeMany(Set<Coin> coins, bool shouldNotifyListeners) {
+  void removeMany(Set<CryptoCurrency> coins, bool shouldNotifyListeners) {
     for (final coin in coins) {
-      _coins.removeWhere((e) => e.name == coin.name);
+      _coins.removeWhere((e) => e.identifier == coin.identifier);
     }
     if (shouldNotifyListeners) {
       notifyListeners();

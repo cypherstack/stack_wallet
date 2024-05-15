@@ -19,8 +19,8 @@ import 'package:stackwallet/providers/exchange/exchange_form_state_provider.dart
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -28,16 +28,16 @@ import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 
 class WalletInitiatedExchangeView extends ConsumerStatefulWidget {
   const WalletInitiatedExchangeView({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.coin,
     this.contract,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/walletInitiatedExchange";
 
   final String walletId;
-  final Coin coin;
+  final CryptoCurrency coin;
   final EthContract? contract;
 
   @override
@@ -48,7 +48,7 @@ class WalletInitiatedExchangeView extends ConsumerStatefulWidget {
 class _WalletInitiatedExchangeViewState
     extends ConsumerState<WalletInitiatedExchangeView> {
   late final String walletId;
-  late final Coin coin;
+  late final CryptoCurrency coin;
 
   bool _initialCachePopulationUnderway = false;
 

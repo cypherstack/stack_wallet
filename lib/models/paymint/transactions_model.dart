@@ -11,8 +11,6 @@
 import 'package:dart_numerics/dart_numerics.dart';
 import 'package:decimal/decimal.dart';
 import 'package:hive/hive.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 part '../type_adaptors/transactions_model.g.dart';
 
@@ -236,19 +234,11 @@ class Transaction {
       timestamp: json['timestamp'] as int? ??
           (DateTime.now().millisecondsSinceEpoch ~/ 1000),
       txType: json['txType'] as String,
-      amount: (Decimal.parse(json["amount"].toString()) *
-              Decimal.fromInt(Constants.satsPerCoin(Coin
-                  .firo).toInt())) // dirty hack but we need 8 decimal places here to keep consistent data structure
-          .toBigInt()
-          .toInt(),
+      amount: _parse(json["amount"].toString()),
       aliens: [],
       worthNow: json['worthNow'] as String,
       worthAtBlockTimestamp: json['worthAtBlockTimestamp'] as String? ?? "0",
-      fees: (Decimal.parse(json["fees"].toString()) *
-              Decimal.fromInt(Constants.satsPerCoin(Coin
-                  .firo).toInt())) // dirty hack but we need 8 decimal places here to keep consistent data structure
-          .toBigInt()
-          .toInt(),
+      fees: _parse(json["fees"].toString()),
       inputSize: json['inputSize'] as int? ?? 0,
       outputSize: json['outputSize'] as int? ?? 0,
       inputs: [],
@@ -411,12 +401,7 @@ class Output {
         scriptpubkeyAsm: json['scriptPubKey']['asm'] as String?,
         scriptpubkeyType: json['scriptPubKey']['type'] as String?,
         scriptpubkeyAddress: address,
-        value: (Decimal.parse(
-                    (json["value"] ?? 0).toString()) *
-                Decimal.fromInt(Constants.satsPerCoin(Coin
-                    .firo).toInt())) // dirty hack but we need 8 decimal places here to keep consistent data structure
-            .toBigInt()
-            .toInt(),
+        value: _parse((json["value"] ?? 0).toString()),
       );
     } catch (s, e) {
       return Output(
@@ -425,11 +410,11 @@ class Output {
           scriptpubkeyAsm: "",
           scriptpubkeyType: "",
           scriptpubkeyAddress: "",
-          value: (Decimal.parse(0.toString()) *
-                  Decimal.fromInt(Constants.satsPerCoin(Coin
-                      .firo).toInt())) // dirty hack but we need 8 decimal places here to keep consistent data structure
-              .toBigInt()
-              .toInt());
+          value: _parse(0.toString()));
     }
   }
+}
+
+int _parse(String value) {
+  return (Decimal.parse(value) * Decimal.fromInt(8)).toBigInt().toInt();
 }

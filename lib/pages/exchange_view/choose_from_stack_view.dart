@@ -13,8 +13,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -24,11 +24,11 @@ import 'package:stackwallet/widgets/wallet_info_row/sub_widgets/wallet_info_row_
 
 class ChooseFromStackView extends ConsumerStatefulWidget {
   const ChooseFromStackView({
-    Key? key,
+    super.key,
     required this.coin,
-  }) : super(key: key);
+  });
 
-  final Coin coin;
+  final CryptoCurrency coin;
 
   static const String routeName = "/chooseFromStack";
 
@@ -38,7 +38,7 @@ class ChooseFromStackView extends ConsumerStatefulWidget {
 }
 
 class _ChooseFromStackViewState extends ConsumerState<ChooseFromStackView> {
-  late final Coin coin;
+  late final CryptoCurrency coin;
 
   @override
   void initState() {

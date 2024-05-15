@@ -4,16 +4,16 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 class ChooseUnitSheet extends ConsumerStatefulWidget {
   const ChooseUnitSheet({
-    Key? key,
+    super.key,
     required this.coin,
-  }) : super(key: key);
+  });
 
-  final Coin coin;
+  final CryptoCurrency coin;
 
   @override
   ConsumerState<ChooseUnitSheet> createState() => _ChooseUnitSheetState();

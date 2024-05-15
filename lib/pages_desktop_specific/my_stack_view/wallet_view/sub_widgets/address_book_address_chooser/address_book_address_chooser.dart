@@ -17,20 +17,20 @@ import 'package:stackwallet/providers/global/address_book_service_provider.dart'
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
 class AddressBookAddressChooser extends StatefulWidget {
   const AddressBookAddressChooser({
-    Key? key,
+    super.key,
     this.coin,
-  }) : super(key: key);
+  });
 
-  final Coin? coin;
+  final CryptoCurrency? coin;
 
   @override
   State<AddressBookAddressChooser> createState() =>
@@ -92,7 +92,7 @@ class _AddressBookAddressChooserState extends State<AddressBookAddressChooser> {
     }
     for (int i = 0; i < contact.addresses.length; i++) {
       if (contact.addresses[i].label.toLowerCase().contains(text) ||
-          contact.addresses[i].coin.name.toLowerCase().contains(text) ||
+          contact.addresses[i].coin.identifier.toLowerCase().contains(text) ||
           contact.addresses[i].coin.prettyName.toLowerCase().contains(text) ||
           contact.addresses[i].coin.ticker.toLowerCase().contains(text) ||
           contact.addresses[i].address.toLowerCase().contains(text)) {

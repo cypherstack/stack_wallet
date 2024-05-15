@@ -16,15 +16,17 @@ import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/api/lelantus_ffi_wrapper.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:stackwallet/wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import 'package:tuple/tuple.dart';
 
-mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
+mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
+    on Bip39HDWallet<T>, ElectrumXInterface<T> {
   Future<Amount> estimateFeeForLelantus(Amount amount) async {
     final lelantusEntries = await _getLelantusEntry();
-    int spendAmount = amount.raw.toInt();
+    final int spendAmount = amount.raw.toInt();
     if (spendAmount == 0 || lelantusEntries.isEmpty) {
       return Amount(
         rawValue: BigInt.from(LelantusFeeData(0, 0, []).fee),
@@ -52,10 +54,12 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
         .filter()
         .isUsedEqualTo(false)
         .not()
-        .group((q) => q
-            .valueEqualTo("0")
-            .or()
-            .anonymitySetIdEqualTo(LelantusFfiWrapper.ANONYMITY_SET_EMPTY_ID))
+        .group(
+          (q) => q
+              .valueEqualTo("0")
+              .or()
+              .anonymitySetIdEqualTo(LelantusFfiWrapper.ANONYMITY_SET_EMPTY_ID),
+        )
         .findAll();
 
     final root = await getRootHDNode();
@@ -156,12 +160,15 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
       // fee should never be less than vSize sanity check
       if (result.fee!.raw.toInt() < result.vSize!) {
         throw Exception(
-            "Error in fee calculation: Transaction fee cannot be less than vSize");
+          "Error in fee calculation: Transaction fee cannot be less than vSize",
+        );
       }
       return result;
     } catch (e, s) {
-      Logging.instance.log("Exception rethrown in firo prepareSend(): $e\n$s",
-          level: LogLevel.Error);
+      Logging.instance.log(
+        "Exception rethrown in firo prepareSend(): $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }
@@ -316,17 +323,17 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
   }
 
   Future<List<Map<String, dynamic>>> fastFetch(List<String> allTxHashes) async {
-    List<Map<String, dynamic>> allTransactions = [];
+    final List<Map<String, dynamic>> allTransactions = [];
 
     const futureLimit = 30;
-    List<Future<Map<String, dynamic>>> transactionFutures = [];
+    final List<Future<Map<String, dynamic>>> transactionFutures = [];
     int currentFutureCount = 0;
     for (final txHash in allTxHashes) {
-      Future<Map<String, dynamic>> transactionFuture =
+      final Future<Map<String, dynamic>> transactionFuture =
           electrumXCachedClient.getTransaction(
         txHash: txHash,
         verbose: true,
-        coin: cryptoCurrency.coin,
+        cryptoCurrency: cryptoCurrency,
       );
       transactionFutures.add(transactionFuture);
       currentFutureCount++;
@@ -362,8 +369,8 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
     List<String> transactions,
   ) async {
     try {
-      Map<Address, Transaction> txs = {};
-      List<Map<String, dynamic>> allTransactions =
+      final Map<Address, Transaction> txs = {};
+      final List<Map<String, dynamic>> allTransactions =
           await fastFetch(transactions);
 
       for (int i = 0; i < allTransactions.length; i++) {
@@ -426,16 +433,18 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
           txs[address] = txn;
         } catch (e, s) {
           Logging.instance.log(
-              "Exception caught in getJMintTransactions(): $e\n$s",
-              level: LogLevel.Info);
+            "Exception caught in getJMintTransactions(): $e\n$s",
+            level: LogLevel.Info,
+          );
           rethrow;
         }
       }
       return txs;
     } catch (e, s) {
       Logging.instance.log(
-          "Exception rethrown in getJMintTransactions(): $e\n$s",
-          level: LogLevel.Info);
+        "Exception rethrown in getJMintTransactions(): $e\n$s",
+        level: LogLevel.Info,
+      );
       rethrow;
     }
   }
@@ -445,25 +454,26 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
       final latestSetId = await electrumXClient.getLelantusLatestCoinId();
 
       final List<Map<String, dynamic>> sets = [];
-      List<Future<Map<String, dynamic>>> anonFutures = [];
+      final List<Future<Map<String, dynamic>>> anonFutures = [];
       for (int i = 1; i <= latestSetId; i++) {
         final set = electrumXCachedClient.getAnonymitySet(
           groupId: "$i",
-          coin: info.coin,
+          cryptoCurrency: info.coin,
         );
         anonFutures.add(set);
       }
       await Future.wait(anonFutures);
       for (int i = 1; i <= latestSetId; i++) {
-        Map<String, dynamic> set = (await anonFutures[i - 1]);
+        final Map<String, dynamic> set = (await anonFutures[i - 1]);
         set["setId"] = i;
         sets.add(set);
       }
       return sets;
     } catch (e, s) {
       Logging.instance.log(
-          "Exception rethrown from refreshAnonymitySets: $e\n$s",
-          level: LogLevel.Error);
+        "Exception rethrown from refreshAnonymitySets: $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }
@@ -497,7 +507,7 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
 
     final usedSerialNumbersSet =
         (await electrumXCachedClient.getUsedCoinSerials(
-      coin: info.coin,
+      cryptoCurrency: info.coin,
     ))
             .toSet();
 
@@ -598,10 +608,10 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
 
     // TODO: [prio=high] shouldn't these be v2? If it doesn't matter than we can get rid of this logic
     // Edit the receive transactions with the mint fees.
-    List<Transaction> editedTransactions = [];
+    final List<Transaction> editedTransactions = [];
 
     for (final coin in result.lelantusCoins) {
-      String txid = coin.txid;
+      final String txid = coin.txid;
       Transaction? tx;
       try {
         tx = txns.firstWhere((e) => e.txid == txid);
@@ -614,7 +624,7 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
         continue;
       }
 
-      List<Transaction> inputTxns = [];
+      final List<Transaction> inputTxns = [];
       for (final input in tx.inputs) {
         Transaction? inputTx;
         try {
@@ -635,8 +645,8 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
         continue;
       }
 
-      int mintFee = tx.fee;
-      int sharedFee = mintFee ~/ inputTxns.length;
+      final int mintFee = tx.fee;
+      final int sharedFee = mintFee ~/ inputTxns.length;
       for (final inputTx in inputTxns) {
         final edited = Transaction(
           walletId: inputTx.walletId,
@@ -665,7 +675,7 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
     }
     // Logging.instance.log(editedTransactions, addToDebugMessagesDB: false);
 
-    Map<String, Transaction> transactionMap = {};
+    final Map<String, Transaction> transactionMap = {};
     for (final e in txns) {
       transactionMap[e.txid] = e;
     }
@@ -676,10 +686,12 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
       transactionMap[tx.txid] = tx;
     }
 
-    transactionMap.removeWhere((key, value) =>
-        result.lelantusCoins.any((element) => element.txid == key) ||
-        ((value.height == -1 || value.height == null) &&
-            !value.isConfirmed(currentHeight, cryptoCurrency.minConfirms)));
+    transactionMap.removeWhere(
+      (key, value) =>
+          result.lelantusCoins.any((element) => element.txid == key) ||
+          ((value.height == -1 || value.height == null) &&
+              !value.isConfirmed(currentHeight, cryptoCurrency.minConfirms)),
+    );
 
     try {
       await mainDB.isar.writeTxn(() async {
@@ -694,7 +706,7 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
       throw Exception("e=$e & s=$s");
     }
 
-    Map<String, Tuple2<Address?, Transaction>> data = {};
+    final Map<String, Tuple2<Address?, Transaction>> data = {};
 
     for (final entry in transactionMap.entries) {
       data[entry.key] = Tuple2(entry.value.address.value, entry.value);
@@ -730,9 +742,12 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
           value.item2.outputs.where((_) => true).toList(growable: false);
       final ins = value.item2.inputs.where((_) => true).toList(growable: false);
 
-      txnsData.add(Tuple2(
+      txnsData.add(
+        Tuple2(
           value.item2.copyWith(inputs: ins, outputs: outs).item1,
-          transactionAddress));
+          transactionAddress,
+        ),
+      );
     }
 
     await mainDB.addNewTransactionData(txnsData, walletId);
@@ -827,7 +842,7 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
 
     for (var mintsElement in txData.mintsMapLelantus!) {
       Logging.instance.log("using $mintsElement", level: LogLevel.Info);
-      Uint8List mintu8 =
+      final Uint8List mintu8 =
           Format.stringToUint8List(mintsElement['script'] as String);
       txb.addOutput(mintu8, mintsElement['value'] as int);
     }
@@ -843,12 +858,12 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
         witnessValue: signingData[i].utxo.value,
       );
     }
-    var incomplete = txb.buildIncomplete();
-    var txId = incomplete.getId();
-    var txHex = incomplete.toHex();
-    int fee = amount - incomplete.outs[0].value!;
+    final incomplete = txb.buildIncomplete();
+    final txId = incomplete.getId();
+    final txHex = incomplete.toHex();
+    final int fee = amount - incomplete.outs[0].value!;
 
-    var builtHex = txb.build();
+    final builtHex = txb.build();
 
     return txData.copyWith(
       recipients: [
@@ -859,7 +874,7 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
           ),
           address: "no address for lelantus mints",
           isChange: false,
-        )
+        ),
       ],
       vSize: builtHex.virtualSize(),
       txid: txId,
@@ -880,14 +895,14 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
     //   "value": amount - fee,
     //   "fees": Amount(
     //     rawValue: BigInt.from(fee),
-    //     fractionDigits: coin.decimals,
+    //     fractionDigits: coin.fractionDigits,
     //   ).decimal.toDouble(),
     //   "height": height,
     //   "txType": "Sent",
     //   "confirmed_status": false,
     //   "amount": Amount(
     //     rawValue: BigInt.from(amount),
-    //     fractionDigits: coin.decimals,
+    //     fractionDigits: coin.fractionDigits,
     //   ).decimal.toDouble(),
     //   "timestamp": DateTime.now().millisecondsSinceEpoch ~/ 1000,
     //   "subType": "mint",
@@ -908,7 +923,9 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
     // Build list of spendable outputs and totaling their satoshi amount
     for (var i = 0; i < availableOutputs.length; i++) {
       if (availableOutputs[i].isConfirmed(
-                  currentChainHeight, cryptoCurrency.minConfirms) ==
+                currentChainHeight,
+                cryptoCurrency.minConfirms,
+              ) ==
               true &&
           !(availableOutputs[i].isCoinbase &&
               availableOutputs[i].getConfirmations(currentChainHeight) <=
@@ -938,8 +955,9 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
         for (var element in value.inputs) {
           if (lelantusCoins.any((e) => e.txid == value.txid) &&
               spendableOutputs.firstWhere(
-                      (output) => output?.txid == element.txid,
-                      orElse: () => null) !=
+                    (output) => output?.txid == element.txid,
+                    orElse: () => null,
+                  ) !=
                   null) {
             spendableOutputs
                 .removeWhere((output) => output!.txid == element.txid);
@@ -954,7 +972,7 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
     }
 
     int satoshisBeingUsed = 0;
-    Set<UTXO> utxoObjectsToUse = {};
+    final Set<UTXO> utxoObjectsToUse = {};
 
     for (var i = 0; i < spendableOutputs.length; i++) {
       final spendable = spendableOutputs[i];
@@ -964,7 +982,7 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
       }
     }
 
-    var mintsWithoutFee = await _createMintsFromAmount(satoshisBeingUsed);
+    final mintsWithoutFee = await _createMintsFromAmount(satoshisBeingUsed);
 
     TxData txData = await buildMintTransaction(
       txData: TxData(
@@ -1005,7 +1023,8 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
   Future<List<Map<String, dynamic>>> _createMintsFromAmount(int total) async {
     if (total > LelantusFfiWrapper.MINT_LIMIT) {
       throw Exception(
-          "Lelantus mints of more than 5001 are currently disabled");
+        "Lelantus mints of more than 5001 are currently disabled",
+      );
     }
 
     int tmpTotal = total;
@@ -1075,10 +1094,11 @@ mixin LelantusInterface on Bip39HDWallet, ElectrumXInterface {
 
       if (!isUsedMintTag) {
         final mintValue = min(
-            tmpTotal,
-            (isTestnet
-                ? LelantusFfiWrapper.MINT_LIMIT_TESTNET
-                : LelantusFfiWrapper.MINT_LIMIT));
+          tmpTotal,
+          (isTestnet
+              ? LelantusFfiWrapper.MINT_LIMIT_TESTNET
+              : LelantusFfiWrapper.MINT_LIMIT),
+        );
         final mint = await LelantusFfiWrapper.getMintScript(
           amount: Amount(
             rawValue: BigInt.from(mintValue),

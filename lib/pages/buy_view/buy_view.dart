@@ -15,18 +15,18 @@ import 'package:stackwallet/pages/buy_view/buy_form.dart';
 import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:stackwallet/widgets/tor_subscription.dart';
 
 class BuyView extends ConsumerStatefulWidget {
   const BuyView({
-    Key? key,
+    super.key,
     this.coin,
     this.tokenContract,
-  }) : super(key: key);
+  });
 
-  final Coin? coin;
+  final CryptoCurrency? coin;
   final EthContract? tokenContract;
 
   static const String routeName = "/stackBuyView";
@@ -36,7 +36,7 @@ class BuyView extends ConsumerStatefulWidget {
 }
 
 class _BuyViewState extends ConsumerState<BuyView> {
-  Coin? coin;
+  CryptoCurrency? coin;
   EthContract? tokenContract;
 
   late bool torEnabled;

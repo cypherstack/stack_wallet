@@ -1,8 +1,9 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/dogecoin.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 class FeeSlider extends StatefulWidget {
   const FeeSlider({
@@ -12,7 +13,7 @@ class FeeSlider extends StatefulWidget {
     this.showWU = false,
   });
 
-  final Coin coin;
+  final CryptoCurrency coin;
   final bool showWU;
   final void Function(int) onSatVByteChanged;
 
@@ -51,12 +52,10 @@ class _FeeSliderState extends State<FeeSlider> {
             setState(() {
               sliderValue = value;
               final number = pow(sliderValue * (max - min) + min, 4).toDouble();
-              switch (widget.coin) {
-                case Coin.dogecoin:
-                case Coin.dogecoinTestNet:
-                  rate = (number * 1000).toInt();
-                default:
-                  rate = number.toInt();
+              if (widget.coin is Dogecoin) {
+                rate = (number * 1000).toInt();
+              } else {
+                rate = number.toInt();
               }
             });
             widget.onSatVByteChanged(rate);

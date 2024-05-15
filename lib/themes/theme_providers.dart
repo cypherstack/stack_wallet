@@ -13,7 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_service.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 final applicationThemesDirectoryPathProvider = StateProvider((ref) => "");
 
@@ -41,10 +41,10 @@ final themeAssetsProvider = StateProvider<IThemeAssets>(
   ),
 );
 
-final pCoinColor = StateProvider.family<Color, Coin>(
+final pCoinColor = StateProvider.family<Color, CryptoCurrency>(
   (ref, coin) =>
       ref.watch(
-        themeProvider.select((value) => value.coinColors[coin.mainNetVersion]),
+        themeProvider.select((value) => value.coinColors[coin.mainNetId]),
       ) ??
       Colors.deepOrangeAccent,
 );

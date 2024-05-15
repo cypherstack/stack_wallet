@@ -22,10 +22,12 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/epiccash.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/ethereum.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:tuple/tuple.dart';
 
@@ -49,16 +51,16 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
   late final bool isTokenTx;
   late final String prefix;
   late final String unit;
-  late final Coin coin;
+  late final CryptoCurrency coin;
   late final EthContract? tokenContract;
   late final int minConfirms;
 
   String whatIsIt(
     TransactionType type,
-    Coin coin,
+    CryptoCurrency coin,
     int currentHeight,
   ) {
-    if (coin == Coin.epicCash && _transaction.slateId == null) {
+    if (coin is Epiccash && _transaction.slateId == null) {
       return "Restored Funds";
     }
 
@@ -169,7 +171,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
             ),
           ),
           onPressed: () async {
-            if (coin == Coin.epicCash && _transaction.slateId == null) {
+            if (coin is Epiccash && _transaction.slateId == null) {
               unawaited(showFloatingFlushBar(
                 context: context,
                 message:
@@ -230,7 +232,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                               fit: BoxFit.scaleDown,
                               child: Text(
                                 _transaction.isCancelled
-                                    ? coin == Coin.ethereum
+                                    ? coin is Ethereum
                                         ? "Failed"
                                         : "Cancelled"
                                     : whatIsIt(

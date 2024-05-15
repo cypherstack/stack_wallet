@@ -70,7 +70,7 @@ class _SelectWalletForTokenViewState
     ref.read(createSpecialEthWalletRoutingFlag.notifier).state = true;
     Navigator.of(context).pushNamed(
       CreateOrRestoreWalletView.routeName,
-      arguments: CoinEntity(widget.entity.coin),
+      arguments: CoinEntity(widget.entity.cryptoCurrency),
     );
   }
 
@@ -78,7 +78,7 @@ class _SelectWalletForTokenViewState
   Widget build(BuildContext context) {
     final ethWalletInfos = ref
         .watch(pAllWalletsInfo)
-        .where((e) => e.coin == widget.entity.coin)
+        .where((e) => e.coin == widget.entity.cryptoCurrency)
         .toList();
 
     final _hasEthWallets = ethWalletInfos.isNotEmpty;
