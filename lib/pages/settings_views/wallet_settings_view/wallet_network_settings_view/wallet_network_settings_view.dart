@@ -32,9 +32,11 @@ import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/epiccash.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/monero.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/monero_wallet.dart';
@@ -57,12 +59,12 @@ import 'package:wakelock/wakelock.dart';
 /// [eventBus] should only be set during testing
 class WalletNetworkSettingsView extends ConsumerStatefulWidget {
   const WalletNetworkSettingsView({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.initialSyncStatus,
     required this.initialNodeStatus,
     this.eventBus,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final WalletSyncStatus initialSyncStatus;
@@ -260,7 +262,7 @@ class _WalletNetworkSettingsViewState
 
     final coin = ref.read(pWalletCoin(widget.walletId));
 
-    if (coin == Coin.monero || coin == Coin.wownero || coin == Coin.epicCash) {
+    if (coin is Monero || coin is Wownero || coin is Epiccash) {
       _blocksRemainingSubscription = eventBus.on<BlocksRemainingEvent>().listen(
         (event) async {
           if (event.walletId == widget.walletId) {
@@ -319,22 +321,22 @@ class _WalletNetworkSettingsViewState
 
     final coin = ref.watch(pWalletCoin(widget.walletId));
 
-    if (coin == Coin.monero) {
-      double highestPercent =
+    if (coin is Monero) {
+      final double highestPercent =
           (ref.read(pWallets).getWallet(widget.walletId) as MoneroWallet)
               .highestPercentCached;
       if (_percent < highestPercent) {
         _percent = highestPercent.clamp(0.0, 1.0);
       }
-    } else if (coin == Coin.wownero) {
-      double highestPercent =
+    } else if (coin is Wownero) {
+      final double highestPercent =
           (ref.watch(pWallets).getWallet(widget.walletId) as WowneroWallet)
               .highestPercentCached;
       if (_percent < highestPercent) {
         _percent = highestPercent.clamp(0.0, 1.0);
       }
-    } else if (coin == Coin.epicCash) {
-      double highestPercent =
+    } else if (coin is Epiccash) {
+      final double highestPercent =
           (ref.watch(pWallets).getWallet(widget.walletId) as EpiccashWallet)
               .highestPercent;
       if (_percent < highestPercent) {
@@ -360,7 +362,7 @@ class _WalletNetworkSettingsViewState
                 style: STextStyles.navBarTitle(context),
               ),
               actions: [
-                if (ref.watch(pWalletCoin(widget.walletId)) != Coin.epicCash)
+                if (ref.watch(pWalletCoin(widget.walletId)) is! Epiccash)
                   Padding(
                     padding: const EdgeInsets.only(
                       top: 10,
@@ -371,7 +373,8 @@ class _WalletNetworkSettingsViewState
                       aspectRatio: 1,
                       child: AppBarIconButton(
                         key: const Key(
-                            "walletNetworkSettingsAddNewNodeViewButton"),
+                          "walletNetworkSettingsAddNewNodeViewButton",
+                        ),
                         size: 36,
                         shadows: const [],
                         color: Theme.of(context)
@@ -402,8 +405,8 @@ class _WalletNetworkSettingsViewState
                                             .extension<StackColors>()!
                                             .popupBG,
                                         borderRadius: BorderRadius.circular(
-                                            Constants
-                                                .size.circularBorderRadius),
+                                          Constants.size.circularBorderRadius,
+                                        ),
                                         // boxShadow: [CFColors.standardBoxShadow],
                                         boxShadow: const [],
                                       ),
@@ -431,7 +434,8 @@ class _WalletNetworkSettingsViewState
                                                 child: Text(
                                                   "Rescan blockchain",
                                                   style: STextStyles.baseXS(
-                                                      context),
+                                                    context,
+                                                  ),
                                                 ),
                                               ),
                                             ),
@@ -620,9 +624,9 @@ class _WalletNetworkSettingsViewState
                                         .accentColorYellow,
                                   ),
                                 ),
-                                if (coin == Coin.monero ||
-                                    coin == Coin.wownero ||
-                                    coin == Coin.epicCash)
+                                if (coin is Monero ||
+                                    coin is Wownero ||
+                                    coin is Epiccash)
                                   Text(
                                     " (Blocks to go: ${_blocksRemaining == -1 ? "?" : _blocksRemaining})",
                                     style: STextStyles.syncPercent(context)
@@ -633,7 +637,7 @@ class _WalletNetworkSettingsViewState
                                     ),
                                   ),
                               ],
-                            )
+                            ),
                           ],
                         ),
                       ),
@@ -768,8 +772,9 @@ class _WalletNetworkSettingsViewState
                     : STextStyles.smallMed12(context),
               ),
               CustomTextButton(
-                text: ref.watch(prefsChangeNotifierProvider
-                        .select((value) => value.useTor))
+                text: ref.watch(
+                  prefsChangeNotifierProvider.select((value) => value.useTor),
+                )
                     ? "Disconnect"
                     : "Connect",
                 onTap: onTorTapped,
@@ -787,8 +792,9 @@ class _WalletNetworkSettingsViewState
                 isDesktop ? const EdgeInsets.all(16) : const EdgeInsets.all(12),
             child: Row(
               children: [
-                if (ref.watch(prefsChangeNotifierProvider
-                    .select((value) => value.useTor)))
+                if (ref.watch(
+                  prefsChangeNotifierProvider.select((value) => value.useTor),
+                ))
                   Container(
                     width: _iconSize,
                     height: _iconSize,
@@ -810,8 +816,9 @@ class _WalletNetworkSettingsViewState
                       ),
                     ),
                   ),
-                if (!ref.watch(prefsChangeNotifierProvider
-                    .select((value) => value.useTor)))
+                if (!ref.watch(
+                  prefsChangeNotifierProvider.select((value) => value.useTor),
+                ))
                   Container(
                     width: _iconSize,
                     height: _iconSize,
@@ -916,13 +923,11 @@ class _WalletNetworkSettingsViewState
             coin: ref.watch(pWalletCoin(widget.walletId)),
             popBackToRoute: WalletNetworkSettingsView.routeName,
           ),
-          if (isDesktop &&
-              ref.watch(pWalletCoin(widget.walletId)) != Coin.epicCash)
+          if (isDesktop && ref.watch(pWalletCoin(widget.walletId)) is! Epiccash)
             const SizedBox(
               height: 32,
             ),
-          if (isDesktop &&
-              ref.watch(pWalletCoin(widget.walletId)) != Coin.epicCash)
+          if (isDesktop && ref.watch(pWalletCoin(widget.walletId)) is! Epiccash)
             Padding(
               padding: const EdgeInsets.only(
                 bottom: 12,
@@ -938,8 +943,7 @@ class _WalletNetworkSettingsViewState
                 ],
               ),
             ),
-          if (isDesktop &&
-              ref.watch(pWalletCoin(widget.walletId)) != Coin.epicCash)
+          if (isDesktop && ref.watch(pWalletCoin(widget.walletId)) is! Epiccash)
             RoundedWhiteContainer(
               borderColor: isDesktop
                   ? Theme.of(context).extension<StackColors>()!.background
@@ -987,8 +991,8 @@ class _WalletNetworkSettingsViewState
                             Text(
                               "Advanced",
                               style: STextStyles.desktopTextExtraExtraSmall(
-                                      context)
-                                  .copyWith(
+                                context,
+                              ).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
                                     .textDark,
@@ -997,10 +1001,11 @@ class _WalletNetworkSettingsViewState
                             Text(
                               "Rescan blockchain",
                               style: STextStyles.desktopTextExtraExtraSmall(
-                                  context),
+                                context,
+                              ),
                             ),
                           ],
-                        )
+                        ),
                       ],
                     ),
                     SvgPicture.asset(

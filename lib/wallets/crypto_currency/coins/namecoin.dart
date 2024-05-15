@@ -3,20 +3,44 @@ import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:stackwallet/wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 
-class Namecoin extends Bip39HDCurrency {
+class Namecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   Namecoin(super.network) {
+    _idMain = "namecoin";
+    _uriScheme = "namecoin";
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        coin = Coin.namecoin;
+        _id = _idMain;
+        _name = "Namecoin";
+        _ticker = "NMC";
       default:
         throw Exception("Unsupported network: $network");
     }
   }
+
+  late final String _id;
+  @override
+  String get identifier => _id;
+
+  late final String _idMain;
+  @override
+  String get mainNetId => _idMain;
+
+  late final String _name;
+  @override
+  String get prettyName => _name;
+
+  late final String _uriScheme;
+  @override
+  String get uriScheme => _uriScheme;
+
+  late final String _ticker;
+  @override
+  String get ticker => _ticker;
 
   @override
   // See https://github.com/cypherstack/stack_wallet/blob/621aff47969761014e0a6c4e699cb637d5687ab3/lib/services/coins/namecoin/namecoin_wallet.dart#L58
@@ -71,10 +95,10 @@ class Namecoin extends Bip39HDCurrency {
           host: "namecoin.stackwallet.com",
           port: 57002,
           name: DefaultNodes.defaultName,
-          id: DefaultNodes.buildId(Coin.namecoin),
+          id: DefaultNodes.buildId(this),
           useSSL: true,
           enabled: true,
-          coinName: Coin.namecoin.name,
+          coinName: identifier,
           isFailover: true,
           isDown: false,
         );
@@ -87,8 +111,10 @@ class Namecoin extends Bip39HDCurrency {
 
   @override
   // See https://github.com/cypherstack/stack_wallet/blob/621aff47969761014e0a6c4e699cb637d5687ab3/lib/services/coins/namecoin/namecoin_wallet.dart#L60
-  Amount get dustLimit =>
-      Amount(rawValue: BigInt.from(546), fractionDigits: Coin.particl.decimals);
+  Amount get dustLimit => Amount(
+        rawValue: BigInt.from(546),
+        fractionDigits: fractionDigits,
+      );
 
   @override
   // See https://github.com/cypherstack/stack_wallet/blob/621aff47969761014e0a6c4e699cb637d5687ab3/lib/services/coins/namecoin/namecoin_wallet.dart#L6
@@ -187,10 +213,41 @@ class Namecoin extends Bip39HDCurrency {
   }
 
   @override
-  bool operator ==(Object other) {
-    return other is Namecoin && other.network == network;
-  }
+  int get defaultSeedPhraseLength => 12;
 
   @override
-  int get hashCode => Object.hash(Namecoin, network);
+  int get fractionDigits => 8;
+
+  @override
+  bool get hasBuySupport => false;
+
+  @override
+  bool get hasMnemonicPassphraseSupport => true;
+
+  @override
+  List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 12];
+
+  @override
+  AddressType get primaryAddressType => AddressType.p2wpkh;
+
+  @override
+  BigInt get satsPerCoin => BigInt.from(100000000);
+
+  @override
+  int get targetBlockTimeSeconds => 600;
+
+  @override
+  DerivePathType get primaryDerivePathType => DerivePathType.bip84;
+
+  @override
+  Uri defaultBlockExplorer(String txid) {
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        return Uri.parse("https://chainz.cryptoid.info/nmc/tx.dws?$txid.htm");
+      default:
+        throw Exception(
+          "Unsupported network for defaultBlockExplorer(): $network",
+        );
+    }
+  }
 }

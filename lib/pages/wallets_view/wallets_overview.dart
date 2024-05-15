@@ -21,9 +21,10 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/ethereum.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
@@ -40,12 +41,12 @@ import 'package:tuple/tuple.dart';
 
 class WalletsOverview extends ConsumerStatefulWidget {
   const WalletsOverview({
-    Key? key,
+    super.key,
     required this.coin,
     this.navigatorState,
-  }) : super(key: key);
+  });
 
-  final Coin coin;
+  final CryptoCurrency coin;
   final NavigatorState? navigatorState;
 
   static const routeName = "/walletsOverview";
@@ -116,7 +117,7 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
         ref.read(mainDBProvider).isar.walletInfo.where().findAllSync();
     walletsData.removeWhere((e) => e.coin != widget.coin);
 
-    if (widget.coin == Coin.ethereum) {
+    if (widget.coin is Ethereum) {
       for (final data in walletsData) {
         final List<EthContract> contracts = [];
         final contractAddresses =

@@ -22,10 +22,10 @@ import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/amount/amount_input_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/date_picker/date_picker.dart';
@@ -46,7 +46,7 @@ class TransactionSearchFilterView extends ConsumerStatefulWidget {
 
   static const String routeName = "/transactionSearchFilter";
 
-  final Coin coin;
+  final CryptoCurrency coin;
 
   @override
   ConsumerState<TransactionSearchFilterView> createState() =>
@@ -665,7 +665,7 @@ class _TransactionSearchViewState
                     ),
               inputFormatters: [
                 AmountInputFormatter(
-                  decimals: widget.coin.decimals,
+                  decimals: widget.coin.fractionDigits,
                   unit: ref.watch(pAmountUnit(widget.coin)),
                   locale: ref.watch(
                     localeServiceChangeNotifierProvider
@@ -896,9 +896,9 @@ class _TransactionSearchViewState
     if (amountText.isNotEmpty && !(amountText == "," || amountText == ".")) {
       amount = amountText.contains(",")
           ? Decimal.parse(amountText.replaceFirst(",", "."))
-              .toAmount(fractionDigits: widget.coin.decimals)
+              .toAmount(fractionDigits: widget.coin.fractionDigits)
           : Decimal.parse(amountText)
-              .toAmount(fractionDigits: widget.coin.decimals);
+              .toAmount(fractionDigits: widget.coin.fractionDigits);
     }
 
     final TransactionFilter filter = TransactionFilter(

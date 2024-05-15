@@ -26,7 +26,6 @@ import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/default_epicboxes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
@@ -543,7 +542,7 @@ class EpiccashWallet extends Bip39Wallet {
       } else {
         try {
           Logging.instance.log(
-              "initializeExisting() ${cryptoCurrency.coin.prettyName} wallet",
+              "initializeExisting() ${cryptoCurrency.prettyName} wallet",
               level: LogLevel.Info);
 
           final config = await _getRealConfig();
@@ -774,7 +773,7 @@ class EpiccashWallet extends Bip39Wallet {
         WalletSyncStatusChangedEvent(
           WalletSyncStatus.syncing,
           walletId,
-          cryptoCurrency.coin,
+          cryptoCurrency,
         ),
       );
 
@@ -831,7 +830,7 @@ class EpiccashWallet extends Bip39Wallet {
         WalletSyncStatusChangedEvent(
           WalletSyncStatus.synced,
           walletId,
-          cryptoCurrency.coin,
+          cryptoCurrency,
         ),
       );
 
@@ -853,14 +852,14 @@ class EpiccashWallet extends Bip39Wallet {
         NodeConnectionStatusChangedEvent(
           NodeConnectionStatus.disconnected,
           walletId,
-          cryptoCurrency.coin,
+          cryptoCurrency,
         ),
       );
       GlobalEventBus.instance.fire(
         WalletSyncStatusChangedEvent(
           WalletSyncStatus.unableToSync,
           walletId,
-          cryptoCurrency.coin,
+          cryptoCurrency,
         ),
       );
       Logging.instance.log(
@@ -1072,7 +1071,7 @@ class EpiccashWallet extends Bip39Wallet {
   @override
   Future<bool> pingCheck() async {
     try {
-      final node = nodeService.getPrimaryNodeFor(coin: cryptoCurrency.coin);
+      final node = nodeService.getPrimaryNodeFor(currency: cryptoCurrency);
 
       // force unwrap optional as we want connection test to fail if wallet
       // wasn't initialized or epicbox node was set to null

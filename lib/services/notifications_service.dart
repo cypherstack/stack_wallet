@@ -21,9 +21,10 @@ import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/trade_service.dart';
 import 'package:stackwallet/services/wallets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 
 import 'exchange/exchange.dart';
@@ -55,15 +56,19 @@ class NotificationsService extends ChangeNotifier {
 
   Future<void> _addWatchedTxNotification(NotificationModel notification) async {
     await DB.instance.put<NotificationModel>(
-        boxName: DB.boxNameWatchedTransactions,
-        key: notification.id,
-        value: notification);
+      boxName: DB.boxNameWatchedTransactions,
+      key: notification.id,
+      value: notification,
+    );
   }
 
   Future<void> _deleteWatchedTxNotification(
-      NotificationModel notification) async {
+    NotificationModel notification,
+  ) async {
     await DB.instance.delete<NotificationModel>(
-        boxName: DB.boxNameWatchedTransactions, key: notification.id);
+      boxName: DB.boxNameWatchedTransactions,
+      key: notification.id,
+    );
   }
 
   // watched trades
@@ -73,17 +78,22 @@ class NotificationsService extends ChangeNotifier {
   }
 
   Future<void> _addWatchedTradeNotification(
-      NotificationModel notification) async {
+    NotificationModel notification,
+  ) async {
     await DB.instance.put<NotificationModel>(
-        boxName: DB.boxNameWatchedTrades,
-        key: notification.id,
-        value: notification);
+      boxName: DB.boxNameWatchedTrades,
+      key: notification.id,
+      value: notification,
+    );
   }
 
   Future<void> _deleteWatchedTradeNotification(
-      NotificationModel notification) async {
+    NotificationModel notification,
+  ) async {
     await DB.instance.delete<NotificationModel>(
-        boxName: DB.boxNameWatchedTrades, key: notification.id);
+      boxName: DB.boxNameWatchedTrades,
+      key: notification.id,
+    );
   }
 
   static Timer? _timer;
@@ -118,11 +128,12 @@ class NotificationsService extends ChangeNotifier {
   void _checkTransactions() async {
     for (final notification in _watchedTransactionNotifications) {
       try {
-        final Coin coin = coinFromPrettyName(notification.coinName);
+        final CryptoCurrency coin =
+            SupportedCoins.getCryptoCurrencyByPrettyName(notification.coinName);
         final txid = notification.txid!;
         final wallet = Wallets.sharedInstance.getWallet(notification.walletId);
 
-        final node = nodeService.getPrimaryNodeFor(coin: coin);
+        final node = nodeService.getPrimaryNodeFor(currency: coin);
         if (node != null) {
           if (wallet is ElectrumXInterface) {
             final eNode = ElectrumXNode(
@@ -133,14 +144,16 @@ class NotificationsService extends ChangeNotifier {
               useSSL: node.useSSL,
             );
             final failovers = nodeService
-                .failoverNodesFor(coin: coin)
-                .map((e) => ElectrumXNode(
-                      address: e.host,
-                      port: e.port,
-                      name: e.name,
-                      id: e.id,
-                      useSSL: e.useSSL,
-                    ))
+                .failoverNodesFor(currency: coin)
+                .map(
+                  (e) => ElectrumXNode(
+                    address: e.host,
+                    port: e.port,
+                    name: e.name,
+                    id: e.id,
+                    useSSL: e.useSSL,
+                  ),
+                )
                 .toList();
 
             final client = ElectrumXClient.from(
@@ -280,7 +293,8 @@ class NotificationsService extends ChangeNotifier {
     return DB.instance
         .values<NotificationModel>(boxName: DB.boxNameNotifications)
         .where(
-            (element) => element.read == false && element.walletId == walletId)
+          (element) => element.read == false && element.walletId == walletId,
+        )
         .isNotEmpty;
   }
 
@@ -320,7 +334,9 @@ class NotificationsService extends ChangeNotifier {
     bool shouldNotifyListeners,
   ) async {
     await DB.instance.delete<NotificationModel>(
-        boxName: DB.boxNameNotifications, key: notification.id);
+      boxName: DB.boxNameNotifications,
+      key: notification.id,
+    );
 
     await _deleteWatchedTradeNotification(notification);
     await _deleteWatchedTxNotification(notification);

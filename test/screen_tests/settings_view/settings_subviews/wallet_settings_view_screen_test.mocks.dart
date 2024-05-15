@@ -13,7 +13,8 @@ import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart' as _i3;
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart' as _i2;
 import 'package:stackwallet/services/wallets_service.dart' as _i9;
 import 'package:stackwallet/utilities/biometrics.dart' as _i8;
-import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i5;
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart'
+    as _i5;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -58,7 +59,7 @@ class MockCachedElectrumXClient extends _i1.Mock
   _i4.Future<Map<String, dynamic>> getAnonymitySet({
     required String? groupId,
     String? blockhash = r'',
-    required _i5.Coin? coin,
+    required _i5.CryptoCurrency? cryptoCurrency,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -67,7 +68,7 @@ class MockCachedElectrumXClient extends _i1.Mock
           {
             #groupId: groupId,
             #blockhash: blockhash,
-            #coin: coin,
+            #cryptoCurrency: cryptoCurrency,
           },
         ),
         returnValue:
@@ -77,7 +78,7 @@ class MockCachedElectrumXClient extends _i1.Mock
   _i4.Future<Map<String, dynamic>> getSparkAnonymitySet({
     required String? groupId,
     String? blockhash = r'',
-    required _i5.Coin? coin,
+    required _i5.CryptoCurrency? cryptoCurrency,
     required bool? useOnlyCacheIfNotEmpty,
   }) =>
       (super.noSuchMethod(
@@ -87,7 +88,7 @@ class MockCachedElectrumXClient extends _i1.Mock
           {
             #groupId: groupId,
             #blockhash: blockhash,
-            #coin: coin,
+            #cryptoCurrency: cryptoCurrency,
             #useOnlyCacheIfNotEmpty: useOnlyCacheIfNotEmpty,
           },
         ),
@@ -113,7 +114,7 @@ class MockCachedElectrumXClient extends _i1.Mock
   @override
   _i4.Future<Map<String, dynamic>> getTransaction({
     required String? txHash,
-    required _i5.Coin? coin,
+    required _i5.CryptoCurrency? cryptoCurrency,
     bool? verbose = true,
   }) =>
       (super.noSuchMethod(
@@ -122,7 +123,7 @@ class MockCachedElectrumXClient extends _i1.Mock
           [],
           {
             #txHash: txHash,
-            #coin: coin,
+            #cryptoCurrency: cryptoCurrency,
             #verbose: verbose,
           },
         ),
@@ -131,7 +132,7 @@ class MockCachedElectrumXClient extends _i1.Mock
       ) as _i4.Future<Map<String, dynamic>>);
   @override
   _i4.Future<List<String>> getUsedCoinSerials({
-    required _i5.Coin? coin,
+    required _i5.CryptoCurrency? cryptoCurrency,
     int? startNumber = 0,
   }) =>
       (super.noSuchMethod(
@@ -139,29 +140,31 @@ class MockCachedElectrumXClient extends _i1.Mock
           #getUsedCoinSerials,
           [],
           {
-            #coin: coin,
+            #cryptoCurrency: cryptoCurrency,
             #startNumber: startNumber,
           },
         ),
         returnValue: _i4.Future<List<String>>.value(<String>[]),
       ) as _i4.Future<List<String>>);
   @override
-  _i4.Future<Set<String>> getSparkUsedCoinsTags({required _i5.Coin? coin}) =>
+  _i4.Future<Set<String>> getSparkUsedCoinsTags(
+          {required _i5.CryptoCurrency? cryptoCurrency}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getSparkUsedCoinsTags,
           [],
-          {#coin: coin},
+          {#cryptoCurrency: cryptoCurrency},
         ),
         returnValue: _i4.Future<Set<String>>.value(<String>{}),
       ) as _i4.Future<Set<String>>);
   @override
-  _i4.Future<void> clearSharedTransactionCache({required _i5.Coin? coin}) =>
+  _i4.Future<void> clearSharedTransactionCache(
+          {required _i5.CryptoCurrency? cryptoCurrency}) =>
       (super.noSuchMethod(
         Invocation.method(
           #clearSharedTransactionCache,
           [],
-          {#coin: coin},
+          {#cryptoCurrency: cryptoCurrency},
         ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),

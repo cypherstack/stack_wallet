@@ -28,10 +28,12 @@ import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/bitcoincash.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/ecash.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -45,15 +47,15 @@ import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
 class GenerateUriQrCodeView extends StatefulWidget {
   const GenerateUriQrCodeView({
-    Key? key,
+    super.key,
     required this.coin,
     required this.receivingAddress,
     this.clipboard = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   static const String routeName = "/generateUriQrCodeView";
 
-  final Coin coin;
+  final CryptoCurrency coin;
   final String receivingAddress;
   final ClipboardInterface clipboard;
 
@@ -76,12 +78,12 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
 
   Future<void> _capturePng(bool shouldSaveInsteadOfShare) async {
     try {
-      RenderRepaintBoundary boundary =
+      final RenderRepaintBoundary boundary =
           _qrKey.currentContext?.findRenderObject() as RenderRepaintBoundary;
-      ui.Image image = await boundary.toImage();
-      ByteData? byteData =
+      final ui.Image image = await boundary.toImage();
+      final ByteData? byteData =
           await image.toByteData(format: ui.ImageByteFormat.png);
-      Uint8List pngBytes = byteData!.buffer.asUint8List();
+      final Uint8List pngBytes = byteData!.buffer.asUint8List();
 
       if (shouldSaveInsteadOfShare) {
         if (Util.isDesktop) {
@@ -149,7 +151,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
       return null;
     }
 
-    Map<String, String> queryParams = {};
+    final Map<String, String> queryParams = {};
 
     if (amountString.isNotEmpty) {
       queryParams["amount"] = amountString;
@@ -159,9 +161,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
     }
 
     String receivingAddress = widget.receivingAddress;
-    if ((widget.coin == Coin.bitcoincash ||
-            widget.coin == Coin.eCash ||
-            widget.coin == Coin.bitcoincashTestnet) &&
+    if ((widget.coin is Bitcoincash || widget.coin is Ecash) &&
         receivingAddress.contains(":")) {
       // remove cash addr prefix
       receivingAddress = receivingAddress.split(":").sublist(1).join();
@@ -256,9 +256,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
     isDesktop = Util.isDesktop;
 
     String receivingAddress = widget.receivingAddress;
-    if ((widget.coin == Coin.bitcoincash ||
-            widget.coin == Coin.eCash ||
-            widget.coin == Coin.bitcoincashTestnet) &&
+    if ((widget.coin is Bitcoincash || widget.coin is Ecash) &&
         receivingAddress.contains(":")) {
       // remove cash addr prefix
       receivingAddress = receivingAddress.split(":").sublist(1).join();

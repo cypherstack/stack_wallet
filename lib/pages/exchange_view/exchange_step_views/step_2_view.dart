@@ -19,12 +19,12 @@ import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_3_view.
 import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
+import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -72,7 +72,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
 
   bool isStackCoin(String ticker) {
     try {
-      coinFromTickerCaseInsensitive(ticker);
+      SupportedCoins.getCryptoCurrencyForTicker(ticker);
       return true;
     } on ArgumentError catch (_) {
       return false;
@@ -207,10 +207,13 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                   text: "Choose from Stack",
                                   onTap: () {
                                     try {
-                                      final coin =
-                                          coinFromTickerCaseInsensitive(
-                                        model.receiveTicker,
-                                      );
+                                      final coin = SupportedCoins
+                                          .cryptocurrencies
+                                          .firstWhere((e) =>
+                                              e.ticker.toLowerCase() ==
+                                              model.receiveTicker
+                                                  .toLowerCase());
+
                                       Navigator.of(context)
                                           .pushNamed(
                                         ChooseFromStackView.routeName,
@@ -480,10 +483,12 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                     text: "Choose from Stack",
                                     onTap: () {
                                       try {
-                                        final coin =
-                                            coinFromTickerCaseInsensitive(
-                                          model.sendTicker,
-                                        );
+                                        final coin = SupportedCoins
+                                            .cryptocurrencies
+                                            .firstWhere((e) =>
+                                                e.ticker.toLowerCase() ==
+                                                model.sendTicker.toLowerCase());
+
                                         Navigator.of(context)
                                             .pushNamed(
                                           ChooseFromStackView.routeName,

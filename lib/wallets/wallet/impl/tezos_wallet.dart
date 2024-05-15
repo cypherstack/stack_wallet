@@ -9,8 +9,6 @@ import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/extensions/impl/string.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/api/tezos/tezos_account.dart';
@@ -108,12 +106,14 @@ class TezosWallet extends Bip39Wallet<Tezos> {
       //   print("COUNTER: $counter");
       //   print("customFee: $customFee");
       // }
-      ({InternetAddress host, int port})? proxyInfo =
+      final ({InternetAddress host, int port})? proxyInfo =
           prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null;
-      final tezartClient = tezart.TezartClient(server,
-          proxy: proxyInfo != null
-              ? "socks5://${proxyInfo.host}:${proxyInfo.port};"
-              : null);
+      final tezartClient = tezart.TezartClient(
+        server,
+        proxy: proxyInfo != null
+            ? "socks5://${proxyInfo.host}:${proxyInfo.port};"
+            : null,
+      );
 
       final opList = await tezartClient.transferOperation(
         source: sourceKeyStore,
@@ -182,7 +182,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
         throw Exception("$runtimeType prepareSend requires 1 recipient");
       }
 
-      Amount sendAmount = txData.amount!;
+      final Amount sendAmount = txData.amount!;
 
       if (sendAmount > info.cachedBalance.spendable) {
         throw Exception("Insufficient available balance");
@@ -249,7 +249,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
             amount: sendAmount,
             address: txData.recipients!.first.address,
             isChange: txData.recipients!.first.isChange,
-          )
+          ),
         ],
         // fee: fee,
         fee: Amount(
@@ -522,8 +522,8 @@ class TezosWallet extends Bip39Wallet<Tezos> {
   @override
   Future<void> updateNode() async {
     _xtzNode = NodeService(secureStorageInterface: secureStorageInterface)
-            .getPrimaryNodeFor(coin: info.coin) ??
-        DefaultNodes.getNodeFor(info.coin);
+            .getPrimaryNodeFor(currency: info.coin) ??
+        info.coin.defaultNode;
 
     await refresh();
   }
@@ -532,8 +532,8 @@ class TezosWallet extends Bip39Wallet<Tezos> {
   NodeModel getCurrentNode() {
     return _xtzNode ??
         NodeService(secureStorageInterface: secureStorageInterface)
-            .getPrimaryNodeFor(coin: info.coin) ??
-        DefaultNodes.getNodeFor(info.coin);
+            .getPrimaryNodeFor(currency: info.coin) ??
+        info.coin.defaultNode;
   }
 
   @override
@@ -547,7 +547,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
       return;
     }
 
-    List<Tuple2<Transaction, Address>> transactions = [];
+    final List<Tuple2<Transaction, Address>> transactions = [];
     for (final theTx in txs) {
       final TransactionType txType;
 
@@ -563,7 +563,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
         txType = TransactionType.unknown;
       }
 
-      var transaction = Transaction(
+      final transaction = Transaction(
         walletId: walletId,
         txid: theTx.hash,
         timestamp: theTx.timestamp,

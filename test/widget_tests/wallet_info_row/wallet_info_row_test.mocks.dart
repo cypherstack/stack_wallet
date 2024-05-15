@@ -5,7 +5,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i9;
 import 'dart:typed_data' as _i14;
-import 'dart:ui' as _i17;
+import 'dart:ui' as _i16;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/db/isar/main_db.dart' as _i3;
@@ -15,7 +15,6 @@ import 'package:stackwallet/networking/http.dart' as _i6;
 import 'package:stackwallet/services/node_service.dart' as _i2;
 import 'package:stackwallet/services/wallets.dart' as _i8;
 import 'package:stackwallet/themes/theme_service.dart' as _i12;
-import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i16;
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart'
     as _i7;
 import 'package:stackwallet/utilities/prefs.dart' as _i11;
@@ -360,7 +359,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
       ) as _i9.Future<void>);
   @override
   _i9.Future<void> setPrimaryNodeFor({
-    required _i16.Coin? coin,
+    required _i4.CryptoCurrency? coin,
     required _i15.NodeModel? node,
     bool? shouldNotifyListeners = false,
   }) =>
@@ -378,14 +377,15 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         returnValueForMissingStub: _i9.Future<void>.value(),
       ) as _i9.Future<void>);
   @override
-  _i15.NodeModel? getPrimaryNodeFor({required _i16.Coin? coin}) =>
+  _i15.NodeModel? getPrimaryNodeFor({required _i4.CryptoCurrency? currency}) =>
       (super.noSuchMethod(Invocation.method(
         #getPrimaryNodeFor,
         [],
-        {#coin: coin},
+        {#currency: currency},
       )) as _i15.NodeModel?);
   @override
-  List<_i15.NodeModel> getNodesFor(_i16.Coin? coin) => (super.noSuchMethod(
+  List<_i15.NodeModel> getNodesFor(_i4.CryptoCurrency? coin) =>
+      (super.noSuchMethod(
         Invocation.method(
           #getNodesFor,
           [coin],
@@ -400,12 +400,13 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         {#id: id},
       )) as _i15.NodeModel?);
   @override
-  List<_i15.NodeModel> failoverNodesFor({required _i16.Coin? coin}) =>
+  List<_i15.NodeModel> failoverNodesFor(
+          {required _i4.CryptoCurrency? currency}) =>
       (super.noSuchMethod(
         Invocation.method(
           #failoverNodesFor,
           [],
-          {#coin: coin},
+          {#currency: currency},
         ),
         returnValue: <_i15.NodeModel>[],
       ) as List<_i15.NodeModel>);
@@ -489,7 +490,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         returnValueForMissingStub: _i9.Future<void>.value(),
       ) as _i9.Future<void>);
   @override
-  void addListener(_i17.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i16.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -497,7 +498,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         returnValueForMissingStub: null,
       );
   @override
-  void removeListener(_i17.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i16.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],

@@ -6,8 +6,13 @@ import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/epiccash.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/stellar.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/tezos.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/token_wallet_info.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info_meta.dart';
@@ -37,13 +42,13 @@ Future<void> migrateWalletsToIsar({
   //
   final List<
       ({
-        Coin coin,
+        String coinIdentifier,
         String name,
         String walletId,
       })> oldInfo = Map<String, dynamic>.from(names).values.map((e) {
     final map = e as Map;
     return (
-      coin: Coin.values.byName(map["coin"] as String),
+      coinIdentifier: map["coin"] as String,
       walletId: map["id"] as String,
       name: map["name"] as String,
     );
@@ -93,16 +98,16 @@ Future<void> migrateWalletsToIsar({
     }
 
     // reset stellar + tezos address type
-    if (old.coin == Coin.stellar ||
-        old.coin == Coin.stellarTestnet ||
-        old.coin == Coin.tezos) {
+    if (old.coinIdentifier == Stellar(CryptoCurrencyNetwork.main).identifier ||
+        old.coinIdentifier == Stellar(CryptoCurrencyNetwork.test).identifier ||
+        old.coinIdentifier == Tezos(CryptoCurrencyNetwork.main).identifier) {
       await MainDB.instance.deleteWalletBlockchainData(old.walletId);
     }
 
     //
     // Set other data values
     //
-    Map<String, dynamic> otherData = {};
+    final Map<String, dynamic> otherData = {};
 
     final List<String>? tokenContractAddresses = walletBox.get(
       "ethTokenContracts",
@@ -129,7 +134,7 @@ Future<void> migrateWalletsToIsar({
     }
 
     // epiccash specifics
-    if (old.coin == Coin.epicCash) {
+    if (old.coinIdentifier == Epiccash(CryptoCurrencyNetwork.main)) {
       final epicWalletInfo = ExtraEpiccashWalletInfo.fromMap({
         "receivingIndex": walletBox.get("receivingIndex") as int? ?? 0,
         "changeIndex": walletBox.get("changeIndex") as int? ?? 0,
@@ -142,7 +147,9 @@ Future<void> migrateWalletsToIsar({
       otherData[WalletInfoKeys.epiccashData] = jsonEncode(
         epicWalletInfo.toMap(),
       );
-    } else if (old.coin == Coin.firo || old.coin == Coin.firoTestNet) {
+    } else if (old.coinIdentifier ==
+            Firo(CryptoCurrencyNetwork.main).identifier ||
+        old.coinIdentifier == Firo(CryptoCurrencyNetwork.test).identifier) {
       otherData[WalletInfoKeys.lelantusCoinIsarRescanRequired] = walletBox
               .get(WalletInfoKeys.lelantusCoinIsarRescanRequired) as bool? ??
           true;
@@ -161,10 +168,11 @@ Future<void> migrateWalletsToIsar({
     );
 
     final info = WalletInfo(
-      coinName: old.coin.name,
+      coinName: old.coinIdentifier,
       walletId: old.walletId,
       name: old.name,
-      mainAddressType: old.coin.primaryAddressType,
+      mainAddressType: SupportedCoins.getCryptoCurrencyFor(old.coinIdentifier)
+          .primaryAddressType,
       favouriteOrderIndex: favourites.indexOf(old.walletId),
       cachedChainHeight: walletBox.get(
             DBKeys.storedChainHeight,

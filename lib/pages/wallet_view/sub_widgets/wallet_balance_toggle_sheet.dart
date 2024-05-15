@@ -17,9 +17,10 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 
 enum _BalanceType {
@@ -44,7 +45,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
     final maxHeight = MediaQuery.of(context).size.height * 0.90;
 
     final coin = ref.watch(pWalletCoin(walletId));
-    final isFiro = coin == Coin.firo || coin == Coin.firoTestNet;
+    final isFiro = coin is Firo;
 
     final balance = ref.watch(pWalletBalance(walletId));
 
@@ -305,7 +306,7 @@ class BalanceSelector<T> extends ConsumerWidget {
   });
 
   final String title;
-  final Coin coin;
+  final CryptoCurrency coin;
   final Amount balance;
   final VoidCallback onPressed;
   final void Function(T?) onChanged;

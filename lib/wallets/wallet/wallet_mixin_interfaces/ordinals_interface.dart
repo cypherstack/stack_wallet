@@ -4,9 +4,11 @@ import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/models/isar/ordinal.dart';
 import 'package:stackwallet/services/litescribe_api.dart';
 import 'package:stackwallet/utilities/logger.dart';
+import 'package:stackwallet/wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 
-mixin OrdinalsInterface on ElectrumXInterface {
+mixin OrdinalsInterface<T extends ElectrumXCurrencyInterface>
+    on ElectrumXInterface<T> {
   final LitescribeAPI _litescribeAPI =
       LitescribeAPI(baseUrl: 'https://litescribe.io/api');
 

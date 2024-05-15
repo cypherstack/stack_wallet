@@ -12,11 +12,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/contact_entry.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 
 class AddressBookService extends ChangeNotifier {
   ContactEntry getContactById(String id) {
-    ContactEntry? contactEntry = MainDB.instance.getContactEntry(id: id);
+    final ContactEntry? contactEntry = MainDB.instance.getContactEntry(id: id);
     if (contactEntry == null) {
       throw Exception('Contact ID "$id" not found!');
     } else {
@@ -30,7 +29,7 @@ class AddressBookService extends ChangeNotifier {
   //TODO search using isar queries
   Future<List<ContactEntry>> search(String text) async {
     if (text.isEmpty) return contacts;
-    var results = contacts.toList();
+    final results = contacts.toList();
 
     results.retainWhere((contact) => matches(text, contact));
 
@@ -47,7 +46,7 @@ class AddressBookService extends ChangeNotifier {
     }
     for (int i = 0; i < contact.addresses.length; i++) {
       if (contact.addresses[i].label.toLowerCase().contains(text) ||
-          contact.addresses[i].coin.name.toLowerCase().contains(text) ||
+          contact.addresses[i].coin.identifier.toLowerCase().contains(text) ||
           contact.addresses[i].coin.prettyName.toLowerCase().contains(text) ||
           contact.addresses[i].coin.ticker.toLowerCase().contains(text) ||
           contact.addresses[i].address.toLowerCase().contains(text)) {

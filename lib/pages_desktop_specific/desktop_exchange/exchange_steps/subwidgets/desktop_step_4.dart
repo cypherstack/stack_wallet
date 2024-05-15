@@ -15,8 +15,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_item.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -37,7 +37,7 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
 
   bool _isWalletCoinAndHasWallet(String ticker) {
     try {
-      final coin = coinFromTickerCaseInsensitive(ticker);
+      final coin = SupportedCoins.getCryptoCurrencyForTicker(ticker);
       return ref
           .read(pWallets)
           .wallets

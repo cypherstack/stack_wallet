@@ -8,11 +8,13 @@ import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/signing_data.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:stackwallet/wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 
-mixin BCashInterface on Bip39HDWallet, ElectrumXInterface {
+mixin BCashInterface<T extends ElectrumXCurrencyInterface>
+    on Bip39HDWallet<T>, ElectrumXInterface<T> {
   @override
   Future<TxData> buildTransaction({
     required TxData txData,

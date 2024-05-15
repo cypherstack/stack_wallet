@@ -8,22 +8,49 @@ import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:stackwallet/wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 
-class Bitcoincash extends Bip39HDCurrency {
+class Bitcoincash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   Bitcoincash(super.network) {
+    _idMain = "bitcoincash";
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        coin = Coin.bitcoincash;
+        _id = _idMain;
+        _name = "Bitcoin Cash";
+        _ticker = "BCH";
+        _uriScheme = "bitcoincash";
       case CryptoCurrencyNetwork.test:
-        coin = Coin.bitcoincashTestnet;
+        _id = "bitcoincashTestnet";
+        _name = "tBitcoin Cash";
+        _ticker = "tBCH";
+        _uriScheme = "bchtest";
       default:
         throw Exception("Unsupported network: $network");
     }
   }
+
+  late final String _id;
+  @override
+  String get identifier => _id;
+
+  late final String _idMain;
+  @override
+  String get mainNetId => _idMain;
+
+  late final String _name;
+  @override
+  String get prettyName => _name;
+
+  late final String _uriScheme;
+  @override
+  String get uriScheme => _uriScheme;
+
+  late final String _ticker;
+  @override
+  String get ticker => _ticker;
 
   @override
   int get maxUnusedAddressGap => 50;
@@ -40,7 +67,7 @@ class Bitcoincash extends Bip39HDCurrency {
   @override
   List<DerivePathType> get supportedDerivationPathTypes => [
         DerivePathType.bip44,
-        if (coin != Coin.bitcoincashTestnet) DerivePathType.bch44,
+        if (network != CryptoCurrencyNetwork.test) DerivePathType.bch44,
       ];
 
   @override
@@ -181,7 +208,7 @@ class Bitcoincash extends Bip39HDCurrency {
       // 0 for bitcoincash: address scheme, 1 for legacy address
       final format = bitbox.Address.detectFormat(address);
 
-      if (coin == Coin.bitcoincashTestnet) {
+      if (network == CryptoCurrencyNetwork.test) {
         return true;
       }
 
@@ -264,10 +291,10 @@ class Bitcoincash extends Bip39HDCurrency {
           host: "bitcoincash.stackwallet.com",
           port: 50002,
           name: DefaultNodes.defaultName,
-          id: DefaultNodes.buildId(Coin.bitcoincash),
+          id: DefaultNodes.buildId(this),
           useSSL: true,
           enabled: true,
-          coinName: Coin.bitcoincash.name,
+          coinName: identifier,
           isFailover: true,
           isDown: false,
         );
@@ -277,10 +304,10 @@ class Bitcoincash extends Bip39HDCurrency {
           host: "bitcoincash-testnet.stackwallet.com",
           port: 60002,
           name: DefaultNodes.defaultName,
-          id: DefaultNodes.buildId(Coin.bitcoincashTestnet),
+          id: DefaultNodes.buildId(this),
           useSSL: true,
           enabled: true,
-          coinName: Coin.bitcoincashTestnet.name,
+          coinName: identifier,
           isFailover: true,
           isDown: false,
         );
@@ -291,10 +318,47 @@ class Bitcoincash extends Bip39HDCurrency {
   }
 
   @override
-  bool operator ==(Object other) {
-    return other is Bitcoincash && other.network == network;
-  }
+  int get defaultSeedPhraseLength => 12;
 
   @override
-  int get hashCode => Object.hash(Bitcoincash, network);
+  int get fractionDigits => 8;
+
+  @override
+  bool get hasBuySupport => true;
+
+  @override
+  bool get hasMnemonicPassphraseSupport => true;
+
+  @override
+  List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 24];
+
+  @override
+  AddressType get primaryAddressType => AddressType.p2pkh;
+
+  @override
+  BigInt get satsPerCoin => BigInt.from(100000000);
+
+  @override
+  int get targetBlockTimeSeconds => 600;
+
+  @override
+  DerivePathType get primaryDerivePathType => DerivePathType.bip44;
+
+  @override
+  Uri defaultBlockExplorer(String txid) {
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        return Uri.parse(
+          "https://blockchair.com/bitcoin-cash/transaction/$txid",
+        );
+      case CryptoCurrencyNetwork.test:
+        return Uri.parse(
+          "https://blockexplorer.one/bitcoin-cash/testnet/tx/$txid",
+        );
+      default:
+        throw Exception(
+          "Unsupported network for defaultBlockExplorer(): $network",
+        );
+    }
+  }
 }

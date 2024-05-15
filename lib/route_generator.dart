@@ -188,7 +188,7 @@ import 'package:stackwallet/services/event_bus/events/global/node_connection_sta
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
@@ -211,21 +211,24 @@ class RouteGenerator {
     switch (settings.name) {
       case IntroView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const IntroView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const IntroView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case DeleteAccountView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const DeleteAccountView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const DeleteAccountView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case HomeView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const HomeView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const HomeView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case CreatePinView.routeName:
         if (args is bool) {
@@ -240,9 +243,10 @@ class RouteGenerator {
           );
         }
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const CreatePinView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const CreatePinView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case StackPrivacyCalls.routeName:
         if (args is bool) {
@@ -253,9 +257,10 @@ class RouteGenerator {
           );
         }
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const StackPrivacyCalls(isSettings: false),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const StackPrivacyCalls(isSettings: false),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case ChooseCoinView.routeName:
         if (args is Tuple3<String, String, String>) {
@@ -274,7 +279,7 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case ManageExplorerView.routeName:
-        if (args is Coin) {
+        if (args is CryptoCurrency) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => ManageExplorerView(
@@ -303,15 +308,17 @@ class RouteGenerator {
 
       case WalletsView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const WalletsView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const WalletsView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case AddWalletView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const AddWalletView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const AddWalletView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case EditWalletTokensView.routeName:
         if (args is String) {
@@ -376,7 +383,7 @@ class RouteGenerator {
         );
 
       case WalletsOverview.routeName:
-        if (args is Coin) {
+        if (args is CryptoCurrency) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => WalletsOverview(
@@ -556,7 +563,7 @@ class RouteGenerator {
       case FrostSendView.routeName:
         if (args is ({
           String walletId,
-          Coin coin,
+          CryptoCurrency coin,
         })) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
@@ -675,9 +682,10 @@ class RouteGenerator {
 
       case OrdinalsFilterView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const OrdinalsFilterView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const OrdinalsFilterView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case UtxoDetailsView.routeName:
         if (args is Tuple2<Id, String>) {
@@ -780,12 +788,13 @@ class RouteGenerator {
 
       case GlobalSettingsView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const GlobalSettingsView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const GlobalSettingsView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case AddressBookView.routeName:
-        if (args is Coin) {
+        if (args is CryptoCurrency) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => AddressBookView(
@@ -797,87 +806,101 @@ class RouteGenerator {
           );
         }
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const AddressBookView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const AddressBookView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case AddressBookFilterView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const AddressBookFilterView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const AddressBookFilterView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case StackBackupView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const StackBackupView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const StackBackupView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case AutoBackupView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const AutoBackupView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const AutoBackupView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case EditAutoBackupView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const EditAutoBackupView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const EditAutoBackupView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case CreateAutoBackupView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const CreateAutoBackupView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const CreateAutoBackupView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case SecurityView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const SecurityView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const SecurityView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case ChangePinView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const ChangePinView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const ChangePinView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case BaseCurrencySettingsView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const BaseCurrencySettingsView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const BaseCurrencySettingsView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case LanguageSettingsView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const LanguageSettingsView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const LanguageSettingsView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case TorSettingsView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const TorSettingsView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const TorSettingsView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case TorSettings.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const TorSettings(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const TorSettings(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case AboutView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const AboutView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const AboutView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case DebugView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const DebugView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const DebugView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case XPubView.routeName:
         if (args is String) {
@@ -909,69 +932,80 @@ class RouteGenerator {
 
       case AppearanceSettingsView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const AppearanceSettingsView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const AppearanceSettingsView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case SyncingPreferencesView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const SyncingPreferencesView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const SyncingPreferencesView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case StartupPreferencesView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const StartupPreferencesView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const StartupPreferencesView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case StartupWalletSelectionView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const StartupWalletSelectionView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const StartupWalletSelectionView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case ManageNodesView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const ManageNodesView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const ManageNodesView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case SyncingOptionsView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const SyncingOptionsView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const SyncingOptionsView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case WalletSyncingOptionsView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const WalletSyncingOptionsView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const WalletSyncingOptionsView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case AdvancedSettingsView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const AdvancedSettingsView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const AdvancedSettingsView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case SupportView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const SupportView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const SupportView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case AddAddressBookEntryView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const AddAddressBookEntryView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const AddAddressBookEntryView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case RestoreFromFileView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const RestoreFromFileView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const RestoreFromFileView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case RestoreFromEncryptedStringView.routeName:
         if (args is String) {
@@ -989,12 +1023,13 @@ class RouteGenerator {
 
       case ManageCoinUnitsView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const ManageCoinUnitsView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const ManageCoinUnitsView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case EditCoinUnitsView.routeName:
-        if (args is Coin) {
+        if (args is CryptoCurrency) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => EditCoinUnitsView(
@@ -1009,24 +1044,27 @@ class RouteGenerator {
 
       case CreateBackupInfoView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const CreateBackupInfoView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const CreateBackupInfoView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case CreateBackupView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const CreateBackupView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const CreateBackupView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case HiddenSettings.routeName:
         return getRoute(
-            shouldUseMaterialRoute: false,
-            builder: (_) => const HiddenSettings(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: false,
+          builder: (_) => const HiddenSettings(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case CoinNodesView.routeName:
-        if (args is Coin) {
+        if (args is CryptoCurrency) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => CoinNodesView(
@@ -1040,7 +1078,7 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case NodeDetailsView.routeName:
-        if (args is Tuple3<Coin, String, String>) {
+        if (args is Tuple3<CryptoCurrency, String, String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => NodeDetailsView(
@@ -1100,7 +1138,8 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case AddEditNodeView.routeName:
-        if (args is Tuple4<AddEditNodeViewType, Coin, String?, String>) {
+        if (args
+            is Tuple4<AddEditNodeViewType, CryptoCurrency, String?, String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => AddEditNodeView(
@@ -1291,7 +1330,7 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case NameYourWalletView.routeName:
-        if (args is Tuple2<AddWalletType, Coin>) {
+        if (args is Tuple2<AddWalletType, CryptoCurrency>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => NameYourWalletView(
@@ -1306,7 +1345,7 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case NewWalletRecoveryPhraseWarningView.routeName:
-        if (args is Tuple2<String, Coin>) {
+        if (args is Tuple2<String, CryptoCurrency>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => NewWalletRecoveryPhraseWarningView(
@@ -1321,7 +1360,7 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case RestoreOptionsView.routeName:
-        if (args is Tuple2<String, Coin>) {
+        if (args is Tuple2<String, CryptoCurrency>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => RestoreOptionsView(
@@ -1336,7 +1375,7 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case NewWalletOptionsView.routeName:
-        if (args is Tuple2<String, Coin>) {
+        if (args is Tuple2<String, CryptoCurrency>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => NewWalletOptionsView(
@@ -1351,15 +1390,16 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case RestoreWalletView.routeName:
-        if (args is Tuple5<String, Coin, int, DateTime, String>) {
+        if (args is Tuple5<String, CryptoCurrency, int, DateTime, String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => RestoreWalletView(
-                walletName: args.item1,
-                coin: args.item2,
-                seedWordsLength: args.item3,
-                restoreFromDate: args.item4,
-                mnemonicPassphrase: args.item5),
+              walletName: args.item1,
+              coin: args.item2,
+              seedWordsLength: args.item3,
+              restoreFromDate: args.item4,
+              mnemonicPassphrase: args.item5,
+            ),
             settings: RouteSettings(
               name: settings.name,
             ),
@@ -1399,8 +1439,9 @@ class RouteGenerator {
 
       case ManageFavoritesView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const ManageFavoritesView());
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const ManageFavoritesView(),
+        );
 
       case WalletView.routeName:
         if (args is String) {
@@ -1417,7 +1458,7 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case TransactionDetailsView.routeName:
-        if (args is Tuple3<Transaction, Coin, String>) {
+        if (args is Tuple3<Transaction, CryptoCurrency, String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => TransactionDetailsView(
@@ -1433,7 +1474,11 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case TransactionV2DetailsView.routeName:
-        if (args is ({TransactionV2 tx, Coin coin, String walletId})) {
+        if (args is ({
+          TransactionV2 tx,
+          CryptoCurrency coin,
+          String walletId
+        })) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => TransactionV2DetailsView(
@@ -1451,7 +1496,7 @@ class RouteGenerator {
       case FusionGroupDetailsView.routeName:
         if (args is ({
           List<TransactionV2> transactions,
-          Coin coin,
+          CryptoCurrency coin,
           String walletId
         })) {
           return getRoute(
@@ -1509,7 +1554,7 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case TransactionSearchFilterView.routeName:
-        if (args is Coin) {
+        if (args is CryptoCurrency) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => TransactionSearchFilterView(
@@ -1577,7 +1622,7 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case SendView.routeName:
-        if (args is Tuple2<String, Coin>) {
+        if (args is Tuple2<String, CryptoCurrency>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => SendView(
@@ -1588,7 +1633,8 @@ class RouteGenerator {
               name: settings.name,
             ),
           );
-        } else if (args is Tuple3<String, Coin, SendViewAutoFillData>) {
+        } else if (args
+            is Tuple3<String, CryptoCurrency, SendViewAutoFillData>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => SendView(
@@ -1600,7 +1646,7 @@ class RouteGenerator {
               name: settings.name,
             ),
           );
-        } else if (args is Tuple3<String, Coin, PaynymAccountLite>) {
+        } else if (args is Tuple3<String, CryptoCurrency, PaynymAccountLite>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => SendView(
@@ -1612,7 +1658,7 @@ class RouteGenerator {
               name: settings.name,
             ),
           );
-        } else if (args is ({Coin coin, String walletId})) {
+        } else if (args is ({CryptoCurrency coin, String walletId})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => SendView(
@@ -1628,7 +1674,7 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case TokenSendView.routeName:
-        if (args is Tuple3<String, Coin, EthContract>) {
+        if (args is Tuple3<String, CryptoCurrency, EthContract>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => TokenSendView(
@@ -1660,7 +1706,7 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case WalletInitiatedExchangeView.routeName:
-        if (args is Tuple2<String, Coin>) {
+        if (args is Tuple2<String, CryptoCurrency>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => Stack(
@@ -1679,7 +1725,7 @@ class RouteGenerator {
             ),
           );
         }
-        if (args is Tuple3<String, Coin, EthContract?>) {
+        if (args is Tuple3<String, CryptoCurrency, EthContract?>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => Stack(
@@ -1716,8 +1762,8 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case WalletSettingsView.routeName:
-        if (args
-            is Tuple4<String, Coin, WalletSyncStatus, NodeConnectionStatus>) {
+        if (args is Tuple4<String, CryptoCurrency, WalletSyncStatus,
+            NodeConnectionStatus>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => WalletSettingsView(
@@ -1845,7 +1891,7 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case ChooseFromStackView.routeName:
-        if (args is Coin) {
+        if (args is CryptoCurrency) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => ChooseFromStackView(
@@ -1859,7 +1905,7 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case SendFromView.routeName:
-        if (args is Tuple4<Coin, Amount, String, Trade>) {
+        if (args is Tuple4<CryptoCurrency, Amount, String, Trade>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => SendFromView(
@@ -1876,7 +1922,7 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case GenerateUriQrCodeView.routeName:
-        if (args is Tuple2<Coin, String>) {
+        if (args is Tuple2<CryptoCurrency, String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => GenerateUriQrCodeView(
@@ -1918,21 +1964,24 @@ class RouteGenerator {
           );
         }
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const CreatePasswordView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const CreatePasswordView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case ForgotPasswordDesktopView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const ForgotPasswordDesktopView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const ForgotPasswordDesktopView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case ForgottenPassphraseRestoreFromSWB.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const ForgottenPassphraseRestoreFromSWB(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const ForgottenPassphraseRestoreFromSWB(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case DeletePasswordWarningView.routeName:
         if (args is bool) {
@@ -1950,30 +1999,34 @@ class RouteGenerator {
 
       case DesktopHomeView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const DesktopHomeView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const DesktopHomeView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case DesktopNotificationsView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const DesktopNotificationsView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const DesktopNotificationsView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case DesktopExchangeView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const DesktopExchangeView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const DesktopExchangeView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case BuyView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const BuyView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const BuyView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case BuyInWalletView.routeName:
-        if (args is Coin) {
+        if (args is CryptoCurrency) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => BuyInWalletView(coin: args),
@@ -1982,7 +2035,7 @@ class RouteGenerator {
             ),
           );
         }
-        if (args is Tuple2<Coin, EthContract?>) {
+        if (args is Tuple2<CryptoCurrency, EthContract?>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => BuyInWalletView(
@@ -1998,27 +2051,31 @@ class RouteGenerator {
 
       case DesktopBuyView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const DesktopBuyView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const DesktopBuyView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case DesktopAllTradesView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const DesktopAllTradesView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const DesktopAllTradesView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case DesktopSettingsView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const DesktopSettingsView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const DesktopSettingsView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case MyStackView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const MyStackView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const MyStackView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case DesktopWalletView.routeName:
         if (args is String) {
@@ -2092,75 +2149,87 @@ class RouteGenerator {
 
       case BackupRestoreSettings.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const BackupRestoreSettings(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const BackupRestoreSettings(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case SecuritySettings.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const SecuritySettings(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const SecuritySettings(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case CurrencySettings.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const CurrencySettings(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const CurrencySettings(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case LanguageOptionSettings.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const LanguageOptionSettings(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const LanguageOptionSettings(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case NodesSettings.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const NodesSettings(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const NodesSettings(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case SyncingPreferencesSettings.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const SyncingPreferencesSettings(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const SyncingPreferencesSettings(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case AppearanceOptionSettings.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const AppearanceOptionSettings(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const AppearanceOptionSettings(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case ManageThemesView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const ManageThemesView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const ManageThemesView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case AdvancedSettings.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const AdvancedSettings(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const AdvancedSettings(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case DesktopSupportView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const DesktopSupportView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const DesktopSupportView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case DesktopAboutView.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const DesktopAboutView(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const DesktopAboutView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case DesktopAddressBook.routeName:
         return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => const DesktopAddressBook(),
-            settings: RouteSettings(name: settings.name));
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const DesktopAddressBook(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case WalletKeysDesktopPopup.routeName:
         if (args is ({
@@ -2413,13 +2482,15 @@ class RouteGenerator {
       ),
       body: Center(
         child: Text(
-            'Error handling route, this is not supposed to happen. Try restarting the app.\n$message'),
+          'Error handling route, this is not supposed to happen. Try restarting the app.\n$message',
+        ),
       ),
     );
 
     return getRoute(
-        shouldUseMaterialRoute: useMaterialPageRoute,
-        builder: (_) => errorView);
+      shouldUseMaterialRoute: useMaterialPageRoute,
+      builder: (_) => errorView,
+    );
   }
 }
 

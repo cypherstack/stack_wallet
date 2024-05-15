@@ -30,16 +30,17 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/buy/buy_response.dart';
 import 'package:stackwallet/services/buy/simplex/simplex_api.dart';
+import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
@@ -58,14 +59,14 @@ import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
 class BuyForm extends ConsumerStatefulWidget {
   const BuyForm({
-    Key? key,
+    super.key,
     this.coin,
     this.tokenContract,
     this.clipboard = const ClipboardWrapper(),
     this.scanner = const BarcodeScannerWrapper(),
-  }) : super(key: key);
+  });
 
-  final Coin? coin;
+  final CryptoCurrency? coin;
 
   final ClipboardInterface clipboard;
   final BarcodeScannerInterface scanner;
@@ -76,7 +77,7 @@ class BuyForm extends ConsumerStatefulWidget {
 }
 
 class _BuyFormState extends ConsumerState<BuyForm> {
-  late final Coin? coin;
+  late final CryptoCurrency? coin;
 
   late final ClipboardInterface clipboard;
   late final BarcodeScannerInterface scanner;
@@ -249,7 +250,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                   ],
                 ),
               );
-            })
+            },
+          )
         : await Navigator.of(context).push(
             MaterialPageRoute<dynamic>(
               builder: (_) => CryptoSelectionView(
@@ -386,7 +388,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                   ],
                 ),
               );
-            })
+            },
+          )
         : await Navigator.of(context).push(
             MaterialPageRoute<dynamic>(
               builder: (_) => FiatSelectionView(
@@ -410,7 +413,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     if (ticker == null) return false;
 
     try {
-      coinFromTickerCaseInsensitive(ticker);
+      SupportedCoins.getCryptoCurrencyForTicker(ticker);
       return true;
     } on ArgumentError catch (_) {
       return false;
@@ -501,7 +504,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                             ),
                           ),
                         ],
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -517,9 +520,10 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark),
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
+                    ),
                   ),
                   onPressed: () {
                     Navigator.of(context).pop();
@@ -589,7 +593,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                           ),
                         ),
                       ],
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -606,9 +610,10 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 child: Text(
                   "Ok",
                   style: STextStyles.button(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark),
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
+                  ),
                 ),
                 onPressed: () {
                   Navigator.of(context).pop();
@@ -701,7 +706,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                   ],
                 ),
               );
-            })
+            },
+          )
         : await Navigator.of(context).push(
             MaterialPageRoute<dynamic>(
               builder: (_) => BuyQuotePreviewView(
@@ -742,7 +748,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
         Fiat.fromJson({'ticker': 'USD', 'name': 'United States Dollar'});
     selectedCrypto = Crypto.fromJson({
       'ticker': widget.coin?.ticker ?? 'BTC',
-      'name': widget.coin?.prettyName ?? 'Bitcoin'
+      'name': widget.coin?.prettyName ?? 'Bitcoin',
     });
 
     // THIS IS BAD. No way to be certain the simplex ticker points to the same
@@ -907,7 +913,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                       children: <Widget>[
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              vertical: 3, horizontal: 6),
+                            vertical: 3,
+                            horizontal: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: Theme.of(context)
                                 .extension<StackColors>()!
@@ -916,12 +924,14 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                           ),
                           child: Text(
                             format.simpleCurrencySymbol(
-                                selectedFiat?.ticker ?? "ERR".toUpperCase()),
+                              selectedFiat?.ticker ?? "ERR".toUpperCase(),
+                            ),
                             textAlign: TextAlign.center,
                             style: STextStyles.smallMed12(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorDark),
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorDark,
+                            ),
                           ),
                         ),
                         const SizedBox(
@@ -976,7 +986,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                     });
                     validateAmount();
                   },
-                )
+                ),
               ],
             ),
             SizedBox(
@@ -1026,47 +1036,53 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                   fit: BoxFit.scaleDown,
                   child: Padding(
                     padding: const EdgeInsets.all(12),
-                    child: Row(children: [
-                      const SizedBox(width: 2),
-                      buyWithFiat
-                          ? Container(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 3, horizontal: 6),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .currencyListItemBG,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                format.simpleCurrencySymbol(
-                                    selectedFiat?.ticker.toUpperCase() ??
-                                        "ERR"),
-                                textAlign: TextAlign.center,
-                                style: STextStyles.smallMed12(context).copyWith(
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 2),
+                        buyWithFiat
+                            ? Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 3,
+                                  horizontal: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .currencyListItemBG,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  format.simpleCurrencySymbol(
+                                    selectedFiat?.ticker.toUpperCase() ?? "ERR",
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  style:
+                                      STextStyles.smallMed12(context).copyWith(
                                     color: Theme.of(context)
                                         .extension<StackColors>()!
-                                        .accentColorDark),
+                                        .accentColorDark,
+                                  ),
+                                ),
+                              )
+                            : CoinIconForTicker(
+                                ticker: selectedCrypto?.ticker ?? "BTC",
+                                size: 20,
                               ),
-                            )
-                          : CoinIconForTicker(
-                              ticker: selectedCrypto?.ticker ?? "BTC",
-                              size: 20,
-                            ),
-                      SizedBox(
-                          width: buyWithFiat
-                              ? 8
-                              : 10), // maybe make isDesktop-aware?
-                      Text(
-                        buyWithFiat
-                            ? selectedFiat?.ticker ?? "ERR"
-                            : selectedCrypto?.ticker ?? "ERR",
-                        style: STextStyles.smallMed14(context).copyWith(
+                        SizedBox(
+                          width: buyWithFiat ? 8 : 10,
+                        ), // maybe make isDesktop-aware?
+                        Text(
+                          buyWithFiat
+                              ? selectedFiat?.ticker ?? "ERR"
+                              : selectedCrypto?.ticker ?? "ERR",
+                          style: STextStyles.smallMed14(context).copyWith(
                             color: Theme.of(context)
                                 .extension<StackColors>()!
-                                .accentColorDark),
-                      ),
-                    ]),
+                                .accentColorDark,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 suffixIcon: Padding(
@@ -1078,7 +1094,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                         _buyAmountController.text.isNotEmpty
                             ? TextFieldIconButton(
                                 key: const Key(
-                                    "buyViewClearAmountFieldButtonKey"),
+                                  "buyViewClearAmountFieldButtonKey",
+                                ),
                                 onTap: () {
                                   // if (_BuyFormState.buyWithFiat) {
                                   //   _buyAmountController.text = _BuyFormState
@@ -1099,7 +1116,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                               )
                             : TextFieldIconButton(
                                 key: const Key(
-                                    "buyViewPasteAddressFieldButtonKey"),
+                                  "buyViewPasteAddressFieldButtonKey",
+                                ),
                                 onTap: () async {
                                   final ClipboardData? data = await clipboard
                                       .getData(Clipboard.kTextPlain);
@@ -1150,7 +1168,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                     text: "Choose from Stack",
                     onTap: () {
                       try {
-                        final coin = coinFromTickerCaseInsensitive(
+                        final coin = SupportedCoins.getCryptoCurrencyForTicker(
                           selectedCrypto!.ticker,
                         );
                         Navigator.of(context)
@@ -1236,7 +1254,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                           _addressToggleFlag
                               ? TextFieldIconButton(
                                   key: const Key(
-                                      "buyViewClearAddressFieldButtonKey"),
+                                    "buyViewClearAddressFieldButtonKey",
+                                  ),
                                   onTap: () {
                                     _receiveAddressController.text = "";
                                     _address = "";
@@ -1248,7 +1267,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                 )
                               : TextFieldIconButton(
                                   key: const Key(
-                                      "buyViewPasteAddressFieldButtonKey"),
+                                    "buyViewPasteAddressFieldButtonKey",
+                                  ),
                                   onTap: () async {
                                     final ClipboardData? data = await clipboard
                                         .getData(Clipboard.kTextPlain);
@@ -1257,7 +1277,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                       String content = data.text!.trim();
                                       if (content.contains("\n")) {
                                         content = content.substring(
-                                            0, content.indexOf("\n"));
+                                          0,
+                                          content.indexOf("\n"),
+                                        );
                                       }
 
                                       _receiveAddressController.text = content;
@@ -1300,7 +1322,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                               child: Text(
                                                 "Address book",
                                                 style: STextStyles.desktopH3(
-                                                    context),
+                                                  context,
+                                                ),
                                               ),
                                             ),
                                             const DesktopDialogCloseButton(),
@@ -1308,9 +1331,15 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                         ),
                                         Expanded(
                                           child: AddressBookAddressChooser(
-                                            coin: coinFromTickerCaseInsensitive(
-                                                selectedCrypto!.ticker
-                                                    .toString()),
+                                            coin: SupportedCoins
+                                                .cryptocurrencies
+                                                .firstWhere(
+                                              (e) =>
+                                                  e.ticker.toLowerCase() ==
+                                                  selectedCrypto!.ticker
+                                                      .toString()
+                                                      .toLowerCase(),
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -1352,21 +1381,25 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                   if (FocusScope.of(context).hasFocus) {
                                     FocusScope.of(context).unfocus();
                                     await Future<void>.delayed(
-                                        const Duration(milliseconds: 75));
+                                      const Duration(milliseconds: 75),
+                                    );
                                   }
 
                                   final qrResult = await scanner.scan();
 
                                   Logging.instance.log(
-                                      "qrResult content: ${qrResult.rawContent}",
-                                      level: LogLevel.Info);
+                                    "qrResult content: ${qrResult.rawContent}",
+                                    level: LogLevel.Info,
+                                  );
 
                                   final results = AddressUtils.parseUri(
-                                      qrResult.rawContent);
+                                    qrResult.rawContent,
+                                  );
 
                                   Logging.instance.log(
-                                      "qrResult parsed: $results",
-                                      level: LogLevel.Info);
+                                    "qrResult parsed: $results",
+                                    level: LogLevel.Info,
+                                  );
 
                                   if (results.isNotEmpty) {
                                     // auto fill address

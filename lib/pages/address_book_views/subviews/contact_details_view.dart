@@ -27,7 +27,6 @@ import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -41,10 +40,10 @@ import 'package:tuple/tuple.dart';
 
 class ContactDetailsView extends ConsumerStatefulWidget {
   const ContactDetailsView({
-    Key? key,
+    super.key,
     required this.contactId,
     this.clipboard = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   static const String routeName = "/contactDetails";
 
@@ -79,7 +78,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
         .sortByTimestampDesc()
         .findAll();
 
-    List<Tuple2<String, Transaction>> result = [];
+    final List<Tuple2<String, Transaction>> result = [];
 
     for (final tx in transactions) {
       result.add(Tuple2(tx.walletId, tx));
@@ -151,7 +150,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                     height: 20,
                   ),
                   onPressed: () {
-                    bool isFavorite = _contact.isFavorite;
+                    final bool isFavorite = _contact.isFavorite;
 
                     ref.read(addressBookServiceProvider).editContact(
                         _contact.copyWith(isFavorite: !isFavorite));

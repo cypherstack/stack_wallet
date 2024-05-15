@@ -66,7 +66,7 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     final address = await _generateAddress(
       chain: chain,
       index: index,
-      derivePathType: DerivePathTypeExt.primaryFor(info.coin),
+      derivePathType: info.coin.primaryDerivePathType,
     );
 
     await mainDB.updateOrPutAddresses([address]);
@@ -88,7 +88,7 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     final address = await _generateAddress(
       chain: chain,
       index: index,
-      derivePathType: DerivePathTypeExt.primaryFor(info.coin),
+      derivePathType: info.coin.primaryDerivePathType,
     );
 
     await mainDB.updateOrPutAddresses([address]);
@@ -101,7 +101,7 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
       final address = await _generateAddress(
         chain: 0, // receiving
         index: 0, // initial index
-        derivePathType: DerivePathTypeExt.primaryFor(info.coin),
+        derivePathType: info.coin.primaryDerivePathType,
       );
 
       await mainDB.updateOrPutAddresses([address]);

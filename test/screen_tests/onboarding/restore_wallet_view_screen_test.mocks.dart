@@ -12,9 +12,10 @@ import 'package:stackwallet/models/node_model.dart' as _i9;
 import 'package:stackwallet/services/node_service.dart' as _i8;
 import 'package:stackwallet/services/wallets_service.dart' as _i6;
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart' as _i4;
-import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i10;
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart'
     as _i3;
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart'
+    as _i10;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -165,7 +166,7 @@ class MockNodeService extends _i1.Mock implements _i8.NodeService {
       ) as _i5.Future<void>);
   @override
   _i5.Future<void> setPrimaryNodeFor({
-    required _i10.Coin? coin,
+    required _i10.CryptoCurrency? coin,
     required _i9.NodeModel? node,
     bool? shouldNotifyListeners = false,
   }) =>
@@ -183,14 +184,15 @@ class MockNodeService extends _i1.Mock implements _i8.NodeService {
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
   @override
-  _i9.NodeModel? getPrimaryNodeFor({required _i10.Coin? coin}) =>
+  _i9.NodeModel? getPrimaryNodeFor({required _i10.CryptoCurrency? currency}) =>
       (super.noSuchMethod(Invocation.method(
         #getPrimaryNodeFor,
         [],
-        {#coin: coin},
+        {#currency: currency},
       )) as _i9.NodeModel?);
   @override
-  List<_i9.NodeModel> getNodesFor(_i10.Coin? coin) => (super.noSuchMethod(
+  List<_i9.NodeModel> getNodesFor(_i10.CryptoCurrency? coin) =>
+      (super.noSuchMethod(
         Invocation.method(
           #getNodesFor,
           [coin],
@@ -205,12 +207,13 @@ class MockNodeService extends _i1.Mock implements _i8.NodeService {
         {#id: id},
       )) as _i9.NodeModel?);
   @override
-  List<_i9.NodeModel> failoverNodesFor({required _i10.Coin? coin}) =>
+  List<_i9.NodeModel> failoverNodesFor(
+          {required _i10.CryptoCurrency? currency}) =>
       (super.noSuchMethod(
         Invocation.method(
           #failoverNodesFor,
           [],
-          {#coin: coin},
+          {#currency: currency},
         ),
         returnValue: <_i9.NodeModel>[],
       ) as List<_i9.NodeModel>);

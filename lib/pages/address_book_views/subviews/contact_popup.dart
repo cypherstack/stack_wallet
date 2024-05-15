@@ -27,7 +27,6 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
@@ -56,8 +55,8 @@ class ContactPopUp extends ConsumerWidget {
 
     final active = ref.read(currentWalletIdProvider);
 
-    bool hasActiveWallet = active != null;
-    bool isExchangeFlow =
+    final bool hasActiveWallet = active != null;
+    final bool isExchangeFlow =
         ref.watch(exchangeFlowIsActiveStateProvider.state).state;
 
     final addresses = contact.addressesSorted.where((e) {

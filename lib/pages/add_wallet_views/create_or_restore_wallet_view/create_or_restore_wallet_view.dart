@@ -24,9 +24,9 @@ import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
 
 class CreateOrRestoreWalletView extends StatelessWidget {
   const CreateOrRestoreWalletView({
-    Key? key,
+    super.key,
     required this.entity,
-  }) : super(key: key);
+  });
 
   static const routeName = "/createOrRestoreWallet";
 
@@ -57,7 +57,7 @@ class CreateOrRestoreWalletView extends StatelessWidget {
                     flex: 10,
                   ),*/
                   CreateRestoreWalletTitle(
-                    coin: entity.coin,
+                    coin: entity.cryptoCurrency,
                     isDesktop: isDesktop,
                   ),
                   const SizedBox(
@@ -73,7 +73,7 @@ class CreateOrRestoreWalletView extends StatelessWidget {
                     height: 32,
                   ),
                   CoinImage(
-                    coin: entity.coin,
+                    coin: entity.cryptoCurrency,
                     width: isDesktop
                         ? 324
                         : MediaQuery.of(context).size.width / 1.6,
@@ -85,7 +85,7 @@ class CreateOrRestoreWalletView extends StatelessWidget {
                     height: 32,
                   ),
                   CreateWalletButtonGroup(
-                    coin: entity.coin,
+                    coin: entity.cryptoCurrency,
                     isDesktop: isDesktop,
                   ),
                   /*const Spacer(
@@ -129,7 +129,7 @@ class CreateOrRestoreWalletView extends StatelessWidget {
                                 flex: 2,
                               ),
                               CoinImage(
-                                coin: entity.coin,
+                                coin: entity.cryptoCurrency,
                                 width: isDesktop
                                     ? 324
                                     : MediaQuery.of(context).size.width / 1.6,
@@ -141,7 +141,7 @@ class CreateOrRestoreWalletView extends StatelessWidget {
                                 flex: 2,
                               ),
                               CreateRestoreWalletTitle(
-                                coin: entity.coin,
+                                coin: entity.cryptoCurrency,
                                 isDesktop: isDesktop,
                               ),
                               const SizedBox(
@@ -154,7 +154,7 @@ class CreateOrRestoreWalletView extends StatelessWidget {
                                 flex: 5,
                               ),
                               CreateWalletButtonGroup(
-                                coin: entity.coin,
+                                coin: entity.cryptoCurrency,
                                 isDesktop: isDesktop,
                               ),
                             ],

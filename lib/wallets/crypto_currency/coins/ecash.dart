@@ -8,20 +8,44 @@ import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:stackwallet/wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 
-class Ecash extends Bip39HDCurrency {
+class Ecash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   Ecash(super.network) {
+    _idMain = "eCash";
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        coin = Coin.eCash;
+        _id = _idMain;
+        _name = "eCash";
+        _ticker = "XEC";
+        _uriScheme = "ecash";
       default:
         throw Exception("Unsupported network: $network");
     }
   }
+
+  late final String _id;
+  @override
+  String get identifier => _id;
+
+  late final String _idMain;
+  @override
+  String get mainNetId => _idMain;
+
+  late final String _name;
+  @override
+  String get prettyName => _name;
+
+  late final String _uriScheme;
+  @override
+  String get uriScheme => _uriScheme;
+
+  late final String _ticker;
+  @override
+  String get ticker => _ticker;
 
   @override
   int get maxUnusedAddressGap => 50;
@@ -254,13 +278,15 @@ class Ecash extends Bip39HDCurrency {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
+          // host: "ecash.stackwallet.com",
+          // port: 59002,
           host: "electrum.bitcoinabc.org",
           port: 50002,
           name: DefaultNodes.defaultName,
-          id: DefaultNodes.buildId(Coin.eCash),
+          id: DefaultNodes.buildId(this),
           useSSL: true,
           enabled: true,
-          coinName: Coin.eCash.name,
+          coinName: identifier,
           isFailover: true,
           isDown: false,
         );
@@ -271,10 +297,41 @@ class Ecash extends Bip39HDCurrency {
   }
 
   @override
-  bool operator ==(Object other) {
-    return other is Ecash && other.network == network;
-  }
+  int get defaultSeedPhraseLength => 12;
 
   @override
-  int get hashCode => Object.hash(Ecash, network);
+  int get fractionDigits => 2;
+
+  @override
+  bool get hasBuySupport => false;
+
+  @override
+  bool get hasMnemonicPassphraseSupport => true;
+
+  @override
+  List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 24];
+
+  @override
+  AddressType get primaryAddressType => AddressType.p2pkh;
+
+  @override
+  BigInt get satsPerCoin => BigInt.from(100);
+
+  @override
+  int get targetBlockTimeSeconds => 600;
+
+  @override
+  DerivePathType get primaryDerivePathType => DerivePathType.eCash44;
+
+  @override
+  Uri defaultBlockExplorer(String txid) {
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        return Uri.parse("https://explorer.e.cash/tx/$txid");
+      default:
+        throw Exception(
+          "Unsupported network for defaultBlockExplorer(): $network",
+        );
+    }
+  }
 }

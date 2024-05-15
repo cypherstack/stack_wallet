@@ -28,13 +28,17 @@ import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/e
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/next_button.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/providers.dart';
+import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_eth_tokens.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin_frost.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/monero.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
@@ -61,10 +65,14 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
 
   String _searchTerm = "";
 
-  final List<Coin> _coinsTestnet = [
-    ...Coin.values.where((e) => e.isTestNet),
+  final _coinsTestnet = [
+    ...SupportedCoins.cryptocurrencies
+        .where((e) => e.network == CryptoCurrencyNetwork.test),
   ];
-  final List<Coin> _coins = [...Coin.values.where((e) => !e.isTestNet)];
+  final _coins = [
+    ...SupportedCoins.cryptocurrencies
+        .where((e) => e.network == CryptoCurrencyNetwork.main),
+  ];
   final List<AddWalletListEntity> coinEntities = [];
   final List<EthTokenEntity> tokenEntities = [];
 
@@ -81,7 +89,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
         (e) =>
             e.ticker.toLowerCase().contains(lowercaseTerm) ||
             e.name.toLowerCase().contains(lowercaseTerm) ||
-            e.coin.name.toLowerCase().contains(lowercaseTerm) ||
+            e.cryptoCurrency.identifier.toLowerCase().contains(lowercaseTerm) ||
             (e is EthTokenEntity &&
                 e.token.address.toLowerCase().contains(lowercaseTerm)),
       );
@@ -129,15 +137,13 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
     _searchFocusNode = FocusNode();
     // _coinsTestnet.remove(Coin.firoTestNet);
     if (Platform.isWindows) {
-      _coins.remove(Coin.monero);
-      _coins.remove(Coin.wownero);
+      _coins.removeWhere((e) => e is Monero || e is Wownero);
     } else if (Platform.isLinux) {
-      _coins.remove(Coin.wownero);
+      _coins.removeWhere((e) => e is Wownero);
     }
 
     if (Util.isDesktop && !kDebugMode) {
-      _coins.remove(Coin.bitcoinFrost);
-      _coins.remove(Coin.bitcoinFrostTestNet);
+      _coins.removeWhere((e) => e is BitcoinFrost);
     }
 
     coinEntities.addAll(_coins.map((e) => CoinEntity(e)));

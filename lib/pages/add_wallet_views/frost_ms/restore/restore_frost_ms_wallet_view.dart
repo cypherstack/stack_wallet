@@ -75,7 +75,7 @@ class _RestoreFrostMsWalletViewState
     final myName = participants[myNameIndex];
 
     final info = WalletInfo.createNew(
-      coin: widget.frostCurrency.coin,
+      coin: widget.frostCurrency,
       name: widget.walletName,
     );
 

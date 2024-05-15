@@ -10,11 +10,12 @@
 
 import 'dart:convert';
 
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/supported_coins.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 @Deprecated("Use lib/models/isar/models/contact_entry.dart instead")
 class ContactAddressEntry {
-  final Coin coin;
+  final CryptoCurrency coin;
   final String address;
   final String label;
   final String? other;
@@ -27,7 +28,7 @@ class ContactAddressEntry {
   });
 
   ContactAddressEntry copyWith({
-    Coin? coin,
+    CryptoCurrency? coin,
     String? address,
     String? label,
     String? other,
@@ -42,7 +43,7 @@ class ContactAddressEntry {
 
   factory ContactAddressEntry.fromJson(Map<String, dynamic> jsonObject) {
     return ContactAddressEntry(
-      coin: Coin.values.byName(jsonObject["coin"] as String),
+      coin: SupportedCoins.getCryptoCurrencyFor(jsonObject["coin"] as String),
       address: jsonObject["address"] as String,
       label: jsonObject["label"] as String,
       other: jsonObject["other"] as String?,
@@ -53,7 +54,7 @@ class ContactAddressEntry {
     return {
       "label": label,
       "address": address,
-      "coin": coin.name,
+      "coin": coin.identifier,
       "other": other ?? "",
     };
   }

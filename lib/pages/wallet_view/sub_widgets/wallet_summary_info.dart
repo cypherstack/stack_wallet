@@ -26,19 +26,20 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/banano.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/impl/banano_wallet.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 
 class WalletSummaryInfo extends ConsumerWidget {
   const WalletSummaryInfo({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.initialSyncStatus,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final WalletSyncStatus initialSyncStatus;
@@ -86,7 +87,7 @@ class WalletSummaryInfo extends ConsumerWidget {
     final Amount balanceToShow;
     final String title;
 
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
+    if (coin is Firo) {
       final type = ref.watch(publicPrivateBalanceStateProvider.state).state;
       title =
           "${_showAvailable ? "Available" : "Full"} ${type.name.capitalize()} balance";
@@ -113,7 +114,7 @@ class WalletSummaryInfo extends ConsumerWidget {
 
     List<int>? imageBytes;
 
-    if (coin == Coin.banano) {
+    if (coin is Banano) {
       imageBytes = (ref.watch(pWallets).getWallet(walletId) as BananoWallet)
           .getMonkeyImageBytes();
     }

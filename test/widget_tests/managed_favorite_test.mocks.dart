@@ -5,20 +5,19 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i10;
 import 'dart:typed_data' as _i15;
-import 'dart:ui' as _i20;
+import 'dart:ui' as _i19;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/db/isar/main_db.dart' as _i3;
 import 'package:stackwallet/models/isar/stack_theme.dart' as _i14;
-import 'package:stackwallet/models/node_model.dart' as _i22;
+import 'package:stackwallet/models/node_model.dart' as _i21;
 import 'package:stackwallet/networking/http.dart' as _i6;
-import 'package:stackwallet/services/locale_service.dart' as _i21;
+import 'package:stackwallet/services/locale_service.dart' as _i20;
 import 'package:stackwallet/services/node_service.dart' as _i2;
 import 'package:stackwallet/services/wallets.dart' as _i9;
 import 'package:stackwallet/themes/theme_service.dart' as _i13;
 import 'package:stackwallet/utilities/amount/amount_unit.dart' as _i18;
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i17;
-import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i19;
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i16;
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart'
     as _i8;
@@ -761,7 +760,7 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
         returnValueForMissingStub: _i10.Future<void>.value(),
       ) as _i10.Future<void>);
   @override
-  _i18.AmountUnit amountUnit(_i19.Coin? coin) => (super.noSuchMethod(
+  _i18.AmountUnit amountUnit(_i4.CryptoCurrency? coin) => (super.noSuchMethod(
         Invocation.method(
           #amountUnit,
           [coin],
@@ -770,7 +769,7 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
       ) as _i18.AmountUnit);
   @override
   void updateAmountUnit({
-    required _i19.Coin? coin,
+    required _i4.CryptoCurrency? coin,
     required _i18.AmountUnit? amountUnit,
   }) =>
       super.noSuchMethod(
@@ -785,7 +784,7 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  int maxDecimals(_i19.Coin? coin) => (super.noSuchMethod(
+  int maxDecimals(_i4.CryptoCurrency? coin) => (super.noSuchMethod(
         Invocation.method(
           #maxDecimals,
           [coin],
@@ -794,7 +793,7 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
       ) as int);
   @override
   void updateMaxDecimals({
-    required _i19.Coin? coin,
+    required _i4.CryptoCurrency? coin,
     required int? maxDecimals,
   }) =>
       super.noSuchMethod(
@@ -809,7 +808,8 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i7.FusionInfo getFusionServerInfo(_i19.Coin? coin) => (super.noSuchMethod(
+  _i7.FusionInfo getFusionServerInfo(_i4.CryptoCurrency? coin) =>
+      (super.noSuchMethod(
         Invocation.method(
           #getFusionServerInfo,
           [coin],
@@ -824,7 +824,7 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
       ) as _i7.FusionInfo);
   @override
   void setFusionServerInfo(
-    _i19.Coin? coin,
+    _i4.CryptoCurrency? coin,
     _i7.FusionInfo? fusionServerInfo,
   ) =>
       super.noSuchMethod(
@@ -838,7 +838,7 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  void addListener(_i20.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i19.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -846,7 +846,7 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  void removeListener(_i20.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i19.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],
@@ -874,7 +874,7 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
 /// A class which mocks [LocaleService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockLocaleService extends _i1.Mock implements _i21.LocaleService {
+class MockLocaleService extends _i1.Mock implements _i20.LocaleService {
   MockLocaleService() {
     _i1.throwOnMissingStub(this);
   }
@@ -900,7 +900,7 @@ class MockLocaleService extends _i1.Mock implements _i21.LocaleService {
         returnValueForMissingStub: _i10.Future<void>.value(),
       ) as _i10.Future<void>);
   @override
-  void addListener(_i20.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i19.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -908,7 +908,7 @@ class MockLocaleService extends _i1.Mock implements _i21.LocaleService {
         returnValueForMissingStub: null,
       );
   @override
-  void removeListener(_i20.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i19.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],
@@ -946,15 +946,15 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         ),
       ) as _i8.SecureStorageInterface);
   @override
-  List<_i22.NodeModel> get primaryNodes => (super.noSuchMethod(
+  List<_i21.NodeModel> get primaryNodes => (super.noSuchMethod(
         Invocation.getter(#primaryNodes),
-        returnValue: <_i22.NodeModel>[],
-      ) as List<_i22.NodeModel>);
+        returnValue: <_i21.NodeModel>[],
+      ) as List<_i21.NodeModel>);
   @override
-  List<_i22.NodeModel> get nodes => (super.noSuchMethod(
+  List<_i21.NodeModel> get nodes => (super.noSuchMethod(
         Invocation.getter(#nodes),
-        returnValue: <_i22.NodeModel>[],
-      ) as List<_i22.NodeModel>);
+        returnValue: <_i21.NodeModel>[],
+      ) as List<_i21.NodeModel>);
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
@@ -971,8 +971,8 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
       ) as _i10.Future<void>);
   @override
   _i10.Future<void> setPrimaryNodeFor({
-    required _i19.Coin? coin,
-    required _i22.NodeModel? node,
+    required _i4.CryptoCurrency? coin,
+    required _i21.NodeModel? node,
     bool? shouldNotifyListeners = false,
   }) =>
       (super.noSuchMethod(
@@ -989,40 +989,42 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         returnValueForMissingStub: _i10.Future<void>.value(),
       ) as _i10.Future<void>);
   @override
-  _i22.NodeModel? getPrimaryNodeFor({required _i19.Coin? coin}) =>
+  _i21.NodeModel? getPrimaryNodeFor({required _i4.CryptoCurrency? currency}) =>
       (super.noSuchMethod(Invocation.method(
         #getPrimaryNodeFor,
         [],
-        {#coin: coin},
-      )) as _i22.NodeModel?);
+        {#currency: currency},
+      )) as _i21.NodeModel?);
   @override
-  List<_i22.NodeModel> getNodesFor(_i19.Coin? coin) => (super.noSuchMethod(
+  List<_i21.NodeModel> getNodesFor(_i4.CryptoCurrency? coin) =>
+      (super.noSuchMethod(
         Invocation.method(
           #getNodesFor,
           [coin],
         ),
-        returnValue: <_i22.NodeModel>[],
-      ) as List<_i22.NodeModel>);
+        returnValue: <_i21.NodeModel>[],
+      ) as List<_i21.NodeModel>);
   @override
-  _i22.NodeModel? getNodeById({required String? id}) =>
+  _i21.NodeModel? getNodeById({required String? id}) =>
       (super.noSuchMethod(Invocation.method(
         #getNodeById,
         [],
         {#id: id},
-      )) as _i22.NodeModel?);
+      )) as _i21.NodeModel?);
   @override
-  List<_i22.NodeModel> failoverNodesFor({required _i19.Coin? coin}) =>
+  List<_i21.NodeModel> failoverNodesFor(
+          {required _i4.CryptoCurrency? currency}) =>
       (super.noSuchMethod(
         Invocation.method(
           #failoverNodesFor,
           [],
-          {#coin: coin},
+          {#currency: currency},
         ),
-        returnValue: <_i22.NodeModel>[],
-      ) as List<_i22.NodeModel>);
+        returnValue: <_i21.NodeModel>[],
+      ) as List<_i21.NodeModel>);
   @override
   _i10.Future<void> add(
-    _i22.NodeModel? node,
+    _i21.NodeModel? node,
     String? password,
     bool? shouldNotifyListeners,
   ) =>
@@ -1074,7 +1076,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
       ) as _i10.Future<void>);
   @override
   _i10.Future<void> edit(
-    _i22.NodeModel? editedNode,
+    _i21.NodeModel? editedNode,
     String? password,
     bool? shouldNotifyListeners,
   ) =>
@@ -1100,7 +1102,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         returnValueForMissingStub: _i10.Future<void>.value(),
       ) as _i10.Future<void>);
   @override
-  void addListener(_i20.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i19.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -1108,7 +1110,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         returnValueForMissingStub: null,
       );
   @override
-  void removeListener(_i20.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i19.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],

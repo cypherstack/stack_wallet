@@ -49,7 +49,7 @@ class _FrostReshareStep1cState extends ConsumerState<FrostReshareStep1c> {
 
     final info = WalletInfo.createNew(
       name: data.info.walletName,
-      coin: data.info.frostCurrency.coin,
+      coin: data.info.frostCurrency,
     );
 
     final wallet = IncompleteFrostWallet();

@@ -13,25 +13,17 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:solana/solana.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/connection_check/electrum_connection_check.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/test_epic_box_connection.dart';
-import 'package:stackwallet/utilities/test_eth_node_connection.dart';
-import 'package:stackwallet/utilities/test_monero_node_connection.dart';
-import 'package:stackwallet/utilities/test_stellar_node_connection.dart';
+import 'package:stackwallet/utilities/test_node_connection.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/api/tezos/tezos_rpc_api.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -43,15 +35,15 @@ import 'package:tuple/tuple.dart';
 
 class NodeDetailsView extends ConsumerStatefulWidget {
   const NodeDetailsView({
-    Key? key,
+    super.key,
     required this.coin,
     required this.nodeId,
     required this.popRouteName,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/nodeDetails";
 
-  final Coin coin;
+  final CryptoCurrency coin;
   final String nodeId;
   final String popRouteName;
 
@@ -61,7 +53,7 @@ class NodeDetailsView extends ConsumerStatefulWidget {
 
 class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
   late final SecureStorageInterface secureStore;
-  late final Coin coin;
+  late final CryptoCurrency coin;
   late final String nodeId;
   late final String popRouteName;
 
@@ -76,170 +68,19 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
     super.initState();
   }
 
-  Future<void> _testConnection(WidgetRef ref, BuildContext context) async {
-    final node =
-        ref.watch(nodeServiceChangeNotifierProvider).getNodeById(id: nodeId);
-
-    bool testPassed = false;
-
-    switch (coin) {
-      case Coin.epicCash:
-        try {
-          testPassed = await testEpicNodeConnection(
-                NodeFormData()
-                  ..host = node!.host
-                  ..useSSL = node.useSSL
-                  ..port = node.port,
-              ) !=
-              null;
-        } catch (e, s) {
-          Logging.instance.log("$e\n$s", level: LogLevel.Warning);
-          testPassed = false;
-        }
-        break;
-
-      case Coin.monero:
-      case Coin.wownero:
-        try {
-          final uri = Uri.parse(node!.host);
-          if (uri.scheme.startsWith("http")) {
-            final String path = uri.path.isEmpty ? "/json_rpc" : uri.path;
-
-            String uriString = "${uri.scheme}://${uri.host}:${node.port}$path";
-
-            final response = await testMoneroNodeConnection(
-              Uri.parse(uriString),
-              false,
-            );
-
-            if (response.cert != null) {
-              if (mounted) {
-                final shouldAllowBadCert = await showBadX509CertificateDialog(
-                  response.cert!,
-                  response.url!,
-                  response.port!,
-                  context,
-                );
-
-                if (shouldAllowBadCert) {
-                  final response = await testMoneroNodeConnection(
-                      Uri.parse(uriString), true);
-                  testPassed = response.success;
-                }
-              }
-            } else {
-              testPassed = response.success;
-            }
-          }
-        } catch (e, s) {
-          Logging.instance.log("$e\n$s", level: LogLevel.Warning);
-        }
-
-        break;
-
-      case Coin.bitcoin:
-      case Coin.litecoin:
-      case Coin.dogecoin:
-      case Coin.firo:
-      case Coin.particl:
-      case Coin.peercoin:
-      case Coin.peercoinTestNet:
-      case Coin.bitcoinTestNet:
-      case Coin.firoTestNet:
-      case Coin.dogecoinTestNet:
-      case Coin.bitcoincash:
-      case Coin.namecoin:
-      case Coin.litecoinTestNet:
-      case Coin.bitcoincashTestnet:
-      case Coin.eCash:
-      case Coin.bitcoinFrost:
-      case Coin.bitcoinFrostTestNet:
-        try {
-          testPassed = await checkElectrumServer(
-            host: node!.host,
-            port: node.port,
-            useSSL: node.useSSL,
-            overridePrefs: ref.read(prefsChangeNotifierProvider),
-            overrideTorService: ref.read(pTorService),
-          );
-        } catch (_) {
-          testPassed = false;
-        }
-
-        break;
-
-      case Coin.ethereum:
-        try {
-          testPassed = await testEthNodeConnection(node!.host);
-        } catch (_) {
-          testPassed = false;
-        }
-        break;
-
-      case Coin.nano:
-      case Coin.banano:
-        // TODO: fix this lacking code
-        throw UnimplementedError();
-      //TODO: check network/node
-      case Coin.tezos:
-        try {
-          testPassed = await TezosRpcAPI.testNetworkConnection(
-            nodeInfo: (host: node!.host, port: node!.port),
-          );
-        } catch (_) {}
-        break;
-      case Coin.stellar:
-      case Coin.stellarTestnet:
-        try {
-          testPassed = await testStellarNodeConnection(node!.host, node.port);
-        } catch (_) {
-          testPassed = false;
-        }
-        break;
-
-      case Coin.solana:
-        try {
-          RpcClient rpcClient;
-          if (node!.host.startsWith("http") || node.host.startsWith("https")) {
-            rpcClient = RpcClient("${node.host}:${node.port}");
-          } else {
-            rpcClient = RpcClient("http://${node.host}:${node.port}");
-          }
-          await rpcClient.getEpochInfo().then((value) => testPassed = true);
-        } catch (_) {
-          testPassed = false;
-        }
-        break;
-    }
-
-    if (testPassed) {
-      unawaited(
-        showFloatingFlushBar(
-          type: FlushBarType.success,
-          message: "Server ping success",
-          context: context,
-        ),
-      );
-    } else {
-      unawaited(
-        showFloatingFlushBar(
-          type: FlushBarType.warning,
-          message: "Server unreachable",
-          context: context,
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
 
-    final node = ref.watch(nodeServiceChangeNotifierProvider
-        .select((value) => value.getNodeById(id: nodeId)));
+    final node = ref.watch(
+      nodeServiceChangeNotifierProvider
+          .select((value) => value.getNodeById(id: nodeId)),
+    );
 
-    final nodesForCoin = ref.watch(nodeServiceChangeNotifierProvider
-        .select((value) => value.getNodesFor(coin)));
+    final nodesForCoin = ref.watch(
+      nodeServiceChangeNotifierProvider
+          .select((value) => value.getNodesFor(coin)),
+    );
 
     final canDelete = nodesForCoin.length > 1;
 
@@ -256,7 +97,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                   FocusScope.of(context).unfocus();
                   await Future<void>.delayed(const Duration(milliseconds: 75));
                 }
-                if (mounted) {
+                if (context.mounted) {
                   Navigator.of(context).pop();
                 }
               },
@@ -350,7 +191,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                   Text(
                     "Node details",
                     style: STextStyles.desktopH3(context),
-                  )
+                  ),
                 ],
               ),
               Padding(
@@ -420,7 +261,52 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                     label: "Test connection",
                     buttonHeight: isDesktop ? ButtonHeight.l : null,
                     onPressed: () async {
-                      await _testConnection(ref, context);
+                      final node = ref
+                          .read(nodeServiceChangeNotifierProvider)
+                          .getNodeById(id: nodeId)!;
+
+                      final nodeFormData = NodeFormData()
+                        ..useSSL = node.useSSL
+                        ..trusted = node.trusted
+                        ..name = node.name
+                        ..host = node.host
+                        ..login = node.loginName
+                        ..port = node.port
+                        ..isFailover = node.isFailover;
+                      nodeFormData.password = await node.getPassword(
+                        ref.read(secureStoreProvider),
+                      );
+
+                      if (context.mounted) {
+                        final testPassed = await testNodeConnection(
+                          context: context,
+                          nodeFormData: nodeFormData,
+                          cryptoCurrency: coin,
+                          ref: ref,
+                        );
+
+                        if (testPassed) {
+                          if (context.mounted) {
+                            unawaited(
+                              showFloatingFlushBar(
+                                type: FlushBarType.success,
+                                message: "Server ping success",
+                                context: context,
+                              ),
+                            );
+                          }
+                        } else {
+                          if (context.mounted) {
+                            unawaited(
+                              showFloatingFlushBar(
+                                type: FlushBarType.warning,
+                                message: "Server unreachable",
+                                context: context,
+                              ),
+                            );
+                          }
+                        }
+                      }
                     },
                   ),
                 ),

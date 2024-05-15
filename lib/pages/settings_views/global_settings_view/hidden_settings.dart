@@ -19,8 +19,9 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/stellar.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
 import 'package:stackwallet/widgets/dialogs/tor_warning_dialog.dart';
@@ -74,42 +75,46 @@ class HiddenSettings extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Consumer(builder: (_, ref, __) {
-                          return GestureDetector(
-                            onTap: () async {
-                              final notifs =
-                                  ref.read(notificationsProvider).notifications;
+                        Consumer(
+                          builder: (_, ref, __) {
+                            return GestureDetector(
+                              onTap: () async {
+                                final notifs = ref
+                                    .read(notificationsProvider)
+                                    .notifications;
 
-                              for (final n in notifs) {
+                                for (final n in notifs) {
+                                  await ref
+                                      .read(notificationsProvider)
+                                      .delete(n, false);
+                                }
                                 await ref
                                     .read(notificationsProvider)
-                                    .delete(n, false);
-                              }
-                              await ref
-                                  .read(notificationsProvider)
-                                  .delete(notifs[0], true);
+                                    .delete(notifs[0], true);
 
-                              if (context.mounted) {
-                                unawaited(
-                                  showFloatingFlushBar(
-                                    type: FlushBarType.success,
-                                    message: "Notification history deleted",
-                                    context: context,
-                                  ),
-                                );
-                              }
-                            },
-                            child: RoundedWhiteContainer(
-                              child: Text(
-                                "Delete notifications",
-                                style: STextStyles.button(context).copyWith(
+                                if (context.mounted) {
+                                  unawaited(
+                                    showFloatingFlushBar(
+                                      type: FlushBarType.success,
+                                      message: "Notification history deleted",
+                                      context: context,
+                                    ),
+                                  );
+                                }
+                              },
+                              child: RoundedWhiteContainer(
+                                child: Text(
+                                  "Delete notifications",
+                                  style: STextStyles.button(context).copyWith(
                                     color: Theme.of(context)
                                         .extension<StackColors>()!
-                                        .accentColorDark),
+                                        .accentColorDark,
+                                  ),
+                                ),
                               ),
-                            ),
-                          );
-                        }),
+                            );
+                          },
+                        ),
                         // const SizedBox(
                         //   height: 12,
                         // ),
@@ -141,34 +146,37 @@ class HiddenSettings extends StatelessWidget {
                         const SizedBox(
                           height: 12,
                         ),
-                        Consumer(builder: (_, ref, __) {
-                          return GestureDetector(
-                            onTap: () async {
-                              await ref
-                                  .read(debugServiceProvider)
-                                  .deleteAllLogs();
+                        Consumer(
+                          builder: (_, ref, __) {
+                            return GestureDetector(
+                              onTap: () async {
+                                await ref
+                                    .read(debugServiceProvider)
+                                    .deleteAllLogs();
 
-                              if (context.mounted) {
-                                unawaited(
-                                  showFloatingFlushBar(
-                                    type: FlushBarType.success,
-                                    message: "Debug Logs deleted",
-                                    context: context,
-                                  ),
-                                );
-                              }
-                            },
-                            child: RoundedWhiteContainer(
-                              child: Text(
-                                "Delete Debug Logs",
-                                style: STextStyles.button(context).copyWith(
+                                if (context.mounted) {
+                                  unawaited(
+                                    showFloatingFlushBar(
+                                      type: FlushBarType.success,
+                                      message: "Debug Logs deleted",
+                                      context: context,
+                                    ),
+                                  );
+                                }
+                              },
+                              child: RoundedWhiteContainer(
+                                child: Text(
+                                  "Delete Debug Logs",
+                                  style: STextStyles.button(context).copyWith(
                                     color: Theme.of(context)
                                         .extension<StackColors>()!
-                                        .accentColorDark),
+                                        .accentColorDark,
+                                  ),
+                                ),
                               ),
-                            ),
-                          );
-                        }),
+                            );
+                          },
+                        ),
                         const SizedBox(
                           height: 12,
                         ),
@@ -216,8 +224,10 @@ class HiddenSettings extends StatelessWidget {
                         // ),
                         Consumer(
                           builder: (_, ref, __) {
-                            if (ref.watch(prefsChangeNotifierProvider
-                                    .select((value) => value.familiarity)) <
+                            if (ref.watch(
+                                  prefsChangeNotifierProvider
+                                      .select((value) => value.familiarity),
+                                ) <
                                 6) {
                               return GestureDetector(
                                 onTap: () async {
@@ -236,9 +246,10 @@ class HiddenSettings extends StatelessWidget {
                                   child: Text(
                                     "Enable exchange",
                                     style: STextStyles.button(context).copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .accentColorDark),
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark,
+                                    ),
                                   ),
                                 ),
                               );
@@ -257,7 +268,7 @@ class HiddenSettings extends StatelessWidget {
                                 await showDialog<bool>(
                                   context: context,
                                   builder: (_) => TorWarningDialog(
-                                    coin: Coin.stellar,
+                                    coin: Stellar(CryptoCurrencyNetwork.main),
                                   ),
                                 );
                               },
@@ -265,9 +276,10 @@ class HiddenSettings extends StatelessWidget {
                                 child: Text(
                                   "Show Tor warning popup",
                                   style: STextStyles.button(context).copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorDark),
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorDark,
+                                  ),
                                 ),
                               ),
                             );
@@ -286,9 +298,10 @@ class HiddenSettings extends StatelessWidget {
                                 child: Text(
                                   "Do nothing",
                                   style: STextStyles.button(context).copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorDark),
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorDark,
+                                  ),
                                 ),
                               ),
                             );

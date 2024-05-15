@@ -23,9 +23,9 @@ import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
@@ -36,9 +36,9 @@ import 'package:tuple/tuple.dart';
 
 class TransactionsList extends ConsumerStatefulWidget {
   const TransactionsList({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 
@@ -80,7 +80,7 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
     BuildContext context,
     Transaction tx,
     BorderRadius? radius,
-    Coin coin,
+    CryptoCurrency coin,
     int chainHeight,
   ) {
     final matchingTrades = ref

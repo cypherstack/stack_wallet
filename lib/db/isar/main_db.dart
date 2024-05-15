@@ -19,8 +19,8 @@ import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/models/isar/ordinal.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/frost_wallet_info.dart';
 import 'package:stackwallet/wallets/isar/models/spark_coin.dart';
 import 'package:stackwallet/wallets/isar/models/token_wallet_info.dart';
@@ -149,15 +149,17 @@ class MainDB {
   }
 
   // tx block explorers
-  TransactionBlockExplorer? getTransactionBlockExplorer({required Coin coin}) {
+  TransactionBlockExplorer? getTransactionBlockExplorer(
+      {required CryptoCurrency cryptoCurrency}) {
     return isar.transactionBlockExplorers
         .where()
-        .tickerEqualTo(coin.ticker)
+        .tickerEqualTo(cryptoCurrency.ticker)
         .findFirstSync();
   }
 
   Future<int> putTransactionBlockExplorer(
-      TransactionBlockExplorer explorer) async {
+    TransactionBlockExplorer explorer,
+  ) async {
     try {
       return await isar.writeTxn(() async {
         return await isar.transactionBlockExplorers.put(explorer);
@@ -169,7 +171,8 @@ class MainDB {
 
   // addresses
   QueryBuilder<Address, Address, QAfterWhereClause> getAddresses(
-          String walletId) =>
+    String walletId,
+  ) =>
       isar.addresses.where().walletIdEqualTo(walletId);
 
   Future<int> putAddress(Address address) async {
@@ -194,7 +197,7 @@ class MainDB {
 
   Future<List<int>> updateOrPutAddresses(List<Address> addresses) async {
     try {
-      List<int> ids = [];
+      final List<int> ids = [];
       await isar.writeTxn(() async {
         for (final address in addresses) {
           final storedAddress = await isar.addresses
@@ -239,13 +242,16 @@ class MainDB {
       });
     } catch (e) {
       throw MainDBException(
-          "failed updateAddress: from=$oldAddress to=$newAddress", e);
+        "failed updateAddress: from=$oldAddress to=$newAddress",
+        e,
+      );
     }
   }
 
   // transactions
   QueryBuilder<Transaction, Transaction, QAfterWhereClause> getTransactions(
-          String walletId) =>
+    String walletId,
+  ) =>
       isar.transactions.where().walletIdEqualTo(walletId);
 
   Future<int> putTransaction(Transaction transaction) async {
@@ -284,7 +290,9 @@ class MainDB {
       isar.utxos.where().walletIdEqualTo(walletId);
 
   QueryBuilder<UTXO, UTXO, QAfterFilterCondition> getUTXOsByAddress(
-          String walletId, String address) =>
+    String walletId,
+    String address,
+  ) =>
       isar.utxos
           .where()
           .walletIdEqualTo(walletId)
@@ -357,7 +365,9 @@ class MainDB {
       });
 
   Future<TransactionNote?> getTransactionNote(
-      String walletId, String txid) async {
+    String walletId,
+    String txid,
+  ) async {
     return isar.transactionNotes.getByTxidWalletId(
       txid,
       walletId,
@@ -374,7 +384,8 @@ class MainDB {
 
   // address labels
   QueryBuilder<AddressLabel, AddressLabel, QAfterWhereClause> getAddressLabels(
-          String walletId) =>
+    String walletId,
+  ) =>
       isar.addressLabels.where().walletIdEqualTo(walletId);
 
   Future<int> putAddressLabel(AddressLabel addressLabel) =>
@@ -392,7 +403,9 @@ class MainDB {
       });
 
   Future<AddressLabel?> getAddressLabel(
-      String walletId, String addressString) async {
+    String walletId,
+    String addressString,
+  ) async {
     return isar.addressLabels.getByAddressStringWalletId(
       addressString,
       walletId,
@@ -573,7 +586,7 @@ class MainDB {
     List<TransactionV2> transactions,
   ) async {
     try {
-      List<int> ids = [];
+      final List<int> ids = [];
       await isar.writeTxn(() async {
         for (final tx in transactions) {
           final storedTx = await isar.transactionV2s
@@ -595,7 +608,9 @@ class MainDB {
       return ids;
     } catch (e) {
       throw MainDBException(
-          "failed updateOrPutTransactionV2s: $transactions", e);
+        "failed updateOrPutTransactionV2s: $transactions",
+        e,
+      );
     }
   }
 

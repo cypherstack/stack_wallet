@@ -60,11 +60,15 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/banano.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
@@ -120,7 +124,7 @@ class WalletView extends ConsumerStatefulWidget {
 class _WalletViewState extends ConsumerState<WalletView> {
   late final EventBus eventBus;
   late final String walletId;
-  late final Coin coin;
+  late final CryptoCurrency coin;
 
   late final bool isSparkWallet;
 
@@ -184,8 +188,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
     isSparkWallet = wallet is SparkInterface;
 
-    if (coin == Coin.firo &&
-        (wallet as FiroWallet).lelantusCoinIsarRescanRequired) {
+    if (coin is Firo && (wallet as FiroWallet).lelantusCoinIsarRescanRequired) {
       _rescanningOnOpen = true;
       _lelantusRescanRecovery = true;
       _firoRescanRecovery();
@@ -384,9 +387,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
   }
 
   Future<void> _onExchangePressed(BuildContext context) async {
-    final Coin coin = ref.read(pWalletCoin(walletId));
+    final CryptoCurrency coin = ref.read(pWalletCoin(walletId));
 
-    if (coin.isTestNet) {
+    if (coin.network == CryptoCurrencyNetwork.test) {
       await showDialog<void>(
         context: context,
         builder: (_) => const StackOkDialog(
@@ -421,7 +424,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
             WalletInitiatedExchangeView.routeName,
             arguments: Tuple2(
               walletId,
-              currency == null ? Coin.bitcoin : coin,
+              currency == null ? Bitcoin(CryptoCurrencyNetwork.main) : coin,
             ),
           ),
         );
@@ -430,9 +433,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
   }
 
   Future<void> _onBuyPressed(BuildContext context) async {
-    final Coin coin = ref.read(pWalletCoin(walletId));
+    final CryptoCurrency coin = ref.read(pWalletCoin(walletId));
 
-    if (coin.isTestNet) {
+    if (coin.network == CryptoCurrencyNetwork.test) {
       await showDialog<void>(
         context: context,
         builder: (_) => const StackOkDialog(
@@ -444,7 +447,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
         unawaited(
           Navigator.of(context).pushNamed(
             BuyInWalletView.routeName,
-            arguments: coin.hasBuySupport ? coin : Coin.bitcoin,
+            arguments:
+                coin.hasBuySupport ? coin : Bitcoin(CryptoCurrencyNetwork.main),
           ),
         );
       }
@@ -1020,7 +1024,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       }
                     },
                   ),
-                  if (ref.watch(pWalletCoin(walletId)).isFrost)
+                  if (ref.watch(pWalletCoin(walletId)) is FrostCurrency)
                     WalletNavigationBarItemData(
                       label: "Sign",
                       icon: const FrostSignNavIcon(),
@@ -1058,14 +1062,14 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     },
                   ),
                   if (Constants.enableExchange &&
-                      !ref.watch(pWalletCoin(walletId)).isFrost)
+                      ref.watch(pWalletCoin(walletId)) is! FrostCurrency)
                     WalletNavigationBarItemData(
                       label: "Swap",
                       icon: const ExchangeNavIcon(),
                       onTap: () => _onExchangePressed(context),
                     ),
                   if (Constants.enableExchange &&
-                      !ref.watch(pWalletCoin(walletId)).isFrost)
+                      ref.watch(pWalletCoin(walletId)) is! FrostCurrency)
                     WalletNavigationBarItemData(
                       label: "Buy",
                       icon: const BuyNavIcon(),
@@ -1091,7 +1095,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         );
                       },
                     ),
-                  if (coin == Coin.banano)
+                  if (coin is Banano)
                     WalletNavigationBarItemData(
                       icon: SvgPicture.asset(
                         Assets.svg.monkey,

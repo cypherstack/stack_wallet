@@ -18,7 +18,6 @@ import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -158,7 +157,7 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
                   ref.watch(pAmountFormatter(coin)).format(
                         Amount(
                           rawValue: BigInt.from(utxo.value),
-                          fractionDigits: coin.decimals,
+                          fractionDigits: coin.fractionDigits,
                         ),
                       ),
                   textAlign: TextAlign.right,
@@ -180,7 +179,7 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
                           ref.watch(pAmountFormatter(coin)).format(
                                 Amount(
                                   rawValue: BigInt.from(utxo.value),
-                                  fractionDigits: coin.decimals,
+                                  fractionDigits: coin.fractionDigits,
                                 ),
                               ),
                           textAlign: TextAlign.right,

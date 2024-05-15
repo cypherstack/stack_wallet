@@ -16,6 +16,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
@@ -117,9 +118,8 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                   children: [
                                     Container(
                                       decoration: BoxDecoration(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .colorForCoin(info.coin)
+                                        color: ref
+                                            .watch(pCoinColor(info.coin))
                                             .withOpacity(0.5),
                                         borderRadius: BorderRadius.circular(
                                           Constants.size.circularBorderRadius,

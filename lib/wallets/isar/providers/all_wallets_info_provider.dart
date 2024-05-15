@@ -4,7 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/supported_coins.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 
 final pAllWalletsInfo = Provider((ref) {
@@ -14,7 +15,8 @@ final pAllWalletsInfo = Provider((ref) {
 final pAllWalletsInfoByCoin = Provider((ref) {
   final infos = ref.watch(pAllWalletsInfo);
 
-  final Map<Coin, ({Coin coin, List<WalletInfo> wallets})> map = {};
+  final Map<CryptoCurrency, ({CryptoCurrency coin, List<WalletInfo> wallets})>
+      map = {};
 
   for (final info in infos) {
     if (map[info.coin] == null) {
@@ -24,8 +26,8 @@ final pAllWalletsInfoByCoin = Provider((ref) {
     map[info.coin]!.wallets.add(info);
   }
 
-  final List<({Coin coin, List<WalletInfo> wallets})> results = [];
-  for (final coin in Coin.values) {
+  final List<({CryptoCurrency coin, List<WalletInfo> wallets})> results = [];
+  for (final coin in SupportedCoins.cryptocurrencies) {
     if (map[coin] != null) {
       results.add(map[coin]!);
     }

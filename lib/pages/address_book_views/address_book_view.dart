@@ -20,12 +20,14 @@ import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/address_book_providers/address_book_filter_provider.dart';
+import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'package:stackwallet/widgets/address_book_card.dart';
 import 'package:stackwallet/widgets/background.dart';
@@ -45,7 +47,7 @@ class AddressBookView extends ConsumerStatefulWidget {
 
   static const String routeName = "/addressBook";
 
-  final Coin? coin;
+  final CryptoCurrency? coin;
   final String? filterTerm;
 
   @override
@@ -65,8 +67,10 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
     ref.refresh(addressBookFilterProvider);
 
     if (widget.coin == null) {
-      final List<Coin> coins = Coin.values.toList();
-      coins.remove(Coin.firoTestNet);
+      final coins = [...SupportedCoins.cryptocurrencies];
+      coins.removeWhere(
+        (e) => e is Firo && e.network == CryptoCurrencyNetwork.test,
+      );
 
       final bool showTestNet =
           ref.read(prefsChangeNotifierProvider).showTestNetCoins;
@@ -74,9 +78,10 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
       if (showTestNet) {
         ref.read(addressBookFilterProvider).addAll(coins, false);
       } else {
-        ref
-            .read(addressBookFilterProvider)
-            .addAll(coins.where((e) => !e.isTestNet), false);
+        ref.read(addressBookFilterProvider).addAll(
+              coins.where((e) => e.network != CryptoCurrencyNetwork.test),
+              false,
+            );
       }
     } else {
       ref.read(addressBookFilterProvider).add(widget.coin!, false);
@@ -101,7 +106,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
 
         addresses.add(
           ContactAddressEntry()
-            ..coinName = wallet.info.coin.name
+            ..coinName = wallet.info.coin.identifier
             ..address = addressString
             ..label = "Current Receiving"
             ..other = wallet.info.name,

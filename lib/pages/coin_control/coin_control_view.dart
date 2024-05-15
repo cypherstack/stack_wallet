@@ -24,7 +24,6 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
@@ -49,12 +48,12 @@ enum CoinControlViewType {
 
 class CoinControlView extends ConsumerStatefulWidget {
   const CoinControlView({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.type,
     this.requestedTotal,
     this.selectedUTXOs,
-  }) : super(key: key);
+  });
 
   static const routeName = "/coinControl";
 
@@ -128,7 +127,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
         filter: CCFilter.all,
         sort: _sort,
         searchTerm: "",
-        coin: coin,
+        cryptoCurrency: coin,
       );
     } else {
       _map = null;
@@ -141,7 +140,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                 : CCFilter.available,
         sort: _sort,
         searchTerm: _isSearching ? searchController.text : "",
-        coin: coin,
+        cryptoCurrency: coin,
       );
     }
 
@@ -682,7 +681,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                                       );
                                           final selectedSum =
                                               selectedSumInt.toAmountAsRaw(
-                                            fractionDigits: coin.decimals,
+                                            fractionDigits: coin.fractionDigits,
                                           );
                                           return Text(
                                             ref

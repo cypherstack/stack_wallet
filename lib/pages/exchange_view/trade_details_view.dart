@@ -33,6 +33,7 @@ import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
+import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -40,10 +41,10 @@ import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -58,13 +59,13 @@ import 'package:url_launcher/url_launcher.dart';
 
 class TradeDetailsView extends ConsumerStatefulWidget {
   const TradeDetailsView({
-    Key? key,
+    super.key,
     required this.tradeId,
     required this.transactionIfSentFromStack,
     required this.walletId,
     required this.walletName,
     this.clipboard = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   static const String routeName = "/tradeDetails";
 
@@ -87,9 +88,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
   bool isStackCoin(String ticker) {
     try {
       try {
-        coinFromTickerCaseInsensitive(ticker);
+        SupportedCoins.getCryptoCurrencyForTicker(ticker);
       } catch (_) {}
-      coinFromPrettyName(ticker);
+      SupportedCoins.getCryptoCurrencyByPrettyName(ticker);
       return true;
     } on ArgumentError catch (_) {
       return false;
@@ -167,8 +168,11 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
     final bool sentFromStack =
         transactionIfSentFromStack != null && walletId != null;
 
-    final trade = ref.watch(tradesServiceProvider.select(
-        (value) => value.trades.firstWhere((e) => e.tradeId == tradeId)));
+    final trade = ref.watch(
+      tradesServiceProvider.select(
+        (value) => value.trades.firstWhere((e) => e.tradeId == tradeId),
+      ),
+    );
 
     final bool hasTx = sentFromStack ||
         !(trade.status == "New" ||
@@ -273,16 +277,19 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       label: "Send from Stack",
                       buttonHeight: ButtonHeight.l,
                       onPressed: () {
-                        Coin coin;
+                        CryptoCurrency coin;
                         try {
-                          coin = coinFromTickerCaseInsensitive(
-                              trade.payInCurrency);
+                          coin = SupportedCoins.getCryptoCurrencyForTicker(
+                            trade.payInCurrency,
+                          );
                         } catch (_) {
-                          coin = coinFromPrettyName(trade.payInCurrency);
+                          coin = SupportedCoins.getCryptoCurrencyByPrettyName(
+                            trade.payInCurrency,
+                          );
                         }
                         final amount = Amount.fromDecimal(
                           sendAmount,
-                          fractionDigits: coin.decimals,
+                          fractionDigits: coin.fractionDigits,
                         );
                         final address = trade.payInAddress;
 
@@ -368,28 +375,34 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           const SizedBox(
                             height: 4,
                           ),
-                          Builder(builder: (context) {
-                            String text;
-                            try {
-                              final coin = coinFromTickerCaseInsensitive(
-                                  trade.payInCurrency);
-                              final amount = sendAmount.toAmount(
-                                  fractionDigits: coin.decimals);
-                              text = ref
-                                  .watch(pAmountFormatter(coin))
-                                  .format(amount);
-                            } catch (_) {
-                              text = sendAmount.toStringAsFixed(
+                          Builder(
+                            builder: (context) {
+                              String text;
+                              try {
+                                final coin =
+                                    SupportedCoins.getCryptoCurrencyForTicker(
+                                  trade.payInCurrency,
+                                );
+                                final amount = sendAmount.toAmount(
+                                  fractionDigits: coin.fractionDigits,
+                                );
+                                text = ref
+                                    .watch(pAmountFormatter(coin))
+                                    .format(amount);
+                              } catch (_) {
+                                text = sendAmount.toStringAsFixed(
                                   trade.payInCurrency.toLowerCase() == "xmr"
                                       ? 12
-                                      : 8);
-                            }
+                                      : 8,
+                                );
+                              }
 
-                            return SelectableText(
-                              "-$text ${trade.payInCurrency.toUpperCase()}",
-                              style: STextStyles.itemSubtitle(context),
-                            );
-                          }),
+                              return SelectableText(
+                                "-$text ${trade.payInCurrency.toUpperCase()}",
+                                style: STextStyles.itemSubtitle(context),
+                              );
+                            },
+                          ),
                         ],
                       ),
                       if (!isDesktop)
@@ -464,7 +477,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                               ),
                             ),
                           ],
-                        )
+                        ),
                     ],
                   ),
                   const SizedBox(
@@ -512,7 +525,8 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                               Text(
                                 "Amount",
                                 style: STextStyles.desktopTextExtraExtraSmall(
-                                    context),
+                                  context,
+                                ),
                               ),
                               const SizedBox(
                                 height: 2,
@@ -520,8 +534,8 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                               Text(
                                 "${trade.payInAmount} ${trade.payInCurrency.toUpperCase()}",
                                 style: STextStyles.desktopTextExtraExtraSmall(
-                                        context)
-                                    .copyWith(
+                                  context,
+                                ).copyWith(
                                   color: Theme.of(context)
                                       .extension<StackColors>()!
                                       .textDark,
@@ -542,43 +556,44 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                   ),
                   child: RichText(
                     text: TextSpan(
-                        text:
-                            "You must send at least ${sendAmount.toStringAsFixed(
-                          trade.payInCurrency.toLowerCase() == "xmr" ? 12 : 8,
-                        )} ${trade.payInCurrency.toUpperCase()}. ",
-                        style: isDesktop
-                            ? STextStyles.desktopTextExtraExtraSmall(context)
-                                .copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .accentColorRed)
-                            : STextStyles.label(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .warningForeground,
-                              ),
-                        children: [
-                          TextSpan(
-                            text:
-                                "If you send less than ${sendAmount.toStringAsFixed(
-                              trade.payInCurrency.toLowerCase() == "xmr"
-                                  ? 12
-                                  : 8,
-                            )} ${trade.payInCurrency.toUpperCase()}, your transaction may not be converted and it may not be refunded.",
-                            style: isDesktop
-                                ? STextStyles.desktopTextExtraExtraSmall(
-                                        context)
-                                    .copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .accentColorRed)
-                                : STextStyles.label(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .warningForeground,
-                                  ),
-                          ),
-                        ]),
+                      text:
+                          "You must send at least ${sendAmount.toStringAsFixed(
+                        trade.payInCurrency.toLowerCase() == "xmr" ? 12 : 8,
+                      )} ${trade.payInCurrency.toUpperCase()}. ",
+                      style: isDesktop
+                          ? STextStyles.desktopTextExtraExtraSmall(context)
+                              .copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorRed,
+                            )
+                          : STextStyles.label(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .warningForeground,
+                            ),
+                      children: [
+                        TextSpan(
+                          text:
+                              "If you send less than ${sendAmount.toStringAsFixed(
+                            trade.payInCurrency.toLowerCase() == "xmr" ? 12 : 8,
+                          )} ${trade.payInCurrency.toUpperCase()}, your transaction may not be converted and it may not be refunded.",
+                          style: isDesktop
+                              ? STextStyles.desktopTextExtraExtraSmall(
+                                  context,
+                                ).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorRed,
+                                )
+                              : STextStyles.label(context).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .warningForeground,
+                                ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -613,8 +628,10 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     CustomTextButton(
                       text: "View transaction",
                       onTap: () {
-                        final Coin coin =
-                            coinFromTickerCaseInsensitive(trade.payInCurrency);
+                        final CryptoCurrency coin =
+                            SupportedCoins.getCryptoCurrencyForTicker(
+                          trade.payInCurrency,
+                        );
 
                         if (isDesktop) {
                           Navigator.of(context).push(
@@ -638,7 +655,10 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           Navigator.of(context).pushNamed(
                             TransactionDetailsView.routeName,
                             arguments: Tuple3(
-                                transactionIfSentFromStack!, coin, walletId!),
+                              transactionIfSentFromStack!,
+                              coin,
+                              walletId!,
+                            ),
                           );
                         }
                       },
@@ -787,14 +807,15 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                         width: width + 20,
                                         height: width + 20,
                                         child: QrImageView(
-                                            data: trade.payInAddress,
-                                            size: width,
-                                            backgroundColor: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .popupBG,
-                                            foregroundColor: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .accentColorDark),
+                                          data: trade.payInAddress,
+                                          size: width,
+                                          backgroundColor: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .popupBG,
+                                          foregroundColor: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .accentColorDark,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -812,14 +833,16 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                         style: Theme.of(context)
                                             .extension<StackColors>()!
                                             .getSecondaryEnabledButtonStyle(
-                                                context),
+                                              context,
+                                            ),
                                         child: Text(
                                           "Cancel",
                                           style: STextStyles.button(context)
                                               .copyWith(
-                                                  color: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .accentColorDark),
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .accentColorDark,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -1005,8 +1028,10 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     height: 4,
                   ),
                   SelectableText(
-                    ref.watch(tradeNoteServiceProvider
-                        .select((value) => value.getNote(tradeId: tradeId))),
+                    ref.watch(
+                      tradeNoteServiceProvider
+                          .select((value) => value.getNote(tradeId: tradeId)),
+                    ),
                     style: STextStyles.itemSubtitle12(context),
                   ),
                 ],
@@ -1132,7 +1157,8 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       if (isDesktop)
                         SelectableText(
                           Format.extractDateFrom(
-                              trade.timestamp.millisecondsSinceEpoch ~/ 1000),
+                            trade.timestamp.millisecondsSinceEpoch ~/ 1000,
+                          ),
                           style: STextStyles.desktopTextExtraExtraSmall(context)
                               .copyWith(
                             color: Theme.of(context)
@@ -1145,13 +1171,15 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                   if (!isDesktop)
                     SelectableText(
                       Format.extractDateFrom(
-                          trade.timestamp.millisecondsSinceEpoch ~/ 1000),
+                        trade.timestamp.millisecondsSinceEpoch ~/ 1000,
+                      ),
                       style: STextStyles.itemSubtitle12(context),
                     ),
                   if (isDesktop)
                     IconCopyButton(
                       data: Format.extractDateFrom(
-                          trade.timestamp.millisecondsSinceEpoch ~/ 1000),
+                        trade.timestamp.millisecondsSinceEpoch ~/ 1000,
+                      ),
                     ),
                 ],
               ),
@@ -1265,7 +1293,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                 .infoItemIcons,
                             width: 12,
                           ),
-                        )
+                        ),
                       ],
                     ),
                 ],
@@ -1352,15 +1380,19 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
               SecondaryButton(
                 label: "Send from Stack",
                 onPressed: () {
-                  Coin coin;
+                  CryptoCurrency coin;
                   try {
-                    coin = coinFromTickerCaseInsensitive(trade.payInCurrency);
+                    coin = SupportedCoins.getCryptoCurrencyForTicker(
+                      trade.payInCurrency,
+                    );
                   } catch (_) {
-                    coin = coinFromPrettyName(trade.payInCurrency);
+                    coin = SupportedCoins.getCryptoCurrencyByPrettyName(
+                      trade.payInCurrency,
+                    );
                   }
                   final amount = Amount.fromDecimal(
                     sendAmount,
-                    fractionDigits: coin.decimals,
+                    fractionDigits: coin.fractionDigits,
                   );
                   final address = trade.payInAddress;
 

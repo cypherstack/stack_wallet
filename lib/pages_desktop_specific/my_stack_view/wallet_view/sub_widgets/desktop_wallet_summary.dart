@@ -20,9 +20,9 @@ import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import 'package:stackwallet/wallets/isar/providers/eth/token_balance_provider.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
@@ -63,7 +63,7 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
       ),
     );
     final coin = ref.watch(pWalletCoin(widget.walletId));
-    final isFiro = coin == Coin.firo || coin == Coin.firoTestNet;
+    final isFiro = coin is Firo;
     final locale = ref.watch(
         localeServiceChangeNotifierProvider.select((value) => value.locale));
 
@@ -154,12 +154,11 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
                   ? ref.watch(pCurrentTokenWallet)!.tokenContract.address
                   : null,
             ),
-            if (coin == Coin.firo || coin == Coin.firoTestNet)
+            if (coin is Firo)
               const SizedBox(
                 width: 8,
               ),
-            if (coin == Coin.firo || coin == Coin.firoTestNet)
-              const DesktopPrivateBalanceToggleButton(),
+            if (coin is Firo) const DesktopPrivateBalanceToggleButton(),
             const SizedBox(
               width: 8,
             ),

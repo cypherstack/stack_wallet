@@ -10,9 +10,10 @@ import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/models/node_model.dart' as _i7;
 import 'package:stackwallet/services/node_service.dart' as _i6;
 import 'package:stackwallet/services/wallets_service.dart' as _i3;
-import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i8;
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart'
     as _i2;
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart'
+    as _i8;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -124,7 +125,7 @@ class MockNodeService extends _i1.Mock implements _i6.NodeService {
       ) as _i4.Future<void>);
   @override
   _i4.Future<void> setPrimaryNodeFor({
-    required _i8.Coin? coin,
+    required _i8.CryptoCurrency? coin,
     required _i7.NodeModel? node,
     bool? shouldNotifyListeners = false,
   }) =>
@@ -142,14 +143,15 @@ class MockNodeService extends _i1.Mock implements _i6.NodeService {
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
   @override
-  _i7.NodeModel? getPrimaryNodeFor({required _i8.Coin? coin}) =>
+  _i7.NodeModel? getPrimaryNodeFor({required _i8.CryptoCurrency? currency}) =>
       (super.noSuchMethod(Invocation.method(
         #getPrimaryNodeFor,
         [],
-        {#coin: coin},
+        {#currency: currency},
       )) as _i7.NodeModel?);
   @override
-  List<_i7.NodeModel> getNodesFor(_i8.Coin? coin) => (super.noSuchMethod(
+  List<_i7.NodeModel> getNodesFor(_i8.CryptoCurrency? coin) =>
+      (super.noSuchMethod(
         Invocation.method(
           #getNodesFor,
           [coin],
@@ -164,12 +166,13 @@ class MockNodeService extends _i1.Mock implements _i6.NodeService {
         {#id: id},
       )) as _i7.NodeModel?);
   @override
-  List<_i7.NodeModel> failoverNodesFor({required _i8.Coin? coin}) =>
+  List<_i7.NodeModel> failoverNodesFor(
+          {required _i8.CryptoCurrency? currency}) =>
       (super.noSuchMethod(
         Invocation.method(
           #failoverNodesFor,
           [],
-          {#coin: coin},
+          {#currency: currency},
         ),
         returnValue: <_i7.NodeModel>[],
       ) as List<_i7.NodeModel>);

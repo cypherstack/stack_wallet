@@ -36,10 +36,13 @@ import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/show_loading.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
+import 'package:stackwallet/wallets/crypto_currency/intermediate/nano_currency.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
@@ -64,7 +67,7 @@ class WalletSettingsView extends ConsumerStatefulWidget {
   static const String routeName = "/walletSettings";
 
   final String walletId;
-  final Coin coin;
+  final CryptoCurrency coin;
   final WalletSyncStatus initialSyncStatus;
   final NodeConnectionStatus initialNodeStatus;
   final EventBus? eventBus;
@@ -75,7 +78,7 @@ class WalletSettingsView extends ConsumerStatefulWidget {
 
 class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
   late final String walletId;
-  late final Coin coin;
+  late final CryptoCurrency coin;
   late String xpub;
   late final bool xPubEnabled;
 
@@ -206,11 +209,11 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                     );
                                   },
                                 ),
-                                if (coin.isFrost)
+                                if (coin is FrostCurrency)
                                   const SizedBox(
                                     height: 8,
                                   ),
-                                if (coin.isFrost)
+                                if (coin is FrostCurrency)
                                   SettingsListButton(
                                     iconAssetName: Assets.svg.addressBook2,
                                     iconSize: 16,
@@ -376,11 +379,11 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                       );
                                     },
                                   ),
-                                if (coin == Coin.firo)
+                                if (coin is Firo)
                                   const SizedBox(
                                     height: 8,
                                   ),
-                                if (coin == Coin.firo)
+                                if (coin is Firo)
                                   Consumer(
                                     builder: (_, ref, __) {
                                       return SettingsListButton(
@@ -419,7 +422,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                                   ),
                                                   DB.instance
                                                       .clearSharedTransactionCache(
-                                                    coin: coin,
+                                                    currency: coin,
                                                   ),
                                                 ],
                                               ),
@@ -431,11 +434,11 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                       );
                                     },
                                   ),
-                                if (coin == Coin.nano || coin == Coin.banano)
+                                if (coin is NanoCurrency)
                                   const SizedBox(
                                     height: 8,
                                   ),
-                                if (coin == Coin.nano || coin == Coin.banano)
+                                if (coin is NanoCurrency)
                                   Consumer(
                                     builder: (_, ref, __) {
                                       return SettingsListButton(

@@ -16,7 +16,6 @@ import 'package:stackwallet/services/ethereum/ethereum_api.dart';
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/eth_commons.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -239,7 +238,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
     if (response.value == null) {
       Logging.instance.log(
-        "Failed to refresh transactions for ${cryptoCurrency.coin.prettyName} ${info.name} "
+        "Failed to refresh transactions for ${cryptoCurrency.prettyName} ${info.name} "
         "$walletId: ${response.exception}",
         level: LogLevel.Warning,
       );
@@ -349,7 +348,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       await mainDB.updateOrPutTransactionV2s(txns);
     } else {
       Logging.instance.log(
-        "Failed to refresh transactions with nonces for ${cryptoCurrency.coin.prettyName} "
+        "Failed to refresh transactions with nonces for ${cryptoCurrency.prettyName} "
         "${info.name} $walletId: ${txsResponse.exception}",
         level: LogLevel.Warning,
       );

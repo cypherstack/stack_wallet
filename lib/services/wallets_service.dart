@@ -12,18 +12,18 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 @Deprecated("Legacy support only. Do not use.")
 class WalletInfo {
-  final Coin coin;
+  final String coinIdentifier;
   final String walletId;
   final String name;
 
   @Deprecated("Legacy support only. Do not use.")
   const WalletInfo({
-    required this.coin,
+    required this.coinIdentifier,
     required this.walletId,
     required this.name,
   });
@@ -31,7 +31,7 @@ class WalletInfo {
   @Deprecated("Legacy support only. Do not use.")
   factory WalletInfo.fromJson(Map<String, dynamic> jsonObject) {
     return WalletInfo(
-      coin: Coin.values.byName(jsonObject["coin"] as String),
+      coinIdentifier: jsonObject["coin"] as String,
       walletId: jsonObject["id"] as String,
       name: jsonObject["name"] as String,
     );
@@ -42,7 +42,7 @@ class WalletInfo {
     return {
       "name": name,
       "id": walletId,
-      "coin": coin.name,
+      "coin": coinIdentifier,
     };
   }
 
@@ -75,12 +75,14 @@ class WalletsService extends ChangeNotifier {
         .get<dynamic>(boxName: DB.boxNameAllWalletsData, key: 'names') as Map?;
     if (names == null) {
       Logging.instance.log(
-          "Fetched wallet 'names' returned null. Setting initializing 'names'",
-          level: LogLevel.Info);
+        "Fetched wallet 'names' returned null. Setting initializing 'names'",
+        level: LogLevel.Info,
+      );
       await DB.instance.put<dynamic>(
-          boxName: DB.boxNameAllWalletsData,
-          key: 'names',
-          value: <String, dynamic>{});
+        boxName: DB.boxNameAllWalletsData,
+        key: 'names',
+        value: <String, dynamic>{},
+      );
       return {};
     }
     Logging.instance.log("Fetched wallet names: $names", level: LogLevel.Info);
@@ -88,16 +90,22 @@ class WalletsService extends ChangeNotifier {
     mapped.removeWhere((name, dyn) {
       final jsonObject = Map<String, dynamic>.from(dyn as Map);
       try {
-        Coin.values.byName(jsonObject["coin"] as String);
+        SupportedCoins.getCryptoCurrencyFor(jsonObject["coin"] as String);
         return false;
       } catch (e, s) {
-        Logging.instance.log("Error, ${jsonObject["coin"]} does not exist",
-            level: LogLevel.Error);
+        Logging.instance.log(
+          "Error, ${jsonObject["coin"]} does not exist",
+          level: LogLevel.Error,
+        );
         return true;
       }
     });
 
-    return mapped.map((name, dyn) => MapEntry(
-        name, WalletInfo.fromJson(Map<String, dynamic>.from(dyn as Map))));
+    return mapped.map(
+      (name, dyn) => MapEntry(
+        name,
+        WalletInfo.fromJson(Map<String, dynamic>.from(dyn as Map)),
+      ),
+    );
   }
 }

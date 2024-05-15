@@ -23,14 +23,17 @@ import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/stellar.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
@@ -56,7 +59,7 @@ class SendFromView extends ConsumerStatefulWidget {
 
   static const String routeName = "/sendFrom";
 
-  final Coin coin;
+  final CryptoCurrency coin;
   final Amount amount;
   final String address;
   final Trade trade;
@@ -68,7 +71,7 @@ class SendFromView extends ConsumerStatefulWidget {
 }
 
 class _SendFromViewState extends ConsumerState<SendFromView> {
-  late final Coin coin;
+  late final CryptoCurrency coin;
   late final Amount amount;
   late final String address;
   late final Trade trade;
@@ -279,7 +282,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
 
       // if not firo then do normal send
       if (shouldSendPublicFiroFunds == null) {
-        final memo = coin == Coin.stellar || coin == Coin.stellarTestnet
+        final memo = coin is Stellar
             ? trade.payInExtraId.isNotEmpty
                 ? trade.payInExtraId
                 : null
@@ -427,7 +430,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
 
     final coin = ref.watch(pWalletCoin(walletId));
 
-    final isFiro = coin == Coin.firoTestNet || coin == Coin.firo;
+    final isFiro = coin is Firo;
 
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(0),
@@ -602,10 +605,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .colorForCoin(coin)
-                      .withOpacity(0.5),
+                  color: ref.watch(pCoinColor(coin)).withOpacity(0.5),
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),

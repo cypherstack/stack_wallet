@@ -10,15 +10,17 @@
 
 import 'package:stackwallet/models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/ethereum.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 class EthTokenEntity extends AddWalletListEntity {
   EthTokenEntity(this.token);
 
   final EthContract token;
 
+  // TODO: check other networks in future and handle differently?
   @override
-  Coin get coin => Coin.ethereum;
+  CryptoCurrency get cryptoCurrency => Ethereum(CryptoCurrencyNetwork.main);
 
   @override
   String get name => token.name;
@@ -27,5 +29,6 @@ class EthTokenEntity extends AddWalletListEntity {
   String get ticker => token.symbol;
 
   @override
-  List<Object?> get props => [coin, name, ticker, token.address];
+  List<Object?> get props =>
+      [cryptoCurrency.identifier, name, ticker, token.address];
 }

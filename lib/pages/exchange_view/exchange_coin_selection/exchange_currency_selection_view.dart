@@ -22,10 +22,10 @@ import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
+import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -143,7 +143,8 @@ class _ExchangeCurrencySelectionViewState
               onPressed: () async {
                 Navigator.of(context, rootNavigator: isDesktop).pop();
                 _currencies = await _showUpdatingCurrencies(
-                    whileFuture: _loadCurrencies());
+                  whileFuture: _loadCurrencies(),
+                );
                 setState(() {});
               },
             ),
@@ -164,15 +165,17 @@ class _ExchangeCurrencySelectionViewState
         .filter()
         .isFiatEqualTo(false)
         .and()
-        .group((q) => widget.isFixedRate
-            ? q
-                .rateTypeEqualTo(SupportedRateType.both)
-                .or()
-                .rateTypeEqualTo(SupportedRateType.fixed)
-            : q
-                .rateTypeEqualTo(SupportedRateType.both)
-                .or()
-                .rateTypeEqualTo(SupportedRateType.estimated))
+        .group(
+          (q) => widget.isFixedRate
+              ? q
+                  .rateTypeEqualTo(SupportedRateType.both)
+                  .or()
+                  .rateTypeEqualTo(SupportedRateType.fixed)
+              : q
+                  .rateTypeEqualTo(SupportedRateType.both)
+                  .or()
+                  .rateTypeEqualTo(SupportedRateType.estimated),
+        )
         .sortByIsStackCoin()
         .thenByName()
         .findAll();
@@ -180,9 +183,10 @@ class _ExchangeCurrencySelectionViewState
     // If using Tor, filter exchanges which do not support Tor.
     if (Prefs.instance.useTor) {
       if (Exchange.exchangeNamesWithTorSupport.isNotEmpty) {
-        currencies.removeWhere((element) => !Exchange
-            .exchangeNamesWithTorSupport
-            .contains(element.exchangeName));
+        currencies.removeWhere(
+          (element) => !Exchange.exchangeNamesWithTorSupport
+              .contains(element.exchangeName),
+        );
       }
     }
 
@@ -193,7 +197,8 @@ class _ExchangeCurrencySelectionViewState
     final List<Currency> distinctCurrencies = [];
     for (final currency in currencies) {
       if (!distinctCurrencies.any(
-          (e) => e.ticker.toLowerCase() == currency.ticker.toLowerCase())) {
+        (e) => e.ticker.toLowerCase() == currency.ticker.toLowerCase(),
+      )) {
         distinctCurrencies.add(currency);
       }
     }
@@ -207,23 +212,29 @@ class _ExchangeCurrencySelectionViewState
       }
 
       return _currencies
-          .where((e) =>
-              e.name.toLowerCase().contains(text.toLowerCase()) ||
-              e.ticker.toLowerCase().contains(text.toLowerCase()))
+          .where(
+            (e) =>
+                e.name.toLowerCase().contains(text.toLowerCase()) ||
+                e.ticker.toLowerCase().contains(text.toLowerCase()),
+          )
           .toList();
     } else {
       if (text.isEmpty) {
         return _currencies
-            .where((e) =>
-                e.ticker.toLowerCase() != widget.pairedTicker!.toLowerCase())
+            .where(
+              (e) =>
+                  e.ticker.toLowerCase() != widget.pairedTicker!.toLowerCase(),
+            )
             .toList();
       }
 
       return _currencies
-          .where((e) =>
-              e.ticker.toLowerCase() != widget.pairedTicker!.toLowerCase() &&
-              (e.name.toLowerCase().contains(text.toLowerCase()) ||
-                  e.ticker.toLowerCase().contains(text.toLowerCase())))
+          .where(
+            (e) =>
+                e.ticker.toLowerCase() != widget.pairedTicker!.toLowerCase() &&
+                (e.name.toLowerCase().contains(text.toLowerCase()) ||
+                    e.ticker.toLowerCase().contains(text.toLowerCase())),
+          )
           .toList();
     }
   }
@@ -266,7 +277,8 @@ class _ExchangeCurrencySelectionViewState
                   if (FocusScope.of(context).hasFocus) {
                     FocusScope.of(context).unfocus();
                     await Future<void>.delayed(
-                        const Duration(milliseconds: 50));
+                      const Duration(milliseconds: 50),
+                    );
                   }
                   if (mounted) {
                     Navigator.of(context).pop();
@@ -353,18 +365,24 @@ class _ExchangeCurrencySelectionViewState
           Flexible(
             child: Builder(
               builder: (context) {
-                final coins = Coin.values.where((e) =>
-                    e.ticker.toLowerCase() !=
-                    widget.pairedTicker?.toLowerCase());
+                final coins = SupportedCoins.cryptocurrencies.where(
+                  (e) =>
+                      e.ticker.toLowerCase() !=
+                      widget.pairedTicker?.toLowerCase(),
+                );
 
                 final items = filter(_searchString);
 
                 final walletCoins = items
-                    .where((currency) => coins
-                        .where((coin) =>
-                            coin.ticker.toLowerCase() ==
-                            currency.ticker.toLowerCase())
-                        .isNotEmpty)
+                    .where(
+                      (currency) => coins
+                          .where(
+                            (coin) =>
+                                coin.ticker.toLowerCase() ==
+                                currency.ticker.toLowerCase(),
+                          )
+                          .isNotEmpty,
+                    )
                     .toList();
 
                 // sort alphabetically by name
@@ -402,7 +420,9 @@ class _ExchangeCurrencySelectionViewState
                                   height: 24,
                                   child: isStackCoin(items[index].ticker)
                                       ? CoinIconForTicker(
-                                          ticker: items[index].ticker, size: 24)
+                                          ticker: items[index].ticker,
+                                          size: 24,
+                                        )
                                       // ? getIconForTicker(
                                       //     items[index].ticker,
                                       //     size: 24,

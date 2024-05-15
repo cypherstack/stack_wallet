@@ -3,23 +3,50 @@ import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:stackwallet/wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
 import 'package:stackwallet/wallets/crypto_currency/interfaces/paynym_currency_interface.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 
-class Bitcoin extends Bip39HDCurrency with PaynymCurrencyInterface {
+class Bitcoin extends Bip39HDCurrency
+    with ElectrumXCurrencyInterface, PaynymCurrencyInterface {
   Bitcoin(super.network) {
+    _idMain = "bitcoin";
+    _uriScheme = "bitcoin";
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        coin = Coin.bitcoin;
+        _id = _idMain;
+        _name = "Bitcoin";
+        _ticker = "BTC";
       case CryptoCurrencyNetwork.test:
-        coin = Coin.bitcoinTestNet;
+        _id = "bitcoinTestNet";
+        _name = "tBitcoin";
+        _ticker = "tBTC";
       default:
         throw Exception("Unsupported network: $network");
     }
   }
+
+  late final String _id;
+  @override
+  String get identifier => _id;
+
+  late final String _idMain;
+  @override
+  String get mainNetId => _idMain;
+
+  late final String _name;
+  @override
+  String get prettyName => _name;
+
+  late final String _uriScheme;
+  @override
+  String get uriScheme => _uriScheme;
+
+  late final String _ticker;
+  @override
+  String get ticker => _ticker;
 
   @override
   // change this to change the number of confirms a tx needs in order to show as confirmed
@@ -194,10 +221,30 @@ class Bitcoin extends Bip39HDCurrency with PaynymCurrencyInterface {
   NodeModel get defaultNode {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return DefaultNodes.bitcoin;
+        return NodeModel(
+          host: "bitcoin.stackwallet.com",
+          port: 50002,
+          name: DefaultNodes.defaultName,
+          id: DefaultNodes.buildId(this),
+          useSSL: true,
+          enabled: true,
+          coinName: identifier,
+          isFailover: true,
+          isDown: false,
+        );
 
       case CryptoCurrencyNetwork.test:
-        return DefaultNodes.bitcoinTestnet;
+        return NodeModel(
+          host: "bitcoin-testnet.stackwallet.com",
+          port: 51002,
+          name: DefaultNodes.defaultName,
+          id: DefaultNodes.buildId(this),
+          useSSL: true,
+          enabled: true,
+          coinName: identifier,
+          isFailover: true,
+          isDown: false,
+        );
 
       default:
         throw UnimplementedError();
@@ -205,10 +252,43 @@ class Bitcoin extends Bip39HDCurrency with PaynymCurrencyInterface {
   }
 
   @override
-  bool operator ==(Object other) {
-    return other is Bitcoin && other.network == network;
-  }
+  int get defaultSeedPhraseLength => 12;
 
   @override
-  int get hashCode => Object.hash(Bitcoin, network);
+  int get fractionDigits => 8;
+
+  @override
+  bool get hasBuySupport => true;
+
+  @override
+  bool get hasMnemonicPassphraseSupport => true;
+
+  @override
+  List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 24];
+
+  @override
+  AddressType get primaryAddressType => AddressType.p2wpkh;
+
+  @override
+  BigInt get satsPerCoin => BigInt.from(100000000);
+
+  @override
+  int get targetBlockTimeSeconds => 600;
+
+  @override
+  DerivePathType get primaryDerivePathType => DerivePathType.bip84;
+
+  @override
+  Uri defaultBlockExplorer(String txid) {
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        return Uri.parse("https://mempool.space/tx/$txid");
+      case CryptoCurrencyNetwork.test:
+        return Uri.parse("https://mempool.space/testnet/tx/$txid");
+      default:
+        throw Exception(
+          "Unsupported network for defaultBlockExplorer(): $network",
+        );
+    }
+  }
 }

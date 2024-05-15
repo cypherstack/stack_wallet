@@ -15,12 +15,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/wallets_view/wallets_overview.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/providers/all_wallets_info_provider.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
@@ -54,7 +53,7 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
             child: child,
           ),
           child: DesktopWalletSummaryRow(
-            key: Key("DesktopWalletSummaryRow_key_${coin.name}"),
+            key: Key("DesktopWalletSummaryRow_key_${coin.identifier}"),
             coin: coin,
             walletCount: walletsByCoin[index].wallets.length,
           ),
@@ -75,7 +74,7 @@ class DesktopWalletSummaryRow extends ConsumerStatefulWidget {
     required this.walletCount,
   });
 
-  final Coin coin;
+  final CryptoCurrency coin;
   final int walletCount;
 
   @override
@@ -91,8 +90,7 @@ class _DesktopWalletSummaryRowState
     // Check if Tor is enabled...
     if (ref.read(prefsChangeNotifierProvider).useTor) {
       // ... and if the coin supports Tor.
-      final cryptocurrency = SupportedCoins.getCryptoCurrencyFor(widget.coin);
-      if (!cryptocurrency.torSupport) {
+      if (!widget.coin.torSupport) {
         // If not, show a Tor warning dialog.
         final shouldContinue = await showDialog<bool>(
               context: context,
@@ -222,7 +220,7 @@ class _DesktopWalletSummaryRowState
 class TablePriceInfo extends ConsumerWidget {
   const TablePriceInfo({Key? key, required this.coin}) : super(key: key);
 
-  final Coin coin;
+  final CryptoCurrency coin;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

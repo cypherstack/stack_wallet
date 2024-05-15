@@ -31,10 +31,11 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/epiccash.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -58,9 +59,9 @@ typedef _GroupedTransactions = ({
 
 class AllTransactionsView extends ConsumerStatefulWidget {
   const AllTransactionsView({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/allTransactions";
 
@@ -830,10 +831,10 @@ class TransactionFilterOptionBarItem extends StatelessWidget {
 
 class DesktopTransactionCardRow extends ConsumerStatefulWidget {
   const DesktopTransactionCardRow({
-    Key? key,
+    super.key,
     required this.transaction,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final Transaction transaction;
   final String walletId;
@@ -849,8 +850,8 @@ class _DesktopTransactionCardRowState
   late final String walletId;
   late final int minConfirms;
 
-  String whatIsIt(TransactionType type, Coin coin, int height) {
-    if (coin == Coin.epicCash && _transaction.slateId == null) {
+  String whatIsIt(TransactionType type, CryptoCurrency coin, int height) {
+    if (coin is Epiccash && _transaction.slateId == null) {
       return "Restored Funds";
     }
 
@@ -934,7 +935,7 @@ class _DesktopTransactionCardRowState
           ),
         ),
         onPressed: () async {
-          if (coin == Coin.epicCash && _transaction.slateId == null) {
+          if (coin is Epiccash && _transaction.slateId == null) {
             unawaited(
               showFloatingFlushBar(
                 context: context,

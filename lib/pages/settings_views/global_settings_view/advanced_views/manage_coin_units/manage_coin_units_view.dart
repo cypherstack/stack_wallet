@@ -5,12 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/manage_coin_units/edit_coin_units_view.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
+import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -19,11 +21,11 @@ import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class ManageCoinUnitsView extends ConsumerWidget {
-  const ManageCoinUnitsView({Key? key}) : super(key: key);
+  const ManageCoinUnitsView({super.key});
 
   static const String routeName = "/manageCoinUnitsView";
 
-  void onEditPressed(Coin coin, BuildContext context) {
+  void onEditPressed(CryptoCurrency coin, BuildContext context) {
     if (Util.isDesktop) {
       showDialog<void>(
         context: context,
@@ -39,14 +41,17 @@ class ManageCoinUnitsView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    bool showTestNet = ref.watch(
+    final showTestNet = ref.watch(
       prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
     );
 
-    final _coins = Coin.values.where((e) => e != Coin.firoTestNet).toList();
+    final _coins = SupportedCoins.cryptocurrencies
+        .where((e) => e is! Firo && e.network != CryptoCurrencyNetwork.test)
+        .toList();
 
-    List<Coin> coins =
-        showTestNet ? _coins : _coins.where((e) => !e.isTestNet).toList();
+    final coins = showTestNet
+        ? _coins
+        : _coins.where((e) => e.network != CryptoCurrencyNetwork.test).toList();
 
     return ConditionalParent(
       condition: Util.isDesktop,

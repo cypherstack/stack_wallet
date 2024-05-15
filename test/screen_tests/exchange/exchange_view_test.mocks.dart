@@ -32,9 +32,10 @@ import 'package:stackwallet/services/trade_notes_service.dart' as _i14;
 import 'package:stackwallet/services/trade_service.dart' as _i12;
 import 'package:stackwallet/utilities/amount/amount_unit.dart' as _i9;
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i7;
-import 'package:stackwallet/utilities/enums/coin_enum.dart' as _i10;
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i6;
 import 'package:stackwallet/utilities/prefs.dart' as _i5;
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart'
+    as _i10;
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart'
     as _i2;
 
@@ -503,7 +504,7 @@ class MockPrefs extends _i1.Mock implements _i5.Prefs {
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
   @override
-  _i9.AmountUnit amountUnit(_i10.Coin? coin) => (super.noSuchMethod(
+  _i9.AmountUnit amountUnit(_i10.CryptoCurrency? coin) => (super.noSuchMethod(
         Invocation.method(
           #amountUnit,
           [coin],
@@ -512,7 +513,7 @@ class MockPrefs extends _i1.Mock implements _i5.Prefs {
       ) as _i9.AmountUnit);
   @override
   void updateAmountUnit({
-    required _i10.Coin? coin,
+    required _i10.CryptoCurrency? coin,
     required _i9.AmountUnit? amountUnit,
   }) =>
       super.noSuchMethod(
@@ -527,7 +528,7 @@ class MockPrefs extends _i1.Mock implements _i5.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  int maxDecimals(_i10.Coin? coin) => (super.noSuchMethod(
+  int maxDecimals(_i10.CryptoCurrency? coin) => (super.noSuchMethod(
         Invocation.method(
           #maxDecimals,
           [coin],
@@ -536,7 +537,7 @@ class MockPrefs extends _i1.Mock implements _i5.Prefs {
       ) as int);
   @override
   void updateMaxDecimals({
-    required _i10.Coin? coin,
+    required _i10.CryptoCurrency? coin,
     required int? maxDecimals,
   }) =>
       super.noSuchMethod(
@@ -551,7 +552,8 @@ class MockPrefs extends _i1.Mock implements _i5.Prefs {
         returnValueForMissingStub: null,
       );
   @override
-  _i2.FusionInfo getFusionServerInfo(_i10.Coin? coin) => (super.noSuchMethod(
+  _i2.FusionInfo getFusionServerInfo(_i10.CryptoCurrency? coin) =>
+      (super.noSuchMethod(
         Invocation.method(
           #getFusionServerInfo,
           [coin],
@@ -566,7 +568,7 @@ class MockPrefs extends _i1.Mock implements _i5.Prefs {
       ) as _i2.FusionInfo);
   @override
   void setFusionServerInfo(
-    _i10.Coin? coin,
+    _i10.CryptoCurrency? coin,
     _i2.FusionInfo? fusionServerInfo,
   ) =>
       super.noSuchMethod(

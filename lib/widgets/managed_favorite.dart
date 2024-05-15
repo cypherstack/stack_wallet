@@ -16,21 +16,22 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/widgets/custom_buttons/favorite_toggle.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class ManagedFavorite extends ConsumerStatefulWidget {
   const ManagedFavorite({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 
@@ -50,7 +51,7 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
     final coin = ref.watch(pWalletCoin(walletId));
 
     Amount total = ref.watch(pWalletBalance(walletId)).total;
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
+    if (coin is Firo) {
       final balancePrivate =
           ref.watch(pWalletBalanceSecondary(walletId)).total +
               ref.watch(pWalletBalanceTertiary(walletId)).total;
@@ -85,10 +86,7 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .colorForCoin(coin)
-                      .withOpacity(0.5),
+                  color: ref.watch(pCoinColor(coin)).withOpacity(0.5),
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
@@ -141,7 +139,7 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
                                   .extension<StackColors>()!
                                   .buttonTextBorderless,
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),

@@ -28,10 +28,10 @@ import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/services/notifications_api.dart';
+import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -51,9 +51,9 @@ final desktopExchangeModelProvider =
 
 class StepScaffold extends ConsumerStatefulWidget {
   const StepScaffold({
-    Key? key,
+    super.key,
     required this.initialStep,
-  }) : super(key: key);
+  });
 
   final int initialStep;
 
@@ -194,9 +194,9 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
   void sendFromStack() {
     final trade = ref.read(desktopExchangeModelProvider)!.trade!;
     final address = trade.payInAddress;
-    final coin = coinFromTickerCaseInsensitive(trade.payInCurrency);
+    final coin = SupportedCoins.getCryptoCurrencyForTicker(trade.payInCurrency);
     final amount = Decimal.parse(trade.payInAmount).toAmount(
-      fractionDigits: coin.decimals,
+      fractionDigits: coin.fractionDigits,
     );
 
     showDialog<void>(

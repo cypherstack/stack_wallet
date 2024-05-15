@@ -20,11 +20,12 @@ import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/eth_commons.dart';
 import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/ethereum.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:tuple/tuple.dart';
 
 class EthApiException implements Exception {
@@ -47,7 +48,8 @@ class EthereumResponse<T> {
 }
 
 abstract class EthereumAPI {
-  static String get stackBaseServer => DefaultNodes.ethereum.host;
+  static String get stackBaseServer =>
+      Ethereum(CryptoCurrencyNetwork.main).defaultNode.host;
 
   static HTTP client = HTTP();
 

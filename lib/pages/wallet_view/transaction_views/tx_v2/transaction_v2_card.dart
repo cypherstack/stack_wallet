@@ -15,19 +15,20 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/format.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/ethereum.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
 
 class TransactionCardV2 extends ConsumerStatefulWidget {
   const TransactionCardV2({
-    Key? key,
+    super.key,
     required this.transaction,
-  }) : super(key: key);
+  });
 
   final TransactionV2 transaction;
 
@@ -40,17 +41,17 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
   late final String walletId;
   late final String prefix;
   late final String unit;
-  late final Coin coin;
+  late final CryptoCurrency coin;
   late final TransactionType txType;
   late final EthContract? tokenContract;
 
   bool get isTokenTx => tokenContract != null;
 
   String whatIsIt(
-    Coin coin,
+    CryptoCurrency coin,
     int currentHeight,
   ) =>
-      _transaction.isCancelled && coin == Coin.ethereum
+      _transaction.isCancelled && coin is Ethereum
           ? "Failed"
           : _transaction.statusLabel(
               currentChainHeight: currentHeight,
@@ -112,7 +113,7 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
 
     final Amount amount;
 
-    final fractionDigits = tokenContract?.decimals ?? coin.decimals;
+    final fractionDigits = tokenContract?.decimals ?? coin.fractionDigits;
 
     if (_transaction.subType == TransactionSubType.cashFusion) {
       amount = _transaction.getAmountReceivedInThisWallet(
@@ -138,7 +139,7 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
                   .where((e) =>
                       e.walletOwns && !e.addresses.contains(changeAddress))
                   .fold(BigInt.zero, (p, e) => p + e.value),
-              fractionDigits: coin.decimals,
+              fractionDigits: coin.fractionDigits,
             );
           } else {
             amount = _transaction.getAmountReceivedInThisWallet(

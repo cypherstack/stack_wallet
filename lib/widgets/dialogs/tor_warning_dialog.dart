@@ -1,20 +1,20 @@
 import 'package:flutter/cupertino.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:stackwallet/widgets/dialogs/basic_dialog.dart';
 
 class TorWarningDialog extends StatelessWidget {
-  final Coin coin;
+  final CryptoCurrency coin;
   final VoidCallback? onContinue;
   final VoidCallback? onCancel;
 
-  TorWarningDialog({
-    Key? key,
+  const TorWarningDialog({
+    super.key,
     required this.coin,
     this.onContinue,
     this.onCancel,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -16,9 +16,10 @@ import 'package:flutter/foundation.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:tuple/tuple.dart';
 
 class PriceAPI {
@@ -43,10 +44,11 @@ class PriceAPI {
   }
 
   Future<void> _updateCachedPrices(
-      Map<Coin, Tuple2<Decimal, double>> data) async {
+    Map<CryptoCurrency, Tuple2<Decimal, double>> data,
+  ) async {
     final Map<String, dynamic> map = {};
 
-    for (final coin in Coin.values) {
+    for (final coin in SupportedCoins.cryptocurrencies) {
       final entry = data[coin];
       if (entry == null) {
         map[coin.prettyName] = ["0", 0.0];
@@ -59,26 +61,32 @@ class PriceAPI {
         .put<dynamic>(boxName: DB.boxNamePriceCache, key: 'cache', value: map);
   }
 
-  Map<Coin, Tuple2<Decimal, double>> get _cachedPrices {
+  Map<CryptoCurrency, Tuple2<Decimal, double>> get _cachedPrices {
     final map =
         DB.instance.get<dynamic>(boxName: DB.boxNamePriceCache, key: 'cache')
                 as Map? ??
             {};
     // init with 0
     final result = {
-      for (final coin in Coin.values) coin: Tuple2(Decimal.zero, 0.0)
+      for (final coin in SupportedCoins.cryptocurrencies)
+        coin: Tuple2(Decimal.zero, 0.0),
     };
 
     for (final entry in map.entries) {
-      result[coinFromPrettyName(entry.key as String)] = Tuple2(
-          Decimal.parse(entry.value[0] as String), entry.value[1] as double);
+      result[SupportedCoins.getCryptoCurrencyByPrettyName(
+        entry.key as String,
+      )] = Tuple2(
+        Decimal.parse(entry.value[0] as String),
+        entry.value[1] as double,
+      );
     }
 
     return result;
   }
 
-  Future<Map<Coin, Tuple2<Decimal, double>>> getPricesAnd24hChange(
-      {required String baseCurrency}) async {
+  Future<Map<CryptoCurrency, Tuple2<Decimal, double>>> getPricesAnd24hChange({
+    required String baseCurrency,
+  }) async {
     final now = DateTime.now();
     if (_lastUsedBaseCurrency != baseCurrency ||
         now.difference(_lastCalled) > refreshIntervalDuration) {
@@ -91,11 +99,13 @@ class PriceAPI {
     final externalCalls = Prefs.instance.externalCalls;
     if ((!Logger.isTestEnv && !externalCalls) ||
         !(await Prefs.instance.isExternalCallsSet())) {
-      Logging.instance.log("User does not want to use external calls",
-          level: LogLevel.Info);
+      Logging.instance.log(
+        "User does not want to use external calls",
+        level: LogLevel.Info,
+      );
       return _cachedPrices;
     }
-    Map<Coin, Tuple2<Decimal, double>> result = {};
+    final Map<CryptoCurrency, Tuple2<Decimal, double>> result = {};
     try {
       final uri = Uri.parse(
           "https://api.coingecko.com/api/v3/coins/markets?vs_currency"
@@ -116,7 +126,7 @@ class PriceAPI {
 
       for (final map in coinGeckoData) {
         final String coinName = map["name"] as String;
-        final coin = coinFromPrettyName(coinName);
+        final coin = SupportedCoins.getCryptoCurrencyByPrettyName(coinName);
 
         final price = Decimal.parse(map["current_price"].toString());
         final change24h = map["price_change_percentage_24h"] != null
@@ -131,8 +141,10 @@ class PriceAPI {
 
       return _cachedPrices;
     } catch (e, s) {
-      Logging.instance.log("getPricesAnd24hChange($baseCurrency): $e\n$s",
-          level: LogLevel.Error);
+      Logging.instance.log(
+        "getPricesAnd24hChange($baseCurrency): $e\n$s",
+        level: LogLevel.Error,
+      );
       // return previous cached values
       return _cachedPrices;
     }
@@ -140,12 +152,14 @@ class PriceAPI {
 
   static Future<List<String>?> availableBaseCurrencies() async {
     final externalCalls = Prefs.instance.externalCalls;
-    HTTP client = HTTP();
+    final HTTP client = HTTP();
 
     if ((!Logger.isTestEnv && !externalCalls) ||
         !(await Prefs.instance.isExternalCallsSet())) {
-      Logging.instance.log("User does not want to use external calls",
-          level: LogLevel.Info);
+      Logging.instance.log(
+        "User does not want to use external calls",
+        level: LogLevel.Info,
+      );
       return null;
     }
     const uriString =
@@ -163,8 +177,10 @@ class PriceAPI {
       final json = jsonDecode(response.body) as List<dynamic>;
       return List<String>.from(json);
     } catch (e, s) {
-      Logging.instance.log("availableBaseCurrencies() using $uriString: $e\n$s",
-          level: LogLevel.Error);
+      Logging.instance.log(
+        "availableBaseCurrencies() using $uriString: $e\n$s",
+        level: LogLevel.Error,
+      );
       return null;
     }
   }
@@ -181,8 +197,10 @@ class PriceAPI {
     final externalCalls = Prefs.instance.externalCalls;
     if ((!Logger.isTestEnv && !externalCalls) ||
         !(await Prefs.instance.isExternalCallsSet())) {
-      Logging.instance.log("User does not want to use external calls",
-          level: LogLevel.Info);
+      Logging.instance.log(
+        "User does not want to use external calls",
+        level: LogLevel.Info,
+      );
       return tokenPrices;
     }
 

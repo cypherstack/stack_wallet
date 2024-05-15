@@ -15,6 +15,7 @@ import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:stackwallet/wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
 import 'package:stackwallet/wallets/isar/models/spark_coin.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
@@ -25,12 +26,12 @@ import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interfa
 
 const sparkStartBlock = 819300; // (approx 18 Jan 2024)
 
-class FiroWallet extends Bip39HDWallet
-    with ElectrumXInterface, LelantusInterface, SparkInterface {
+class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
+    with ElectrumXInterface<T>, LelantusInterface<T>, SparkInterface<T> {
   // IMPORTANT: The order of the above mixins matters.
   // SparkInterface MUST come after LelantusInterface.
 
-  FiroWallet(CryptoCurrencyNetwork network) : super(Firo(network));
+  FiroWallet(CryptoCurrencyNetwork network) : super(Firo(network) as T);
 
   @override
   int get isarTransactionVersion => 2;
@@ -112,7 +113,7 @@ class FiroWallet extends Bip39HDWallet
       final txn = await electrumXCachedClient.getTransaction(
         txHash: tx.txid,
         verbose: true,
-        coin: info.coin,
+        cryptoCurrency: info.coin,
       );
       final height = txn["height"] as int?;
 
@@ -146,7 +147,7 @@ class FiroWallet extends Bip39HDWallet
         tx = await electrumXCachedClient.getTransaction(
           txHash: txHash["tx_hash"] as String,
           verbose: true,
-          coin: info.coin,
+          cryptoCurrency: info.coin,
         );
       } catch (_) {
         continue;
@@ -379,7 +380,7 @@ class FiroWallet extends Bip39HDWallet
         } else if (coinbase == null && txid != null && vout != null) {
           final inputTx = await electrumXCachedClient.getTransaction(
             txHash: txid,
-            coin: cryptoCurrency.coin,
+            cryptoCurrency: cryptoCurrency,
           );
 
           final prevOutJson = Map<String, dynamic>.from(
@@ -603,7 +604,7 @@ class FiroWallet extends Bip39HDWallet
         if (isRescan) {
           // clear cache
           await electrumXCachedClient.clearSharedTransactionCache(
-              coin: info.coin);
+              cryptoCurrency: info.coin);
           // clear blockchain info
           await mainDB.deleteWalletBlockchainData(walletId);
         }
@@ -613,19 +614,19 @@ class FiroWallet extends Bip39HDWallet
         final setDataMapFuture = getSetDataMap(latestSetId);
         final usedSerialNumbersFuture =
             electrumXCachedClient.getUsedCoinSerials(
-          coin: info.coin,
+          cryptoCurrency: info.coin,
         );
 
         // spark
         final latestSparkCoinId = await electrumXClient.getSparkLatestCoinId();
         final sparkAnonSetFuture = electrumXCachedClient.getSparkAnonymitySet(
           groupId: latestSparkCoinId.toString(),
-          coin: info.coin,
+          cryptoCurrency: info.coin,
           useOnlyCacheIfNotEmpty: false,
         );
         final sparkUsedCoinTagsFuture =
             electrumXCachedClient.getSparkUsedCoinsTags(
-          coin: info.coin,
+          cryptoCurrency: info.coin,
         );
 
         // receiving addresses

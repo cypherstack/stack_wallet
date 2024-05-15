@@ -11,9 +11,9 @@ import 'package:stackwallet/providers/ui/verify_recovery_phrase/mnemonic_word_co
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -26,7 +26,8 @@ import 'package:tuple/tuple.dart';
 
 final pNewWalletOptions =
     StateProvider<({String mnemonicPassphrase, int mnemonicWordsCount})?>(
-        (ref) => null);
+  (ref) => null,
+);
 
 enum NewWalletOptions {
   Default,
@@ -35,15 +36,15 @@ enum NewWalletOptions {
 
 class NewWalletOptionsView extends ConsumerStatefulWidget {
   const NewWalletOptionsView({
-    Key? key,
+    super.key,
     required this.walletName,
     required this.coin,
-  }) : super(key: key);
+  });
 
   static const routeName = "/newWalletOptionsView";
 
   final String walletName;
-  final Coin coin;
+  final CryptoCurrency coin;
 
   @override
   ConsumerState<NewWalletOptionsView> createState() =>
@@ -74,7 +75,7 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
 
   @override
   Widget build(BuildContext context) {
-    final lengths = Constants.possibleLengthsForCoin(widget.coin).toList();
+    final lengths = widget.coin.possibleMnemonicLengths;
     return ConditionalParent(
       condition: Util.isDesktop,
       builder: (child) => DesktopScaffold(
@@ -339,7 +340,8 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
                                 ),
                                 GestureDetector(
                                   key: const Key(
-                                      "mnemonicPassphraseFieldShowPasswordButtonKey"),
+                                    "mnemonicPassphraseFieldShowPasswordButtonKey",
+                                  ),
                                   onTap: () async {
                                     setState(() {
                                       hidePassword = !hidePassword;
